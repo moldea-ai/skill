@@ -1,0 +1,4 @@
+interface:
+  display_name: "moldea"
+  short_description: "Build and align Git-native agent context"
+  default_prompt: "Use $moldea to initialize this repository context and agent instructions."

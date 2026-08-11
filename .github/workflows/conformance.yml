@@ -1,0 +1,91 @@
+name: Conformance
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  portable:
+    name: Portable contract / Node.js ${{ matrix.node }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        node:
+          - "22.11.0"
+          - "24.11.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install development dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Run all correctness tests
+        env:
+          MOLDEA_RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
+        run: npm test
+      - name: Install and compare the portable artifact
+        env:
+          SKILLS_TEST_HOME: ${{ runner.temp }}/skills-home
+        run: |
+          mkdir -p "$SKILLS_TEST_HOME"
+          HOME="$SKILLS_TEST_HOME" XDG_CONFIG_HOME="$SKILLS_TEST_HOME/.config" npx --yes skills@1.5.22 add ./moldea -g -a codex -y --copy
+          test -d "$SKILLS_TEST_HOME/.agents/skills/moldea"
+          diff --recursive --brief moldea "$SKILLS_TEST_HOME/.agents/skills/moldea"
+      - name: Install and compare the tagged release source
+        if: github.ref_type == 'tag'
+        env:
+          SKILLS_TEST_HOME: ${{ runner.temp }}/tagged-skills-home
+        run: |
+          mkdir -p "$SKILLS_TEST_HOME"
+          HOME="$SKILLS_TEST_HOME" XDG_CONFIG_HOME="$SKILLS_TEST_HOME/.config" npx --yes skills@1.5.22 add "https://github.com/moldea-ai/skill/tree/${{ github.ref_name }}/moldea" -g -a codex -y --copy
+          test -d "$SKILLS_TEST_HOME/.agents/skills/moldea"
+          diff --recursive --brief moldea "$SKILLS_TEST_HOME/.agents/skills/moldea"
+
+  package-managers:
+    name: ${{ matrix.manager }} ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - manager: npm
+            package: npm
+            version: "10.9.0"
+          - manager: npm
+            package: npm
+            version: "11.19.0"
+          - manager: pnpm
+            package: pnpm
+            version: "11.20.0"
+          - manager: pnpm
+            package: pnpm
+            version: "11.21.0"
+          - manager: yarn
+            package: "@yarnpkg/cli-dist"
+            version: "4.0.0"
+          - manager: yarn
+            package: "@yarnpkg/cli-dist"
+            version: "4.18.0"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.11.0"
+      - name: Install tested package manager
+        run: npm install --global --ignore-scripts "${{ matrix.package }}@${{ matrix.version }}"
+      - name: Exercise lifecycle-safe install contract
+        env:
+          MOLDEA_TEST_MANAGER: ${{ matrix.manager }}
+          MOLDEA_TEST_MANAGER_VERSION: ${{ matrix.version }}
+        run: npm run test:integration

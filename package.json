@@ -1,0 +1,19 @@
+{
+  "name": "@moldea.ai/skill-conformance",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Development-only conformance checks for the moldea Agent Skill.",
+  "type": "module",
+  "engines": {
+    "node": "^22.11.0 || ^24.11.0"
+  },
+  "scripts": {
+    "eval:semantic": "node tests/semantic-evaluation-runner.mjs",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "node --test tests/*.test-unit.mjs",
+    "test:integration": "node --test tests/*.test-integration.mjs"
+  },
+  "devDependencies": {
+    "yaml": "2.9.0"
+  }
+}

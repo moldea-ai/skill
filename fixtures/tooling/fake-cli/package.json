@@ -1,0 +1,13 @@
+{
+  "name": "@moldea.ai/cli",
+  "version": "1.0.0",
+  "private": true,
+  "bin": {
+    "moldea": "bin/moldea.js"
+  },
+  "scripts": {
+    "preinstall": "node lifecycle-sentinel.mjs dependency-preinstall",
+    "install": "node lifecycle-sentinel.mjs dependency-install",
+    "postinstall": "node lifecycle-sentinel.mjs dependency-postinstall"
+  }
+}

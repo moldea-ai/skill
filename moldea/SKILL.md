@@ -13,13 +13,11 @@ when the available evidence is sufficient.
 
 Use this compatibility declaration for skill release `1.0.0`:
 
-| Component        | Supported versions |
-| ---------------- | ------------------ | --- | --------- |
-| Node.js          | `^22.11.0          |     | ^24.11.0` |
-| `@moldea.ai/cli` | `^1.0.0`           |
-| npm              | `11.12.1`          |
-| pnpm             | `11.9.0`           |
-| Yarn             | `1.22.22`          |
+- Node.js: `^22.11.0 || ^24.11.0`
+- `@moldea.ai/cli`: `^1.0.0`
+- npm: `11.12.1`
+- pnpm: `11.9.0`
+- yarn: `1.22.22`
 
 Treat the CLI range as a compatibility range, not as the dependency declaration to write into a
 client repository. Pin the resolved CLI version exactly in every client repository.
@@ -168,6 +166,10 @@ manifest, or the installed package's authoritative documentation when authoring 
   slug. Include human-readable UTC metadata in the document.
 - Register project-level implementation relationships when current context governs exact code paths
   or broader behavior-affecting areas.
+- Preserve materially distinct lifecycle events and timing rules. For authorization, ownership,
+  billing, value-bearing, destructive, or concurrent flows, capture the responsible actor,
+  authoritative state transition, transaction and idempotency boundary, timing semantics, and audit
+  obligations established by repository evidence.
 - Preserve controlled duplication only when it makes an instruction complete and directly readable;
   update every materially duplicated surface together.
 
@@ -176,31 +178,51 @@ manifest, or the installed package's authoritative documentation when authoring 
 1. Review `moldea/project.md`, material focused context, accepted decisions, runtime guidance,
    framework evidence, executable schemas, capabilities, variable providers, loaders, mirrors, and
    implementation bindings.
-2. Use one stable lowercase ASCII kebab-case agent ID and its canonical directory at
+2. Verify that repository evidence supports every material responsibility and runtime operation the
+   instruction will declare. When required implementation, schema, capability, loader, variable
+   provider, transaction guarantee, or runtime behavior is missing or incomplete, preserve the gap
+   as an appropriately classified unresolved requirement owned by the project or agent in
+   `moldea/moldea.yaml` instead of implying support. Mentioning the gap in `instruction.md` may inform
+   the model but never substitutes for the manifest requirement.
+3. Use one stable lowercase ASCII kebab-case agent ID and its canonical directory at
    `moldea/agents/{agent-id}/`. Treat an ID change as a breaking change.
-3. Select exactly one supported adapter from `eve`, `openai-agents-sdk`, `langchain`, `langgraph`,
-   `vercel-ai-sdk`, `pydantic-ai`, or `custom`. Use `custom` when repository evidence establishes a
-   runtime that no available official adapter matches reliably. Resolve a genuinely unknown runtime
-   before registering the agent.
-4. Create `description.md` with a concise vendor-independent description of the agent's primary
+4. Run `./node_modules/.bin/moldea compatibility --json` and select exactly one adapter that the
+   active implementation reports as structurally available. The official ID set is `eve`,
+   `openai-agents-sdk`, `langchain`, `langgraph`, `vercel-ai-sdk`, `pydantic-ai`, and `custom`.
+5. Use a package-backed official adapter only when the active compatibility matrix reports it as
+   available. Use the Core-provided `custom` adapter when repository evidence establishes a runtime
+   that no available official adapter matches reliably. Resolve a genuinely unknown runtime before
+   registering the agent.
+6. Create `description.md` with a concise vendor-independent description of the agent's primary
    responsibility and practical scope. Keep its normalized length between 1 and 1,000 Unicode scalar
    values and exclude runtime-variable syntax.
-5. Create exactly one complete `instruction.md`. Identify the canonical agent ID in backticks at the
+7. Create exactly one complete `instruction.md`. Identify the canonical agent ID in backticks at the
    beginning, state its purpose, and include all material responsibilities, boundaries, input and
    output expectations, capabilities, schemas, variables, failure behavior, escalation, and runtime
    protections.
-6. Create `handoff-description.md` only when another agent, router, model, or workflow needs a concise
+8. Create `handoff-description.md` only when another agent, router, model, or workflow needs a concise
    target-owned routing hint. Describe when to hand off, not the target's general behavior. Apply the
    same length and static-content rules as `description.md`.
-7. Register exact bindings with repository-root-absolute logical paths and symbols where useful.
-   Register broader impact paths only for areas that can materially change supported behavior.
-8. Keep framework-native routing relationships in implementation code rather than inventing an
+9. Register an exact repository-root-absolute logical path and, when useful, symbol for every runtime
+   agent, executable schema, loader, variable provider, capability implementation, or other code
+   artifact on which the instruction materially depends. Register broader impact paths for areas
+   that can materially change supported behavior. Do not finalize the agent while a material
+   instruction dependency lacks either its required manifest binding or an explicit unresolved
+   requirement that identifies the missing contract.
+10. Keep framework-native routing relationships in implementation code rather than inventing an
    outbound handoff graph in `moldea.yaml`.
+
+When the active repository-format contract needed to record a binding or unresolved requirement
+cannot be established from CLI/Core evidence or installed authoritative documentation, stop and
+report the blocker. Never invent manifest keys or encode the relationship only in prose to bypass
+that blocker.
 
 ## Maintain schemas, tools, skills, and variables
 
 - Treat executable schemas in application or framework code as runtime-validation authority. Keep
   the model-facing representation in the instruction semantically aligned.
+- Bind every executable input or output schema that the owning instruction uses to its authoritative
+  repository-local path and, when available, exported symbol.
 - Register a tool or skill only when repository format version `1` can bind it to a repository-local
   implementation file.
 - Give every registered capability a stable agent-scoped ID, exact runtime-facing name, concise
@@ -223,6 +245,11 @@ materially affects current truth or declared agent behavior. Give it a stable ID
 Assurance effect, precise description, explicit resolution criteria, and useful related references.
 Use `blocking` for unsafe or materially incomplete behavior, `warning` for a relevant gap with safe
 coherent current behavior, and `informational` for visibility without outcome impact.
+
+Record each requirement in `moldea/moldea.yaml` under the project or agent that owns the gap. Related
+references provide requirement-specific traceability but do not replace agent context or
+implementation bindings. An instruction may communicate a model-facing limitation, but an
+instruction-only requirement is not a registered unresolved requirement.
 
 Never use unresolved requirements as a roadmap or remove one merely because a related file changed.
 Verify its resolution criteria before resolving or deleting it.

@@ -1,3 +1,5 @@
+![moldea](assets/cover.png)
+
 # moldea Agent Skill
 
 Install the released `moldea` skill globally so it is available across repositories:
@@ -93,15 +95,15 @@ It does not create an agent automatically. Additional context, decisions, runtim
 
 ## Natural-language operations
 
-| Outcome | Example request |
-| --- | --- |
-| Initialize | `Initialize moldea for this repository.` |
-| Maintain context | `Update the project context for the new refund policy.` |
-| Create an agent | `Create a customer-support agent grounded in the current implementation.` |
+| Outcome           | Example request                                                             |
+| ----------------- | --------------------------------------------------------------------------- |
+| Initialize        | `Initialize moldea for this repository.`                                    |
+| Maintain context  | `Update the project context for the new refund policy.`                     |
+| Create an agent   | `Create a customer-support agent grounded in the current implementation.`   |
 | Maintain an agent | `Add the order lookup tool to the support agent and align its instruction.` |
-| Evaluate | `Evaluate the current moldea project.` |
-| Reconcile | `Reconcile the billing agent with the implementation.` |
-| Validate | `Validate the moldea project.` |
+| Evaluate          | `Evaluate the current moldea project.`                                      |
+| Reconcile         | `Reconcile the billing agent with the implementation.`                      |
+| Validate          | `Validate the moldea project.`                                              |
 
 `evaluate` reports deterministic diagnostics, confirmed semantic problems, material ambiguities, relevant unresolved requirements, and evidence limitations without modifying any repository file. `reconcile` begins from the same evidence model and applies only the smallest authorized coherent correction.
 

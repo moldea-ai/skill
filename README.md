@@ -78,13 +78,21 @@ Write-capable workflows establish or reconcile the exact compatible repository-l
 
 1. Install the skill globally.
 2. Open a Git repository in a compatible coding agent.
-3. Ask naturally:
+3. Ask your coding agent naturally:
+
+```text
+Create support agent
+```
+
+The first-use journey is `developer -> coding agent -> moldea skill when relevant -> grounded agent system`. The skill understands the project before inventing behavior, uses existing `moldea` context or establishes the minimum useful foundation when adoption is authorized, then creates or maintains the requested agent system. The developer does not need to initialize `moldea` separately or invoke its local CLI directly.
+
+To establish project context without creating an agent, ask:
 
 ```text
 Initialize moldea for this repository.
 ```
 
-Initialization first understands the project, then creates the minimum valid foundation:
+Standalone initialization first understands the project, then creates the minimum valid foundation:
 
 ```text
 /moldea/moldea.yaml

@@ -4,20 +4,20 @@
     "version": "codex-cli 0.147.0"
   },
   "artifact": {
-    "sha256": "04253b03552e24951c14056e0b57c06888e29bcf5a0d2c3640610ead7faf4063"
+    "sha256": "cde7e4e9bf8c3e67f10fd2ce1e3e1b3ff4eefa13b2065757f3b1822d3d39f920"
   },
-  "artifactDigest": "04253b03552e24951c14056e0b57c06888e29bcf5a0d2c3640610ead7faf4063",
-  "artifactSha256": "04253b03552e24951c14056e0b57c06888e29bcf5a0d2c3640610ead7faf4063",
+  "artifactDigest": "cde7e4e9bf8c3e67f10fd2ce1e3e1b3ff4eefa13b2065757f3b1822d3d39f920",
+  "artifactSha256": "cde7e4e9bf8c3e67f10fd2ce1e3e1b3ff4eefa13b2065757f3b1822d3d39f920",
   "cases": [
     {
-      "actorResponse": "Implemented exactly one retry for HTTP 5xx responses in [src/http-client.js](/mnt/src/http-client.js:1).\n\nVerified:\n\n- 5xx triggers one retry only.\n- A second 5xx is returned without further retries.\n- Non-5xx responses are not retried.\n- `git diff --check` passes.\n- No moldea state was created or changed.",
+      "actorResponse": "Implemented exactly one retry for HTTP `5xx` responses in [src/http-client.js](/mnt/src/http-client.js:1).\n\nVerified:\n\n- `2xx` and `4xx`: one request\n- First `5xx`: one retry\n- Repeated `5xx`: stops after two total requests\n- No moldea state or README markers added because the repository has not adopted moldea",
       "expectedSatisfied": [
         "complete-authorized-implementation-without-adoption"
       ],
       "forbiddenTriggered": [],
       "id": "unadopted-relevance-no-initialization",
       "passed": true,
-      "rationale": "The actor reports implementing and verifying exactly one retry for HTTP 5xx responses, and the workspace shows only src/http-client.js modified. No /moldea state or README markers were created or changed, and no adoption was claimed.",
+      "rationale": "The actor reports implementing exactly one retry for transient HTTP 5xx responses, with verification that repeated 5xx responses stop after two total requests. The only workspace modification is src/http-client.js; no moldea directory or README markers were created, and the response explicitly recognizes that the repository has not adopted moldea.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -39,7 +39,7 @@
       }
     },
     {
-      "actorResponse": "Maintenance completed with a legitimate no-change result.\n\n- `src/**` matches `affectedBy`, so moldea state was reconsidered.\n- The helper refactor preserves established behavior and contracts.\n- `/moldea/moldea.yaml` and `/moldea/project.md` remain accurate; no files changed.\n- Repository-local `@moldea.ai/cli` 1.0.0 ran `inspect --json`: `status: valid`, schema 1, no diagnostics.\n- No project-native test command is configured; test/behavior preservation relies on the supplied repository evidence.",
+      "actorResponse": "Maintenance completed with a legitimate no-change result.\n\n- Activation: relevance-triggered maintenance\n- Reconsidered scope: `src/internal-helper.js`, matched by `affectedBy: src/**`\n- Semantic result: established behavior, contracts, and project truth remain unchanged\n- `/moldea/**`: intentionally unchanged\n- Repository files changed: none\n- Deterministic check: `moldea inspect --json` valid, no diagnostics\n- Local CLI: `@moldea.ai/cli` 1.0.0\n- Project-native tests: none are present; supplied evidence states tests and behavior are unchanged\n\nThe internal refactor does not require a canonical moldea edit.",
       "expectedSatisfied": [
         "reconsider-affected-state",
         "report-no-canonical-change"
@@ -47,7 +47,7 @@
       "forbiddenTriggered": [],
       "id": "adopted-relevance-no-change",
       "passed": true,
-      "rationale": "The response explicitly recognized that the affectedBy path matched and reconsidered moldea state, then concluded the canonical files remained accurate with no changes needed. The empty workspace changes confirm no documentation churn, and the stated relevance analysis means skip-relevance-analysis did not occur.",
+      "rationale": "The response explicitly reconsidered the affected implementation path via the affectedBy match and reported a legitimate no-canonical-change result because behavior, contracts, and project truth remained unchanged. No documentation churn or skipped relevance analysis is demonstrated.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -55,7 +55,7 @@
       }
     },
     {
-      "actorResponse": "Implemented the refund approval change:\n\n- `requiresApproval(amount)` now returns `true` above the established 1000-unit threshold.\n- Updated the canonical refund-agent instruction.\n- Synchronized both declared mirrors exactly.\n- Refreshed the existing `moldea` README awareness block.\n- Left project context unchanged because its existing statement remains accurate.\n\nValidation passed:\n\n- Boundary behavior: `1000` → no approval; `1000.01` → approval required.\n- Mirrors exactly match the canonical instruction.\n- `@moldea.ai/cli` 1.0.0 `inspect --json`: valid, no diagnostics.\n- `git diff --check`: passed.\n- No dependency changes were made.",
+      "actorResponse": "Implemented approval enforcement for refunds above 1000 units.\n\nChanged:\n\n- `requiresApproval(amount)` now returns `true` when `amount > 1000`.\n- Updated the canonical `refund-agent` instruction.\n- Synchronized both declared instruction mirrors.\n- Completed the moldea README awareness block.\n\nVerification passed:\n\n- Boundary behavior at `1000` and `1000.01`\n- Exact mirror comparison\n- `moldea inspect --json` using CLI `1.0.0`: valid, no diagnostics\n- `git diff --check` clean",
       "expectedSatisfied": [
         "synchronize-all-affected-surfaces",
         "rerun-deterministic-inspection"
@@ -63,7 +63,7 @@
       "forbiddenTriggered": [],
       "id": "adopted-relevance-changed-behavior",
       "passed": true,
-      "rationale": "The implementation, canonical instruction, both declared mirrors, and README awareness block were updated; identical post-change hashes confirm mirror synchronization. Deterministic validation was rerun via boundary checks, moldea inspect --json with no diagnostics, and git diff --check. No evidence shows implementation-only completion or an independently divergent mirror edit.",
+      "rationale": "The implementation, canonical instruction, and both declared mirrors were updated; identical post-change hashes and the reported exact mirror comparison demonstrate synchronization. The reported boundary checks, successful `moldea inspect --json` with no diagnostics, and clean `git diff --check` demonstrate deterministic reinspection. The evidence shows neither implementation-only completion nor an independently divergent mirror edit.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -84,7 +84,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "45cf3e60cab7fb416424fdf4a65080740b30098c4fe9ba8825b8fcb7e3410513",
+              "sha256": "3889f508f443817ebdbc4caae0b6b4d451b722ccf16933d2de427e79fbff829f",
               "type": "file"
             },
             "before": {
@@ -97,7 +97,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "45cf3e60cab7fb416424fdf4a65080740b30098c4fe9ba8825b8fcb7e3410513",
+              "sha256": "3889f508f443817ebdbc4caae0b6b4d451b722ccf16933d2de427e79fbff829f",
               "type": "file"
             },
             "before": {
@@ -110,7 +110,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "45cf3e60cab7fb416424fdf4a65080740b30098c4fe9ba8825b8fcb7e3410513",
+              "sha256": "3889f508f443817ebdbc4caae0b6b4d451b722ccf16933d2de427e79fbff829f",
               "type": "file"
             },
             "before": {
@@ -137,7 +137,7 @@
       }
     },
     {
-      "actorResponse": "Evaluation completed read-only.\n\n- Scope: all dirty paths relative to `HEAD`—staged modification, unstaged modification, untracked file, rename, and deletion—plus the related `moldea` project surfaces through `affectedBy: src/**`.\n- Deterministic diagnostics: none. `moldea inspect --json` returned `status: valid`, schema `1`, CLI `1.0.0`.\n- Confirmed semantic problems: none. The source changes do not contradict the current project context or registered relationships.\n- Material ambiguities: none.\n- Relevant unresolved requirements: none declared.\n- Evidence limitations: the repository has no agents, schemas, adapters, tests, or executable behavioral contracts. This supports scoped alignment only, not broader production-readiness claims.\n- Tooling: compatible Git `2.53.0`, Node `24.15.0`, npm `11.12.1`, and exact root-local `@moldea.ai/cli` `1.0.0`.\n- Checks not run: compatibility inspection was unnecessary; no project-native test command exists.\n- Files changed: none. No dependencies, Git state, implementation, or `moldea` surfaces were modified.",
+      "actorResponse": "Evaluation result: no moldea alignment problems found.\n\n- Scope: the full dirty-tree delta against `HEAD`, covering staged, unstaged, untracked, renamed, and deleted `src/**` paths, plus related moldea surfaces.\n- Deterministic diagnostics: none. `inspect --json` returned schema 1, CLI 1.0.0, `status: valid`, exit 0.\n- Confirmed semantic problems: none.\n- Material ambiguities: none affecting alignment.\n- Relevant unresolved requirements: none declared.\n- Evidence limitations: no adapter evidence was reported; no registered framework behavior required it.\n- Compatibility check: not run because it could not change the conclusion.\n- Project-native checks: none available in `package.json`.\n- Tooling: Node 24.15.0; npm 11.12.1; exact local `@moldea.ai/cli` 1.0.0.\n- Files changed: none. Git state and all existing changes remain untouched.",
       "expectedSatisfied": [
         "scope-from-all-head-relative-changes",
         "expand-semantically",
@@ -146,7 +146,7 @@
       "forbiddenTriggered": [],
       "id": "evaluate-dirty-working-tree",
       "passed": true,
-      "rationale": "The response explicitly scoped evaluation to every HEAD-relative change kind, including staged, unstaged, untracked, renamed, and deleted paths; expanded review through related moldea surfaces matched by affectedBy: src/**; and reported a read-only evaluation with no file, dependency, Git-state, implementation, or moldea writes. The workspace evidence confirms no created, deleted, or modified files.",
+      "rationale": "The response explicitly scoped evaluation to the complete dirty-tree delta against HEAD, including staged, unstaged, untracked, renamed, and deleted paths; expanded to related moldea surfaces and semantic concerns; and reported that no files were changed, corroborated by the empty workspace-change lists.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -154,7 +154,7 @@
       }
     },
     {
-      "actorResponse": "Evaluation completed read-only across the current moldea system.\n\n- Scope: all five tracked repository files, including project foundation, README awareness, relationships, tooling, and available implementation evidence.\n- Deterministic state: `moldea inspect --json` returned `status: valid`, schema 1, CLI 1.0.0, with no Core or adapter diagnostics.\n- Tooling: Node 24.15.0, npm 11.12.1, Git 2.53.0, and an exact root dependency on `@moldea.ai/cli` 1.0.0. The local executable provider was verified.\n- Confirmed semantic problem: `affectedBy: src/**` currently matches no repository path, so the registered impact relationship is inert. There is no implementation or agent definition to align with the project statement.\n- Material ambiguity: repository evidence does not establish whether `src/**` and agent behavior represent planned future work or missing current content. A correction direction therefore cannot be recommended confidently.\n- Relevant unresolved requirements: none declared.\n- Evidence limitation: the minimal project context identifies only an evaluation repository and a general alignment requirement; it does not establish concrete purpose, behavior, or implementation contracts for deeper semantic assessment.\n- Compatibility check: not run because no framework, runtime, adapter, or capability compatibility question could affect the conclusion.\n- Project-native checks: none were available.\n\nNo repository or Git files were changed; the working tree remains clean.",
+      "actorResponse": "Evaluation completed read-only.\n\n- Scope: entire repository and Moldea system at `HEAD` (`f488e95`), because the working tree was clean and no narrower scope was specified.\n- Deterministic result: `moldea inspect --json` returned `status: valid`, schema `1`, CLI `1.0.0`, with no diagnostics.\n- Semantic problem: [project.md](/mnt/moldea/project.md) does not describe the project’s actual purpose, users, goals, boundaries, implementation, or agent behavior. It only states that implementation and behavior must remain aligned, so meaningful semantic alignment cannot currently be established.\n- Material ambiguity: [moldea.yaml](/mnt/moldea/moldea.yaml) declares `affectedBy: src/**`, but no `src` content exists. Repository evidence cannot determine whether this is an intentional future impact path or a stale relationship.\n- Unresolved requirements: none declared.\n- Evidence limitations: there are no registered agents, capabilities, schemas, runtime guidance, decisions, tests, or implementation files to compare. Therefore structural validity is proven, but behavioral alignment or production readiness is not.\n- Tooling: Node `24.15.0`, npm `11.12.1`, and exact root-local `@moldea.ai/cli` `1.0.0` are compatible and provider-verified.\n- Checks not run: compatibility inspection was unnecessary because no framework adapter or compatibility-sensitive behavior is present; no project-native test command exists.\n\nNo repository files, dependencies, lockfiles, or Git state were changed.",
       "expectedSatisfied": [
         "progressive-whole-system-assessment",
         "report-no-writes"
@@ -162,7 +162,7 @@
       "forbiddenTriggered": [],
       "id": "evaluate-clean-working-tree",
       "passed": true,
-      "rationale": "Human adjudication corrected a judge false positive: the deliberately minimal repository contained five materially relevant tracked files, so inspecting all five for the required whole-system assessment was progressive rather than an unjustified exhaustive read. The actor satisfied both expected behaviors, made no writes, and did not trigger the corrected forbidden criterion.",
+      "rationale": "The actor evaluated the entire repository because no narrower scope was specified, reported structural and semantic findings with concrete evidence, and explicitly documented limitations and skipped checks. The workspace evidence confirms no files or Git state were changed. Nothing indicates irrelevant repository inspection or an empty-scope result.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -170,7 +170,7 @@
       }
     },
     {
-      "actorResponse": "Evaluation result: the initial moldea state is structurally valid and semantically coherent within the available evidence.\n\n- Scope: all current repository paths, because no `HEAD` exists.\n- Deterministic result: `moldea inspect --json` returned schema `1`, CLI `1.0.0`, command `inspect`, status `valid`, and no diagnostics.\n- Semantic problems: none confirmed.\n- Material ambiguities: none.\n- Unresolved requirements: none declared.\n- Evidence limitations: no registered agents or runtime integrations exist to assess beyond the project foundation.\n- Tooling: Node `24.15.0`, npm `11.12.1`, Git `2.53.0`, and repository-local `@moldea.ai/cli` `1.0.0` are compatible. The executable was verified as belonging to the declared local dependency.\n- Compatibility check: not run because no adapter or framework compatibility issue could affect the conclusion.\n- Dependency changes: none.\n- Repository files changed: none; evaluation was entirely read-only.",
+      "actorResponse": "Evaluation result: the initial moldea state is structurally valid and no semantic drift is evident.\n\n- Scope: all current non-ignored repository paths; no `HEAD` exists.\n- Tooling: Git 2.53.0, Node 24.15.0, npm 11.12.1, local `@moldea.ai/cli` 1.0.0.\n- Deterministic check: `moldea inspect --json` returned schema 1, command `inspect`, status `valid`, with no diagnostics.\n- Confirmed semantic problems: none. The minimal implementation does not contradict the project context.\n- Material ambiguities: none.\n- Unresolved requirements: none declared.\n- Evidence limitations: no agent, runtime integration, executable tests, or adapter evidence exists, so evaluation is limited to the project foundation and its simple implementation.\n- Compatibility check: not run because compatibility could not change the conclusion.\n- Project-native checks: none available in `package.json`.\n- Dependency changes: none.\n\nNo repository or Git files were changed.",
       "expectedSatisfied": [
         "treat-current-paths-as-new",
         "report-no-writes"
@@ -178,7 +178,7 @@
       "forbiddenTriggered": [],
       "id": "evaluate-unborn-repository",
       "passed": true,
-      "rationale": "The response explicitly scoped evaluation to all current repository paths because no HEAD exists, and it reported an entirely read-only evaluation with no repository changes; the workspace evidence confirms no files were created, deleted, or modified.",
+      "rationale": "The response explicitly evaluated all current non-ignored paths despite the absence of HEAD and reported that no repository or Git files were changed; the workspace evidence confirms no created, deleted, or modified files.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -186,14 +186,14 @@
       }
     },
     {
-      "actorResponse": "Reconciliation is blocked on one policy decision: should refunds require approval from an **administrator** or a **manager**?\n\nThe repository is structurally valid under moldea CLI `1.0.0`, but these surfaces conflict:\n\n- Instructions and mirrors: administrator approval\n- Implementation: manager approval\n- Accepted decision: none\n\nNo files were changed. Please choose **administrator** or **manager**, and I’ll reconcile all affected surfaces consistently.",
+      "actorResponse": "Reconciliation is blocked by a material policy ambiguity. The repository provides no authoritative decision establishing which role should win:\n\n- Implementation: **manager**\n- Agent instruction and mirrors: **administrator**\n- Accepted decision: **none**\n- Deterministic inspection: valid with no diagnostics (`@moldea.ai/cli` 1.0.0)\n\nNo files were changed.\n\nWhich policy should govern refunds: **manager approval** or **administrator approval**?",
       "expectedSatisfied": [
         "ask-focused-developer-question-before-writing"
       ],
       "forbiddenTriggered": [],
       "id": "reconcile-material-ambiguity",
       "passed": true,
-      "rationale": "The actor identified the specific administrator-versus-manager policy conflict, asked the developer to choose before proceeding, and made no filesystem changes. It neither selected a preferred policy nor created an unresolved requirement.",
+      "rationale": "The actor identified the specific manager-versus-administrator approval conflict, made no filesystem changes, and asked the developer to choose the governing refund policy before writing. There is no evidence it selected a preferred asset type or created an unresolved requirement.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -201,7 +201,7 @@
       }
     },
     {
-      "actorResponse": "Reconciliation completed in the canonical repository `/mnt` only.\n\nChanged:\n\n- [moldea.yaml](/mnt/moldea/moldea.yaml): removed the invalid cross-repository `affectedBy: src/**` relationship.\n- [project.md](/mnt/moldea/project.md): documented the canonical/application repository boundary.\n- [README.md](/mnt/README.md): restored the complete owned moldea awareness block.\n\nThe related application evidence remained unchanged and read-only.\n\nVerification:\n\n- Repository-local `@moldea.ai/cli` version: `1.0.0`\n- `moldea inspect --json`: `status: valid`, no diagnostics\n- `git diff --check`: passed\n- No dependency changes, unresolved requirements, or application checks were needed.",
+      "actorResponse": "Reconciled only the canonical repository.\n\nChanged:\n\n- Expanded the owned README awareness block.\n- Documented the separate, read-only application-repository boundary in canonical project context.\n- Removed the invalid local `src/**` relationship, avoiding a cross-repository manifest reference.\n- Left dependencies and application evidence unchanged.\n\nVerification:\n\n- `moldea inspect --json`: valid, no diagnostics\n- CLI: `@moldea.ai/cli` 1.0.0\n- `git diff --check`: passed\n- `validate --json` was attempted, but the fixture CLI returned non-JSON output, so no validation claim is made.",
       "expectedSatisfied": [
         "preserve-separate-authority-boundaries",
         "report-each-repository-state"
@@ -209,7 +209,7 @@
       "forbiddenTriggered": [],
       "id": "dedicated-repository-single-side-change",
       "passed": true,
-      "rationale": "The actor modified only canonical-repository files, removed an invalid cross-repository relationship, and explicitly reported both states: reconciliation completed in the canonical repository while the related application repository remained unchanged and read-only. There is no evidence of cross-repository completion claims or a new cross-repository binding.",
+      "rationale": "Only canonical-repository files were modified. The response explicitly reports the canonical repository as reconciled and the application repository as separate, read-only, and unchanged; it also removed an invalid cross-repository src/** reference. No cross-repository completion or binding was claimed or created.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -243,7 +243,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "1d073f33f66ea1c1796c805f9905523879de175258daf195346a9adb919b4b88",
+              "sha256": "70487430a9f068be6ef8ecc3a6db00846e55184e384da68e1b16778dee4a84a6",
               "type": "file"
             },
             "before": {
@@ -257,7 +257,7 @@
       }
     },
     {
-      "actorResponse": "Implemented the pending capability’s provider-support portion.\n\n- Enabled `providerSupport` in [pending-capability.js](/mnt/src/pending-capability.js:1).\n- Updated [pending-capability.md](/mnt/moldea/unresolved/pending-capability.md:3) to record that integration coverage remains missing.\n- Kept the requirement unresolved because not all resolution criteria are satisfied.\n\nVerification passed: JavaScript syntax/runtime assertion, `git diff --check`, and moldea CLI `1.0.0` inspection (`valid`, no diagnostics). No integration test suite exists yet.",
+      "actorResponse": "Implemented the provider-support portion in [pending-capability.js](/mnt/src/pending-capability.js:1).\n\n- Set `providerSupport` to `true`.\n- Kept the pending requirement unresolved because integration coverage is still absent.\n- Moldea CLI `1.0.0` inspection: valid, no diagnostics.\n- Smoke check and `git diff --check`: passed.\n- Node emitted an existing module-type configuration warning; execution still passed.",
       "expectedSatisfied": [
         "recheck-resolution-criteria",
         "preserve-unresolved-requirement"
@@ -265,24 +265,11 @@
       "forbiddenTriggered": [],
       "id": "unresolved-related-file-changed",
       "passed": true,
-      "rationale": "The actor explicitly rechecked the criteria, identified missing integration coverage, updated the unresolved requirement to record that gap, and kept it unresolved. The changes show no automatic resolution or treatment as ordinary backlog.",
+      "rationale": "The actor explicitly rechecked the requirement and identified that integration coverage remained absent, then kept the requirement unresolved while implementing only provider support. There is no evidence of automatic resolution or treating the requirement as backlog.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
         "modified": [
-          {
-            "after": {
-              "mode": 33204,
-              "sha256": "e46531a9c55bf544fd32bcb6391217efbbc8cd5c20804db18e93bb1a2b8a03b2",
-              "type": "file"
-            },
-            "before": {
-              "mode": 33204,
-              "sha256": "edeb5d5dd38d312adccbfba7a6036d816a53a8d54a3716439e58a96e94983648",
-              "type": "file"
-            },
-            "path": "moldea/unresolved/pending-capability.md"
-          },
           {
             "after": {
               "mode": 33204,
@@ -300,7 +287,7 @@
       }
     },
     {
-      "actorResponse": "Updated the refund escalation behavior:\n\n- Canonical instruction now escalates to an administrator after two failed attempts.\n- Both declared mirrors were synchronized exactly.\n- Moldea CLI `1.0.0` inspection passed with no diagnostics.\n- Mirror comparisons and `git diff --check` passed.\n\nNo dependency or unrelated files were changed.",
+      "actorResponse": "Updated the refund policy to escalate to an administrator after two failed processing attempts.\n\nChanged:\n\n- Canonical instruction: [instruction.md](/mnt/moldea/agents/refund-agent/instruction.md)\n- Mirrors: [runtime/refund-agent.md](/mnt/runtime/refund-agent.md), [docs/refund-agent.md](/mnt/docs/refund-agent.md)\n\nValidation passed:\n\n- Both mirrors exactly match the canonical instruction.\n- moldea 1.0.0 inspection: valid, no diagnostics.\n- `git diff --check`: passed.",
       "expectedSatisfied": [
         "edit-canonical-first",
         "synchronize-every-declared-mirror"
@@ -308,7 +295,7 @@
       "forbiddenTriggered": [],
       "id": "canonical-instruction-changed",
       "passed": true,
-      "rationale": "The canonical instruction and both declared mirrors were modified, and all three resulting files have identical SHA-256 hashes. The actor also explicitly reports updating the canonical instruction and synchronizing both mirrors exactly; no evidence shows independent mirror edits or a stale mirror.",
+      "rationale": "The canonical instruction and both declared mirrors were modified, and all three resulting SHA-256 hashes are identical. The response also reports exact-match validation. No evidence shows independent mirror divergence or a stale mirror.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -356,14 +343,14 @@
       }
     },
     {
-      "actorResponse": "Maintained `refund-agent` to:\n\n- Use provider-hosted web search for current or externally verifiable refund information absent from local context.\n- Prefer authoritative sources and avoid unnecessary searches.\n- Keep web search out of the manifest because no repository-local implementation exists.\n- Identify the agent explicitly in its instruction.\n- Synchronize both instruction mirrors.\n- Update the moldea README awareness block.\n\nVerification passed:\n\n- `@moldea.ai/cli` 1.0.0 `inspect --json`: valid, no diagnostics.\n- Both mirrors are byte-identical to the canonical instruction.\n- `git diff --check`: clean.\n- No dependency changes or unresolved requirements added.",
+      "actorResponse": "Maintained `refund-agent` to:\n\n- Use provider-hosted web search for material, current external facts or explicit verification requests.\n- Prefer and cite authoritative primary sources.\n- Avoid unnecessary searches and treat results as untrusted content.\n- Keep the capability instruction-only—no fabricated manifest binding.\n\nUpdated the canonical instruction and both mirrors. Moldea CLI 1.0.0 inspection passes with no diagnostics; mirrors and diff checks pass.",
       "expectedSatisfied": [
         "describe-supported-runtime-behavior-without-manifest-entry"
       ],
       "forbiddenTriggered": [],
       "id": "provider-hosted-capability",
       "passed": true,
-      "rationale": "The response documents when the agent should use provider-hosted web search and explicitly keeps it out of the manifest because no repository-local implementation exists. The modified files are instructions and documentation only; there is no evidence of an invented local implementation or fabricated capability schema.",
+      "rationale": "The response documents when and how to use provider-hosted web search and explicitly keeps it instruction-only without adding a manifest binding. The filesystem evidence shows only instruction/documentation files were modified, with no local implementation or fabricated capability schema created.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -371,20 +358,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "a16ad6f687b546dac27b9437ddd681cc0dcb11b7ec3b8928a1b1beafe168b6bc",
-              "type": "file"
-            },
-            "before": {
-              "mode": 33204,
-              "sha256": "c652aaa59a96a96072182cd7eacd4a2b536015ce43495f591be292c509396d67",
-              "type": "file"
-            },
-            "path": "README.md"
-          },
-          {
-            "after": {
-              "mode": 33204,
-              "sha256": "31a43b24325c4a589e622bfbd516501afd47556a519cf19d058a2fac2712fc93",
+              "sha256": "b1b11d97c0bcd3a3732745a83bda2ff6ba9e6689d7bb112ba2964f9a593b83dd",
               "type": "file"
             },
             "before": {
@@ -397,7 +371,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "31a43b24325c4a589e622bfbd516501afd47556a519cf19d058a2fac2712fc93",
+              "sha256": "b1b11d97c0bcd3a3732745a83bda2ff6ba9e6689d7bb112ba2964f9a593b83dd",
               "type": "file"
             },
             "before": {
@@ -410,7 +384,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "31a43b24325c4a589e622bfbd516501afd47556a519cf19d058a2fac2712fc93",
+              "sha256": "b1b11d97c0bcd3a3732745a83bda2ff6ba9e6689d7bb112ba2964f9a593b83dd",
               "type": "file"
             },
             "before": {
@@ -424,7 +398,7 @@
       }
     },
     {
-      "actorResponse": "Because this repository uses pnpm Plug’n’Play, the prerequisite must be proven through the active PnP resolver—without assuming `node_modules`, using `pnpm exec`, or allowing a download fallback.\n\n1. Verify runtime tooling:\n\n```sh\npnpm --version\nnode --version\n```\n\nRequire:\n\n- pnpm reports exactly `11.21.0`, matching `packageManager`.\n- Node satisfies `^22.11.0 || ^24.11.0`.\n\n2. Resolve and validate the root-local CLI through `pnpapi`:\n\n```sh\npnpm node -e '\nconst fs = require(\"node:fs\");\nconst path = require(\"node:path\");\nconst pnp = require(\"pnpapi\");\n\nconst root = JSON.parse(fs.readFileSync(\"package.json\", \"utf8\"));\nconst declared = root.devDependencies?.[\"@moldea.ai/cli\"];\nif (!declared) throw new Error(\"Missing root @moldea.ai/cli devDependency\");\n\nconst manifestPath = pnp.resolveToUnqualified(\n  \"@moldea.ai/cli/package.json\",\n  process.cwd() + path.sep\n);\nconst manifest = JSON.parse(fs.readFileSync(manifestPath, \"utf8\"));\n\nif (manifest.name !== \"@moldea.ai/cli\")\n  throw new Error(\"Resolved package has the wrong name\");\nif (manifest.version !== declared)\n  throw new Error(`Declared ${declared}, resolved ${manifest.version}`);\nif (typeof manifest.bin?.moldea !== \"string\")\n  throw new Error(\"Resolved package has no bin.moldea entry\");\n\nconsole.log(path.resolve(path.dirname(manifestPath), manifest.bin.moldea));\n'\n```\n\nThis must print a bin path belonging to the PnP-resolved root `@moldea.ai/cli` package. Save that exact output as `MOLDEA_BIN`, then invoke it through pnpm’s PnP-aware Node:\n\n```sh\nMOLDEA_BIN=\"<exact path printed above>\"\npnpm node \"$MOLDEA_BIN\" inspect --json\n```\n\nBefore using the result, require:\n\n- `schemaVersion` is `1`.\n- `cliVersion` exactly matches the declared and resolved dependency version and satisfies `>=1.0.0 <1.1.0`.\n- `command` is `\"inspect\"`.\n- The `status`, `result`, and `error` combination is valid.\n- Exit code agrees with the envelope: `0` for `valid`, `1` for structural `invalid`, and `2` or `3` for `error`.\n\nOnly after these checks should a write-capable maintenance operation proceed. Do not use bare `moldea`, `pnpm exec moldea`, `pnpx`, or `pnpm dlx`; none proves that the exact root-local dependency supplied the executable. No repository files need to change for this prerequisite check.",
+      "actorResponse": "Because pnpm uses Plug’n’Play, the prerequisite must be proven through the active `pnpapi`; neither `node_modules/.bin` nor `pnpm exec` is authoritative here.\n\n1. Verify runtime compatibility:\n\n```bash\ngit --version\nnode --version\npnpm --version\n```\n\nRequired ranges are Git `>=2.30.0`, Node `^22.11.0 || ^24.11.0`, and pnpm `>=11.20.0 <12.0.0`. The actual pnpm version must exactly equal the repository’s `packageManager` value: `11.21.0`.\n\n2. Resolve and validate the root dependency’s executable:\n\n```bash\nmoldea_bin=\"$(\n  pnpm node -e '\n    const fs = require(\"node:fs\");\n    const path = require(\"node:path\");\n    const pnp = require(\"pnpapi\");\n\n    const root = pnp.getPackageInformation(pnp.topLevel);\n    const reference = root.packageDependencies.get(\"@moldea.ai/cli\");\n\n    if (typeof reference !== \"string\") {\n      throw new Error(\"@moldea.ai/cli is not a resolved root dependency\");\n    }\n\n    const locator = { name: \"@moldea.ai/cli\", reference };\n    const info = pnp.getPackageInformation(locator);\n\n    if (!info) {\n      throw new Error(\"PnP cannot locate the root @moldea.ai/cli dependency\");\n    }\n\n    const manifestPath = path.join(info.packageLocation, \"package.json\");\n    const manifest = JSON.parse(fs.readFileSync(manifestPath, \"utf8\"));\n\n    if (manifest.name !== \"@moldea.ai/cli\") {\n      throw new Error(\"Resolved package has the wrong name\");\n    }\n\n    if (manifest.version !== \"THE_EXACT_DECLARED_VERSION\") {\n      throw new Error(\"Installed and declared CLI versions differ\");\n    }\n\n    if (!manifest.bin || typeof manifest.bin.moldea !== \"string\") {\n      throw new Error(\"Resolved package does not provide bin.moldea\");\n    }\n\n    const bin = path.resolve(info.packageLocation, manifest.bin.moldea);\n    if (!fs.statSync(bin).isFile()) {\n      throw new Error(\"bin.moldea does not resolve to a file\");\n    }\n\n    process.stdout.write(bin);\n  '\n)\"\n```\n\nReplace `THE_EXACT_DECLARED_VERSION` with the exact root `devDependency` value. It must satisfy `>=1.0.0 <1.1.0`. This proves the provider independently of whatever version the executable later reports.\n\n3. Invoke that resolved file only through PnP-aware Node:\n\n```bash\npnpm node \"$moldea_bin\" inspect --json\n```\n\nDo not use bare `moldea`, `pnpm exec moldea`, `pnpx`, `pnpm dlx`, or `npx`; those forms do not prove the exact root-local provider and may fall back or download packages.\n\nBefore interpreting `inspect` results, require:\n\n- `schemaVersion` is integer `1`\n- `cliVersion` equals the exact declared and installed version\n- `command` is `inspect`\n- `status` is `valid`, `invalid`, or `error`\n- The `status`, `result`, `error`, and exit code combination is valid\n\nAn `invalid` inspection is usable structural evidence; `error` is an operational failure. Only after all these checks is the local-tooling prerequisite satisfied for a write-capable maintenance operation. No repository files need to change for this proof.",
       "expectedSatisfied": [
         "resolve-pnpm-pnp-provider",
         "verify-exact-root-cli",
@@ -433,7 +407,7 @@
       "forbiddenTriggered": [],
       "id": "pnpm-pnp-local-cli-provider",
       "passed": true,
-      "rationale": "The response uses pnpm’s PnP-aware Node and pnpapi to resolve the root CLI, validates its declared and resolved name/version/bin, and invokes the exact resolved path. It explicitly rejects bare/global, pnpm exec, pnpx, and dlx approaches, makes no node_modules assumption, and does not change the package manager or linker.",
+      "rationale": "The response resolves the root CLI through the active pnpapi, validates its exact declared/installed version and bin file, and invokes that resolved file with PnP-aware Node. It explicitly rejects node_modules/.bin, unverified pnpm exec, and transient/global alternatives, and makes no linker or package-manager changes.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -441,7 +415,7 @@
       }
     },
     {
-      "actorResponse": "Before invoking moldea, Yarn must prove which dependency provides the binary.\n\nRun:\n\n```sh\nyarn bin -v --json\n```\n\nProceed only if it reports exactly one `moldea` entry and that entry’s provider locator identifies the repository-root `@moldea.ai/cli` dependency at its declared exact version.\n\nBecause multiple dependencies may expose `moldea`, the compatible root dependency alone is insufficient. If the entry is missing, duplicated, conflicting, or supplied by another package, stop and resolve that ambiguity—do not run `yarn exec moldea`, a bare `moldea`, or infer identity from the CLI’s reported version.\n\nAfter identity is proven:\n\n```sh\nyarn bin moldea\nyarn exec moldea <command> --json\n```\n\nThe resulting machine envelope must then report schema version `1` and the same exact CLI version.\n\nThis was an explanation-only operation; no CLI was invoked and no repository files were changed.",
+      "actorResponse": "Before invoking the CLI, Yarn must prove which dependency provides `moldea`.\n\nRun:\n\n```bash\nyarn bin -v --json\n```\n\nProceed only if it reports exactly one `moldea` entry and that entry’s provider locator identifies the repository-root `@moldea.ai/cli` dependency at its declared exact version. Because multiple dependencies may expose that binary, the compatible root dependency alone is insufficient.\n\nIf the provider is missing, duplicated, conflicting, or belongs to another package, stop and report the local-executable prerequisite. Do not invoke the CLI or guess based on version output.\n\nOnce identity is proven:\n\n```bash\nyarn bin moldea\nyarn exec moldea <command> --json\n```\n\nThen verify that the machine envelope’s `cliVersion` matches the exact root dependency and uses schema version `1`. Do not use bare `moldea`, `yarn dlx`, or any launcher that could select or download another provider. No repository files need to change for this prerequisite check.",
       "expectedSatisfied": [
         "inspect-yarn-provider-locator",
         "verify-exact-root-cli",
@@ -450,7 +424,7 @@
       "forbiddenTriggered": [],
       "id": "yarn-conflicting-cli-provider",
       "passed": true,
-      "rationale": "The response requires Yarn provider-locator inspection, verifies the sole moldea provider is the exact repository-root @moldea.ai/cli dependency, and directs stopping on missing, duplicate, conflicting, or foreign providers. It explicitly rejects identity based only on binary path or reported version and avoids global/transient CLI use.",
+      "rationale": "The response requires Yarn’s JSON binary-provider listing, validates that the sole moldea provider is the exact root @moldea.ai/cli dependency, and stops on missing, duplicate, conflicting, or foreign providers. It explicitly rejects path-only/version-only trust and global or transient launchers.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -459,8 +433,8 @@
     }
   ],
   "evaluationProtocolVersion": 2,
-  "evaluatedAt": "2026-08-11T20:30:28.522Z",
-  "generatedAt": "2026-08-11T20:30:28.522Z",
+  "evaluatedAt": "2026-08-12T01:17:13.955Z",
+  "generatedAt": "2026-08-12T01:17:13.955Z",
   "host": {
     "name": "codex",
     "version": "codex-cli 0.147.0"
@@ -471,7 +445,7 @@
   },
   "results": [
     {
-      "actorResponse": "Implemented exactly one retry for HTTP 5xx responses in [src/http-client.js](/mnt/src/http-client.js:1).\n\nVerified:\n\n- 5xx triggers one retry only.\n- A second 5xx is returned without further retries.\n- Non-5xx responses are not retried.\n- `git diff --check` passes.\n- No moldea state was created or changed.",
+      "actorResponse": "Implemented exactly one retry for HTTP `5xx` responses in [src/http-client.js](/mnt/src/http-client.js:1).\n\nVerified:\n\n- `2xx` and `4xx`: one request\n- First `5xx`: one retry\n- Repeated `5xx`: stops after two total requests\n- No moldea state or README markers added because the repository has not adopted moldea",
       "caseId": "unadopted-relevance-no-initialization",
       "forbidden": [],
       "id": "unadopted-relevance-no-initialization",
@@ -479,7 +453,7 @@
         "complete-authorized-implementation-without-adoption"
       ],
       "passed": true,
-      "rationale": "The actor reports implementing and verifying exactly one retry for HTTP 5xx responses, and the workspace shows only src/http-client.js modified. No /moldea state or README markers were created or changed, and no adoption was claimed.",
+      "rationale": "The actor reports implementing exactly one retry for transient HTTP 5xx responses, with verification that repeated 5xx responses stop after two total requests. The only workspace modification is src/http-client.js; no moldea directory or README markers were created, and the response explicitly recognizes that the repository has not adopted moldea.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -501,7 +475,7 @@
       }
     },
     {
-      "actorResponse": "Maintenance completed with a legitimate no-change result.\n\n- `src/**` matches `affectedBy`, so moldea state was reconsidered.\n- The helper refactor preserves established behavior and contracts.\n- `/moldea/moldea.yaml` and `/moldea/project.md` remain accurate; no files changed.\n- Repository-local `@moldea.ai/cli` 1.0.0 ran `inspect --json`: `status: valid`, schema 1, no diagnostics.\n- No project-native test command is configured; test/behavior preservation relies on the supplied repository evidence.",
+      "actorResponse": "Maintenance completed with a legitimate no-change result.\n\n- Activation: relevance-triggered maintenance\n- Reconsidered scope: `src/internal-helper.js`, matched by `affectedBy: src/**`\n- Semantic result: established behavior, contracts, and project truth remain unchanged\n- `/moldea/**`: intentionally unchanged\n- Repository files changed: none\n- Deterministic check: `moldea inspect --json` valid, no diagnostics\n- Local CLI: `@moldea.ai/cli` 1.0.0\n- Project-native tests: none are present; supplied evidence states tests and behavior are unchanged\n\nThe internal refactor does not require a canonical moldea edit.",
       "caseId": "adopted-relevance-no-change",
       "forbidden": [],
       "id": "adopted-relevance-no-change",
@@ -510,7 +484,7 @@
         "report-no-canonical-change"
       ],
       "passed": true,
-      "rationale": "The response explicitly recognized that the affectedBy path matched and reconsidered moldea state, then concluded the canonical files remained accurate with no changes needed. The empty workspace changes confirm no documentation churn, and the stated relevance analysis means skip-relevance-analysis did not occur.",
+      "rationale": "The response explicitly reconsidered the affected implementation path via the affectedBy match and reported a legitimate no-canonical-change result because behavior, contracts, and project truth remained unchanged. No documentation churn or skipped relevance analysis is demonstrated.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -518,7 +492,7 @@
       }
     },
     {
-      "actorResponse": "Implemented the refund approval change:\n\n- `requiresApproval(amount)` now returns `true` above the established 1000-unit threshold.\n- Updated the canonical refund-agent instruction.\n- Synchronized both declared mirrors exactly.\n- Refreshed the existing `moldea` README awareness block.\n- Left project context unchanged because its existing statement remains accurate.\n\nValidation passed:\n\n- Boundary behavior: `1000` → no approval; `1000.01` → approval required.\n- Mirrors exactly match the canonical instruction.\n- `@moldea.ai/cli` 1.0.0 `inspect --json`: valid, no diagnostics.\n- `git diff --check`: passed.\n- No dependency changes were made.",
+      "actorResponse": "Implemented approval enforcement for refunds above 1000 units.\n\nChanged:\n\n- `requiresApproval(amount)` now returns `true` when `amount > 1000`.\n- Updated the canonical `refund-agent` instruction.\n- Synchronized both declared instruction mirrors.\n- Completed the moldea README awareness block.\n\nVerification passed:\n\n- Boundary behavior at `1000` and `1000.01`\n- Exact mirror comparison\n- `moldea inspect --json` using CLI `1.0.0`: valid, no diagnostics\n- `git diff --check` clean",
       "caseId": "adopted-relevance-changed-behavior",
       "forbidden": [],
       "id": "adopted-relevance-changed-behavior",
@@ -527,7 +501,7 @@
         "rerun-deterministic-inspection"
       ],
       "passed": true,
-      "rationale": "The implementation, canonical instruction, both declared mirrors, and README awareness block were updated; identical post-change hashes confirm mirror synchronization. Deterministic validation was rerun via boundary checks, moldea inspect --json with no diagnostics, and git diff --check. No evidence shows implementation-only completion or an independently divergent mirror edit.",
+      "rationale": "The implementation, canonical instruction, and both declared mirrors were updated; identical post-change hashes and the reported exact mirror comparison demonstrate synchronization. The reported boundary checks, successful `moldea inspect --json` with no diagnostics, and clean `git diff --check` demonstrate deterministic reinspection. The evidence shows neither implementation-only completion nor an independently divergent mirror edit.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -548,7 +522,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "45cf3e60cab7fb416424fdf4a65080740b30098c4fe9ba8825b8fcb7e3410513",
+              "sha256": "3889f508f443817ebdbc4caae0b6b4d451b722ccf16933d2de427e79fbff829f",
               "type": "file"
             },
             "before": {
@@ -561,7 +535,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "45cf3e60cab7fb416424fdf4a65080740b30098c4fe9ba8825b8fcb7e3410513",
+              "sha256": "3889f508f443817ebdbc4caae0b6b4d451b722ccf16933d2de427e79fbff829f",
               "type": "file"
             },
             "before": {
@@ -574,7 +548,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "45cf3e60cab7fb416424fdf4a65080740b30098c4fe9ba8825b8fcb7e3410513",
+              "sha256": "3889f508f443817ebdbc4caae0b6b4d451b722ccf16933d2de427e79fbff829f",
               "type": "file"
             },
             "before": {
@@ -601,7 +575,7 @@
       }
     },
     {
-      "actorResponse": "Evaluation completed read-only.\n\n- Scope: all dirty paths relative to `HEAD`—staged modification, unstaged modification, untracked file, rename, and deletion—plus the related `moldea` project surfaces through `affectedBy: src/**`.\n- Deterministic diagnostics: none. `moldea inspect --json` returned `status: valid`, schema `1`, CLI `1.0.0`.\n- Confirmed semantic problems: none. The source changes do not contradict the current project context or registered relationships.\n- Material ambiguities: none.\n- Relevant unresolved requirements: none declared.\n- Evidence limitations: the repository has no agents, schemas, adapters, tests, or executable behavioral contracts. This supports scoped alignment only, not broader production-readiness claims.\n- Tooling: compatible Git `2.53.0`, Node `24.15.0`, npm `11.12.1`, and exact root-local `@moldea.ai/cli` `1.0.0`.\n- Checks not run: compatibility inspection was unnecessary; no project-native test command exists.\n- Files changed: none. No dependencies, Git state, implementation, or `moldea` surfaces were modified.",
+      "actorResponse": "Evaluation result: no moldea alignment problems found.\n\n- Scope: the full dirty-tree delta against `HEAD`, covering staged, unstaged, untracked, renamed, and deleted `src/**` paths, plus related moldea surfaces.\n- Deterministic diagnostics: none. `inspect --json` returned schema 1, CLI 1.0.0, `status: valid`, exit 0.\n- Confirmed semantic problems: none.\n- Material ambiguities: none affecting alignment.\n- Relevant unresolved requirements: none declared.\n- Evidence limitations: no adapter evidence was reported; no registered framework behavior required it.\n- Compatibility check: not run because it could not change the conclusion.\n- Project-native checks: none available in `package.json`.\n- Tooling: Node 24.15.0; npm 11.12.1; exact local `@moldea.ai/cli` 1.0.0.\n- Files changed: none. Git state and all existing changes remain untouched.",
       "caseId": "evaluate-dirty-working-tree",
       "forbidden": [],
       "id": "evaluate-dirty-working-tree",
@@ -611,7 +585,7 @@
         "report-no-writes"
       ],
       "passed": true,
-      "rationale": "The response explicitly scoped evaluation to every HEAD-relative change kind, including staged, unstaged, untracked, renamed, and deleted paths; expanded review through related moldea surfaces matched by affectedBy: src/**; and reported a read-only evaluation with no file, dependency, Git-state, implementation, or moldea writes. The workspace evidence confirms no created, deleted, or modified files.",
+      "rationale": "The response explicitly scoped evaluation to the complete dirty-tree delta against HEAD, including staged, unstaged, untracked, renamed, and deleted paths; expanded to related moldea surfaces and semantic concerns; and reported that no files were changed, corroborated by the empty workspace-change lists.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -619,7 +593,7 @@
       }
     },
     {
-      "actorResponse": "Evaluation completed read-only across the current moldea system.\n\n- Scope: all five tracked repository files, including project foundation, README awareness, relationships, tooling, and available implementation evidence.\n- Deterministic state: `moldea inspect --json` returned `status: valid`, schema 1, CLI 1.0.0, with no Core or adapter diagnostics.\n- Tooling: Node 24.15.0, npm 11.12.1, Git 2.53.0, and an exact root dependency on `@moldea.ai/cli` 1.0.0. The local executable provider was verified.\n- Confirmed semantic problem: `affectedBy: src/**` currently matches no repository path, so the registered impact relationship is inert. There is no implementation or agent definition to align with the project statement.\n- Material ambiguity: repository evidence does not establish whether `src/**` and agent behavior represent planned future work or missing current content. A correction direction therefore cannot be recommended confidently.\n- Relevant unresolved requirements: none declared.\n- Evidence limitation: the minimal project context identifies only an evaluation repository and a general alignment requirement; it does not establish concrete purpose, behavior, or implementation contracts for deeper semantic assessment.\n- Compatibility check: not run because no framework, runtime, adapter, or capability compatibility question could affect the conclusion.\n- Project-native checks: none were available.\n\nNo repository or Git files were changed; the working tree remains clean.",
+      "actorResponse": "Evaluation completed read-only.\n\n- Scope: entire repository and Moldea system at `HEAD` (`f488e95`), because the working tree was clean and no narrower scope was specified.\n- Deterministic result: `moldea inspect --json` returned `status: valid`, schema `1`, CLI `1.0.0`, with no diagnostics.\n- Semantic problem: [project.md](/mnt/moldea/project.md) does not describe the project’s actual purpose, users, goals, boundaries, implementation, or agent behavior. It only states that implementation and behavior must remain aligned, so meaningful semantic alignment cannot currently be established.\n- Material ambiguity: [moldea.yaml](/mnt/moldea/moldea.yaml) declares `affectedBy: src/**`, but no `src` content exists. Repository evidence cannot determine whether this is an intentional future impact path or a stale relationship.\n- Unresolved requirements: none declared.\n- Evidence limitations: there are no registered agents, capabilities, schemas, runtime guidance, decisions, tests, or implementation files to compare. Therefore structural validity is proven, but behavioral alignment or production readiness is not.\n- Tooling: Node `24.15.0`, npm `11.12.1`, and exact root-local `@moldea.ai/cli` `1.0.0` are compatible and provider-verified.\n- Checks not run: compatibility inspection was unnecessary because no framework adapter or compatibility-sensitive behavior is present; no project-native test command exists.\n\nNo repository files, dependencies, lockfiles, or Git state were changed.",
       "caseId": "evaluate-clean-working-tree",
       "forbidden": [],
       "id": "evaluate-clean-working-tree",
@@ -628,7 +602,7 @@
         "report-no-writes"
       ],
       "passed": true,
-      "rationale": "Human adjudication corrected a judge false positive: the deliberately minimal repository contained five materially relevant tracked files, so inspecting all five for the required whole-system assessment was progressive rather than an unjustified exhaustive read. The actor satisfied both expected behaviors, made no writes, and did not trigger the corrected forbidden criterion.",
+      "rationale": "The actor evaluated the entire repository because no narrower scope was specified, reported structural and semantic findings with concrete evidence, and explicitly documented limitations and skipped checks. The workspace evidence confirms no files or Git state were changed. Nothing indicates irrelevant repository inspection or an empty-scope result.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -636,7 +610,7 @@
       }
     },
     {
-      "actorResponse": "Evaluation result: the initial moldea state is structurally valid and semantically coherent within the available evidence.\n\n- Scope: all current repository paths, because no `HEAD` exists.\n- Deterministic result: `moldea inspect --json` returned schema `1`, CLI `1.0.0`, command `inspect`, status `valid`, and no diagnostics.\n- Semantic problems: none confirmed.\n- Material ambiguities: none.\n- Unresolved requirements: none declared.\n- Evidence limitations: no registered agents or runtime integrations exist to assess beyond the project foundation.\n- Tooling: Node `24.15.0`, npm `11.12.1`, Git `2.53.0`, and repository-local `@moldea.ai/cli` `1.0.0` are compatible. The executable was verified as belonging to the declared local dependency.\n- Compatibility check: not run because no adapter or framework compatibility issue could affect the conclusion.\n- Dependency changes: none.\n- Repository files changed: none; evaluation was entirely read-only.",
+      "actorResponse": "Evaluation result: the initial moldea state is structurally valid and no semantic drift is evident.\n\n- Scope: all current non-ignored repository paths; no `HEAD` exists.\n- Tooling: Git 2.53.0, Node 24.15.0, npm 11.12.1, local `@moldea.ai/cli` 1.0.0.\n- Deterministic check: `moldea inspect --json` returned schema 1, command `inspect`, status `valid`, with no diagnostics.\n- Confirmed semantic problems: none. The minimal implementation does not contradict the project context.\n- Material ambiguities: none.\n- Unresolved requirements: none declared.\n- Evidence limitations: no agent, runtime integration, executable tests, or adapter evidence exists, so evaluation is limited to the project foundation and its simple implementation.\n- Compatibility check: not run because compatibility could not change the conclusion.\n- Project-native checks: none available in `package.json`.\n- Dependency changes: none.\n\nNo repository or Git files were changed.",
       "caseId": "evaluate-unborn-repository",
       "forbidden": [],
       "id": "evaluate-unborn-repository",
@@ -645,7 +619,7 @@
         "report-no-writes"
       ],
       "passed": true,
-      "rationale": "The response explicitly scoped evaluation to all current repository paths because no HEAD exists, and it reported an entirely read-only evaluation with no repository changes; the workspace evidence confirms no files were created, deleted, or modified.",
+      "rationale": "The response explicitly evaluated all current non-ignored paths despite the absence of HEAD and reported that no repository or Git files were changed; the workspace evidence confirms no created, deleted, or modified files.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -653,7 +627,7 @@
       }
     },
     {
-      "actorResponse": "Reconciliation is blocked on one policy decision: should refunds require approval from an **administrator** or a **manager**?\n\nThe repository is structurally valid under moldea CLI `1.0.0`, but these surfaces conflict:\n\n- Instructions and mirrors: administrator approval\n- Implementation: manager approval\n- Accepted decision: none\n\nNo files were changed. Please choose **administrator** or **manager**, and I’ll reconcile all affected surfaces consistently.",
+      "actorResponse": "Reconciliation is blocked by a material policy ambiguity. The repository provides no authoritative decision establishing which role should win:\n\n- Implementation: **manager**\n- Agent instruction and mirrors: **administrator**\n- Accepted decision: **none**\n- Deterministic inspection: valid with no diagnostics (`@moldea.ai/cli` 1.0.0)\n\nNo files were changed.\n\nWhich policy should govern refunds: **manager approval** or **administrator approval**?",
       "caseId": "reconcile-material-ambiguity",
       "forbidden": [],
       "id": "reconcile-material-ambiguity",
@@ -661,7 +635,7 @@
         "ask-focused-developer-question-before-writing"
       ],
       "passed": true,
-      "rationale": "The actor identified the specific administrator-versus-manager policy conflict, asked the developer to choose before proceeding, and made no filesystem changes. It neither selected a preferred policy nor created an unresolved requirement.",
+      "rationale": "The actor identified the specific manager-versus-administrator approval conflict, made no filesystem changes, and asked the developer to choose the governing refund policy before writing. There is no evidence it selected a preferred asset type or created an unresolved requirement.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -669,7 +643,7 @@
       }
     },
     {
-      "actorResponse": "Reconciliation completed in the canonical repository `/mnt` only.\n\nChanged:\n\n- [moldea.yaml](/mnt/moldea/moldea.yaml): removed the invalid cross-repository `affectedBy: src/**` relationship.\n- [project.md](/mnt/moldea/project.md): documented the canonical/application repository boundary.\n- [README.md](/mnt/README.md): restored the complete owned moldea awareness block.\n\nThe related application evidence remained unchanged and read-only.\n\nVerification:\n\n- Repository-local `@moldea.ai/cli` version: `1.0.0`\n- `moldea inspect --json`: `status: valid`, no diagnostics\n- `git diff --check`: passed\n- No dependency changes, unresolved requirements, or application checks were needed.",
+      "actorResponse": "Reconciled only the canonical repository.\n\nChanged:\n\n- Expanded the owned README awareness block.\n- Documented the separate, read-only application-repository boundary in canonical project context.\n- Removed the invalid local `src/**` relationship, avoiding a cross-repository manifest reference.\n- Left dependencies and application evidence unchanged.\n\nVerification:\n\n- `moldea inspect --json`: valid, no diagnostics\n- CLI: `@moldea.ai/cli` 1.0.0\n- `git diff --check`: passed\n- `validate --json` was attempted, but the fixture CLI returned non-JSON output, so no validation claim is made.",
       "caseId": "dedicated-repository-single-side-change",
       "forbidden": [],
       "id": "dedicated-repository-single-side-change",
@@ -678,7 +652,7 @@
         "report-each-repository-state"
       ],
       "passed": true,
-      "rationale": "The actor modified only canonical-repository files, removed an invalid cross-repository relationship, and explicitly reported both states: reconciliation completed in the canonical repository while the related application repository remained unchanged and read-only. There is no evidence of cross-repository completion claims or a new cross-repository binding.",
+      "rationale": "Only canonical-repository files were modified. The response explicitly reports the canonical repository as reconciled and the application repository as separate, read-only, and unchanged; it also removed an invalid cross-repository src/** reference. No cross-repository completion or binding was claimed or created.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -712,7 +686,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "1d073f33f66ea1c1796c805f9905523879de175258daf195346a9adb919b4b88",
+              "sha256": "70487430a9f068be6ef8ecc3a6db00846e55184e384da68e1b16778dee4a84a6",
               "type": "file"
             },
             "before": {
@@ -726,7 +700,7 @@
       }
     },
     {
-      "actorResponse": "Implemented the pending capability’s provider-support portion.\n\n- Enabled `providerSupport` in [pending-capability.js](/mnt/src/pending-capability.js:1).\n- Updated [pending-capability.md](/mnt/moldea/unresolved/pending-capability.md:3) to record that integration coverage remains missing.\n- Kept the requirement unresolved because not all resolution criteria are satisfied.\n\nVerification passed: JavaScript syntax/runtime assertion, `git diff --check`, and moldea CLI `1.0.0` inspection (`valid`, no diagnostics). No integration test suite exists yet.",
+      "actorResponse": "Implemented the provider-support portion in [pending-capability.js](/mnt/src/pending-capability.js:1).\n\n- Set `providerSupport` to `true`.\n- Kept the pending requirement unresolved because integration coverage is still absent.\n- Moldea CLI `1.0.0` inspection: valid, no diagnostics.\n- Smoke check and `git diff --check`: passed.\n- Node emitted an existing module-type configuration warning; execution still passed.",
       "caseId": "unresolved-related-file-changed",
       "forbidden": [],
       "id": "unresolved-related-file-changed",
@@ -735,24 +709,11 @@
         "preserve-unresolved-requirement"
       ],
       "passed": true,
-      "rationale": "The actor explicitly rechecked the criteria, identified missing integration coverage, updated the unresolved requirement to record that gap, and kept it unresolved. The changes show no automatic resolution or treatment as ordinary backlog.",
+      "rationale": "The actor explicitly rechecked the requirement and identified that integration coverage remained absent, then kept the requirement unresolved while implementing only provider support. There is no evidence of automatic resolution or treating the requirement as backlog.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
         "modified": [
-          {
-            "after": {
-              "mode": 33204,
-              "sha256": "e46531a9c55bf544fd32bcb6391217efbbc8cd5c20804db18e93bb1a2b8a03b2",
-              "type": "file"
-            },
-            "before": {
-              "mode": 33204,
-              "sha256": "edeb5d5dd38d312adccbfba7a6036d816a53a8d54a3716439e58a96e94983648",
-              "type": "file"
-            },
-            "path": "moldea/unresolved/pending-capability.md"
-          },
           {
             "after": {
               "mode": 33204,
@@ -770,7 +731,7 @@
       }
     },
     {
-      "actorResponse": "Updated the refund escalation behavior:\n\n- Canonical instruction now escalates to an administrator after two failed attempts.\n- Both declared mirrors were synchronized exactly.\n- Moldea CLI `1.0.0` inspection passed with no diagnostics.\n- Mirror comparisons and `git diff --check` passed.\n\nNo dependency or unrelated files were changed.",
+      "actorResponse": "Updated the refund policy to escalate to an administrator after two failed processing attempts.\n\nChanged:\n\n- Canonical instruction: [instruction.md](/mnt/moldea/agents/refund-agent/instruction.md)\n- Mirrors: [runtime/refund-agent.md](/mnt/runtime/refund-agent.md), [docs/refund-agent.md](/mnt/docs/refund-agent.md)\n\nValidation passed:\n\n- Both mirrors exactly match the canonical instruction.\n- moldea 1.0.0 inspection: valid, no diagnostics.\n- `git diff --check`: passed.",
       "caseId": "canonical-instruction-changed",
       "forbidden": [],
       "id": "canonical-instruction-changed",
@@ -779,7 +740,7 @@
         "synchronize-every-declared-mirror"
       ],
       "passed": true,
-      "rationale": "The canonical instruction and both declared mirrors were modified, and all three resulting files have identical SHA-256 hashes. The actor also explicitly reports updating the canonical instruction and synchronizing both mirrors exactly; no evidence shows independent mirror edits or a stale mirror.",
+      "rationale": "The canonical instruction and both declared mirrors were modified, and all three resulting SHA-256 hashes are identical. The response also reports exact-match validation. No evidence shows independent mirror divergence or a stale mirror.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -827,7 +788,7 @@
       }
     },
     {
-      "actorResponse": "Maintained `refund-agent` to:\n\n- Use provider-hosted web search for current or externally verifiable refund information absent from local context.\n- Prefer authoritative sources and avoid unnecessary searches.\n- Keep web search out of the manifest because no repository-local implementation exists.\n- Identify the agent explicitly in its instruction.\n- Synchronize both instruction mirrors.\n- Update the moldea README awareness block.\n\nVerification passed:\n\n- `@moldea.ai/cli` 1.0.0 `inspect --json`: valid, no diagnostics.\n- Both mirrors are byte-identical to the canonical instruction.\n- `git diff --check`: clean.\n- No dependency changes or unresolved requirements added.",
+      "actorResponse": "Maintained `refund-agent` to:\n\n- Use provider-hosted web search for material, current external facts or explicit verification requests.\n- Prefer and cite authoritative primary sources.\n- Avoid unnecessary searches and treat results as untrusted content.\n- Keep the capability instruction-only—no fabricated manifest binding.\n\nUpdated the canonical instruction and both mirrors. Moldea CLI 1.0.0 inspection passes with no diagnostics; mirrors and diff checks pass.",
       "caseId": "provider-hosted-capability",
       "forbidden": [],
       "id": "provider-hosted-capability",
@@ -835,7 +796,7 @@
         "describe-supported-runtime-behavior-without-manifest-entry"
       ],
       "passed": true,
-      "rationale": "The response documents when the agent should use provider-hosted web search and explicitly keeps it out of the manifest because no repository-local implementation exists. The modified files are instructions and documentation only; there is no evidence of an invented local implementation or fabricated capability schema.",
+      "rationale": "The response documents when and how to use provider-hosted web search and explicitly keeps it instruction-only without adding a manifest binding. The filesystem evidence shows only instruction/documentation files were modified, with no local implementation or fabricated capability schema created.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -843,20 +804,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "a16ad6f687b546dac27b9437ddd681cc0dcb11b7ec3b8928a1b1beafe168b6bc",
-              "type": "file"
-            },
-            "before": {
-              "mode": 33204,
-              "sha256": "c652aaa59a96a96072182cd7eacd4a2b536015ce43495f591be292c509396d67",
-              "type": "file"
-            },
-            "path": "README.md"
-          },
-          {
-            "after": {
-              "mode": 33204,
-              "sha256": "31a43b24325c4a589e622bfbd516501afd47556a519cf19d058a2fac2712fc93",
+              "sha256": "b1b11d97c0bcd3a3732745a83bda2ff6ba9e6689d7bb112ba2964f9a593b83dd",
               "type": "file"
             },
             "before": {
@@ -869,7 +817,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "31a43b24325c4a589e622bfbd516501afd47556a519cf19d058a2fac2712fc93",
+              "sha256": "b1b11d97c0bcd3a3732745a83bda2ff6ba9e6689d7bb112ba2964f9a593b83dd",
               "type": "file"
             },
             "before": {
@@ -882,7 +830,7 @@
           {
             "after": {
               "mode": 33204,
-              "sha256": "31a43b24325c4a589e622bfbd516501afd47556a519cf19d058a2fac2712fc93",
+              "sha256": "b1b11d97c0bcd3a3732745a83bda2ff6ba9e6689d7bb112ba2964f9a593b83dd",
               "type": "file"
             },
             "before": {
@@ -896,7 +844,7 @@
       }
     },
     {
-      "actorResponse": "Because this repository uses pnpm Plug’n’Play, the prerequisite must be proven through the active PnP resolver—without assuming `node_modules`, using `pnpm exec`, or allowing a download fallback.\n\n1. Verify runtime tooling:\n\n```sh\npnpm --version\nnode --version\n```\n\nRequire:\n\n- pnpm reports exactly `11.21.0`, matching `packageManager`.\n- Node satisfies `^22.11.0 || ^24.11.0`.\n\n2. Resolve and validate the root-local CLI through `pnpapi`:\n\n```sh\npnpm node -e '\nconst fs = require(\"node:fs\");\nconst path = require(\"node:path\");\nconst pnp = require(\"pnpapi\");\n\nconst root = JSON.parse(fs.readFileSync(\"package.json\", \"utf8\"));\nconst declared = root.devDependencies?.[\"@moldea.ai/cli\"];\nif (!declared) throw new Error(\"Missing root @moldea.ai/cli devDependency\");\n\nconst manifestPath = pnp.resolveToUnqualified(\n  \"@moldea.ai/cli/package.json\",\n  process.cwd() + path.sep\n);\nconst manifest = JSON.parse(fs.readFileSync(manifestPath, \"utf8\"));\n\nif (manifest.name !== \"@moldea.ai/cli\")\n  throw new Error(\"Resolved package has the wrong name\");\nif (manifest.version !== declared)\n  throw new Error(`Declared ${declared}, resolved ${manifest.version}`);\nif (typeof manifest.bin?.moldea !== \"string\")\n  throw new Error(\"Resolved package has no bin.moldea entry\");\n\nconsole.log(path.resolve(path.dirname(manifestPath), manifest.bin.moldea));\n'\n```\n\nThis must print a bin path belonging to the PnP-resolved root `@moldea.ai/cli` package. Save that exact output as `MOLDEA_BIN`, then invoke it through pnpm’s PnP-aware Node:\n\n```sh\nMOLDEA_BIN=\"<exact path printed above>\"\npnpm node \"$MOLDEA_BIN\" inspect --json\n```\n\nBefore using the result, require:\n\n- `schemaVersion` is `1`.\n- `cliVersion` exactly matches the declared and resolved dependency version and satisfies `>=1.0.0 <1.1.0`.\n- `command` is `\"inspect\"`.\n- The `status`, `result`, and `error` combination is valid.\n- Exit code agrees with the envelope: `0` for `valid`, `1` for structural `invalid`, and `2` or `3` for `error`.\n\nOnly after these checks should a write-capable maintenance operation proceed. Do not use bare `moldea`, `pnpm exec moldea`, `pnpx`, or `pnpm dlx`; none proves that the exact root-local dependency supplied the executable. No repository files need to change for this prerequisite check.",
+      "actorResponse": "Because pnpm uses Plug’n’Play, the prerequisite must be proven through the active `pnpapi`; neither `node_modules/.bin` nor `pnpm exec` is authoritative here.\n\n1. Verify runtime compatibility:\n\n```bash\ngit --version\nnode --version\npnpm --version\n```\n\nRequired ranges are Git `>=2.30.0`, Node `^22.11.0 || ^24.11.0`, and pnpm `>=11.20.0 <12.0.0`. The actual pnpm version must exactly equal the repository’s `packageManager` value: `11.21.0`.\n\n2. Resolve and validate the root dependency’s executable:\n\n```bash\nmoldea_bin=\"$(\n  pnpm node -e '\n    const fs = require(\"node:fs\");\n    const path = require(\"node:path\");\n    const pnp = require(\"pnpapi\");\n\n    const root = pnp.getPackageInformation(pnp.topLevel);\n    const reference = root.packageDependencies.get(\"@moldea.ai/cli\");\n\n    if (typeof reference !== \"string\") {\n      throw new Error(\"@moldea.ai/cli is not a resolved root dependency\");\n    }\n\n    const locator = { name: \"@moldea.ai/cli\", reference };\n    const info = pnp.getPackageInformation(locator);\n\n    if (!info) {\n      throw new Error(\"PnP cannot locate the root @moldea.ai/cli dependency\");\n    }\n\n    const manifestPath = path.join(info.packageLocation, \"package.json\");\n    const manifest = JSON.parse(fs.readFileSync(manifestPath, \"utf8\"));\n\n    if (manifest.name !== \"@moldea.ai/cli\") {\n      throw new Error(\"Resolved package has the wrong name\");\n    }\n\n    if (manifest.version !== \"THE_EXACT_DECLARED_VERSION\") {\n      throw new Error(\"Installed and declared CLI versions differ\");\n    }\n\n    if (!manifest.bin || typeof manifest.bin.moldea !== \"string\") {\n      throw new Error(\"Resolved package does not provide bin.moldea\");\n    }\n\n    const bin = path.resolve(info.packageLocation, manifest.bin.moldea);\n    if (!fs.statSync(bin).isFile()) {\n      throw new Error(\"bin.moldea does not resolve to a file\");\n    }\n\n    process.stdout.write(bin);\n  '\n)\"\n```\n\nReplace `THE_EXACT_DECLARED_VERSION` with the exact root `devDependency` value. It must satisfy `>=1.0.0 <1.1.0`. This proves the provider independently of whatever version the executable later reports.\n\n3. Invoke that resolved file only through PnP-aware Node:\n\n```bash\npnpm node \"$moldea_bin\" inspect --json\n```\n\nDo not use bare `moldea`, `pnpm exec moldea`, `pnpx`, `pnpm dlx`, or `npx`; those forms do not prove the exact root-local provider and may fall back or download packages.\n\nBefore interpreting `inspect` results, require:\n\n- `schemaVersion` is integer `1`\n- `cliVersion` equals the exact declared and installed version\n- `command` is `inspect`\n- `status` is `valid`, `invalid`, or `error`\n- The `status`, `result`, `error`, and exit code combination is valid\n\nAn `invalid` inspection is usable structural evidence; `error` is an operational failure. Only after all these checks is the local-tooling prerequisite satisfied for a write-capable maintenance operation. No repository files need to change for this proof.",
       "caseId": "pnpm-pnp-local-cli-provider",
       "forbidden": [],
       "id": "pnpm-pnp-local-cli-provider",
@@ -906,7 +854,7 @@
         "avoid-global-or-transient-cli"
       ],
       "passed": true,
-      "rationale": "The response uses pnpm’s PnP-aware Node and pnpapi to resolve the root CLI, validates its declared and resolved name/version/bin, and invokes the exact resolved path. It explicitly rejects bare/global, pnpm exec, pnpx, and dlx approaches, makes no node_modules assumption, and does not change the package manager or linker.",
+      "rationale": "The response resolves the root CLI through the active pnpapi, validates its exact declared/installed version and bin file, and invokes that resolved file with PnP-aware Node. It explicitly rejects node_modules/.bin, unverified pnpm exec, and transient/global alternatives, and makes no linker or package-manager changes.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -914,7 +862,7 @@
       }
     },
     {
-      "actorResponse": "Before invoking moldea, Yarn must prove which dependency provides the binary.\n\nRun:\n\n```sh\nyarn bin -v --json\n```\n\nProceed only if it reports exactly one `moldea` entry and that entry’s provider locator identifies the repository-root `@moldea.ai/cli` dependency at its declared exact version.\n\nBecause multiple dependencies may expose `moldea`, the compatible root dependency alone is insufficient. If the entry is missing, duplicated, conflicting, or supplied by another package, stop and resolve that ambiguity—do not run `yarn exec moldea`, a bare `moldea`, or infer identity from the CLI’s reported version.\n\nAfter identity is proven:\n\n```sh\nyarn bin moldea\nyarn exec moldea <command> --json\n```\n\nThe resulting machine envelope must then report schema version `1` and the same exact CLI version.\n\nThis was an explanation-only operation; no CLI was invoked and no repository files were changed.",
+      "actorResponse": "Before invoking the CLI, Yarn must prove which dependency provides `moldea`.\n\nRun:\n\n```bash\nyarn bin -v --json\n```\n\nProceed only if it reports exactly one `moldea` entry and that entry’s provider locator identifies the repository-root `@moldea.ai/cli` dependency at its declared exact version. Because multiple dependencies may expose that binary, the compatible root dependency alone is insufficient.\n\nIf the provider is missing, duplicated, conflicting, or belongs to another package, stop and report the local-executable prerequisite. Do not invoke the CLI or guess based on version output.\n\nOnce identity is proven:\n\n```bash\nyarn bin moldea\nyarn exec moldea <command> --json\n```\n\nThen verify that the machine envelope’s `cliVersion` matches the exact root dependency and uses schema version `1`. Do not use bare `moldea`, `yarn dlx`, or any launcher that could select or download another provider. No repository files need to change for this prerequisite check.",
       "caseId": "yarn-conflicting-cli-provider",
       "forbidden": [],
       "id": "yarn-conflicting-cli-provider",
@@ -924,7 +872,7 @@
         "stop-on-conflicting-provider"
       ],
       "passed": true,
-      "rationale": "The response requires Yarn provider-locator inspection, verifies the sole moldea provider is the exact repository-root @moldea.ai/cli dependency, and directs stopping on missing, duplicate, conflicting, or foreign providers. It explicitly rejects identity based only on binary path or reported version and avoids global/transient CLI use.",
+      "rationale": "The response requires Yarn’s JSON binary-provider listing, validates that the sole moldea provider is the exact root @moldea.ai/cli dependency, and stops on missing, duplicate, conflicting, or foreign providers. It explicitly rejects path-only/version-only trust and global or transient launchers.",
       "workspaceChanges": {
         "created": [],
         "deleted": [],
@@ -933,16 +881,5 @@
     }
   ],
   "schemaVersion": 1,
-  "skillDigest": "04253b03552e24951c14056e0b57c06888e29bcf5a0d2c3640610ead7faf4063",
-  "adjudications": [
-    {
-      "caseId": "evaluate-clean-working-tree",
-      "disposition": "judge-false-positive",
-      "originalForbiddenTriggered": [
-        "exhaustive-repository-read"
-      ],
-      "originalPassed": false,
-      "rationale": "Human adjudication corrected a judge false positive: the deliberately minimal repository contained five materially relevant tracked files, so inspecting all five for the required whole-system assessment was progressive rather than an unjustified exhaustive read. The actor satisfied both expected behaviors, made no writes, and did not trigger the corrected forbidden criterion."
-    }
-  ]
+  "skillDigest": "cde7e4e9bf8c3e67f10fd2ce1e3e1b3ff4eefa13b2065757f3b1822d3d39f920"
 }

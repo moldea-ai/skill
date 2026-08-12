@@ -1,7 +1,10 @@
 ---
 name: moldea
-description: Establish and continuously maintain Git-owned moldea project context and agent behavior. Use for explicit moldea initialization, project or agent maintenance, evaluate, reconcile, and validate requests, and when ordinary behavior-affecting work may affect an existing moldea system.
+description: >-
+  Use when a developer asks their coding agent to initialize or work with moldea; create or refine an AI agent or its behavioral system, including instructions, descriptions, handoff descriptions, tools, skills, schemas, variables and providers, routing or handoffs, bindings, or runtime integration; evaluate, reconcile, or validate an existing moldea system; or make ordinary behavior-affecting repository changes that may require maintaining an adopted moldea system. Loading the skill does not adopt moldea: initial adoption still requires explicit developer intent, while relevance-triggered maintenance applies once a repository uses or is adopting moldea.
 license: MIT
+compatibility: >-
+  Portable with no prerequisites for discovery or activation. Deterministic local operations require Git >=2.30.0; Node.js ^22.11.0 || ^24.11.0; one supported package manager: npm >=10.9.0 <12.0.0, pnpm >=11.20.0 <12.0.0, or Yarn >=4.0.0 <5.0.0; and one exact repository-local @moldea.ai/cli version satisfying >=1.0.0 <1.1.0 with CLI JSON schema 1. Write-capable workflows may establish the local CLI; read-only evaluate cannot. A global CLI is never used.
 metadata:
   version: "1.0.0"
 ---

@@ -1,10 +1,10 @@
 # Context gathering
 
-Read this reference before initialization, consequential project-context work, agent creation, semantic evaluation, or reconciliation.
+Read this reference before initialization, agent-system planning, consequential project-context work, agent creation, semantic evaluation, or reconciliation.
 
 ## Establish the purpose
 
-Begin with the question that must be answered: project foundation, one domain, one agent, one behavior change, one contradiction, or one reconciliation. The purpose controls investigation depth and persistence.
+Begin with the question that must be answered: project foundation, agent-system architecture, one domain, one agent, one behavior change, one contradiction, or one reconciliation. The purpose controls investigation depth and persistence.
 
 Use deterministic `inspect --json` early when supported local tooling exists. It establishes structural state, canonical assets, registered relationships, and available adapter evidence; it does not establish developer intent or semantic correctness.
 
@@ -43,7 +43,7 @@ When evidence conflicts, determine whether the claims concern the same scope and
 ## Investigate progressively
 
 1. Inspect the root README and other high-information project surfaces first.
-2. Inspect package, framework, entry-point, configuration, canonical `moldea`, and central contract evidence proportional to the task.
+2. Inspect package, runtime, entry-point, configuration, canonical `moldea`, and central contract evidence proportional to the task.
 3. Follow material imports, bindings, impact paths, schemas, capability registrations, runtime-agent construction, instruction loaders, variable providers, tests, runtime guidance, decisions, unresolved references, and adapter evidence.
 4. Test consequential conclusions against a second reliable surface when practical.
 5. Identify contradictions, temporal differences, and material unknowns.
@@ -66,7 +66,17 @@ Route durable information by meaning:
 - `instruction.md`: behavior the runtime model must know
 - nowhere: temporary, immaterial, easily rediscovered, speculative, secret, generic, or redundant information
 
-Never use canonical context as an issue tracker, implementation log, exhaustive inventory, generic framework guide, or store for runtime secret values.
+Never use canonical context as an issue tracker, implementation log, exhaustive inventory, generic runtime guide, or store for runtime secret values.
+
+## Gather for agent-system planning
+
+Planning begins from the developer's desired outcome rather than proposed agent names. Gather enough evidence to distinguish deterministic responsibilities from work that materially benefits from model reasoning.
+
+When relevant, establish the current workflow and services, domain rules, data sources and ownership, schemas and contracts, APIs, jobs, queues, integrations, existing agents and AI usage, capabilities, permissions, side effects, human approvals, scale, cadence, latency, privacy, security, compliance, audit, failure, and recovery expectations.
+
+Planning context is sufficient when the objective and material success criteria are clear and the current system, data, state, authority, side effects, contracts, and existing capabilities are understood well enough to classify responsibilities without consequential unsupported assumptions. It is insufficient when an unresolved fact could change whether a responsibility is deterministic, agent-owned, human-controlled, or separately owned.
+
+Because `plan` is read-only, do not persist discovered context, proposed candidates, or architecture decisions during that operation. Recommend later initialization or maintenance for durable current truth when useful.
 
 ## Initialize context first
 

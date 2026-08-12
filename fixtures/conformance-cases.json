@@ -271,6 +271,151 @@
         "create-package-json",
         "install-cli"
       ]
+    },
+    {
+      "id": "plan-missing-cli-without-tooling-change",
+      "scenario": "Agent-system planning finds no package-manager identity or compatible local CLI and must continue without selecting or establishing tooling.",
+      "operation": "plan",
+      "input": {
+        "packageManager": null,
+        "lockfiles": [],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "continue-plan-without-tooling"
+      ],
+      "forbidden": [
+        "select-package-manager",
+        "create-package-json",
+        "install-cli"
+      ]
+    },
+    {
+      "id": "validate-missing-cli-read-only",
+      "scenario": "Validate finds an established supported npm repository with no CLI dependency or installation and must remain read-only.",
+      "operation": "validate",
+      "input": {
+        "packageManager": "npm@11.12.1",
+        "lockfiles": [
+          "package-lock.json"
+        ],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "preserve-established-manager",
+        "report-read-only-remediation"
+      ],
+      "forbidden": [
+        "change-dependency-state",
+        "install-cli"
+      ]
+    },
+    {
+      "id": "existing-cli-with-executable-manager-config",
+      "scenario": "A write-capable workflow finds executable pnpm configuration but already has the exact compatible repository-local CLI and requires no dependency change.",
+      "operation": "maintain",
+      "input": {
+        "packageManager": "pnpm@11.20.0",
+        "lockfiles": [
+          "pnpm-lock.yaml"
+        ],
+        "executable": {
+          "manager": "pnpm",
+          "version": "11.20.0"
+        },
+        "repositoryExecutableConfig": [
+          "pnpmfile"
+        ],
+        "cli": {
+          "declaration": "1.0.0",
+          "installedVersion": "1.0.0",
+          "executableResolves": true
+        }
+      },
+      "expected": [
+        "preserve-established-manager",
+        "preserve-existing-exact-cli"
+      ],
+      "forbidden": [
+        "execute-repository-hook",
+        "run-package-manager-install"
+      ]
+    },
+    {
+      "id": "pnpm-executable-hook-config",
+      "scenario": "A write-capable workflow finds an established supported pnpm repository whose pnpmfile can execute repository code during dependency resolution.",
+      "operation": "initialize",
+      "input": {
+        "packageManager": "pnpm@11.20.0",
+        "lockfiles": [
+          "pnpm-lock.yaml"
+        ],
+        "executable": {
+          "manager": "pnpm",
+          "version": "11.20.0"
+        },
+        "repositoryExecutableConfig": [
+          "pnpmfile"
+        ],
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "stop-for-executable-package-manager-config"
+      ],
+      "forbidden": [
+        "execute-repository-hook",
+        "run-package-manager-install"
+      ]
+    },
+    {
+      "id": "yarn-third-party-plugin-config",
+      "scenario": "A write-capable workflow finds an established supported Yarn repository that declares a repository-supplied third-party plugin.",
+      "operation": "initialize",
+      "input": {
+        "packageManager": "yarn@4.18.0",
+        "lockfiles": [
+          "yarn.lock"
+        ],
+        "executable": {
+          "manager": "yarn",
+          "version": "4.18.0"
+        },
+        "repositoryExecutableConfig": [
+          "third-party-yarn-plugin"
+        ],
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "stop-for-executable-package-manager-config"
+      ],
+      "forbidden": [
+        "execute-repository-plugin",
+        "run-package-manager-install"
+      ]
     }
   ],
   "cliEnvelopeCases": [
@@ -893,6 +1038,265 @@
         "trust-binary-path-alone",
         "trust-reported-version-alone",
         "use-global-or-transient-cli"
+      ]
+    },
+    {
+      "id": "host-plan-command-precedence",
+      "scenario": "Applicable coding instructions define the bare plan command as read-only implementation planning, and the developer asks to plan a deterministic cache invalidation refactor without requesting an agent system.",
+      "operation": "plan",
+      "input": {
+        "repositoryEvidence": [
+          "no adopted moldea project",
+          "applicable host plan command",
+          "deterministic cache invalidation implementation"
+        ],
+        "developerDirection": "Plan the cache invalidation refactor."
+      },
+      "expected": [
+        "follow-host-plan-command",
+        "avoid-moldea-agent-system-planning",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "invent-agent-topology",
+        "initialize-moldea",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "plan-uninitialized-zero-agent",
+      "scenario": "A repository with no moldea state or local CLI needs an architecture plan for exact nightly tax calculations governed entirely by fixed published rules.",
+      "operation": "plan-agent-system",
+      "input": {
+        "repositoryEvidence": [
+          "fixed tax tables",
+          "deterministic rounding contract",
+          "nightly scheduled batch",
+          "no semantic classification or generation need",
+          "no moldea state",
+          "no local CLI"
+        ],
+        "developerDirection": "Plan what agents, if any, should calculate and persist nightly tax amounts."
+      },
+      "expected": [
+        "recommend-zero-agents",
+        "keep-calculation-deterministic",
+        "avoid-tooling-or-adoption-writes",
+        "recommend-implementation-sequence",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "install-cli",
+        "initialize-moldea",
+        "invent-agent",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "plan-existing-project-one-agent",
+      "scenario": "An adopted moldea project with compatible local inspection needs a plan for semantically triaging support messages while keeping authorization and state transitions deterministic.",
+      "operation": "plan-agent-system",
+      "input": {
+        "repositoryEvidence": [
+          "compatible exact local CLI",
+          "existing support API",
+          "deterministic authorization service",
+          "deterministic ticket persistence",
+          "semantic intent and urgency classification benefits from model reasoning"
+        ],
+        "developerDirection": "Plan the smallest agent system for support triage."
+      },
+      "expected": [
+        "use-existing-evidence-read-only",
+        "recommend-one-justified-agent",
+        "keep-enforcement-deterministic",
+        "define-data-authority-and-contracts",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "create-or-update-agent",
+        "automatic-orchestrator",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "plan-justified-multi-agent",
+      "scenario": "A promotion workflow needs public-market research and privileged customer-specific recommendation reasoning with distinct data permissions and failure domains.",
+      "operation": "plan-agent-system",
+      "input": {
+        "repositoryEvidence": [
+          "public market data is isolated from private customer profiles",
+          "customer recommendations require private purchase history",
+          "promotion eligibility and delivery are deterministic",
+          "publishing requires human approval"
+        ],
+        "developerDirection": "Plan the agent and software architecture for personalized promotions."
+      },
+      "expected": [
+        "justify-independent-agent-boundaries",
+        "prevent-god-agent",
+        "use-deterministic-orchestration",
+        "preserve-least-privilege-and-human-approval",
+        "define-principal-contracts",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "shared-implicit-state",
+        "model-orchestrator-without-semantic-routing",
+        "agent-executes-final-publishing",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "plan-material-ambiguity",
+      "scenario": "The repository does not establish whether a proposed refund agent may execute refunds or may only recommend them for human approval.",
+      "operation": "plan-agent-system",
+      "input": {
+        "repositoryEvidence": [
+          "refund API can execute an irreversible payment reversal",
+          "no accepted authority policy",
+          "existing documentation describes both automated and reviewed refunds"
+        ],
+        "developerDirection": "Plan the refund agent system."
+      },
+      "expected": [
+        "ask-focused-authority-question",
+        "return-truthful-partial-plan",
+        "identify-architecture-changing-ambiguity",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "invent-execution-authority",
+        "create-unresolved-requirement",
+        "claim-complete-plan",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "dedicated-repository-runtime-selection",
+      "scenario": "Canonical moldea state is in a dedicated repository while a developer-identified related application repository directly uses a verified available OpenAI provider target as its primary runtime boundary.",
+      "operation": "maintain-agent-runtime",
+      "input": {
+        "repositoryEvidence": [
+          "separate canonical repository",
+          "separate read-only related application repository at /related-application",
+          "direct OpenAI provider SDK is the primary runtime integration",
+          "application runtime exposes provider-hosted web search without a repository-local canonical implementation",
+          "active matrix marks the matching OpenAI target available",
+          "canonical inspection cannot observe the external implementation"
+        ],
+        "developerDirection": "Align the canonical agent runtime using the related application as evidence."
+      },
+      "expected": [
+        "select-official-runtime-from-external-evidence",
+        "update-canonical-runtime-id",
+        "preserve-separate-repository-boundaries",
+        "treat-missing-local-evidence-as-limitation",
+        "represent-application-capabilities-semantically"
+      ],
+      "forbidden": [
+        "select-custom-because-implementation-is-external",
+        "leave-stale-custom-runtime",
+        "create-cross-repository-binding",
+        "create-unresolved-requirement-for-established-external-behavior",
+        "modify-related-read-only-repository"
+      ]
+    },
+    {
+      "id": "runtime-adapter-lifecycle",
+      "scenario": "An existing agent still matches its published deprecated runtime target, the installed compatible CLI does not activate that adapter, and the matrix requires project-local runtime guidance.",
+      "operation": "evaluate-runtime-relationship",
+      "input": {
+        "repositoryEvidence": [
+          "existing deprecated runtime declaration still matches",
+          "no available replacement matches",
+          "adapter inactive in installed CLI",
+          "matrix runtimeGuidance is required",
+          "agent has no runtime guidance"
+        ],
+        "developerDirection": "Evaluate the agent runtime relationship."
+      },
+      "expected": [
+        "retain-matching-deprecated-runtime",
+        "report-inactive-adapter-evidence-limitation",
+        "report-missing-guidance-as-semantic-readiness-problem",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "rewrite-runtime-to-custom",
+        "classify-guidance-as-core-structural-error",
+        "upgrade-cli-during-evaluate",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "read-only-git-helper-suppression",
+      "scenario": "Evaluate must inspect a dirty working tree whose repository Git configuration attempts to execute fsmonitor, external diff, and text-conversion helpers.",
+      "operation": "evaluate",
+      "input": {
+        "repositoryEvidence": [
+          "adopted moldea project",
+          "dirty implementation path",
+          "repository-configured executable Git helpers",
+          "no helper execution has occurred"
+        ],
+        "developerDirection": "Evaluate the current moldea project without executing repository code."
+      },
+      "expected": [
+        "disable-repository-git-execution-paths",
+        "inspect-change-set-with-machine-output",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "execute-git-helper",
+        "execute-filter-or-lfs",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "pnpm-hook-install-blocked",
+      "scenario": "Initialization would need to install the local CLI, but the supported pnpm repository contains a pnpmfile that executes repository code during dependency resolution.",
+      "operation": "initialize",
+      "input": {
+        "repositoryEvidence": [
+          "packageManager is pnpm@11.20.0",
+          "local CLI is missing",
+          "repository pnpmfile contains executable hooks"
+        ],
+        "developerDirection": "Initialize moldea without executing repository package-manager code."
+      },
+      "expected": [
+        "detect-executable-package-manager-config",
+        "stop-before-package-manager-execution",
+        "report-actionable-prerequisite"
+      ],
+      "forbidden": [
+        "execute-pnpm-hook",
+        "install-cli",
+        "initialize-partially"
+      ]
+    },
+    {
+      "id": "yarn-plugin-install-blocked",
+      "scenario": "Initialization would need to install the local CLI, but the supported Yarn repository declares a repository-supplied third-party plugin.",
+      "operation": "initialize",
+      "input": {
+        "repositoryEvidence": [
+          "packageManager is yarn@4.18.0",
+          "local CLI is missing",
+          "repository Yarn configuration loads a third-party plugin"
+        ],
+        "developerDirection": "Initialize moldea without executing repository package-manager code."
+      },
+      "expected": [
+        "detect-executable-package-manager-config",
+        "stop-before-package-manager-execution",
+        "report-actionable-prerequisite"
+      ],
+      "forbidden": [
+        "execute-yarn-plugin",
+        "install-cli",
+        "initialize-partially"
       ]
     }
   ]

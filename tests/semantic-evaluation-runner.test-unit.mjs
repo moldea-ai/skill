@@ -127,6 +127,35 @@ test('sandbox uses an empty root, isolated network, and restricted relay', () =>
   );
 });
 
+test('sandbox mounts related repositories read-only', () => {
+  const argumentsList = buildBwrapArguments({
+    command: SAFE_HOST_COMMAND,
+    cwd: '/tmp/evaluation',
+    hostExecutable: '/usr/bin/codex',
+    readOnlyMounts: [
+      {
+        source: '/tmp/related-application',
+        target: '/related-application',
+      },
+    ],
+    sandboxHome: '/tmp/evaluation-home',
+  });
+  const mountIndex = argumentsList.findIndex(
+    (part, index) =>
+      part === '--ro-bind' && argumentsList[index + 1] === '/tmp/related-application',
+  );
+
+  assert.notEqual(mountIndex, -1);
+  assert.equal(argumentsList[mountIndex + 2], '/related-application');
+  assert.equal(
+    argumentsList.some(
+      (part, index) =>
+        part === '--bind' && argumentsList[index + 1] === '/tmp/related-application',
+    ),
+    false,
+  );
+});
+
 test('host command requires externally sandboxed execution mode', () => {
   assert.doesNotThrow(() => validateHostCommand(SAFE_HOST_COMMAND));
   assert.throws(

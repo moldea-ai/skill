@@ -16,6 +16,8 @@ Release `1.0.0` supports:
 
 Use node-semver range semantics. Do not broaden these ranges or automatically select a prerelease CLI.
 
+`plan` does not establish this tooling merely to produce an architecture recommendation. It may use an already available compatible repository-local CLI read-only after verifying the same provider and envelope contract. When tooling is absent or incompatible, continue planning from sufficient repository evidence and disclose the unavailable deterministic evidence without selecting a package manager, creating metadata, or changing dependencies.
+
 ## Determine the package manager
 
 Inspect repository-root `package.json`, recognized root lockfiles, workspace configuration when material, and the actual executables without changing them.
@@ -39,7 +41,7 @@ Compatible tooling state requires all of the following:
 - the established manager resolves the repository-local `moldea` executable from that root package
 - the machine envelope reports the same exact `cliVersion` and schema `1`
 
-Preserve an existing compatible exact declaration and executable. Do not upgrade it merely because a newer compatible version exists.
+Preserve an existing compatible exact declaration and executable. Do not upgrade it merely because a newer compatible version exists. A write-capable workflow may replace it within the supported range only when an official adapter or machine-contract capability materially required by the authorized work is absent from the installed composition and a released supported replacement providing it is established.
 
 During a write-capable workflow:
 
@@ -47,13 +49,13 @@ During a write-capable workflow:
 - if no compatible installed executable exists, query published registry metadata through the established manager, select the highest published non-prerelease version satisfying the supported range, install it exactly, and update the ordinary lockfile
 - if installed and declared state conflict in a way that cannot be established reliably, stop and report the prerequisite instead of guessing
 
-During `evaluate` or `validate`, never create `package.json`, change dependency declarations or lockfiles, or install packages. Report the detected state and the write-capable remediation.
+During `plan`, `evaluate`, or `validate`, never create `package.json`, change dependency declarations or lockfiles, or install packages. Report the detected state and the write-capable remediation when relevant.
 
 When a write-capable workflow needs tooling and root `package.json` is absent, create only a minimal private manifest needed for the development dependency. Do not invent application name, version, scripts, package-manager metadata, or unrelated dependencies.
 
-## Suppress lifecycle scripts
+## Suppress executable installation surfaces
 
-Automatic installation or pinning must suppress project and dependency lifecycle scripts. Substitute only an actually resolved exact version:
+Automatic installation or pinning must suppress project and dependency lifecycle scripts and must not load repository-supplied executable package-manager extensions, hooks, or plugins. Substitute only an actually resolved exact version:
 
 ```text
 npm install --save-dev --save-exact --ignore-scripts @moldea.ai/cli@<resolved-version>
@@ -64,7 +66,9 @@ yarn add --dev --exact --mode=skip-build @moldea.ai/cli@<resolved-version>
 
 Use the pnpm `--workspace-root` form only when the root is a pnpm workspace; otherwise use the non-workspace form. Yarn's supported `skip-build` mode omits the build step. npm and pnpm use their supported `ignore-scripts` setting. Do not write the literal placeholder or the compatibility range into a client manifest.
 
-Inspect applicable package-manager configuration before execution. If the selected manager/version rejects the documented suppression mechanism, repository configuration defeats it, or safe suppression cannot be guaranteed, stop and report the prerequisite. Separately authorized lifecycle-script execution remains subject to coding instructions and is never implied by a `moldea` request.
+Inspect applicable package-manager configuration as data before execution. Treat pnpmfiles, hook-bearing pnpm configuration, repository-declared third-party Yarn plugins, and equivalent extension mechanisms as executable repository code. Use only tested controls that prevent those surfaces from loading without making dependency resolution materially different or unreliable.
+
+If the selected manager or version rejects the documented controls, repository configuration defeats them, an executable surface cannot be prevented from loading, or suppression would change the dependency-resolution contract materially, stop and report the prerequisite. Separately authorized lifecycle-script or package-manager-extension execution remains subject to coding instructions and is never implied by a `moldea` request.
 
 ## Invoke only the root-local CLI
 
@@ -83,7 +87,7 @@ After provider verification, require the executable's machine envelope to report
 
 Never use a bare global command, `npx`, `pnpm dlx`, `yarn dlx`, or another form that may download an undeclared CLI.
 
-Use `inspect --json` as the primary deterministic integration. Use `compatibility --json` only when current adapter, framework, package, provider-limit, or feature support can affect the task. Use `validate --json` when narrower structural validation is sufficient.
+Use `inspect --json` as the primary deterministic integration. Use `compatibility --json` only when current adapter, runtime, package, provider-limit, or feature support can affect the task. Use `validate --json` when narrower structural validation is sufficient.
 
 ## Verify the machine envelope
 
@@ -106,6 +110,8 @@ Structural `invalid` output is deterministic project evidence, not an operationa
 
 ## Preserve responsibility boundaries
 
-Consume CLI/Core/adapter results rather than reimplementing Git inventory, repository snapshots, repository-format parsing, path validation, placeholder validation, mirror comparison, diagnostics, adapter invocation, or compatibility interpretation. Do not import private CLI modules.
+Consume CLI, Core, and runtime-adapter results rather than reimplementing Git inventory, repository snapshots, repository-format parsing, path validation, placeholder validation, mirror comparison, diagnostics, adapter invocation, or compatibility interpretation. Do not import private CLI modules.
+
+When additional read-only Git evidence is materially necessary, disable repository-configured execution paths relevant to the command: filesystem-monitor hooks, external diff helpers, text-conversion drivers, pagers, filters, LFS, and unintended submodule recursion. Use machine-oriented output for parsed paths and change sets. If the required inspection cannot be performed without executing repository code, use other reliable evidence or report the limitation.
 
 Treat `inspect --json` as sensitive local content. Use it only for the active task; do not persist the raw envelope, expose canonical content unnecessarily, or copy machine output into README guidance.

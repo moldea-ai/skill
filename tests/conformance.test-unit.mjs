@@ -1,5 +1,14 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, test } from 'node:test';
@@ -10,8 +19,19 @@ import { createPortableSkillDigest } from './semantic-evaluation-runner.mjs';
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILL_DIRECTORY = join(REPOSITORY_ROOT, 'moldea');
 const SKILL_PATH = join(SKILL_DIRECTORY, 'SKILL.md');
+const FAKE_CLI_PATH = join(
+  REPOSITORY_ROOT,
+  'fixtures',
+  'tooling',
+  'fake-cli',
+  'bin',
+  'moldea.js',
+);
+const LEGACY_RUNTIME_TERM = ['frame', 'work'].join('');
+const READ_ONLY_TOOLING_OPERATIONS = new Set(['evaluate', 'plan', 'validate']);
 const REFERENCE_FILES = [
   'agent-design.md',
+  'agent-system-planning.md',
   'context-gathering.md',
   'continuous-maintenance.md',
   'evaluate-and-reconcile.md',
@@ -19,7 +39,6 @@ const REFERENCE_FILES = [
 ];
 const ALLOWED_FRONTMATTER_KEYS = new Set([
   'allowed-tools',
-  'compatibility',
   'description',
   'license',
   'metadata',
@@ -29,6 +48,7 @@ const REQUIRED_EVALUATION_CASE_IDS = {
   packageManagerCases: [
     'declared-executable-version-conflict',
     'evaluate-missing-cli-read-only',
+    'existing-cli-with-executable-manager-config',
     'floating-cli-with-compatible-install',
     'matching-package-manager-and-lockfile',
     'metadata-lockfile-conflict',
@@ -36,7 +56,11 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'multiple-manager-lockfiles',
     'no-evidence-default-npm',
     'out-of-range-executable',
+    'plan-missing-cli-without-tooling-change',
+    'pnpm-executable-hook-config',
     'unsupported-established-manager',
+    'validate-missing-cli-read-only',
+    'yarn-third-party-plugin-config',
   ],
   cliEnvelopeCases: [
     'command-mismatch',
@@ -62,16 +86,26 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'adopted-relevance-changed-behavior',
     'adopted-relevance-no-change',
     'canonical-instruction-changed',
+    'dedicated-repository-runtime-selection',
     'dedicated-repository-single-side-change',
     'evaluate-clean-working-tree',
     'evaluate-dirty-working-tree',
     'evaluate-unborn-repository',
+    'host-plan-command-precedence',
+    'plan-existing-project-one-agent',
+    'plan-justified-multi-agent',
+    'plan-material-ambiguity',
+    'plan-uninitialized-zero-agent',
+    'pnpm-hook-install-blocked',
     'pnpm-pnp-local-cli-provider',
     'provider-hosted-capability',
+    'read-only-git-helper-suppression',
     'reconcile-material-ambiguity',
+    'runtime-adapter-lifecycle',
     'unadopted-relevance-no-initialization',
     'unresolved-related-file-changed',
     'yarn-conflicting-cli-provider',
+    'yarn-plugin-install-blocked',
   ],
 };
 
@@ -111,12 +145,6 @@ const parseFrontmatter = (content) => {
         metadataKey.length > 0 && typeof metadataValue === 'string',
     ),
   );
-  if ('compatibility' in frontmatter) {
-    assert.equal(typeof frontmatter.compatibility, 'string');
-    assert.ok(
-      frontmatter.compatibility.trim().length >= 1 && frontmatter.compatibility.length <= 500,
-    );
-  }
   if ('allowed-tools' in frontmatter) {
     assert.equal(typeof frontmatter['allowed-tools'], 'string');
     assert.ok(frontmatter['allowed-tools'].trim().length > 0);
@@ -146,6 +174,18 @@ const isSupportedManagerVersion = (manager, version) => {
 const isCompatibleCliVersion = (version) => /^1\.0\.\d+$/.test(version ?? '');
 
 const evaluatePackageManagerCase = ({ operation, input }) => {
+  const cli = input.cli;
+  const hasCompatibleInstall = isCompatibleCliVersion(cli.installedVersion);
+  const isExactDeclaration = isCompatibleCliVersion(cli.declaration);
+  const hasExactCompatibleCli =
+    isExactDeclaration &&
+    cli.declaration === cli.installedVersion &&
+    cli.executableResolves;
+
+  if (operation === 'plan' && !hasExactCompatibleCli) {
+    return ['continue-plan-without-tooling'];
+  }
+
   const lockfileManagers = new Set(
     input.lockfiles.map((lockfile) => {
       if (lockfile === 'package-lock.json' || lockfile === 'npm-shrinkwrap.json') return 'npm';
@@ -180,13 +220,20 @@ const evaluatePackageManagerCase = ({ operation, input }) => {
       ? 'preserve-established-manager'
       : 'select-npm-and-verify-executable',
   ];
-  const cli = input.cli;
-  const hasCompatibleInstall = isCompatibleCliVersion(cli.installedVersion);
-  const isExactDeclaration = isCompatibleCliVersion(cli.declaration);
+  const isReadOnlyOperation = READ_ONLY_TOOLING_OPERATIONS.has(operation);
+  const requiresDependencyChange = !hasExactCompatibleCli;
 
-  if (operation === 'evaluate' && (!hasCompatibleInstall || !isExactDeclaration)) {
+  if (
+    !isReadOnlyOperation &&
+    requiresDependencyChange &&
+    input.repositoryExecutableConfig?.length > 0
+  ) {
+    return ['stop-for-executable-package-manager-config'];
+  }
+
+  if (isReadOnlyOperation && !hasExactCompatibleCli) {
     decisions.push('report-read-only-remediation');
-  } else if (isExactDeclaration && cli.declaration === cli.installedVersion && cli.executableResolves) {
+  } else if (hasExactCompatibleCli) {
     decisions.push('preserve-existing-exact-cli');
   } else if (hasCompatibleInstall && cli.executableResolves) {
     decisions.push('pin-compatible-installed-version');
@@ -321,6 +368,20 @@ describe('portable Agent Skill contract', () => {
     ]);
   });
 
+  test('defines objective-first read-only agent-system planning', () => {
+    assertMatchesEvery(portableContent, [
+      /agent-system planning activates only/i,
+      /Generic implementation planning and host-defined `plan` commands remain outside/i,
+      /valid result may recommend zero agents/i,
+      /fixed calculations, eligibility rules, filtering, storage, delivery mechanics, and predictable sequencing deterministic/i,
+      /Prefer deterministic orchestration/i,
+      /why model reasoning earns an agent boundary/i,
+      /least-privilege constraints/i,
+      /implementation order/i,
+      /no repository files were changed by `plan`/i,
+    ]);
+  });
+
   test('preserves evaluate, reconcile, and deterministic responsibility boundaries', () => {
     assertMatchesEvery(portableContent, [
       /`evaluate` must not modify/,
@@ -344,6 +405,9 @@ describe('portable Agent Skill contract', () => {
       /pnpm add --save-dev --save-exact --ignore-scripts/,
       /pnpm add --workspace-root --save-dev --save-exact --ignore-scripts/,
       /yarn add --dev --exact --mode=skip-build/,
+      /repository-supplied executable package-manager extensions, hooks, or plugins/,
+      /pnpmfiles, hook-bearing pnpm configuration/,
+      /repository-declared third-party Yarn plugins/,
       /yarn bin moldea/,
       /yarn exec moldea/,
       /never use a bare global command/i,
@@ -359,6 +423,9 @@ describe('portable Agent Skill contract', () => {
       /<!-- moldea:start -->/,
       /Duplicate, missing, reversed, nested, overlapping/,
       /cross-repository bindings/,
+      /actual available official `runtime\.id`/,
+      /evidence-location limitation/,
+      /application-only tools and skills/,
       /report completion for each side accurately/,
       /Do not use requirements as a roadmap or backlog/,
       /related file changed/,
@@ -366,6 +433,20 @@ describe('portable Agent Skill contract', () => {
       /Never edit a mirror independently/,
       /Never invent a manifest `handoffs` graph/,
     ]);
+  });
+
+  test('uses only the runtime contract and safe read-only Git evidence', () => {
+    assertMatchesEvery(portableContent, [
+      /exactly one `runtime\.id`/,
+      /primary runtime integration boundary/,
+      /still-matching `deprecated` adapter/,
+      /`runtimeGuidance` expectation/,
+      /filesystem-monitor hooks/,
+      /external diff helpers/,
+      /text-conversion drivers/,
+      /unintended submodule recursion/,
+    ]);
+    assert.equal(portableContent.toLowerCase().includes(LEGACY_RUNTIME_TERM), false);
   });
 
   test('has no semantic dependency on host-specific metadata or external repository paths', () => {
@@ -431,6 +512,102 @@ describe('source repository conformance', () => {
     }
   });
 
+  test('keeps the fake CLI envelope and compatibility composition contract-faithful', () => {
+    const repositoryPath = mkdtempSync(join(tmpdir(), 'moldea-fake-cli-test-'));
+
+    try {
+      mkdirSync(join(repositoryPath, 'moldea', 'agents', 'refund-agent'), {
+        recursive: true,
+      });
+      writeFileSync(
+        join(repositoryPath, 'moldea', 'moldea.yaml'),
+        'version: 1\n\nagents:\n  refund-agent:\n    runtime:\n      id: openai\n',
+      );
+      writeFileSync(join(repositoryPath, 'moldea', 'project.md'), '# Test project\n');
+      writeFileSync(
+        join(repositoryPath, 'moldea', 'agents', 'refund-agent', 'description.md'),
+        'Handles refund requests.\n',
+      );
+      writeFileSync(
+        join(repositoryPath, 'moldea', 'agents', 'refund-agent', 'instruction.md'),
+        '# Refund agent\n\nYou are the `refund-agent` agent.\n',
+      );
+      writeFileSync(
+        join(repositoryPath, 'runtime-compatibility-fixture.json'),
+        `${JSON.stringify({
+          adapters: [
+            {
+              id: 'openai',
+              active: false,
+              bundledVersion: null,
+              matrix: {
+                implementation: {
+                  kind: 'package',
+                  package: '@moldea.ai/adapter-openai',
+                  distribution: 'public',
+                },
+                implementationStatus: 'planned',
+              },
+            },
+          ],
+        })}\n`,
+      );
+
+      const inspection = spawnSync(FAKE_CLI_PATH, ['inspect', '--json'], {
+        cwd: repositoryPath,
+        encoding: 'utf8',
+      });
+      const inspectionEnvelope = JSON.parse(inspection.stdout);
+      assert.equal(inspection.status, 1);
+      assert.equal(inspectionEnvelope.status, 'invalid');
+      assert.equal(
+        inspectionEnvelope.result.inspection.diagnostics[0].code,
+        'MOLDEA_RUNTIME_ADAPTER_UNAVAILABLE',
+      );
+
+      const compatibility = spawnSync(FAKE_CLI_PATH, ['compatibility', '--json'], {
+        cwd: repositoryPath,
+        encoding: 'utf8',
+      });
+      const compatibilityEnvelope = JSON.parse(compatibility.stdout);
+      assert.equal(compatibility.status, 0);
+      assert.equal(compatibilityEnvelope.status, 'valid');
+      assert.deepEqual(
+        compatibilityEnvelope.result.packages.map(({ name }) => name),
+        [
+          '@moldea.ai/cli',
+          '@moldea.ai/core',
+          '@moldea.ai/repository',
+          '@moldea.ai/repository-fs',
+        ],
+      );
+      assert.deepEqual(
+        compatibilityEnvelope.result.adapters.map(({ id }) => id),
+        [
+          'anthropic',
+          'claude-agent-sdk',
+          'cloudflare-agents',
+          'custom',
+          'eve',
+          'google-genai',
+          'langchain',
+          'langgraph',
+          'openai',
+          'openai-agents-sdk',
+          'pydantic-ai',
+          'vercel-ai-sdk',
+        ],
+      );
+      const customCompatibility = compatibilityEnvelope.result.adapters.find(
+        ({ id }) => id === 'custom',
+      );
+      assert.equal(customCompatibility.active, true);
+      assert.equal(customCompatibility.bundledVersion, null);
+    } finally {
+      rmSync(repositoryPath, { force: true, recursive: true });
+    }
+  });
+
   test('exercises every supported CLI machine-envelope disposition', () => {
     for (const conformanceCase of cases.cliEnvelopeCases) {
       assert.equal(evaluateCliEnvelopeCase(conformanceCase), conformanceCase.expected[0]);
@@ -469,7 +646,7 @@ describe('source repository conformance', () => {
 
     assertMatchesEvery(openaiMetadata, [
       /display_name: "moldea"/,
-      /initialize, maintain, evaluate, reconcile, or validate/,
+      /plan, initialize, maintain, evaluate, reconcile, or validate/,
     ]);
     assert.doesNotMatch(openaiMetadata, /initialize this repository context and agent instructions/);
   });

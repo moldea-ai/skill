@@ -55,3 +55,44 @@ test('Bubblewrap cannot observe host state or connect to host localhost', async 
     rmSync(hostMarkerRoot, { force: true, recursive: true });
   }
 });
+
+test('Bubblewrap exposes related repositories without write authority', () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-related-repository-test-'));
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const relatedRepositoryPath = join(evaluationRoot, 'related-application');
+  const sandboxHome = join(evaluationRoot, 'home');
+  mkdirSync(repositoryPath);
+  mkdirSync(relatedRepositoryPath);
+  mkdirSync(sandboxHome);
+  writeFileSync(join(relatedRepositoryPath, 'marker'), 'related');
+
+  const probe = `
+    const { readFileSync, writeFileSync } = require('node:fs');
+    if (readFileSync('/related-application/marker', 'utf8') !== 'related') process.exit(10);
+    try {
+      writeFileSync('/related-application/created', 'unexpected');
+      process.exit(11);
+    } catch (error) {
+      if (!['EACCES', 'EROFS'].includes(error.code)) process.exit(12);
+    }
+  `;
+
+  try {
+    const result = spawnSync(
+      'bwrap',
+      buildBwrapArguments({
+        command: ['codex', '--eval', probe],
+        cwd: repositoryPath,
+        hostExecutable: process.execPath,
+        readOnlyMounts: [
+          { source: relatedRepositoryPath, target: '/related-application' },
+        ],
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 2_000 },
+    );
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});

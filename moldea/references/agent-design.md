@@ -1,6 +1,8 @@
 # Agent design
 
-Read this reference before creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, adapter relationship, or unresolved requirement.
+Read this reference before creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, runtime relationship, or unresolved requirement.
+
+Agent-system planning determines whether an agent should exist and proposes its high-level responsibility boundary. Agent design begins when the developer directly requests an agent or accepts a candidate for implementation. Revalidate repository evidence rather than copying a planning recommendation mechanically into canonical state or model-facing instructions.
 
 ## Establish behavior before prose
 
@@ -37,15 +39,21 @@ Every registered agent uses one stable lowercase ASCII kebab-case ID, one derive
 
 ## Select the runtime honestly
 
-Every registered agent declares exactly one framework ID. Inspect runtime evidence and run `compatibility --json` when support matters.
+Every registered agent declares exactly one `runtime.id`. Inspect repository runtime evidence and run `compatibility --json` when official support information matters.
 
-- select a package-backed official adapter only when its active matrix entry is `available` and repository evidence matches a published target
-- planned or in-development entries do not establish support
-- use the built-in `custom` adapter when a known runtime does not reliably match an available official adapter
-- clarify when the runtime itself is genuinely unknown
-- add project-local runtime guidance only when actual integration cannot be interpreted reliably from adapter evidence, bindings, and repository evidence
+1. Identify the primary runtime integration boundary that governs model invocation and, when applicable, instruction loading, capabilities, schemas, routing, or variable provision.
+2. When supported runtime layers are nested, select the highest-level available official adapter whose verified target covers that boundary and composition. Treat provider SDKs beneath it as implementation dependencies rather than competing runtime IDs.
+3. Select `openai`, `anthropic`, or `google-genai` only when that provider SDK is itself the primary integration boundary.
+4. Use `custom` when multiple runtime layers materially and independently govern the agent and no verified official target covers the composition, or when the established integration does not reliably match an available official adapter.
+5. Clarify when the runtime itself is genuinely unknown rather than inventing a declaration.
 
-Do not infer compatibility from a package name, install adapters dynamically, or invent framework support.
+Planned and in-development matrix entries do not establish support. Preserve published target maturity exactly: an `experimental` target may establish the correct identity but is not production-ready, while an existing agent may retain a still-matching `deprecated` adapter. Deprecation or an inactive local adapter alone is not a reason to rewrite `runtime.id` to `custom`.
+
+When a matching published adapter is inactive in the installed CLI, treat that as a tooling prerequisite. A write-capable workflow may replace a compatible exact CLI pin only when the required adapter or machine capability materially affects the authorized work and a released CLI inside this skill's supported range is established to provide it. Otherwise report the limitation; `evaluate` never changes the dependency.
+
+Honor the active matrix's `runtimeGuidance` expectation. `required` blocks semantic readiness until appropriate project-local guidance exists and is referenced, `recommended` requires a material-usefulness evaluation, and `optional` adds no readiness requirement. This does not turn optional manifest syntax into a Core structural error.
+
+Do not infer compatibility from package names or general runtime knowledge, install adapters dynamically, or claim support absent from verified compatibility data.
 
 ## Register real relationships
 
@@ -55,7 +63,7 @@ Register repository-root-absolute logical paths and symbols when material implem
 
 Never create fake paths, symbols, selectors, future files, cross-repository references, or prose-only substitutes for required relationships. If the active manifest shape needed for a material relationship cannot be established, stop and report the blocker.
 
-Routing and handoffs remain framework-native in version `1`. Maintain runtime routing implementation, source/target instructions, target-owned handoff descriptions, runtime guidance, and relevant impact relationships as needed. Never invent a manifest `handoffs` graph.
+Routing and handoffs remain runtime-native in version `1`. Maintain runtime routing implementation, source/target instructions, target-owned handoff descriptions, runtime guidance, and relevant impact relationships as needed. Never invent a manifest `handoffs` graph.
 
 ## Tools and skills
 
@@ -67,6 +75,8 @@ Give each registered capability a stable agent-scoped ID, exact runtime-facing n
 
 A provider-hosted or external model-visible capability without a qualifying repository-local artifact may be described in the instruction or runtime guidance when reliable evidence supports it. Do not fabricate a manifest tool or skill entry.
 
+In dedicated-repository mode, implementation evidence from a developer-identified related application repository may establish an agent's actual runtime and model-facing capability semantics. It never becomes adapter evidence or a cross-repository binding. Application-only tools and skills remain instruction or runtime-guidance behavior rather than fabricated canonical manifest capabilities, and the lack of a version `1` cross-repository binding does not by itself create an unresolved requirement.
+
 ## Schemas
 
 Treat executable and model-facing schemas as one semantic contract:
@@ -74,10 +84,10 @@ Treat executable and model-facing schemas as one semantic contract:
 - preserve requiredness, optionality, nullability, literals, enums, alternatives, field meaning, and material constraints
 - include model-facing representations in the instruction when the model must understand the contract
 - bind material executable input and output schemas to existing repository-local paths and symbols
-- allow framework transformation while requiring semantic equivalence
+- allow runtime transformation while requiring semantic equivalence
 - omit unsupported or internal fields and never expose hidden reasoning
 
-When existing executable and model-facing contracts differ, no surface automatically wins. Inspect implementation, tests, context, developer intent, and framework transformation; clarify if the intended contract remains materially ambiguous.
+When existing executable and model-facing contracts differ, no surface automatically wins. Inspect implementation, tests, context, developer intent, and runtime transformation; clarify if the intended contract remains materially ambiguous.
 
 ## Runtime variables
 

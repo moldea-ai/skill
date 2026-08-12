@@ -13,7 +13,7 @@ Evidence that adoption exists or is underway includes canonical `/moldea/**` ass
 For every relevant developer-authorized change:
 
 1. Identify the implementation, contract, project, or agent behavior that may change.
-2. Map it through exact bindings, `affectedBy` paths, context and decision relationships, unresolved-requirement references, schemas, capabilities, runtime-agent construction, instruction loaders, variable providers, mirrors, runtime guidance, adapter evidence, imports, tests, configuration, and other material semantic evidence.
+2. Map it through exact bindings, `affectedBy` paths, context and decision relationships, unresolved-requirement references, schemas, capabilities, runtime-agent construction, instruction loaders, variable providers, mirrors, runtime guidance, runtime-adapter evidence, imports, tests, configuration, and other material semantic evidence.
 3. Inspect the affected project and agent surfaces deeply enough to establish whether truth or declared behavior actually changed.
 4. Update all affected representations in the same coherent developer change when the intended state is sufficiently established and writes are authorized.
 5. Make no canonical edit when established project truth and declared behavior remain correct.
@@ -70,11 +70,15 @@ The block is awareness guidance, not canonical project context, a manifest asset
 
 When canonical `/moldea/**` and application implementation live in separate Git repositories:
 
-- the canonical repository owns `moldea` state and is the target of deterministic inspection
+- the canonical repository owns `moldea` state, package-manager identity, package metadata and lockfile when required, exact local CLI dependency, and deterministic inspection
 - inspect a related application repository only when the developer identifies or makes it available and its evidence is materially necessary
 - treat application code and project-native verification as separate semantic evidence, not part of the canonical snapshot
 - never search neighboring repositories opportunistically
 - never create cross-repository bindings, repository references, impact paths, mirrors, or manifest relationships
+- use sufficiently established related-application evidence to select the actual available official `runtime.id`; do not select `custom` merely because implementation is external
+- treat absent or partial local adapter evidence for externally implemented agents as an evidence-location limitation, not proof that the runtime or implementation is missing
+- keep application-only tools and skills in accurate instruction or runtime-guidance semantics rather than fabricating manifest capabilities
+- do not create unresolved requirements solely because version `1` cannot bind an otherwise established cross-repository relationship
 - never imply cross-repository Git atomicity or cross-repository PR Assurance
 - if the application repository has its own `/moldea/**` state, treat it as an independent project
 - coordinate changes only when both repository scopes are authorized, verify each separately, and report completion for each side accurately

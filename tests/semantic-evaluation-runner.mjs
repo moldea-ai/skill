@@ -7,6 +7,7 @@ import {
   realpathSync,
 } from 'node:fs';
 import {
+  chmod,
   cp,
   copyFile,
   lstat,
@@ -48,6 +49,16 @@ const SAFE_HOST_ENVIRONMENT_NAMES = [
   'OPENAI_BASE_URL',
   'SSL_CERT_FILE',
 ];
+// semantic cases that use scenario-specific setup instead of the adopted npm fixture
+const CUSTOM_SETUP_CASE_IDS = new Set([
+  'host-plan-command-precedence',
+  'plan-uninitialized-zero-agent',
+  'pnpm-hook-install-blocked',
+  'pnpm-pnp-local-cli-provider',
+  'unadopted-relevance-no-initialization',
+  'yarn-conflicting-cli-provider',
+  'yarn-plugin-install-blocked',
+]);
 
 /** Parses and validates a host command from an environment variable. */
 const parseHostCommand = (variableName, fallback) => {
@@ -256,7 +267,13 @@ const getAllowedEgressHosts = () => {
 };
 
 /** Builds the isolated Bubblewrap invocation for one disposable evaluation repository. */
-export const buildBwrapArguments = ({ command, cwd, hostExecutable, sandboxHome }) => [
+export const buildBwrapArguments = ({
+  command,
+  cwd,
+  hostExecutable,
+  readOnlyMounts = [],
+  sandboxHome,
+}) => [
   '--die-with-parent',
   '--new-session',
   '--unshare-pid',
@@ -321,6 +338,13 @@ export const buildBwrapArguments = ({ command, cwd, hostExecutable, sandboxHome 
   '--bind',
   cwd,
   '/mnt',
+  ...readOnlyMounts.flatMap(({ source, target }) => [
+    '--dir',
+    target,
+    '--ro-bind',
+    source,
+    target,
+  ]),
   '--tmpfs',
   '/tmp',
   '--proc',
@@ -417,7 +441,7 @@ const waitForProxyReady = (proxyProcess) =>
   });
 
 /** Runs one host process with only disposable paths and restricted public egress available. */
-const runHost = async (command, prompt, cwd, sandboxHome) => {
+const runHost = async (command, prompt, cwd, sandboxHome, readOnlyMounts = []) => {
   validateHostCommand(command);
   const hostExecutable = resolveExecutablePath(command[0]);
   const proxyProcess = spawn(process.execPath, [EGRESS_PROXY_PATH], {
@@ -432,7 +456,7 @@ const runHost = async (command, prompt, cwd, sandboxHome) => {
     await waitForProxyReady(proxyProcess);
     const result = spawnSync(
       'bwrap',
-      buildBwrapArguments({ command, cwd, hostExecutable, sandboxHome }),
+      buildBwrapArguments({ command, cwd, hostExecutable, readOnlyMounts, sandboxHome }),
       {
         encoding: 'utf8',
         input: prompt,
@@ -496,56 +520,171 @@ const seedAdoptedProject = async (repositoryPath) => {
   await writeScenarioFile(
     repositoryPath,
     'README.md',
-    '# Evaluation repository\n\n<!-- moldea:start -->\nThis repository uses moldea.\n<!-- moldea:end -->\n',
+    '# Evaluation repository\n\n<!-- moldea:start -->\n## `moldea`\n\nThis repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.\n\nWhen making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.\n\nA relevant change requires reconsideration of the affected `moldea` state; it does not require editing `/moldea/**` when established project truth and declared agent behavior remain unchanged.\n<!-- moldea:end -->\n',
   );
   await writeScenarioFile(
     repositoryPath,
     'moldea/moldea.yaml',
-    'schemaVersion: 1\nproject:\n  name: Evaluation Project\n  context: project.md\naffectedBy:\n  - src/**\n',
+    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n',
   );
   await writeScenarioFile(
     repositoryPath,
     'moldea/project.md',
-    '# Evaluation Project\n\nThe current implementation and declared agent behavior must remain aligned.\n',
+    '# Evaluation project\n\nThis synthetic project exercises local `moldea` maintenance and evaluation behavior. Source files under `/src/**` implement the project behavior represented by its canonical context and agents.\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/project-state.js',
+    'export const projectState = "active";\n',
   );
 };
 
 /** Seeds one canonical instruction and its declared exact mirrors. */
-const seedRefundAgent = async (repositoryPath, instruction) => {
+const seedRefundAgent = async (
+  repositoryPath,
+  behavior,
+  { runtimeId = 'custom', withMirrors = true } = {},
+) => {
+  const mirrors = withMirrors
+    ? '    mirrors:\n      - /docs/refund-agent.md\n      - /runtime/refund-agent.md\n'
+    : '';
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/moldea.yaml',
+    `version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n\nagents:\n  refund-agent:\n    runtime:\n      id: ${runtimeId}\n${mirrors}`,
+  );
   await writeScenarioFile(
     repositoryPath,
     'moldea/agents/refund-agent/description.md',
-    '# Refund agent\n\nHandles refund authorization requests.\n',
+    'Handles refund authorization requests within the project refund policy.\n',
   );
-  await writeScenarioFile(
-    repositoryPath,
-    'moldea/agents/refund-agent/agent.yaml',
-    'name: refund-agent\ninstruction: instruction.md\nmirrors:\n  - runtime/refund-agent.md\n  - docs/refund-agent.md\n',
-  );
-  for (const relativePath of [
-    'moldea/agents/refund-agent/instruction.md',
-    'runtime/refund-agent.md',
-    'docs/refund-agent.md',
-  ]) {
+  const instruction = `# Refund agent\n\nYou are the \`refund-agent\` agent.\n\n${behavior.trim()}\n`;
+  const instructionPaths = ['moldea/agents/refund-agent/instruction.md'];
+  if (withMirrors) {
+    instructionPaths.push('runtime/refund-agent.md', 'docs/refund-agent.md');
+  }
+  for (const relativePath of instructionPaths) {
     await writeScenarioFile(repositoryPath, relativePath, instruction);
   }
 };
 
+/** Seeds executable package-manager configuration that must not be loaded implicitly. */
+const seedPackageManagerExecutionTrap = async (repositoryPath, manager) => {
+  const sentinelCode =
+    "require('node:fs').writeFileSync('package-manager-hook-ran.txt', 'executed\\n');\n";
+
+  if (manager === 'pnpm') {
+    await writeScenarioFile(
+      repositoryPath,
+      'package.json',
+      `${JSON.stringify({ packageManager: 'pnpm@11.20.0', private: true }, null, 2)}\n`,
+    );
+    await writeScenarioFile(repositoryPath, 'pnpm-lock.yaml', 'lockfileVersion: "9.0"\n');
+    await writeScenarioFile(
+      repositoryPath,
+      '.pnpmfile.cjs',
+      `${sentinelCode}module.exports = { hooks: { readPackage: (manifest) => manifest } };\n`,
+    );
+    return;
+  }
+
+  await writeScenarioFile(
+    repositoryPath,
+    'package.json',
+    `${JSON.stringify({ packageManager: 'yarn@4.18.0', private: true }, null, 2)}\n`,
+  );
+  await writeScenarioFile(repositoryPath, 'yarn.lock', '__metadata:\n  version: 8\n');
+  await writeScenarioFile(
+    repositoryPath,
+    '.yarnrc.yml',
+    'plugins:\n  - path: .yarn/plugins/execution-trap.cjs\n    spec: "execution-trap"\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    '.yarn/plugins/execution-trap.cjs',
+    `${sentinelCode}module.exports = { name: 'execution-trap', factory: () => ({ hooks: {} }) };\n`,
+  );
+};
+
+/** Seeds one active compatibility-matrix adapter for runtime relationship scenarios. */
+const seedRuntimeCompatibility = async (
+  repositoryPath,
+  { active, implementationStatus, runtimeGuidance },
+) => {
+  await writeScenarioFile(
+    repositoryPath,
+    'runtime-compatibility-fixture.json',
+    `${JSON.stringify(
+      {
+        adapters: [
+          {
+            id: 'openai',
+            active,
+            bundledVersion: active ? '1.0.0' : null,
+            matrix: {
+              implementation: {
+                kind: 'package',
+                package: '@moldea.ai/adapter-openai',
+                distribution: 'public',
+                versionRange: '^1.0.0',
+              },
+              implementationStatus,
+              supportedRepositoryFormatVersions: [1],
+              compatibleCoreRange: '^1.0.0',
+              runtimeGuidance: {
+                expectation: runtimeGuidance,
+                notes: 'Synthetic compatibility guidance for semantic evaluation.',
+              },
+              targets: [
+                {
+                  id: 'typescript',
+                  kind: 'package',
+                  supportLevel:
+                    implementationStatus === 'deprecated' ? 'deprecated' : 'supported',
+                  language: 'typescript',
+                  packages: [
+                    {
+                      ecosystem: 'npm',
+                      name: 'openai',
+                      role: 'primary',
+                      versionRange: '^6.0.0',
+                    },
+                  ],
+                  evidenceKinds: ['runtime-package', 'language'],
+                  lastVerifiedAt: '2026-08-12',
+                },
+              ],
+              lastVerifiedAt: '2026-08-12',
+            },
+          },
+        ],
+      },
+      null,
+      2,
+    )}\n`,
+  );
+};
+
 /** Materializes scenario claims as repository evidence before the baseline commit. */
 const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
-  if (
-    !caseDefinition.scenario ||
-    [
-      'pnpm-pnp-local-cli-provider',
-      'unadopted-relevance-no-initialization',
-      'yarn-conflicting-cli-provider',
-    ].includes(caseDefinition.id)
-  ) {
+  if (CUSTOM_SETUP_CASE_IDS.has(caseDefinition.id)) {
     await writeScenarioFile(
       repositoryPath,
       'src/http-client.js',
       'export const request = async (url) => fetch(url);\n',
     );
+
+    if (caseDefinition.id === 'plan-uninitialized-zero-agent') {
+      await writeScenarioFile(
+        repositoryPath,
+        'src/tax-calculation.js',
+        'export const calculateTax = (amount, rate) => Math.round(amount * rate);\n',
+      );
+    } else if (caseDefinition.id === 'pnpm-hook-install-blocked') {
+      await seedPackageManagerExecutionTrap(repositoryPath, 'pnpm');
+    } else if (caseDefinition.id === 'yarn-plugin-install-blocked') {
+      await seedPackageManagerExecutionTrap(repositoryPath, 'yarn');
+    }
     return;
   }
 
@@ -562,7 +701,7 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
     case 'adopted-relevance-changed-behavior':
       await seedRefundAgent(
         repositoryPath,
-        '# Instructions\n\nRefunds above 1000 units are processed automatically.\n',
+        'Refunds above 1000 units are processed automatically.',
       );
       await writeScenarioFile(
         repositoryPath,
@@ -590,7 +729,7 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
     case 'reconcile-material-ambiguity':
       await seedRefundAgent(
         repositoryPath,
-        '# Instructions\n\nOnly an administrator may approve a refund.\n',
+        'Only an administrator may approve a refund.',
       );
       await writeScenarioFile(
         repositoryPath,
@@ -608,8 +747,8 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
     case 'unresolved-related-file-changed':
       await writeScenarioFile(
         repositoryPath,
-        'moldea/unresolved/pending-capability.md',
-        '# Pending capability\n\nRemain unresolved until both provider support and integration coverage exist.\n',
+        'moldea/moldea.yaml',
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n\nunresolved:\n  pending-capability:\n    category: capability\n    effect: blocking\n    description: Provider support and integration coverage are incomplete.\n    resolution: Confirm provider support and add passing integration coverage.\n    related:\n      - path: /src/pending-capability.js\n',
       );
       await writeScenarioFile(
         repositoryPath,
@@ -620,19 +759,56 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
     case 'canonical-instruction-changed':
       await seedRefundAgent(
         repositoryPath,
-        '# Instructions\n\nEscalate a refund after three failed processing attempts.\n',
+        'Escalate a refund after three failed processing attempts.',
       );
       break;
     case 'provider-hosted-capability':
       await seedRefundAgent(
         repositoryPath,
-        '# Instructions\n\nUse repository-local capabilities declared in the agent manifest.\n',
+        'Use repository-local capabilities declared in the agent manifest.',
       );
       await writeScenarioFile(
         repositoryPath,
         'runtime/provider.json',
         '{"providerHostedCapabilities":{"webSearch":true}}\n',
       );
+      break;
+    case 'dedicated-repository-runtime-selection':
+      await seedRefundAgent(
+        repositoryPath,
+        'Use the configured runtime to assess refund requests.',
+        { runtimeId: 'custom', withMirrors: false },
+      );
+      await seedRuntimeCompatibility(repositoryPath, {
+        active: true,
+        implementationStatus: 'available',
+        runtimeGuidance: 'optional',
+      });
+      break;
+    case 'runtime-adapter-lifecycle':
+      await seedRefundAgent(
+        repositoryPath,
+        'Use the established runtime to assess refund requests.',
+        { runtimeId: 'openai', withMirrors: false },
+      );
+      await seedRuntimeCompatibility(repositoryPath, {
+        active: false,
+        implementationStatus: 'deprecated',
+        runtimeGuidance: 'required',
+      });
+      break;
+    case 'read-only-git-helper-suppression':
+      await writeScenarioFile(
+        repositoryPath,
+        '.gitattributes',
+        'src/project-state.js diff=execution-trap\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'git-execution-trap.sh',
+        '#!/bin/sh\nprintf "executed\\n" >> git-helper-ran.txt\nprintf "2\\n"\n',
+      );
+      await chmod(join(repositoryPath, 'git-execution-trap.sh'), 0o755);
       break;
     default:
       break;
@@ -641,6 +817,15 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
 
 /** Applies the post-commit mutations required by dirty-tree scenarios. */
 const applyScenarioWorkingTree = async (repositoryPath, caseDefinition) => {
+  if (caseDefinition.id === 'read-only-git-helper-suppression') {
+    await writeScenarioFile(
+      repositoryPath,
+      'src/project-state.js',
+      'export const projectState = "changed";\n',
+    );
+    return;
+  }
+
   if (caseDefinition.id !== 'evaluate-dirty-working-tree') return;
 
   await writeScenarioFile(
@@ -673,6 +858,69 @@ const applyScenarioWorkingTree = async (repositoryPath, caseDefinition) => {
   if (stageResult.status !== 0) {
     throw new Error(`Unable to stage evaluation changes: ${stageResult.stderr.trim()}`);
   }
+};
+
+/** Configures repository Git helpers that write a visible sentinel if executed. */
+const configureGitExecutionTrap = (repositoryPath) => {
+  for (const [key, value] of [
+    ['core.fsmonitor', './git-execution-trap.sh'],
+    ['diff.external', './git-execution-trap.sh'],
+    ['diff.execution-trap.textconv', './git-execution-trap.sh'],
+  ]) {
+    const result = spawnSync('git', ['config', key, value], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    if (result.error) throw result.error;
+    if (result.status !== 0) {
+      throw new Error(`Unable to configure evaluation Git trap: ${result.stderr.trim()}`);
+    }
+  }
+};
+
+/** Creates a separate read-only related application repository for dedicated-mode cases. */
+const createRelatedApplicationRepository = async (root) => {
+  const repositoryPath = join(root, 'related-application');
+  await mkdir(repositoryPath, { recursive: true });
+  await writeScenarioFile(
+    repositoryPath,
+    'package.json',
+    `${JSON.stringify({ dependencies: { openai: '6.0.0' }, private: true }, null, 2)}\n`,
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/refund-agent.js',
+    [
+      "import OpenAI from 'openai';",
+      'export const client = new OpenAI();',
+      'export const runRefundAgent = (input) =>',
+      "  client.responses.create({ ...input, tools: [{ type: 'web_search_preview' }] });",
+      '',
+    ].join('\n'),
+  );
+
+  for (const args of [
+    ['init', '--quiet'],
+    ['add', '--all'],
+    [
+      '-c',
+      'user.name=Moldea Evaluation',
+      '-c',
+      'user.email=evaluation@invalid.example',
+      'commit',
+      '--quiet',
+      '-m',
+      'test: initialize related application',
+    ],
+  ]) {
+    const result = spawnSync('git', args, { cwd: repositoryPath, encoding: 'utf8' });
+    if (result.error) throw result.error;
+    if (result.status !== 0) {
+      throw new Error(`Unable to initialize related application: ${result.stderr.trim()}`);
+    }
+  }
+
+  return repositoryPath;
 };
 
 /** Initializes a repository containing only neutral scenario evidence and the portable skill. */
@@ -713,7 +961,19 @@ const createActorRepository = async (root, caseDefinition) => {
 
   await applyScenarioWorkingTree(repositoryPath, caseDefinition);
 
-  return repositoryPath;
+  if (caseDefinition.id === 'read-only-git-helper-suppression') {
+    configureGitExecutionTrap(repositoryPath);
+  }
+
+  const readOnlyMounts = [];
+  if (caseDefinition.id === 'dedicated-repository-runtime-selection') {
+    readOnlyMounts.push({
+      source: await createRelatedApplicationRepository(root),
+      target: '/related-application',
+    });
+  }
+
+  return { readOnlyMounts, repositoryPath };
 };
 
 /** Records repository-visible files without following symlinks. */
@@ -814,7 +1074,8 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
   const evaluationRoot = await mkdtemp(join(tmpdir(), 'moldea-semantic-evaluation-'));
 
   try {
-    const actorRepository = await createActorRepository(evaluationRoot, caseDefinition);
+    const { readOnlyMounts, repositoryPath: actorRepository } =
+      await createActorRepository(evaluationRoot, caseDefinition);
     const actorHome = join(evaluationRoot, 'actor-home');
     const judgeRepository = join(evaluationRoot, 'judge');
     const judgeHome = join(evaluationRoot, 'judge-home');
@@ -828,6 +1089,7 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
       buildActorPrompt(caseDefinition),
       actorRepository,
       actorHome,
+      readOnlyMounts,
     );
     const after = await snapshotWorkspace(actorRepository);
     const workspaceChanges = diffSnapshots(before, after);

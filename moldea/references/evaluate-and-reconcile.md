@@ -4,12 +4,12 @@ Read this reference before `evaluate`, `reconcile`, or a scoped semantic alignme
 
 ## Build the evidence scope
 
-Both operations begin from the same evidence model: supported local tooling, `inspect --json`, compatibility data when material, relevant canonical state, implementation, executable contracts, tests, runtime integration, adapter evidence, developer intent, and unresolved state.
+Both operations begin from the same evidence model: supported local tooling, `inspect --json`, compatibility data when material, relevant canonical state, implementation, executable contracts, tests, runtime integration, runtime-adapter evidence, developer intent, and unresolved state.
 
 When no explicit scope is provided:
 
 - **`HEAD` exists and the working tree is dirty:** use staged, unstaged, untracked, renamed, and deleted paths relative to `HEAD` as the initial change set, then expand through registered and semantic relationships into every materially affected `moldea` surface.
-- **`HEAD` exists and the working tree is clean:** assess the current `moldea` system as a whole, beginning with project foundation, relationships, active decisions, agents, capabilities, schemas, runtime guidance, requirements, and adapter evidence, then progressively inspect relevant implementation without exhaustively reading the repository.
+- **`HEAD` exists and the working tree is clean:** assess the current `moldea` system as a whole, beginning with project foundation, relationships, active decisions, agents, capabilities, schemas, runtime guidance, requirements, and runtime-adapter evidence, then progressively inspect relevant implementation without exhaustively reading the repository.
 - **No `HEAD` exists:** treat every current path as newly introduced for initial scope selection.
 
 An explicit agent, capability, domain, path, runtime, change, or contradiction defines the starting point, not an artificial prohibition on inspecting materially related evidence.
@@ -26,7 +26,7 @@ An explicit agent, capability, domain, path, runtime, change, or contradiction d
 6. Limit findings to `moldea` structural and semantic alignment unless the registered behavior makes another quality, security, performance, architecture, or test concern relevant.
 7. Stop when evidence is sufficient for reliable scoped conclusions.
 
-Universal Core diagnostics prevent adapters from running. In that state `evidence: []` means adapter evidence was unavailable, not that framework-native behavior is absent. Continue semantic inspection when useful, state the limitation, and rerun after structural repair before relying on adapter evidence.
+Universal Core diagnostics prevent adapters from running. In that state `evidence: []` means adapter evidence was unavailable, not that runtime-native behavior is absent. In dedicated-repository mode, external implementation may also make local evidence empty or partial. Continue semantic inspection when useful, state the limitation, and rerun after structural repair before relying on adapter evidence.
 
 Report separate categories:
 
@@ -35,6 +35,8 @@ Report separate categories:
 - **Material ambiguities:** consequential questions with multiple plausible intended resolutions.
 - **Relevant unresolved requirements:** existing requirements that affect scope, preserving their declared effect.
 - **Material evidence limitations:** missing tooling, protected access, unavailable adapter evidence, operational failures, or insufficient repository evidence.
+
+When the active compatibility matrix marks runtime guidance as `required`, report missing appropriate guidance as a semantic-readiness problem rather than inventing a Core structural diagnostic. Preserve target maturity and adapter lifecycle state exactly, and never repair an inactive adapter by silently rewriting `runtime.id` to `custom`.
 
 Do not fabricate PR Assurance outcomes, Cloud acceptance, merge conclusions, billable semantics, confidence thresholds, or style-only findings. Recommend a correction only when intended direction is sufficiently established.
 

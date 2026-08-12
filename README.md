@@ -17,6 +17,7 @@ The source URL targets the immutable `v1.0.0` release tag and installs the porta
 This Agent Skill is the portable semantic operating layer used by a compatible coding agent to:
 
 - initialize a context-first `moldea` project
+- plan the smallest appropriate system of agents, deterministic software, services or tools, data contracts, and human control for an AI-enabled objective
 - continuously maintain affected project and agent state during ordinary development
 - create and refine grounded agent behavior
 - evaluate structural and semantic alignment without writing
@@ -72,7 +73,7 @@ Release `1.0.0` supports:
 - pnpm `>=11.20.0 <12.0.0`
 - Yarn `>=4.0.0 <5.0.0`
 
-Write-capable workflows establish or reconcile the exact compatible repository-local CLI dependency without lifecycle scripts. `evaluate` is strictly read-only and reports missing or incompatible tooling instead of installing it. The skill never falls back to a global CLI or transient CLI download.
+Write-capable workflows establish or reconcile the exact compatible repository-local CLI dependency without executing lifecycle scripts or repository-supplied package-manager hooks and plugins. `evaluate` is strictly read-only and reports missing or incompatible tooling instead of installing it. Agent-system `plan` is also read-only and may run before adoption or local tooling exists. The skill never falls back to a global CLI or transient CLI download.
 
 ## Quick start
 
@@ -101,10 +102,19 @@ Standalone initialization first understands the project, then creates the minimu
 
 It does not create an agent automatically. Additional context, decisions, runtime guidance, agents, or unresolved requirements are created only when project evidence justifies them.
 
+To design an AI-enabled system before implementation or `moldea` adoption, ask:
+
+```text
+Plan an agent system for personalized ecommerce promotions and decide what should remain ordinary software.
+```
+
+Planning starts from the objective and may recommend zero, one, or multiple agents. It changes no repository, dependency, Git, or external state and does not create a canonical plan artifact.
+
 ## Natural-language operations
 
 | Outcome           | Example request                                                             |
 | ----------------- | --------------------------------------------------------------------------- |
+| Plan a system     | `Plan which parts of this workflow should be agents versus normal code.`    |
 | Initialize        | `Initialize moldea for this repository.`                                    |
 | Maintain context  | `Update the project context for the new refund policy.`                     |
 | Create an agent   | `Create a customer-support agent grounded in the current implementation.`   |
@@ -130,6 +140,7 @@ moldea/
 ├── SKILL.md
 ├── references/
 │   ├── agent-design.md
+│   ├── agent-system-planning.md
 │   ├── context-gathering.md
 │   ├── continuous-maintenance.md
 │   ├── evaluate-and-reconcile.md
@@ -138,7 +149,7 @@ moldea/
     └── openai.yaml
 ```
 
-`SKILL.md` contains the universal activation, authority, compatibility, operation-selection, and reporting rules. Focused references are loaded only for the workflows that need them. `agents/openai.yaml` is an optional host extension and is not a semantic dependency of the portable core.
+`SKILL.md` contains the universal activation, authority, compatibility, operation-selection, and reporting rules. Focused references are loaded only for the workflows that need them, including the objective-first agent-system planning method. `agents/openai.yaml` is an optional host extension and is not a semantic dependency of the portable core.
 
 ## Project blueprint
 
@@ -170,7 +181,7 @@ The integration test defaults to the available npm executable. CI additionally e
 
 Until the release CLI is available from the public registry, the package-manager integration test serves the fixture through an isolated local registry with faithful package metadata. After publication, this transport fixture may be replaced with a released immutable CLI version while preserving the no-global-CLI, exact-pin, and lifecycle-suppression assertions.
 
-`fixtures/conformance-cases.json` contains complete package-manager, CLI-envelope, README-marker, and semantic forward-evaluation scenarios. Deterministic tests execute the mechanical decisions and validate every semantic case's evidence, requested operation, expected outcomes, and forbidden outcomes. CI also installs the portable artifact into an isolated Agent Skills home and compares the installed tree byte-for-byte with `moldea/`.
+`fixtures/conformance-cases.json` contains package-manager, CLI-envelope, README-marker, planning, runtime, security, and semantic forward-evaluation scenarios. Deterministic tests execute the mechanical decisions and validate every semantic case's evidence, requested operation, expected outcomes, and forbidden outcomes. CI also installs the portable artifact into an isolated Agent Skills home and compares the installed tree byte-for-byte with `moldea/`.
 
 Semantic behavior is evaluated through an Agent Skills-capable host and recorded against the exact portable artifact digest. To refresh that evidence, provide a non-interactive host command that accepts the evaluation prompt on standard input and returns the requested JSON object, then run:
 

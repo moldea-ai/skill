@@ -2,13 +2,13 @@
 
 # moldea Agent Skill
 
-Install the released `moldea` skill globally so it is available across repositories:
+The `1.0.0` artifact is currently an unpublished release candidate. The immutable `v1.0.0` tag does not exist yet. After that release is created, install it globally with:
 
 ```bash
 npx skills@1.5.22 add https://github.com/moldea-ai/skill/tree/v1.0.0/moldea -g
 ```
 
-The source URL targets the immutable `v1.0.0` release tag and installs the portable directory as `moldea`. It does not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
+The future source URL will target the immutable `v1.0.0` release tag and install the portable directory as `moldea`. It does not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
 
 ## What `moldea` is
 
@@ -28,9 +28,9 @@ Local work is filesystem-first and private by default. The skill does not send r
 
 ## Installation
 
-### Global installation
+### Global installation after release
 
-The preferred path uses the open-source [`skills` CLI](https://github.com/vercel-labs/skills) and installs the released artifact at user level:
+After `v1.0.0` exists, the preferred path uses the open-source [`skills` CLI](https://github.com/vercel-labs/skills) and installs the released artifact at user level:
 
 ```bash
 npx skills@1.5.22 add https://github.com/moldea-ai/skill/tree/v1.0.0/moldea -g
@@ -38,7 +38,7 @@ npx skills@1.5.22 add https://github.com/moldea-ai/skill/tree/v1.0.0/moldea -g
 
 The `skills` CLI supports Agent Skills-compatible hosts including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and many others. Host detection and installation location are handled by the installer; the portable skill itself remains vendor-neutral.
 
-### Project-local installation
+### Project-local installation after release
 
 Use the same immutable artifact without `-g` when a repository-local installation is preferred:
 
@@ -65,7 +65,7 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 - an established supported package manager, or npm when none is established
 - a repository-local exact `@moldea.ai/cli` development dependency in the supported range
 
-Release `1.0.0` supports:
+The `1.0.0` candidate supports:
 
 - `@moldea.ai/cli >=1.0.0 <1.1.0`
 - CLI JSON schema `1`
@@ -77,7 +77,7 @@ Write-capable workflows establish or reconcile the exact compatible repository-l
 
 ## Quick start
 
-1. Install the skill globally.
+1. After release, install the skill globally.
 2. Open a Git repository in a compatible coding agent.
 3. Ask your coding agent naturally:
 
@@ -156,7 +156,8 @@ moldea/
 - `moldea/` is the complete distributed Agent Skill artifact.
 - `tests/` contains deterministic metadata, packaging, reference, release, and semantic-contract checks.
 - `fixtures/` contains development-only conformance cases and a safe lifecycle-script fixture.
-- `.github/workflows/conformance.yml` runs conformance across supported Node.js lines and representative minimum/latest package-manager versions.
+- `.github/workflows/conformance.yml` runs portable conformance across supported Node.js lines and representative minimum/latest package-manager versions.
+- `.github/workflows/release-candidate.yml` manually packs an exact packages-repository ref and runs the real CLI candidate closure across the same package-manager matrix without publishing it.
 - `README.md` documents public installation, adoption, development, and release behavior.
 - `docs/`, if introduced, is reserved for concise essential durable project concepts and processes; API and HTTP endpoint documentation must live in an established location outside `docs/`.
 
@@ -179,7 +180,9 @@ npm run test:integration
 
 The integration test defaults to the available npm executable. CI additionally exercises npm `10.9.0` and `11.19.0`, pnpm `11.20.0` and `11.21.0`, and Yarn `4.0.0` and `4.18.0`.
 
-Until the release CLI is available from the public registry, the package-manager integration test serves the fixture through an isolated local registry with faithful package metadata. After publication, this transport fixture may be replaced with a released immutable CLI version while preserving the no-global-CLI, exact-pin, and lifecycle-suppression assertions.
+The ordinary package-manager integration test serves the adversarial CLI fixture through an isolated local registry with faithful package metadata. That fixture intentionally contains lifecycle scripts and remains the security proof for exact pinning and lifecycle suppression.
+
+When `MOLDEA_CLI_ARTIFACT_DIRECTORY` identifies the four packed `1.0.0` candidate artifacts, the same suite also builds a scoped loopback registry from their actual packed manifests, installs the real dependency closure, and executes deterministic `compatibility --json` and `inspect --json` checks against a custom-runtime project. Set `MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS=1` at the release boundary so a missing artifact directory fails instead of skipping that candidate-only case. The manual Release Candidate workflow accepts an exact `moldea-ai/packages` ref, records the resolved commit, packs the artifacts, and runs this path across every supported package-manager version without publishing or tagging either repository.
 
 `fixtures/conformance-cases.json` contains package-manager, CLI-envelope, README-marker, planning, runtime, security, and semantic forward-evaluation scenarios. Deterministic tests execute the mechanical decisions and validate every semantic case's evidence, requested operation, expected outcomes, and forbidden outcomes. CI also installs the portable artifact into an isolated Agent Skills home and compares the installed tree byte-for-byte with `moldea/`.
 
@@ -195,7 +198,9 @@ The isolated network namespace has no direct host or internet route. A repositor
 
 The runner installs the exact portable tree into a fresh project for every actor case, withholds the evaluation criteria from that actor, captures repository-visible changes, and starts a separate judge process in another workspace. Set `MOLDEA_EVAL_JUDGE_COMMAND_JSON` to use a different safely configured Codex judge command; otherwise the actor command is reused in a fresh process and workspace.
 
-The committed result records the host version and is invalidated automatically whenever any distributed skill file changes. Development evaluation uses synthetic repository evidence and does not require a `moldea` Cloud account.
+Use `--case <case-id>` without `--record` to diagnose one semantic case. Targeted evaluations and evaluations containing failed cases are never allowed to replace the complete committed result.
+
+The sandbox exposes the exact host Node.js executable at `/opt/node` so the verified repository-local CLI can run without mounting a host-managed runtime directory. It provides a non-installing npm probe that reports the synthetic fixture's exact npm version and rejects every non-version command. It also resolves and mounts the exact `codex-code-mode-host` executable shipped beside the selected Codex binary rather than exposing the surrounding installation directory. The committed result records the actor and judge CLI versions and their explicit model selections, using `host-default` when a command omits `--model`. It is invalidated automatically whenever any distributed skill file changes. Development evaluation uses synthetic repository evidence and does not require a `moldea` Cloud account.
 
 The root `AGENTS.md` is an intentional maintainer-only symlink to a sibling coding-instructions checkout. It is not part of the portable `moldea/` artifact and the skill has no runtime dependency on it. External contributors may use their own applicable coding instructions when that sibling checkout is unavailable.
 
@@ -208,7 +213,7 @@ The skill uses independent semantic versioning. Every release must:
 - use an immutable `v<version>` tag
 - preserve semantically identical `moldea/` content across every official distribution channel
 
-The `1.0.0` artifact is prepared for the immutable `v1.0.0` tag. A branch named `1.0.0` is development state, not a release.
+The `1.0.0` artifact is prepared for, but has not created, the immutable `v1.0.0` tag. A branch named `1.0.0` and passing candidate-tarball conformance remain development state, not a release.
 
 ## License
 

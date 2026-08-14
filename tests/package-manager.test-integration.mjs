@@ -1,18 +1,32 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
+import {
+  createCandidateRegistry,
+  loadCandidateArtifacts,
+} from './package-manager-candidate/index.mjs';
+
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const FIXTURE_PATH = join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'fake-cli');
 const MANAGER = process.env.MOLDEA_TEST_MANAGER ?? 'npm';
 const EXPECTED_VERSION = process.env.MOLDEA_TEST_MANAGER_VERSION;
 const EXECUTABLE = process.platform === 'win32' ? `${MANAGER}.cmd` : MANAGER;
+const CANDIDATE_ARTIFACT_DIRECTORY = process.env.MOLDEA_CLI_ARTIFACT_DIRECTORY;
+const REQUIRE_CANDIDATE_ARTIFACTS = process.env.MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS === '1';
 
 const parseVersion = (version) => {
   const match = version.trim().match(/^(\d+)\.(\d+)\.(\d+)$/);
@@ -42,7 +56,7 @@ const runSync = (command, args, options = {}) => {
   return result.stdout.trim();
 };
 
-const run = (command, args, options = {}) =>
+const runDetailed = (command, args, options = {}) =>
   new Promise((resolvePromise, rejectPromise) => {
     const child = spawn(command, args, {
       ...options,
@@ -53,19 +67,32 @@ const run = (command, args, options = {}) =>
 
     child.stdout.setEncoding('utf8');
     child.stderr.setEncoding('utf8');
-    child.stdout.on('data', (chunk) => { stdout += chunk; });
-    child.stderr.on('data', (chunk) => { stderr += chunk; });
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk;
+    });
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk;
+    });
     child.on('error', rejectPromise);
     child.on('close', (status) => {
       if (status === 0) {
-        resolvePromise(stdout.trim());
+        resolvePromise({ stderr, stdout });
       } else {
-        rejectPromise(new Error(
-          [`${command} ${args.join(' ')} failed.`, stdout, stderr].join('\n'),
-        ));
+        rejectPromise(
+          new Error(
+            [
+              `${command} ${args.join(' ')} failed in ${options.cwd ?? process.cwd()}.`,
+              stdout,
+              stderr,
+            ].join('\n'),
+          ),
+        );
       }
     });
   });
+
+const run = async (command, args, options = {}) =>
+  (await runDetailed(command, args, options)).stdout.trim();
 
 const createRegistry = async (archive) => {
   let registryUrl;
@@ -256,9 +283,276 @@ test('supported package-manager command exact-pins the CLI and suppresses lifecy
     }
   } finally {
     await new Promise((resolvePromise, rejectPromise) =>
-      server.close((error) => error ? rejectPromise(error) : resolvePromise()),
+      server.close((error) => (error ? rejectPromise(error) : resolvePromise())),
     );
     rmSync(clientDirectory, { force: true, recursive: true });
     rmSync(packDirectory, { force: true, recursive: true });
   }
 });
+
+test(
+  'supported package manager installs and executes the real CLI candidate closure',
+  {
+    skip: CANDIDATE_ARTIFACT_DIRECTORY === undefined && !REQUIRE_CANDIDATE_ARTIFACTS,
+  },
+  async () => {
+    assert.ok(
+      CANDIDATE_ARTIFACT_DIRECTORY,
+      'MOLDEA_CLI_ARTIFACT_DIRECTORY is required for candidate conformance.',
+    );
+    const actualVersion = runSync(EXECUTABLE, ['--version']);
+    assert.ok(isSupportedVersion(MANAGER, actualVersion));
+
+    if (EXPECTED_VERSION) assert.equal(actualVersion, EXPECTED_VERSION);
+
+    const artifacts = loadCandidateArtifacts(resolve(CANDIDATE_ARTIFACT_DIRECTORY));
+    const clientDirectory = mkdtempSync(join(tmpdir(), `moldea-candidate-${MANAGER}-`));
+    const lifecycleSentinelPath = join(clientDirectory, 'lifecycle-ran.txt');
+    const managerHomeDirectory = join(clientDirectory, '.manager-home');
+    const gitHooksDirectory = join(clientDirectory, '.git-hooks');
+    const packageManager = `${MANAGER}@${actualVersion}`;
+    const { registryUrl, server } = await createCandidateRegistry(artifacts);
+    const managerEnvironment = {
+      ...process.env,
+      HOME: managerHomeDirectory,
+      MOLDEA_LIFECYCLE_SENTINEL: lifecycleSentinelPath,
+      XDG_CACHE_HOME: join(managerHomeDirectory, '.cache'),
+      XDG_CONFIG_HOME: join(managerHomeDirectory, '.config'),
+      npm_config_audit: 'false',
+      npm_config_fund: 'false',
+    };
+
+    mkdirSync(managerHomeDirectory, { recursive: true });
+    mkdirSync(gitHooksDirectory, { recursive: true });
+    writeFileSync(
+      join(clientDirectory, 'package.json'),
+      JSON.stringify(
+        {
+          name: 'moldea-cli-candidate-client',
+          private: true,
+          packageManager,
+          scripts: {
+            preinstall: 'node lifecycle-sentinel.mjs root-preinstall',
+            install: 'node lifecycle-sentinel.mjs root-install',
+            postinstall: 'node lifecycle-sentinel.mjs root-postinstall',
+          },
+        },
+        null,
+        2,
+      ) + '\n',
+    );
+    writeFileSync(
+      join(clientDirectory, 'lifecycle-sentinel.mjs'),
+      "import { appendFileSync } from 'node:fs';\nappendFileSync(process.env.MOLDEA_LIFECYCLE_SENTINEL, (process.argv[2] ?? 'unknown') + '\\n');\n",
+    );
+
+    let installArguments;
+
+    if (MANAGER === 'npm') {
+      writeFileSync(join(clientDirectory, '.npmrc'), `@moldea.ai:registry=${registryUrl}/\n`);
+      installArguments = [
+        'install',
+        '--save-dev',
+        '--save-exact',
+        '--ignore-scripts',
+        '@moldea.ai/cli@1.0.0',
+      ];
+    } else if (MANAGER === 'pnpm') {
+      writeFileSync(join(clientDirectory, '.npmrc'), `@moldea.ai:registry=${registryUrl}/\n`);
+      writeFileSync(join(clientDirectory, 'pnpm-workspace.yaml'), "packages:\n  - 'packages/*'\n");
+      installArguments = [
+        'add',
+        '--workspace-root',
+        '--save-dev',
+        '--save-exact',
+        '--ignore-scripts',
+        '@moldea.ai/cli@1.0.0',
+      ];
+    } else {
+      assert.equal(MANAGER, 'yarn');
+      writeFileSync(
+        join(clientDirectory, '.yarnrc.yml'),
+        `enableGlobalCache: false\nnpmScopes:\n  moldea.ai:\n    npmRegistryServer: "${registryUrl}"\nunsafeHttpWhitelist:\n  - 127.0.0.1\n`,
+      );
+      installArguments = [
+        'add',
+        '--dev',
+        '--exact',
+        '--mode=skip-build',
+        '@moldea.ai/cli@1.0.0',
+      ];
+    }
+
+    try {
+      await run(EXECUTABLE, installArguments, {
+        cwd: clientDirectory,
+        env: managerEnvironment,
+      });
+      assert.equal(existsSync(lifecycleSentinelPath), false);
+      const installedManifest = JSON.parse(
+        readFileSync(join(clientDirectory, 'package.json'), 'utf8'),
+      );
+      assert.equal(installedManifest.devDependencies['@moldea.ai/cli'], '1.0.0');
+
+      mkdirSync(join(clientDirectory, 'moldea', 'agents', 'custom-agent'), { recursive: true });
+      mkdirSync(join(clientDirectory, 'moldea', 'runtimes'), { recursive: true });
+      mkdirSync(join(clientDirectory, 'src'), { recursive: true });
+      writeFileSync(
+        join(clientDirectory, 'moldea', 'moldea.yaml'),
+        'version: 1\nagents:\n  custom-agent:\n    runtime:\n      id: custom\n      guidance: /moldea/runtimes/custom.md\n    bindings:\n      runtimeAgent:\n        path: /src/custom-agent.ts\n        symbol: customAgent\n    affectedBy:\n      - /src/**\n',
+      );
+      writeFileSync(
+        join(clientDirectory, 'moldea', 'project.md'),
+        '# Candidate conformance project\n',
+      );
+      writeFileSync(
+        join(clientDirectory, 'moldea', 'agents', 'custom-agent', 'description.md'),
+        'A custom candidate agent.\n',
+      );
+      writeFileSync(
+        join(clientDirectory, 'moldea', 'agents', 'custom-agent', 'instruction.md'),
+        'You are the `custom-agent` agent.\n',
+      );
+      writeFileSync(
+        join(clientDirectory, 'moldea', 'runtimes', 'custom.md'),
+        'Use the project-local custom runtime.\n',
+      );
+      writeFileSync(
+        join(clientDirectory, 'src', 'custom-agent.ts'),
+        'export const customAgent = {};\n',
+      );
+      writeFileSync(
+        join(clientDirectory, '.gitignore'),
+        '.git-hooks/\n.manager-home/\n.pnp.*\n.yarn/\nlifecycle-ran.txt\nnode_modules/\n',
+      );
+      const gitEnvironment = {
+        ...managerEnvironment,
+        GIT_CONFIG_GLOBAL: process.platform === 'win32' ? 'NUL' : '/dev/null',
+        GIT_CONFIG_NOSYSTEM: '1',
+        GIT_TERMINAL_PROMPT: '0',
+      };
+
+      runSync('git', ['init', '--quiet'], { cwd: clientDirectory, env: gitEnvironment });
+      runSync('git', ['-c', `core.hooksPath=${gitHooksDirectory}`, 'add', '--', '.'], {
+        cwd: clientDirectory,
+        env: gitEnvironment,
+      });
+      const statusBefore = runSync('git', ['status', '--porcelain=v2', '-z'], {
+        cwd: clientDirectory,
+        env: gitEnvironment,
+      });
+      let versionOutput;
+      let compatibilityExecution;
+      let inspectionExecution;
+
+      if (MANAGER === 'yarn') {
+        const binaryPath = await run(EXECUTABLE, ['bin', 'moldea'], {
+          cwd: clientDirectory,
+          env: managerEnvironment,
+        });
+        assert.ok(binaryPath.startsWith(clientDirectory));
+        assert.match(binaryPath, /[\\/]\.yarn[\\/]unplugged[\\/]/);
+        versionOutput = await run(EXECUTABLE, ['exec', 'moldea', '--version'], {
+          cwd: clientDirectory,
+          env: managerEnvironment,
+        });
+        compatibilityExecution = await runDetailed(
+          EXECUTABLE,
+          ['exec', 'moldea', 'compatibility', '--json'],
+          { cwd: clientDirectory, env: managerEnvironment },
+        );
+        inspectionExecution = await runDetailed(
+          EXECUTABLE,
+          ['exec', 'moldea', 'inspect', '--json'],
+          { cwd: clientDirectory, env: managerEnvironment },
+        );
+      } else {
+        const binaryName = process.platform === 'win32' ? 'moldea.cmd' : 'moldea';
+        const binaryPath = join(clientDirectory, 'node_modules', '.bin', binaryName);
+        assert.equal(existsSync(binaryPath), true);
+        versionOutput = await run(binaryPath, ['--version'], {
+          cwd: clientDirectory,
+          env: managerEnvironment,
+        });
+        compatibilityExecution = await runDetailed(binaryPath, ['compatibility', '--json'], {
+          cwd: clientDirectory,
+          env: managerEnvironment,
+        });
+        inspectionExecution = await runDetailed(binaryPath, ['inspect', '--json'], {
+          cwd: clientDirectory,
+          env: managerEnvironment,
+        });
+      }
+
+      assert.equal(versionOutput, '1.0.0');
+      assert.equal(compatibilityExecution.stderr, '');
+      assert.equal(inspectionExecution.stderr, '');
+      assert.equal(
+        `${compatibilityExecution.stdout}${inspectionExecution.stdout}`.includes('\u001b['),
+        false,
+      );
+      const compatibilityEnvelope = JSON.parse(compatibilityExecution.stdout);
+      const inspectionEnvelope = JSON.parse(inspectionExecution.stdout);
+      const customAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'custom');
+
+      assert.equal(compatibilityEnvelope.cliVersion, '1.0.0');
+      assert.equal(compatibilityEnvelope.command, 'compatibility');
+      assert.equal(compatibilityEnvelope.schemaVersion, 1);
+      assert.equal(compatibilityEnvelope.status, 'valid');
+      assert.deepEqual(compatibilityEnvelope.result.packages, [
+        { name: '@moldea.ai/core', version: '1.0.0' },
+        { name: '@moldea.ai/repository', version: '1.0.0' },
+        { name: '@moldea.ai/repository-fs', version: '1.0.0' },
+      ]);
+      assert.equal(customAdapter.active, true);
+      assert.equal(customAdapter.bundledVersion, '1.0.0');
+      assert.equal(customAdapter.matrix.implementationStatus, 'available');
+      assert.equal(customAdapter.matrix.compatibleCoreRange, '^1.0.0');
+      assert.deepEqual(customAdapter.matrix.supportedRepositoryFormatVersions, [1]);
+      assert.equal(customAdapter.matrix.runtimeGuidance.expectation, 'required');
+      assert.equal(customAdapter.matrix.targets[0].id, 'custom');
+      assert.deepEqual(customAdapter.matrix.targets[0].patterns, [
+        {
+          description:
+            'Universal Core validation of explicit repository relationships without runtime-specific inference.',
+          id: 'explicit-repository-relationships',
+          kind: 'runtime',
+          support: 'full',
+        },
+      ]);
+      assert.equal(inspectionEnvelope.cliVersion, '1.0.0');
+      assert.equal(inspectionEnvelope.command, 'inspect');
+      assert.equal(inspectionEnvelope.schemaVersion, 1);
+      assert.equal(inspectionEnvelope.status, 'valid');
+      assert.equal(inspectionEnvelope.result.inspection.valid, true);
+      assert.deepEqual(inspectionEnvelope.result.inspection.diagnostics, []);
+      assert.deepEqual(inspectionEnvelope.result.inspection.evidence, []);
+      assert.deepEqual(
+        inspectionEnvelope.result.inspection.project.agents[0].declaration,
+        {
+          affectedBy: ['/src/**'],
+          bindings: {
+            runtimeAgent: { path: '/src/custom-agent.ts', symbol: 'customAgent' },
+          },
+          runtime: { guidance: '/moldea/runtimes/custom.md', id: 'custom' },
+        },
+      );
+      assert.deepEqual(
+        inspectionEnvelope.result.inspection.project.runtimes.map(({ asset }) => asset.path),
+        ['/moldea/runtimes/custom.md'],
+      );
+      assert.equal(
+        runSync('git', ['status', '--porcelain=v2', '-z'], {
+          cwd: clientDirectory,
+          env: gitEnvironment,
+        }),
+        statusBefore,
+      );
+    } finally {
+      await new Promise((resolvePromise, rejectPromise) =>
+        server.close((error) => (error ? rejectPromise(error) : resolvePromise())),
+      );
+      rmSync(clientDirectory, { force: true, recursive: true });
+    }
+  },
+);

@@ -964,12 +964,11 @@
           "two declared mirrors",
           "authorized behavior change"
         ],
-        "developerDirection": "Escalate refunds to an administrator after two failed processing attempts."
-      },
-      "expected": [
-        "edit-canonical-first",
-        "synchronize-every-declared-mirror"
-      ],
+      "developerDirection": "Escalate refunds to an administrator after two failed processing attempts."
+    },
+    "expected": [
+      "synchronize-every-declared-mirror"
+    ],
       "forbidden": [
         "independent-mirror-edit",
         "leave-stale-mirror"

@@ -37,6 +37,9 @@ const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
 const DEFAULT_HOST_TIMEOUT_MS = 120_000;
 const DEFAULT_ALLOWED_EGRESS_HOSTS = ['api.openai.com', 'auth.openai.com', 'chatgpt.com'];
 const EGRESS_PROXY_PORT = 3128;
+const HOST_DEFAULT_MODEL = 'host-default';
+const NODE_EXECUTABLE_PATH = realpathSync(process.execPath);
+const SEMANTIC_EVALUATION_NPM_VERSION = '11.12.1';
 const REQUIRED_CODEX_FLAGS = [
   '--ephemeral',
   '--ignore-rules',
@@ -127,6 +130,33 @@ export const validateHostCommand = (command) => {
   }
 };
 
+/** Returns the explicit host model or the documented host-default marker. */
+export const identifyConfiguredModel = (command) => {
+  for (const [index, commandPart] of command.entries()) {
+    if (commandPart === '--model' || commandPart === '-m') {
+      const configuredModel = command[index + 1]?.trim();
+      if (configuredModel) return configuredModel;
+    }
+
+    if (commandPart.startsWith('--model=')) {
+      const configuredModel = commandPart.slice('--model='.length).trim();
+      if (configuredModel) return configuredModel;
+    }
+  }
+
+  return HOST_DEFAULT_MODEL;
+};
+
+/** Rejects incomplete or failing evidence before it can replace the full result fixture. */
+export const validateSemanticResultRecording = ({ hasFailures, isCaseSelected }) => {
+  if (isCaseSelected) {
+    throw new Error('Refusing to record a targeted semantic evaluation as the full result.');
+  }
+  if (hasFailures) {
+    throw new Error('Refusing to record a semantic evaluation containing failed cases.');
+  }
+};
+
 /** Resolves a command from PATH without invoking a shell. */
 const resolveExecutablePath = (commandName) => {
   const candidates = commandName.includes('/')
@@ -146,6 +176,18 @@ const resolveExecutablePath = (commandName) => {
   }
 
   throw new Error(`Unable to resolve the evaluation host executable: ${commandName}`);
+};
+
+/** Resolves the executable companion shipped beside the Codex host binary. */
+export const resolveCodeModeHostPath = (hostExecutable) => {
+  const companionPath = join(dirname(hostExecutable), 'codex-code-mode-host');
+
+  try {
+    accessSync(companionPath, constants.X_OK);
+    return realpathSync(companionPath);
+  } catch {
+    throw new Error(`Unable to resolve the Codex code-mode host beside ${hostExecutable}.`);
+  }
 };
 
 /** Returns only scenario evidence, never evaluation criteria, to the acting host. */
@@ -227,8 +269,8 @@ export const assessJudgeOutput = (caseDefinition, output) => {
   return { forbidden, isPassed, observed, rationale: assessment.rationale };
 };
 
-/** Copies only authentication state into the disposable host home. */
-const prepareSandboxHome = async (sandboxHome) => {
+/** Prepares isolated authentication state and non-installing evaluation tooling. */
+export const prepareSandboxHome = async (sandboxHome) => {
   const sandboxCodexHome = join(sandboxHome, '.codex');
   await mkdir(sandboxCodexHome, { recursive: true, mode: 0o700 });
 
@@ -238,6 +280,26 @@ const prepareSandboxHome = async (sandboxHome) => {
   } catch (error) {
     if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error;
   }
+
+  const sandboxBinDirectory = join(sandboxHome, 'bin');
+  const npmProbePath = join(sandboxBinDirectory, 'npm');
+  await mkdir(sandboxBinDirectory, { recursive: true, mode: 0o700 });
+  await writeFile(
+    npmProbePath,
+    [
+      '#!/opt/node',
+      "const argumentsList = process.argv.slice(2);",
+      "if (argumentsList.length === 1 && ['--version', '-v'].includes(argumentsList[0])) {",
+      `  process.stdout.write('${SEMANTIC_EVALUATION_NPM_VERSION}\\n');`,
+      '} else {',
+      "  process.stderr.write('The semantic evaluation npm probe supports only version checks.\\n');",
+      '  process.exitCode = 2;',
+      '}',
+      '',
+    ].join('\n'),
+    'utf8',
+  );
+  await chmod(npmProbePath, 0o755);
 };
 
 /** Returns the bounded host-process timeout. */
@@ -270,7 +332,9 @@ const getAllowedEgressHosts = () => {
 export const buildBwrapArguments = ({
   command,
   cwd,
+  hostCompanionExecutable,
   hostExecutable,
+  nodeExecutable = NODE_EXECUTABLE_PATH,
   readOnlyMounts = [],
   sandboxHome,
 }) => [
@@ -328,6 +392,16 @@ export const buildBwrapArguments = ({
   '--ro-bind',
   hostExecutable,
   '/opt/codex',
+  ...(hostCompanionExecutable
+    ? [
+        '--ro-bind',
+        hostCompanionExecutable,
+        '/opt/codex-code-mode-host',
+      ]
+    : []),
+  '--ro-bind',
+  nodeExecutable,
+  '/opt/node',
   '--dir',
   '/home',
   '--dir',
@@ -365,7 +439,7 @@ export const buildBwrapArguments = ({
   'C.UTF-8',
   '--setenv',
   'PATH',
-  '/opt:/usr/bin:/bin',
+  '/home/evaluator/bin:/opt:/usr/bin:/bin',
   '--setenv',
   'TMPDIR',
   '/tmp',
@@ -444,6 +518,7 @@ const waitForProxyReady = (proxyProcess) =>
 const runHost = async (command, prompt, cwd, sandboxHome, readOnlyMounts = []) => {
   validateHostCommand(command);
   const hostExecutable = resolveExecutablePath(command[0]);
+  const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);
   const proxyProcess = spawn(process.execPath, [EGRESS_PROXY_PATH], {
     env: {
       MOLDEA_EVAL_ALLOWED_HOSTS: getAllowedEgressHosts().join(','),
@@ -456,7 +531,15 @@ const runHost = async (command, prompt, cwd, sandboxHome, readOnlyMounts = []) =
     await waitForProxyReady(proxyProcess);
     const result = spawnSync(
       'bwrap',
-      buildBwrapArguments({ command, cwd, hostExecutable, readOnlyMounts, sandboxHome }),
+      buildBwrapArguments({
+        command,
+        cwd,
+        hostCompanionExecutable,
+        hostExecutable,
+        nodeExecutable: NODE_EXECUTABLE_PATH,
+        readOnlyMounts,
+        sandboxHome,
+      }),
       {
         encoding: 'utf8',
         input: prompt,
@@ -499,7 +582,7 @@ const seedLocalTooling = async (repositoryPath) => {
     `${JSON.stringify(
       {
         devDependencies: { '@moldea.ai/cli': '1.0.0' },
-        packageManager: 'npm@11.12.1',
+        packageManager: `npm@${SEMANTIC_EVALUATION_NPM_VERSION}`,
         private: true,
       },
       null,
@@ -1061,6 +1144,7 @@ export const createPortableSkillDigest = () => {
 const identifyHost = (command) => {
   const versionResult = spawnSync(command[0], ['--version'], { encoding: 'utf8' });
   return {
+    model: identifyConfiguredModel(command),
     name: basename(command[0]),
     version:
       versionResult.status === 0
@@ -1169,14 +1253,22 @@ const main = async () => {
     schemaVersion: 1,
     skillDigest: artifactDigest,
   };
+  const serializedRecord = `${JSON.stringify(record, null, 2)}\n`;
+  const hasFailures = results.some((result) => !result.passed);
+  const isRecordRequested = process.argv.includes('--record');
 
-  if (process.argv.includes('--record')) {
-    await writeFile(RESULT_PATH, `${JSON.stringify(record, null, 2)}\n`, 'utf8');
+  if (isRecordRequested) {
+    if (hasFailures || requestedCaseId) process.stdout.write(serializedRecord);
+    validateSemanticResultRecording({
+      hasFailures,
+      isCaseSelected: requestedCaseId !== undefined,
+    });
+    await writeFile(RESULT_PATH, serializedRecord, 'utf8');
   } else {
-    process.stdout.write(`${JSON.stringify(record, null, 2)}\n`);
+    process.stdout.write(serializedRecord);
   }
 
-  if (results.some((result) => !result.passed)) process.exitCode = 1;
+  if (hasFailures) process.exitCode = 1;
 };
 
 const isDirectExecution =

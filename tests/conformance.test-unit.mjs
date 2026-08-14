@@ -641,6 +641,31 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(workflow, /add .* --list/);
   });
 
+  test('candidate workflow verifies real package tarballs without publishing', () => {
+    const workflow = readRepositoryFile('.github/workflows/release-candidate.yml');
+    const document = parseDocument(workflow, { uniqueKeys: true });
+
+    assert.equal(
+      document.errors.length,
+      0,
+      document.errors.map((error) => error.message).join('\n'),
+    );
+    assertMatchesEvery(workflow, [
+      /workflow_dispatch:/,
+      /packages_ref:/,
+      /repository: moldea-ai\/packages/,
+      /git -C packages rev-parse HEAD/,
+      /projects\/repository pack/,
+      /projects\/repository-fs pack/,
+      /projects\/core pack/,
+      /projects\/cli pack/,
+      /MOLDEA_CLI_ARTIFACT_DIRECTORY:/,
+      /MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS: "1"/,
+      /npm run test:integration/,
+    ]);
+    assert.doesNotMatch(workflow, /npm publish|pnpm publish|git tag|git push/);
+  });
+
   test('keeps optional OpenAI metadata supplemental and behaviorally complete', () => {
     const openaiMetadata = readRepositoryFile('moldea/agents/openai.yaml');
 

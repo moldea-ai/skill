@@ -1,13 +1,111 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
-import { buildBwrapArguments } from './semantic-evaluation-runner.mjs';
+import {
+  buildBwrapArguments,
+  prepareSandboxHome,
+} from './semantic-evaluation-runner.mjs';
+
+test('sandbox npm probe reports the fixture version and rejects execution commands', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-npm-probe-test-'));
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  mkdirSync(repositoryPath);
+  mkdirSync(sandboxHome);
+  await prepareSandboxHome(sandboxHome);
+
+  try {
+    const result = spawnSync(
+      'bwrap',
+      buildBwrapArguments({
+        command: [
+          'codex',
+          '-c',
+          'test "$(npm --version)" = "11.12.1" && ! npm install example-package',
+        ],
+        cwd: repositoryPath,
+        hostExecutable: realpathSync('/bin/sh'),
+        nodeExecutable: process.execPath,
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 2_000 },
+    );
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('Bubblewrap exposes the Codex code-mode companion beside the host executable', () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-code-mode-host-test-'));
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  mkdirSync(repositoryPath);
+  mkdirSync(sandboxHome);
+
+  try {
+    const result = spawnSync(
+      'bwrap',
+      buildBwrapArguments({
+        command: [
+          'codex',
+          '-c',
+          'test -x /opt/codex-code-mode-host && /opt/codex-code-mode-host',
+        ],
+        cwd: repositoryPath,
+        hostCompanionExecutable: realpathSync('/bin/true'),
+        hostExecutable: realpathSync('/bin/sh'),
+        nodeExecutable: process.execPath,
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 2_000 },
+    );
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('Bubblewrap exposes the exact host Node runtime through its isolated PATH', () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-node-runtime-test-'));
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  mkdirSync(repositoryPath);
+  mkdirSync(sandboxHome);
+
+  const probe = `
+    const { spawnSync } = require('node:child_process');
+    const result = spawnSync('node', [
+      '--eval',
+      'if (process.execPath !== "/opt/node") process.exit(10)',
+    ]);
+    if (result.error) process.exit(11);
+    process.exit(result.status ?? 12);
+  `;
+
+  try {
+    const result = spawnSync(
+      'bwrap',
+      buildBwrapArguments({
+        command: ['codex', '--eval', probe],
+        cwd: repositoryPath,
+        hostExecutable: process.execPath,
+        nodeExecutable: process.execPath,
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 2_000 },
+    );
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
 
 test('Bubblewrap cannot observe host state or connect to host localhost', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-sandbox-test-'));

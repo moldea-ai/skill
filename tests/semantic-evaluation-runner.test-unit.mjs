@@ -1,5 +1,8 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
+import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
 
 import {
@@ -7,7 +10,10 @@ import {
   buildActorPrompt,
   buildBwrapArguments,
   buildJudgePrompt,
+  identifyConfiguredModel,
+  resolveCodeModeHostPath,
   validateHostCommand,
+  validateSemanticResultRecording,
 } from './semantic-evaluation-runner.mjs';
 
 const CASE_DEFINITION = {
@@ -100,11 +106,56 @@ test('assessment rejects labels outside the declared case contract', () => {
   );
 });
 
+test('host identity preserves explicit and default model selection', () => {
+  assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'host-default');
+  assert.equal(
+    identifyConfiguredModel([...SAFE_HOST_COMMAND.slice(0, -1), '--model', 'gpt-example', '-']),
+    'gpt-example',
+  );
+  assert.equal(
+    identifyConfiguredModel([...SAFE_HOST_COMMAND.slice(0, -1), '--model=gpt-example', '-']),
+    'gpt-example',
+  );
+});
+
+test('recording rejects targeted and failing semantic evidence', () => {
+  assert.doesNotThrow(() =>
+    validateSemanticResultRecording({ hasFailures: false, isCaseSelected: false }),
+  );
+  assert.throws(
+    () => validateSemanticResultRecording({ hasFailures: false, isCaseSelected: true }),
+    /targeted semantic evaluation/,
+  );
+  assert.throws(
+    () => validateSemanticResultRecording({ hasFailures: true, isCaseSelected: false }),
+    /failed cases/,
+  );
+});
+
+test('code-mode host resolves only from the Codex executable directory', () => {
+  const executableDirectory = mkdtempSync(join(tmpdir(), 'moldea-codex-bundle-test-'));
+  const hostExecutable = join(executableDirectory, 'codex');
+  const companionExecutable = join(executableDirectory, 'codex-code-mode-host');
+  writeFileSync(hostExecutable, 'host');
+  writeFileSync(companionExecutable, 'companion');
+  chmodSync(companionExecutable, 0o755);
+
+  try {
+    assert.equal(resolveCodeModeHostPath(hostExecutable), companionExecutable);
+    rmSync(companionExecutable);
+    assert.throws(() => resolveCodeModeHostPath(hostExecutable), /code-mode host/);
+  } finally {
+    rmSync(executableDirectory, { force: true, recursive: true });
+  }
+});
+
 test('sandbox uses an empty root, isolated network, and restricted relay', () => {
   const argumentsList = buildBwrapArguments({
     command: SAFE_HOST_COMMAND,
     cwd: '/tmp/evaluation',
+    hostCompanionExecutable: '/runtime/codex-code-mode-host',
     hostExecutable: '/usr/bin/codex',
+    nodeExecutable: '/runtime/node',
     sandboxHome: '/tmp/evaluation-home',
   });
   assert.deepEqual(argumentsList.slice(0, 2), ['--die-with-parent', '--new-session']);
@@ -125,6 +176,23 @@ test('sandbox uses an empty root, isolated network, and restricted relay', () =>
     ),
     false,
   );
+  assert.ok(
+    argumentsList.some(
+      (part, index) =>
+        part === '--ro-bind' &&
+        argumentsList[index + 1] === '/runtime/codex-code-mode-host' &&
+        argumentsList[index + 2] === '/opt/codex-code-mode-host',
+    ),
+  );
+  assert.ok(
+    argumentsList.some(
+      (part, index) =>
+        part === '--ro-bind' &&
+        argumentsList[index + 1] === '/runtime/node' &&
+        argumentsList[index + 2] === '/opt/node',
+    ),
+  );
+  assert.ok(argumentsList.includes('/home/evaluator/bin:/opt:/usr/bin:/bin'));
 });
 
 test('sandbox mounts related repositories read-only', () => {

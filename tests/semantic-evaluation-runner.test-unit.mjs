@@ -1,6 +1,6 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
-import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -10,6 +10,9 @@ import {
   buildActorPrompt,
   buildBwrapArguments,
   buildJudgePrompt,
+  collectProductionPackageRoots,
+  getSemanticToolingSource,
+  getSyntheticCompatibilityCaseIds,
   identifyConfiguredModel,
   resolveCodeModeHostPath,
   validateHostCommand,
@@ -130,6 +133,45 @@ test('recording rejects targeted and failing semantic evidence', () => {
     () => validateSemanticResultRecording({ hasFailures: true, isCaseSelected: false }),
     /failed cases/,
   );
+});
+
+test('selects synthetic compatibility only for the two unsupported runtime states', () => {
+  assert.deepEqual(getSyntheticCompatibilityCaseIds(), [
+    'dedicated-repository-runtime-selection',
+    'runtime-adapter-lifecycle',
+  ]);
+  assert.equal(
+    getSemanticToolingSource('dedicated-repository-runtime-selection'),
+    'synthetic-compatibility',
+  );
+  assert.equal(
+    getSemanticToolingSource('runtime-adapter-lifecycle'),
+    'synthetic-compatibility',
+  );
+  assert.equal(getSemanticToolingSource('adopted-relevance-no-change'), 'published-package');
+  assert.equal(getSemanticToolingSource('pnpm-pnp-local-cli-provider'), 'scenario-specific');
+});
+
+test('collects the exact published CLI production dependency closure', () => {
+  const packageVersions = collectProductionPackageRoots(
+    join(process.cwd(), 'node_modules', '@moldea.ai', 'cli'),
+  )
+    .map((packageRoot) => {
+      const manifest = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8'));
+      return `${manifest.name}@${manifest.version}`;
+    })
+    .sort();
+
+  assert.deepEqual(packageVersions, [
+    '@moldea.ai/cli@1.0.1',
+    '@moldea.ai/core@1.0.1',
+    '@moldea.ai/repository-fs@1.0.1',
+    '@moldea.ai/repository@1.0.1',
+    'error-message-utils@1.2.11',
+    'semver@7.8.5',
+    'yaml@2.9.0',
+    'zod@4.3.6',
+  ]);
 });
 
 test('code-mode host resolves only from the Codex executable directory', () => {

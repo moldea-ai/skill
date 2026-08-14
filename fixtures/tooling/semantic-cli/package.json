@@ -1,0 +1,8 @@
+{
+  "name": "@moldea.ai/cli",
+  "version": "1.0.1",
+  "private": true,
+  "bin": {
+    "moldea": "bin/moldea.js"
+  }
+}

@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import {
   accessSync,
   constants,
+  existsSync,
   readdirSync,
   readFileSync,
   realpathSync,
@@ -23,7 +24,7 @@ import {
   writeFile,
 } from 'node:fs/promises';
 import { homedir, tmpdir } from 'node:os';
-import { basename, delimiter, dirname, join, relative, resolve } from 'node:path';
+import { basename, delimiter, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { spawn, spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -31,7 +32,12 @@ const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PORTABLE_SKILL_ROOT = join(REPOSITORY_ROOT, 'moldea');
 const CASES_PATH = join(REPOSITORY_ROOT, 'fixtures', 'conformance-cases.json');
 const RESULT_PATH = join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-result.json');
-const FAKE_CLI_ROOT = join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'fake-cli');
+const ROOT_NODE_MODULES = realpathSync(join(REPOSITORY_ROOT, 'node_modules'));
+const PUBLISHED_CLI_ROOT = join(ROOT_NODE_MODULES, '@moldea.ai', 'cli');
+const PUBLISHED_CLI_MANIFEST = JSON.parse(
+  readFileSync(join(PUBLISHED_CLI_ROOT, 'package.json'), 'utf8'),
+);
+const SEMANTIC_CLI_ROOT = join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'semantic-cli');
 const EGRESS_PROXY_PATH = join(REPOSITORY_ROOT, 'tests', 'semantic-evaluation-proxy.mjs');
 const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
 const DEFAULT_HOST_TIMEOUT_MS = 120_000;
@@ -62,6 +68,22 @@ const CUSTOM_SETUP_CASE_IDS = new Set([
   'yarn-conflicting-cli-provider',
   'yarn-plugin-install-blocked',
 ]);
+const SYNTHETIC_COMPATIBILITY_CASE_IDS = new Set([
+  'dedicated-repository-runtime-selection',
+  'runtime-adapter-lifecycle',
+]);
+
+/** Lists the exact cases allowed to replace the published CLI with compatibility fixtures. */
+export const getSyntheticCompatibilityCaseIds = () => [
+  ...SYNTHETIC_COMPATIBILITY_CASE_IDS,
+];
+
+/** Identifies the CLI source owned by one semantic evaluation scenario. */
+export const getSemanticToolingSource = (caseId) => {
+  if (CUSTOM_SETUP_CASE_IDS.has(caseId)) return 'scenario-specific';
+  if (SYNTHETIC_COMPATIBILITY_CASE_IDS.has(caseId)) return 'synthetic-compatibility';
+  return 'published-package';
+};
 
 /** Parses and validates a host command from an environment variable. */
 const parseHostCommand = (variableName, fallback) => {
@@ -574,14 +596,147 @@ const writeScenarioFile = async (repositoryPath, relativePath, content) => {
   await writeFile(absolutePath, content, 'utf8');
 };
 
-/** Installs the exact deterministic CLI fixture without lifecycle scripts. */
-const seedLocalTooling = async (repositoryPath) => {
+/** Returns whether a path remains inside its expected parent directory. */
+const isPathWithin = (parentPath, candidatePath) => {
+  const relativePath = relative(parentPath, candidatePath);
+  return relativePath === '' || (!relativePath.startsWith('..') && !isAbsolute(relativePath));
+};
+
+/** Resolves one installed dependency from the package that declares it. */
+const resolveInstalledDependencyRoot = (
+  dependencyName,
+  issuerPackageRoot,
+  isOptional = false,
+) => {
+  let searchPath = issuerPackageRoot;
+
+  while (true) {
+    const candidatePath = join(searchPath, 'node_modules', ...dependencyName.split('/'));
+    const manifestPath = join(candidatePath, 'package.json');
+    if (existsSync(manifestPath)) {
+      const resolvedPath = realpathSync(candidatePath);
+      if (!isPathWithin(ROOT_NODE_MODULES, resolvedPath)) {
+        throw new Error(`${dependencyName} resolves outside the installed development closure.`);
+      }
+      return resolvedPath;
+    }
+
+    const parentPath = dirname(searchPath);
+    if (parentPath === searchPath) break;
+    searchPath = parentPath;
+  }
+
+  if (isOptional) return undefined;
+  throw new Error(`Unable to resolve installed dependency ${dependencyName}.`);
+};
+
+/** Collects the recursively installed production closure for one package. */
+export const collectProductionPackageRoots = (entryPackageRoot) => {
+  const packageRoots = [];
+  const visitedPackageRoots = new Set();
+
+  const visit = (packageRoot) => {
+    const resolvedPackageRoot = realpathSync(packageRoot);
+    if (!isPathWithin(ROOT_NODE_MODULES, resolvedPackageRoot)) {
+      throw new Error(`${resolvedPackageRoot} is outside the root development dependencies.`);
+    }
+    if (visitedPackageRoots.has(resolvedPackageRoot)) return;
+    visitedPackageRoots.add(resolvedPackageRoot);
+    packageRoots.push(resolvedPackageRoot);
+
+    const manifest = JSON.parse(
+      readFileSync(join(resolvedPackageRoot, 'package.json'), 'utf8'),
+    );
+    const requiredDependencyNames = Object.keys(manifest.dependencies ?? {});
+    const optionalDependencyNames = Object.keys(manifest.optionalDependencies ?? {});
+
+    for (const dependencyName of requiredDependencyNames) {
+      visit(resolveInstalledDependencyRoot(dependencyName, resolvedPackageRoot));
+    }
+    for (const dependencyName of optionalDependencyNames) {
+      const dependencyRoot = resolveInstalledDependencyRoot(
+        dependencyName,
+        resolvedPackageRoot,
+        true,
+      );
+      if (dependencyRoot) visit(dependencyRoot);
+    }
+  };
+
+  visit(entryPackageRoot);
+  return packageRoots;
+};
+
+/** Copies one package without implicitly copying an unvalidated nested dependency tree. */
+const copyPackage = async (sourcePackageRoot, destinationPackageRoot) => {
+  await cp(sourcePackageRoot, destinationPackageRoot, {
+    filter: (sourcePath) => {
+      const relativeSourcePath = relative(sourcePackageRoot, sourcePath);
+      return !relativeSourcePath.split(/[\\/]/).includes('node_modules');
+    },
+    recursive: true,
+  });
+};
+
+/** Links the local moldea executable declared by the installed package manifest. */
+const linkLocalCliExecutable = async (repositoryPath, installedCliRoot, cliManifest) => {
+  const relativeBinPath =
+    typeof cliManifest.bin === 'string' ? cliManifest.bin : cliManifest.bin?.moldea;
+  if (!relativeBinPath || isAbsolute(relativeBinPath)) {
+    throw new Error('The installed @moldea.ai/cli package must declare a relative moldea bin.');
+  }
+  const resolvedBinPath = resolve(installedCliRoot, relativeBinPath);
+  if (!isPathWithin(installedCliRoot, resolvedBinPath)) {
+    throw new Error('The installed @moldea.ai/cli bin escapes its package root.');
+  }
+  accessSync(resolvedBinPath, constants.X_OK);
+
+  const binDirectory = join(repositoryPath, 'node_modules', '.bin');
+  await mkdir(binDirectory, { recursive: true });
+  await symlink(relative(binDirectory, resolvedBinPath), join(binDirectory, 'moldea'));
+};
+
+/** Copies the exact installed published CLI production closure into one actor repository. */
+const seedPublishedCli = async (repositoryPath) => {
+  const destinationNodeModules = join(repositoryPath, 'node_modules');
+
+  for (const sourcePackageRoot of collectProductionPackageRoots(PUBLISHED_CLI_ROOT)) {
+    const relativePackageRoot = relative(ROOT_NODE_MODULES, sourcePackageRoot);
+    if (!relativePackageRoot || relativePackageRoot.startsWith('..')) {
+      throw new Error(`Invalid installed package path ${sourcePackageRoot}.`);
+    }
+    await copyPackage(sourcePackageRoot, join(destinationNodeModules, relativePackageRoot));
+  }
+
+  const installedCliRoot = join(destinationNodeModules, '@moldea.ai', 'cli');
+  await linkLocalCliExecutable(repositoryPath, installedCliRoot, PUBLISHED_CLI_MANIFEST);
+};
+
+/** Copies the narrow compatibility fixture into one explicitly synthetic actor case. */
+const seedSyntheticCompatibilityCli = async (repositoryPath) => {
+  const installedCliRoot = join(repositoryPath, 'node_modules', '@moldea.ai', 'cli');
+  await mkdir(dirname(installedCliRoot), { recursive: true });
+  await cp(SEMANTIC_CLI_ROOT, installedCliRoot, { recursive: true });
+  const cliManifest = JSON.parse(readFileSync(join(SEMANTIC_CLI_ROOT, 'package.json'), 'utf8'));
+  if (cliManifest.version !== PUBLISHED_CLI_MANIFEST.version) {
+    throw new Error('The semantic CLI fixture must match the published development CLI version.');
+  }
+  await linkLocalCliExecutable(repositoryPath, installedCliRoot, cliManifest);
+};
+
+/** Installs the exact deterministic CLI source selected for one semantic case. */
+export const seedSemanticTooling = async (repositoryPath, caseDefinition) => {
+  const toolingSource = getSemanticToolingSource(caseDefinition.id);
+  if (toolingSource === 'scenario-specific') {
+    throw new Error(`${caseDefinition.id} owns its scenario-specific tooling setup.`);
+  }
+
   await writeScenarioFile(
     repositoryPath,
     'package.json',
     `${JSON.stringify(
       {
-        devDependencies: { '@moldea.ai/cli': '1.0.0' },
+        devDependencies: { '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version },
         packageManager: `npm@${SEMANTIC_EVALUATION_NPM_VERSION}`,
         private: true,
       },
@@ -589,17 +744,17 @@ const seedLocalTooling = async (repositoryPath) => {
       2,
     )}\n`,
   );
-  const installedCliPath = join(repositoryPath, 'node_modules', '@moldea.ai', 'cli');
-  await mkdir(dirname(installedCliPath), { recursive: true });
-  await cp(FAKE_CLI_ROOT, installedCliPath, { recursive: true });
-  const binDirectory = join(repositoryPath, 'node_modules', '.bin');
-  await mkdir(binDirectory, { recursive: true });
-  await symlink('../@moldea.ai/cli/bin/moldea.js', join(binDirectory, 'moldea'));
+
+  if (toolingSource === 'synthetic-compatibility') {
+    await seedSyntheticCompatibilityCli(repositoryPath);
+  } else {
+    await seedPublishedCli(repositoryPath);
+  }
 };
 
 /** Seeds the minimum adopted project state used by semantic cases. */
-const seedAdoptedProject = async (repositoryPath) => {
-  await seedLocalTooling(repositoryPath);
+const seedAdoptedProject = async (repositoryPath, caseDefinition) => {
+  await seedSemanticTooling(repositoryPath, caseDefinition);
   await writeScenarioFile(
     repositoryPath,
     'README.md',
@@ -771,7 +926,7 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
     return;
   }
 
-  await seedAdoptedProject(repositoryPath);
+  await seedAdoptedProject(repositoryPath, caseDefinition);
 
   switch (caseDefinition.id) {
     case 'adopted-relevance-no-change':

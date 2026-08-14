@@ -10,10 +10,11 @@
   "scripts": {
     "eval:semantic": "node tests/semantic-evaluation-runner.mjs",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "node --test tests/*.test-unit.mjs",
+    "test:unit": "node --test tests/*.test-unit.mjs tests/package-manager-candidate/*.test-unit.mjs",
     "test:integration": "node --test tests/*.test-integration.mjs"
   },
   "devDependencies": {
+    "@moldea.ai/cli": "1.0.1",
     "yaml": "2.9.0"
   }
 }

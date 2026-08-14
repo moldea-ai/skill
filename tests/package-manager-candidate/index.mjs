@@ -11,6 +11,11 @@ const CANDIDATE_PACKAGE_NAMES = [
   '@moldea.ai/repository',
   '@moldea.ai/repository-fs',
 ];
+const CANDIDATE_PACKAGE_NAME_SET = new Set(CANDIDATE_PACKAGE_NAMES);
+const INTERNAL_CLI_DEPENDENCY_NAMES = CANDIDATE_PACKAGE_NAMES.filter(
+  (packageName) => packageName !== '@moldea.ai/cli',
+);
+const STABLE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
 
 /**
  * Reads one regular entry from a gzip-compressed USTAR-compatible package archive.
@@ -45,9 +50,56 @@ const readTarEntry = (tarball, entryPath) => {
 };
 
 /**
+ * Registers one expected candidate artifact without allowing duplicate package identities.
+ * @param artifacts The artifacts already keyed by package name.
+ * @param artifact The candidate artifact to register.
+ * @returns The updated artifact map.
+ */
+export const registerCandidateArtifact = (artifacts, artifact) => {
+  const packageName = artifact.manifest.name;
+
+  assert.ok(CANDIDATE_PACKAGE_NAME_SET.has(packageName), `Unexpected ${packageName} tarball.`);
+  assert.equal(artifacts.has(packageName), false, `Duplicate ${packageName} tarball.`);
+  artifacts.set(packageName, artifact);
+  return artifacts;
+};
+
+/**
+ * Validates the identities, versions, and exact internal dependencies of a candidate closure.
+ * @param artifacts The artifacts keyed by package name.
+ * @returns The validated artifacts and derived CLI version.
+ */
+export const validateCandidateArtifacts = (artifacts) => {
+  assert.deepEqual([...artifacts.keys()].sort(), [...CANDIDATE_PACKAGE_NAMES].sort());
+
+  for (const packageName of CANDIDATE_PACKAGE_NAMES) {
+    const artifact = artifacts.get(packageName);
+    assert.equal(artifact.manifest.name, packageName);
+    assert.match(
+      artifact.manifest.version,
+      STABLE_VERSION_PATTERN,
+      `${packageName} must use a stable semantic version.`,
+    );
+  }
+
+  const cliManifest = artifacts.get('@moldea.ai/cli').manifest;
+
+  for (const dependencyName of INTERNAL_CLI_DEPENDENCY_NAMES) {
+    assert.equal(
+      cliManifest.dependencies?.[dependencyName],
+      artifacts.get(dependencyName).manifest.version,
+      `${dependencyName} must be exact-pinned to its supplied candidate artifact.`,
+    );
+  }
+
+  assert.equal(cliManifest.preferUnplugged, true);
+  return { artifacts, cliVersion: cliManifest.version };
+};
+
+/**
  * Loads and validates the exact four-package CLI candidate closure.
  * @param artifactDirectory The directory containing the packed candidate artifacts.
- * @returns The artifacts keyed by package name.
+ * @returns The validated artifacts and derived CLI version.
  */
 export const loadCandidateArtifacts = (artifactDirectory) => {
   const artifacts = new Map();
@@ -56,29 +108,46 @@ export const loadCandidateArtifacts = (artifactDirectory) => {
     const archive = readFileSync(join(artifactDirectory, archiveName));
     const manifest = JSON.parse(readTarEntry(archive, 'package/package.json').toString('utf8'));
 
-    assert.ok(CANDIDATE_PACKAGE_NAMES.includes(manifest.name), `Unexpected ${manifest.name} tarball.`);
-    assert.equal(manifest.version, '1.0.0');
-    assert.equal(artifacts.has(manifest.name), false, `Duplicate ${manifest.name} tarball.`);
-    artifacts.set(manifest.name, { archive, archiveName, manifest });
+    registerCandidateArtifact(artifacts, { archive, archiveName, manifest });
   }
 
-  assert.deepEqual([...artifacts.keys()].sort(), [...CANDIDATE_PACKAGE_NAMES].sort());
-  assert.deepEqual(artifacts.get('@moldea.ai/cli').manifest.dependencies, {
-    '@moldea.ai/core': '1.0.0',
-    '@moldea.ai/repository': '1.0.0',
-    '@moldea.ai/repository-fs': '1.0.0',
-    semver: '7.8.5',
-  });
-  assert.equal(artifacts.get('@moldea.ai/cli').manifest.preferUnplugged, true);
-  assert.equal(
-    artifacts.get('@moldea.ai/core').manifest.dependencies['@moldea.ai/repository'],
-    '^1.0.0',
-  );
-  assert.equal(
-    artifacts.get('@moldea.ai/repository-fs').manifest.dependencies['@moldea.ai/repository'],
-    '^1.0.0',
-  );
-  return artifacts;
+  return validateCandidateArtifacts(artifacts);
+};
+
+/**
+ * Builds registry metadata for one exact candidate artifact.
+ * @param artifact The candidate archive and packed manifest.
+ * @param registryUrl The loopback registry origin.
+ * @returns The package metadata and tarball path.
+ */
+export const createCandidatePackageMetadata = (artifact, registryUrl) => {
+  const { archive, archiveName, manifest } = artifact;
+  const archivePath = `/${manifest.name}/-/${basename(archiveName)}`;
+  const publishedAt = '2025-01-01T00:00:00.000Z';
+
+  return {
+    archivePath,
+    metadata: {
+      name: manifest.name,
+      'dist-tags': { latest: manifest.version },
+      // fixed past timestamps remain valid across Yarn metadata-age policies
+      time: {
+        created: publishedAt,
+        modified: publishedAt,
+        [manifest.version]: publishedAt,
+      },
+      versions: {
+        [manifest.version]: {
+          ...manifest,
+          dist: {
+            integrity: `sha512-${createHash('sha512').update(archive).digest('base64')}`,
+            shasum: createHash('sha1').update(archive).digest('hex'),
+            tarball: `${registryUrl}${archivePath}`,
+          },
+        },
+      },
+    },
+  };
 };
 
 /**
@@ -103,31 +172,10 @@ export const createCandidateRegistry = async (artifacts) => {
     const artifact = artifacts.get(packageName);
 
     if (artifact !== undefined) {
-      const archivePath = `/${packageName}/-/${basename(artifact.archiveName)}`;
+      const { archivePath, metadata } = createCandidatePackageMetadata(artifact, registryUrl);
       archivePaths.set(archivePath, artifact.archive);
       response.writeHead(200, { 'content-type': 'application/json' });
-      response.end(
-        JSON.stringify({
-          name: packageName,
-          'dist-tags': { latest: '1.0.0' },
-          // fixed past timestamps remain valid across Yarn metadata-age policies
-          time: {
-            created: '2025-01-01T00:00:00.000Z',
-            modified: '2025-01-01T00:00:00.000Z',
-            '1.0.0': '2025-01-01T00:00:00.000Z',
-          },
-          versions: {
-            '1.0.0': {
-              ...artifact.manifest,
-              dist: {
-                integrity: `sha512-${createHash('sha512').update(artifact.archive).digest('base64')}`,
-                shasum: createHash('sha1').update(artifact.archive).digest('hex'),
-                tarball: `${registryUrl}${archivePath}`,
-              },
-            },
-          },
-        }),
-      );
+      response.end(JSON.stringify(metadata));
       return;
     }
 

@@ -19,10 +19,9 @@ const OFFICIAL_ADAPTER_IDS = [
   'vercel-ai-sdk',
 ];
 const BASE_COMPATIBILITY_PACKAGES = [
-  { name: '@moldea.ai/cli', version: '1.0.0' },
-  { name: '@moldea.ai/core', version: '1.0.0' },
-  { name: '@moldea.ai/repository', version: '1.0.0' },
-  { name: '@moldea.ai/repository-fs', version: '1.0.0' },
+  { name: '@moldea.ai/core', version: '1.0.1' },
+  { name: '@moldea.ai/repository', version: '1.0.1' },
+  { name: '@moldea.ai/repository-fs', version: '1.0.1' },
 ];
 
 /** Reads one text asset using the repository-format digest and length semantics. */
@@ -100,7 +99,7 @@ const readIndexedAgents = (manifestContent) => {
 const createCustomCompatibility = () => ({
   id: 'custom',
   active: true,
-  bundledVersion: null,
+  bundledVersion: '1.0.1',
   matrix: {
     implementation: {
       kind: 'built-in',
@@ -181,7 +180,7 @@ const readCompatibilityPackages = (adapters) => {
 };
 
 if (command === '--version') {
-  process.stdout.write('1.0.0\n');
+  process.stdout.write('1.0.1\n');
 } else if (command === 'inspect' && process.argv.includes('--json')) {
   const manifest = readTextAsset('/moldea/moldea.yaml');
   const project = readTextAsset('/moldea/project.md');
@@ -244,7 +243,7 @@ if (command === '--version') {
 
   process.stdout.write(
     `${JSON.stringify({
-      cliVersion: '1.0.0',
+      cliVersion: '1.0.1',
       command: 'inspect',
       error: null,
       result: {
@@ -260,7 +259,7 @@ if (command === '--version') {
   const adapters = readCompatibilityAdapters();
   process.stdout.write(
     `${JSON.stringify({
-      cliVersion: '1.0.0',
+      cliVersion: '1.0.1',
       command: 'compatibility',
       error: null,
       result: {

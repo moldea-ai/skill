@@ -19,13 +19,20 @@ import { createPortableSkillDigest } from './semantic-evaluation-runner.mjs';
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILL_DIRECTORY = join(REPOSITORY_ROOT, 'moldea');
 const SKILL_PATH = join(SKILL_DIRECTORY, 'SKILL.md');
-const FAKE_CLI_PATH = join(
+const SEMANTIC_CLI_PATH = join(
   REPOSITORY_ROOT,
   'fixtures',
   'tooling',
-  'fake-cli',
+  'semantic-cli',
   'bin',
   'moldea.js',
+);
+const LIFECYCLE_CLI_MANIFEST_PATH = join(
+  REPOSITORY_ROOT,
+  'fixtures',
+  'tooling',
+  'lifecycle-cli',
+  'package.json',
 );
 const LEGACY_RUNTIME_TERM = ['frame', 'work'].join('');
 const READ_ONLY_TOOLING_OPERATIONS = new Set(['evaluate', 'plan', 'validate']);
@@ -512,8 +519,8 @@ describe('source repository conformance', () => {
     }
   });
 
-  test('keeps the fake CLI envelope and compatibility composition contract-faithful', () => {
-    const repositoryPath = mkdtempSync(join(tmpdir(), 'moldea-fake-cli-test-'));
+  test('keeps the synthetic semantic CLI envelope contract-faithful', () => {
+    const repositoryPath = mkdtempSync(join(tmpdir(), 'moldea-semantic-cli-test-'));
 
     try {
       mkdirSync(join(repositoryPath, 'moldea', 'agents', 'refund-agent'), {
@@ -553,32 +560,33 @@ describe('source repository conformance', () => {
         })}\n`,
       );
 
-      const inspection = spawnSync(FAKE_CLI_PATH, ['inspect', '--json'], {
+      const inspection = spawnSync(SEMANTIC_CLI_PATH, ['inspect', '--json'], {
         cwd: repositoryPath,
         encoding: 'utf8',
       });
       const inspectionEnvelope = JSON.parse(inspection.stdout);
       assert.equal(inspection.status, 1);
+      assert.equal(inspectionEnvelope.cliVersion, '1.0.1');
       assert.equal(inspectionEnvelope.status, 'invalid');
       assert.equal(
         inspectionEnvelope.result.inspection.diagnostics[0].code,
         'MOLDEA_RUNTIME_ADAPTER_UNAVAILABLE',
       );
 
-      const compatibility = spawnSync(FAKE_CLI_PATH, ['compatibility', '--json'], {
+      const compatibility = spawnSync(SEMANTIC_CLI_PATH, ['compatibility', '--json'], {
         cwd: repositoryPath,
         encoding: 'utf8',
       });
       const compatibilityEnvelope = JSON.parse(compatibility.stdout);
       assert.equal(compatibility.status, 0);
+      assert.equal(compatibilityEnvelope.cliVersion, '1.0.1');
       assert.equal(compatibilityEnvelope.status, 'valid');
       assert.deepEqual(
-        compatibilityEnvelope.result.packages.map(({ name }) => name),
+        compatibilityEnvelope.result.packages,
         [
-          '@moldea.ai/cli',
-          '@moldea.ai/core',
-          '@moldea.ai/repository',
-          '@moldea.ai/repository-fs',
+          { name: '@moldea.ai/core', version: '1.0.1' },
+          { name: '@moldea.ai/repository', version: '1.0.1' },
+          { name: '@moldea.ai/repository-fs', version: '1.0.1' },
         ],
       );
       assert.deepEqual(
@@ -602,10 +610,23 @@ describe('source repository conformance', () => {
         ({ id }) => id === 'custom',
       );
       assert.equal(customCompatibility.active, true);
-      assert.equal(customCompatibility.bundledVersion, null);
+      assert.equal(customCompatibility.bundledVersion, '1.0.1');
     } finally {
       rmSync(repositoryPath, { force: true, recursive: true });
     }
+  });
+
+  test('keeps the lifecycle fixture limited to hostile installation hooks', () => {
+    const manifest = JSON.parse(readFileSync(LIFECYCLE_CLI_MANIFEST_PATH, 'utf8'));
+
+    assert.deepEqual(manifest.bin, { moldea: 'bin/moldea.js' });
+    assert.deepEqual(manifest.scripts, {
+      install: 'node lifecycle-sentinel.mjs dependency-install',
+      postinstall: 'node lifecycle-sentinel.mjs dependency-postinstall',
+      preinstall: 'node lifecycle-sentinel.mjs dependency-preinstall',
+    });
+    assert.equal(manifest.version, '1.0.1');
+    assert.equal('dependencies' in manifest, false);
   });
 
   test('exercises every supported CLI machine-envelope disposition', () => {
@@ -639,6 +660,21 @@ describe('source repository conformance', () => {
     assert.match(workflow, /\.agents\/skills\/moldea/);
     assert.match(workflow, /diff --recursive --brief moldea/);
     assert.doesNotMatch(workflow, /add .* --list/);
+  });
+
+  test('CI exercises both published CLI versions across every package manager', () => {
+    const workflow = readRepositoryFile('.github/workflows/conformance.yml');
+    const packageManifest = JSON.parse(readRepositoryFile('package.json'));
+
+    assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], '1.0.1');
+    assert.equal(workflow.match(/cli_version: "1\.0\.0"/g)?.length, 6);
+    assert.equal(workflow.match(/cli_version: "1\.0\.1"/g)?.length, 6);
+    assert.match(workflow, /MOLDEA_TEST_CLI_VERSION: \$\{\{ matrix\.cli_version \}\}/);
+    assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 2);
+    assert.equal(
+      existsSync(join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'fake-cli')),
+      false,
+    );
   });
 
   test('candidate workflow verifies real package tarballs without publishing', () => {

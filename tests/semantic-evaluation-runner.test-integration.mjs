@@ -1,7 +1,14 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -10,7 +17,50 @@ import test from 'node:test';
 import {
   buildBwrapArguments,
   prepareSandboxHome,
+  seedSemanticTooling,
 } from './semantic-evaluation-runner.mjs';
+
+test('semantic actors execute the copied published CLI closure', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-published-cli-test-'));
+  const repositoryPath = join(evaluationRoot, 'repository');
+  mkdirSync(repositoryPath);
+
+  try {
+    await seedSemanticTooling(repositoryPath, { id: 'adopted-relevance-no-change' });
+    const packageManifest = JSON.parse(
+      readFileSync(join(repositoryPath, 'package.json'), 'utf8'),
+    );
+    const cliManifest = JSON.parse(
+      readFileSync(
+        join(repositoryPath, 'node_modules', '@moldea.ai', 'cli', 'package.json'),
+        'utf8',
+      ),
+    );
+    const binaryPath = join(repositoryPath, 'node_modules', '.bin', 'moldea');
+    const versionResult = spawnSync(binaryPath, ['--version'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    const compatibilityResult = spawnSync(binaryPath, ['compatibility', '--json'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    const compatibilityEnvelope = JSON.parse(compatibilityResult.stdout);
+
+    assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': '1.0.1' });
+    assert.equal(cliManifest.bin.moldea, './dist/moldea.js');
+    assert.equal(versionResult.status, 0, versionResult.stderr);
+    assert.equal(versionResult.stdout.trim(), '1.0.1');
+    assert.equal(compatibilityResult.status, 0, compatibilityResult.stderr);
+    assert.deepEqual(compatibilityEnvelope.result.packages, [
+      { name: '@moldea.ai/core', version: '1.0.1' },
+      { name: '@moldea.ai/repository', version: '1.0.1' },
+      { name: '@moldea.ai/repository-fs', version: '1.0.1' },
+    ]);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
 
 test('sandbox npm probe reports the fixture version and rejects execution commands', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-npm-probe-test-'));

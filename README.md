@@ -178,7 +178,7 @@ npm run test:unit
 npm run test:integration
 ```
 
-The integration test defaults to the available npm executable and published `@moldea.ai/cli@1.0.1`. CI exercises npm `10.9.0` and `11.19.0`, pnpm `11.20.0` and `11.21.0`, and Yarn `4.0.0` and `4.18.0` against both published CLI `1.0.0` and `1.0.1`, proving the supported lower boundary and current recommended version.
+The complete integration suite requires Bubblewrap and defaults to the available npm executable and published `@moldea.ai/cli@1.0.1`. Portable CI jobs provision Bubblewrap and run the complete suite. The package-manager matrices run the focused package-manager integration boundary across npm `10.9.0` and `11.19.0`, pnpm `11.20.0` and `11.21.0`, and Yarn `4.0.0` and `4.18.0` against both published CLI `1.0.0` and `1.0.1`, proving the supported lower boundary and current recommended version without repeating unrelated sandbox checks.
 
 The ordinary package-manager integration suite first serves the adversarial lifecycle fixture through an isolated local registry with faithful package metadata. That fixture intentionally contains lifecycle scripts and remains the security proof for exact pinning and lifecycle suppression. A separate mandatory path installs the selected exact published CLI from npm, proves local executable provenance, and executes deterministic `compatibility --json` and `inspect --json` checks against a custom-runtime project.
 

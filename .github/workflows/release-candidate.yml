@@ -122,4 +122,4 @@ jobs:
           MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS: "1"
           MOLDEA_TEST_MANAGER: ${{ matrix.manager }}
           MOLDEA_TEST_MANAGER_VERSION: ${{ matrix.version }}
-        run: npm run test:integration
+        run: node --test tests/package-manager.test-integration.mjs

@@ -27,6 +27,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
+      - name: Install semantic sandbox dependency
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bubblewrap
       - name: Install development dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Run all correctness tests
@@ -121,4 +125,4 @@ jobs:
           MOLDEA_TEST_MANAGER: ${{ matrix.manager }}
           MOLDEA_TEST_MANAGER_VERSION: ${{ matrix.version }}
           MOLDEA_TEST_CLI_VERSION: ${{ matrix.cli_version }}
-        run: npm run test:integration
+        run: node --test tests/package-manager.test-integration.mjs

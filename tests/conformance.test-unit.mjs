@@ -671,6 +671,11 @@ describe('source repository conformance', () => {
     assert.equal(workflow.match(/cli_version: "1\.0\.1"/g)?.length, 6);
     assert.match(workflow, /MOLDEA_TEST_CLI_VERSION: \$\{\{ matrix\.cli_version \}\}/);
     assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 2);
+    assert.equal(workflow.match(/sudo apt-get install --yes bubblewrap/g)?.length, 1);
+    assert.equal(
+      workflow.match(/node --test tests\/package-manager\.test-integration\.mjs/g)?.length,
+      1,
+    );
     assert.equal(
       existsSync(join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'fake-cli')),
       false,
@@ -697,7 +702,7 @@ describe('source repository conformance', () => {
       /projects\/cli pack/,
       /MOLDEA_CLI_ARTIFACT_DIRECTORY:/,
       /MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS: "1"/,
-      /npm run test:integration/,
+      /node --test tests\/package-manager\.test-integration\.mjs/,
     ]);
     assert.doesNotMatch(workflow, /npm publish|pnpm publish|git tag|git push/);
   });

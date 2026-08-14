@@ -641,16 +641,26 @@ describe('source repository conformance', () => {
     }
   });
 
-  test('documents an immutable release installation and repository-local CLI model', () => {
+  test('documents preferred project installation and reproducible release pinning', () => {
     const readme = readRepositoryFile('README.md');
+    const projectInstallationIndex = readme.indexOf('### Project installation (recommended)');
+    const globalInstallationIndex = readme.indexOf('### Global installation (optional)');
 
-    assert.match(
-      readme,
-      /npx skills@1\.5\.22 add https:\/\/github\.com\/moldea-ai\/skill\/tree\/v1\.0\.0\/moldea -g/,
-    );
-    assert.doesNotMatch(readme, /tree\/(?:main|master|1\.0\.0)\/moldea/);
-    assert.match(readme, /does not install `@moldea\.ai\/cli` globally/);
+    assert.match(readme, /The current release is `1\.0\.0`\./);
+    assert.match(readme, /^npx skills add moldea-ai\/skill$/m);
+    assert.match(readme, /^npx skills add "moldea-ai\/skill#v1\.0\.0"$/m);
+    assert.match(readme, /^npx skills add moldea-ai\/skill -g$/m);
+    assert.ok(projectInstallationIndex >= 0);
+    assert.ok(globalInstallationIndex > projectInstallationIndex);
+    assert.doesNotMatch(readme, /skills@1\.5\.22/);
+    assert.doesNotMatch(readme, /https:\/\/github\.com\/moldea-ai\/skill\/tree\//);
+    assert.match(readme, /do not install `@moldea\.ai\/cli` globally/);
     assert.match(readme, /repository-local exact `@moldea\.ai\/cli` development dependency/);
+    assert.match(readme, /recommended repository-local CLI version for this release is `1\.0\.1`/);
+    assert.doesNotMatch(
+      readme,
+      /unpublished release candidate|future source URL|after release|candidate supports|prepared for, but has not created/i,
+    );
   });
 
   test('CI installs and compares the complete portable artifact', () => {

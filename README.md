@@ -2,13 +2,19 @@
 
 # moldea Agent Skill
 
-The `1.0.0` artifact is currently an unpublished release candidate. The immutable `v1.0.0` tag does not exist yet. After that release is created, install it globally with:
+The current release is `1.0.0`. Install the latest version from `main` in the current project with:
 
 ```bash
-npx skills@1.5.22 add https://github.com/moldea-ai/skill/tree/v1.0.0/moldea -g
+npx skills add moldea-ai/skill
 ```
 
-The future source URL will target the immutable `v1.0.0` release tag and install the portable directory as `moldea`. It does not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
+For a reproducible installation, pin the immutable release tag:
+
+```bash
+npx skills add "moldea-ai/skill#v1.0.0"
+```
+
+Both sources install the portable skill as `moldea`. They do not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
 
 ## What `moldea` is
 
@@ -28,33 +34,43 @@ Local work is filesystem-first and private by default. The skill does not send r
 
 ## Installation
 
-### Global installation after release
+### Project installation (recommended)
 
-After `v1.0.0` exists, the preferred path uses the open-source [`skills` CLI](https://github.com/vercel-labs/skills) and installs the released artifact at user level:
+The preferred path uses the open-source [`skills` CLI](https://github.com/vercel-labs/skills). Its default project scope keeps the skill with the repository so the team can share it through version control:
 
 ```bash
-npx skills@1.5.22 add https://github.com/moldea-ai/skill/tree/v1.0.0/moldea -g
+npx skills add moldea-ai/skill
+```
+
+This source follows `main`. To install the current release reproducibly, use its immutable tag:
+
+```bash
+npx skills add "moldea-ai/skill#v1.0.0"
 ```
 
 The `skills` CLI supports Agent Skills-compatible hosts including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and many others. Host detection and installation location are handled by the installer; the portable skill itself remains vendor-neutral.
 
-### Project-local installation after release
+### Global installation (optional)
 
-Use the same immutable artifact without `-g` when a repository-local installation is preferred:
+Developers who want the latest version from `main` available across all projects can add `-g`:
 
 ```bash
-npx skills@1.5.22 add https://github.com/moldea-ai/skill/tree/v1.0.0/moldea
+npx skills add moldea-ai/skill -g
 ```
+
+Add `-g` to the release-tag command instead when a reproducible global installation is required.
 
 ### Update or remove
 
-Upgrade by rerunning `skills add` with the next immutable release-tag URL. A release-pinned installation does not silently follow a moving branch.
+Refresh an installation by rerunning its `skills add` command. The unversioned source follows `main`; a release-pinned installation remains on its immutable tag until the command is changed to another tag.
 
-Remove the global installation with:
+Remove the project installation with:
 
 ```bash
-npx skills@1.5.22 remove moldea -g
+npx skills remove moldea
 ```
+
+Add `-g` to remove the global installation instead.
 
 ## Prerequisites
 
@@ -65,7 +81,7 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 - an established supported package manager, or npm when none is established
 - a repository-local exact `@moldea.ai/cli` development dependency in the supported range
 
-The `1.0.0` candidate supports:
+Release `1.0.0` supports:
 
 - `@moldea.ai/cli >=1.0.0 <1.1.0`
 - CLI JSON schema `1`
@@ -73,11 +89,13 @@ The `1.0.0` candidate supports:
 - pnpm `>=11.20.0 <12.0.0`
 - Yarn `>=4.0.0 <5.0.0`
 
+The recommended repository-local CLI version for this release is `1.0.1`.
+
 Write-capable workflows establish or reconcile the exact compatible repository-local CLI dependency without executing lifecycle scripts or repository-supplied package-manager hooks and plugins. `evaluate` is strictly read-only and reports missing or incompatible tooling instead of installing it. Agent-system `plan` is also read-only and may run before adoption or local tooling exists. The skill never falls back to a global CLI or transient CLI download.
 
 ## Quick start
 
-1. After release, install the skill globally.
+1. From the project root, install the skill.
 2. Open a Git repository in a compatible coding agent.
 3. Ask your coding agent naturally:
 
@@ -213,7 +231,7 @@ The skill uses independent semantic versioning. Every release must:
 - use an immutable `v<version>` tag
 - preserve semantically identical `moldea/` content across every official distribution channel
 
-The `1.0.0` artifact is prepared for, but has not created, the immutable `v1.0.0` tag. A branch named `1.0.0` and passing candidate-tarball conformance remain development state, not a release.
+Release `1.0.0` uses the immutable `v1.0.0` tag.
 
 ## License
 

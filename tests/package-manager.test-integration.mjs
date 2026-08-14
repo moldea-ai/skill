@@ -58,6 +58,12 @@ const isSupportedCliVersion = (version) => {
   return major === 1 && minor === 0;
 };
 
+/** Returns whether the selected Yarn version supports its command-scoped age-gate override. */
+const supportsYarnNoTimeGate = (version) => {
+  const [major, minor] = parseVersion(version);
+  return major > 4 || (major === 4 && minor >= 12);
+};
+
 const runSync = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
     encoding: 'utf8',
@@ -146,6 +152,17 @@ const findOwningPackage = (binaryPath, expectedPackageName) => {
   throw new Error(`${binaryPath} is not owned by ${expectedPackageName}.`);
 };
 
+/** Loads a direct dependency from a node_modules installation without following its bin wrapper. */
+const loadInstalledNodeModulesPackage = (clientDirectory, expectedPackageName) => {
+  const packageRoot = realpathSync(
+    join(clientDirectory, 'node_modules', ...expectedPackageName.split('/')),
+  );
+  const manifest = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8'));
+
+  assert.equal(manifest.name, expectedPackageName);
+  return { manifest, packageRoot };
+};
+
 /** Writes manager-specific scoped-registry configuration without changing global state. */
 const configureScopedRegistry = (clientDirectory, registryUrl) => {
   if (MANAGER === 'npm') {
@@ -170,7 +187,7 @@ const configureScopedRegistry = (clientDirectory, registryUrl) => {
 };
 
 /** Builds the lifecycle-safe exact installation arguments for the selected package manager. */
-const createInstallArguments = (cliVersion) => {
+const createInstallArguments = (cliVersion, managerVersion) => {
   if (MANAGER === 'npm') {
     return [
       'install',
@@ -193,7 +210,15 @@ const createInstallArguments = (cliVersion) => {
   }
 
   assert.equal(MANAGER, 'yarn');
-  return ['add', '--dev', '--exact', '--mode=skip-build', `@moldea.ai/cli@${cliVersion}`];
+  const timeGateArguments = supportsYarnNoTimeGate(managerVersion) ? ['--no-time-gate'] : [];
+  return [
+    'add',
+    '--dev',
+    '--exact',
+    '--mode=skip-build',
+    ...timeGateArguments,
+    `@moldea.ai/cli@${cliVersion}`,
+  ];
 };
 
 /** Serves the hostile lifecycle fixture as exact scoped package metadata. */
@@ -315,7 +340,7 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
   configureScopedRegistry(clientDirectory, registryUrl);
 
   try {
-    await run(EXECUTABLE, createInstallArguments(cliVersion), {
+    await run(EXECUTABLE, createInstallArguments(cliVersion, actualManagerVersion), {
       cwd: clientDirectory,
       env: managerEnvironment,
     });
@@ -390,7 +415,10 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
       });
     }
 
-    const cliPackage = findOwningPackage(binaryPath, '@moldea.ai/cli');
+    const cliPackage =
+      MANAGER === 'yarn'
+        ? findOwningPackage(binaryPath, '@moldea.ai/cli')
+        : loadInstalledNodeModulesPackage(clientDirectory, '@moldea.ai/cli');
     assert.ok(isPathWithin(clientDirectory, cliPackage.packageRoot));
     assert.equal(cliPackage.manifest.version, cliVersion);
     assert.equal(versionOutput, cliVersion);
@@ -515,10 +543,14 @@ test('supported package-manager command exact-pins the CLI and suppresses lifecy
   configureScopedRegistry(clientDirectory, registryUrl);
 
   try {
-    await run(EXECUTABLE, createInstallArguments(LIFECYCLE_FIXTURE_MANIFEST.version), {
-      cwd: clientDirectory,
-      env: managerEnvironment,
-    });
+    await run(
+      EXECUTABLE,
+      createInstallArguments(LIFECYCLE_FIXTURE_MANIFEST.version, actualManagerVersion),
+      {
+        cwd: clientDirectory,
+        env: managerEnvironment,
+      },
+    );
 
     assert.equal(existsSync(sentinelPath), false);
     const installedManifest = JSON.parse(

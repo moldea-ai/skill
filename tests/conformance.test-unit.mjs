@@ -671,7 +671,17 @@ describe('source repository conformance', () => {
     assert.equal(workflow.match(/cli_version: "1\.0\.1"/g)?.length, 6);
     assert.match(workflow, /MOLDEA_TEST_CLI_VERSION: \$\{\{ matrix\.cli_version \}\}/);
     assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 2);
-    assert.equal(workflow.match(/sudo apt-get install --yes bubblewrap/g)?.length, 1);
+    assert.equal(
+      workflow.match(
+        /sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap/g,
+      )?.length,
+      1,
+    );
+    assert.equal(
+      workflow.match(/sudo apparmor_parser -r \/etc\/apparmor\.d\/bwrap-userns-restrict/g)
+        ?.length,
+      1,
+    );
     assert.equal(
       workflow.match(/node --test tests\/package-manager\.test-integration\.mjs/g)?.length,
       1,

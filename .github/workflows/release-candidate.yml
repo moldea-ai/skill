@@ -1,0 +1,125 @@
+name: Release Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      packages_ref:
+        description: Exact moldea-ai/packages branch, tag, or commit to verify
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  NODE_VERSION: 24.15.0
+  PNPM_VERSION: 11.9.0
+
+jobs:
+  pack:
+    name: Pack packages candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout packages candidate
+        uses: actions/checkout@v6
+        with:
+          repository: moldea-ai/packages
+          ref: ${{ inputs.packages_ref }}
+          path: packages
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: packages/pnpm-lock.yaml
+
+      - name: Install candidate dependencies
+        run: pnpm --dir packages install --frozen-lockfile
+
+      - name: Build candidate packages
+        run: pnpm --dir packages build
+
+      - name: Pack exact candidate closure
+        run: |
+          candidate_directory="${{ runner.temp }}/cli-candidate-packages"
+          mkdir -p "$candidate_directory"
+          git -C packages rev-parse HEAD > "$candidate_directory/packages-commit.txt"
+          pnpm --dir packages/projects/repository pack --pack-destination "$candidate_directory"
+          pnpm --dir packages/projects/repository-fs pack --pack-destination "$candidate_directory"
+          pnpm --dir packages/projects/core pack --pack-destination "$candidate_directory"
+          pnpm --dir packages/projects/cli pack --pack-destination "$candidate_directory"
+
+      - name: Upload candidate closure
+        uses: actions/upload-artifact@v7
+        with:
+          name: cli-candidate-packages
+          path: ${{ runner.temp }}/cli-candidate-packages/*
+          if-no-files-found: error
+
+  package-managers:
+    name: Candidate / ${{ matrix.manager }} ${{ matrix.version }}
+    needs: pack
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - manager: npm
+            package: npm
+            version: "10.9.0"
+          - manager: npm
+            package: npm
+            version: "11.19.0"
+          - manager: pnpm
+            package: pnpm
+            version: "11.20.0"
+          - manager: pnpm
+            package: pnpm
+            version: "11.21.0"
+          - manager: yarn
+            package: "@yarnpkg/cli-dist"
+            version: "4.0.0"
+          - manager: yarn
+            package: "@yarnpkg/cli-dist"
+            version: "4.18.0"
+    steps:
+      - name: Checkout skill
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24.11.0"
+          cache: npm
+
+      - name: Install skill development dependencies
+        run: npm ci --ignore-scripts
+
+      - name: Install tested package manager
+        run: npm install --global --ignore-scripts "${{ matrix.package }}@${{ matrix.version }}"
+
+      - name: Download candidate closure
+        uses: actions/download-artifact@v8
+        with:
+          name: cli-candidate-packages
+          path: ${{ runner.temp }}/cli-candidate-packages
+
+      - name: Exercise real candidate conformance
+        env:
+          MOLDEA_CLI_ARTIFACT_DIRECTORY: ${{ runner.temp }}/cli-candidate-packages
+          MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS: "1"
+          MOLDEA_TEST_MANAGER: ${{ matrix.manager }}
+          MOLDEA_TEST_MANAGER_VERSION: ${{ matrix.version }}
+        run: node --test tests/package-manager.test-integration.mjs

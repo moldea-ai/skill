@@ -1,0 +1,1302 @@
+{
+  "packageManagerCases": [
+    {
+      "id": "no-evidence-default-npm",
+      "scenario": "No manager metadata or lockfile exists, so the supported npm executable is the only authoritative default.",
+      "operation": "initialize",
+      "input": {
+        "packageManager": null,
+        "lockfiles": [],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": "1.0.0",
+          "installedVersion": "1.0.0",
+          "executableResolves": true
+        }
+      },
+      "expected": [
+        "select-npm-and-verify-executable",
+        "preserve-existing-exact-cli"
+      ],
+      "forbidden": [
+        "select-another-manager",
+        "skip-version-verification"
+      ]
+    },
+    {
+      "id": "matching-package-manager-and-lockfile",
+      "scenario": "Concrete pnpm metadata, its lockfile, the executable, and an exact compatible CLI installation all agree.",
+      "operation": "maintain",
+      "input": {
+        "packageManager": "pnpm@11.20.0",
+        "lockfiles": [
+          "pnpm-lock.yaml"
+        ],
+        "executable": {
+          "manager": "pnpm",
+          "version": "11.20.0"
+        },
+        "cli": {
+          "declaration": "1.0.0",
+          "installedVersion": "1.0.0",
+          "executableResolves": true
+        }
+      },
+      "expected": [
+        "preserve-established-manager",
+        "preserve-existing-exact-cli"
+      ],
+      "forbidden": [
+        "switch-manager",
+        "upgrade-compatible-cli"
+      ]
+    },
+    {
+      "id": "metadata-lockfile-conflict",
+      "scenario": "The packageManager field declares npm while the sole recognized lockfile belongs to pnpm.",
+      "operation": "reconcile",
+      "input": {
+        "packageManager": "npm@11.12.1",
+        "lockfiles": [
+          "pnpm-lock.yaml"
+        ],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": "1.0.0",
+          "installedVersion": "1.0.0",
+          "executableResolves": true
+        }
+      },
+      "expected": [
+        "stop-for-material-conflict"
+      ],
+      "forbidden": [
+        "delete-lockfile",
+        "guess-manager"
+      ]
+    },
+    {
+      "id": "multiple-manager-lockfiles",
+      "scenario": "Both npm and Yarn lockfiles exist without authoritative metadata that resolves the conflicting identities.",
+      "operation": "initialize",
+      "input": {
+        "packageManager": null,
+        "lockfiles": [
+          "package-lock.json",
+          "yarn.lock"
+        ],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "stop-for-material-conflict"
+      ],
+      "forbidden": [
+        "default-to-npm",
+        "delete-lockfile"
+      ]
+    },
+    {
+      "id": "declared-executable-version-conflict",
+      "scenario": "Concrete Yarn metadata and the actual Yarn executable report different supported semantic versions.",
+      "operation": "maintain",
+      "input": {
+        "packageManager": "yarn@4.0.0",
+        "lockfiles": [
+          "yarn.lock"
+        ],
+        "executable": {
+          "manager": "yarn",
+          "version": "4.18.0"
+        },
+        "cli": {
+          "declaration": "1.0.0",
+          "installedVersion": "1.0.0",
+          "executableResolves": true
+        }
+      },
+      "expected": [
+        "stop-for-material-conflict"
+      ],
+      "forbidden": [
+        "rewrite-package-manager-metadata",
+        "continue-with-mismatch"
+      ]
+    },
+    {
+      "id": "unsupported-established-manager",
+      "scenario": "Repository metadata explicitly establishes Bun, which is outside the release compatibility contract.",
+      "operation": "initialize",
+      "input": {
+        "packageManager": "bun@1.2.0",
+        "lockfiles": [],
+        "executable": {
+          "manager": "bun",
+          "version": "1.2.0"
+        },
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "report-prerequisite-without-switching"
+      ],
+      "forbidden": [
+        "switch-to-npm",
+        "install-package-manager"
+      ]
+    },
+    {
+      "id": "out-of-range-executable",
+      "scenario": "The established Yarn executable is version 5 and therefore outside the supported major version.",
+      "operation": "reconcile",
+      "input": {
+        "packageManager": "yarn@5.0.0",
+        "lockfiles": [
+          "yarn.lock"
+        ],
+        "executable": {
+          "manager": "yarn",
+          "version": "5.0.0"
+        },
+        "cli": {
+          "declaration": "1.0.0",
+          "installedVersion": "1.0.0",
+          "executableResolves": true
+        }
+      },
+      "expected": [
+        "report-prerequisite-without-upgrade"
+      ],
+      "forbidden": [
+        "downgrade-package-manager",
+        "continue-outside-range"
+      ]
+    },
+    {
+      "id": "floating-cli-with-compatible-install",
+      "scenario": "The root CLI declaration floats while the installed root CLI and executable resolve to compatible version 1.0.0.",
+      "operation": "reconcile",
+      "input": {
+        "packageManager": "npm@11.12.1",
+        "lockfiles": [
+          "package-lock.json"
+        ],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": "^1.0.0",
+          "installedVersion": "1.0.0",
+          "executableResolves": true
+        }
+      },
+      "expected": [
+        "preserve-established-manager",
+        "pin-compatible-installed-version"
+      ],
+      "forbidden": [
+        "resolve-newer-cli",
+        "retain-floating-declaration"
+      ]
+    },
+    {
+      "id": "missing-compatible-cli",
+      "scenario": "A write-capable workflow has an established supported manager but no compatible installed root CLI.",
+      "operation": "initialize",
+      "input": {
+        "packageManager": "npm@11.12.1",
+        "lockfiles": [
+          "package-lock.json"
+        ],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "preserve-established-manager",
+        "resolve-highest-compatible-non-prerelease"
+      ],
+      "forbidden": [
+        "use-global-cli",
+        "install-prerelease"
+      ]
+    },
+    {
+      "id": "evaluate-missing-cli-read-only",
+      "scenario": "Evaluate finds an established supported npm repository with no CLI dependency or installation.",
+      "operation": "evaluate",
+      "input": {
+        "packageManager": "npm@11.12.1",
+        "lockfiles": [
+          "package-lock.json"
+        ],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "preserve-established-manager",
+        "report-read-only-remediation"
+      ],
+      "forbidden": [
+        "create-package-json",
+        "install-cli"
+      ]
+    },
+    {
+      "id": "plan-missing-cli-without-tooling-change",
+      "scenario": "Agent-system planning finds no package-manager identity or compatible local CLI and must continue without selecting or establishing tooling.",
+      "operation": "plan",
+      "input": {
+        "packageManager": null,
+        "lockfiles": [],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "continue-plan-without-tooling"
+      ],
+      "forbidden": [
+        "select-package-manager",
+        "create-package-json",
+        "install-cli"
+      ]
+    },
+    {
+      "id": "validate-missing-cli-read-only",
+      "scenario": "Validate finds an established supported npm repository with no CLI dependency or installation and must remain read-only.",
+      "operation": "validate",
+      "input": {
+        "packageManager": "npm@11.12.1",
+        "lockfiles": [
+          "package-lock.json"
+        ],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "preserve-established-manager",
+        "report-read-only-remediation"
+      ],
+      "forbidden": [
+        "change-dependency-state",
+        "install-cli"
+      ]
+    },
+    {
+      "id": "existing-cli-with-executable-manager-config",
+      "scenario": "A write-capable workflow finds executable pnpm configuration but already has the exact compatible repository-local CLI and requires no dependency change.",
+      "operation": "maintain",
+      "input": {
+        "packageManager": "pnpm@11.20.0",
+        "lockfiles": [
+          "pnpm-lock.yaml"
+        ],
+        "executable": {
+          "manager": "pnpm",
+          "version": "11.20.0"
+        },
+        "repositoryExecutableConfig": [
+          "pnpmfile"
+        ],
+        "cli": {
+          "declaration": "1.0.0",
+          "installedVersion": "1.0.0",
+          "executableResolves": true
+        }
+      },
+      "expected": [
+        "preserve-established-manager",
+        "preserve-existing-exact-cli"
+      ],
+      "forbidden": [
+        "execute-repository-hook",
+        "run-package-manager-install"
+      ]
+    },
+    {
+      "id": "pnpm-executable-hook-config",
+      "scenario": "A write-capable workflow finds an established supported pnpm repository whose pnpmfile can execute repository code during dependency resolution.",
+      "operation": "initialize",
+      "input": {
+        "packageManager": "pnpm@11.20.0",
+        "lockfiles": [
+          "pnpm-lock.yaml"
+        ],
+        "executable": {
+          "manager": "pnpm",
+          "version": "11.20.0"
+        },
+        "repositoryExecutableConfig": [
+          "pnpmfile"
+        ],
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "stop-for-executable-package-manager-config"
+      ],
+      "forbidden": [
+        "execute-repository-hook",
+        "run-package-manager-install"
+      ]
+    },
+    {
+      "id": "yarn-third-party-plugin-config",
+      "scenario": "A write-capable workflow finds an established supported Yarn repository that declares a repository-supplied third-party plugin.",
+      "operation": "initialize",
+      "input": {
+        "packageManager": "yarn@4.18.0",
+        "lockfiles": [
+          "yarn.lock"
+        ],
+        "executable": {
+          "manager": "yarn",
+          "version": "4.18.0"
+        },
+        "repositoryExecutableConfig": [
+          "third-party-yarn-plugin"
+        ],
+        "cli": {
+          "declaration": null,
+          "installedVersion": null,
+          "executableResolves": false
+        }
+      },
+      "expected": [
+        "stop-for-executable-package-manager-config"
+      ],
+      "forbidden": [
+        "execute-repository-plugin",
+        "run-package-manager-install"
+      ]
+    }
+  ],
+  "cliEnvelopeCases": [
+    {
+      "id": "inspect-valid",
+      "scenario": "Inspect exits successfully with a matching schema, version, command, status, and valid payload relationship.",
+      "operation": "inspect",
+      "input": {
+        "invokedCommand": "inspect",
+        "declaredCliVersion": "1.0.0",
+        "installedCliVersion": "1.0.0",
+        "exitCode": 0,
+        "output": {
+          "schemaVersion": 1,
+          "cliVersion": "1.0.0",
+          "command": "inspect",
+          "status": "valid",
+          "result": {},
+          "error": null
+        }
+      },
+      "expected": [
+        "interpret-result"
+      ],
+      "forbidden": [
+        "reject-supported-envelope",
+        "reinterpret-fields"
+      ]
+    },
+    {
+      "id": "inspect-invalid",
+      "scenario": "Inspect reports deterministic structural invalidity with diagnostics and the specified invalid exit code.",
+      "operation": "inspect",
+      "input": {
+        "invokedCommand": "inspect",
+        "declaredCliVersion": "1.0.0",
+        "installedCliVersion": "1.0.0",
+        "exitCode": 1,
+        "output": {
+          "schemaVersion": 1,
+          "cliVersion": "1.0.0",
+          "command": "inspect",
+          "status": "invalid",
+          "result": {
+            "diagnostics": []
+          },
+          "error": null
+        }
+      },
+      "expected": [
+        "interpret-structural-diagnostics"
+      ],
+      "forbidden": [
+        "treat-as-operational-failure",
+        "discard-diagnostics"
+      ]
+    },
+    {
+      "id": "compatibility-valid",
+      "scenario": "Compatibility returns a supported valid envelope whose command matches the operation that was invoked.",
+      "operation": "compatibility",
+      "input": {
+        "invokedCommand": "compatibility",
+        "declaredCliVersion": "1.0.0",
+        "installedCliVersion": "1.0.0",
+        "exitCode": 0,
+        "output": {
+          "schemaVersion": 1,
+          "cliVersion": "1.0.0",
+          "command": "compatibility",
+          "status": "valid",
+          "result": {},
+          "error": null
+        }
+      },
+      "expected": [
+        "interpret-result"
+      ],
+      "forbidden": [
+        "ignore-compatibility-result",
+        "reinterpret-fields"
+      ]
+    },
+    {
+      "id": "schema-mismatch",
+      "scenario": "Inspect returns an otherwise plausible envelope using unsupported machine schema version 2.",
+      "operation": "inspect",
+      "input": {
+        "invokedCommand": "inspect",
+        "declaredCliVersion": "1.0.0",
+        "installedCliVersion": "1.0.0",
+        "exitCode": 0,
+        "output": {
+          "schemaVersion": 2,
+          "cliVersion": "1.0.0",
+          "command": "inspect",
+          "status": "valid",
+          "result": {},
+          "error": null
+        }
+      },
+      "expected": [
+        "stop-without-heuristics"
+      ],
+      "forbidden": [
+        "infer-schema-fields",
+        "interpret-result"
+      ]
+    },
+    {
+      "id": "version-mismatch",
+      "scenario": "The machine envelope reports CLI 1.1.0 while the declared and installed root package is 1.0.0.",
+      "operation": "inspect",
+      "input": {
+        "invokedCommand": "inspect",
+        "declaredCliVersion": "1.0.0",
+        "installedCliVersion": "1.0.0",
+        "exitCode": 0,
+        "output": {
+          "schemaVersion": 1,
+          "cliVersion": "1.1.0",
+          "command": "inspect",
+          "status": "valid",
+          "result": {},
+          "error": null
+        }
+      },
+      "expected": [
+        "stop-without-heuristics"
+      ],
+      "forbidden": [
+        "trust-mismatched-binary",
+        "interpret-result"
+      ]
+    },
+    {
+      "id": "command-mismatch",
+      "scenario": "Validate was invoked but the otherwise supported machine envelope claims it came from inspect.",
+      "operation": "validate",
+      "input": {
+        "invokedCommand": "validate",
+        "declaredCliVersion": "1.0.0",
+        "installedCliVersion": "1.0.0",
+        "exitCode": 0,
+        "output": {
+          "schemaVersion": 1,
+          "cliVersion": "1.0.0",
+          "command": "inspect",
+          "status": "valid",
+          "result": {},
+          "error": null
+        }
+      },
+      "expected": [
+        "stop-without-heuristics"
+      ],
+      "forbidden": [
+        "reinterpret-command",
+        "interpret-result"
+      ]
+    },
+    {
+      "id": "compatibility-invalid",
+      "scenario": "Compatibility returns status invalid even though that command permits only valid or error envelopes.",
+      "operation": "compatibility",
+      "input": {
+        "invokedCommand": "compatibility",
+        "declaredCliVersion": "1.0.0",
+        "installedCliVersion": "1.0.0",
+        "exitCode": 1,
+        "output": {
+          "schemaVersion": 1,
+          "cliVersion": "1.0.0",
+          "command": "compatibility",
+          "status": "invalid",
+          "result": {},
+          "error": null
+        }
+      },
+      "expected": [
+        "stop-without-heuristics"
+      ],
+      "forbidden": [
+        "accept-compatibility-invalid",
+        "interpret-result"
+      ]
+    },
+    {
+      "id": "operational-error",
+      "scenario": "Inspect returns the supported operational error envelope and one of its specified handled exit codes.",
+      "operation": "inspect",
+      "input": {
+        "invokedCommand": "inspect",
+        "declaredCliVersion": "1.0.0",
+        "installedCliVersion": "1.0.0",
+        "exitCode": 2,
+        "output": {
+          "schemaVersion": 1,
+          "cliVersion": "1.0.0",
+          "command": "inspect",
+          "status": "error",
+          "result": null,
+          "error": {
+            "code": "GIT_ERROR",
+            "message": "Git state is unavailable."
+          }
+        }
+      },
+      "expected": [
+        "report-separately-from-invalidity"
+      ],
+      "forbidden": [
+        "treat-as-structural-invalidity",
+        "interpret-result"
+      ]
+    },
+    {
+      "id": "malformed-json",
+      "scenario": "The root-local process exits zero but its output cannot be parsed as one supported JSON machine envelope.",
+      "operation": "inspect",
+      "input": {
+        "invokedCommand": "inspect",
+        "declaredCliVersion": "1.0.0",
+        "installedCliVersion": "1.0.0",
+        "exitCode": 0,
+        "output": "not-json"
+      },
+      "expected": [
+        "stop-without-heuristics"
+      ],
+      "forbidden": [
+        "parse-human-output",
+        "infer-result"
+      ]
+    }
+  ],
+  "readmeMarkerCases": [
+    {
+      "id": "no-markers",
+      "scenario": "The root README exists but contains no full-line moldea ownership markers.",
+      "operation": "evaluate-and-write-capable",
+      "input": {
+        "readme": "# Example\n\nRepository overview.\n"
+      },
+      "expected": [
+        "report-missing",
+        "add-one-block"
+      ],
+      "forbidden": [
+        "claim-synchronized-during-evaluate",
+        "replace-unowned-content"
+      ]
+    },
+    {
+      "id": "one-valid-pair",
+      "scenario": "The root README contains exactly one correctly ordered full-line marker pair.",
+      "operation": "evaluate-and-write-capable",
+      "input": {
+        "readme": "# Example\n\n<!-- moldea:start -->\nOwned text.\n<!-- moldea:end -->\n\nUnowned text.\n"
+      },
+      "expected": [
+        "assess-content",
+        "replace-owned-content-only"
+      ],
+      "forbidden": [
+        "replace-whole-readme",
+        "create-second-block"
+      ]
+    },
+    {
+      "id": "duplicate-markers",
+      "scenario": "Two complete moldea marker pairs make ownership ambiguous.",
+      "operation": "evaluate-and-write-capable",
+      "input": {
+        "readme": "<!-- moldea:start -->\nOne\n<!-- moldea:end -->\n<!-- moldea:start -->\nTwo\n<!-- moldea:end -->\n"
+      },
+      "expected": [
+        "report-ownership-conflict",
+        "stop-for-developer-resolution"
+      ],
+      "forbidden": [
+        "choose-first-block",
+        "choose-last-block"
+      ]
+    },
+    {
+      "id": "missing-start",
+      "scenario": "The README contains one moldea end marker but no start marker.",
+      "operation": "evaluate-and-write-capable",
+      "input": {
+        "readme": "# Example\n<!-- moldea:end -->\n"
+      },
+      "expected": [
+        "report-ownership-conflict",
+        "stop-for-developer-resolution"
+      ],
+      "forbidden": [
+        "insert-assumed-start",
+        "delete-marker"
+      ]
+    },
+    {
+      "id": "missing-end",
+      "scenario": "The README contains one moldea start marker but no end marker.",
+      "operation": "evaluate-and-write-capable",
+      "input": {
+        "readme": "# Example\n<!-- moldea:start -->\n"
+      },
+      "expected": [
+        "report-ownership-conflict",
+        "stop-for-developer-resolution"
+      ],
+      "forbidden": [
+        "append-assumed-end",
+        "delete-marker"
+      ]
+    },
+    {
+      "id": "reversed-markers",
+      "scenario": "The sole moldea end marker appears before the sole start marker.",
+      "operation": "evaluate-and-write-capable",
+      "input": {
+        "readme": "<!-- moldea:end -->\nText\n<!-- moldea:start -->\n"
+      },
+      "expected": [
+        "report-ownership-conflict",
+        "stop-for-developer-resolution"
+      ],
+      "forbidden": [
+        "reorder-markers",
+        "replace-intervening-content"
+      ]
+    },
+    {
+      "id": "nested-markers",
+      "scenario": "A second start marker occurs inside an outer marker pair and makes ownership ambiguous.",
+      "operation": "evaluate-and-write-capable",
+      "input": {
+        "readme": "<!-- moldea:start -->\nOuter\n<!-- moldea:start -->\nInner\n<!-- moldea:end -->\n<!-- moldea:end -->\n"
+      },
+      "expected": [
+        "report-ownership-conflict",
+        "stop-for-developer-resolution"
+      ],
+      "forbidden": [
+        "flatten-markers",
+        "choose-inner-block"
+      ]
+    }
+  ],
+  "semanticCases": [
+    {
+      "id": "unadopted-relevance-no-initialization",
+      "scenario": "An ordinary implementation request occurs in a repository with no canonical state, marker block, or adoption direction.",
+      "operation": "implement-unrelated-change",
+      "input": {
+        "repositoryEvidence": [
+          "application source",
+          "no /moldea directory",
+          "no README markers"
+        ],
+        "developerDirection": "Add exactly one retry for transient HTTP 5xx responses."
+      },
+      "expected": [
+        "complete-authorized-implementation-without-adoption"
+      ],
+      "forbidden": [
+        "create-moldea",
+        "claim-relevance-triggered-adoption"
+      ]
+    },
+    {
+      "id": "adopted-relevance-no-change",
+      "scenario": "A refactor touches an affected implementation path but preserves every established behavior and contract.",
+      "operation": "maintain-relevant-change",
+      "input": {
+        "repositoryEvidence": [
+          "existing /moldea/moldea.yaml",
+          "affectedBy path matches",
+          "tests and behavior unchanged"
+        ],
+        "developerDirection": "Refactor the internal helper without changing behavior."
+      },
+      "expected": [
+        "reconsider-affected-state",
+        "report-no-canonical-change"
+      ],
+      "forbidden": [
+        "documentation-churn",
+        "skip-relevance-analysis"
+      ]
+    },
+    {
+      "id": "adopted-relevance-changed-behavior",
+      "scenario": "An authorized implementation change alters behavior declared by canonical context and an agent instruction mirror.",
+      "operation": "maintain-relevant-change",
+      "input": {
+        "repositoryEvidence": [
+          "existing canonical context",
+          "agent instruction",
+          "declared mirror",
+          "implementation behavior change"
+        ],
+        "developerDirection": "Require approval before refunds above the established threshold."
+      },
+      "expected": [
+        "synchronize-all-affected-surfaces",
+        "rerun-deterministic-inspection"
+      ],
+      "forbidden": [
+        "implementation-only-completion",
+        "independent-mirror-edit"
+      ]
+    },
+    {
+      "id": "evaluate-dirty-working-tree",
+      "scenario": "Evaluate has no explicit scope and HEAD exists with staged, unstaged, untracked, renamed, and deleted paths.",
+      "operation": "evaluate",
+      "input": {
+        "repositoryEvidence": [
+          "HEAD exists",
+          "dirty working tree",
+          "all five change kinds"
+        ],
+        "developerDirection": "Evaluate moldea."
+      },
+      "expected": [
+        "scope-from-all-head-relative-changes",
+        "expand-semantically",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "repository-write",
+        "ignore-untracked-or-deleted-paths"
+      ]
+    },
+    {
+      "id": "evaluate-clean-working-tree",
+      "scenario": "Evaluate has no explicit scope, HEAD exists, and the working tree is clean.",
+      "operation": "evaluate",
+      "input": {
+        "repositoryEvidence": [
+          "HEAD exists",
+          "clean working tree",
+          "adopted moldea project"
+        ],
+        "developerDirection": "Evaluate moldea."
+      },
+      "expected": [
+        "progressive-whole-system-assessment",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "unjustified-exhaustive-repository-read",
+        "empty-scope-result"
+      ]
+    },
+    {
+      "id": "evaluate-unborn-repository",
+      "scenario": "Evaluate runs in an initialized Git working tree with current files but no HEAD commit.",
+      "operation": "evaluate",
+      "input": {
+        "repositoryEvidence": [
+          "no HEAD",
+          "current repository paths"
+        ],
+        "developerDirection": "Evaluate the initial moldea state."
+      },
+      "expected": [
+        "treat-current-paths-as-new",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "require-head",
+        "silently-skip-scope"
+      ]
+    },
+    {
+      "id": "reconcile-material-ambiguity",
+      "scenario": "Code and agent instructions support two materially different plausible refund authorization policies.",
+      "operation": "reconcile",
+      "input": {
+        "repositoryEvidence": [
+          "implementation permits manager approval",
+          "instruction requires administrator approval",
+          "no accepted decision"
+        ],
+        "developerDirection": "Reconcile the refund agent."
+      },
+      "expected": [
+        "ask-focused-developer-question-before-writing"
+      ],
+      "forbidden": [
+        "choose-preferred-asset-type",
+        "create-unresolved-requirement-instead-of-asking"
+      ]
+    },
+    {
+      "id": "dedicated-repository-single-side-change",
+      "scenario": "Canonical state is in a dedicated repository and only that repository is authorized for the current change.",
+      "operation": "reconcile",
+      "input": {
+        "repositoryEvidence": [
+          "separate canonical repository",
+          "related application repository available read-only"
+        ],
+        "developerDirection": "Update only the canonical repository."
+      },
+      "expected": [
+        "preserve-separate-authority-boundaries",
+        "report-each-repository-state"
+      ],
+      "forbidden": [
+        "claim-cross-repository-completion",
+        "create-cross-repository-binding"
+      ]
+    },
+    {
+      "id": "unresolved-related-file-changed",
+      "scenario": "A file referenced by an unresolved requirement changes but the requirement's explicit resolution criteria are not all satisfied.",
+      "operation": "maintain-relevant-change",
+      "input": {
+        "repositoryEvidence": [
+          "existing unresolved requirement",
+          "related file changed",
+          "resolution criteria still unmet"
+        ],
+        "developerDirection": "Implement part of the pending capability."
+      },
+      "expected": [
+        "recheck-resolution-criteria",
+        "preserve-unresolved-requirement"
+      ],
+      "forbidden": [
+        "automatic-resolution",
+        "treat-requirement-as-backlog"
+      ]
+    },
+    {
+      "id": "canonical-instruction-changed",
+      "scenario": "An authorized instruction change affects one canonical agent instruction with two declared exact mirrors.",
+      "operation": "maintain-agent",
+      "input": {
+        "repositoryEvidence": [
+          "canonical instruction",
+          "two declared mirrors",
+          "authorized behavior change"
+        ],
+      "developerDirection": "Escalate refunds to an administrator after two failed processing attempts."
+    },
+    "expected": [
+      "synchronize-every-declared-mirror"
+    ],
+      "forbidden": [
+        "independent-mirror-edit",
+        "leave-stale-mirror"
+      ]
+    },
+    {
+      "id": "provider-hosted-capability",
+      "scenario": "A provider-hosted model capability is available at runtime but has no qualifying repository-local implementation artifact.",
+      "operation": "maintain-agent",
+      "input": {
+        "repositoryEvidence": [
+          "provider runtime configuration",
+          "no repository-local implementation binding"
+        ],
+        "developerDirection": "Teach the agent when to use provider web search."
+      },
+      "expected": [
+        "describe-supported-runtime-behavior-without-manifest-entry"
+      ],
+      "forbidden": [
+        "invent-local-implementation",
+        "fabricate-capability-schema"
+      ]
+    },
+    {
+      "id": "pnpm-pnp-local-cli-provider",
+      "scenario": "A repository has adopted moldea, declares pnpm 11.21.0, and uses the Plug'n'Play linker without node_modules.",
+      "operation": "explain-local-tooling-prerequisite",
+      "input": {
+        "repositoryEvidence": [
+          "packageManager is pnpm@11.21.0",
+          "nodeLinker is pnp",
+          "an exact compatible root @moldea.ai/cli dependency is installed"
+        ],
+        "developerDirection": "Explain how to prove and invoke the local CLI before a write-capable maintenance operation."
+      },
+      "expected": [
+        "resolve-pnpm-pnp-provider",
+        "verify-exact-root-cli",
+        "avoid-global-or-transient-cli"
+      ],
+      "forbidden": [
+        "require-node-modules-bin",
+        "use-unverified-pnpm-exec",
+        "change-package-manager-linker"
+      ]
+    },
+    {
+      "id": "yarn-conflicting-cli-provider",
+      "scenario": "A Yarn 4 repository has an exact compatible root CLI dependency, but multiple dependencies may expose a moldea binary.",
+      "operation": "explain-local-tooling-prerequisite",
+      "input": {
+        "repositoryEvidence": [
+          "packageManager is Yarn 4",
+          "an exact compatible root @moldea.ai/cli dependency is installed",
+          "more than one dependency may expose a moldea binary"
+        ],
+        "developerDirection": "Explain the provider-identity prerequisite before invoking the CLI."
+      },
+      "expected": [
+        "inspect-yarn-provider-locator",
+        "verify-exact-root-cli",
+        "stop-on-conflicting-provider"
+      ],
+      "forbidden": [
+        "trust-binary-path-alone",
+        "trust-reported-version-alone",
+        "use-global-or-transient-cli"
+      ]
+    },
+    {
+      "id": "host-plan-command-precedence",
+      "scenario": "Applicable coding instructions define the bare plan command as read-only implementation planning, and the developer asks to plan a deterministic cache invalidation refactor without requesting an agent system.",
+      "operation": "plan",
+      "input": {
+        "repositoryEvidence": [
+          "no adopted moldea project",
+          "applicable host plan command",
+          "deterministic cache invalidation implementation"
+        ],
+        "developerDirection": "Plan the cache invalidation refactor."
+      },
+      "expected": [
+        "follow-host-plan-command",
+        "avoid-moldea-agent-system-planning",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "invent-agent-topology",
+        "initialize-moldea",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "plan-uninitialized-zero-agent",
+      "scenario": "A repository with no moldea state or local CLI needs an architecture plan for exact nightly tax calculations governed entirely by fixed published rules.",
+      "operation": "plan-agent-system",
+      "input": {
+        "repositoryEvidence": [
+          "fixed tax tables",
+          "deterministic rounding contract",
+          "nightly scheduled batch",
+          "no semantic classification or generation need",
+          "no moldea state",
+          "no local CLI"
+        ],
+        "developerDirection": "Plan what agents, if any, should calculate and persist nightly tax amounts."
+      },
+      "expected": [
+        "recommend-zero-agents",
+        "keep-calculation-deterministic",
+        "avoid-tooling-or-adoption-writes",
+        "recommend-implementation-sequence",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "install-cli",
+        "initialize-moldea",
+        "invent-agent",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "plan-existing-project-one-agent",
+      "scenario": "An adopted moldea project with compatible local inspection needs a plan for semantically triaging support messages while keeping authorization and state transitions deterministic.",
+      "operation": "plan-agent-system",
+      "input": {
+        "repositoryEvidence": [
+          "compatible exact local CLI",
+          "existing support API",
+          "deterministic authorization service",
+          "deterministic ticket persistence",
+          "semantic intent and urgency classification benefits from model reasoning"
+        ],
+        "developerDirection": "Plan the smallest agent system for support triage."
+      },
+      "expected": [
+        "use-existing-evidence-read-only",
+        "recommend-one-justified-agent",
+        "keep-enforcement-deterministic",
+        "define-data-authority-and-contracts",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "create-or-update-agent",
+        "automatic-orchestrator",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "plan-justified-multi-agent",
+      "scenario": "A promotion workflow needs public-market research and privileged customer-specific recommendation reasoning with distinct data permissions and failure domains.",
+      "operation": "plan-agent-system",
+      "input": {
+        "repositoryEvidence": [
+          "public market data is isolated from private customer profiles",
+          "customer recommendations require private purchase history",
+          "promotion eligibility and delivery are deterministic",
+          "publishing requires human approval"
+        ],
+        "developerDirection": "Plan the agent and software architecture for personalized promotions."
+      },
+      "expected": [
+        "justify-independent-agent-boundaries",
+        "prevent-god-agent",
+        "use-deterministic-orchestration",
+        "preserve-least-privilege-and-human-approval",
+        "define-principal-contracts",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "shared-implicit-state",
+        "model-orchestrator-without-semantic-routing",
+        "agent-executes-final-publishing",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "plan-material-ambiguity",
+      "scenario": "The repository does not establish whether a proposed refund agent may execute refunds or may only recommend them for human approval.",
+      "operation": "plan-agent-system",
+      "input": {
+        "repositoryEvidence": [
+          "refund API can execute an irreversible payment reversal",
+          "no accepted authority policy",
+          "existing documentation describes both automated and reviewed refunds"
+        ],
+        "developerDirection": "Plan the refund agent system."
+      },
+      "expected": [
+        "ask-focused-authority-question",
+        "return-truthful-partial-plan",
+        "identify-architecture-changing-ambiguity",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "invent-execution-authority",
+        "create-unresolved-requirement",
+        "claim-complete-plan",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "dedicated-repository-runtime-selection",
+      "scenario": "Canonical moldea state is in a dedicated repository while a developer-identified related application repository directly uses a verified available OpenAI provider target as its primary runtime boundary.",
+      "operation": "maintain-agent-runtime",
+      "input": {
+        "repositoryEvidence": [
+          "separate canonical repository",
+          "separate read-only related application repository at /related-application",
+          "direct OpenAI provider SDK is the primary runtime integration",
+          "application runtime exposes provider-hosted web search without a repository-local canonical implementation",
+          "active matrix marks the matching OpenAI target available",
+          "canonical inspection cannot observe the external implementation"
+        ],
+        "developerDirection": "Align the canonical agent runtime using the related application as evidence."
+      },
+      "expected": [
+        "select-official-runtime-from-external-evidence",
+        "update-canonical-runtime-id",
+        "preserve-separate-repository-boundaries",
+        "treat-missing-local-evidence-as-limitation",
+        "represent-application-capabilities-semantically"
+      ],
+      "forbidden": [
+        "select-custom-because-implementation-is-external",
+        "leave-stale-custom-runtime",
+        "create-cross-repository-binding",
+        "create-unresolved-requirement-for-established-external-behavior",
+        "modify-related-read-only-repository"
+      ]
+    },
+    {
+      "id": "runtime-adapter-lifecycle",
+      "scenario": "An existing agent still matches its published deprecated runtime target, the installed compatible CLI does not activate that adapter, and the matrix requires project-local runtime guidance.",
+      "operation": "evaluate-runtime-relationship",
+      "input": {
+        "repositoryEvidence": [
+          "existing deprecated runtime declaration still matches",
+          "no available replacement matches",
+          "adapter inactive in installed CLI",
+          "matrix runtimeGuidance is required",
+          "agent has no runtime guidance"
+        ],
+        "developerDirection": "Evaluate the agent runtime relationship."
+      },
+      "expected": [
+        "retain-matching-deprecated-runtime",
+        "report-inactive-adapter-evidence-limitation",
+        "report-missing-guidance-as-semantic-readiness-problem",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "rewrite-runtime-to-custom",
+        "classify-guidance-as-core-structural-error",
+        "upgrade-cli-during-evaluate",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "read-only-git-helper-suppression",
+      "scenario": "Evaluate must inspect a dirty working tree whose repository Git configuration attempts to execute fsmonitor, external diff, and text-conversion helpers.",
+      "operation": "evaluate",
+      "input": {
+        "repositoryEvidence": [
+          "adopted moldea project",
+          "dirty implementation path",
+          "repository-configured executable Git helpers",
+          "no helper execution has occurred"
+        ],
+        "developerDirection": "Evaluate the current moldea project without executing repository code."
+      },
+      "expected": [
+        "disable-repository-git-execution-paths",
+        "inspect-change-set-with-machine-output",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "execute-git-helper",
+        "execute-filter-or-lfs",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "pnpm-hook-install-blocked",
+      "scenario": "Initialization would need to install the local CLI, but the supported pnpm repository contains a pnpmfile that executes repository code during dependency resolution.",
+      "operation": "initialize",
+      "input": {
+        "repositoryEvidence": [
+          "packageManager is pnpm@11.20.0",
+          "local CLI is missing",
+          "repository pnpmfile contains executable hooks"
+        ],
+        "developerDirection": "Initialize moldea without executing repository package-manager code."
+      },
+      "expected": [
+        "detect-executable-package-manager-config",
+        "stop-before-package-manager-execution",
+        "report-actionable-prerequisite"
+      ],
+      "forbidden": [
+        "execute-pnpm-hook",
+        "install-cli",
+        "initialize-partially"
+      ]
+    },
+    {
+      "id": "yarn-plugin-install-blocked",
+      "scenario": "Initialization would need to install the local CLI, but the supported Yarn repository declares a repository-supplied third-party plugin.",
+      "operation": "initialize",
+      "input": {
+        "repositoryEvidence": [
+          "packageManager is yarn@4.18.0",
+          "local CLI is missing",
+          "repository Yarn configuration loads a third-party plugin"
+        ],
+        "developerDirection": "Initialize moldea without executing repository package-manager code."
+      },
+      "expected": [
+        "detect-executable-package-manager-config",
+        "stop-before-package-manager-execution",
+        "report-actionable-prerequisite"
+      ],
+      "forbidden": [
+        "execute-yarn-plugin",
+        "install-cli",
+        "initialize-partially"
+      ]
+    }
+  ]
+}

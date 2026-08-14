@@ -1,0 +1,4 @@
+interface:
+  display_name: "moldea"
+  short_description: "Plan and maintain moldea systems"
+  default_prompt: "Use $moldea to plan, initialize, maintain, evaluate, reconcile, or validate this repository's Git-owned project context and agent behavior."

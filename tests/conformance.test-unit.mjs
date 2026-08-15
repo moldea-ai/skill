@@ -14,7 +14,10 @@ import { fileURLToPath } from 'node:url';
 import { describe, test } from 'node:test';
 import { parseDocument } from 'yaml';
 
-import { createPortableSkillDigest } from './semantic-evaluation-runner.mjs';
+import {
+  createPortableSkillDigest,
+  createPortableSkillSemanticDigest,
+} from './semantic-evaluation-runner.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILL_DIRECTORY = join(REPOSITORY_ROOT, 'moldea');
@@ -92,6 +95,7 @@ const REQUIRED_EVALUATION_CASE_IDS = {
   semanticCases: [
     'adopted-relevance-changed-behavior',
     'adopted-relevance-no-change',
+    'agent-adoption-inline-runtime-instruction',
     'canonical-instruction-changed',
     'dedicated-repository-runtime-selection',
     'dedicated-repository-single-side-change',
@@ -313,7 +317,7 @@ describe('portable Agent Skill contract', () => {
   test('uses valid portable identity and release metadata', () => {
     assert.equal(frontmatter.name, 'moldea');
     assert.equal(frontmatter.license, 'MIT');
-    assert.equal(frontmatter.metadata.version, '1.0.0');
+    assert.equal(frontmatter.metadata.version, '1.0.1');
     assert.equal(dirname(SKILL_PATH), SKILL_DIRECTORY);
     assert.equal(dirname(SKILL_PATH).split('/').at(-1), frontmatter.name);
     assert.ok(frontmatter.description.length >= 1 && frontmatter.description.length <= 1024);
@@ -442,6 +446,18 @@ describe('portable Agent Skill contract', () => {
     ]);
   });
 
+  test('requires canonical instruction provenance without prescribing its mechanism', () => {
+    assertMatchesEvery(portableContent, [
+      /Establish canonical instruction provenance/,
+      /Do not prescribe a loading mechanism/,
+      /independently maintained behavioral source/,
+      /verify that the runtime actually uses that mirror/,
+      /does not prove runtime consumption/,
+      /Do not require that binding when an adapter or other reliable evidence/,
+      /do not claim readiness/,
+    ]);
+  });
+
   test('uses only the runtime contract and safe read-only Git evidence', () => {
     assertMatchesEvery(portableContent, [
       /exactly one `runtime\.id`/,
@@ -483,7 +499,7 @@ describe('source repository conformance', () => {
     }
   });
 
-  test('binds passing host-executed semantic evaluations to the portable artifact', () => {
+  test('binds semantic evaluations to exact or release-equivalent portable content', () => {
     const result = JSON.parse(
       readRepositoryFile('fixtures/semantic-evaluation-result.json'),
     );
@@ -491,8 +507,47 @@ describe('source repository conformance', () => {
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
     );
 
+    const portableSkillDigest = createPortableSkillDigest();
     assert.equal(result.schemaVersion, 1);
-    assert.equal(result.skillDigest, createPortableSkillDigest());
+    assert.equal(result.artifact.sha256, result.skillDigest);
+    assert.equal(result.artifactDigest, result.skillDigest);
+    assert.equal(result.artifactSha256, result.skillDigest);
+    if (result.skillDigest === portableSkillDigest) {
+      assert.equal(result.releaseEvidenceCarryForward, undefined);
+    } else {
+      assert.equal(
+        result.releaseEvidenceCarryForward.fromArtifactDigest,
+        result.skillDigest,
+      );
+      assert.equal(
+        result.releaseEvidenceCarryForward.toArtifactDigest,
+        portableSkillDigest,
+      );
+      assert.notEqual(
+        result.releaseEvidenceCarryForward.fromArtifactDigest,
+        result.releaseEvidenceCarryForward.toArtifactDigest,
+      );
+      assert.deepEqual(result.releaseEvidenceCarryForward.changedPortablePaths, [
+        'SKILL.md',
+        'references/local-tooling.md',
+      ]);
+      assert.equal(
+        result.releaseEvidenceCarryForward.fromSemanticDigest,
+        result.releaseEvidenceCarryForward.toSemanticDigest,
+      );
+      assert.equal(
+        result.releaseEvidenceCarryForward.toSemanticDigest,
+        createPortableSkillSemanticDigest(),
+      );
+      assert.match(
+        result.releaseEvidenceCarryForward.carriedForwardAt,
+        /^\d{4}-\d{2}-\d{2}T/,
+      );
+      assert.equal(
+        result.releaseEvidenceCarryForward.reason,
+        'Release-version declarations changed without changing semantic skill content.',
+      );
+    }
     assert.ok(result.host.name.length > 0);
     assert.ok(result.host.version.length > 0);
     assert.match(result.evaluatedAt, /^\d{4}-\d{2}-\d{2}T/);
@@ -646,9 +701,9 @@ describe('source repository conformance', () => {
     const projectInstallationIndex = readme.indexOf('### Project installation (recommended)');
     const globalInstallationIndex = readme.indexOf('### Global installation (optional)');
 
-    assert.match(readme, /The current release is `1\.0\.0`\./);
+    assert.match(readme, /The current release is `1\.0\.1`\./);
     assert.match(readme, /^npx skills add moldea-ai\/skill$/m);
-    assert.match(readme, /^npx skills add "moldea-ai\/skill#v1\.0\.0"$/m);
+    assert.match(readme, /^npx skills add "moldea-ai\/skill#v1\.0\.1"$/m);
     assert.match(readme, /^npx skills add moldea-ai\/skill -g$/m);
     assert.ok(projectInstallationIndex >= 0);
     assert.ok(globalInstallationIndex > projectInstallationIndex);
@@ -727,6 +782,20 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(workflow, /npm publish|pnpm publish|git tag|git push/);
   });
 
+  test('requires approval before token-intensive semantic evaluation', () => {
+    const readme = readRepositoryFile('README.md');
+
+    assertMatchesEvery(readme, [
+      /Semantic evaluation is intentionally lengthy/,
+      /significant number of model tokens/,
+      /full or targeted semantic evaluation/,
+      /why fresh semantic evidence is important/,
+      /why existing evidence or deterministic verification is insufficient/,
+      /expected time and token cost/,
+      /developer's explicit approval/,
+    ]);
+  });
+
   test('keeps optional OpenAI metadata supplemental and behaviorally complete', () => {
     const openaiMetadata = readRepositoryFile('moldea/agents/openai.yaml');
 
@@ -739,9 +808,17 @@ describe('source repository conformance', () => {
 
   test('keeps source and portable release versions synchronized', () => {
     const packageManifest = JSON.parse(readRepositoryFile('package.json'));
-    const frontmatter = parseFrontmatter(readRepositoryFile('moldea/SKILL.md'));
+    const skill = readRepositoryFile('moldea/SKILL.md');
+    const frontmatter = parseFrontmatter(skill);
+    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
 
     assert.equal(packageManifest.version, frontmatter.metadata.version);
+    assert.ok(
+      skill.includes(`Skill release \`${frontmatter.metadata.version}\` supports exactly:`),
+    );
+    assert.ok(
+      localTooling.includes(`Release \`${frontmatter.metadata.version}\` supports:`),
+    );
     if (process.env.MOLDEA_RELEASE_TAG) {
       assert.equal(process.env.MOLDEA_RELEASE_TAG, `v${frontmatter.metadata.version}`);
     }

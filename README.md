@@ -2,7 +2,7 @@
 
 # moldea Agent Skill
 
-The current release is `1.0.0`. Install the latest version from `main` in the current project with:
+The current release is `1.0.1`. Install the latest version from `main` in the current project with:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -11,7 +11,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v1.0.0"
+npx skills add "moldea-ai/skill#v1.0.1"
 ```
 
 Both sources install the portable skill as `moldea`. They do not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
@@ -45,7 +45,7 @@ npx skills add moldea-ai/skill
 This source follows `main`. To install the current release reproducibly, use its immutable tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v1.0.0"
+npx skills add "moldea-ai/skill#v1.0.1"
 ```
 
 The `skills` CLI supports Agent Skills-compatible hosts including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and many others. Host detection and installation location are handled by the installer; the portable skill itself remains vendor-neutral.
@@ -81,7 +81,7 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 - an established supported package manager, or npm when none is established
 - a repository-local exact `@moldea.ai/cli` development dependency in the supported range
 
-Release `1.0.0` supports:
+Release `1.0.1` supports:
 
 - `@moldea.ai/cli >=1.0.0 <1.1.0`
 - CLI JSON schema `1`
@@ -204,6 +204,8 @@ When `MOLDEA_CLI_ARTIFACT_DIRECTORY` identifies one packed artifact for each of 
 
 `fixtures/conformance-cases.json` contains package-manager, CLI-envelope, README-marker, planning, runtime, security, and semantic forward-evaluation scenarios. Deterministic tests execute the mechanical decisions and validate every semantic case's evidence, requested operation, expected outcomes, and forbidden outcomes. CI also installs the portable artifact into an isolated Agent Skills home and compares the installed tree byte-for-byte with `moldea/`.
 
+Semantic evaluation is intentionally lengthy and can consume a significant number of model tokens because every case runs separate actor and judge processes. Do not start a full or targeted semantic evaluation without first explaining to the developer why fresh semantic evidence is important for the current change, why existing evidence or deterministic verification is insufficient, and the expected time and token cost when known. Obtain the developer's explicit approval before running it.
+
 Semantic behavior is evaluated through an Agent Skills-capable host and recorded against the exact portable artifact digest. To refresh that evidence, provide a non-interactive host command that accepts the evaluation prompt on standard input and returns the requested JSON object, then run:
 
 ```bash
@@ -218,7 +220,9 @@ The runner installs the exact portable tree into a fresh project for every actor
 
 Use `--case <case-id>` without `--record` to diagnose one semantic case. Targeted evaluations and evaluations containing failed cases are never allowed to replace the complete committed result.
 
-The sandbox exposes the exact host Node.js executable at `/opt/node` so the verified repository-local CLI can run without mounting a host-managed runtime directory. It provides a non-installing npm probe that reports the fixed evaluation npm version and rejects every non-version command. It also resolves and mounts the exact `codex-code-mode-host` executable shipped beside the selected Codex binary rather than exposing the surrounding installation directory. The committed result records the actor and judge CLI versions and their explicit model selections, using `host-default` when a command omits `--model`. It is invalidated automatically whenever any distributed skill file changes. Development evaluation uses synthetic repository evidence and does not require a `moldea` Cloud account.
+The sandbox exposes the exact host Node.js executable at `/opt/node` so the verified repository-local CLI can run without mounting a host-managed runtime directory. It provides a non-installing npm probe that reports the fixed evaluation npm version and rejects every non-version command. It also resolves and mounts the exact `codex-code-mode-host` executable shipped beside the selected Codex binary rather than exposing the surrounding installation directory. The committed result records the actor and judge CLI versions and their explicit model selections, using `host-default` when a command omits `--model`.
+
+The result is invalidated automatically whenever semantic distributed skill content changes. A release-only update may carry forward the latest passing result without repeating model execution only when the exact source artifact digest still matches that result, the changed portable paths are limited to `SKILL.md` and `references/local-tooling.md`, and their deterministic semantic digests remain identical after normalizing only the release-version declarations. The fixture records both exact artifact digests, both semantic digests, the changed paths, reason, and carry-forward time. Development evaluation uses synthetic repository evidence and does not require a `moldea` Cloud account.
 
 The root `AGENTS.md` is an intentional maintainer-only symlink to a sibling coding-instructions checkout. It is not part of the portable `moldea/` artifact and the skill has no runtime dependency on it. External contributors may use their own applicable coding instructions when that sibling checkout is unavailable.
 
@@ -231,7 +235,7 @@ The skill uses independent semantic versioning. Every release must:
 - use an immutable `v<version>` tag
 - preserve semantically identical `moldea/` content across every official distribution channel
 
-Release `1.0.0` uses the immutable `v1.0.0` tag.
+Release `1.0.1` uses the immutable `v1.0.1` tag.
 
 ## License
 

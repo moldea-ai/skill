@@ -4,7 +4,7 @@ Read this reference before deterministic CLI use or any write-capable workflow t
 
 ## Compatibility contract
 
-Release `1.0.0` supports:
+Release `1.0.1` supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`

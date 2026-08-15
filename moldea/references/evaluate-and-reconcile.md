@@ -26,6 +26,8 @@ An explicit agent, capability, domain, path, runtime, change, or contradiction d
 6. Limit findings to `moldea` structural and semantic alignment unless the registered behavior makes another quality, security, performance, architecture, or test concern relevant.
 7. Stop when evidence is sufficient for reliable scoped conclusions.
 
+For every scoped registered agent, establish how canonical instruction content reaches each material runtime invocation or provider-side configuration path. Treat an unused canonical instruction, an independently maintained runtime instruction, or a material path that bypasses established canonical provenance as a confirmed semantic problem. A valid `instructionLoader` binding, declared mirror, or deterministic inspection does not by itself prove runtime consumption. When the relevant implementation is unavailable, report a material evidence limitation instead of assuming the relationship exists or is absent.
+
 Universal Core diagnostics prevent adapters from running. In that state `evidence: []` means adapter evidence was unavailable, not that runtime-native behavior is absent. In dedicated-repository mode, external implementation may also make local evidence empty or partial. Continue semantic inspection when useful, state the limitation, and rerun after structural repair before relying on adapter evidence.
 
 Report separate categories:
@@ -54,6 +56,8 @@ Every evaluation reports scope, deterministic state, all five categories, toolin
 6. Preserve still-valid behavior and unrelated defects. Remove superseded paths only when the authorized resulting state makes them unnecessary.
 7. Remove an unresolved requirement only after its explicit resolution criteria are satisfied.
 8. Run relevant project-native verification, synchronize mirrors, rerun root-local `inspect --json`, and perform semantic readiness review.
+
+When reconciliation establishes canonical instruction provenance, update the canonical asset, runtime loading or provisioning mechanism, material bindings, tests, mirrors, and runtime guidance together as applicable. Remove a superseded independent instruction source only when intended behavior is established and the implementation path is within the authorized scope.
 
 If unrelated invalidity remains, distinguish successful scoped reconciliation from complete repository validity. Do not claim alignment while a relevant semantic conflict or ambiguity remains.
 

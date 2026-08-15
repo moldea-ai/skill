@@ -831,6 +831,38 @@
       ]
     },
     {
+      "id": "agent-adoption-inline-runtime-instruction",
+      "scenario": "An adopted project has an existing customer-support runtime that sends an independently maintained inline instruction to two Responses-style model calls, and the developer asks to create and register that runtime agent in moldea.",
+      "operation": "create-agent",
+      "input": {
+        "repositoryEvidence": [
+          "existing moldea project foundation",
+          "repository-local customer-support runtime",
+          "independently maintained inline SUPPORT_INSTRUCTIONS source",
+          "two Responses-style model invocation paths",
+          "integration test covering current runtime calls",
+          "active custom runtime requires project-local guidance"
+        ],
+        "developerDirection": "Create and register the existing customer-support runtime agent in moldea and make it ready."
+      },
+      "expected": [
+        "create-canonical-agent-assets",
+        "establish-canonical-instruction-provenance",
+        "remove-independent-inline-instruction",
+        "register-material-runtime-relationships",
+        "verify-runtime-instruction-provenance",
+        "rerun-deterministic-inspection"
+      ],
+      "forbidden": [
+        "create-unused-canonical-instruction",
+        "leave-runtime-on-independent-inline-instruction",
+        "declare-unused-mirror",
+        "retain-independently-editable-instruction-sources",
+        "claim-readiness-without-provenance",
+        "weaken-runtime-integration-test"
+      ]
+    },
+    {
       "id": "evaluate-dirty-working-tree",
       "scenario": "Evaluate has no explicit scope and HEAD exists with staged, unstaged, untracked, renamed, and deleted paths.",
       "operation": "evaluate",

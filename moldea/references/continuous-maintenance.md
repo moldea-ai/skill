@@ -75,6 +75,8 @@ When canonical `/moldea/**` and application implementation live in separate Git 
 - treat application code and project-native verification as separate semantic evidence, not part of the canonical snapshot
 - never search neighboring repositories opportunistically
 - never create cross-repository bindings, repository references, impact paths, mirrors, or manifest relationships
+- establish canonical instruction provenance from the actual application loader, adapter, runtime library, build, provisioning, or other runtime path when related-application evidence is available
+- treat an established external provenance chain as valid semantic evidence without inventing a version `1` cross-repository relationship; when the implementation is unavailable, report the evidence limitation and do not claim readiness
 - use sufficiently established related-application evidence to select the actual available official `runtime.id`; do not select `custom` merely because implementation is external
 - treat absent or partial local adapter evidence for externally implemented agents as an evidence-location limitation, not proof that the runtime or implementation is missing
 - keep application-only tools and skills in accurate instruction or runtime-guidance semantics rather than fabricating manifest capabilities

@@ -4,7 +4,7 @@ description: >-
   Use when a developer asks their coding agent to initialize or work with moldea; plan an AI- or agent-enabled system and decide what should be agents versus deterministic software, services, tools, or human control; create or refine an AI agent or its behavioral system, including instructions, descriptions, handoff descriptions, tools, skills, schemas, variables and providers, routing or handoffs, bindings, or runtime integration; evaluate, reconcile, or validate an existing moldea system; or make ordinary behavior-affecting repository changes that may require maintaining an adopted moldea system. Loading the skill does not adopt moldea: initial adoption still requires explicit developer intent, while relevance-triggered maintenance applies once a repository uses or is adopting moldea.
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.0.1"
 ---
 
 # moldea
@@ -26,7 +26,7 @@ Agent-system planning activates only when the developer clearly asks how an AI- 
 
 ## Release compatibility
 
-Skill release `1.0.0` supports exactly:
+Skill release `1.0.1` supports exactly:
 
 - `@moldea.ai/cli: >=1.0.0 <1.1.0`
 - CLI JSON schema: `1`

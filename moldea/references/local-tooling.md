@@ -4,11 +4,11 @@ Read this reference before deterministic CLI use or any write-capable workflow t
 
 ## Compatibility contract
 
-Release `1.0.1` supports:
+Release `1.1.0` supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`
-- `@moldea.ai/cli >=1.0.0 <1.1.0`
+- `@moldea.ai/cli >=1.0.0 <1.2.0`
 - CLI JSON schema `1`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
@@ -36,12 +36,12 @@ Resolve the executable that will perform the operation and verify its actual ver
 Compatible tooling state requires all of the following:
 
 - `@moldea.ai/cli` is a root `devDependency` declared as one exact semantic version, not a range, tag, URL, workspace protocol, alias, or other floating specifier.
-- the declared version satisfies `>=1.0.0 <1.1.0`
+- the declared version satisfies `>=1.0.0 <1.2.0`
 - the installed repository-local package manifest reports the same exact version
 - the established manager resolves the repository-local `moldea` executable from that root package
 - the machine envelope reports the same exact `cliVersion` and schema `1`
 
-Preserve an existing compatible exact declaration and executable. Do not upgrade it merely because a newer compatible version exists. A write-capable workflow may replace it within the supported range only when an official adapter or machine-contract capability materially required by the authorized work is absent from the installed composition and a released supported replacement providing it is established.
+Preserve an existing compatible exact declaration and executable. Do not upgrade it merely because a newer compatible version exists. A write-capable workflow may replace it within the supported range only when an official adapter or machine-contract capability materially required by the authorized work is absent from the installed composition and a released supported replacement providing it is established. Release `1.1.0` recommends exact CLI `1.1.1`, but that recommendation alone never justifies replacing a compatible `1.0.x` or `1.1.x` pin.
 
 During a write-capable workflow:
 
@@ -94,7 +94,7 @@ Use `inspect --json` as the primary deterministic integration. Use `compatibilit
 Parse JSON only after the process completes, then validate the version `1` envelope before reading `result`:
 
 - `schemaVersion` is integer `1`
-- `cliVersion` is an exact semantic version equal to the declared and installed CLI version and satisfies `>=1.0.0 <1.1.0`
+- `cliVersion` is an exact semantic version equal to the declared and installed CLI version and satisfies `>=1.0.0 <1.2.0`
 - `command` equals the command invoked
 - `status` is `valid`, `invalid`, or `error`
 - `valid` has non-null `result` and null `error`

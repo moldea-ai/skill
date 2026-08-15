@@ -806,6 +806,172 @@ const seedRefundAgent = async (
   }
 };
 
+/** Seeds one custom runtime whose description consumers have case-specific semantic roles. */
+const seedRoutingDescriptionAgent = async (repositoryPath, caseId) => {
+  const agentDescriptionPath = '/moldea/agents/triage-agent/description.md';
+  const handoffDescriptionPath = '/moldea/agents/triage-agent/handoff-description.md';
+  const hasHandoffDescription = caseId !== 'routing-description-fallback';
+  const runtimeContracts = {
+    'routing-description-dynamic-wiring': {
+      guidance:
+        'The runtime description property is routing-facing. Its canonical source is selected by deployment configuration that this repository cannot statically resolve.',
+      implementation: [
+        'export const createTriageAgent = (runtimeConfiguration) => ({',
+        '  description: readCanonicalDescription(runtimeConfiguration.routingDescriptionPath),',
+        '});',
+      ],
+      testExpectation: null,
+    },
+    'routing-description-fallback': {
+      guidance:
+        'The runtime description property is routing-facing. This target has no dedicated handoff description, so it uses the canonical agent description.',
+      implementation: [
+        'export const createTriageAgent = () => ({',
+        `  description: readCanonicalDescription('${agentDescriptionPath}'),`,
+        '});',
+      ],
+      testExpectation: { property: 'description', path: agentDescriptionPath },
+    },
+    'routing-description-property-name': {
+      guidance:
+        'The runtime property named description is supplied to the router model for target selection and is routing-facing.',
+      implementation: [
+        'export const createTriageAgent = () => ({',
+        `  description: readCanonicalDescription('${handoffDescriptionPath}'),`,
+        '});',
+      ],
+      testExpectation: { property: 'description', path: handoffDescriptionPath },
+    },
+    'routing-description-reconciliation': {
+      guidance:
+        'The runtime description property is supplied to the router model for target selection and is routing-facing.',
+      implementation: [
+        'export const createTriageAgent = () => ({',
+        `  description: readCanonicalDescription('${agentDescriptionPath}'),`,
+        '});',
+      ],
+      testExpectation: { property: 'description', path: agentDescriptionPath },
+    },
+    'routing-description-separate-properties': {
+      guidance:
+        'The summary property is general-only metadata. The routingHint property is supplied to the router model for target selection and is routing-facing.',
+      implementation: [
+        'export const createTriageAgent = () => ({',
+        `  routingHint: readCanonicalDescription('${handoffDescriptionPath}'),`,
+        `  summary: readCanonicalDescription('${agentDescriptionPath}'),`,
+        '});',
+      ],
+      testExpectation: {
+        property: 'routingHint',
+        path: handoffDescriptionPath,
+        summaryPath: agentDescriptionPath,
+      },
+    },
+    'routing-description-shared-property': {
+      guidance:
+        'The runtime description property serves both general display and router target selection, so it is routing-facing.',
+      implementation: [
+        'export const createTriageAgent = () => ({',
+        `  description: readCanonicalDescription('${handoffDescriptionPath}'),`,
+        '});',
+      ],
+      testExpectation: { property: 'description', path: handoffDescriptionPath },
+    },
+  };
+  const runtimeContract = runtimeContracts[caseId];
+  if (!runtimeContract) throw new Error(`Unsupported routing-description case ${caseId}.`);
+
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/moldea.yaml',
+    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n\nagents:\n  triage-agent:\n    runtime:\n      id: custom\n      guidance: /moldea/runtimes/custom.md\n    bindings:\n      runtimeAgent:\n        path: /src/triage-agent.mjs\n        symbol: createTriageAgent\n    affectedBy:\n      - /src/triage-agent.mjs\n      - /src/triage-agent.test-integration.mjs\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/agents/triage-agent/description.md',
+    'Provides detailed support triage and classification behavior.\n',
+  );
+  if (hasHandoffDescription) {
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/agents/triage-agent/handoff-description.md',
+      'Route support requests that require semantic intent and urgency classification.\n',
+    );
+  }
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/agents/triage-agent/instruction.md',
+    '# Triage agent\n\nYou are the `triage-agent` agent. Classify support requests without making authorization decisions.\n',
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'moldea/runtimes/custom.md',
+    `# Custom runtime\n\n${runtimeContract.guidance}\nCanonical Markdown is loaded at runtime and remains the only editable description source.\n`,
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/triage-agent.mjs',
+    [
+      "import { readFileSync } from 'node:fs';",
+      '',
+      'const readCanonicalDescription = (logicalPath) =>',
+      "  readFileSync(new URL(`..${logicalPath}`, import.meta.url), 'utf8').trim();",
+      '',
+      ...runtimeContract.implementation,
+      '',
+    ].join('\n'),
+  );
+
+  if (runtimeContract.testExpectation) {
+    const { path, property, summaryPath } = runtimeContract.testExpectation;
+    const summaryAssertion = summaryPath
+      ? [
+          `const expectedSummary = readCanonicalDescription('${summaryPath}');`,
+          '  assert.equal(runtimeAgent.summary, expectedSummary);',
+        ]
+      : [];
+    await writeScenarioFile(
+      repositoryPath,
+      'src/triage-agent.test-integration.mjs',
+      [
+        "import assert from 'node:assert/strict';",
+        "import { readFileSync } from 'node:fs';",
+        "import test from 'node:test';",
+        '',
+        "import { createTriageAgent } from './triage-agent.mjs';",
+        '',
+        'const readCanonicalDescription = (logicalPath) =>',
+        "  readFileSync(new URL(`..${logicalPath}`, import.meta.url), 'utf8').trim();",
+        '',
+        "test('maps canonical descriptions into runtime metadata', () => {",
+        '  const runtimeAgent = createTriageAgent();',
+        `  const expectedDescription = readCanonicalDescription('${path}');`,
+        `  assert.equal(runtimeAgent.${property}, expectedDescription);`,
+        ...summaryAssertion,
+        '});',
+        '',
+      ].join('\n'),
+    );
+    const manifestPath = join(repositoryPath, 'package.json');
+    const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+    await writeScenarioFile(
+      repositoryPath,
+      'package.json',
+      `${JSON.stringify(
+        {
+          ...manifest,
+          scripts: {
+            test: 'npm run test:integration',
+            'test:integration': 'node --test src/triage-agent.test-integration.mjs',
+          },
+        },
+        null,
+        2,
+      )}\n`,
+    );
+  }
+};
+
 /** Seeds an existing runtime whose inline instruction is independent from moldea. */
 const seedInlineInstructionRuntime = async (repositoryPath) => {
   const manifestPath = join(repositoryPath, 'package.json');
@@ -1084,6 +1250,14 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
         'runtime/provider.json',
         '{"providerHostedCapabilities":{"webSearch":true}}\n',
       );
+      break;
+    case 'routing-description-dynamic-wiring':
+    case 'routing-description-fallback':
+    case 'routing-description-property-name':
+    case 'routing-description-reconciliation':
+    case 'routing-description-separate-properties':
+    case 'routing-description-shared-property':
+      await seedRoutingDescriptionAgent(repositoryPath, caseDefinition.id);
       break;
     case 'dedicated-repository-runtime-selection':
       await seedRefundAgent(
@@ -1496,7 +1670,12 @@ const main = async () => {
   const results = [];
 
   for (const caseDefinition of caseDefinitions) {
-    results.push(await evaluateCase(caseDefinition, actorCommand, judgeCommand));
+    process.stderr.write(`[semantic-evaluation] start ${caseDefinition.id}\n`);
+    const result = await evaluateCase(caseDefinition, actorCommand, judgeCommand);
+    results.push(result);
+    process.stderr.write(
+      `[semantic-evaluation] ${result.passed ? 'pass' : 'fail'} ${caseDefinition.id}\n`,
+    );
   }
 
   const artifactDigest = createPortableSkillDigest();

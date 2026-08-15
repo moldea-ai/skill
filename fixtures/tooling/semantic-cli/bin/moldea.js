@@ -134,6 +134,55 @@ const createCustomCompatibility = () => ({
   },
 });
 
+/** Builds the active experimental OpenAI adapter contract bundled by CLI 1.1.1. */
+const createOpenAiCompatibility = () => ({
+  id: 'openai',
+  active: true,
+  bundledVersion: '1.0.1',
+  matrix: {
+    implementation: {
+      kind: 'package',
+      package: '@moldea.ai/adapter-openai',
+      versionRange: '^1.0.0',
+      distribution: 'public',
+    },
+    implementationStatus: 'available',
+    supportedRepositoryFormatVersions: [1],
+    compatibleCoreRange: '^1.0.0',
+    runtimeGuidance: {
+      expectation: 'recommended',
+      notes:
+        'Document project-specific model selection, tool execution, streaming, retry, and error behavior that static inspection cannot establish.',
+    },
+    targets: [
+      {
+        id: 'typescript-responses-api-7',
+        kind: 'package',
+        supportLevel: 'experimental',
+        language: 'typescript',
+        packages: [
+          {
+            ecosystem: 'npm',
+            name: 'openai',
+            role: 'primary',
+            versionRange: '>=7.4.0 <8.0.0',
+          },
+        ],
+        evidenceKinds: [
+          'instruction-loader',
+          'language',
+          'runtime-package',
+          'runtime-pattern',
+          'schema',
+          'tool-registration',
+        ],
+        lastVerifiedAt: '2026-08-15',
+      },
+    ],
+    lastVerifiedAt: '2026-08-15',
+  },
+});
+
 /** Builds one inactive planned package-backed adapter contract. */
 const createPlannedCompatibility = (id) => ({
   id,
@@ -159,7 +208,9 @@ const readCompatibilityAdapters = () => {
 
   return OFFICIAL_ADAPTER_IDS.map((id) => {
     if (overridesById.has(id)) return overridesById.get(id);
-    return id === 'custom' ? createCustomCompatibility() : createPlannedCompatibility(id);
+    if (id === 'custom') return createCustomCompatibility();
+    if (id === 'openai') return createOpenAiCompatibility();
+    return createPlannedCompatibility(id);
   });
 };
 
@@ -180,7 +231,7 @@ const readCompatibilityPackages = (adapters) => {
 };
 
 if (command === '--version') {
-  process.stdout.write('1.0.1\n');
+  process.stdout.write('1.1.1\n');
 } else if (command === 'inspect' && process.argv.includes('--json')) {
   const manifest = readTextAsset('/moldea/moldea.yaml');
   const project = readTextAsset('/moldea/project.md');
@@ -243,7 +294,7 @@ if (command === '--version') {
 
   process.stdout.write(
     `${JSON.stringify({
-      cliVersion: '1.0.1',
+      cliVersion: '1.1.1',
       command: 'inspect',
       error: null,
       result: {
@@ -259,7 +310,7 @@ if (command === '--version') {
   const adapters = readCompatibilityAdapters();
   process.stdout.write(
     `${JSON.stringify({
-      cliVersion: '1.0.1',
+      cliVersion: '1.1.1',
       command: 'compatibility',
       error: null,
       result: {

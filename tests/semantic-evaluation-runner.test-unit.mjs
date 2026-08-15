@@ -204,12 +204,14 @@ test('collects the exact published CLI production dependency closure', () => {
     .sort();
 
   assert.deepEqual(packageVersions, [
-    '@moldea.ai/cli@1.0.1',
+    '@moldea.ai/adapter-openai@1.0.1',
+    '@moldea.ai/cli@1.1.1',
     '@moldea.ai/core@1.0.1',
     '@moldea.ai/repository-fs@1.0.1',
     '@moldea.ai/repository@1.0.1',
     'error-message-utils@1.2.11',
     'semver@7.8.5',
+    'typescript@6.0.3',
     'yaml@2.9.0',
     'zod@4.3.6',
   ]);

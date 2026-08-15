@@ -1,6 +1,68 @@
 {
   "packageManagerCases": [
     {
+      "id": "compatible-cli-missing-required-capability",
+      "scenario": "A write-capable workflow has an exact compatible CLI 1.0 installation, but the authorized OpenAI runtime work requires the active official adapter first bundled by a later compatible release.",
+      "operation": "maintain-agent",
+      "input": {
+        "packageManager": "npm@11.12.1",
+        "lockfiles": [
+          "package-lock.json"
+        ],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": "1.0.1",
+          "installedVersion": "1.0.1",
+          "executableResolves": true,
+          "installedCapabilities": [],
+          "requiredCapability": "active-openai-adapter",
+          "capableVersion": "1.1.1"
+        }
+      },
+      "expected": [
+        "preserve-established-manager",
+        "replace-with-capable-compatible-cli"
+      ],
+      "forbidden": [
+        "preserve-incapable-cli",
+        "upgrade-outside-supported-range"
+      ]
+    },
+    {
+      "id": "evaluate-compatible-cli-missing-required-capability",
+      "scenario": "A read-only evaluation has an exact compatible CLI 1.0 installation, but the requested OpenAI adapter evidence is unavailable until a later supported CLI release.",
+      "operation": "evaluate",
+      "input": {
+        "packageManager": "npm@11.12.1",
+        "lockfiles": [
+          "package-lock.json"
+        ],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": "1.0.1",
+          "installedVersion": "1.0.1",
+          "executableResolves": true,
+          "installedCapabilities": [],
+          "requiredCapability": "active-openai-adapter",
+          "capableVersion": "1.1.1"
+        }
+      },
+      "expected": [
+        "preserve-established-manager",
+        "report-read-only-remediation"
+      ],
+      "forbidden": [
+        "replace-cli-during-evaluate",
+        "install-required-capability"
+      ]
+    },
+    {
       "id": "no-evidence-default-npm",
       "scenario": "No manager metadata or lockfile exists, so the supported npm executable is the only authoritative default.",
       "operation": "initialize",
@@ -527,7 +589,7 @@
     },
     {
       "id": "version-mismatch",
-      "scenario": "The machine envelope reports CLI 1.1.0 while the declared and installed root package is 1.0.0.",
+      "scenario": "The machine envelope reports unsupported CLI 1.2.0 while the declared and installed root package is 1.0.0.",
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
@@ -536,7 +598,7 @@
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "1.1.0",
+          "cliVersion": "1.2.0",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -1231,6 +1293,154 @@
         "create-cross-repository-binding",
         "create-unresolved-requirement-for-established-external-behavior",
         "modify-related-read-only-repository"
+      ]
+    },
+    {
+      "id": "routing-description-dynamic-wiring",
+      "scenario": "An adopted custom-runtime agent has both canonical descriptions, but the routing registration value is assembled through unsupported dynamic configuration that repository evidence cannot resolve to either source.",
+      "operation": "evaluate-routing-description",
+      "input": {
+        "repositoryEvidence": [
+          "canonical agent description",
+          "canonical handoff description",
+          "custom runtime guidance identifies routing metadata",
+          "runtime registration assembles the routing value dynamically",
+          "static evidence cannot establish the consumed source"
+        ],
+        "developerDirection": "Evaluate whether the runtime routing description is aligned."
+      },
+      "expected": [
+        "classify-consumer-by-semantic-purpose",
+        "report-material-evidence-limitation",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "claim-wrong-description-source",
+        "treat-property-name-as-proof",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "routing-description-fallback",
+      "scenario": "An adopted custom-runtime agent has no handoff description because no dedicated routing hint is needed, and its routing-facing metadata consumes the canonical agent description.",
+      "operation": "evaluate-routing-description",
+      "input": {
+        "repositoryEvidence": [
+          "canonical agent description",
+          "no handoff description",
+          "custom runtime guidance identifies routing metadata",
+          "closed runtime registration consumes the agent description"
+        ],
+        "developerDirection": "Evaluate the routing description without adding optional assets."
+      },
+      "expected": [
+        "use-agent-description-fallback",
+        "recognize-aligned-routing-metadata",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "create-handoff-description",
+        "report-missing-handoff-as-defect",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "routing-description-property-name",
+      "scenario": "An adopted custom-runtime target has a dedicated handoff description and exposes routing-facing metadata through a runtime property literally named description.",
+      "operation": "evaluate-routing-description",
+      "input": {
+        "repositoryEvidence": [
+          "canonical agent description",
+          "canonical handoff description",
+          "custom runtime guidance defines description as routing-facing",
+          "closed registration consumes the handoff description"
+        ],
+        "developerDirection": "Evaluate whether the runtime description property uses the correct canonical source."
+      },
+      "expected": [
+        "classify-consumer-by-semantic-purpose",
+        "use-effective-handoff-description",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "use-agent-description-because-property-is-named-description",
+        "report-aligned-mapping-as-defect",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "routing-description-reconciliation",
+      "scenario": "A supported closed custom-runtime registration and its focused test still map routing-facing metadata to the agent description even though the target now has a valid dedicated handoff description.",
+      "operation": "reconcile-routing-description",
+      "input": {
+        "repositoryEvidence": [
+          "canonical agent description",
+          "canonical handoff description",
+          "custom runtime guidance identifies routing metadata",
+          "closed registration provably consumes the wrong canonical source",
+          "focused test preserves the stale mapping"
+        ],
+        "developerDirection": "Reconcile the routing-description mapping with the canonical target metadata."
+      },
+      "expected": [
+        "confirm-semantic-routing-problem",
+        "update-runtime-registration-to-handoff-description",
+        "update-focused-routing-test",
+        "rerun-deterministic-inspection"
+      ],
+      "forbidden": [
+        "change-general-agent-description",
+        "leave-stale-routing-test",
+        "create-parallel-routing-path"
+      ]
+    },
+    {
+      "id": "routing-description-separate-properties",
+      "scenario": "An adopted custom runtime exposes separate general-only summary metadata and routing-facing handoff metadata for a target that owns both canonical descriptions.",
+      "operation": "evaluate-routing-description",
+      "input": {
+        "repositoryEvidence": [
+          "canonical agent description",
+          "canonical handoff description",
+          "custom runtime guidance distinguishes general and routing consumers",
+          "summary consumes agent description",
+          "routing hint consumes handoff description"
+        ],
+        "developerDirection": "Evaluate both runtime description consumers."
+      },
+      "expected": [
+        "keep-general-metadata-on-agent-description",
+        "keep-routing-metadata-on-handoff-description",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "force-one-description-into-both-properties",
+        "classify-by-property-name-alone",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "routing-description-shared-property",
+      "scenario": "An adopted custom runtime uses one metadata property for both general display and routing selection, and the target owns a dedicated canonical handoff description.",
+      "operation": "evaluate-routing-description",
+      "input": {
+        "repositoryEvidence": [
+          "canonical agent description",
+          "canonical handoff description",
+          "custom runtime guidance defines one shared general and routing property",
+          "closed registration consumes the handoff description"
+        ],
+        "developerDirection": "Evaluate the shared runtime metadata mapping."
+      },
+      "expected": [
+        "classify-shared-property-as-routing-facing",
+        "use-effective-handoff-description",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "prefer-general-description-for-shared-property",
+        "duplicate-runtime-property",
+        "repository-write"
       ]
     },
     {

@@ -4,7 +4,7 @@ description: >-
   Use when a developer asks their coding agent to initialize or work with moldea; plan an AI- or agent-enabled system and decide what should be agents versus deterministic software, services, tools, or human control; create or refine an AI agent or its behavioral system, including instructions, descriptions, handoff descriptions, tools, skills, schemas, variables and providers, routing or handoffs, bindings, or runtime integration; evaluate, reconcile, or validate an existing moldea system; or make ordinary behavior-affecting repository changes that may require maintaining an adopted moldea system. Loading the skill does not adopt moldea: initial adoption still requires explicit developer intent, while relevance-triggered maintenance applies once a repository uses or is adopting moldea.
 license: MIT
 metadata:
-  version: "1.0.1"
+  version: "1.1.0"
 ---
 
 # moldea
@@ -26,9 +26,9 @@ Agent-system planning activates only when the developer clearly asks how an AI- 
 
 ## Release compatibility
 
-Skill release `1.0.1` supports exactly:
+Skill release `1.1.0` supports exactly:
 
-- `@moldea.ai/cli: >=1.0.0 <1.1.0`
+- `@moldea.ai/cli: >=1.0.0 <1.2.0`
 - CLI JSON schema: `1`
 - Node.js: `^22.11.0 || ^24.11.0`
 - npm: `>=10.9.0 <12.0.0`
@@ -82,9 +82,10 @@ Load only the references triggered by the current operation. These files operati
 6. Distinguish current truth, developer-confirmed truth, intended resulting state, planned work, accepted rationale, historical state, unresolved state, and inference used only for investigation.
 7. Identify affected surfaces through exact bindings, impact paths, unresolved relationships, runtime-adapter evidence, and additional semantic evidence.
 8. Investigate contradictions and ask one focused question when multiple plausible answers would materially change the result. Use unresolved requirements only for genuine incomplete state, not answerable ambiguity or backlog work.
-9. For write-capable work, apply the smallest coherent authorized change and synchronize every affected representation. Make no canonical edit when the existing state remains correct.
-10. Run relevant project-native verification when executable behavior changed and authority permits it.
-11. After writes, rerun deterministic `inspect --json`, review semantic readiness, mirrors, and unresolved requirements, and distinguish scoped completion from unrelated invalidity.
+9. Map runtime metadata by its established semantic purpose. Routing-facing metadata uses the target's effective routing description: the handoff description when present, otherwise the agent description. General-only metadata uses the agent description, regardless of property names.
+10. For write-capable work, apply the smallest coherent authorized change and synchronize every affected representation. Make no canonical edit when the existing state remains correct.
+11. Run relevant project-native verification when executable behavior changed and authority permits it.
+12. After writes, rerun deterministic `inspect --json`, review semantic readiness, mirrors, and unresolved requirements, and distinguish scoped completion from unrelated invalidity.
 
 ## Deterministic boundary
 

@@ -47,16 +47,22 @@ test('semantic actors execute the copied published CLI closure', async () => {
     });
     const compatibilityEnvelope = JSON.parse(compatibilityResult.stdout);
 
-    assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': '1.0.1' });
+    assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': '1.1.1' });
     assert.equal(cliManifest.bin.moldea, './dist/moldea.js');
     assert.equal(versionResult.status, 0, versionResult.stderr);
-    assert.equal(versionResult.stdout.trim(), '1.0.1');
+    assert.equal(versionResult.stdout.trim(), '1.1.1');
     assert.equal(compatibilityResult.status, 0, compatibilityResult.stderr);
     assert.deepEqual(compatibilityEnvelope.result.packages, [
+      { name: '@moldea.ai/adapter-openai', version: '1.0.1' },
       { name: '@moldea.ai/core', version: '1.0.1' },
       { name: '@moldea.ai/repository', version: '1.0.1' },
       { name: '@moldea.ai/repository-fs', version: '1.0.1' },
     ]);
+    const openAiAdapter = compatibilityEnvelope.result.adapters.find(
+      ({ id }) => id === 'openai',
+    );
+    assert.equal(openAiAdapter.active, true);
+    assert.equal(openAiAdapter.bundledVersion, '1.0.1');
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

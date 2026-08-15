@@ -33,7 +33,7 @@ const LIFECYCLE_FIXTURE_MANIFEST = JSON.parse(
 );
 const MANAGER = process.env.MOLDEA_TEST_MANAGER ?? 'npm';
 const EXPECTED_MANAGER_VERSION = process.env.MOLDEA_TEST_MANAGER_VERSION;
-const PUBLISHED_CLI_VERSION = process.env.MOLDEA_TEST_CLI_VERSION ?? '1.0.1';
+const PUBLISHED_CLI_VERSION = process.env.MOLDEA_TEST_CLI_VERSION ?? '1.1.1';
 const EXECUTABLE = process.platform === 'win32' ? `${MANAGER}.cmd` : MANAGER;
 const CANDIDATE_ARTIFACT_DIRECTORY = process.env.MOLDEA_CLI_ARTIFACT_DIRECTORY;
 const REQUIRE_CANDIDATE_ARTIFACTS = process.env.MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS === '1';
@@ -55,7 +55,7 @@ const isSupportedVersion = (manager, version) => {
 
 const isSupportedCliVersion = (version) => {
   const [major, minor] = parseVersion(version);
-  return major === 1 && minor === 0;
+  return major === 1 && (minor === 0 || minor === 1);
 };
 
 /** Returns whether the selected Yarn version supports its command-scoped age-gate override. */
@@ -271,14 +271,18 @@ const createLifecycleRegistry = async (archive, archiveName) => {
   return { registryUrl, server };
 };
 
-/** Creates the custom-runtime repository exercised by every real CLI source. */
-const seedConformanceProject = (clientDirectory) => {
+/** Creates the custom-runtime repository and optional OpenAI adapter evidence. */
+const seedConformanceProject = (clientDirectory, { includeOpenAi }) => {
   mkdirSync(join(clientDirectory, 'moldea', 'agents', 'custom-agent'), { recursive: true });
   mkdirSync(join(clientDirectory, 'moldea', 'runtimes'), { recursive: true });
   mkdirSync(join(clientDirectory, 'src'), { recursive: true });
   writeFileSync(
     join(clientDirectory, 'moldea', 'moldea.yaml'),
-    'version: 1\nagents:\n  custom-agent:\n    runtime:\n      id: custom\n      guidance: /moldea/runtimes/custom.md\n    bindings:\n      runtimeAgent:\n        path: /src/custom-agent.ts\n        symbol: customAgent\n    affectedBy:\n      - /src/**\n',
+    `version: 1\nagents:\n  custom-agent:\n    runtime:\n      id: custom\n      guidance: /moldea/runtimes/custom.md\n    bindings:\n      runtimeAgent:\n        path: /src/custom-agent.ts\n        symbol: customAgent\n    affectedBy:\n      - /src/**\n${
+      includeOpenAi
+        ? '  openai-agent:\n    runtime:\n      id: openai\n    bindings:\n      runtimeAgent:\n        path: /src/openai-agent.ts\n        symbol: openAiAgent\n'
+        : ''
+    }`,
   );
   writeFileSync(join(clientDirectory, 'moldea', 'project.md'), '# CLI conformance project\n');
   writeFileSync(
@@ -294,6 +298,28 @@ const seedConformanceProject = (clientDirectory) => {
     'Use the project-local custom runtime.\n',
   );
   writeFileSync(join(clientDirectory, 'src', 'custom-agent.ts'), 'export const customAgent = {};\n');
+
+  if (includeOpenAi) {
+    mkdirSync(join(clientDirectory, 'moldea', 'agents', 'openai-agent'), {
+      recursive: true,
+    });
+    writeFileSync(
+      join(clientDirectory, 'moldea', 'agents', 'openai-agent', 'description.md'),
+      'An OpenAI Responses API conformance agent.\n',
+    );
+    writeFileSync(
+      join(clientDirectory, 'moldea', 'agents', 'openai-agent', 'instruction.md'),
+      'You are the `openai-agent` agent.\n',
+    );
+    writeFileSync(
+      join(clientDirectory, 'src', 'openai-agent.ts'),
+      "import OpenAI from 'openai';\nconst client = new OpenAI();\nexport const openAiAgent = () => client.responses.create({ input: 'hello' });\n",
+    );
+    const clientManifestPath = join(clientDirectory, 'package.json');
+    const clientManifest = JSON.parse(readFileSync(clientManifestPath, 'utf8'));
+    clientManifest.dependencies = { openai: '7.4.0' };
+    writeFileSync(clientManifestPath, `${JSON.stringify(clientManifest, null, 2)}\n`);
+  }
 };
 
 /** Installs and exercises one real published or packed CLI dependency closure. */
@@ -349,8 +375,29 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
       readFileSync(join(clientDirectory, 'package.json'), 'utf8'),
     );
     assert.equal(installedManifest.devDependencies['@moldea.ai/cli'], cliVersion);
+    let binaryPath;
 
-    seedConformanceProject(clientDirectory);
+    if (MANAGER === 'yarn') {
+      binaryPath = await run(EXECUTABLE, ['bin', 'moldea'], {
+        cwd: clientDirectory,
+        env: managerEnvironment,
+      });
+      assert.ok(isPathWithin(clientDirectory, binaryPath));
+      assert.match(binaryPath, /[\\/]\.yarn[\\/]unplugged[\\/]/);
+    } else {
+      const binaryName = process.platform === 'win32' ? 'moldea.cmd' : 'moldea';
+      binaryPath = join(clientDirectory, 'node_modules', '.bin', binaryName);
+      assert.equal(existsSync(binaryPath), true);
+    }
+
+    const cliPackage =
+      MANAGER === 'yarn'
+        ? findOwningPackage(binaryPath, '@moldea.ai/cli')
+        : loadInstalledNodeModulesPackage(clientDirectory, '@moldea.ai/cli');
+    const hasOpenAiAdapter =
+      cliPackage.manifest.dependencies?.['@moldea.ai/adapter-openai'] !== undefined;
+
+    seedConformanceProject(clientDirectory, { includeOpenAi: hasOpenAiAdapter });
     writeFileSync(
       join(clientDirectory, '.gitignore'),
       '.git-hooks/\n.manager-home/\n.pnp.*\n.yarn/\nlifecycle-ran.txt\nnode_modules/\n',
@@ -371,18 +418,11 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
       cwd: clientDirectory,
       env: gitEnvironment,
     });
-    let binaryPath;
     let versionOutput;
     let compatibilityExecution;
     let inspectionExecution;
 
     if (MANAGER === 'yarn') {
-      binaryPath = await run(EXECUTABLE, ['bin', 'moldea'], {
-        cwd: clientDirectory,
-        env: managerEnvironment,
-      });
-      assert.ok(isPathWithin(clientDirectory, binaryPath));
-      assert.match(binaryPath, /[\\/]\.yarn[\\/]unplugged[\\/]/);
       versionOutput = await run(EXECUTABLE, ['exec', 'moldea', '--version'], {
         cwd: clientDirectory,
         env: managerEnvironment,
@@ -398,9 +438,6 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
         { cwd: clientDirectory, env: managerEnvironment },
       );
     } else {
-      const binaryName = process.platform === 'win32' ? 'moldea.cmd' : 'moldea';
-      binaryPath = join(clientDirectory, 'node_modules', '.bin', binaryName);
-      assert.equal(existsSync(binaryPath), true);
       versionOutput = await run(binaryPath, ['--version'], {
         cwd: clientDirectory,
         env: managerEnvironment,
@@ -415,10 +452,6 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
       });
     }
 
-    const cliPackage =
-      MANAGER === 'yarn'
-        ? findOwningPackage(binaryPath, '@moldea.ai/cli')
-        : loadInstalledNodeModulesPackage(clientDirectory, '@moldea.ai/cli');
     assert.ok(isPathWithin(clientDirectory, cliPackage.packageRoot));
     assert.equal(cliPackage.manifest.version, cliVersion);
     assert.equal(versionOutput, cliVersion);
@@ -432,15 +465,17 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
     const compatibilityEnvelope = JSON.parse(compatibilityExecution.stdout);
     const inspectionEnvelope = JSON.parse(inspectionExecution.stdout);
     const internalPackageNames = [
+      '@moldea.ai/adapter-openai',
       '@moldea.ai/core',
       '@moldea.ai/repository',
       '@moldea.ai/repository-fs',
-    ];
+    ].filter((packageName) => cliPackage.manifest.dependencies?.[packageName] !== undefined);
     const expectedPackages = internalPackageNames.map((packageName) => ({
       name: packageName,
       version: cliPackage.manifest.dependencies[packageName],
     }));
     const customAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'custom');
+    const openAiAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'openai');
 
     assert.equal(compatibilityEnvelope.cliVersion, cliVersion);
     assert.equal(compatibilityEnvelope.command, 'compatibility');
@@ -463,13 +498,27 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
         support: 'full',
       },
     ]);
+    assert.equal(openAiAdapter.active, hasOpenAiAdapter);
+    assert.equal(
+      openAiAdapter.bundledVersion,
+      hasOpenAiAdapter
+        ? cliPackage.manifest.dependencies['@moldea.ai/adapter-openai']
+        : null,
+    );
     assert.equal(inspectionEnvelope.cliVersion, cliVersion);
     assert.equal(inspectionEnvelope.command, 'inspect');
     assert.equal(inspectionEnvelope.schemaVersion, 1);
     assert.equal(inspectionEnvelope.status, 'valid');
     assert.equal(inspectionEnvelope.result.inspection.valid, true);
     assert.deepEqual(inspectionEnvelope.result.inspection.diagnostics, []);
-    assert.deepEqual(inspectionEnvelope.result.inspection.evidence, []);
+    if (hasOpenAiAdapter) {
+      assert.deepEqual(
+        inspectionEnvelope.result.inspection.evidence.map(({ kind }) => kind),
+        ['language', 'runtime-package', 'runtime-pattern'],
+      );
+    } else {
+      assert.deepEqual(inspectionEnvelope.result.inspection.evidence, []);
+    }
     assert.deepEqual(inspectionEnvelope.result.inspection.project.agents[0].declaration, {
       affectedBy: ['/src/**'],
       bindings: {

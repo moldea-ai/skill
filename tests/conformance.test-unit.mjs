@@ -56,7 +56,9 @@ const ALLOWED_FRONTMATTER_KEYS = new Set([
 ]);
 const REQUIRED_EVALUATION_CASE_IDS = {
   packageManagerCases: [
+    'compatible-cli-missing-required-capability',
     'declared-executable-version-conflict',
+    'evaluate-compatible-cli-missing-required-capability',
     'evaluate-missing-cli-read-only',
     'existing-cli-with-executable-manager-config',
     'floating-cli-with-compatible-install',
@@ -112,6 +114,12 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'provider-hosted-capability',
     'read-only-git-helper-suppression',
     'reconcile-material-ambiguity',
+    'routing-description-dynamic-wiring',
+    'routing-description-fallback',
+    'routing-description-property-name',
+    'routing-description-reconciliation',
+    'routing-description-separate-properties',
+    'routing-description-shared-property',
     'runtime-adapter-lifecycle',
     'unadopted-relevance-no-initialization',
     'unresolved-related-file-changed',
@@ -182,7 +190,7 @@ const isSupportedManagerVersion = (manager, version) => {
   return false;
 };
 
-const isCompatibleCliVersion = (version) => /^1\.0\.\d+$/.test(version ?? '');
+const isCompatibleCliVersion = (version) => /^1\.(?:0|1)\.\d+$/.test(version ?? '');
 
 const evaluatePackageManagerCase = ({ operation, input }) => {
   const cli = input.cli;
@@ -192,6 +200,8 @@ const evaluatePackageManagerCase = ({ operation, input }) => {
     isExactDeclaration &&
     cli.declaration === cli.installedVersion &&
     cli.executableResolves;
+  const hasRequiredCapability =
+    !cli.requiredCapability || cli.installedCapabilities?.includes(cli.requiredCapability);
 
   if (operation === 'plan' && !hasExactCompatibleCli) {
     return ['continue-plan-without-tooling'];
@@ -232,7 +242,7 @@ const evaluatePackageManagerCase = ({ operation, input }) => {
       : 'select-npm-and-verify-executable',
   ];
   const isReadOnlyOperation = READ_ONLY_TOOLING_OPERATIONS.has(operation);
-  const requiresDependencyChange = !hasExactCompatibleCli;
+  const requiresDependencyChange = !hasExactCompatibleCli || !hasRequiredCapability;
 
   if (
     !isReadOnlyOperation &&
@@ -242,10 +252,16 @@ const evaluatePackageManagerCase = ({ operation, input }) => {
     return ['stop-for-executable-package-manager-config'];
   }
 
-  if (isReadOnlyOperation && !hasExactCompatibleCli) {
+  if (isReadOnlyOperation && (!hasExactCompatibleCli || !hasRequiredCapability)) {
     decisions.push('report-read-only-remediation');
-  } else if (hasExactCompatibleCli) {
+  } else if (hasExactCompatibleCli && hasRequiredCapability) {
     decisions.push('preserve-existing-exact-cli');
+  } else if (
+    hasExactCompatibleCli &&
+    !hasRequiredCapability &&
+    isCompatibleCliVersion(cli.capableVersion)
+  ) {
+    decisions.push('replace-with-capable-compatible-cli');
   } else if (hasCompatibleInstall && cli.executableResolves) {
     decisions.push('pin-compatible-installed-version');
   } else if (!hasCompatibleInstall) {
@@ -317,7 +333,7 @@ describe('portable Agent Skill contract', () => {
   test('uses valid portable identity and release metadata', () => {
     assert.equal(frontmatter.name, 'moldea');
     assert.equal(frontmatter.license, 'MIT');
-    assert.equal(frontmatter.metadata.version, '1.0.1');
+    assert.equal(frontmatter.metadata.version, '1.1.0');
     assert.equal(dirname(SKILL_PATH), SKILL_DIRECTORY);
     assert.equal(dirname(SKILL_PATH).split('/').at(-1), frontmatter.name);
     assert.ok(frontmatter.description.length >= 1 && frontmatter.description.length <= 1024);
@@ -342,7 +358,7 @@ describe('portable Agent Skill contract', () => {
 
   test('declares the exact release compatibility contract', () => {
     assertMatchesEvery(skill, [
-      /@moldea\.ai\/cli: >=1\.0\.0 <1\.1\.0/,
+      /@moldea\.ai\/cli: >=1\.0\.0 <1\.2\.0/,
       /CLI JSON schema: `1`/,
       /Node\.js: `\^22\.11\.0 \|\| \^24\.11\.0`/,
       /npm: `>=10\.9\.0 <12\.0\.0`/,
@@ -376,6 +392,10 @@ describe('portable Agent Skill contract', () => {
       /no asset type always wins/i,
       /Do not stage, unstage, commit/,
       /no canonical edit when/,
+      /effective routing description/,
+      /general-only runtime metadata/,
+      /property named `description` may be routing-facing/,
+      /dynamic or unsupported wiring as unestablished/,
     ]);
   });
 
@@ -621,7 +641,7 @@ describe('source repository conformance', () => {
       });
       const inspectionEnvelope = JSON.parse(inspection.stdout);
       assert.equal(inspection.status, 1);
-      assert.equal(inspectionEnvelope.cliVersion, '1.0.1');
+      assert.equal(inspectionEnvelope.cliVersion, '1.1.1');
       assert.equal(inspectionEnvelope.status, 'invalid');
       assert.equal(
         inspectionEnvelope.result.inspection.diagnostics[0].code,
@@ -634,7 +654,7 @@ describe('source repository conformance', () => {
       });
       const compatibilityEnvelope = JSON.parse(compatibility.stdout);
       assert.equal(compatibility.status, 0);
-      assert.equal(compatibilityEnvelope.cliVersion, '1.0.1');
+      assert.equal(compatibilityEnvelope.cliVersion, '1.1.1');
       assert.equal(compatibilityEnvelope.status, 'valid');
       assert.deepEqual(
         compatibilityEnvelope.result.packages,
@@ -701,9 +721,9 @@ describe('source repository conformance', () => {
     const projectInstallationIndex = readme.indexOf('### Project installation (recommended)');
     const globalInstallationIndex = readme.indexOf('### Global installation (optional)');
 
-    assert.match(readme, /The current release is `1\.0\.1`\./);
+    assert.match(readme, /The current release is `1\.1\.0`\./);
     assert.match(readme, /^npx skills add moldea-ai\/skill$/m);
-    assert.match(readme, /^npx skills add "moldea-ai\/skill#v1\.0\.1"$/m);
+    assert.match(readme, /^npx skills add "moldea-ai\/skill#v1\.1\.0"$/m);
     assert.match(readme, /^npx skills add moldea-ai\/skill -g$/m);
     assert.ok(projectInstallationIndex >= 0);
     assert.ok(globalInstallationIndex > projectInstallationIndex);
@@ -711,7 +731,7 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(readme, /https:\/\/github\.com\/moldea-ai\/skill\/tree\//);
     assert.match(readme, /do not install `@moldea\.ai\/cli` globally/);
     assert.match(readme, /repository-local exact `@moldea\.ai\/cli` development dependency/);
-    assert.match(readme, /recommended repository-local CLI version for this release is `1\.0\.1`/);
+    assert.match(readme, /recommended repository-local CLI version for this release is `1\.1\.1`/);
     assert.doesNotMatch(
       readme,
       /unpublished release candidate|future source URL|after release|candidate supports|prepared for, but has not created/i,
@@ -727,13 +747,15 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(workflow, /add .* --list/);
   });
 
-  test('CI exercises both published CLI versions across every package manager', () => {
+  test('CI exercises every supported published CLI version across every package manager', () => {
     const workflow = readRepositoryFile('.github/workflows/conformance.yml');
     const packageManifest = JSON.parse(readRepositoryFile('package.json'));
 
-    assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], '1.0.1');
+    assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], '1.1.1');
     assert.equal(workflow.match(/cli_version: "1\.0\.0"/g)?.length, 6);
     assert.equal(workflow.match(/cli_version: "1\.0\.1"/g)?.length, 6);
+    assert.equal(workflow.match(/cli_version: "1\.1\.0"/g)?.length, 6);
+    assert.equal(workflow.match(/cli_version: "1\.1\.1"/g)?.length, 6);
     assert.match(workflow, /MOLDEA_TEST_CLI_VERSION: \$\{\{ matrix\.cli_version \}\}/);
     assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 2);
     assert.equal(
@@ -774,6 +796,7 @@ describe('source repository conformance', () => {
       /projects\/repository pack/,
       /projects\/repository-fs pack/,
       /projects\/core pack/,
+      /projects\/adapter-openai pack/,
       /projects\/cli pack/,
       /MOLDEA_CLI_ARTIFACT_DIRECTORY:/,
       /MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS: "1"/,

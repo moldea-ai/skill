@@ -37,6 +37,14 @@ Preserve still-valid behavior during refinement. Prefer local edits when organiz
 
 Every registered agent uses one stable lowercase ASCII kebab-case ID, one derived `/moldea/agents/{agent-id}/` directory, mandatory `description.md` and `instruction.md`, and optional `handoff-description.md`. The instruction begins by identifying the exact agent ID in backticks according to the active repository-format contract.
 
+Use the target's effective routing description for runtime metadata that helps a model, agent, router, or workflow select, route to, delegate to, or hand off to that target:
+
+- use the effective handoff description when `handoff-description.md` is present
+- otherwise use the effective agent description
+- never fall back when a present handoff description is structurally invalid
+
+Use the agent description for general-only runtime metadata. Establish the runtime property's semantic role from reliable runtime documentation, the active compatibility target, adapter evidence, project-local guidance, implementation behavior, and developer direction rather than its property name. A property named `description` may be routing-facing, and one property serving both general and routing purposes uses the effective routing description. Do not create `handoff-description.md` merely because a runtime exposes a description property; the agent-description fallback is valid when a dedicated routing hint is unnecessary.
+
 ## Select the runtime honestly
 
 Every registered agent declares exactly one `runtime.id`. Inspect repository runtime evidence and run `compatibility --json` when official support information matters.
@@ -63,7 +71,7 @@ Register repository-root-absolute logical paths and symbols when material implem
 
 Never create fake paths, symbols, selectors, future files, cross-repository references, or prose-only substitutes for required relationships. If the active manifest shape needed for a material relationship cannot be established, stop and report the blocker.
 
-Routing and handoffs remain runtime-native in version `1`. Maintain runtime routing implementation, source/target instructions, target-owned handoff descriptions, runtime guidance, and relevant impact relationships as needed. Never invent a manifest `handoffs` graph.
+Routing and handoffs remain runtime-native in version `1`. Maintain runtime routing implementation, routing-facing metadata, source/target instructions, target-owned descriptions, runtime guidance, relevant impact relationships, and focused tests as needed. When either canonical description changes, reconsider every supported runtime consumer of that value. When routing metadata changes, reconsider whether the canonical descriptions remain accurate. Never invent a manifest `handoffs` graph.
 
 ## Establish canonical instruction provenance
 

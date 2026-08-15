@@ -11,9 +11,11 @@ import {
   buildBwrapArguments,
   buildJudgePrompt,
   collectProductionPackageRoots,
+  createPortableSkillSemanticDigest,
   getSemanticToolingSource,
   getSyntheticCompatibilityCaseIds,
   identifyConfiguredModel,
+  normalizePortableSkillSemanticEvidence,
   resolveCodeModeHostPath,
   validateHostCommand,
   validateSemanticResultRecording,
@@ -135,6 +137,41 @@ test('recording rejects targeted and failing semantic evidence', () => {
   );
 });
 
+test('semantic evidence normalization permits only release-version declarations', () => {
+  const previousSkill = [
+    'metadata:',
+    '  version: "1.0.0"',
+    '',
+    'Skill release `1.0.0` supports exactly:',
+    '',
+    'Preserve canonical instruction provenance.',
+  ].join('\n');
+  const nextSkill = previousSkill.replaceAll('1.0.0', '1.0.1');
+
+  assert.equal(
+    normalizePortableSkillSemanticEvidence('SKILL.md', previousSkill),
+    normalizePortableSkillSemanticEvidence('SKILL.md', nextSkill),
+  );
+  assert.equal(
+    normalizePortableSkillSemanticEvidence(
+      'references/local-tooling.md',
+      'Release `1.0.0` supports:\n',
+    ),
+    normalizePortableSkillSemanticEvidence(
+      'references/local-tooling.md',
+      'Release `1.0.1` supports:\n',
+    ),
+  );
+  assert.notEqual(
+    normalizePortableSkillSemanticEvidence('SKILL.md', previousSkill),
+    normalizePortableSkillSemanticEvidence(
+      'SKILL.md',
+      nextSkill.replace('Preserve canonical', 'Replace canonical'),
+    ),
+  );
+  assert.match(createPortableSkillSemanticDigest(), /^[a-f0-9]{64}$/);
+});
+
 test('selects synthetic compatibility only for the two unsupported runtime states', () => {
   assert.deepEqual(getSyntheticCompatibilityCaseIds(), [
     'dedicated-repository-runtime-selection',
@@ -147,6 +184,10 @@ test('selects synthetic compatibility only for the two unsupported runtime state
   assert.equal(
     getSemanticToolingSource('runtime-adapter-lifecycle'),
     'synthetic-compatibility',
+  );
+  assert.equal(
+    getSemanticToolingSource('agent-adoption-inline-runtime-instruction'),
+    'published-package',
   );
   assert.equal(getSemanticToolingSource('adopted-relevance-no-change'), 'published-package');
   assert.equal(getSemanticToolingSource('pnpm-pnp-local-cli-provider'), 'scenario-specific');

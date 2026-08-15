@@ -65,6 +65,18 @@ Never create fake paths, symbols, selectors, future files, cross-repository refe
 
 Routing and handoffs remain runtime-native in version `1`. Maintain runtime routing implementation, source/target instructions, target-owned handoff descriptions, runtime guidance, and relevant impact relationships as needed. Never invent a manifest `handoffs` graph.
 
+## Establish canonical instruction provenance
+
+For every in-scope registered agent, establish how the canonical `/moldea/agents/{agent-id}/instruction.md` content reaches the runtime model or provider-side agent configuration. Do not prescribe a loading mechanism. Application code, a runtime adapter, runtime-library integration, build or provisioning logic, a declared mirror, or another established runtime path may provide the content.
+
+The active runtime instruction must derive from the canonical instruction rather than an independently maintained behavioral source. Provider-specific formatting, composition, caching, or transport is acceptable when it preserves the canonical behavior and does not introduce another independently editable instruction.
+
+Use a declared exact mirror when the runtime requires the instruction at another repository path, and verify that the runtime actually uses that mirror. Register `instructionLoader` when a material repository-local loader path and symbol exist and cannot be derived reliably. Do not require that binding when an adapter or other reliable evidence already establishes the relationship.
+
+Trace every material invocation or configuration path. Within the authorized scope, remove superseded inline, embedded, copied, or otherwise independent instruction sources and verify the provenance chain at the closest practical runtime or integration boundary. Also verify build or deployment inclusion when the mechanism depends on packaged canonical or mirrored content. Deterministic inspection validates declared relationships and mirrors; it does not prove runtime consumption.
+
+If the provenance chain cannot be established because required integration is missing, preserve the gap as a blocking unresolved requirement with explicit resolution criteria. When the relevant runtime implementation cannot be inspected, report the evidence limitation rather than claiming either connection or disconnection. Do not describe the agent as aligned, complete, or production-ready while a material provenance gap remains.
+
 ## Tools and skills
 
 Manifest-register a tool or skill only when a qualifying repository-local implementation artifact exists and the version `1` capability contract can bind it.
@@ -125,6 +137,6 @@ Do not use requirements as a roadmap or backlog. Do not create one to avoid an a
 
 ## Verify agent readiness
 
-After writes, run project-native checks for changed executable behavior when applicable, rerun deterministic `inspect --json`, and semantically review purpose, completeness, scope, contracts, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state.
+After writes, run project-native checks for changed executable behavior when applicable, rerun deterministic `inspect --json`, and semantically review purpose, completeness, scope, contracts, canonical instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state.
 
 Do not call an agent production-ready when behavior lacks reliable support, a material contract is hidden or contradictory, deterministic validation fails in the affected system, or a blocking unresolved requirement affects the claimed responsibility.

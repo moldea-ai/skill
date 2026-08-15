@@ -806,6 +806,77 @@ const seedRefundAgent = async (
   }
 };
 
+/** Seeds an existing runtime whose inline instruction is independent from moldea. */
+const seedInlineInstructionRuntime = async (repositoryPath) => {
+  const manifestPath = join(repositoryPath, 'package.json');
+  const manifest = JSON.parse(await readFile(manifestPath, 'utf8'));
+  await writeScenarioFile(
+    repositoryPath,
+    'package.json',
+    `${JSON.stringify(
+      {
+        ...manifest,
+        scripts: {
+          test: 'npm run test:integration',
+          'test:integration': 'node --test src/support-agent.test-integration.js',
+        },
+        type: 'module',
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/support-agent.js',
+    [
+      "const SUPPORT_INSTRUCTIONS = 'Help customers understand their orders without inventing details.';",
+      '',
+      'export const runSupportAgent = async (responsesClient, customerMessage) => {',
+      '  const firstResponse = await responsesClient.responses.create({',
+      '    input: customerMessage,',
+      '    instructions: SUPPORT_INSTRUCTIONS,',
+      '  });',
+      '',
+      '  return responsesClient.responses.create({',
+      "    input: 'The order lookup completed successfully.',",
+      '    instructions: SUPPORT_INSTRUCTIONS,',
+      '    previous_response_id: firstResponse.id,',
+      '  });',
+      '};',
+      '',
+    ].join('\n'),
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/support-agent.test-integration.js',
+    [
+      "import assert from 'node:assert/strict';",
+      "import test from 'node:test';",
+      '',
+      "import { runSupportAgent } from './support-agent.js';",
+      '',
+      "test('passes the inline instruction to both Responses calls', async () => {",
+      '  const requests = [];',
+      '  const responsesClient = {',
+      '    responses: {',
+      '      create: async (request) => {',
+      '        requests.push(request);',
+      '        return { id: `response-${requests.length}` };',
+      '      },',
+      '    },',
+      '  };',
+      '',
+      "  await runSupportAgent(responsesClient, 'Where is order 123?');",
+      '',
+      '  assert.equal(requests.length, 2);',
+      '  assert.equal(requests[0].instructions, requests[1].instructions);',
+      '});',
+      '',
+    ].join('\n'),
+  );
+};
+
 /** Seeds executable package-manager configuration that must not be loaded implicitly. */
 const seedPackageManagerExecutionTrap = async (repositoryPath, manager) => {
   const sentinelCode =
@@ -946,6 +1017,9 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
         'src/refund-policy.js',
         'export const requiresApproval = () => false;\n',
       );
+      break;
+    case 'agent-adoption-inline-runtime-instruction':
+      await seedInlineInstructionRuntime(repositoryPath);
       break;
     case 'evaluate-dirty-working-tree':
       for (const relativePath of [
@@ -1268,8 +1342,39 @@ const diffSnapshots = (before, after) => {
   return { created, deleted, modified };
 };
 
-/** Hashes every distributed path and byte in deterministic relative-path order. */
-export const createPortableSkillDigest = () => {
+// marker used only to normalize release-version declarations for evidence carry-forward
+const PORTABLE_RELEASE_VERSION_PLACEHOLDER = '<portable-release-version>';
+const PORTABLE_RELEASE_VERSION_PATHS = new Set([
+  'SKILL.md',
+  'references/local-tooling.md',
+]);
+
+/** Normalizes release-version declarations without changing behavioral skill content. */
+export const normalizePortableSkillSemanticEvidence = (relativePath, content) => {
+  if (relativePath === 'SKILL.md') {
+    return content
+      .replace(
+        /^(\s*version:\s*")[^"]+("\s*)$/m,
+        `$1${PORTABLE_RELEASE_VERSION_PLACEHOLDER}$2`,
+      )
+      .replace(
+        /Skill release `[^`]+` supports exactly:/,
+        `Skill release \`${PORTABLE_RELEASE_VERSION_PLACEHOLDER}\` supports exactly:`,
+      );
+  }
+
+  if (relativePath === 'references/local-tooling.md') {
+    return content.replace(
+      /Release `[^`]+` supports:/,
+      `Release \`${PORTABLE_RELEASE_VERSION_PLACEHOLDER}\` supports:`,
+    );
+  }
+
+  return content;
+};
+
+/** Hashes distributed paths with a caller-provided content transformation. */
+const createPortableSkillContentDigest = (transformContent) => {
   const paths = [];
 
   const collect = (directoryPath) => {
@@ -1286,14 +1391,27 @@ export const createPortableSkillDigest = () => {
 
   const hash = createHash('sha256');
   for (const absolutePath of paths) {
-    hash.update(relative(PORTABLE_SKILL_ROOT, absolutePath).replaceAll('\\', '/'));
+    const relativePath = relative(PORTABLE_SKILL_ROOT, absolutePath).replaceAll('\\', '/');
+    const content = readFileSync(absolutePath);
+    hash.update(relativePath);
     hash.update('\0');
-    hash.update(readFileSync(absolutePath));
+    hash.update(transformContent(relativePath, content));
     hash.update('\0');
   }
 
   return hash.digest('hex');
 };
+
+/** Hashes every distributed path and byte in deterministic relative-path order. */
+export const createPortableSkillDigest = () =>
+  createPortableSkillContentDigest((_relativePath, content) => content);
+
+/** Hashes semantic skill content while excluding only release-version declarations. */
+export const createPortableSkillSemanticDigest = () =>
+  createPortableSkillContentDigest((relativePath, content) => {
+    if (!PORTABLE_RELEASE_VERSION_PATHS.has(relativePath)) return content;
+    return normalizePortableSkillSemanticEvidence(relativePath, content.toString('utf8'));
+  });
 
 /** Returns non-sensitive host identity metadata. */
 const identifyHost = (command) => {

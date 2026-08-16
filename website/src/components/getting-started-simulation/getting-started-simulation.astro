@@ -66,9 +66,10 @@ import { withBase } from '../../lib/site/url.ts';
                   >{INSTALL_COMMAND}</code
                 >
                 <button
-                  class="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground"
+                  class="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px motion-reduce:transition-none motion-reduce:active:translate-y-0 dark:hover:bg-primary/30"
                   type="button"
                   data-getting-started-copy={INSTALL_COMMAND}
+                  data-primary-action
                   aria-label="Copy install command"
                 >
                   <Copy

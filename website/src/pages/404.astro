@@ -19,8 +19,9 @@ import { withBase } from '../lib/site/url.ts';
       </p>
       <div class="mt-8 flex flex-wrap gap-3">
         <a
-          class="inline-flex min-h-12 items-center gap-2 rounded-lg bg-primary px-5 py-3 font-bold text-primary-foreground"
+          class="inline-flex min-h-12 items-center gap-2 rounded-lg bg-primary px-5 py-3 font-bold text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px motion-reduce:transition-none motion-reduce:active:translate-y-0 dark:hover:bg-primary/30"
           href={withBase('/')}
+          data-primary-action
         >
           <ArrowLeft
             class="size-4"

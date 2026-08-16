@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import {
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   realpathSync,
   rmSync,
@@ -17,8 +18,43 @@ import test from 'node:test';
 import {
   buildBwrapArguments,
   prepareSandboxHome,
+  readSemanticEvaluationCandidate,
   seedSemanticTooling,
+  writeSemanticEvaluationCandidate,
 } from './semantic-evaluation-runner.mjs';
+
+test('semantic candidate checkpoints are atomically replaceable', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-candidate-test-'));
+  const candidatePath = join(evaluationRoot, '.semantic-evaluation-candidate.json');
+  const initialCandidate = {
+    artifactDigest: 'a'.repeat(64),
+    results: [],
+    schemaVersion: 1,
+  };
+  const updatedCandidate = {
+    ...initialCandidate,
+    results: [{ id: 'completed-case', passed: true }],
+  };
+
+  try {
+    await writeSemanticEvaluationCandidate(initialCandidate, candidatePath);
+    assert.deepEqual(
+      await readSemanticEvaluationCandidate(candidatePath),
+      initialCandidate,
+    );
+
+    await writeSemanticEvaluationCandidate(updatedCandidate, candidatePath);
+    assert.deepEqual(
+      await readSemanticEvaluationCandidate(candidatePath),
+      updatedCandidate,
+    );
+    assert.deepEqual(readdirSync(evaluationRoot), [
+      '.semantic-evaluation-candidate.json',
+    ]);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
 
 test('semantic actors execute the copied published CLI closure', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-published-cli-test-'));
@@ -47,16 +83,22 @@ test('semantic actors execute the copied published CLI closure', async () => {
     });
     const compatibilityEnvelope = JSON.parse(compatibilityResult.stdout);
 
-    assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': '1.0.1' });
+    assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': '2.0.0' });
     assert.equal(cliManifest.bin.moldea, './dist/moldea.js');
     assert.equal(versionResult.status, 0, versionResult.stderr);
-    assert.equal(versionResult.stdout.trim(), '1.0.1');
+    assert.equal(versionResult.stdout.trim(), '2.0.0');
     assert.equal(compatibilityResult.status, 0, compatibilityResult.stderr);
     assert.deepEqual(compatibilityEnvelope.result.packages, [
-      { name: '@moldea.ai/core', version: '1.0.1' },
+      { name: '@moldea.ai/adapter-openai', version: '2.0.0' },
+      { name: '@moldea.ai/core', version: '2.0.0' },
       { name: '@moldea.ai/repository', version: '1.0.1' },
       { name: '@moldea.ai/repository-fs', version: '1.0.1' },
     ]);
+    const openAiAdapter = compatibilityEnvelope.result.adapters.find(
+      ({ id }) => id === 'openai',
+    );
+    assert.equal(openAiAdapter.active, true);
+    assert.equal(openAiAdapter.bundledVersion, '2.0.0');
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

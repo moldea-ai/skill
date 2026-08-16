@@ -7,6 +7,7 @@ import { gunzipSync } from 'node:zlib';
 
 const CANDIDATE_PACKAGE_NAMES = [
   '@moldea.ai/cli',
+  '@moldea.ai/adapter-openai',
   '@moldea.ai/core',
   '@moldea.ai/repository',
   '@moldea.ai/repository-fs',
@@ -97,7 +98,7 @@ export const validateCandidateArtifacts = (artifacts) => {
 };
 
 /**
- * Loads and validates the exact four-package CLI candidate closure.
+ * Loads and validates the exact five-package CLI candidate closure.
  * @param artifactDirectory The directory containing the packed candidate artifacts.
  * @returns The validated artifacts and derived CLI version.
  */

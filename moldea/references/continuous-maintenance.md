@@ -13,7 +13,7 @@ Evidence that adoption exists or is underway includes canonical `/moldea/**` ass
 For every relevant developer-authorized change:
 
 1. Identify the implementation, contract, project, or agent behavior that may change.
-2. Map it through exact bindings, `affectedBy` paths, context and decision relationships, unresolved-requirement references, schemas, capabilities, runtime-agent construction, instruction loaders, variable providers, mirrors, runtime guidance, runtime-adapter evidence, imports, tests, configuration, and other material semantic evidence.
+2. Map it through exact bindings, `affectedBy` paths, context and decision relationships, unresolved-requirement references, schemas, capabilities, runtime-agent construction, instruction loaders, variable providers, canonical descriptions, routing-facing metadata, mirrors, runtime guidance, runtime-adapter evidence, imports, tests, configuration, and other material semantic evidence.
 3. Inspect the affected project and agent surfaces deeply enough to establish whether truth or declared behavior actually changed.
 4. Update all affected representations in the same coherent developer change when the intended state is sufficiently established and writes are authorized.
 5. Make no canonical edit when established project truth and declared behavior remain correct.
@@ -22,6 +22,8 @@ For every relevant developer-authorized change:
 8. Report the reconsidered surfaces, changes or no-change result, verification, and remaining limitations.
 
 An `affectedBy` or other relevance match means “reconsider this surface,” not “edit this file.” Stop relevance expansion when more investigation is unlikely to change a material conclusion.
+
+When a canonical description or runtime routing surface changes, reconsider the relationship in both directions. Routing-facing metadata uses the target's handoff description when present and otherwise its agent description; general-only metadata uses the agent description. Establish that role from runtime semantics rather than property names, and treat unsupported dynamic wiring as unestablished rather than confirmed wrong.
 
 If the developer prohibits corresponding `moldea` writes, respect the constraint, complete only authorized work, identify likely drift, and do not claim alignment.
 

@@ -15,11 +15,10 @@ const OFFICIAL_ADAPTER_IDS = [
   'langgraph',
   'openai',
   'openai-agents-sdk',
-  'pydantic-ai',
   'vercel-ai-sdk',
 ];
 const BASE_COMPATIBILITY_PACKAGES = [
-  { name: '@moldea.ai/core', version: '1.0.1' },
+  { name: '@moldea.ai/core', version: '2.0.0' },
   { name: '@moldea.ai/repository', version: '1.0.1' },
   { name: '@moldea.ai/repository-fs', version: '1.0.1' },
 ];
@@ -99,7 +98,7 @@ const readIndexedAgents = (manifestContent) => {
 const createCustomCompatibility = () => ({
   id: 'custom',
   active: true,
-  bundledVersion: '1.0.1',
+  bundledVersion: '2.0.0',
   matrix: {
     implementation: {
       kind: 'built-in',
@@ -108,7 +107,7 @@ const createCustomCompatibility = () => ({
     },
     implementationStatus: 'available',
     supportedRepositoryFormatVersions: [1],
-    compatibleCoreRange: '^1.0.0',
+    compatibleCoreRange: '^2.0.0',
     runtimeGuidance: {
       expectation: 'required',
       notes: 'Project-local guidance defines the custom runtime integration.',
@@ -127,10 +126,59 @@ const createCustomCompatibility = () => ({
             description: 'Core validates explicit repository relationships.',
           },
         ],
-        lastVerifiedAt: '2026-08-12',
+        lastVerifiedAt: '2026-08-15',
       },
     ],
-    lastVerifiedAt: '2026-08-12',
+    lastVerifiedAt: '2026-08-15',
+  },
+});
+
+/** Builds the active experimental OpenAI adapter contract bundled by CLI 2.0.0. */
+const createOpenAiCompatibility = () => ({
+  id: 'openai',
+  active: true,
+  bundledVersion: '2.0.0',
+  matrix: {
+    implementation: {
+      kind: 'package',
+      package: '@moldea.ai/adapter-openai',
+      versionRange: '^2.0.0',
+      distribution: 'public',
+    },
+    implementationStatus: 'available',
+    supportedRepositoryFormatVersions: [1],
+    compatibleCoreRange: '^2.0.0',
+    runtimeGuidance: {
+      expectation: 'recommended',
+      notes:
+        'Document project-specific model selection, tool execution, streaming, retry, and error behavior that static inspection cannot establish.',
+    },
+    targets: [
+      {
+        id: 'typescript-responses-api-7',
+        kind: 'package',
+        supportLevel: 'experimental',
+        language: 'typescript',
+        packages: [
+          {
+            ecosystem: 'npm',
+            name: 'openai',
+            role: 'primary',
+            versionRange: '>=7.4.0 <8.0.0',
+          },
+        ],
+        evidenceKinds: [
+          'instruction-loader',
+          'language',
+          'runtime-package',
+          'runtime-pattern',
+          'schema',
+          'tool-registration',
+        ],
+        lastVerifiedAt: '2026-08-15',
+      },
+    ],
+    lastVerifiedAt: '2026-08-15',
   },
 });
 
@@ -159,7 +207,9 @@ const readCompatibilityAdapters = () => {
 
   return OFFICIAL_ADAPTER_IDS.map((id) => {
     if (overridesById.has(id)) return overridesById.get(id);
-    return id === 'custom' ? createCustomCompatibility() : createPlannedCompatibility(id);
+    if (id === 'custom') return createCustomCompatibility();
+    if (id === 'openai') return createOpenAiCompatibility();
+    return createPlannedCompatibility(id);
   });
 };
 
@@ -180,7 +230,7 @@ const readCompatibilityPackages = (adapters) => {
 };
 
 if (command === '--version') {
-  process.stdout.write('1.0.1\n');
+  process.stdout.write('2.0.0\n');
 } else if (command === 'inspect' && process.argv.includes('--json')) {
   const manifest = readTextAsset('/moldea/moldea.yaml');
   const project = readTextAsset('/moldea/project.md');
@@ -243,7 +293,7 @@ if (command === '--version') {
 
   process.stdout.write(
     `${JSON.stringify({
-      cliVersion: '1.0.1',
+      cliVersion: '2.0.0',
       command: 'inspect',
       error: null,
       result: {
@@ -259,7 +309,7 @@ if (command === '--version') {
   const adapters = readCompatibilityAdapters();
   process.stdout.write(
     `${JSON.stringify({
-      cliVersion: '1.0.1',
+      cliVersion: '2.0.0',
       command: 'compatibility',
       error: null,
       result: {

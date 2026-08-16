@@ -12,12 +12,19 @@ import {
   buildJudgePrompt,
   collectProductionPackageRoots,
   createPortableSkillSemanticDigest,
+  createSemanticCaseDefinitionDigest,
+  createSemanticCaseSuiteDigest,
+  createSemanticEvaluationCandidate,
+  createSemanticEvaluationRecord,
+  getPendingSemanticCaseDefinitions,
   getSemanticToolingSource,
   getSyntheticCompatibilityCaseIds,
   identifyConfiguredModel,
+  mergeSemanticCandidateResult,
   normalizePortableSkillSemanticEvidence,
   resolveCodeModeHostPath,
   validateHostCommand,
+  validateSemanticCandidateCompatibility,
   validateSemanticResultRecording,
 } from './semantic-evaluation-runner.mjs';
 
@@ -39,6 +46,49 @@ const SAFE_HOST_COMMAND = [
   'shell_environment_policy.inherit=none',
   '-',
 ];
+const SECOND_CASE_DEFINITION = {
+  expected: ['second-expected-label'],
+  forbidden: ['second-forbidden-label'],
+  id: 'second-evaluation',
+  prompt: 'Evaluate a second repository scenario without changing it.',
+};
+const ACTOR_HOST = { model: 'host-default', name: 'codex', version: '1.2.3' };
+const JUDGE_HOST = { model: 'judge-model', name: 'codex', version: '1.2.3' };
+const ARTIFACT_DIGEST = 'a'.repeat(64);
+const EVALUATED_AT = '2026-08-16T12:00:00.000Z';
+const BEFORE_SNAPSHOT_STATE = {
+  mode: 33_204,
+  sha256: 'b'.repeat(64),
+  type: 'file',
+};
+const AFTER_SNAPSHOT_STATE = {
+  mode: 33_204,
+  sha256: 'c'.repeat(64),
+  type: 'file',
+};
+
+const createCaseResult = (caseDefinition, passed) => ({
+  actorResponse: `Actor response for ${caseDefinition.id}`,
+  caseId: caseDefinition.id,
+  forbidden: [],
+  id: caseDefinition.id,
+  observed: passed ? [...caseDefinition.expected] : [],
+  passed,
+  rationale: passed
+    ? 'The expected behavior was demonstrated.'
+    : 'Expected evidence was missing.',
+  workspaceChanges: {
+    created: [],
+    deleted: [],
+    modified: [
+      {
+        after: AFTER_SNAPSHOT_STATE,
+        before: BEFORE_SNAPSHOT_STATE,
+        path: 'src/example.js',
+      },
+    ],
+  },
+});
 
 test('actor prompt contains only the user scenario', () => {
   const actorPrompt = buildActorPrompt(CASE_DEFINITION);
@@ -123,17 +173,168 @@ test('host identity preserves explicit and default model selection', () => {
   );
 });
 
-test('recording rejects targeted and failing semantic evidence', () => {
+test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
+  const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
+  const candidate = createSemanticEvaluationCandidate({
+    actorHost: ACTOR_HOST,
+    artifactDigest: ARTIFACT_DIGEST,
+    caseDefinitions,
+    generatedAt: EVALUATED_AT,
+    judgeHost: JUDGE_HOST,
+  });
+
+  assert.equal(
+    createSemanticCaseSuiteDigest(caseDefinitions),
+    createSemanticCaseSuiteDigest([...caseDefinitions].reverse()),
+  );
+  assert.throws(
+    () => createSemanticCaseSuiteDigest([CASE_DEFINITION, CASE_DEFINITION]),
+    /case IDs must be unique/,
+  );
   assert.doesNotThrow(() =>
-    validateSemanticResultRecording({ hasFailures: false, isCaseSelected: false }),
+    validateSemanticCandidateCompatibility(candidate, {
+      actorHost: ACTOR_HOST,
+      artifactDigest: ARTIFACT_DIGEST,
+      caseDefinitions,
+      judgeHost: JUDGE_HOST,
+    }),
   );
   assert.throws(
-    () => validateSemanticResultRecording({ hasFailures: false, isCaseSelected: true }),
-    /targeted semantic evaluation/,
+    () =>
+      validateSemanticCandidateCompatibility(candidate, {
+        actorHost: ACTOR_HOST,
+        artifactDigest: 'b'.repeat(64),
+        caseDefinitions,
+        judgeHost: JUDGE_HOST,
+      }),
+    /different portable artifact/,
   );
   assert.throws(
-    () => validateSemanticResultRecording({ hasFailures: true, isCaseSelected: false }),
-    /failed cases/,
+    () =>
+      validateSemanticCandidateCompatibility(candidate, {
+        actorHost: ACTOR_HOST,
+        artifactDigest: ARTIFACT_DIGEST,
+        caseDefinitions: [
+          { ...CASE_DEFINITION, prompt: 'Changed evaluation prompt.' },
+          SECOND_CASE_DEFINITION,
+        ],
+        judgeHost: JUDGE_HOST,
+      }),
+    /different case suite/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticCandidateCompatibility(candidate, {
+        actorHost: { ...ACTOR_HOST, version: '2.0.0' },
+        artifactDigest: ARTIFACT_DIGEST,
+        caseDefinitions,
+        judgeHost: JUDGE_HOST,
+      }),
+    /different actor or judge hosts/,
+  );
+});
+
+test('semantic candidates resume pending cases and replace targeted evidence', () => {
+  const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
+  let candidate = createSemanticEvaluationCandidate({
+    actorHost: ACTOR_HOST,
+    artifactDigest: ARTIFACT_DIGEST,
+    caseDefinitions,
+    generatedAt: EVALUATED_AT,
+    judgeHost: JUDGE_HOST,
+  });
+
+  candidate = mergeSemanticCandidateResult(
+    candidate,
+    CASE_DEFINITION,
+    createCaseResult(CASE_DEFINITION, true),
+    EVALUATED_AT,
+  );
+  candidate = mergeSemanticCandidateResult(
+    candidate,
+    SECOND_CASE_DEFINITION,
+    createCaseResult(SECOND_CASE_DEFINITION, false),
+    EVALUATED_AT,
+  );
+
+  assert.deepEqual(
+    getPendingSemanticCaseDefinitions(candidate, caseDefinitions).map(({ id }) => id),
+    [SECOND_CASE_DEFINITION.id],
+  );
+  assert.throws(
+    () => validateSemanticResultRecording({ candidate, caseDefinitions }),
+    /incomplete or failing/,
+  );
+
+  candidate = mergeSemanticCandidateResult(
+    candidate,
+    SECOND_CASE_DEFINITION,
+    createCaseResult(SECOND_CASE_DEFINITION, true),
+    '2026-08-16T12:01:00.000Z',
+  );
+  assert.deepEqual(getPendingSemanticCaseDefinitions(candidate, caseDefinitions), []);
+  assert.doesNotThrow(() =>
+    validateSemanticResultRecording({ candidate, caseDefinitions }),
+  );
+
+  const record = createSemanticEvaluationRecord({
+    candidate,
+    caseDefinitions,
+    generatedAt: '2026-08-16T12:02:00.000Z',
+  });
+  assert.equal(record.evaluationProtocolVersion, 3);
+  assert.equal(record.caseSuiteDigest, createSemanticCaseSuiteDigest(caseDefinitions));
+  assert.deepEqual(
+    record.cases.map(({ id }) => id),
+    caseDefinitions.map(({ id }) => id),
+  );
+  assert.deepEqual(
+    record.cases.map(({ caseDefinitionDigest }) => caseDefinitionDigest),
+    caseDefinitions.map(createSemanticCaseDefinitionDigest),
+  );
+});
+
+test('semantic candidate validation rejects internally inconsistent evidence', () => {
+  const caseDefinitions = [CASE_DEFINITION];
+  const candidate = mergeSemanticCandidateResult(
+    createSemanticEvaluationCandidate({
+      actorHost: ACTOR_HOST,
+      artifactDigest: ARTIFACT_DIGEST,
+      caseDefinitions,
+      generatedAt: EVALUATED_AT,
+      judgeHost: JUDGE_HOST,
+    }),
+    CASE_DEFINITION,
+    createCaseResult(CASE_DEFINITION, false),
+    EVALUATED_AT,
+  );
+
+  assert.throws(
+    () =>
+      validateSemanticResultRecording({
+        candidate: {
+          ...candidate,
+          results: [{ ...candidate.results[0], passed: true }],
+        },
+        caseDefinitions,
+      }),
+    /invalid case evidence/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticResultRecording({
+        candidate: {
+          ...candidate,
+          results: [
+            {
+              ...candidate.results[0],
+              workspaceChanges: { created: [], deleted: [], modified: ['src/example.js'] },
+            },
+          ],
+        },
+        caseDefinitions,
+      }),
+    /invalid case evidence/,
   );
 });
 
@@ -204,12 +405,14 @@ test('collects the exact published CLI production dependency closure', () => {
     .sort();
 
   assert.deepEqual(packageVersions, [
-    '@moldea.ai/cli@1.0.1',
-    '@moldea.ai/core@1.0.1',
+    '@moldea.ai/adapter-openai@2.0.0',
+    '@moldea.ai/cli@2.0.0',
+    '@moldea.ai/core@2.0.0',
     '@moldea.ai/repository-fs@1.0.1',
     '@moldea.ai/repository@1.0.1',
     'error-message-utils@1.2.11',
     'semver@7.8.5',
+    'typescript@6.0.3',
     'yaml@2.9.0',
     'zod@4.3.6',
   ]);

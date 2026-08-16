@@ -11,6 +11,7 @@ import {
 
 const PACKAGE_NAMES = [
   '@moldea.ai/cli',
+  '@moldea.ai/adapter-openai',
   '@moldea.ai/core',
   '@moldea.ai/repository',
   '@moldea.ai/repository-fs',
@@ -19,8 +20,9 @@ const PACKAGE_NAMES = [
 /** Builds one complete synthetic candidate closure with independently configurable versions. */
 const createArtifacts = (
   versions = {
-    '@moldea.ai/cli': '1.0.1',
-    '@moldea.ai/core': '1.0.1',
+    '@moldea.ai/cli': '2.0.0',
+    '@moldea.ai/adapter-openai': '2.0.0',
+    '@moldea.ai/core': '2.0.0',
     '@moldea.ai/repository': '1.0.1',
     '@moldea.ai/repository-fs': '1.0.1',
   },
@@ -35,6 +37,7 @@ const createArtifacts = (
 
       if (packageName === '@moldea.ai/cli') {
         manifest.dependencies = {
+          '@moldea.ai/adapter-openai': versions['@moldea.ai/adapter-openai'],
           '@moldea.ai/core': versions['@moldea.ai/core'],
           '@moldea.ai/repository': versions['@moldea.ai/repository'],
           '@moldea.ai/repository-fs': versions['@moldea.ai/repository-fs'],
@@ -59,13 +62,14 @@ test('validates the current published package composition', () => {
 
   assert.deepEqual(validateCandidateArtifacts(artifacts), {
     artifacts,
-    cliVersion: '1.0.1',
+    cliVersion: '2.0.0',
   });
 });
 
 test('supports independently versioned candidate packages', () => {
   const artifacts = createArtifacts({
     '@moldea.ai/cli': '1.0.5',
+    '@moldea.ai/adapter-openai': '1.0.2',
     '@moldea.ai/core': '1.0.3',
     '@moldea.ai/repository': '1.0.2',
     '@moldea.ai/repository-fs': '1.0.4',
@@ -80,7 +84,7 @@ test('rejects incomplete and mismatched candidate closures', () => {
   assert.throws(() => validateCandidateArtifacts(incompleteArtifacts));
 
   const mismatchedArtifacts = createArtifacts();
-  mismatchedArtifacts.get('@moldea.ai/cli').manifest.dependencies['@moldea.ai/core'] = '1.0.0';
+  mismatchedArtifacts.get('@moldea.ai/cli').manifest.dependencies['@moldea.ai/core'] = '2.0.1';
   assert.throws(
     () => validateCandidateArtifacts(mismatchedArtifacts),
     /@moldea\.ai\/core must be exact-pinned/,
@@ -112,15 +116,15 @@ test('derives registry metadata from each artifact manifest', () => {
     'http://127.0.0.1:4321',
   );
 
-  assert.equal(archivePath, '/@moldea.ai/cli/-/cli-1.0.1.tgz');
-  assert.deepEqual(metadata['dist-tags'], { latest: '1.0.1' });
-  assert.deepEqual(Object.keys(metadata.versions), ['1.0.1']);
+  assert.equal(archivePath, '/@moldea.ai/cli/-/cli-2.0.0.tgz');
+  assert.deepEqual(metadata['dist-tags'], { latest: '2.0.0' });
+  assert.deepEqual(Object.keys(metadata.versions), ['2.0.0']);
   assert.equal(
-    metadata.versions['1.0.1'].dist.integrity,
+    metadata.versions['2.0.0'].dist.integrity,
     `sha512-${createHash('sha512').update(artifact.archive).digest('base64')}`,
   );
   assert.equal(
-    metadata.versions['1.0.1'].dist.tarball,
-    'http://127.0.0.1:4321/@moldea.ai/cli/-/cli-1.0.1.tgz',
+    metadata.versions['2.0.0'].dist.tarball,
+    'http://127.0.0.1:4321/@moldea.ai/cli/-/cli-2.0.0.tgz',
   );
 });

@@ -33,7 +33,7 @@ const LIFECYCLE_FIXTURE_MANIFEST = JSON.parse(
 );
 const MANAGER = process.env.MOLDEA_TEST_MANAGER ?? 'npm';
 const EXPECTED_MANAGER_VERSION = process.env.MOLDEA_TEST_MANAGER_VERSION;
-const PUBLISHED_CLI_VERSION = process.env.MOLDEA_TEST_CLI_VERSION ?? '1.1.1';
+const PUBLISHED_CLI_VERSION = process.env.MOLDEA_TEST_CLI_VERSION ?? '2.0.0';
 const EXECUTABLE = process.platform === 'win32' ? `${MANAGER}.cmd` : MANAGER;
 const CANDIDATE_ARTIFACT_DIRECTORY = process.env.MOLDEA_CLI_ARTIFACT_DIRECTORY;
 const REQUIRE_CANDIDATE_ARTIFACTS = process.env.MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS === '1';
@@ -55,7 +55,7 @@ const isSupportedVersion = (manager, version) => {
 
 const isSupportedCliVersion = (version) => {
   const [major, minor] = parseVersion(version);
-  return major === 1 && (minor === 0 || minor === 1);
+  return major === 2 && minor === 0;
 };
 
 /** Returns whether the selected Yarn version supports its command-scoped age-gate override. */
@@ -485,7 +485,7 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
     assert.equal(customAdapter.active, true);
     assert.equal(customAdapter.bundledVersion, cliPackage.manifest.dependencies['@moldea.ai/core']);
     assert.equal(customAdapter.matrix.implementationStatus, 'available');
-    assert.equal(customAdapter.matrix.compatibleCoreRange, '^1.0.0');
+    assert.equal(customAdapter.matrix.compatibleCoreRange, '^2.0.0');
     assert.deepEqual(customAdapter.matrix.supportedRepositoryFormatVersions, [1]);
     assert.equal(customAdapter.matrix.runtimeGuidance.expectation, 'required');
     assert.equal(customAdapter.matrix.targets[0].id, 'custom');

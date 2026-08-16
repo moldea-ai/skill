@@ -32,6 +32,11 @@ const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PORTABLE_SKILL_ROOT = join(REPOSITORY_ROOT, 'moldea');
 const CASES_PATH = join(REPOSITORY_ROOT, 'fixtures', 'conformance-cases.json');
 const RESULT_PATH = join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-result.json');
+const CANDIDATE_RESULT_PATH = join(
+  REPOSITORY_ROOT,
+  'fixtures',
+  '.semantic-evaluation-candidate.json',
+);
 const ROOT_NODE_MODULES = realpathSync(join(REPOSITORY_ROOT, 'node_modules'));
 const PUBLISHED_CLI_ROOT = join(ROOT_NODE_MODULES, '@moldea.ai', 'cli');
 const PUBLISHED_CLI_MANIFEST = JSON.parse(
@@ -44,6 +49,7 @@ const DEFAULT_HOST_TIMEOUT_MS = 120_000;
 const DEFAULT_ALLOWED_EGRESS_HOSTS = ['api.openai.com', 'auth.openai.com', 'chatgpt.com'];
 const EGRESS_PROXY_PORT = 3128;
 const HOST_DEFAULT_MODEL = 'host-default';
+const EVALUATION_PROTOCOL_VERSION = 3;
 const NODE_EXECUTABLE_PATH = realpathSync(process.execPath);
 const SEMANTIC_EVALUATION_NPM_VERSION = '11.12.1';
 const REQUIRED_CODEX_FLAGS = [
@@ -169,15 +175,232 @@ export const identifyConfiguredModel = (command) => {
   return HOST_DEFAULT_MODEL;
 };
 
-/** Rejects incomplete or failing evidence before it can replace the full result fixture. */
-export const validateSemanticResultRecording = ({ hasFailures, isCaseSelected }) => {
-  if (isCaseSelected) {
-    throw new Error('Refusing to record a targeted semantic evaluation as the full result.');
+/** Hashes one JSON-compatible semantic-evaluation contract exactly. */
+const createJsonDigest = (value) =>
+  createHash('sha256').update(JSON.stringify(value)).digest('hex');
+
+/** Hashes one case definition independently of fixture order. */
+export const createSemanticCaseDefinitionDigest = (caseDefinition) =>
+  createJsonDigest(caseDefinition);
+
+/** Hashes the complete case suite in stable case-ID order. */
+export const createSemanticCaseSuiteDigest = (caseDefinitions) => {
+  const definitionsById = [...caseDefinitions]
+    .map((caseDefinition) => ({
+      digest: createSemanticCaseDefinitionDigest(caseDefinition),
+      id: caseDefinition.id,
+    }))
+    .sort(({ id: left }, { id: right }) => left.localeCompare(right));
+  const uniqueIds = new Set(definitionsById.map(({ id }) => id));
+  if (uniqueIds.size !== definitionsById.length) {
+    throw new Error('Semantic evaluation case IDs must be unique.');
   }
-  if (hasFailures) {
-    throw new Error('Refusing to record a semantic evaluation containing failed cases.');
+
+  return createJsonDigest(definitionsById);
+};
+
+/** Creates an empty artifact-bound checkpoint for one evaluation host pair. */
+export const createSemanticEvaluationCandidate = ({
+  actorHost,
+  artifactDigest,
+  caseDefinitions,
+  generatedAt,
+  judgeHost,
+}) => ({
+  actorHost,
+  artifactDigest,
+  caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
+  evaluationProtocolVersion: EVALUATION_PROTOCOL_VERSION,
+  generatedAt,
+  judgeHost,
+  results: [],
+  schemaVersion: 1,
+  updatedAt: generatedAt,
+});
+
+/** Checks whether one workspace snapshot entry has the runner's stable evidence shape. */
+const isWorkspaceSnapshotState = (state) =>
+  state &&
+  Number.isSafeInteger(state.mode) &&
+  ((state.type === 'file' && /^[a-f0-9]{64}$/.test(state.sha256)) ||
+    (state.type === 'symlink' && typeof state.target === 'string'));
+
+/** Checks whether one workspace-change collection matches the snapshot delta contract. */
+const hasValidWorkspaceChanges = (workspaceChanges) =>
+  workspaceChanges &&
+  Array.isArray(workspaceChanges.created) &&
+  workspaceChanges.created.every(
+    (entry) =>
+      entry &&
+      typeof entry.path === 'string' &&
+      isWorkspaceSnapshotState(entry.state),
+  ) &&
+  Array.isArray(workspaceChanges.deleted) &&
+  workspaceChanges.deleted.every(
+    (entry) =>
+      entry &&
+      typeof entry.path === 'string' &&
+      isWorkspaceSnapshotState(entry.state),
+  ) &&
+  Array.isArray(workspaceChanges.modified) &&
+  workspaceChanges.modified.every(
+    (entry) =>
+      entry &&
+      typeof entry.path === 'string' &&
+      isWorkspaceSnapshotState(entry.before) &&
+      isWorkspaceSnapshotState(entry.after),
+  );
+
+/** Requires checkpoint case evidence to remain complete and internally consistent. */
+const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
+  if (
+    !candidate ||
+    candidate.schemaVersion !== 1 ||
+    candidate.evaluationProtocolVersion !== EVALUATION_PROTOCOL_VERSION ||
+    typeof candidate.generatedAt !== 'string' ||
+    typeof candidate.updatedAt !== 'string' ||
+    !Array.isArray(candidate.results)
+  ) {
+    throw new Error('The semantic evaluation candidate has an unsupported shape.');
+  }
+
+  const caseDefinitionsById = new Map(
+    caseDefinitions.map((caseDefinition) => [caseDefinition.id, caseDefinition]),
+  );
+  const resultIds = new Set();
+  for (const result of candidate.results) {
+    const caseDefinition = caseDefinitionsById.get(result?.id);
+    const hasValidLabels =
+      caseDefinition &&
+      Array.isArray(result.observed) &&
+      result.observed.every((label) => typeof label === 'string') &&
+      result.observed.every((label) => caseDefinition.expected.includes(label)) &&
+      Array.isArray(result.forbidden) &&
+      result.forbidden.every((label) => typeof label === 'string') &&
+      result.forbidden.every((label) => caseDefinition.forbidden.includes(label));
+    const isDerivedPass =
+      hasValidLabels &&
+      caseDefinition.expected.every((label) => result.observed.includes(label)) &&
+      result.forbidden.length === 0;
+
+    if (
+      !caseDefinition ||
+      result.caseId !== result.id ||
+      resultIds.has(result.id) ||
+      typeof result.actorResponse !== 'string' ||
+      typeof result.rationale !== 'string' ||
+      typeof result.passed !== 'boolean' ||
+      result.passed !== isDerivedPass ||
+      !hasValidWorkspaceChanges(result.workspaceChanges) ||
+      typeof result.evaluatedAt !== 'string' ||
+      result.caseDefinitionDigest !== createSemanticCaseDefinitionDigest(caseDefinition)
+    ) {
+      throw new Error('The semantic evaluation candidate contains invalid case evidence.');
+    }
+    resultIds.add(result.id);
   }
 };
+
+/** Requires an existing checkpoint to match the complete current evidence boundary. */
+export const validateSemanticCandidateCompatibility = (
+  candidate,
+  { actorHost, artifactDigest, caseDefinitions, judgeHost },
+) => {
+  validateSemanticCandidateEvidence(candidate, caseDefinitions);
+  if (candidate.artifactDigest !== artifactDigest) {
+    throw new Error(
+      'The semantic evaluation candidate belongs to a different portable artifact. Use --restart to replace it.',
+    );
+  }
+
+  const caseSuiteDigest = createSemanticCaseSuiteDigest(caseDefinitions);
+  if (candidate.caseSuiteDigest !== caseSuiteDigest) {
+    throw new Error(
+      'The semantic evaluation candidate belongs to a different case suite. Use --restart to replace it.',
+    );
+  }
+  if (
+    JSON.stringify(candidate.actorHost) !== JSON.stringify(actorHost) ||
+    JSON.stringify(candidate.judgeHost) !== JSON.stringify(judgeHost)
+  ) {
+    throw new Error(
+      'The semantic evaluation candidate belongs to different actor or judge hosts. Use --restart to replace it.',
+    );
+  }
+};
+
+/** Replaces one case result in a compatible checkpoint without mutating the input. */
+export const mergeSemanticCandidateResult = (
+  candidate,
+  caseDefinition,
+  result,
+  evaluatedAt,
+) => {
+  if (result.id !== caseDefinition.id || result.caseId !== caseDefinition.id) {
+    throw new Error('Semantic case evidence must match the evaluated case definition.');
+  }
+
+  return {
+    ...candidate,
+    results: [
+      ...candidate.results.filter(({ id }) => id !== caseDefinition.id),
+      {
+        ...result,
+        caseDefinitionDigest: createSemanticCaseDefinitionDigest(caseDefinition),
+        evaluatedAt,
+      },
+    ],
+    updatedAt: evaluatedAt,
+  };
+};
+
+/** Returns missing or failing cases while preserving fixture order. */
+export const getPendingSemanticCaseDefinitions = (candidate, caseDefinitions) => {
+  const resultsById = new Map(candidate.results.map((result) => [result.id, result]));
+  return caseDefinitions.filter(({ id }) => !resultsById.get(id)?.passed);
+};
+
+/** Rejects incomplete or failing checkpoint evidence before canonical promotion. */
+export const validateSemanticResultRecording = ({ candidate, caseDefinitions }) => {
+  validateSemanticCandidateEvidence(candidate, caseDefinitions);
+  if (candidate.caseSuiteDigest !== createSemanticCaseSuiteDigest(caseDefinitions)) {
+    throw new Error('Refusing to promote evidence for a different semantic case suite.');
+  }
+  const resultsById = new Map(candidate.results.map((result) => [result.id, result]));
+  if (
+    candidate.results.length !== caseDefinitions.length ||
+    caseDefinitions.some(({ id }) => !resultsById.get(id)?.passed)
+  ) {
+    throw new Error(
+      'Refusing to promote incomplete or failing semantic evaluation evidence.',
+    );
+  }
+};
+
+/** Writes one JSON document atomically so interrupted checkpoints remain reusable. */
+const writeJsonAtomically = async (path, value) => {
+  const temporaryPath = `${path}.${process.pid}.tmp`;
+  try {
+    await writeFile(temporaryPath, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+    await rename(temporaryPath, path);
+  } finally {
+    await rm(temporaryPath, { force: true });
+  }
+};
+
+/** Reads the ignored semantic candidate when one exists. */
+export const readSemanticEvaluationCandidate = async (
+  path = CANDIDATE_RESULT_PATH,
+) => {
+  if (!existsSync(path)) return null;
+  return JSON.parse(await readFile(path, 'utf8'));
+};
+
+/** Persists an ignored semantic candidate after each completed case. */
+export const writeSemanticEvaluationCandidate = async (
+  candidate,
+  path = CANDIDATE_RESULT_PATH,
+) => writeJsonAtomically(path, candidate);
 
 /** Resolves a command from PATH without invoking a shell. */
 const resolveExecutablePath = (commandName) => {
@@ -1095,17 +1318,17 @@ const seedRuntimeCompatibility = async (
           {
             id: 'openai',
             active,
-            bundledVersion: active ? '1.0.0' : null,
+            bundledVersion: active ? '2.0.0' : null,
             matrix: {
               implementation: {
                 kind: 'package',
                 package: '@moldea.ai/adapter-openai',
                 distribution: 'public',
-                versionRange: '^1.0.0',
+                versionRange: '^2.0.0',
               },
               implementationStatus,
               supportedRepositoryFormatVersions: [1],
-              compatibleCoreRange: '^1.0.0',
+              compatibleCoreRange: '^2.0.0',
               runtimeGuidance: {
                 expectation: runtimeGuidance,
                 notes: 'Synthetic compatibility guidance for semantic evaluation.',
@@ -1600,6 +1823,58 @@ const identifyHost = (command) => {
   };
 };
 
+/** Builds the canonical result from one complete passing checkpoint. */
+export const createSemanticEvaluationRecord = ({
+  candidate,
+  caseDefinitions,
+  generatedAt,
+}) => {
+  validateSemanticResultRecording({ candidate, caseDefinitions });
+  const resultsById = new Map(candidate.results.map((result) => [result.id, result]));
+  const results = caseDefinitions.map(({ id }) => resultsById.get(id));
+
+  return {
+    actorHost: candidate.actorHost,
+    artifact: { sha256: candidate.artifactDigest },
+    artifactDigest: candidate.artifactDigest,
+    artifactSha256: candidate.artifactDigest,
+    cases: results.map((result) => ({
+      actorResponse: result.actorResponse,
+      caseDefinitionDigest: result.caseDefinitionDigest,
+      evaluatedAt: result.evaluatedAt,
+      expectedSatisfied: result.observed,
+      forbiddenTriggered: result.forbidden,
+      id: result.id,
+      passed: result.passed,
+      rationale: result.rationale,
+      workspaceChanges: result.workspaceChanges,
+    })),
+    caseSuiteDigest: candidate.caseSuiteDigest,
+    evaluationProtocolVersion: EVALUATION_PROTOCOL_VERSION,
+    evaluatedAt: generatedAt,
+    generatedAt,
+    host: candidate.actorHost,
+    judgeHost: candidate.judgeHost,
+    results,
+    schemaVersion: 1,
+    skillDigest: candidate.artifactDigest,
+  };
+};
+
+/** Stops checkpoint reuse when long-running evaluation inputs change mid-run. */
+const assertSemanticEvaluationInputsUnchanged = async ({
+  artifactDigest,
+  caseSuiteDigest,
+}) => {
+  if (createPortableSkillDigest() !== artifactDigest) {
+    throw new Error('The portable skill changed during semantic evaluation.');
+  }
+  const currentFixture = JSON.parse(await readFile(CASES_PATH, 'utf8'));
+  if (createSemanticCaseSuiteDigest(currentFixture.semanticCases) !== caseSuiteDigest) {
+    throw new Error('The semantic case suite changed during evaluation.');
+  }
+};
+
 /** Evaluates one case with separate actor and judge processes. */
 const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
   const evaluationRoot = await mkdtemp(join(tmpdir(), 'moldea-semantic-evaluation-'));
@@ -1651,76 +1926,163 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
   }
 };
 
-/** Runs blind forward evaluation and optionally records the digest-bound result. */
+/** Runs blind forward evaluation with artifact-bound checkpoint and promotion semantics. */
 const main = async () => {
   const actorCommand = parseHostCommand('MOLDEA_EVAL_ACTOR_COMMAND_JSON');
   const judgeCommand = parseHostCommand('MOLDEA_EVAL_JUDGE_COMMAND_JSON', actorCommand);
   validateHostCommand(actorCommand);
   validateHostCommand(judgeCommand);
   const fixture = JSON.parse(await readFile(CASES_PATH, 'utf8'));
+  const caseDefinitions = fixture.semanticCases;
   const caseArgumentIndex = process.argv.indexOf('--case');
   const requestedCaseId =
     caseArgumentIndex === -1 ? undefined : process.argv[caseArgumentIndex + 1];
-  const caseDefinitions = requestedCaseId
-    ? fixture.semanticCases.filter(({ id }) => id === requestedCaseId)
-    : fixture.semanticCases;
-  if (caseDefinitions.length === 0) {
+  if (caseArgumentIndex !== -1 && (!requestedCaseId || requestedCaseId.startsWith('--'))) {
+    throw new Error('--case requires one semantic case ID.');
+  }
+  const requestedCaseDefinition = requestedCaseId
+    ? caseDefinitions.find(({ id }) => id === requestedCaseId)
+    : undefined;
+  if (requestedCaseId && !requestedCaseDefinition) {
     throw new Error(`Unknown semantic evaluation case: ${requestedCaseId}`);
   }
-  const results = [];
+  const isRecordRequested = process.argv.includes('--record');
+  const isRestartRequested = process.argv.includes('--restart');
+  if (isRestartRequested && (!isRecordRequested || requestedCaseId)) {
+    throw new Error('--restart requires a full semantic evaluation with --record.');
+  }
 
-  for (const caseDefinition of caseDefinitions) {
+  const artifactDigest = createPortableSkillDigest();
+  const caseSuiteDigest = createSemanticCaseSuiteDigest(caseDefinitions);
+  const actorHost = identifyHost(actorCommand);
+  const judgeHost = identifyHost(judgeCommand);
+  const evidenceBoundary = {
+    actorHost,
+    artifactDigest,
+    caseDefinitions,
+    judgeHost,
+  };
+  let candidate = null;
+  if (isRecordRequested) {
+    candidate = isRestartRequested ? null : await readSemanticEvaluationCandidate();
+    if (candidate) {
+      validateSemanticCandidateCompatibility(candidate, evidenceBoundary);
+    } else {
+      if (requestedCaseId) {
+        throw new Error(
+          'A targeted recording requires an existing compatible semantic evaluation candidate.',
+        );
+      }
+      const generatedAt = new Date().toISOString();
+      candidate = createSemanticEvaluationCandidate({
+        ...evidenceBoundary,
+        generatedAt,
+      });
+      await writeSemanticEvaluationCandidate(candidate);
+    }
+  }
+
+  const selectedCaseDefinitions = requestedCaseDefinition
+    ? [requestedCaseDefinition]
+    : isRecordRequested
+      ? getPendingSemanticCaseDefinitions(candidate, caseDefinitions)
+      : caseDefinitions;
+  const results = [];
+  if (isRecordRequested && !requestedCaseId) {
+    const completedCount = caseDefinitions.length - selectedCaseDefinitions.length;
+    process.stderr.write(
+      `[semantic-evaluation] resume ${completedCount} completed, ${selectedCaseDefinitions.length} pending\n`,
+    );
+  }
+
+  for (const caseDefinition of selectedCaseDefinitions) {
+    await assertSemanticEvaluationInputsUnchanged({ artifactDigest, caseSuiteDigest });
     process.stderr.write(`[semantic-evaluation] start ${caseDefinition.id}\n`);
     const result = await evaluateCase(caseDefinition, actorCommand, judgeCommand);
-    results.push(result);
+    await assertSemanticEvaluationInputsUnchanged({ artifactDigest, caseSuiteDigest });
+    const evaluatedAt = new Date().toISOString();
+    const enrichedResult = {
+      ...result,
+      caseDefinitionDigest: createSemanticCaseDefinitionDigest(caseDefinition),
+      evaluatedAt,
+    };
+    results.push(enrichedResult);
+    if (candidate) {
+      candidate = mergeSemanticCandidateResult(
+        candidate,
+        caseDefinition,
+        result,
+        evaluatedAt,
+      );
+      await writeSemanticEvaluationCandidate(candidate);
+    }
     process.stderr.write(
       `[semantic-evaluation] ${result.passed ? 'pass' : 'fail'} ${caseDefinition.id}\n`,
     );
   }
 
-  const artifactDigest = createPortableSkillDigest();
-  const actorHost = identifyHost(actorCommand);
-  const judgeHost = identifyHost(judgeCommand);
-  const evaluatedAt = new Date().toISOString();
-  const record = {
-    actorHost,
-    artifact: { sha256: artifactDigest },
-    artifactDigest,
-    artifactSha256: artifactDigest,
-    cases: results.map((result) => ({
-      actorResponse: result.actorResponse,
-      expectedSatisfied: result.observed,
-      forbiddenTriggered: result.forbidden,
-      id: result.id,
-      passed: result.passed,
-      rationale: result.rationale,
-      workspaceChanges: result.workspaceChanges,
-    })),
-    evaluationProtocolVersion: 2,
-    evaluatedAt,
-    generatedAt: evaluatedAt,
-    host: actorHost,
-    judgeHost,
-    results,
-    schemaVersion: 1,
-    skillDigest: artifactDigest,
-  };
-  const serializedRecord = `${JSON.stringify(record, null, 2)}\n`;
   const hasFailures = results.some((result) => !result.passed);
-  const isRecordRequested = process.argv.includes('--record');
-
   if (isRecordRequested) {
-    if (hasFailures || requestedCaseId) process.stdout.write(serializedRecord);
-    validateSemanticResultRecording({
-      hasFailures,
-      isCaseSelected: requestedCaseId !== undefined,
-    });
-    await writeFile(RESULT_PATH, serializedRecord, 'utf8');
+    validateSemanticCandidateCompatibility(candidate, evidenceBoundary);
+    await assertSemanticEvaluationInputsUnchanged({ artifactDigest, caseSuiteDigest });
+    const pendingCaseDefinitions = getPendingSemanticCaseDefinitions(
+      candidate,
+      caseDefinitions,
+    );
+    if (pendingCaseDefinitions.length === 0) {
+      const generatedAt = new Date().toISOString();
+      const record = createSemanticEvaluationRecord({
+        candidate,
+        caseDefinitions,
+        generatedAt,
+      });
+      await writeJsonAtomically(RESULT_PATH, record);
+      await rm(CANDIDATE_RESULT_PATH, { force: true });
+      process.stderr.write('[semantic-evaluation] promoted complete passing evidence\n');
+    } else {
+      process.stderr.write(
+        `[semantic-evaluation] checkpoint preserved with ${pendingCaseDefinitions.length} pending or failing case(s)\n`,
+      );
+    }
   } else {
-    process.stdout.write(serializedRecord);
+    const evaluatedAt = new Date().toISOString();
+    const standaloneRecord = {
+      actorHost,
+      artifact: { sha256: artifactDigest },
+      artifactDigest,
+      artifactSha256: artifactDigest,
+      cases: results.map((result) => ({
+        actorResponse: result.actorResponse,
+        caseDefinitionDigest: result.caseDefinitionDigest,
+        evaluatedAt: result.evaluatedAt,
+        expectedSatisfied: result.observed,
+        forbiddenTriggered: result.forbidden,
+        id: result.id,
+        passed: result.passed,
+        rationale: result.rationale,
+        workspaceChanges: result.workspaceChanges,
+      })),
+      caseSuiteDigest,
+      evaluationProtocolVersion: EVALUATION_PROTOCOL_VERSION,
+      evaluatedAt,
+      generatedAt: evaluatedAt,
+      host: actorHost,
+      judgeHost,
+      results,
+      schemaVersion: 1,
+      skillDigest: artifactDigest,
+    };
+    process.stdout.write(`${JSON.stringify(standaloneRecord, null, 2)}\n`);
   }
 
-  if (hasFailures) process.exitCode = 1;
+  if (
+    hasFailures ||
+    (isRecordRequested &&
+      !requestedCaseId &&
+      getPendingSemanticCaseDefinitions(candidate, caseDefinitions).length > 0)
+  ) {
+    process.exitCode = 1;
+  }
 };
 
 const isDirectExecution =

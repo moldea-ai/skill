@@ -70,99 +70,27 @@ jobs:
           - manager: npm
             package: npm
             version: "10.9.0"
-            cli_version: "1.0.0"
+            cli_version: "2.0.0"
           - manager: npm
             package: npm
             version: "11.19.0"
-            cli_version: "1.0.0"
+            cli_version: "2.0.0"
           - manager: pnpm
             package: pnpm
             version: "11.20.0"
-            cli_version: "1.0.0"
+            cli_version: "2.0.0"
           - manager: pnpm
             package: pnpm
             version: "11.21.0"
-            cli_version: "1.0.0"
+            cli_version: "2.0.0"
           - manager: yarn
             package: "@yarnpkg/cli-dist"
             version: "4.0.0"
-            cli_version: "1.0.0"
+            cli_version: "2.0.0"
           - manager: yarn
             package: "@yarnpkg/cli-dist"
             version: "4.18.0"
-            cli_version: "1.0.0"
-          - manager: npm
-            package: npm
-            version: "10.9.0"
-            cli_version: "1.0.1"
-          - manager: npm
-            package: npm
-            version: "11.19.0"
-            cli_version: "1.0.1"
-          - manager: pnpm
-            package: pnpm
-            version: "11.20.0"
-            cli_version: "1.0.1"
-          - manager: pnpm
-            package: pnpm
-            version: "11.21.0"
-            cli_version: "1.0.1"
-          - manager: yarn
-            package: "@yarnpkg/cli-dist"
-            version: "4.0.0"
-            cli_version: "1.0.1"
-          - manager: yarn
-            package: "@yarnpkg/cli-dist"
-            version: "4.18.0"
-            cli_version: "1.0.1"
-          - manager: npm
-            package: npm
-            version: "10.9.0"
-            cli_version: "1.1.0"
-          - manager: npm
-            package: npm
-            version: "11.19.0"
-            cli_version: "1.1.0"
-          - manager: pnpm
-            package: pnpm
-            version: "11.20.0"
-            cli_version: "1.1.0"
-          - manager: pnpm
-            package: pnpm
-            version: "11.21.0"
-            cli_version: "1.1.0"
-          - manager: yarn
-            package: "@yarnpkg/cli-dist"
-            version: "4.0.0"
-            cli_version: "1.1.0"
-          - manager: yarn
-            package: "@yarnpkg/cli-dist"
-            version: "4.18.0"
-            cli_version: "1.1.0"
-          - manager: npm
-            package: npm
-            version: "10.9.0"
-            cli_version: "1.1.1"
-          - manager: npm
-            package: npm
-            version: "11.19.0"
-            cli_version: "1.1.1"
-          - manager: pnpm
-            package: pnpm
-            version: "11.20.0"
-            cli_version: "1.1.1"
-          - manager: pnpm
-            package: pnpm
-            version: "11.21.0"
-            cli_version: "1.1.1"
-          - manager: yarn
-            package: "@yarnpkg/cli-dist"
-            version: "4.0.0"
-            cli_version: "1.1.1"
-          - manager: yarn
-            package: "@yarnpkg/cli-dist"
-            version: "4.18.0"
-            cli_version: "1.1.1"
+            cli_version: "2.0.0"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

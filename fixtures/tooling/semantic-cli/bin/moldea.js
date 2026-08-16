@@ -15,11 +15,10 @@ const OFFICIAL_ADAPTER_IDS = [
   'langgraph',
   'openai',
   'openai-agents-sdk',
-  'pydantic-ai',
   'vercel-ai-sdk',
 ];
 const BASE_COMPATIBILITY_PACKAGES = [
-  { name: '@moldea.ai/core', version: '1.0.1' },
+  { name: '@moldea.ai/core', version: '2.0.0' },
   { name: '@moldea.ai/repository', version: '1.0.1' },
   { name: '@moldea.ai/repository-fs', version: '1.0.1' },
 ];
@@ -99,7 +98,7 @@ const readIndexedAgents = (manifestContent) => {
 const createCustomCompatibility = () => ({
   id: 'custom',
   active: true,
-  bundledVersion: '1.0.1',
+  bundledVersion: '2.0.0',
   matrix: {
     implementation: {
       kind: 'built-in',
@@ -108,7 +107,7 @@ const createCustomCompatibility = () => ({
     },
     implementationStatus: 'available',
     supportedRepositoryFormatVersions: [1],
-    compatibleCoreRange: '^1.0.0',
+    compatibleCoreRange: '^2.0.0',
     runtimeGuidance: {
       expectation: 'required',
       notes: 'Project-local guidance defines the custom runtime integration.',
@@ -127,28 +126,28 @@ const createCustomCompatibility = () => ({
             description: 'Core validates explicit repository relationships.',
           },
         ],
-        lastVerifiedAt: '2026-08-12',
+        lastVerifiedAt: '2026-08-15',
       },
     ],
-    lastVerifiedAt: '2026-08-12',
+    lastVerifiedAt: '2026-08-15',
   },
 });
 
-/** Builds the active experimental OpenAI adapter contract bundled by CLI 1.1.1. */
+/** Builds the active experimental OpenAI adapter contract bundled by CLI 2.0.0. */
 const createOpenAiCompatibility = () => ({
   id: 'openai',
   active: true,
-  bundledVersion: '1.0.1',
+  bundledVersion: '2.0.0',
   matrix: {
     implementation: {
       kind: 'package',
       package: '@moldea.ai/adapter-openai',
-      versionRange: '^1.0.0',
+      versionRange: '^2.0.0',
       distribution: 'public',
     },
     implementationStatus: 'available',
     supportedRepositoryFormatVersions: [1],
-    compatibleCoreRange: '^1.0.0',
+    compatibleCoreRange: '^2.0.0',
     runtimeGuidance: {
       expectation: 'recommended',
       notes:
@@ -231,7 +230,7 @@ const readCompatibilityPackages = (adapters) => {
 };
 
 if (command === '--version') {
-  process.stdout.write('1.1.1\n');
+  process.stdout.write('2.0.0\n');
 } else if (command === 'inspect' && process.argv.includes('--json')) {
   const manifest = readTextAsset('/moldea/moldea.yaml');
   const project = readTextAsset('/moldea/project.md');
@@ -294,7 +293,7 @@ if (command === '--version') {
 
   process.stdout.write(
     `${JSON.stringify({
-      cliVersion: '1.1.1',
+      cliVersion: '2.0.0',
       command: 'inspect',
       error: null,
       result: {
@@ -310,7 +309,7 @@ if (command === '--version') {
   const adapters = readCompatibilityAdapters();
   process.stdout.write(
     `${JSON.stringify({
-      cliVersion: '1.1.1',
+      cliVersion: '2.0.0',
       command: 'compatibility',
       error: null,
       result: {

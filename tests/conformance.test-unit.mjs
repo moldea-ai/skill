@@ -17,6 +17,8 @@ import { parseDocument } from 'yaml';
 import {
   createPortableSkillDigest,
   createPortableSkillSemanticDigest,
+  createSemanticCaseDefinitionDigest,
+  createSemanticCaseSuiteDigest,
 } from './semantic-evaluation-runner.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -190,7 +192,7 @@ const isSupportedManagerVersion = (manager, version) => {
   return false;
 };
 
-const isCompatibleCliVersion = (version) => /^1\.(?:0|1)\.\d+$/.test(version ?? '');
+const isCompatibleCliVersion = (version) => /^2\.0\.\d+$/.test(version ?? '');
 
 const evaluatePackageManagerCase = ({ operation, input }) => {
   const cli = input.cli;
@@ -333,7 +335,7 @@ describe('portable Agent Skill contract', () => {
   test('uses valid portable identity and release metadata', () => {
     assert.equal(frontmatter.name, 'moldea');
     assert.equal(frontmatter.license, 'MIT');
-    assert.equal(frontmatter.metadata.version, '1.1.0');
+    assert.equal(frontmatter.metadata.version, '2.0.0');
     assert.equal(dirname(SKILL_PATH), SKILL_DIRECTORY);
     assert.equal(dirname(SKILL_PATH).split('/').at(-1), frontmatter.name);
     assert.ok(frontmatter.description.length >= 1 && frontmatter.description.length <= 1024);
@@ -358,7 +360,7 @@ describe('portable Agent Skill contract', () => {
 
   test('declares the exact release compatibility contract', () => {
     assertMatchesEvery(skill, [
-      /@moldea\.ai\/cli: >=1\.0\.0 <1\.2\.0/,
+      /@moldea\.ai\/cli: >=2\.0\.0 <2\.1\.0/,
       /CLI JSON schema: `1`/,
       /Node\.js: `\^22\.11\.0 \|\| \^24\.11\.0`/,
       /npm: `>=10\.9\.0 <12\.0\.0`/,
@@ -395,6 +397,7 @@ describe('portable Agent Skill contract', () => {
       /effective routing description/,
       /general-only runtime metadata/,
       /property named `description` may be routing-facing/,
+      /do not report that shared contract as misaligned or recommend a duplicate property/,
       /dynamic or unsupported wiring as unestablished/,
     ]);
   });
@@ -529,6 +532,11 @@ describe('source repository conformance', () => {
 
     const portableSkillDigest = createPortableSkillDigest();
     assert.equal(result.schemaVersion, 1);
+    assert.equal(result.evaluationProtocolVersion, 3);
+    assert.equal(
+      result.caseSuiteDigest,
+      createSemanticCaseSuiteDigest(cases.semanticCases),
+    );
     assert.equal(result.artifact.sha256, result.skillDigest);
     assert.equal(result.artifactDigest, result.skillDigest);
     assert.equal(result.artifactSha256, result.skillDigest);
@@ -579,6 +587,11 @@ describe('source repository conformance', () => {
     for (const evaluationCase of result.cases) {
       const conformanceCase = semanticCases.get(evaluationCase.id);
       assert.equal(evaluationCase.passed, true);
+      assert.equal(
+        evaluationCase.caseDefinitionDigest,
+        createSemanticCaseDefinitionDigest(conformanceCase),
+      );
+      assert.match(evaluationCase.evaluatedAt, /^\d{4}-\d{2}-\d{2}T/);
       assert.deepEqual(
         [...evaluationCase.expectedSatisfied].sort(),
         [...conformanceCase.expected].sort(),
@@ -641,7 +654,7 @@ describe('source repository conformance', () => {
       });
       const inspectionEnvelope = JSON.parse(inspection.stdout);
       assert.equal(inspection.status, 1);
-      assert.equal(inspectionEnvelope.cliVersion, '1.1.1');
+      assert.equal(inspectionEnvelope.cliVersion, '2.0.0');
       assert.equal(inspectionEnvelope.status, 'invalid');
       assert.equal(
         inspectionEnvelope.result.inspection.diagnostics[0].code,
@@ -654,12 +667,12 @@ describe('source repository conformance', () => {
       });
       const compatibilityEnvelope = JSON.parse(compatibility.stdout);
       assert.equal(compatibility.status, 0);
-      assert.equal(compatibilityEnvelope.cliVersion, '1.1.1');
+      assert.equal(compatibilityEnvelope.cliVersion, '2.0.0');
       assert.equal(compatibilityEnvelope.status, 'valid');
       assert.deepEqual(
         compatibilityEnvelope.result.packages,
         [
-          { name: '@moldea.ai/core', version: '1.0.1' },
+          { name: '@moldea.ai/core', version: '2.0.0' },
           { name: '@moldea.ai/repository', version: '1.0.1' },
           { name: '@moldea.ai/repository-fs', version: '1.0.1' },
         ],
@@ -677,7 +690,6 @@ describe('source repository conformance', () => {
           'langgraph',
           'openai',
           'openai-agents-sdk',
-          'pydantic-ai',
           'vercel-ai-sdk',
         ],
       );
@@ -685,7 +697,7 @@ describe('source repository conformance', () => {
         ({ id }) => id === 'custom',
       );
       assert.equal(customCompatibility.active, true);
-      assert.equal(customCompatibility.bundledVersion, '1.0.1');
+      assert.equal(customCompatibility.bundledVersion, '2.0.0');
     } finally {
       rmSync(repositoryPath, { force: true, recursive: true });
     }
@@ -721,9 +733,9 @@ describe('source repository conformance', () => {
     const projectInstallationIndex = readme.indexOf('### Project installation (recommended)');
     const globalInstallationIndex = readme.indexOf('### Global installation (optional)');
 
-    assert.match(readme, /The current release is `1\.1\.0`\./);
+    assert.match(readme, /The current release is `2\.0\.0`\./);
     assert.match(readme, /^npx skills add moldea-ai\/skill$/m);
-    assert.match(readme, /^npx skills add "moldea-ai\/skill#v1\.1\.0"$/m);
+    assert.match(readme, /^npx skills add "moldea-ai\/skill#v2\.0\.0"$/m);
     assert.match(readme, /^npx skills add moldea-ai\/skill -g$/m);
     assert.ok(projectInstallationIndex >= 0);
     assert.ok(globalInstallationIndex > projectInstallationIndex);
@@ -731,7 +743,7 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(readme, /https:\/\/github\.com\/moldea-ai\/skill\/tree\//);
     assert.match(readme, /do not install `@moldea\.ai\/cli` globally/);
     assert.match(readme, /repository-local exact `@moldea\.ai\/cli` development dependency/);
-    assert.match(readme, /recommended repository-local CLI version for this release is `1\.1\.1`/);
+    assert.match(readme, /recommended repository-local CLI version for this release is `2\.0\.0`/);
     assert.doesNotMatch(
       readme,
       /unpublished release candidate|future source URL|after release|candidate supports|prepared for, but has not created/i,
@@ -751,11 +763,9 @@ describe('source repository conformance', () => {
     const workflow = readRepositoryFile('.github/workflows/conformance.yml');
     const packageManifest = JSON.parse(readRepositoryFile('package.json'));
 
-    assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], '1.1.1');
-    assert.equal(workflow.match(/cli_version: "1\.0\.0"/g)?.length, 6);
-    assert.equal(workflow.match(/cli_version: "1\.0\.1"/g)?.length, 6);
-    assert.equal(workflow.match(/cli_version: "1\.1\.0"/g)?.length, 6);
-    assert.equal(workflow.match(/cli_version: "1\.1\.1"/g)?.length, 6);
+    assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], '2.0.0');
+    assert.equal(workflow.match(/cli_version: "2\.0\.0"/g)?.length, 6);
+    assert.doesNotMatch(workflow, /cli_version: "1\./);
     assert.match(workflow, /MOLDEA_TEST_CLI_VERSION: \$\{\{ matrix\.cli_version \}\}/);
     assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 2);
     assert.equal(
@@ -817,6 +827,23 @@ describe('source repository conformance', () => {
       /expected time and token cost/,
       /developer's explicit approval/,
     ]);
+  });
+
+  test('documents resumable semantic evidence without weakening promotion', () => {
+    const readme = readRepositoryFile('README.md');
+    const gitignore = readRepositoryFile('.gitignore');
+
+    assertMatchesEvery(readme, [
+      /\.semantic-evaluation-candidate\.json/,
+      /already passing cases are skipped/,
+      /missing and failing cases are evaluated again/,
+      /--record --restart/,
+      /--case <case-id> --record/,
+      /replaces only that case's compatible candidate evidence/,
+      /only after every required case passes/,
+      /Missing or failing evidence never replaces the committed result/,
+    ]);
+    assert.match(gitignore, /fixtures\/\.semantic-evaluation-candidate\.json\*/);
   });
 
   test('keeps optional OpenAI metadata supplemental and behaviorally complete', () => {

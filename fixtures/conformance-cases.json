@@ -2,7 +2,7 @@
   "packageManagerCases": [
     {
       "id": "compatible-cli-missing-required-capability",
-      "scenario": "A write-capable workflow has an exact compatible CLI 1.0 installation, but the authorized OpenAI runtime work requires the active official adapter first bundled by a later compatible release.",
+      "scenario": "A synthetic future write-capable workflow has an exact compatible CLI 2.0.1 installation without a newly required official-adapter capability, while an established compatible 2.0.2 release provides it.",
       "operation": "maintain-agent",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -14,12 +14,12 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "1.0.1",
-          "installedVersion": "1.0.1",
+          "declaration": "2.0.1",
+          "installedVersion": "2.0.1",
           "executableResolves": true,
           "installedCapabilities": [],
-          "requiredCapability": "active-openai-adapter",
-          "capableVersion": "1.1.1"
+          "requiredCapability": "new-official-adapter-capability",
+          "capableVersion": "2.0.2"
         }
       },
       "expected": [
@@ -33,7 +33,7 @@
     },
     {
       "id": "evaluate-compatible-cli-missing-required-capability",
-      "scenario": "A read-only evaluation has an exact compatible CLI 1.0 installation, but the requested OpenAI adapter evidence is unavailable until a later supported CLI release.",
+      "scenario": "A synthetic future read-only evaluation has an exact compatible CLI 2.0.1 installation without a newly required official-adapter capability, while an established compatible 2.0.2 release provides it.",
       "operation": "evaluate",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -45,12 +45,12 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "1.0.1",
-          "installedVersion": "1.0.1",
+          "declaration": "2.0.1",
+          "installedVersion": "2.0.1",
           "executableResolves": true,
           "installedCapabilities": [],
-          "requiredCapability": "active-openai-adapter",
-          "capableVersion": "1.1.1"
+          "requiredCapability": "new-official-adapter-capability",
+          "capableVersion": "2.0.2"
         }
       },
       "expected": [
@@ -74,8 +74,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "1.0.0",
-          "installedVersion": "1.0.0",
+          "declaration": "2.0.0",
+          "installedVersion": "2.0.0",
           "executableResolves": true
         }
       },
@@ -102,8 +102,8 @@
           "version": "11.20.0"
         },
         "cli": {
-          "declaration": "1.0.0",
-          "installedVersion": "1.0.0",
+          "declaration": "2.0.0",
+          "installedVersion": "2.0.0",
           "executableResolves": true
         }
       },
@@ -130,8 +130,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "1.0.0",
-          "installedVersion": "1.0.0",
+          "declaration": "2.0.0",
+          "installedVersion": "2.0.0",
           "executableResolves": true
         }
       },
@@ -185,8 +185,8 @@
           "version": "4.18.0"
         },
         "cli": {
-          "declaration": "1.0.0",
-          "installedVersion": "1.0.0",
+          "declaration": "2.0.0",
+          "installedVersion": "2.0.0",
           "executableResolves": true
         }
       },
@@ -237,8 +237,8 @@
           "version": "5.0.0"
         },
         "cli": {
-          "declaration": "1.0.0",
-          "installedVersion": "1.0.0",
+          "declaration": "2.0.0",
+          "installedVersion": "2.0.0",
           "executableResolves": true
         }
       },
@@ -252,7 +252,7 @@
     },
     {
       "id": "floating-cli-with-compatible-install",
-      "scenario": "The root CLI declaration floats while the installed root CLI and executable resolve to compatible version 1.0.0.",
+      "scenario": "The root CLI declaration floats while the installed root CLI and executable resolve to compatible version 2.0.0.",
       "operation": "reconcile",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -264,8 +264,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "^1.0.0",
-          "installedVersion": "1.0.0",
+          "declaration": "^2.0.0",
+          "installedVersion": "2.0.0",
           "executableResolves": true
         }
       },
@@ -405,8 +405,8 @@
           "pnpmfile"
         ],
         "cli": {
-          "declaration": "1.0.0",
-          "installedVersion": "1.0.0",
+          "declaration": "2.0.0",
+          "installedVersion": "2.0.0",
           "executableResolves": true
         }
       },
@@ -487,12 +487,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "1.0.0",
-        "installedCliVersion": "1.0.0",
+        "declaredCliVersion": "2.0.0",
+        "installedCliVersion": "2.0.0",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "1.0.0",
+          "cliVersion": "2.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -513,12 +513,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "1.0.0",
-        "installedCliVersion": "1.0.0",
+        "declaredCliVersion": "2.0.0",
+        "installedCliVersion": "2.0.0",
         "exitCode": 1,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "1.0.0",
+          "cliVersion": "2.0.0",
           "command": "inspect",
           "status": "invalid",
           "result": {
@@ -541,12 +541,12 @@
       "operation": "compatibility",
       "input": {
         "invokedCommand": "compatibility",
-        "declaredCliVersion": "1.0.0",
-        "installedCliVersion": "1.0.0",
+        "declaredCliVersion": "2.0.0",
+        "installedCliVersion": "2.0.0",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "1.0.0",
+          "cliVersion": "2.0.0",
           "command": "compatibility",
           "status": "valid",
           "result": {},
@@ -567,12 +567,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "1.0.0",
-        "installedCliVersion": "1.0.0",
+        "declaredCliVersion": "2.0.0",
+        "installedCliVersion": "2.0.0",
         "exitCode": 0,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "1.0.0",
+          "cliVersion": "2.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -589,16 +589,16 @@
     },
     {
       "id": "version-mismatch",
-      "scenario": "The machine envelope reports unsupported CLI 1.2.0 while the declared and installed root package is 1.0.0.",
+      "scenario": "The machine envelope reports unsupported CLI 2.1.0 while the declared and installed root package is 2.0.0.",
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "1.0.0",
-        "installedCliVersion": "1.0.0",
+        "declaredCliVersion": "2.0.0",
+        "installedCliVersion": "2.0.0",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "1.2.0",
+          "cliVersion": "2.1.0",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -619,12 +619,12 @@
       "operation": "validate",
       "input": {
         "invokedCommand": "validate",
-        "declaredCliVersion": "1.0.0",
-        "installedCliVersion": "1.0.0",
+        "declaredCliVersion": "2.0.0",
+        "installedCliVersion": "2.0.0",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "1.0.0",
+          "cliVersion": "2.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -645,12 +645,12 @@
       "operation": "compatibility",
       "input": {
         "invokedCommand": "compatibility",
-        "declaredCliVersion": "1.0.0",
-        "installedCliVersion": "1.0.0",
+        "declaredCliVersion": "2.0.0",
+        "installedCliVersion": "2.0.0",
         "exitCode": 1,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "1.0.0",
+          "cliVersion": "2.0.0",
           "command": "compatibility",
           "status": "invalid",
           "result": {},
@@ -671,12 +671,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "1.0.0",
-        "installedCliVersion": "1.0.0",
+        "declaredCliVersion": "2.0.0",
+        "installedCliVersion": "2.0.0",
         "exitCode": 2,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "1.0.0",
+          "cliVersion": "2.0.0",
           "command": "inspect",
           "status": "error",
           "result": null,
@@ -700,8 +700,8 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "1.0.0",
-        "installedCliVersion": "1.0.0",
+        "declaredCliVersion": "2.0.0",
+        "installedCliVersion": "2.0.0",
         "exitCode": 0,
         "output": "not-json"
       },

@@ -1,0 +1,50 @@
+---
+import DocumentationPage from '../../components/documentation-page/documentation-page.astro';
+import BaseLayout from '../../layouts/base-layout.astro';
+import { renderMarkdown } from '../../lib/content/markdown.ts';
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+import type { IWebsiteDocument } from '../../lib/model/types.ts';
+
+interface Props {
+  document: IWebsiteDocument;
+}
+
+export const getStaticPaths = () => {
+  const model = loadWebsiteModel();
+
+  return model.documents
+    .filter(({ route }) => route.startsWith('/docs/'))
+    .map((document) => ({
+      params: { path: document.slug || undefined },
+      props: { document },
+    }));
+};
+
+const { document } = Astro.props;
+const model = loadWebsiteModel();
+const rendered = await renderMarkdown(document.markdown);
+const breadcrumbs = [
+  { href: '/', label: 'Home' },
+  ...(document.route === '/docs/' ? [] : [{ href: '/docs/', label: 'Docs' }]),
+  { label: document.title },
+];
+---
+
+<BaseLayout
+  title={document.title}
+  description={document.description}
+  {breadcrumbs}
+>
+  <DocumentationPage
+    currentDocument={document}
+    headings={rendered.headings}
+    navigation={model.navigation}
+    orderedDocuments={model.documents}
+    skill={model.skill}
+  >
+    <div
+      class="prose-moldea"
+      set:html={rendered.html}
+    />
+  </DocumentationPage>
+</BaseLayout>

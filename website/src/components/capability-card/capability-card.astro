@@ -1,0 +1,36 @@
+---
+import { ArrowUpRight, type Icon } from '@lucide/astro';
+
+import { withBase } from '../../lib/site/url.ts';
+
+interface Props {
+  description: string;
+  href: string;
+  icon: typeof Icon;
+  label: string;
+  title: string;
+}
+
+const { description, href, icon: CapabilityIcon, label, title } = Astro.props;
+---
+
+<a
+  class="surface-card interactive-card group flex min-h-64 flex-col p-6"
+  href={withBase(href)}
+>
+  <div class="mb-12 flex items-start justify-between gap-4">
+    <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
+      <CapabilityIcon
+        class="size-5"
+        aria-hidden="true"
+      />
+    </span>
+    <ArrowUpRight
+      class="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 motion-reduce:transition-none"
+      aria-hidden="true"
+    />
+  </div>
+  <p class="eyebrow mb-3">{label}</p>
+  <h3 class="text-2xl font-semibold tracking-tight">{title}</h3>
+  <p class="mt-3 text-sm leading-6 text-muted-foreground">{description}</p>
+</a>

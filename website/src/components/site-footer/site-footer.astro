@@ -1,0 +1,85 @@
+---
+import { ExternalLink } from '@lucide/astro';
+
+import {
+  PACKAGES_WEBSITE_URL,
+  SKILLS_DIRECTORY_URL,
+  SOURCE_REPOSITORY_URL,
+} from '../../lib/model/constants.ts';
+import { withBase } from '../../lib/site/url.ts';
+import InlineBrandText from '../inline-brand-text/inline-brand-text.astro';
+import Logo from '../logo/logo.astro';
+---
+
+<footer class="mt-section-gap border-t border-border">
+  <div class="page-shell grid gap-10 py-12 md:grid-cols-[1fr_auto_auto]">
+    <div class="max-w-md space-y-4">
+      <Logo />
+      <p class="text-sm leading-6 text-muted-foreground">
+        Git-owned project context and grounded agent behavior, maintained by the coding agent you
+        already use.
+      </p>
+    </div>
+    <nav
+      class="grid content-start gap-3 text-sm"
+      aria-label="Documentation"
+    >
+      <p class="font-bold">Documentation</p>
+      <a
+        class="text-muted-foreground hover:text-foreground"
+        href={withBase('/docs/getting-started/')}
+        >Getting started</a
+      >
+      <a
+        class="text-muted-foreground hover:text-foreground"
+        href={withBase('/docs/capabilities/')}
+        >Capabilities</a
+      >
+      <a
+        class="text-muted-foreground hover:text-foreground"
+        href={withBase('/examples/')}
+        >Examples</a
+      >
+      <a
+        class="text-muted-foreground hover:text-foreground"
+        href={withBase('/llms.txt')}
+        >llms.txt</a
+      >
+    </nav>
+    <nav
+      class="grid content-start gap-3 text-sm"
+      aria-label="Project links"
+    >
+      <p class="font-bold"><InlineBrandText text="Get moldea" /></p>
+      <a
+        class="text-muted-foreground hover:text-foreground"
+        href={SKILLS_DIRECTORY_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        skills.sh
+      </a>
+      <a
+        class="text-muted-foreground hover:text-foreground"
+        href={SOURCE_REPOSITORY_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        GitHub
+      </a>
+      <a
+        class="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+        href={PACKAGES_WEBSITE_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Built on <InlineBrandText text="moldea" /> packages
+        <ExternalLink
+          class="size-3.5"
+          aria-hidden="true"
+        />
+      </a>
+      <span class="text-muted-foreground">MIT licensed</span>
+    </nav>
+  </div>
+</footer>

@@ -34,6 +34,25 @@ export const withBase = (route: string, basePath = import.meta.env.BASE_URL): st
 };
 
 /**
+ * Checks whether a public pathname identifies a route or one of its descendants.
+ * @param pathname Current public pathname.
+ * @param route Root-relative public route.
+ * @param basePath Configured public base path.
+ * @returns Whether the route is active for the current pathname.
+ */
+export const isPublicRouteActive = (
+  pathname: string,
+  route: string,
+  basePath = import.meta.env.BASE_URL,
+): boolean => {
+  const publicRoute = withBase(route, basePath);
+
+  return publicRoute === normalizeBasePath(basePath)
+    ? pathname === publicRoute
+    : pathname.startsWith(publicRoute);
+};
+
+/**
  * Builds a canonical absolute URL from an origin, base path, and public route.
  * @param route Root-relative public route.
  * @param siteUrl Public website origin.

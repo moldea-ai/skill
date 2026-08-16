@@ -432,6 +432,77 @@ test('uses smooth client navigation while preserving ordinary static routes', as
   ).toBe(navigationMarker);
 });
 
+test('marks the most specific current desktop and mobile navigation destinations', async ({
+  browser,
+}) => {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    const context = await browser.newContext({ colorScheme });
+    const page = await context.newPage();
+
+    await page.goto(toPublicPath('/'));
+    const primaryNavigation = page.getByRole('navigation', { name: 'Primary navigation' });
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveCount(0);
+
+    await page.goto(toPublicPath('/docs/capabilities/'));
+    const activeCapabilitiesLink = primaryNavigation.locator('a[aria-current="page"]');
+    const inactiveDocsLink = primaryNavigation.getByRole('link', { name: 'Docs', exact: true });
+    await expect(activeCapabilitiesLink).toHaveText('Capabilities');
+    expect(
+      await activeCapabilitiesLink.evaluate((element) => getComputedStyle(element).backgroundColor),
+    ).not.toBe(
+      await inactiveDocsLink.evaluate((element) => getComputedStyle(element).backgroundColor),
+    );
+
+    await page.goto(toPublicPath('/docs/coding-agent-compatibility/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
+
+    const navigationMarker = await page.evaluate(() => {
+      const marker = crypto.randomUUID();
+      (window as Window & { __moldeaNavigationMarker?: string }).__moldeaNavigationMarker = marker;
+
+      return marker;
+    });
+    await primaryNavigation.getByRole('link', { name: 'Examples', exact: true }).click();
+    await page.waitForURL((url) => url.pathname === toPublicPath('/examples/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Examples');
+    expect(
+      await page.evaluate(
+        () => (window as Window & { __moldeaNavigationMarker?: string }).__moldeaNavigationMarker,
+      ),
+    ).toBe(navigationMarker);
+
+    await page.goto(toPublicPath('/search/'));
+    await expect(page.getByRole('link', { name: 'Search documentation' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveCount(0);
+
+    await context.close();
+  }
+
+  const mobileContext = await browser.newContext({ colorScheme: 'dark' });
+  const mobilePage = await mobileContext.newPage();
+  await mobilePage.setViewportSize({ height: 740, width: 320 });
+  await mobilePage.goto(toPublicPath('/docs/how-it-works/'));
+  await mobilePage.getByLabel('Open navigation').click();
+
+  const mobileNavigation = mobilePage.getByRole('navigation', { name: 'Mobile navigation' });
+  const activeMobileLink = mobileNavigation.locator('a[aria-current="page"]');
+  const inactiveMobileDocsLink = mobileNavigation.getByRole('link', {
+    name: 'Docs',
+    exact: true,
+  });
+  await expect(activeMobileLink).toHaveText('How it works');
+  expect(
+    await activeMobileLink.evaluate((element) => getComputedStyle(element).backgroundColor),
+  ).not.toBe(
+    await inactiveMobileDocsLink.evaluate((element) => getComputedStyle(element).backgroundColor),
+  );
+
+  await mobileContext.close();
+});
+
 test('has no page-level horizontal overflow at 320px on every public route', async ({ page }) => {
   await page.setViewportSize({ height: 740, width: 320 });
   const paths = await getPublicContentPaths(page);

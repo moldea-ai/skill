@@ -1,0 +1,375 @@
+---
+import {
+  ArrowRight,
+  BrainCircuit,
+  GitBranch,
+  RefreshCw,
+  SearchCheck,
+  ShieldCheck,
+  Sparkles,
+  Workflow,
+} from '@lucide/astro';
+
+import CapabilityCard from '../components/capability-card/capability-card.astro';
+import Conversation from '../components/conversation/conversation.astro';
+import type { IConversationTurn } from '../components/conversation/types.ts';
+import GettingStartedSimulation from '../components/getting-started-simulation/getting-started-simulation.astro';
+import InlineBrandText from '../components/inline-brand-text/inline-brand-text.astro';
+import BaseLayout from '../layouts/base-layout.astro';
+import { loadWebsiteModel } from '../lib/generation/generation.ts';
+import { SKILLS_DIRECTORY_URL } from '../lib/model/constants.ts';
+import { withBase } from '../lib/site/url.ts';
+
+const model = loadWebsiteModel();
+const developerConversation = [
+  {
+    role: 'developer',
+    message: 'Create a support agent grounded in this application.',
+  },
+  {
+    role: 'agent',
+    message:
+      'I found the order, refund, and escalation paths. I’ll establish one focused support agent, connect its canonical instruction to the runtime, and verify the real tool contracts.',
+  },
+] satisfies IConversationTurn[];
+const skillConversation = [
+  {
+    role: 'agent',
+    message: 'This is agent creation in a repository that has not adopted the skill yet.',
+  },
+  {
+    role: 'skill',
+    message:
+      'Confirm write authority, load context-gathering, local-tooling, continuous-maintenance, and agent-design guidance, then gather the minimum sufficient evidence.',
+  },
+  {
+    role: 'agent',
+    message:
+      'Verified the root-local CLI, inspected the repository, created only supported canonical relationships, integrated the runtime path, and reran deterministic and project-native checks.',
+  },
+] satisfies IConversationTurn[];
+const exampleDocuments = model.documents
+  .filter(({ section }) => section === 'examples')
+  .slice(1, 7);
+---
+
+<BaseLayout
+  title="moldea Agent Skill"
+  description="Install the skill once, then let your coding agent plan, create, maintain, evaluate, reconcile, and validate grounded agent systems while you work naturally."
+>
+  <section class="relative overflow-hidden border-b border-border">
+    <div
+      class="pointer-events-none absolute inset-0 [background-image:radial-gradient(circle_at_70%_18%,color-mix(in_oklch,var(--accent)_60%,transparent),transparent_30%),linear-gradient(to_right,color-mix(in_oklch,var(--border)_35%,transparent)_1px,transparent_1px),linear-gradient(to_bottom,color-mix(in_oklch,var(--border)_35%,transparent)_1px,transparent_1px)] [mask-image:linear-gradient(to_bottom,black,transparent_92%)] [background-size:auto,3rem_3rem,3rem_3rem] opacity-60"
+      aria-hidden="true"
+    >
+    </div>
+    <div class="page-shell relative pt-16 pb-20 sm:pt-24 sm:pb-24 lg:pt-32 lg:pb-32">
+      <div class="mb-8 flex flex-wrap items-center gap-3">
+        <span
+          class="inline-flex items-center gap-2 rounded-full border bg-background/80 px-3 py-1.5 text-sm font-semibold shadow-surface backdrop-blur"
+        >
+          <Sparkles
+            class="size-3.5"
+            aria-hidden="true"
+          />
+          Agent Skill · v{model.skill.version}
+        </span>
+        <span class="text-sm text-muted-foreground">Git-native · local-first · open source</span>
+      </div>
+      <h1
+        class="display-title max-w-6xl font-semibold"
+        data-hero-title
+      >
+        You keep shipping.<br />Agents stay grounded.
+      </h1>
+      <div class="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+        <p class="max-w-3xl text-xl leading-9 text-muted-foreground sm:text-2xl">
+          <InlineBrandText
+            text="Install moldea once, then talk to your coding agent like you already do. It handles project context, grounded agent behavior, drift, and deterministic validation underneath."
+          />
+        </p>
+        <div
+          class="flex flex-wrap gap-3 sm:flex-nowrap lg:justify-end"
+          data-hero-actions
+        >
+          <a
+            class="inline-flex min-h-12 items-center gap-2 rounded-xl bg-primary px-5 py-3 font-bold whitespace-nowrap text-primary-foreground shadow-raised"
+            href={SKILLS_DIRECTORY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            data-brand-plain
+          >
+            Get moldea on skills.sh
+            <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            />
+          </a>
+          <a
+            class="inline-flex min-h-12 items-center gap-2 rounded-xl border border-input bg-background/70 px-5 py-3 font-bold whitespace-nowrap backdrop-blur hover:bg-muted"
+            href={withBase('/docs/how-it-works/')}
+          >
+            See how it works
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <GettingStartedSimulation />
+
+  <section class="page-shell py-section-gap">
+    <div class="mb-12 grid gap-6 lg:grid-cols-2 lg:items-end">
+      <div>
+        <p class="eyebrow mb-4">No new daily interface</p>
+        <h2 class="section-title max-w-4xl font-semibold">
+          <InlineBrandText text="Ask for outcomes, not moldea operations." />
+        </h2>
+      </div>
+      <p class="max-w-xl text-lg leading-8 text-muted-foreground lg:justify-self-end">
+        <InlineBrandText
+          text="Developers speak naturally. The coding agent recognizes when project truth or agent behavior needs moldea and takes responsibility for the rigorous layer beneath the request."
+        />
+      </p>
+    </div>
+    <div class="grid gap-5 lg:grid-cols-2">
+      <Conversation
+        eyebrow="The experience"
+        title="Developer → coding agent"
+        description="The only conversation most developers need to see."
+        turns={developerConversation}
+      />
+      <Conversation
+        eyebrow="Under the hood"
+        title="Coding agent ↔ skill"
+        description="Optional detail for understanding the evidence and safety model."
+        turns={skillConversation}
+      />
+    </div>
+  </section>
+
+  <section class="border-y border-border bg-sidebar py-section-gap">
+    <div class="page-shell">
+      <div class="mb-12 max-w-4xl">
+        <p class="eyebrow mb-4">Complete capability surface</p>
+        <h2 class="section-title font-semibold">One skill across the agent lifecycle.</h2>
+        <p class="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
+          From deciding whether an agent should exist to proving that its current behavior still
+          matches the implementation.
+        </p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <CapabilityCard
+          label="Design"
+          title="Plan the system"
+          description="Separate deterministic rules, tools, human control, and only the model-reasoning boundaries that earn an agent."
+          href="/docs/planning-agent-systems/"
+          icon={BrainCircuit}
+        />
+        <CapabilityCard
+          label="Ground"
+          title="Create real agents"
+          description="Align instructions, descriptions, schemas, capabilities, variables, runtime wiring, and actual repository evidence."
+          href="/docs/designing-agents/"
+          icon={Workflow}
+        />
+        <CapabilityCard
+          label="Maintain"
+          title="Keep truth current"
+          description="Reconsider affected context and behavior during ordinary development without creating documentation churn."
+          href="/docs/continuous-maintenance/"
+          icon={RefreshCw}
+        />
+        <CapabilityCard
+          label="Assure"
+          title="Evaluate and reconcile"
+          description="Distinguish deterministic diagnostics, semantic drift, ambiguity, unresolved state, and evidence limitations."
+          href="/docs/evaluate-reconcile-validate/"
+          icon={SearchCheck}
+        />
+      </div>
+      <a
+        class="mt-8 inline-flex items-center gap-2 font-bold"
+        href={withBase('/docs/capabilities/')}
+      >
+        Explore every capability
+        <ArrowRight
+          class="size-4"
+          aria-hidden="true"
+        />
+      </a>
+    </div>
+  </section>
+
+  <section class="page-shell py-section-gap">
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-center">
+      <div>
+        <p class="eyebrow mb-4">A visible result, an invisible discipline</p>
+        <h2 class="section-title max-w-5xl font-semibold">Repository truth flows into behavior.</h2>
+        <p class="mt-7 max-w-3xl text-lg leading-8 text-muted-foreground">
+          <InlineBrandText
+            text="moldea gives the coding agent a precise operating model for understanding evidence, selecting authority, using local deterministic mechanics, and changing only what the requested outcome genuinely affects."
+          />
+        </p>
+      </div>
+      <div class="surface-card overflow-hidden p-3 sm:p-4">
+        <ol class="grid gap-2">
+          {
+            [
+              ['01', 'You ask naturally', 'No command vocabulary or separate dashboard.'],
+              [
+                '02',
+                'The agent selects the operation',
+                'Read-only stays read-only; writes stay scoped.',
+              ],
+              [
+                '03',
+                'Evidence is gathered',
+                'Code, contracts, context, and intent keep distinct roles.',
+              ],
+              [
+                '04',
+                'The smallest result ships',
+                'Changed and intentionally unchanged surfaces are reported.',
+              ],
+            ].map(([number, title, description]) => (
+              <li class="rounded-xl border bg-background p-4">
+                <div class="flex gap-4">
+                  <span class="font-mono text-xs font-bold text-muted-foreground">{number}</span>
+                  <div>
+                    <p class="font-semibold">{title}</p>
+                    <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+                  </div>
+                </div>
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <section class="border-y border-border bg-primary py-section-gap text-primary-foreground">
+    <div class="page-shell">
+      <div class="mb-12 flex flex-wrap items-end justify-between gap-8">
+        <div>
+          <p class="eyebrow mb-4 text-current/60">Examples from both sides</p>
+          <h2 class="section-title max-w-4xl font-semibold">
+            See what you say—and what happens next.
+          </h2>
+        </div>
+        <a
+          class="inline-flex items-center gap-2 rounded-xl border border-current/25 px-4 py-3 font-bold hover:bg-current/10"
+          href={withBase('/examples/')}
+        >
+          Browse all examples
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          />
+        </a>
+      </div>
+      <div
+        class="grid gap-px overflow-hidden rounded-2xl border border-current/20 bg-current/20 sm:grid-cols-2 lg:grid-cols-3"
+      >
+        {
+          exampleDocuments.map((document, index) => (
+            <a
+              class="group min-h-56 bg-primary p-6 transition-colors hover:bg-primary-foreground/8 motion-reduce:transition-none"
+              href={withBase(document.route)}
+            >
+              <span class="font-mono text-xs text-current/50">0{index + 1}</span>
+              <h3 class="mt-12 text-2xl font-semibold tracking-tight">{document.title}</h3>
+              <p class="mt-3 text-sm leading-6 text-current/65">{document.description}</p>
+              <ArrowRight
+                class="mt-5 size-4 transition-transform group-hover:translate-x-1 motion-reduce:transition-none"
+                aria-hidden="true"
+              />
+            </a>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="page-shell py-section-gap">
+    <div class="surface-card grid overflow-hidden lg:grid-cols-2">
+      <div class="p-7 sm:p-10 lg:p-14">
+        <ShieldCheck
+          class="mb-8 size-9"
+          aria-hidden="true"
+        />
+        <p class="eyebrow mb-4">Local-first by default</p>
+        <h2 class="text-4xl font-semibold tracking-[-0.045em] sm:text-5xl">
+          Your repository stays yours.
+        </h2>
+        <p class="mt-6 text-lg leading-8 text-muted-foreground">
+          Canonical state lives under <code
+            class="rounded bg-code px-1.5 py-1 font-mono text-sm text-code-foreground"
+            >/moldea/**</code
+          >. The skill does not require Cloud, hidden memory, or routine external transmission of
+          your repository.
+        </p>
+        <a
+          class="mt-8 inline-flex items-center gap-2 font-bold"
+          href={withBase('/docs/safety-and-privacy/')}
+        >
+          Read the safety model
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          />
+        </a>
+      </div>
+      <div
+        class="grid content-center gap-3 border-t border-border bg-sidebar p-7 sm:p-10 lg:border-s lg:border-t-0 lg:p-14"
+      >
+        {
+          [
+            ['Git-owned', 'Context and behavior are reviewable repository state.'],
+            ['Scope-aware', 'The operation and developer authority constrain every write.'],
+            ['Evidence-grounded', 'Repository text cannot redefine developer intent.'],
+            ['Deterministic where it matters', 'The local CLI owns mechanical repository truth.'],
+          ].map(([title, description]) => (
+            <div class="rounded-xl border bg-background p-4">
+              <p class="font-semibold">{title}</p>
+              <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="page-shell pb-section-gap">
+    <div class="grid gap-8 border-t border-border pt-12 lg:grid-cols-[1fr_auto] lg:items-center">
+      <div>
+        <GitBranch
+          class="mb-5 size-7"
+          aria-hidden="true"
+        />
+        <h2 class="text-3xl font-semibold tracking-tight sm:text-4xl">
+          Ready to make context part of the codebase?
+        </h2>
+        <p class="mt-4 max-w-2xl text-lg leading-8 text-muted-foreground">
+          <InlineBrandText
+            text="Install moldea, open your project, and ask your coding agent for the outcome you want."
+          />
+        </p>
+      </div>
+      <a
+        class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground"
+        href={SKILLS_DIRECTORY_URL}
+        target="_blank"
+        rel="noopener noreferrer"
+        data-brand-plain
+      >
+        Get moldea on skills.sh
+        <ArrowRight
+          class="size-4"
+          aria-hidden="true"
+        />
+      </a>
+    </div>
+  </section>
+</BaseLayout>

@@ -142,3 +142,9 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Website generated state
+/website/.astro/
+/website/.generated/
+/website/playwright-report/
+/website/test-results/

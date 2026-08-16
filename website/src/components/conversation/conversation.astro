@@ -1,0 +1,58 @@
+---
+import { Bot, Braces, UserRound } from '@lucide/astro';
+
+import type { IConversationTurn } from './types.ts';
+
+interface Props {
+  description?: string;
+  eyebrow: string;
+  title: string;
+  turns: IConversationTurn[];
+}
+
+const { description, eyebrow, title, turns } = Astro.props;
+const roleDetails = {
+  agent: { icon: Bot, label: 'Coding agent' },
+  developer: { icon: UserRound, label: 'Developer' },
+  skill: { icon: Braces, label: 'Skill guidance' },
+} as const;
+---
+
+<section class="surface-card overflow-hidden">
+  <header class="border-b border-border bg-muted/50 p-5 sm:p-6">
+    <p class="eyebrow mb-2">{eyebrow}</p>
+    <h3 class="text-xl font-semibold tracking-tight">{title}</h3>
+    {description && <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>}
+  </header>
+  <ol class="grid gap-4 p-4 sm:p-6">
+    {
+      turns.map((turn) => {
+        const { icon: RoleIcon, label } = roleDetails[turn.role];
+
+        return (
+          <li class:list={['flex gap-3', turn.role === 'developer' ? 'sm:pe-10' : 'sm:ps-10']}>
+            <span
+              class:list={[
+                'mt-1 inline-flex size-8 shrink-0 items-center justify-center rounded-lg',
+                turn.role === 'skill'
+                  ? 'bg-accent text-accent-foreground'
+                  : 'bg-primary text-primary-foreground',
+              ]}
+            >
+              <RoleIcon
+                class="size-4"
+                aria-hidden="true"
+              />
+            </span>
+            <div class="min-w-0 flex-1 rounded-xl border bg-background p-4">
+              <p class="mb-1 text-xs font-bold tracking-wide text-muted-foreground uppercase">
+                {label}
+              </p>
+              <p class="leading-7">{turn.message}</p>
+            </div>
+          </li>
+        );
+      })
+    }
+  </ol>
+</section>

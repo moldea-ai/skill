@@ -8,10 +8,15 @@
     "node": "^22.11.0 || ^24.11.0"
   },
   "scripts": {
+    "docs:check": "npm --prefix website run docs:check",
+    "docs:generate": "npm --prefix website run docs:generate",
     "eval:semantic": "node tests/semantic-evaluation-runner.mjs",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "node --test tests/*.test-unit.mjs tests/package-manager-candidate/*.test-unit.mjs",
-    "test:integration": "node --test tests/*.test-integration.mjs"
+    "test:integration": "node --test tests/*.test-integration.mjs",
+    "website:build": "npm --prefix website run build",
+    "website:check": "npm --prefix website run check",
+    "website:dev": "npm --prefix website run dev"
   },
   "devDependencies": {
     "@moldea.ai/cli": "2.0.0",

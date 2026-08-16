@@ -1,0 +1,85 @@
+name: Website
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/pages.yml'
+      - '.github/workflows/website.yml'
+      - 'assets/**'
+      - 'CNAME'
+      - 'docs/**'
+      - 'moldea/SKILL.md'
+      - 'package.json'
+      - 'README.md'
+      - 'website/**'
+  push:
+    paths:
+      - '.github/workflows/pages.yml'
+      - '.github/workflows/website.yml'
+      - 'assets/**'
+      - 'CNAME'
+      - 'docs/**'
+      - 'moldea/SKILL.md'
+      - 'package.json'
+      - 'README.md'
+      - 'website/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: website-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  NODE_VERSION: 24.15.0
+
+jobs:
+  verify:
+    name: Verify Website
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+
+      - name: Install website dependencies
+        run: npm --prefix website ci --ignore-scripts
+
+      - name: Install website browser
+        run: ./website/node_modules/.bin/playwright install --with-deps chromium
+
+      - name: Check documentation sources
+        run: npm run docs:check
+
+      - name: Test website units
+        run: npm --prefix website run test:unit
+
+      - name: Typecheck website
+        run: npm --prefix website run typecheck
+
+      - name: Lint website
+        run: npm --prefix website run lint
+
+      - name: Check website formatting
+        run: npm --prefix website run format:check
+
+      - name: Build and validate static website
+        run: npm run website:build
+
+      - name: Test static artifact integration
+        run: npm --prefix website run test:integration:artifact
+
+      - name: Test browser behavior
+        run: npm --prefix website run test:e2e

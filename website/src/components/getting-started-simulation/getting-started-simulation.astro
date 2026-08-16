@@ -1,0 +1,239 @@
+---
+import { ArrowRight, Bot, Check, Copy, Terminal } from '@lucide/astro';
+
+import { INSTALL_COMMAND } from '../../lib/model/constants.ts';
+import { withBase } from '../../lib/site/url.ts';
+---
+
+<section
+  class="border-b border-border bg-sidebar py-section-gap"
+  aria-labelledby="getting-started-title"
+>
+  <div class="page-shell">
+    <header class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end">
+      <div>
+        <p class="eyebrow mb-4">Start in minutes</p>
+        <h2
+          id="getting-started-title"
+          class="section-title max-w-4xl font-semibold"
+        >
+          One install. One ordinary request.
+        </h2>
+      </div>
+      <div class="lg:justify-self-end">
+        <p class="text-lg leading-8 text-muted-foreground">
+          Add the skill to your project, then tell your coding agent what you want. There is no
+          setup wizard, Cloud account, or new command language.
+        </p>
+        <a
+          class="mt-5 inline-flex items-center gap-2 font-bold"
+          href={withBase('/docs/getting-started/')}
+        >
+          Read the getting-started guide
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          />
+        </a>
+      </div>
+    </header>
+
+    <div
+      class="surface-card overflow-hidden"
+      aria-label="Getting started simulation"
+    >
+      <div class="grid lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+        <ol class="grid content-start gap-8 p-5 sm:p-8 lg:p-10">
+          <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4">
+            <span
+              class="inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
+              aria-hidden="true"
+            >
+              01
+            </span>
+            <div class="min-w-0">
+              <p class="eyebrow mb-2">Add the skill</p>
+              <h3 class="text-xl font-semibold tracking-tight">Install it in this project.</h3>
+              <div
+                class="mt-4 flex min-w-0 items-center rounded-xl border bg-code p-1 ps-4 shadow-inset"
+              >
+                <Terminal
+                  class="size-4 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                <code
+                  class="min-w-0 flex-1 px-3 font-mono text-sm wrap-anywhere whitespace-pre-wrap text-code-foreground"
+                  >{INSTALL_COMMAND}</code
+                >
+                <button
+                  class="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground"
+                  type="button"
+                  data-getting-started-copy={INSTALL_COMMAND}
+                  aria-label="Copy install command"
+                >
+                  <Copy
+                    class="copy-icon size-4"
+                    aria-hidden="true"
+                  />
+                  <Check
+                    class="copied-icon hidden size-4"
+                    aria-hidden="true"
+                  />
+                  <span
+                    class="hidden sm:inline"
+                    data-copy-label
+                    >Copy</span
+                  >
+                </button>
+              </div>
+              <p class="mt-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
+                <Check
+                  class="size-4"
+                  aria-hidden="true"
+                />
+                Available to the coding agent
+              </p>
+            </div>
+          </li>
+
+          <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4">
+            <span
+              class="inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
+              aria-hidden="true"
+            >
+              02
+            </span>
+            <div class="min-w-0">
+              <p class="eyebrow mb-2">Ask your agent</p>
+              <h3 class="text-xl font-semibold tracking-tight">Describe the outcome naturally.</h3>
+              <div class="mt-4 flex gap-3 rounded-xl border bg-background p-4">
+                <span
+                  class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+                >
+                  <span
+                    class="font-mono text-xs font-bold"
+                    aria-hidden="true"
+                    >D</span
+                  >
+                  <span class="sr-only">Developer</span>
+                </span>
+                <div>
+                  <p class="mb-1 text-xs font-bold tracking-wide text-muted-foreground uppercase">
+                    Developer
+                  </p>
+                  <code class="font-mono text-sm leading-6"
+                    >Initialize moldea for this repository.</code
+                  >
+                </div>
+              </div>
+            </div>
+          </li>
+        </ol>
+
+        <div
+          class="border-t border-border bg-primary p-5 text-primary-foreground sm:p-8 lg:border-s lg:border-t-0 lg:p-10"
+        >
+          <div class="flex items-center gap-3">
+            <span
+              class="inline-flex size-10 items-center justify-center rounded-xl bg-primary-foreground/10"
+            >
+              <Bot
+                class="size-5"
+                aria-hidden="true"
+              />
+            </span>
+            <div>
+              <p class="text-xs font-bold tracking-[0.16em] text-current/60 uppercase">
+                Coding agent ↔ skill
+              </p>
+              <p class="font-semibold">Your coding agent handles the rest</p>
+            </div>
+          </div>
+
+          <ol class="mt-8 grid gap-5">
+            <li class="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-3">
+              <Check
+                class="mt-0.5 size-5"
+                aria-hidden="true"
+              />
+              <div>
+                <p class="font-semibold">Reads your project</p>
+                <p class="mt-1 text-sm leading-6 text-current/65">
+                  Understands the implementation and documentation before writing anything.
+                </p>
+              </div>
+            </li>
+            <li class="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-3">
+              <Check
+                class="mt-0.5 size-5"
+                aria-hidden="true"
+              />
+              <div>
+                <p class="font-semibold">Builds grounded context</p>
+                <p class="mt-1 text-sm leading-6 text-current/65">
+                  Captures only the durable project facts that will help with future work.
+                </p>
+              </div>
+            </li>
+            <li class="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-3">
+              <Check
+                class="mt-0.5 size-5"
+                aria-hidden="true"
+              />
+              <div>
+                <p class="font-semibold">Checks its work</p>
+                <p class="mt-1 text-sm leading-6 text-current/65">
+                  Validates the result and tells you exactly what changed. No agent is created
+                  unless you ask for one.
+                </p>
+              </div>
+            </li>
+          </ol>
+
+          <div class="mt-8 rounded-xl bg-primary-foreground p-4 text-primary">
+            <p class="text-xs font-bold tracking-wide uppercase">Done</p>
+            <p class="mt-1 font-semibold">
+              Project context initialized. Keep working with your coding agent as usual.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p
+      class="sr-only"
+      aria-live="polite"
+      data-getting-started-copy-status
+    >
+    </p>
+  </div>
+</section>
+
+<script>
+  const initializeGettingStartedCopyControl = (): void => {
+    const button = document.querySelector<HTMLButtonElement>('[data-getting-started-copy]');
+
+    if (!button || button.getAttribute('data-copy-initialized') === 'true') return;
+
+    button.setAttribute('data-copy-initialized', 'true');
+    button.addEventListener('click', async () => {
+      const command = button.getAttribute('data-getting-started-copy');
+      const status = document.querySelector<HTMLElement>('[data-getting-started-copy-status]');
+      const label = button.querySelector<HTMLElement>('[data-copy-label]');
+
+      if (!command || !status || !label) return;
+
+      try {
+        await navigator.clipboard.writeText(command);
+        label.textContent = 'Copied';
+        button.querySelector('.copy-icon')?.classList.add('hidden');
+        button.querySelector('.copied-icon')?.classList.remove('hidden');
+        status.textContent = 'Install command copied to the clipboard.';
+      } catch {
+        status.textContent = 'The install command could not be copied. Select it manually.';
+      }
+    });
+  };
+
+  document.addEventListener('astro:page-load', initializeGettingStartedCopyControl);
+  initializeGettingStartedCopyControl();
+</script>

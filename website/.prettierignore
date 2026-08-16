@@ -1,0 +1,7 @@
+node_modules
+.astro
+.generated
+dist
+playwright-report
+test-results
+package-lock.json

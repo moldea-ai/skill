@@ -1,6 +1,8 @@
 ![moldea](assets/cover.png)
 
-# moldea Agent Skill
+# `moldea` Agent Skill
+
+[Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or explore the complete documentation at [`skill.moldea.ai`](https://skill.moldea.ai).
 
 The current release is `2.0.0`. Install the latest version from `main` in the current project with:
 
@@ -33,6 +35,8 @@ This Agent Skill is the portable semantic operating layer used by a compatible c
 Local work is filesystem-first and private by default. The skill does not send repository content to `moldea` Cloud, and Cloud is not required for installation or local operation.
 
 ## Installation
+
+The primary public distribution page is [`moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea). It provides the current listing and installation path for compatible coding agents.
 
 ### Project installation (recommended)
 
@@ -172,18 +176,20 @@ moldea/
 ## Project blueprint
 
 - `moldea/` is the complete distributed Agent Skill artifact.
+- `docs/` contains concise, durable public concepts, workflows, references, and paired interaction examples. It does not document APIs or HTTP endpoints.
+- `website/` is the isolated private Astro application that validates and renders `/docs/**`, local search, and generated `llms.txt` for [`skill.moldea.ai`](https://skill.moldea.ai).
+- `CNAME` declares `skill.moldea.ai` as the GitHub Pages custom domain.
 - `tests/` contains deterministic metadata, packaging, published-package, candidate-release, reference, and semantic-contract checks.
 - `fixtures/` contains development-only conformance cases, a hostile lifecycle-script fixture, and a narrow synthetic compatibility fixture.
 - `.github/workflows/conformance.yml` runs portable conformance across supported Node.js lines and representative minimum/latest package-manager versions.
 - `.github/workflows/release-candidate.yml` manually packs an exact packages-repository ref and runs the real CLI candidate closure across the same package-manager matrix without publishing it.
 - `README.md` documents public installation, adoption, development, and release behavior.
-- `docs/`, if introduced, is reserved for concise essential durable project concepts and processes; API and HTTP endpoint documentation must live in an established location outside `docs/`.
 
 Development-only tests and fixtures are not required runtime inputs and are not included by the direct `moldea/` installation target.
 
 ## Development
 
-Run all correctness checks:
+Run the portable skill and conformance correctness checks:
 
 ```bash
 npm test
@@ -195,6 +201,24 @@ Run the categories separately:
 npm run test:unit
 npm run test:integration
 ```
+
+The documentation website uses an isolated Node.js 24.15.0 dependency boundary. Install its exact dependency closure with `npm --prefix website ci --ignore-scripts`, then use:
+
+```bash
+npm run docs:check
+npm run website:check
+npm --prefix website run test:e2e
+```
+
+Run the local website with:
+
+```bash
+npm run website:dev
+```
+
+The static build defaults to `SITE_URL=https://skill.moldea.ai` and `BASE_PATH=/`. The build derives documentation routes, navigation, local search, and public `llms.txt` from repository-owned sources; generated model output is ignored and must not be edited directly.
+
+The Pages deployment reads the repository's configured origin and base path before building. Keep the GitHub Pages custom-domain setting and DNS record aligned with `CNAME`; the canonical production origin is [`https://skill.moldea.ai`](https://skill.moldea.ai).
 
 The complete integration suite requires Bubblewrap and defaults to the available npm executable and published `@moldea.ai/cli@2.0.0`. Portable CI jobs provision Bubblewrap, load Ubuntu's packaged Bubblewrap AppArmor profile, and run the complete suite. The package-manager matrices run the focused package-manager integration boundary across npm `10.9.0` and `11.19.0`, pnpm `11.20.0` and `11.21.0`, and Yarn `4.0.0` and `4.18.0` against every supported published CLI release, currently `2.0.0`, without repeating unrelated sandbox checks. Yarn versions with a minimum-release-age gate use their command-scoped override only inside the isolated conformance install so newly published exact package versions remain testable.
 

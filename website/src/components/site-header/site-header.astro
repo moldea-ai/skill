@@ -59,10 +59,11 @@ const navigation = [
       </a>
       <ThemeControl />
       <a
-        class="ms-1 inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground"
+        class="ms-1 inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px motion-reduce:transition-none motion-reduce:active:translate-y-0 dark:hover:bg-primary/30"
         href={SKILLS_DIRECTORY_URL}
         target="_blank"
         rel="noopener noreferrer"
+        data-primary-action
       >
         Get the skill
         <ExternalLink
@@ -114,10 +115,11 @@ const navigation = [
             Source on GitHub
           </a>
           <a
-            class="mt-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 font-bold text-primary-foreground"
+            class="mt-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 font-bold text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px motion-reduce:transition-none motion-reduce:active:translate-y-0 dark:hover:bg-primary/30"
             href={SKILLS_DIRECTORY_URL}
             target="_blank"
             rel="noopener noreferrer"
+            data-primary-action
           >
             Get the skill on skills.sh
             <ExternalLink

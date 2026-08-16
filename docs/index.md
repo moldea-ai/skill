@@ -30,6 +30,7 @@ The coding agent decides when the skill is relevant, reads the necessary guidanc
 
 - [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) — the primary distribution page.
 - [Getting started](/docs/getting-started/) — install once and make the first natural request.
+- [Coding agent compatibility](/docs/coding-agent-compatibility/) — use the same portable skill with Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and other compatible hosts.
 - [What `moldea` can do](/docs/capabilities/) — explore the complete capability surface.
 - [How it works](/docs/how-it-works/) — see the optional technical layer beneath the coding agent.
 - [Examples](/examples/) — follow complete developer, coding-agent, and skill interactions.

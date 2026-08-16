@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 
@@ -11,12 +13,57 @@ const REPRESENTATIVE_PATHS = [
   '/',
   '/docs/',
   '/docs/capabilities/',
+  '/docs/coding-agent-compatibility/',
   '/docs/how-it-works/',
   '/docs/safety-and-privacy/',
   '/examples/',
   '/examples/create-a-support-agent/',
   '/examples/evaluate-and-reconcile/',
   '/search/',
+] as const;
+const CODING_AGENT_MARKS = [
+  {
+    assetPath: '/coding-agents/codex.svg',
+    height: 300,
+    name: 'Codex',
+    sha256: '69b404dd5243fbf5c6925e014429a676eba8214f928d814f7d4e920729d08f45',
+    width: 300,
+  },
+  {
+    assetPath: '/coding-agents/claude-code.svg',
+    height: 248,
+    name: 'Claude Code',
+    sha256: 'b150888bc7257af83e3b85d3c2be4294f88986026f8168f6c12fc1fde6697350',
+    width: 248,
+  },
+  {
+    assetPath: '/coding-agents/cursor.svg',
+    height: 532,
+    name: 'Cursor',
+    sha256: 'c483c02f78eb2619778fdd959e72a9adfac4844854472cd2653d4cbfd60e4d71',
+    width: 467,
+  },
+  {
+    assetPath: '/coding-agents/opencode.svg',
+    height: 300,
+    name: 'OpenCode',
+    sha256: 'd6a0e3b8a295f413543f41cb73957e670351b5cb088c8d9dbd186b9e9d633cca',
+    width: 300,
+  },
+  {
+    assetPath: '/coding-agents/github-copilot.svg',
+    height: 96,
+    name: 'GitHub Copilot',
+    sha256: 'd5aa364673444e6158fedb206efa2aa71886b465921d8911de3cb4e7a3a951bc',
+    width: 96,
+  },
+  {
+    assetPath: '/coding-agents/cline.svg',
+    height: 96,
+    name: 'Cline',
+    sha256: 'e6bcb55005e9059434a990af23463819ef4eb17e86513ac22d92ea1c3fc36887',
+    width: 92,
+  },
 ] as const;
 
 /** Loads every public content route from the generated local search boundary. */
@@ -100,10 +147,200 @@ test('shows the complete two-step initialization journey', async ({ page }) => {
   await expect(simulation.getByText('Builds grounded context')).toBeVisible();
   await expect(simulation.getByText('Checks its work')).toBeVisible();
   await expect(simulation.getByText(/Keep working with your coding agent as usual/)).toBeVisible();
+});
 
-  const packagesLink = page.getByRole('link', { name: 'Built on moldea packages' });
+test('shows compatible coding agents with source-owned marks and a complete docs path', async ({
+  page,
+}) => {
+  await page.goto(toPublicPath('/'));
+
+  const compatibilitySection = page.getByRole('region', {
+    name: 'Use the coding agent you already trust.',
+  });
+  await expect(compatibilitySection).toBeVisible();
+
+  const codingAgentMarks = compatibilitySection.locator('img');
+  await expect(codingAgentMarks).toHaveCount(6);
+  await expect
+    .poll(() =>
+      codingAgentMarks.evaluateAll((images) =>
+        images.every(
+          (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+        ),
+      ),
+    )
+    .toBe(true);
+
+  for (const { assetPath, height, name, sha256, width } of CODING_AGENT_MARKS) {
+    const codingAgentCard = compatibilitySection.locator(`[data-coding-agent-card="${name}"]`);
+    const codingAgentMark = codingAgentCard.locator('[data-coding-agent-mark]');
+
+    await expect(codingAgentCard.getByRole('heading', { name })).toBeVisible();
+    await expect(codingAgentMark).toHaveAttribute('src', toPublicPath(assetPath));
+    await expect(codingAgentMark).toHaveAttribute('width', String(width));
+    await expect(codingAgentMark).toHaveAttribute('height', String(height));
+
+    const assetResponse = await page.request.get(toPublicPath(assetPath));
+    expect(assetResponse.ok()).toBe(true);
+    expect(
+      createHash('sha256')
+        .update(await assetResponse.body())
+        .digest('hex'),
+    ).toBe(sha256);
+
+    const renderedMark = await codingAgentMark.evaluate((image) => {
+      const bounds = image.getBoundingClientRect();
+
+      return {
+        height: bounds.height,
+        objectFit: getComputedStyle(image).objectFit,
+        width: bounds.width,
+      };
+    });
+    expect(renderedMark).toStrictEqual({ height: 40, objectFit: 'contain', width: 40 });
+  }
+
+  const compatibilityGuideLink = compatibilitySection.getByRole('link', {
+    name: 'Read the compatibility guide',
+  });
+  await expect(compatibilityGuideLink).toHaveAttribute(
+    'href',
+    toPublicPath('/docs/coding-agent-compatibility/'),
+  );
+
+  await compatibilityGuideLink.click();
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Coding agent compatibility',
+    }),
+  ).toBeVisible();
+});
+
+test('renders source-owned coding agent marks clearly in both themes', async ({ browser }) => {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    const context = await browser.newContext({ colorScheme });
+    const page = await context.newPage();
+    await page.setViewportSize({ height: 1000, width: 1440 });
+    await page.goto(toPublicPath('/'));
+
+    const compatibilitySection = page.getByRole('region', {
+      name: 'Use the coding agent you already trust.',
+    });
+    await compatibilitySection.scrollIntoViewIfNeeded();
+    await expect
+      .poll(() =>
+        compatibilitySection
+          .locator('[data-coding-agent-mark]')
+          .evaluateAll((images) =>
+            images.every(
+              (image) =>
+                image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+            ),
+          ),
+      )
+      .toBe(true);
+    await page.evaluate(() => document.fonts.ready.then(() => undefined));
+
+    await expect(compatibilitySection).toHaveScreenshot(
+      `coding-agent-compatibility-${colorScheme}.png`,
+      { animations: 'disabled' },
+    );
+
+    await context.close();
+  }
+});
+
+test('presents the package foundation and links to the packages website', async ({ page }) => {
+  await page.goto(toPublicPath('/'));
+
+  const packageFoundation = page.getByRole('region', {
+    name: 'More than instructions. A tested software foundation.',
+  });
+  await expect(packageFoundation).toBeVisible();
+  await expect(
+    packageFoundation.getByRole('heading', { name: 'Verified local execution' }),
+  ).toBeVisible();
+  await expect(
+    packageFoundation.getByRole('heading', { name: 'Deterministic contracts' }),
+  ).toBeVisible();
+  await expect(
+    packageFoundation.getByRole('heading', { name: 'Coherent source evidence' }),
+  ).toBeVisible();
+  await expect(
+    packageFoundation.getByRole('heading', { name: 'Runtime-specific evidence' }),
+  ).toBeVisible();
+
+  const packagesLink = packageFoundation.getByRole('link', { name: 'Explore moldea packages' });
   await expect(packagesLink).toHaveAttribute('href', PACKAGES_WEBSITE_URL);
   await expect(packagesLink).toHaveAttribute('target', '_blank');
+  await expect(packagesLink).toHaveAttribute('rel', 'noopener noreferrer');
+});
+
+test('matches the platform primary action interaction states across public surfaces', async ({
+  browser,
+}) => {
+  const routesWithExpectedActionCounts = [
+    ['/', 5],
+    ['/404.html', 3],
+    ['/search/', 3],
+    ['/docs/getting-started/', 3],
+  ] as const;
+
+  for (const colorScheme of ['light', 'dark'] as const) {
+    const context = await browser.newContext({ colorScheme });
+    const page = await context.newPage();
+
+    for (const [route, expectedActionCount] of routesWithExpectedActionCounts) {
+      await page.goto(toPublicPath(route));
+
+      const primaryActions = page.locator('[data-primary-action]');
+      await expect(primaryActions).toHaveCount(expectedActionCount);
+
+      for (const primaryAction of await primaryActions.all()) {
+        await expect(primaryAction).toHaveClass(/transition-all/);
+        await expect(primaryAction).toHaveClass(/hover:bg-primary\/80/);
+        await expect(primaryAction).toHaveClass(/active:translate-y-px/);
+        await expect(primaryAction).toHaveClass(/motion-reduce:transition-none/);
+        await expect(primaryAction).toHaveClass(/motion-reduce:active:translate-y-0/);
+        await expect(primaryAction).toHaveClass(/dark:hover:bg-primary\/30/);
+      }
+    }
+
+    await page.goto(toPublicPath('/'));
+    const primaryAction = page.locator('[data-primary-action]:visible').first();
+    const restingBackgroundColor = await primaryAction.evaluate(
+      (element) => getComputedStyle(element).backgroundColor,
+    );
+
+    await primaryAction.hover();
+    await expect
+      .poll(() => primaryAction.evaluate((element) => getComputedStyle(element).backgroundColor))
+      .not.toBe(restingBackgroundColor);
+
+    await context.close();
+  }
+});
+
+test('matches the platform search field in both themes', async ({ browser }) => {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    const context = await browser.newContext({ colorScheme });
+    const page = await context.newPage();
+    await page.setViewportSize({ height: 740, width: 720 });
+    await page.goto(toPublicPath('/search/'));
+
+    const searchForm = page.getByRole('search');
+    const searchInput = page.getByRole('searchbox', { name: 'Search documentation' });
+    await expect(searchInput).toHaveClass(/shadow-inset/);
+    await expect(searchInput).toHaveClass(/focus-visible:ring-2/);
+    await searchInput.focus();
+
+    await expect(searchForm).toHaveScreenshot(`search-field-${colorScheme}.png`, {
+      animations: 'disabled',
+    });
+
+    await context.close();
+  }
 });
 
 test('keeps documentation samples and navigation readable at 320px', async ({ page }) => {

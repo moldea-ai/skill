@@ -17,6 +17,7 @@ export const DOCUMENT_SECTION_LABELS = {
 export const REQUIRED_DOCUMENT_ROUTES = [
   '/docs/',
   '/docs/getting-started/',
+  '/docs/coding-agent-compatibility/',
   '/docs/capabilities/',
   '/docs/how-it-works/',
   '/docs/project-state/',

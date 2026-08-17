@@ -450,6 +450,9 @@ test('selects synthetic compatibility only for the two unsupported runtime state
     'published-package',
   );
   assert.equal(getSemanticToolingSource('adopted-relevance-no-change'), 'published-package');
+  assert.equal(getSemanticToolingSource('initialize-insufficient-context'), 'published-package');
+  assert.equal(getSemanticToolingSource('initialize-partial-context'), 'published-package');
+  assert.equal(getSemanticToolingSource('initialize-sufficient-context'), 'published-package');
   assert.equal(getSemanticToolingSource('pnpm-pnp-local-cli-provider'), 'scenario-specific');
 });
 

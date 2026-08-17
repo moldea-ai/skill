@@ -65,6 +65,12 @@ const SAFE_HOST_ENVIRONMENT_NAMES = [
   'OPENAI_BASE_URL',
   'SSL_CERT_FILE',
 ];
+// unadopted initialization cases that use the published CLI with different context quality
+const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
+  'initialize-insufficient-context',
+  'initialize-partial-context',
+  'initialize-sufficient-context',
+]);
 // semantic cases that use scenario-specific setup instead of the adopted npm fixture
 const CUSTOM_SETUP_CASE_IDS = new Set([
   'host-plan-command-precedence',
@@ -1446,8 +1452,63 @@ const seedRuntimeCompatibility = async (
   );
 };
 
+/** Seeds an unadopted repository with the context quality required by one initialization case. */
+const seedInitializationContext = async (repositoryPath, caseDefinition) => {
+  await seedSemanticTooling(repositoryPath, caseDefinition);
+
+  if (caseDefinition.id === 'initialize-insufficient-context') {
+    await writeScenarioFile(repositoryPath, 'README.md', '# Evaluation repository\n');
+    await writeScenarioFile(repositoryPath, 'src/index.js', 'export const project = {};\n');
+    return;
+  }
+
+  if (caseDefinition.id === 'initialize-partial-context') {
+    await writeScenarioFile(
+      repositoryPath,
+      'README.md',
+      '# Invoice processor\n\nProcesses invoices for accounting systems.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'src/invoice.js',
+      'export const processInvoice = (invoice) => ({ ...invoice, processed: true });\n',
+    );
+    return;
+  }
+
+  if (caseDefinition.id === 'initialize-sufficient-context') {
+    await writeScenarioFile(
+      repositoryPath,
+      'README.md',
+      '# Invoice intake service\n\nThe service extracts and validates invoice fields for accounting systems. Its goal is to produce structurally valid invoice records for downstream accounting workflows. It never authorizes or initiates payments.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'src/invoice.js',
+      [
+        'export const extractInvoiceFields = ({ invoiceNumber, total }) => ({',
+        '  invoiceNumber,',
+        '  total,',
+        '});',
+        '',
+        'export const isInvoiceValid = ({ invoiceNumber, total }) =>',
+        "  typeof invoiceNumber === 'string' && typeof total === 'number';",
+        '',
+      ].join('\n'),
+    );
+    return;
+  }
+
+  throw new Error(`Unsupported initialization-context case ${caseDefinition.id}.`);
+};
+
 /** Materializes scenario claims as repository evidence before the baseline commit. */
 const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
+  if (INITIALIZATION_CONTEXT_CASE_IDS.has(caseDefinition.id)) {
+    await seedInitializationContext(repositoryPath, caseDefinition);
+    return;
+  }
+
   if (CUSTOM_SETUP_CASE_IDS.has(caseDefinition.id)) {
     await writeScenarioFile(
       repositoryPath,

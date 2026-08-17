@@ -107,6 +107,9 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'evaluate-dirty-working-tree',
     'evaluate-unborn-repository',
     'host-plan-command-precedence',
+    'initialize-insufficient-context',
+    'initialize-partial-context',
+    'initialize-sufficient-context',
     'plan-existing-project-one-agent',
     'plan-justified-multi-agent',
     'plan-material-ambiguity',
@@ -335,7 +338,7 @@ describe('portable Agent Skill contract', () => {
   test('uses valid portable identity and release metadata', () => {
     assert.equal(frontmatter.name, 'moldea');
     assert.equal(frontmatter.license, 'MIT');
-    assert.equal(frontmatter.metadata.version, '2.0.0');
+    assert.equal(frontmatter.metadata.version, '2.0.1');
     assert.equal(dirname(SKILL_PATH), SKILL_DIRECTORY);
     assert.equal(dirname(SKILL_PATH).split('/').at(-1), frontmatter.name);
     assert.ok(frontmatter.description.length >= 1 && frontmatter.description.length <= 1024);
@@ -399,6 +402,25 @@ describe('portable Agent Skill contract', () => {
       /property named `description` may be routing-facing/,
       /do not report that shared contract as misaligned or recommend a duplicate property/,
       /dynamic or unsupported wiring as unestablished/,
+    ]);
+  });
+
+  test('defines evidence-based initialization clarification and handoff behavior', () => {
+    assertMatchesEvery(portableContent, [
+      /Insufficient:/,
+      /Partial:/,
+      /Sufficient:/,
+      /no meaningful project context was inferred/i,
+      /ask one focused clarification question/i,
+      /documentation volume/i,
+      /awaiting developer context/i,
+      /insufficient or partial project foundation is a pre-write stop condition/i,
+      /before creating `\/moldea\/\*\*` or the owned README awareness block/i,
+      /never convert developer-answerable foundational ambiguity into an unresolved requirement/i,
+      /reviewing the foundation and continuing ordinary development/i,
+      /end the report with an explicit `Next actions` handoff/i,
+      /validation or test status does not replace this handoff/i,
+      /file creation or structural validity alone/i,
     ]);
   });
 
@@ -738,9 +760,9 @@ describe('source repository conformance', () => {
     const projectInstallationIndex = readme.indexOf('### Project installation (recommended)');
     const globalInstallationIndex = readme.indexOf('### Global installation (optional)');
 
-    assert.match(readme, /The current release is `2\.0\.0`\./);
+    assert.match(readme, /The current release is `2\.0\.1`\./);
     assert.match(readme, /^npx skills add moldea-ai\/skill$/m);
-    assert.match(readme, /^npx skills add "moldea-ai\/skill#v2\.0\.0"$/m);
+    assert.match(readme, /^npx skills add "moldea-ai\/skill#v2\.0\.1"$/m);
     assert.match(readme, /^npx skills add moldea-ai\/skill -g$/m);
     assert.ok(projectInstallationIndex >= 0);
     assert.ok(globalInstallationIndex > projectInstallationIndex);

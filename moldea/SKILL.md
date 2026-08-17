@@ -4,7 +4,7 @@ description: >-
   Use when a developer asks their coding agent to initialize or work with moldea; plan an AI- or agent-enabled system and decide what should be agents versus deterministic software, services, tools, or human control; create or refine an AI agent or its behavioral system, including instructions, descriptions, handoff descriptions, tools, skills, schemas, variables and providers, routing or handoffs, bindings, or runtime integration; evaluate, reconcile, or validate an existing moldea system; or make ordinary behavior-affecting repository changes that may require maintaining an adopted moldea system. Loading the skill does not adopt moldea: initial adoption still requires explicit developer intent, while relevance-triggered maintenance applies once a repository uses or is adopting moldea.
 license: MIT
 metadata:
-  version: "2.0.0"
+  version: "2.0.1"
 ---
 
 # moldea
@@ -26,7 +26,7 @@ Agent-system planning activates only when the developer clearly asks how an AI- 
 
 ## Release compatibility
 
-Skill release `2.0.0` supports exactly:
+Skill release `2.0.1` supports exactly:
 
 - `@moldea.ai/cli: >=2.0.0 <2.1.0`
 - CLI JSON schema: `1`
@@ -60,6 +60,8 @@ These are compatibility ranges. A client repository stores one exact repository-
 - **Validate:** run deterministic repository-local validation only. Treat it as read-only.
 
 Initialize, create, update, maintain, refine, fix, and reconcile requests are write-capable only within the developer-authorized scope. Relevant ordinary implementation work also authorizes necessary same-change `moldea` synchronization unless the developer explicitly excludes it. Plan, evaluate, inspect, check, review, explain, report, and validate requests remain read-only unless writes are separately authorized through a later workflow.
+
+During `initialize`, an insufficient or partial project foundation is a pre-write stop condition. Before creating `/moldea/**` or the owned README awareness block, ask the focused clarification and wait for the developer's answer. Never convert developer-answerable foundational ambiguity into an unresolved requirement or claim initialization completed.
 
 ## Load focused guidance
 
@@ -98,6 +100,8 @@ Runtime-adapter evidence is deterministic evidence about detectable implementati
 ## Report truthfully
 
 Report the selected operation and activation path, scope and repositories inspected, files changed or intentionally unchanged, exact local CLI version, deterministic commands and results, dependency changes, semantic decisions, relevant unresolved requirements, ambiguities, protected-instruction conflicts, evidence limitations, project-native checks, and checks not run.
+
+For `initialize`, also report the evidence-backed project foundation and whether initialization completed or is awaiting developer context. If awaiting context, end with the focused clarification needed to continue. If completed, end the report with an explicit `Next actions` handoff that offers reviewing the foundation and continuing ordinary development; include agent-system planning or agent creation only as optional choices when relevant. Validation or test status does not replace this handoff. Do not treat file creation or structural validity alone as semantic completion.
 
 Never claim structural validity without a supported deterministic result, alignment while consequential ambiguity remains, or production readiness while a blocking unresolved requirement affects the claimed behavior. Every `evaluate` result must state that no repository files were changed.
 

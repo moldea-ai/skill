@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or explore the complete documentation at [`skill.moldea.ai`](https://skill.moldea.ai).
 
-The current release is `2.0.0`. Install the latest version from `main` in the current project with:
+The current release is `2.0.1`. Install the latest version from `main` in the current project with:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v2.0.0"
+npx skills add "moldea-ai/skill#v2.0.1"
 ```
 
 Both sources install the portable skill as `moldea`. They do not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
@@ -49,7 +49,7 @@ npx skills add moldea-ai/skill
 This source follows `main`. To install the current release reproducibly, use its immutable tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v2.0.0"
+npx skills add "moldea-ai/skill#v2.0.1"
 ```
 
 The `skills` CLI supports Agent Skills-compatible hosts including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and many others. Host detection and installation location are handled by the installer; the portable skill itself remains vendor-neutral.
@@ -85,7 +85,7 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 - an established supported package manager, or npm when none is established
 - a repository-local exact `@moldea.ai/cli` development dependency in the supported range
 
-Release `2.0.0` supports:
+Release `2.0.1` supports:
 
 - `@moldea.ai/cli >=2.0.0 <2.1.0`
 - CLI JSON schema `1`
@@ -123,6 +123,10 @@ Standalone initialization first understands the project, then creates the minimu
 ```
 
 It does not create an agent automatically. Additional context, decisions, runtime guidance, agents, or unresolved requirements are created only when project evidence justifies them.
+
+Initialization may become a short clarification conversation. When repository evidence does not establish meaningful project context, the coding agent says so and asks a focused foundational question instead of inventing project truth. When some context is supported but a material gap remains, it summarizes what it learned and clarifies that gap. Both outcomes pause before canonical project state or the owned README awareness block is created, and developer-answerable ambiguity is not stored as an unresolved requirement. A sufficiently grounded repository completes without ceremonial questions.
+
+After completion, the coding agent summarizes the established foundation, files, and validation, then offers practical options such as reviewing the context, continuing ordinary development, planning an agent system, or creating a specific agent.
 
 To design an AI-enabled system before implementation or `moldea` adoption, ask:
 
@@ -269,7 +273,7 @@ The skill uses independent semantic versioning. Every release must:
 - use an immutable `v<version>` tag
 - preserve semantically identical `moldea/` content across every official distribution channel
 
-Release `2.0.0` uses the immutable `v2.0.0` tag.
+Release `2.0.1` uses the immutable `v2.0.1` tag.
 
 ## License
 

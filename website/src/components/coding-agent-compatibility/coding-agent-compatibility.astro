@@ -71,16 +71,6 @@ const codingAgents = [
             text="moldea is a portable Agent Skill. Install the same grounded operating layer in compatible hosts without changing how your team asks for work."
           />
         </p>
-        <a
-          class="mt-5 inline-flex items-center gap-2 font-bold"
-          href={withBase('/docs/coding-agent-compatibility/')}
-        >
-          Read the compatibility guide
-          <ArrowRight
-            class="size-4"
-            aria-hidden="true"
-          />
-        </a>
       </div>
     </header>
 
@@ -115,9 +105,15 @@ const codingAgents = [
       }
     </ul>
 
-    <p class="mt-5 text-xs leading-5 text-muted-foreground">
-      Host support follows Agent Skills compatibility and the installer’s current integrations.
-      Names and marks belong to their respective owners; compatibility does not imply endorsement.
-    </p>
+    <a
+      class="mt-5 inline-flex items-center gap-2 font-bold"
+      href={withBase('/docs/coding-agent-compatibility/')}
+    >
+      Read the compatibility guide
+      <ArrowRight
+        class="size-4"
+        aria-hidden="true"
+      />
+    </a>
   </div>
 </section>

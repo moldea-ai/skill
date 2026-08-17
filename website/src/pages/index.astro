@@ -12,6 +12,7 @@ import {
 
 import CapabilityCard from '../components/capability-card/capability-card.astro';
 import CodingAgentCompatibility from '../components/coding-agent-compatibility/coding-agent-compatibility.astro';
+import ContextHandoffSimulation from '../components/context-handoff-simulation/context-handoff-simulation.astro';
 import Conversation from '../components/conversation/conversation.astro';
 import type { IConversationTurn } from '../components/conversation/types.ts';
 import GettingStartedSimulation from '../components/getting-started-simulation/getting-started-simulation.astro';
@@ -121,6 +122,8 @@ const exampleDocuments = model.documents
 
   <GettingStartedSimulation />
 
+  <ContextHandoffSimulation />
+
   <CodingAgentCompatibility />
 
   <section class="page-shell py-section-gap">
@@ -128,7 +131,7 @@ const exampleDocuments = model.documents
       <div>
         <p class="eyebrow mb-4">No new daily interface</p>
         <h2 class="section-title max-w-4xl font-semibold">
-          <InlineBrandText text="Ask for outcomes, not moldea operations." />
+          <InlineBrandText text="Outcomes, not moldea operations." />
         </h2>
       </div>
       <p class="max-w-xl text-lg leading-8 text-muted-foreground lg:justify-self-end">

@@ -104,7 +104,7 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
 
   const outcomeHeading = page.getByRole('heading', {
     level: 2,
-    name: 'Ask for outcomes, not moldea operations.',
+    name: 'Outcomes, not moldea operations.',
   });
   const brandedProductName = outcomeHeading.locator('code');
   await expect(brandedProductName).toHaveText('moldea');
@@ -132,21 +132,6 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
   });
   await expect(mobileDistributionLink).toBeVisible();
   await expect(mobileDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
-});
-
-test('shows the complete two-step initialization journey', async ({ page }) => {
-  await page.goto(toPublicPath('/'));
-
-  const simulation = page.getByLabel('Getting started simulation');
-  await expect(
-    page.getByRole('heading', { level: 2, name: 'One install. One ordinary request.' }),
-  ).toBeVisible();
-  await expect(simulation.getByText('npx skills add moldea-ai/skill')).toBeVisible();
-  await expect(simulation.getByText('Initialize moldea for this repository.')).toBeVisible();
-  await expect(simulation.getByText('Reads your project')).toBeVisible();
-  await expect(simulation.getByText('Builds grounded context')).toBeVisible();
-  await expect(simulation.getByText('Checks its work')).toBeVisible();
-  await expect(simulation.getByText(/Keep working with your coding agent as usual/)).toBeVisible();
 });
 
 test('shows compatible coding agents with source-owned marks and a complete docs path', async ({

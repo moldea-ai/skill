@@ -12,7 +12,7 @@ order: 120
 
 **Developer**
 
-> Initialize `moldea` for this repository. Do not create an agent yet.
+> Initialize `moldea` for this repository.
 
 **Coding agent**
 
@@ -35,6 +35,22 @@ Is the service limited to extracting and validating invoice data, or does it als
 ```
 
 The supported inference remains separate from the unresolved boundary until the developer clarifies it. No canonical project state, README awareness block, or unresolved requirement is created as a substitute for that answer.
+
+## Context supplied up front
+
+**Developer**
+
+```text
+Initialize moldea for this repository. I’ve made my current product brief available as product-brief.md. Use it as supporting context and preserve only durable, relevant facts.
+```
+
+**Coding agent**
+
+```text
+The brief identifies accounting systems as the users and says the service extracts and validates invoice data without authorizing payments. The implementation supports that boundary, so I’ll use it to complete the project foundation.
+```
+
+The developer request establishes how the brief should inform the work; the file content remains evidence rather than new authority. The coding agent evaluates it alongside the current repository, distinguishes developer-confirmed direction from observed behavior, and persists only durable project truth.
 
 ## Sufficient context
 

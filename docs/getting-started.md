@@ -60,6 +60,8 @@ Initialization is conversational when the evidence is not yet sufficient:
 - When part of the project is clear but a material purpose, user, goal, or boundary remains uncertain, it summarizes the supported conclusions and asks a focused clarification before finalizing affected claims.
 - When the foundation is sufficiently clear, it completes initialization without asking a question merely for ceremony.
 
+You can also supply context before the coding agent asks. Include it directly in the request or point to an accessible file where you already maintain the relevant users, goals, boundaries, or other project knowledge. The coding agent evaluates that input alongside repository evidence and carries only durable, relevant truth into the project foundation.
+
 Insufficient and partial foundations pause initialization before canonical project state or the owned README awareness block is created. The coding agent asks instead of storing developer-answerable foundational ambiguity as an unresolved requirement.
 
 The amount of documentation is not the deciding factor. A concise authoritative README may be sufficient, while extensive contradictory or stale documentation may require clarification. After any required answers, the coding agent resumes initialization and provides a completed handoff with optional next actions.

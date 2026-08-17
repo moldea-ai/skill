@@ -532,7 +532,7 @@ describe('source repository conformance', () => {
 
     const portableSkillDigest = createPortableSkillDigest();
     assert.equal(result.schemaVersion, 1);
-    assert.equal(result.evaluationProtocolVersion, 3);
+    assert.equal(result.evaluationProtocolVersion, 4);
     assert.equal(
       result.caseSuiteDigest,
       createSemanticCaseSuiteDigest(cases.semanticCases),
@@ -576,6 +576,11 @@ describe('source repository conformance', () => {
         'Release-version declarations changed without changing semantic skill content.',
       );
     }
+    assert.deepEqual(result.host, result.actorHost);
+    assert.equal(result.actorHost.model, 'gpt-5.6-terra');
+    assert.equal(result.judgeHost.model, 'gpt-5.6-terra');
+    assert.equal(result.actorHost.reasoningEffort, 'medium');
+    assert.equal(result.judgeHost.reasoningEffort, 'medium');
     assert.ok(result.host.name.length > 0);
     assert.ok(result.host.version.length > 0);
     assert.match(result.evaluatedAt, /^\d{4}-\d{2}-\d{2}T/);
@@ -827,6 +832,18 @@ describe('source repository conformance', () => {
       /expected time and token cost/,
       /developer's explicit approval/,
     ]);
+  });
+
+  test('pins semantic evaluation to Terra with fixed reasoning effort', () => {
+    const readme = readRepositoryFile('README.md');
+
+    assertMatchesEvery(readme, [
+      /gpt-5\.6-terra/,
+      /actor and judge/,
+      /medium/,
+      /must not select their own model or reasoning effort/,
+    ]);
+    assert.doesNotMatch(readme, /MOLDEA_EVAL_REASONING_EFFORT/);
   });
 
   test('documents resumable semantic evidence without weakening promotion', () => {

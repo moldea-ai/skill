@@ -1,10 +1,12 @@
 ---
 import { ExternalLink, GitFork, Menu, Search } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import ThemeControl from '@moldea.ai/website-ui/theme-control';
+import { isPublicRouteActive, withBase } from '@moldea.ai/website-ui/site';
 
 import { SKILLS_DIRECTORY_URL, SOURCE_REPOSITORY_URL } from '../../lib/model/constants.ts';
-import { isPublicRouteActive, withBase } from '../../lib/site/url.ts';
+import { THEME_STORAGE_KEY } from '../../lib/site/constants.ts';
 import Logo from '../logo/logo.astro';
-import ThemeControl from '../theme-control/theme-control.astro';
 
 const navigation = [
   { href: '/docs/capabilities/', label: 'Capabilities' },
@@ -13,21 +15,22 @@ const navigation = [
   { href: '/docs/', label: 'Docs' },
 ] as const;
 const currentPathname = Astro.url.pathname;
+const basePath = import.meta.env.BASE_URL;
 const activeNavigationRoute = navigation.reduce<string | undefined>(
   (activeRoute, { href }) =>
-    isPublicRouteActive(currentPathname, href) &&
+    isPublicRouteActive(currentPathname, href, basePath) &&
     (activeRoute === undefined || href.length > activeRoute.length)
       ? href
       : activeRoute,
   undefined,
 );
 const navigationItems = navigation.map(({ href, label }) => ({
-  href: withBase(href),
+  href: withBase(href, basePath),
   isActive: href === activeNavigationRoute,
   label,
 }));
-const searchHref = withBase('/search/');
-const isSearchActive = isPublicRouteActive(currentPathname, '/search/');
+const searchHref = withBase('/search/', basePath);
+const isSearchActive = isPublicRouteActive(currentPathname, '/search/', basePath);
 ---
 
 <header class="sticky top-0 z-50 border-b border-border bg-background/92 backdrop-blur-xl">
@@ -57,12 +60,11 @@ const isSearchActive = isPublicRouteActive(currentPathname, '/search/');
     </nav>
 
     <div class="hidden items-center gap-2 lg:flex">
-      <a
-        class:list={[
-          'inline-flex size-10 items-center justify-center rounded-lg transition-colors',
-          isSearchActive ? 'bg-secondary/70 dark:bg-secondary/50' : 'hover:bg-muted',
-        ]}
+      <ActionLink
+        class={isSearchActive ? 'bg-secondary/70 dark:bg-secondary/50' : ''}
         href={searchHref}
+        size="icon"
+        variant="ghost"
         aria-label="Search documentation"
         aria-current={isSearchActive ? 'page' : undefined}
       >
@@ -70,23 +72,25 @@ const isSearchActive = isPublicRouteActive(currentPathname, '/search/');
           class="size-4"
           aria-hidden="true"
         />
-      </a>
-      <a
-        class="inline-flex size-10 items-center justify-center rounded-lg hover:bg-muted"
+      </ActionLink>
+      <ActionLink
         href={SOURCE_REPOSITORY_URL}
+        size="icon"
         target="_blank"
         rel="noopener noreferrer"
+        variant="ghost"
         aria-label="moldea skill on GitHub"
       >
         <GitFork
           class="size-4"
           aria-hidden="true"
         />
-      </a>
-      <ThemeControl />
-      <a
-        class="ms-1 inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px motion-reduce:transition-none motion-reduce:active:translate-y-0 dark:hover:bg-primary/30"
+      </ActionLink>
+      <ThemeControl storageKey={THEME_STORAGE_KEY} />
+      <ActionLink
+        class="ms-1 font-bold"
         href={SKILLS_DIRECTORY_URL}
+        size="md"
         target="_blank"
         rel="noopener noreferrer"
         data-primary-action
@@ -96,7 +100,7 @@ const isSearchActive = isPublicRouteActive(currentPathname, '/search/');
           class="size-3.5"
           aria-hidden="true"
         />
-      </a>
+      </ActionLink>
     </div>
 
     <details class="group relative lg:hidden">
@@ -152,9 +156,10 @@ const isSearchActive = isPublicRouteActive(currentPathname, '/search/');
           >
             Source on GitHub
           </a>
-          <a
-            class="mt-2 inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-primary px-4 font-bold text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px motion-reduce:transition-none motion-reduce:active:translate-y-0 dark:hover:bg-primary/30"
+          <ActionLink
+            class="mt-2 w-full font-bold"
             href={SKILLS_DIRECTORY_URL}
+            size="lg"
             target="_blank"
             rel="noopener noreferrer"
             data-primary-action
@@ -164,10 +169,10 @@ const isSearchActive = isPublicRouteActive(currentPathname, '/search/');
               class="size-3.5"
               aria-hidden="true"
             />
-          </a>
+          </ActionLink>
         </nav>
         <div class="mt-3 border-t border-border pt-3">
-          <ThemeControl />
+          <ThemeControl storageKey={THEME_STORAGE_KEY} />
         </div>
       </div>
     </details>

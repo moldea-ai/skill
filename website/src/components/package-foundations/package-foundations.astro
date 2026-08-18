@@ -1,8 +1,9 @@
 ---
 import { ArrowUpRight } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 
 import { PACKAGES_WEBSITE_URL } from '../../lib/model/constants.ts';
-import InlineBrandText from '../inline-brand-text/inline-brand-text.astro';
 
 const foundationAreas = [
   {
@@ -48,18 +49,20 @@ const foundationAreas = [
           text="moldea pairs its semantic operating model with versioned packages for contracts, repository operations, runtime evidence, and deterministic validation. Critical mechanics stay explicit, repeatable, and independently testable."
         />
       </p>
-      <a
-        class="mt-8 inline-flex min-h-12 items-center gap-2 rounded-xl border border-input bg-background px-5 py-3 font-bold shadow-surface hover:bg-muted"
+      <ActionLink
+        class="mt-8 font-bold shadow-surface"
         href={PACKAGES_WEBSITE_URL}
+        size="lg"
         target="_blank"
         rel="noopener noreferrer"
+        variant="outline"
       >
         <InlineBrandText text="Explore moldea packages" />
         <ArrowUpRight
           class="size-4"
           aria-hidden="true"
         />
-      </a>
+      </ActionLink>
     </div>
 
     <ol class="grid gap-3 sm:grid-cols-2">

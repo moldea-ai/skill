@@ -2,10 +2,10 @@ import { createHash } from 'node:crypto';
 
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { parseSearchDocuments } from '@moldea.ai/website-ui/search';
+import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { PACKAGES_WEBSITE_URL, SKILLS_DIRECTORY_URL } from '../lib/model/constants.ts';
-import { parseSearchDocuments } from '../lib/search/search.ts';
-import { DEFAULT_BASE_PATH, withBase } from '../lib/site/url.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -262,7 +262,7 @@ test('presents the package foundation and links to the packages website', async 
   await expect(packagesLink).toHaveAttribute('rel', 'noopener noreferrer');
 });
 
-test('matches the platform primary action interaction states across public surfaces', async ({
+test('uses the shared primary action interaction states across public surfaces', async ({
   browser,
 }) => {
   const routesWithExpectedActionCounts = [
@@ -279,21 +279,12 @@ test('matches the platform primary action interaction states across public surfa
     for (const [route, expectedActionCount] of routesWithExpectedActionCounts) {
       await page.goto(toPublicPath(route));
 
-      const primaryActions = page.locator('[data-primary-action]');
+      const primaryActions = page.locator('.action-control.action-primary');
       await expect(primaryActions).toHaveCount(expectedActionCount);
-
-      for (const primaryAction of await primaryActions.all()) {
-        await expect(primaryAction).toHaveClass(/transition-all/);
-        await expect(primaryAction).toHaveClass(/hover:bg-primary\/80/);
-        await expect(primaryAction).toHaveClass(/active:translate-y-px/);
-        await expect(primaryAction).toHaveClass(/motion-reduce:transition-none/);
-        await expect(primaryAction).toHaveClass(/motion-reduce:active:translate-y-0/);
-        await expect(primaryAction).toHaveClass(/dark:hover:bg-primary\/30/);
-      }
     }
 
     await page.goto(toPublicPath('/'));
-    const primaryAction = page.locator('[data-primary-action]:visible').first();
+    const primaryAction = page.locator('.action-control.action-primary:visible').first();
     const restingBackgroundColor = await primaryAction.evaluate(
       (element) => getComputedStyle(element).backgroundColor,
     );
@@ -302,6 +293,21 @@ test('matches the platform primary action interaction states across public surfa
     await expect
       .poll(() => primaryAction.evaluate((element) => getComputedStyle(element).backgroundColor))
       .not.toBe(restingBackgroundColor);
+
+    await primaryAction.focus();
+    await expect
+      .poll(() => primaryAction.evaluate((element) => getComputedStyle(element).boxShadow))
+      .not.toBe('none');
+
+    const restingTranslate = await primaryAction.evaluate(
+      (element) => getComputedStyle(element).translate,
+    );
+    await primaryAction.hover();
+    await page.mouse.down();
+    await expect
+      .poll(() => primaryAction.evaluate((element) => getComputedStyle(element).translate))
+      .not.toBe(restingTranslate);
+    await page.mouse.up();
 
     await context.close();
   }
@@ -367,6 +373,44 @@ test('keeps documentation samples and navigation readable at 320px', async ({ pa
   expect(await nextPageText.evaluate((element) => getComputedStyle(element).textAlign)).toBe('end');
 });
 
+test('keeps wrapped documentation tables flush with their scroll containers', async ({
+  browser,
+}) => {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    for (const width of [320, 1440]) {
+      const context = await browser.newContext({
+        colorScheme,
+        viewport: { height: 740, width },
+      });
+      const page = await context.newPage();
+      await page.goto(toPublicPath('/docs/how-it-works/'));
+
+      const tableRegion = page.getByRole('region', { name: 'Scrollable table' }).first();
+      const tableLayout = await tableRegion.locator('table').evaluate((table) => {
+        const tableBounds = table.getBoundingClientRect();
+        const wrapperBounds = table.parentElement?.getBoundingClientRect();
+        const tableStyles = getComputedStyle(table);
+
+        return {
+          bottomGap: wrapperBounds ? wrapperBounds.bottom - tableBounds.bottom : null,
+          marginBottom: tableStyles.marginBottom,
+          marginTop: tableStyles.marginTop,
+          topGap: wrapperBounds ? tableBounds.top - wrapperBounds.top : null,
+        };
+      });
+
+      expect(tableLayout.marginBottom).toBe('0px');
+      expect(tableLayout.marginTop).toBe('0px');
+      expect(tableLayout.bottomGap).not.toBeNull();
+      expect(tableLayout.topGap).not.toBeNull();
+      expect(tableLayout.bottomGap ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(1);
+      expect(tableLayout.topGap ?? Number.POSITIVE_INFINITY).toBeLessThanOrEqual(1);
+
+      await context.close();
+    }
+  }
+});
+
 test('persists an explicit theme and exposes mobile navigation from the keyboard', async ({
   page,
 }) => {
@@ -374,6 +418,7 @@ test('persists an explicit theme and exposes mobile navigation from the keyboard
   await page.goto(toPublicPath('/'));
 
   await expect(page.locator('header img[src$="/logo/logo-light.png"]')).toBeVisible();
+  await expect(page.locator('header').getByText('skill', { exact: true })).toBeVisible();
 
   const navigationButton = page.getByLabel('Open navigation');
   await navigationButton.focus();

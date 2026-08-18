@@ -181,7 +181,7 @@ moldea/
 
 - `moldea/` is the complete distributed Agent Skill artifact.
 - `docs/` contains concise, durable public concepts, workflows, references, and paired interaction examples. It does not document APIs or HTTP endpoints.
-- `website/` is the isolated private Astro application that validates and renders `/docs/**`, local search, and generated `llms.txt` for [`skill.moldea.ai`](https://skill.moldea.ai).
+- `website/` is the isolated private Astro application that validates and renders `/docs/**`, local search, and generated `llms.txt` for [`skill.moldea.ai`](https://skill.moldea.ai). It consumes the public `@moldea.ai/website-ui` package for shared moldea website foundations while retaining its own content, assets, navigation, SEO identity, and theme storage.
 - `CNAME` declares `skill.moldea.ai` as the GitHub Pages custom domain.
 - `tests/` contains deterministic metadata, packaging, published-package, candidate-release, reference, and semantic-contract checks.
 - `fixtures/` contains development-only conformance cases, a hostile lifecycle-script fixture, and a narrow synthetic compatibility fixture.
@@ -206,7 +206,7 @@ npm run test:unit
 npm run test:integration
 ```
 
-The documentation website uses an isolated Node.js 24.15.0 dependency boundary. Install its exact dependency closure with `npm --prefix website ci --ignore-scripts`, then use:
+The documentation website uses an isolated Node.js 24.15.0 dependency boundary and exact `@moldea.ai/website-ui` package release. Install its exact dependency closure with `npm --prefix website ci --ignore-scripts`, then use:
 
 ```bash
 npm run docs:check

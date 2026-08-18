@@ -8,6 +8,8 @@ The build reads strict documentation frontmatter and the portable `moldea/SKILL.
 
 The public `https://skill.moldea.ai/llms.txt` file is generated from this model and is not maintained as a separate root source file.
 
+Reusable website foundations come from the exact public `@moldea.ai/website-ui` dependency. That package owns shared semantic design tokens, global interaction states, base-path and theme utilities, local-search behavior, and small Astro components. This application owns the `https://skill.moldea.ai` origin, `moldea-skill-theme` storage key, page composition, generated documentation, navigation copy, SEO identity, and public assets.
+
 The complete favicon, social image, icon, logo, wordmark, and source artwork set under `public/` mirrors the official brand assets used by the sibling packages website. Keep those copies synchronized intentionally when the source assets change.
 
 The compatibility marks under `public/coding-agents/` use source-owned third-party artwork only to identify supported hosts. The Codex asset preserves the transparent Blossom path geometry from the [official OpenAI brand guidelines](https://openai.com/brand/); the remaining authoritative sources are the [Claude product](https://claude.ai/), [Cursor brand archive](https://cursor.com/brand), [OpenCode repository brand assets](https://github.com/anomalyco/opencode/tree/dev/packages/console/app/src/asset/brand), [GitHub brand archive](https://brand.github.com/foundations/logo), and [Cline repository assets](https://github.com/cline/cline/tree/main/apps/vscode/assets/icons). Keep the mark geometry unmodified and do not imply vendor endorsement.
@@ -35,4 +37,4 @@ The repository-root `CNAME` declares `skill.moldea.ai` as the production custom 
 
 ## Boundaries
 
-The website dependency closure requires Node.js 24.15.0 and remains isolated from the portable skill's Node.js compatibility boundary. The site is static, uses no hosted search or analytics service, and keeps essential documentation available without JavaScript.
+The website dependency closure requires Node.js 24.15.0 and remains isolated from the portable skill's Node.js compatibility boundary. The pinned Website UI release shares the same exact Astro and Tailwind versions as the application. The site is static, uses no hosted search or analytics service, and keeps essential documentation available without JavaScript.

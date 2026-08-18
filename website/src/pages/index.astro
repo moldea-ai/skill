@@ -9,6 +9,9 @@ import {
   Sparkles,
   Workflow,
 } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
 
 import CapabilityCard from '../components/capability-card/capability-card.astro';
 import CodingAgentCompatibility from '../components/coding-agent-compatibility/coding-agent-compatibility.astro';
@@ -16,14 +19,13 @@ import ContextHandoffSimulation from '../components/context-handoff-simulation/c
 import Conversation from '../components/conversation/conversation.astro';
 import type { IConversationTurn } from '../components/conversation/types.ts';
 import GettingStartedSimulation from '../components/getting-started-simulation/getting-started-simulation.astro';
-import InlineBrandText from '../components/inline-brand-text/inline-brand-text.astro';
 import PackageFoundations from '../components/package-foundations/package-foundations.astro';
 import BaseLayout from '../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../lib/generation/generation.ts';
 import { SKILLS_DIRECTORY_URL } from '../lib/model/constants.ts';
-import { withBase } from '../lib/site/url.ts';
 
 const model = loadWebsiteModel();
+const basePath = import.meta.env.BASE_URL;
 const developerConversation = [
   {
     role: 'developer',
@@ -95,9 +97,10 @@ const exampleDocuments = model.documents
           class="flex flex-wrap gap-3 sm:flex-nowrap lg:justify-end"
           data-hero-actions
         >
-          <a
-            class="inline-flex min-h-12 items-center gap-2 rounded-xl bg-primary px-5 py-3 font-bold whitespace-nowrap text-primary-foreground shadow-raised transition-all hover:bg-primary/80 active:translate-y-px motion-reduce:transition-none motion-reduce:active:translate-y-0 dark:hover:bg-primary/30"
+          <ActionLink
+            class="font-bold shadow-raised"
             href={SKILLS_DIRECTORY_URL}
+            size="lg"
             target="_blank"
             rel="noopener noreferrer"
             data-brand-plain
@@ -108,13 +111,15 @@ const exampleDocuments = model.documents
               class="size-4"
               aria-hidden="true"
             />
-          </a>
-          <a
-            class="inline-flex min-h-12 items-center gap-2 rounded-xl border border-input bg-background/70 px-5 py-3 font-bold whitespace-nowrap backdrop-blur hover:bg-muted"
-            href={withBase('/docs/how-it-works/')}
+          </ActionLink>
+          <ActionLink
+            class="bg-background/70 font-bold backdrop-blur"
+            href={withBase('/docs/how-it-works/', basePath)}
+            size="lg"
+            variant="outline"
           >
             See how it works
-          </a>
+          </ActionLink>
         </div>
       </div>
     </div>
@@ -196,16 +201,17 @@ const exampleDocuments = model.documents
           icon={SearchCheck}
         />
       </div>
-      <a
-        class="mt-8 inline-flex items-center gap-2 font-bold"
-        href={withBase('/docs/capabilities/')}
+      <ActionLink
+        class="mt-8 font-bold"
+        href={withBase('/docs/capabilities/', basePath)}
+        variant="link"
       >
         Explore every capability
         <ArrowRight
           class="size-4"
           aria-hidden="true"
         />
-      </a>
+      </ActionLink>
     </div>
   </section>
 
@@ -265,12 +271,12 @@ const exampleDocuments = model.documents
         <div>
           <p class="eyebrow mb-4 text-current/60">Examples from both sides</p>
           <h2 class="section-title max-w-4xl font-semibold">
-            See what you say—and what happens next.
+            See what you say, and what happens next.
           </h2>
         </div>
         <a
           class="inline-flex items-center gap-2 rounded-xl border border-current/25 px-4 py-3 font-bold hover:bg-current/10"
-          href={withBase('/examples/')}
+          href={withBase('/examples/', basePath)}
         >
           Browse all examples
           <ArrowRight
@@ -286,7 +292,7 @@ const exampleDocuments = model.documents
           exampleDocuments.map((document, index) => (
             <a
               class="group min-h-56 bg-primary p-6 transition-colors hover:bg-primary-foreground/8 motion-reduce:transition-none"
-              href={withBase(document.route)}
+              href={withBase(document.route, basePath)}
             >
               <span class="font-mono text-xs text-current/50">0{index + 1}</span>
               <h3 class="mt-12 text-2xl font-semibold tracking-tight">{document.title}</h3>
@@ -320,16 +326,17 @@ const exampleDocuments = model.documents
           >. The skill does not require Cloud, hidden memory, or routine external transmission of
           your repository.
         </p>
-        <a
-          class="mt-8 inline-flex items-center gap-2 font-bold"
-          href={withBase('/docs/safety-and-privacy/')}
+        <ActionLink
+          class="mt-8 font-bold"
+          href={withBase('/docs/safety-and-privacy/', basePath)}
+          variant="link"
         >
           Read the safety model
           <ArrowRight
             class="size-4"
             aria-hidden="true"
           />
-        </a>
+        </ActionLink>
       </div>
       <div
         class="grid content-center gap-3 border-t border-border bg-sidebar p-7 sm:p-10 lg:border-s lg:border-t-0 lg:p-14"
@@ -367,9 +374,10 @@ const exampleDocuments = model.documents
           />
         </p>
       </div>
-      <a
-        class="inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-bold text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px motion-reduce:transition-none motion-reduce:active:translate-y-0 dark:hover:bg-primary/30"
+      <ActionLink
+        class="font-bold"
         href={SKILLS_DIRECTORY_URL}
+        size="lg"
         target="_blank"
         rel="noopener noreferrer"
         data-brand-plain
@@ -380,7 +388,7 @@ const exampleDocuments = model.documents
           class="size-4"
           aria-hidden="true"
         />
-      </a>
+      </ActionLink>
     </div>
   </section>
 </BaseLayout>

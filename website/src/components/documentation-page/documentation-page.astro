@@ -1,11 +1,12 @@
 ---
 import { ArrowLeft, ArrowRight, ExternalLink, Menu } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import { withBase } from '@moldea.ai/website-ui/site';
 
 import type { IRenderedMarkdownHeading } from '../../lib/content/markdown.ts';
 import { SKILLS_DIRECTORY_URL, SOURCE_REPOSITORY_URL } from '../../lib/model/constants.ts';
 import type { INavigationGroup, ISkillMetadata, IWebsiteDocument } from '../../lib/model/types.ts';
-import { withBase } from '../../lib/site/url.ts';
-import Breadcrumbs from '../breadcrumbs/breadcrumbs.astro';
 
 interface Props {
   currentDocument: IWebsiteDocument;
@@ -16,6 +17,7 @@ interface Props {
 }
 
 const { currentDocument, headings, navigation, orderedDocuments, skill } = Astro.props;
+const basePath = import.meta.env.BASE_URL;
 const currentIndex = orderedDocuments.findIndex(({ route }) => route === currentDocument.route);
 const previousDocument = currentIndex > 0 ? orderedDocuments[currentIndex - 1] : undefined;
 const nextDocument =
@@ -40,7 +42,10 @@ const breadcrumbs = [
 ---
 
 <div class="docs-shell pt-7">
-  <Breadcrumbs items={breadcrumbs} />
+  <Breadcrumbs
+    basePath={basePath}
+    items={breadcrumbs}
+  />
 
   <details class="surface-card mt-6 lg:hidden">
     <summary
@@ -69,7 +74,7 @@ const breadcrumbs = [
                       ? 'bg-accent text-accent-foreground'
                       : 'hover:bg-muted',
                   ]}
-                  href={withBase(document.route)}
+                  href={withBase(document.route, basePath)}
                   aria-current={document.route === currentDocument.route ? 'page' : undefined}
                 >
                   {document.navigationTitle}
@@ -104,7 +109,7 @@ const breadcrumbs = [
                           ? 'bg-accent text-accent-foreground'
                           : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                       ]}
-                      href={withBase(document.route)}
+                      href={withBase(document.route, basePath)}
                       aria-current={document.route === currentDocument.route ? 'page' : undefined}
                     >
                       {document.navigationTitle}
@@ -137,9 +142,10 @@ const breadcrumbs = [
           {currentDocument.description}
         </p>
         <div class="mt-6 flex flex-wrap gap-3">
-          <a
-            class="inline-flex min-h-10 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px motion-reduce:transition-none motion-reduce:active:translate-y-0 dark:hover:bg-primary/30"
+          <ActionLink
+            class="font-bold"
             href={SKILLS_DIRECTORY_URL}
+            size="md"
             target="_blank"
             rel="noopener noreferrer"
             data-primary-action
@@ -149,19 +155,21 @@ const breadcrumbs = [
               class="size-3.5"
               aria-hidden="true"
             />
-          </a>
-          <a
-            class="inline-flex min-h-10 items-center gap-2 rounded-lg border border-input px-4 py-2 text-sm font-bold hover:bg-muted"
+          </ActionLink>
+          <ActionLink
+            class="font-bold"
             href={`${SOURCE_REPOSITORY_URL}/blob/main/${currentDocument.sourcePath}`}
+            size="md"
             target="_blank"
             rel="noopener noreferrer"
+            variant="outline"
           >
             View source
             <ExternalLink
               class="size-3.5"
               aria-hidden="true"
             />
-          </a>
+          </ActionLink>
         </div>
       </header>
 
@@ -175,7 +183,7 @@ const breadcrumbs = [
           previousDocument ? (
             <a
               class="surface-card interactive-card flex min-h-24 items-center gap-3 p-4"
-              href={withBase(previousDocument.route)}
+              href={withBase(previousDocument.route, basePath)}
             >
               <ArrowLeft
                 class="size-4 shrink-0"
@@ -196,7 +204,7 @@ const breadcrumbs = [
           nextDocument && (
             <a
               class="surface-card interactive-card flex min-h-24 items-center justify-between gap-3 p-4"
-              href={withBase(nextDocument.route)}
+              href={withBase(nextDocument.route, basePath)}
             >
               <span class="min-w-0 flex-1 text-end">
                 <span class="block text-xs font-bold tracking-wide text-muted-foreground uppercase">

@@ -32,6 +32,7 @@ const searchIndexUrl = withBase('/search-index.json', basePath);
         action={withBase('/search/', basePath)}
         failureMessage="The local search index could not be loaded. Use documentation navigation instead."
         initialPrompt="Enter an operation, agent concept, safety rule, or example."
+        inputId="documentation-search"
         placeholder="e.g. create a support agent"
         {searchIndexUrl}
       />
@@ -52,3 +53,12 @@ const searchIndexUrl = withBase('/search-index.json', basePath);
     </div>
   </section>
 </BaseLayout>
+
+<script>
+  const focusDocumentationSearch = (): void => {
+    document.getElementById('documentation-search')?.focus();
+  };
+
+  document.addEventListener('astro:page-load', focusDocumentationSearch);
+  focusDocumentationSearch();
+</script>

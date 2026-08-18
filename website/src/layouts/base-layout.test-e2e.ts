@@ -324,7 +324,7 @@ test('matches the platform search field in both themes', async ({ browser }) => 
     const searchInput = page.getByRole('searchbox', { name: 'Search documentation' });
     await expect(searchInput).toHaveClass(/shadow-inset/);
     await expect(searchInput).toHaveClass(/focus-visible:ring-2/);
-    await searchInput.focus();
+    await expect(searchInput).toBeFocused();
 
     await expect(searchForm).toHaveScreenshot(`search-field-${colorScheme}.png`, {
       animations: 'disabled',
@@ -650,8 +650,10 @@ test('copies the install command and searches the generated local index', async 
   );
 
   await page.getByRole('link', { name: 'Search documentation' }).click();
-  await page.getByRole('searchbox', { name: 'Search documentation' }).fill('support agent');
-  await page.getByRole('searchbox', { name: 'Search documentation' }).press('Enter');
+  const searchInput = page.getByRole('searchbox', { name: 'Search documentation' });
+  await expect(searchInput).toBeFocused();
+  await searchInput.fill('support agent');
+  await searchInput.press('Enter');
   await expect(page.locator('[data-search-results] li').first()).toBeVisible();
   await expect(page.locator('[data-search-status]')).toContainText(/results? for “support agent”/);
 });

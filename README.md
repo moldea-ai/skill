@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or explore the complete documentation at [`skill.moldea.ai`](https://skill.moldea.ai).
 
-The current release is `2.0.0`. Install the latest version from `main` in the current project with:
+The current release is `2.0.1`. Install the latest version from `main` in the current project with:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v2.0.0"
+npx skills add "moldea-ai/skill#v2.0.1"
 ```
 
 Both sources install the portable skill as `moldea`. They do not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
@@ -49,7 +49,7 @@ npx skills add moldea-ai/skill
 This source follows `main`. To install the current release reproducibly, use its immutable tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v2.0.0"
+npx skills add "moldea-ai/skill#v2.0.1"
 ```
 
 The `skills` CLI supports Agent Skills-compatible hosts including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and many others. Host detection and installation location are handled by the installer; the portable skill itself remains vendor-neutral.
@@ -85,7 +85,7 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 - an established supported package manager, or npm when none is established
 - a repository-local exact `@moldea.ai/cli` development dependency in the supported range
 
-Release `2.0.0` supports:
+Release `2.0.1` supports:
 
 - `@moldea.ai/cli >=2.0.0 <2.1.0`
 - CLI JSON schema `1`
@@ -123,6 +123,10 @@ Standalone initialization first understands the project, then creates the minimu
 ```
 
 It does not create an agent automatically. Additional context, decisions, runtime guidance, agents, or unresolved requirements are created only when project evidence justifies them.
+
+Initialization may become a short clarification conversation. When repository evidence does not establish meaningful project context, the coding agent says so and asks a focused foundational question instead of inventing project truth. When some context is supported but a material gap remains, it summarizes what it learned and clarifies that gap. Both outcomes pause before canonical project state or the owned README awareness block is created, and developer-answerable ambiguity is not stored as an unresolved requirement. A sufficiently grounded repository completes without ceremonial questions.
+
+After completion, the coding agent summarizes the established foundation, files, and validation, then offers practical options such as reviewing the context, continuing ordinary development, planning an agent system, or creating a specific agent.
 
 To design an AI-enabled system before implementation or `moldea` adoption, ask:
 
@@ -177,7 +181,7 @@ moldea/
 
 - `moldea/` is the complete distributed Agent Skill artifact.
 - `docs/` contains concise, durable public concepts, workflows, references, and paired interaction examples. It does not document APIs or HTTP endpoints.
-- `website/` is the isolated private Astro application that validates and renders `/docs/**`, local search, and generated `llms.txt` for [`skill.moldea.ai`](https://skill.moldea.ai).
+- `website/` is the isolated private Astro application that validates and renders `/docs/**`, local search, and generated `llms.txt` for [`skill.moldea.ai`](https://skill.moldea.ai). It consumes the public `@moldea.ai/website-ui` package for shared moldea website foundations while retaining its own content, assets, navigation, SEO identity, and theme storage.
 - `CNAME` declares `skill.moldea.ai` as the GitHub Pages custom domain.
 - `tests/` contains deterministic metadata, packaging, published-package, candidate-release, reference, and semantic-contract checks.
 - `fixtures/` contains development-only conformance cases, a hostile lifecycle-script fixture, and a narrow synthetic compatibility fixture.
@@ -202,7 +206,7 @@ npm run test:unit
 npm run test:integration
 ```
 
-The documentation website uses an isolated Node.js 24.15.0 dependency boundary. Install its exact dependency closure with `npm --prefix website ci --ignore-scripts`, then use:
+The documentation website uses an isolated Node.js 24.15.0 dependency boundary and exact `@moldea.ai/website-ui` package release. Install its exact dependency closure with `npm --prefix website ci --ignore-scripts`, then use:
 
 ```bash
 npm run docs:check
@@ -230,13 +234,13 @@ When `MOLDEA_CLI_ARTIFACT_DIRECTORY` identifies one packed artifact for each of 
 
 Semantic evaluation is intentionally lengthy and can consume a significant number of model tokens because every case runs separate actor and judge processes. Do not start a full or targeted semantic evaluation without first explaining to the developer why fresh semantic evidence is important for the current change, why existing evidence or deterministic verification is insufficient, and the expected time and token cost when known. Obtain the developer's explicit approval before running it.
 
-Semantic behavior is evaluated through an Agent Skills-capable host and recorded against the exact portable artifact digest. To refresh that evidence, provide a non-interactive host command that accepts the evaluation prompt on standard input and returns the requested JSON object, then run:
+Semantic behavior is evaluated through an Agent Skills-capable host and recorded against the exact portable artifact digest. The runner always pins both the actor and judge to `gpt-5.6-terra` at `medium` reasoning effort; caller-provided host commands must not select their own model or reasoning effort. This fixed configuration avoids per-run model and effort decisions. To refresh that evidence, provide a non-interactive host command that accepts the evaluation prompt on standard input and returns the requested JSON object, then run:
 
 ```bash
 MOLDEA_EVAL_ACTOR_COMMAND_JSON='["codex","exec","--ignore-user-config","--ignore-rules","--ephemeral","--skip-git-repo-check","--dangerously-bypass-approvals-and-sandbox","-c","shell_environment_policy.inherit=none","-"]' npm run eval:semantic -- --record
 ```
 
-Recording writes `fixtures/.semantic-evaluation-candidate.json` atomically after every completed case. The candidate is ignored by Git and is bound to the exact portable artifact digest, complete semantic case-suite digest, and actor and judge identities. Repeating the same full command resumes a compatible candidate: already passing cases are skipped, while missing and failing cases are evaluated again. If any bound input changes, the runner rejects the candidate instead of mixing evidence; after confirming that the old evidence should be discarded, start a new full candidate with `--record --restart`.
+Recording writes `fixtures/.semantic-evaluation-candidate.json` atomically after every completed case. The candidate is ignored by Git and is bound to the exact portable artifact digest, complete semantic case-suite digest, and actor and judge identities, including their fixed model and selected reasoning effort. Repeating the same full command resumes a compatible candidate: already passing cases are skipped, while missing and failing cases are evaluated again. If any bound input changes, the runner rejects the candidate instead of mixing evidence; after confirming that the old evidence should be discarded, start a new full candidate with `--record --restart`.
 
 After an approved full run leaves only a small number of failing or interrupted cases, rerun one case into the same candidate with:
 
@@ -254,7 +258,7 @@ The runner installs the exact portable tree into a fresh project for every actor
 
 Use `--case <case-id>` without `--record` for a standalone diagnostic that must not update candidate or committed evidence. A targeted run with `--record` requires an existing compatible candidate and cannot promote it until the complete case suite passes.
 
-The sandbox exposes the exact host Node.js executable at `/opt/node` so the verified repository-local CLI can run without mounting a host-managed runtime directory. It provides a non-installing npm probe that reports the fixed evaluation npm version and rejects every non-version command. It also resolves and mounts the exact `codex-code-mode-host` executable shipped beside the selected Codex binary rather than exposing the surrounding installation directory. The committed result records the actor and judge CLI versions and their explicit model selections, using `host-default` when a command omits `--model`.
+The sandbox exposes the exact host Node.js executable at `/opt/node` so the verified repository-local CLI can run without mounting a host-managed runtime directory. It provides a non-installing npm probe that reports the fixed evaluation npm version and rejects every non-version command. It also resolves and mounts the exact `codex-code-mode-host` executable shipped beside the selected Codex binary rather than exposing the surrounding installation directory. The committed result records the actor and judge CLI versions and the runner-owned `gpt-5.6-terra` model and `medium` reasoning-effort selections.
 
 The result is invalidated automatically whenever semantic distributed skill content changes. A release-only update may carry forward the latest passing result without repeating model execution only when the exact source artifact digest still matches that result, the changed portable paths are limited to `SKILL.md` and `references/local-tooling.md`, and their deterministic semantic digests remain identical after normalizing only the release-version declarations. The fixture records both exact artifact digests, both semantic digests, the changed paths, reason, and carry-forward time. Development evaluation uses synthetic repository evidence and does not require a `moldea` Cloud account.
 
@@ -269,7 +273,7 @@ The skill uses independent semantic versioning. Every release must:
 - use an immutable `v<version>` tag
 - preserve semantically identical `moldea/` content across every official distribution channel
 
-Release `2.0.0` uses the immutable `v2.0.0` tag.
+Release `2.0.1` uses the immutable `v2.0.1` tag.
 
 ## License
 

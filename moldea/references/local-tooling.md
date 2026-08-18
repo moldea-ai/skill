@@ -4,7 +4,7 @@ Read this reference before deterministic CLI use or any write-capable workflow t
 
 ## Compatibility contract
 
-Release `2.0.0` supports:
+Release `2.0.1` supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`
@@ -41,7 +41,7 @@ Compatible tooling state requires all of the following:
 - the established manager resolves the repository-local `moldea` executable from that root package
 - the machine envelope reports the same exact `cliVersion` and schema `1`
 
-Preserve an existing compatible exact declaration and executable. Do not upgrade it merely because a newer compatible version exists. A write-capable workflow may replace it within the supported range only when an official adapter or machine-contract capability materially required by the authorized work is absent from the installed composition and a released supported replacement providing it is established. Release `2.0.0` recommends exact CLI `2.0.0`, but that recommendation alone never justifies replacing another compatible `2.0.x` pin.
+Preserve an existing compatible exact declaration and executable. Do not upgrade it merely because a newer compatible version exists. A write-capable workflow may replace it within the supported range only when an official adapter or machine-contract capability materially required by the authorized work is absent from the installed composition and a released supported replacement providing it is established. Release `2.0.1` recommends exact CLI `2.0.0`, but that recommendation alone never justifies replacing another compatible `2.0.x` pin.
 
 During a write-capable workflow:
 

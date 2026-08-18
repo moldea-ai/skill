@@ -10,6 +10,7 @@ import {
   buildActorPrompt,
   buildBwrapArguments,
   buildJudgePrompt,
+  buildSemanticEvaluationHostCommand,
   collectProductionPackageRoots,
   createPortableSkillSemanticDigest,
   createSemanticCaseDefinitionDigest,
@@ -20,6 +21,7 @@ import {
   getSemanticToolingSource,
   getSyntheticCompatibilityCaseIds,
   identifyConfiguredModel,
+  identifyConfiguredReasoningEffort,
   mergeSemanticCandidateResult,
   normalizePortableSkillSemanticEvidence,
   resolveCodeModeHostPath,
@@ -34,7 +36,7 @@ const CASE_DEFINITION = {
   id: 'blind-evaluation',
   prompt: 'Evaluate this repository without changing it.',
 };
-const SAFE_HOST_COMMAND = [
+const BASE_HOST_COMMAND = [
   'codex',
   'exec',
   '--ignore-user-config',
@@ -46,14 +48,25 @@ const SAFE_HOST_COMMAND = [
   'shell_environment_policy.inherit=none',
   '-',
 ];
+const SAFE_HOST_COMMAND = buildSemanticEvaluationHostCommand(BASE_HOST_COMMAND);
 const SECOND_CASE_DEFINITION = {
   expected: ['second-expected-label'],
   forbidden: ['second-forbidden-label'],
   id: 'second-evaluation',
   prompt: 'Evaluate a second repository scenario without changing it.',
 };
-const ACTOR_HOST = { model: 'host-default', name: 'codex', version: '1.2.3' };
-const JUDGE_HOST = { model: 'judge-model', name: 'codex', version: '1.2.3' };
+const ACTOR_HOST = {
+  model: 'gpt-5.6-terra',
+  name: 'codex',
+  reasoningEffort: 'medium',
+  version: '1.2.3',
+};
+const JUDGE_HOST = {
+  model: 'gpt-5.6-terra',
+  name: 'codex',
+  reasoningEffort: 'medium',
+  version: '1.2.3',
+};
 const ARTIFACT_DIGEST = 'a'.repeat(64);
 const EVALUATED_AT = '2026-08-16T12:00:00.000Z';
 const BEFORE_SNAPSHOT_STATE = {
@@ -161,15 +174,51 @@ test('assessment rejects labels outside the declared case contract', () => {
   );
 });
 
-test('host identity preserves explicit and default model selection', () => {
-  assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'host-default');
-  assert.equal(
-    identifyConfiguredModel([...SAFE_HOST_COMMAND.slice(0, -1), '--model', 'gpt-example', '-']),
-    'gpt-example',
+test('semantic host commands use the runner-owned model and reasoning effort', () => {
+  assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-5.6-terra');
+  assert.equal(identifyConfiguredReasoningEffort(SAFE_HOST_COMMAND), 'medium');
+  assert.throws(
+    () =>
+      validateHostCommand(
+        SAFE_HOST_COMMAND.map((commandPart) =>
+          commandPart === 'model_reasoning_effort=medium'
+            ? 'model_reasoning_effort=high'
+            : commandPart,
+        ),
+      ),
+    /must use medium reasoning effort/,
   );
-  assert.equal(
-    identifyConfiguredModel([...SAFE_HOST_COMMAND.slice(0, -1), '--model=gpt-example', '-']),
-    'gpt-example',
+});
+
+test('semantic host commands reject caller-owned model and reasoning overrides', () => {
+  assert.throws(
+    () =>
+      buildSemanticEvaluationHostCommand([
+        ...BASE_HOST_COMMAND.slice(0, -1),
+        '--model',
+        'gpt-example',
+        '-',
+      ]),
+    /must not override the runner-owned gpt-5\.6-terra model/,
+  );
+  assert.throws(
+    () =>
+      buildSemanticEvaluationHostCommand([
+        ...BASE_HOST_COMMAND.slice(0, -1),
+        '--config=model=gpt-example',
+        '-',
+      ]),
+    /must not override the runner-owned gpt-5\.6-terra model/,
+  );
+  assert.throws(
+    () =>
+      buildSemanticEvaluationHostCommand([
+        ...BASE_HOST_COMMAND.slice(0, -1),
+        '-c',
+        'model_reasoning_effort=high',
+        '-',
+      ]),
+    /must not override the runner-owned reasoning effort/,
   );
 });
 
@@ -232,6 +281,16 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
       }),
     /different actor or judge hosts/,
   );
+  assert.throws(
+    () =>
+      validateSemanticCandidateCompatibility(candidate, {
+        actorHost: { ...ACTOR_HOST, reasoningEffort: 'high' },
+        artifactDigest: ARTIFACT_DIGEST,
+        caseDefinitions,
+        judgeHost: { ...JUDGE_HOST, reasoningEffort: 'high' },
+      }),
+    /different actor or judge hosts/,
+  );
 });
 
 test('semantic candidates resume pending cases and replace targeted evidence', () => {
@@ -282,7 +341,7 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
     caseDefinitions,
     generatedAt: '2026-08-16T12:02:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 3);
+  assert.equal(record.evaluationProtocolVersion, 4);
   assert.equal(record.caseSuiteDigest, createSemanticCaseSuiteDigest(caseDefinitions));
   assert.deepEqual(
     record.cases.map(({ id }) => id),
@@ -391,6 +450,9 @@ test('selects synthetic compatibility only for the two unsupported runtime state
     'published-package',
   );
   assert.equal(getSemanticToolingSource('adopted-relevance-no-change'), 'published-package');
+  assert.equal(getSemanticToolingSource('initialize-insufficient-context'), 'published-package');
+  assert.equal(getSemanticToolingSource('initialize-partial-context'), 'published-package');
+  assert.equal(getSemanticToolingSource('initialize-sufficient-context'), 'published-package');
   assert.equal(getSemanticToolingSource('pnpm-pnp-local-cli-provider'), 'scenario-specific');
 });
 

@@ -30,7 +30,6 @@
     "@astrojs/sitemap": "3.7.3",
     "@axe-core/playwright": "4.13.0",
     "@eslint/js": "10.0.1",
-    "@fontsource-variable/ubuntu-sans": "5.2.10",
     "@lucide/astro": "1.31.0",
     "@playwright/test": "1.62.1",
     "@shikijs/rehype": "4.4.3",
@@ -57,5 +56,8 @@
     "vitest": "4.1.10",
     "yaml": "2.9.0",
     "zod": "4.3.6"
+  },
+  "dependencies": {
+    "@moldea.ai/website-ui": "1.0.1"
   }
 }

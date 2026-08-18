@@ -1,5 +1,6 @@
 ---
-import { Bot, Braces, UserRound } from '@lucide/astro';
+import { Bot, UserRound } from '@lucide/astro';
+import { withBase } from '@moldea.ai/website-ui/site';
 
 import type { IConversationTurn } from './types.ts';
 
@@ -11,10 +12,11 @@ interface Props {
 }
 
 const { description, eyebrow, title, turns } = Astro.props;
+const basePath = import.meta.env.BASE_URL;
 const roleDetails = {
   agent: { icon: Bot, label: 'Coding agent' },
   developer: { icon: UserRound, label: 'Developer' },
-  skill: { icon: Braces, label: 'Skill guidance' },
+  skill: { icon: null, label: 'Skill guidance' },
 } as const;
 ---
 
@@ -28,6 +30,10 @@ const roleDetails = {
     {
       turns.map((turn) => {
         const { icon: RoleIcon, label } = roleDetails[turn.role];
+        const messageSegments =
+          typeof turn.message === 'string'
+            ? [{ kind: 'text', text: turn.message } as const]
+            : turn.message;
 
         return (
           <li class:list={['flex gap-3', turn.role === 'developer' ? 'sm:pe-10' : 'sm:ps-10']}>
@@ -39,16 +45,47 @@ const roleDetails = {
                   : 'bg-primary text-primary-foreground',
               ]}
             >
-              <RoleIcon
-                class="size-4"
-                aria-hidden="true"
-              />
+              {RoleIcon ? (
+                <RoleIcon
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              ) : (
+                <>
+                  <img
+                    class="h-5 w-auto dark:hidden"
+                    src={withBase('/logo/icon-xs-light.png', basePath)}
+                    width="207"
+                    height="215"
+                    alt=""
+                    data-skill-guidance-mark
+                  />
+                  <img
+                    class="hidden h-5 w-auto dark:block"
+                    src={withBase('/logo/icon-xs-dark.png', basePath)}
+                    width="207"
+                    height="215"
+                    alt=""
+                    data-skill-guidance-mark
+                  />
+                </>
+              )}
             </span>
             <div class="min-w-0 flex-1 rounded-xl border bg-background p-4">
               <p class="mb-1 text-xs font-bold tracking-wide text-muted-foreground uppercase">
                 {label}
               </p>
-              <p class="leading-7">{turn.message}</p>
+              <p class="leading-7">
+                {messageSegments.map((segment) =>
+                  segment.kind === 'code' ? (
+                    <code class="rounded-md bg-code px-1.5 py-1 font-mono text-[0.86em] font-semibold text-code-foreground">
+                      {segment.text}
+                    </code>
+                  ) : (
+                    segment.text
+                  ),
+                )}
+              </p>
             </div>
           </li>
         );

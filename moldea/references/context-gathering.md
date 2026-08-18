@@ -82,7 +82,17 @@ Because `plan` is read-only, do not persist discovered context, proposed candida
 
 Initialization requires an accessible supported Git working tree and compatible local tooling. Run initial deterministic inspection even when the missing-project diagnostic is expected.
 
-Create the minimum foundation:
+Before finalizing canonical project truth, classify the available foundation as an interaction outcome rather than a persisted score or status:
+
+- **Insufficient:** meaningful purpose, users or systems served, principal goals, and relevant boundaries cannot be established. State that no meaningful project context was inferred, identify the high-information evidence inspected, stop before creating canonical project state or the owned README awareness block, ask the highest-value focused question needed to continue, and do not claim completion.
+- **Partial:** some foundational conclusions are supported, but a material gap or consequential alternative remains. Summarize the supported conclusions, label the uncertainty, stop before creating canonical project state or the owned README awareness block, ask one focused clarification question, and resume initialization after the developer answers.
+- **Sufficient:** the evidence supports a useful and truthful foundation without material unsupported assumptions. Complete initialization without a ceremonial question and report the established understanding, resulting files, validation, non-blocking limitations, and an explicit `Next actions` handoff.
+
+Judge evidence by its quality, coverage, consistency, and authority rather than documentation volume. A concise authoritative source may be sufficient; extensive stale or contradictory documentation may not be.
+
+Treat insufficient and partial foundations as pre-write stop conditions. Never encode developer-answerable foundational ambiguity as an unresolved requirement or claim initialization completed.
+
+Once the foundation is sufficient, create the minimum canonical state:
 
 ```text
 /moldea/moldea.yaml
@@ -94,6 +104,8 @@ Use `version: 1` and omit empty optional manifest mappings. Create focused conte
 Initialization does not create an agent by default. If the developer requests an agent before foundation is sufficient, establish the missing durable truth, clarify consequential intent, narrow supported behavior, or preserve genuine incomplete state without inventing completion.
 
 Treat partial initialization idempotently: preserve valid established content, repair only in-scope structural problems, and clarify before replacing consequential semantic content. If already initialized, an initialize request becomes foundation maintenance rather than a fresh scaffold.
+
+Every completed initialization ends its report with an explicit `Next actions` handoff. Always offer reviewing the foundation and continuing ordinary development. Include planning an agent system or requesting a specific agent only as optional choices when relevant. Validation or test status does not replace this handoff, and these options are not required questions. Do not steer the developer toward creating an agent by default.
 
 ## Preserve project distinctions
 

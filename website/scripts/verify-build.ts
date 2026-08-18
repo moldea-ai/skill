@@ -2,10 +2,12 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { extname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { parseSearchDocuments } from '@moldea.ai/website-ui/search';
+import { DEFAULT_BASE_PATH, normalizeBasePath } from '@moldea.ai/website-ui/site';
+
 import { loadWebsiteModel } from '../src/lib/generation/generation.ts';
 import { SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
-import { parseSearchDocuments } from '../src/lib/search/search.ts';
-import { DEFAULT_BASE_PATH, DEFAULT_SITE_URL, normalizeBasePath } from '../src/lib/site/url.ts';
+import { DEFAULT_SITE_URL } from '../src/lib/site/constants.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 
@@ -165,6 +167,9 @@ const verifyLlmsLinks = (
 /**
  * Verifies static routes, base-aware links, machine surfaces, and private-source isolation.
  * @throws
+ * - INVALID_BASE_PATH: The website base path contains unsupported URL characters.
+ * - INVALID_SEARCH_INDEX: The documentation search index is invalid.
+ * - If the website model has not been generated
  * - If the production artifact contradicts the generated website model
  */
 export const verifyProductionBuild = (): void => {

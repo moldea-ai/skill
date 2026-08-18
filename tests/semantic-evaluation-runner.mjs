@@ -48,8 +48,9 @@ const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
 const DEFAULT_HOST_TIMEOUT_MS = 120_000;
 const DEFAULT_ALLOWED_EGRESS_HOSTS = ['api.openai.com', 'auth.openai.com', 'chatgpt.com'];
 const EGRESS_PROXY_PORT = 3128;
-const HOST_DEFAULT_MODEL = 'host-default';
-const EVALUATION_PROTOCOL_VERSION = 3;
+const SEMANTIC_EVALUATION_MODEL = 'gpt-5.6-terra';
+const SEMANTIC_EVALUATION_REASONING_EFFORT = 'medium';
+const EVALUATION_PROTOCOL_VERSION = 4;
 const NODE_EXECUTABLE_PATH = realpathSync(process.execPath);
 const SEMANTIC_EVALUATION_NPM_VERSION = '11.12.1';
 const REQUIRED_CODEX_FLAGS = [
@@ -64,6 +65,12 @@ const SAFE_HOST_ENVIRONMENT_NAMES = [
   'OPENAI_BASE_URL',
   'SSL_CERT_FILE',
 ];
+// unadopted initialization cases that use the published CLI with different context quality
+const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
+  'initialize-insufficient-context',
+  'initialize-partial-context',
+  'initialize-sufficient-context',
+]);
 // semantic cases that use scenario-specific setup instead of the adopted npm fixture
 const CUSTOM_SETUP_CASE_IDS = new Set([
   'host-plan-command-precedence',
@@ -107,8 +114,8 @@ const parseHostCommand = (variableName, fallback) => {
   return command;
 };
 
-/** Rejects host commands that could weaken the nested evaluation sandbox. */
-export const validateHostCommand = (command) => {
+/** Rejects base host commands that could weaken the nested evaluation sandbox. */
+const validateBaseHostCommand = (command) => {
   if (basename(command[0]) !== 'codex' || command[1] !== 'exec') {
     throw new Error('Semantic evaluation currently requires a Codex exec host command.');
   }
@@ -158,7 +165,29 @@ export const validateHostCommand = (command) => {
   }
 };
 
-/** Returns the explicit host model or the documented host-default marker. */
+/** Returns one command-level Codex configuration assignment when present. */
+const identifyConfiguredValue = (command, key) => {
+  for (const [index, commandPart] of command.entries()) {
+    const assignment =
+      commandPart === '-c' || commandPart === '--config'
+        ? command[index + 1]
+        : commandPart.startsWith('--config=')
+          ? commandPart.slice('--config='.length)
+          : undefined;
+    if (!assignment) continue;
+
+    const separatorIndex = assignment.indexOf('=');
+    if (separatorIndex === -1) continue;
+    if (assignment.slice(0, separatorIndex).trim() !== key) continue;
+
+    const configuredValue = assignment.slice(separatorIndex + 1).trim();
+    if (configuredValue) return configuredValue;
+  }
+
+  return undefined;
+};
+
+/** Returns the explicit host model. */
 export const identifyConfiguredModel = (command) => {
   for (const [index, commandPart] of command.entries()) {
     if (commandPart === '--model' || commandPart === '-m') {
@@ -172,7 +201,67 @@ export const identifyConfiguredModel = (command) => {
     }
   }
 
-  return HOST_DEFAULT_MODEL;
+  throw new Error('The semantic evaluation host command does not declare its model.');
+};
+
+/** Returns the explicit host reasoning effort. */
+export const identifyConfiguredReasoningEffort = (command) => {
+  const configuredEffort = identifyConfiguredValue(command, 'model_reasoning_effort');
+  if (configuredEffort) return configuredEffort;
+
+  throw new Error(
+    'The semantic evaluation host command does not declare its reasoning effort.',
+  );
+};
+
+/** Builds one host command with the runner-owned model and reasoning effort. */
+export const buildSemanticEvaluationHostCommand = (command) => {
+  validateBaseHostCommand(command);
+  const hasModelOverride = command.some(
+    (commandPart) =>
+      commandPart === '--model' ||
+      commandPart === '-m' ||
+      commandPart.startsWith('--model=') ||
+      commandPart.startsWith('-m='),
+  );
+  if (hasModelOverride || identifyConfiguredValue(command, 'model')) {
+    throw new Error(
+      `The evaluation host command must not override the runner-owned ${SEMANTIC_EVALUATION_MODEL} model.`,
+    );
+  }
+  if (identifyConfiguredValue(command, 'model_reasoning_effort')) {
+    throw new Error(
+      'The evaluation host command must not override the runner-owned reasoning effort.',
+    );
+  }
+
+  const effectiveCommand = [
+    ...command.slice(0, -1),
+    '--model',
+    SEMANTIC_EVALUATION_MODEL,
+    '-c',
+    `model_reasoning_effort=${SEMANTIC_EVALUATION_REASONING_EFFORT}`,
+    '-',
+  ];
+  validateHostCommand(effectiveCommand);
+
+  return effectiveCommand;
+};
+
+/** Requires the complete sandbox and model contract for one executable host command. */
+export const validateHostCommand = (command) => {
+  validateBaseHostCommand(command);
+  if (identifyConfiguredModel(command) !== SEMANTIC_EVALUATION_MODEL) {
+    throw new Error(`Semantic evaluation must use ${SEMANTIC_EVALUATION_MODEL}.`);
+  }
+  if (
+    identifyConfiguredReasoningEffort(command) !==
+    SEMANTIC_EVALUATION_REASONING_EFFORT
+  ) {
+    throw new Error(
+      `Semantic evaluation must use ${SEMANTIC_EVALUATION_REASONING_EFFORT} reasoning effort.`,
+    );
+  }
 };
 
 /** Hashes one JSON-compatible semantic-evaluation contract exactly. */
@@ -1363,8 +1452,63 @@ const seedRuntimeCompatibility = async (
   );
 };
 
+/** Seeds an unadopted repository with the context quality required by one initialization case. */
+const seedInitializationContext = async (repositoryPath, caseDefinition) => {
+  await seedSemanticTooling(repositoryPath, caseDefinition);
+
+  if (caseDefinition.id === 'initialize-insufficient-context') {
+    await writeScenarioFile(repositoryPath, 'README.md', '# Evaluation repository\n');
+    await writeScenarioFile(repositoryPath, 'src/index.js', 'export const project = {};\n');
+    return;
+  }
+
+  if (caseDefinition.id === 'initialize-partial-context') {
+    await writeScenarioFile(
+      repositoryPath,
+      'README.md',
+      '# Invoice processor\n\nProcesses invoices for accounting systems.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'src/invoice.js',
+      'export const processInvoice = (invoice) => ({ ...invoice, processed: true });\n',
+    );
+    return;
+  }
+
+  if (caseDefinition.id === 'initialize-sufficient-context') {
+    await writeScenarioFile(
+      repositoryPath,
+      'README.md',
+      '# Invoice intake service\n\nThe service extracts and validates invoice fields for accounting systems. Its goal is to produce structurally valid invoice records for downstream accounting workflows. It never authorizes or initiates payments.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'src/invoice.js',
+      [
+        'export const extractInvoiceFields = ({ invoiceNumber, total }) => ({',
+        '  invoiceNumber,',
+        '  total,',
+        '});',
+        '',
+        'export const isInvoiceValid = ({ invoiceNumber, total }) =>',
+        "  typeof invoiceNumber === 'string' && typeof total === 'number';",
+        '',
+      ].join('\n'),
+    );
+    return;
+  }
+
+  throw new Error(`Unsupported initialization-context case ${caseDefinition.id}.`);
+};
+
 /** Materializes scenario claims as repository evidence before the baseline commit. */
 const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
+  if (INITIALIZATION_CONTEXT_CASE_IDS.has(caseDefinition.id)) {
+    await seedInitializationContext(repositoryPath, caseDefinition);
+    return;
+  }
+
   if (CUSTOM_SETUP_CASE_IDS.has(caseDefinition.id)) {
     await writeScenarioFile(
       repositoryPath,
@@ -1816,6 +1960,7 @@ const identifyHost = (command) => {
   return {
     model: identifyConfiguredModel(command),
     name: basename(command[0]),
+    reasoningEffort: identifyConfiguredReasoningEffort(command),
     version:
       versionResult.status === 0
         ? versionResult.stdout.trim() || versionResult.stderr.trim()
@@ -1928,10 +2073,13 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
 
 /** Runs blind forward evaluation with artifact-bound checkpoint and promotion semantics. */
 const main = async () => {
-  const actorCommand = parseHostCommand('MOLDEA_EVAL_ACTOR_COMMAND_JSON');
-  const judgeCommand = parseHostCommand('MOLDEA_EVAL_JUDGE_COMMAND_JSON', actorCommand);
-  validateHostCommand(actorCommand);
-  validateHostCommand(judgeCommand);
+  const actorBaseCommand = parseHostCommand('MOLDEA_EVAL_ACTOR_COMMAND_JSON');
+  const judgeBaseCommand = parseHostCommand(
+    'MOLDEA_EVAL_JUDGE_COMMAND_JSON',
+    actorBaseCommand,
+  );
+  const actorCommand = buildSemanticEvaluationHostCommand(actorBaseCommand);
+  const judgeCommand = buildSemanticEvaluationHostCommand(judgeBaseCommand);
   const fixture = JSON.parse(await readFile(CASES_PATH, 'utf8'));
   const caseDefinitions = fixture.semanticCases;
   const caseArgumentIndex = process.argv.indexOf('--case');

@@ -21,7 +21,7 @@ import type {
   IWebsiteDocument,
   IWebsiteModel,
 } from '../model/types.ts';
-import { DEFAULT_SITE_URL } from '../site/url.ts';
+import { DEFAULT_SITE_URL } from '../site/constants.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const GENERATED_NOTICE =

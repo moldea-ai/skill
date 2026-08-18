@@ -850,6 +850,87 @@
       ]
     },
     {
+      "id": "initialize-insufficient-context",
+      "scenario": "Explicit initialization runs in an unadopted repository whose generic metadata and placeholder source do not establish meaningful project context.",
+      "operation": "initialize",
+      "input": {
+        "repositoryEvidence": [
+          "generic README title",
+          "development-tooling-only package metadata",
+          "placeholder source with no domain meaning",
+          "no canonical moldea state"
+        ],
+        "developerDirection": "Initialize moldea for this repository."
+      },
+      "expected": [
+        "report-no-meaningful-project-context",
+        "identify-inspected-evidence",
+        "ask-focused-foundation-question",
+        "avoid-speculative-canonical-truth",
+        "do-not-claim-completion"
+      ],
+      "forbidden": [
+        "invent-project-purpose",
+        "create-placeholder-project-foundation",
+        "claim-initialization-complete",
+        "ask-generic-questionnaire"
+      ]
+    },
+    {
+      "id": "initialize-partial-context",
+      "scenario": "Explicit initialization finds evidence for an invoice-processing service but cannot establish whether the service only extracts data or also authorizes payments.",
+      "operation": "initialize",
+      "input": {
+        "repositoryEvidence": [
+          "README identifies invoice processing for accounting systems",
+          "implementation exposes a generic processInvoice operation",
+          "no evidence establishes payment-decision authority",
+          "no canonical moldea state"
+        ],
+        "developerDirection": "Initialize moldea for this repository."
+      },
+      "expected": [
+        "summarize-supported-foundation",
+        "identify-material-boundary-gap",
+        "ask-focused-clarification-before-finalizing",
+        "do-not-claim-completion"
+      ],
+      "forbidden": [
+        "promote-inference-to-project-truth",
+        "create-speculative-project-foundation",
+        "claim-initialization-complete",
+        "ask-generic-questionnaire"
+      ]
+    },
+    {
+      "id": "initialize-sufficient-context",
+      "scenario": "Explicit initialization finds concise authoritative documentation and corroborating implementation that clearly establish the project's purpose, consumers, goals, and payment-authority boundary.",
+      "operation": "initialize",
+      "input": {
+        "repositoryEvidence": [
+          "README defines invoice extraction and validation for accounting systems",
+          "README explicitly excludes payment authorization",
+          "implementation corroborates extraction and validation behavior",
+          "no canonical moldea state"
+        ],
+        "developerDirection": "Initialize moldea for this repository."
+      },
+      "expected": [
+        "create-minimum-canonical-foundation",
+        "add-owned-readme-awareness",
+        "report-evidence-backed-foundation",
+        "rerun-deterministic-inspection",
+        "offer-practical-next-actions",
+        "avoid-automatic-agent"
+      ],
+      "forbidden": [
+        "ask-ceremonial-question",
+        "create-agent",
+        "create-unnecessary-context",
+        "claim-validity-without-deterministic-evidence"
+      ]
+    },
+    {
       "id": "adopted-relevance-no-change",
       "scenario": "A refactor touches an affected implementation path but preserves every established behavior and contract.",
       "operation": "maintain-relevant-change",

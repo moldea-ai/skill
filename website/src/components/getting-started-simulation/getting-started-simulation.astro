@@ -1,8 +1,12 @@
 ---
 import { ArrowRight, Bot, Check, Copy, Terminal } from '@lucide/astro';
+import ActionButton from '@moldea.ai/website-ui/action-button';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import { withBase } from '@moldea.ai/website-ui/site';
 
 import { INSTALL_COMMAND } from '../../lib/model/constants.ts';
-import { withBase } from '../../lib/site/url.ts';
+
+const basePath = import.meta.env.BASE_URL;
 ---
 
 <section
@@ -25,16 +29,17 @@ import { withBase } from '../../lib/site/url.ts';
           Add the skill to your project, then tell your coding agent what you want. There is no
           setup wizard, Cloud account, or new command language.
         </p>
-        <a
-          class="mt-5 inline-flex items-center gap-2 font-bold"
-          href={withBase('/docs/getting-started/')}
+        <ActionLink
+          class="mt-5 font-bold"
+          href={withBase('/docs/getting-started/', basePath)}
+          variant="link"
         >
           Read the getting-started guide
           <ArrowRight
             class="size-4"
             aria-hidden="true"
           />
-        </a>
+        </ActionLink>
       </div>
     </header>
 
@@ -65,8 +70,9 @@ import { withBase } from '../../lib/site/url.ts';
                   class="min-w-0 flex-1 px-3 font-mono text-sm wrap-anywhere whitespace-pre-wrap text-code-foreground"
                   >{INSTALL_COMMAND}</code
                 >
-                <button
-                  class="inline-flex min-h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-3 text-sm font-bold text-primary-foreground transition-all hover:bg-primary/80 active:translate-y-px motion-reduce:transition-none motion-reduce:active:translate-y-0 dark:hover:bg-primary/30"
+                <ActionButton
+                  class="shrink-0 px-3 font-bold"
+                  size="md"
                   type="button"
                   data-getting-started-copy={INSTALL_COMMAND}
                   data-primary-action
@@ -85,7 +91,7 @@ import { withBase } from '../../lib/site/url.ts';
                     data-copy-label
                     >Copy</span
                   >
-                </button>
+                </ActionButton>
               </div>
               <p class="mt-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
                 <Check
@@ -170,9 +176,10 @@ import { withBase } from '../../lib/site/url.ts';
                 aria-hidden="true"
               />
               <div>
-                <p class="font-semibold">Builds grounded context</p>
+                <p class="font-semibold">Clarifies only when needed</p>
                 <p class="mt-1 text-sm leading-6 text-current/65">
-                  Captures only the durable project facts that will help with future work.
+                  If a material gap remains, it asks one focused question. Reply naturally, and it
+                  continues.
                 </p>
               </div>
             </li>
@@ -182,10 +189,10 @@ import { withBase } from '../../lib/site/url.ts';
                 aria-hidden="true"
               />
               <div>
-                <p class="font-semibold">Checks its work</p>
+                <p class="font-semibold">Builds and checks grounded context</p>
                 <p class="mt-1 text-sm leading-6 text-current/65">
-                  Validates the result and tells you exactly what changed. No agent is created
-                  unless you ask for one.
+                  Captures only durable project facts, validates the result, and tells you exactly
+                  what changed. No agent is created unless you ask for one.
                 </p>
               </div>
             </li>

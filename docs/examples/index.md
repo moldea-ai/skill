@@ -17,9 +17,10 @@ The “under the hood” section then shows how the coding agent uses `moldea` g
 - [Plan an agent-enabled system](/examples/plan-an-agent-system/)
 - [Create a support agent](/examples/create-a-support-agent/)
 - [Initialize project context](/examples/initialize-a-project/)
+- [Add project context as the business grows](/examples/add-project-context/)
 - [Maintain a refund policy](/examples/maintain-a-refund-policy/)
 - [Evaluate and reconcile drift](/examples/evaluate-and-reconcile/)
 - [Validate structure](/examples/validate-structure/)
 - [Work across dedicated repositories](/examples/dedicated-repositories/)
 
-Together they demonstrate read-only planning, initial adoption, agent design, ordinary relevance-triggered maintenance, semantic evaluation, write-capable reconciliation, deterministic validation, and external implementation evidence.
+Together they demonstrate read-only planning, initial adoption, agent design, ongoing context growth, ordinary relevance-triggered maintenance, semantic evaluation, write-capable reconciliation, deterministic validation, and external implementation evidence.

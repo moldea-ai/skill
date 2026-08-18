@@ -1,11 +1,16 @@
 import type { APIRoute } from 'astro';
+import { createCanonicalUrl } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../lib/generation/generation.ts';
-import { createCanonicalUrl } from '../lib/site/url.ts';
 
 export const prerender = true;
 
-/** Serves the generated machine-oriented documentation map. */
+/**
+ * Serves the generated machine-oriented documentation map.
+ * @throws
+ * - INVALID_BASE_PATH: The website base path contains unsupported URL characters.
+ * - If the website model has not been generated
+ */
 export const GET: APIRoute = () => {
   const model = loadWebsiteModel();
   const siteUrl = import.meta.env.SITE;

@@ -6,8 +6,7 @@ import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
-
-import { withBase } from '../site/url.ts';
+import { withBase } from '@moldea.ai/website-ui/site';
 
 // one rendered second- or third-level documentation heading
 export interface IRenderedMarkdownHeading {
@@ -26,7 +25,7 @@ export interface IRenderedMarkdown {
 const stripTags = (value: string): string => value.replaceAll(/<[^>]+>/g, '');
 
 const prefixInternalLinks = (html: string): string => {
-  return html.replaceAll(/href="\/(?!\/)/g, `href="${withBase('/')}`);
+  return html.replaceAll(/href="\/(?!\/)/g, `href="${withBase('/', import.meta.env.BASE_URL)}`);
 };
 
 const markExternalLinks = (html: string): string => {
@@ -58,6 +57,8 @@ const getHeadings = (html: string): IRenderedMarkdownHeading[] => {
  * Renders repository-owned Markdown through a raw-HTML-disabled and sanitized pipeline.
  * @param markdown Documentation Markdown source.
  * @returns Sanitized highlighted HTML and stable second- and third-level headings.
+ * @throws
+ * - INVALID_BASE_PATH: The website base path contains unsupported URL characters.
  */
 export const renderMarkdown = async (markdown: string): Promise<IRenderedMarkdown> => {
   const source = markdown.replace(/^# .+\n+/u, '');

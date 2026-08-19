@@ -96,9 +96,31 @@ You do not need to:
 
 The coding agent owns the safe interaction with the skill and repository-local tooling.
 
-## Update or remove
+## Update the skill
 
-Rerun the installation command to refresh a branch-tracking installation. A release-pinned installation remains fixed until you select another tag.
+An installation from `main` follows the repository's current development branch. Rerun the same command to refresh the project installation:
+
+```bash
+npx skills add moldea-ai/skill
+```
+
+For a global branch-tracking installation, rerun it with `-g`:
+
+```bash
+npx skills add moldea-ai/skill -g
+```
+
+A release-pinned installation never moves to another tag automatically. To update it, choose the desired published release and rerun the installation command with that tag. For example, the current release is:
+
+```bash
+npx skills add "moldea-ai/skill#v2.0.1"
+```
+
+Replace `v2.0.1` with the newer published tag when one becomes available. Add `-g` to the tagged command only when updating a global installation.
+
+Updating the skill refreshes its portable instructions and references. It does not initialize a project, change `/moldea/**`, install the `moldea` CLI globally, or alter a repository's canonical project state.
+
+## Remove the skill
 
 Remove a project installation with:
 

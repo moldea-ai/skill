@@ -66,7 +66,25 @@ Add `-g` to the release-tag command instead when a reproducible global installat
 
 ### Update or remove
 
-Refresh an installation by rerunning its `skills add` command. The unversioned source follows `main`; a release-pinned installation remains on its immutable tag until the command is changed to another tag.
+Refresh a branch-tracking project installation from `main` with:
+
+```bash
+npx skills add moldea-ai/skill
+```
+
+Refresh a branch-tracking global installation with:
+
+```bash
+npx skills add moldea-ai/skill -g
+```
+
+A release-pinned installation remains on its immutable tag. To update it, replace `v2.0.1` in the following command with the desired newer published tag:
+
+```bash
+npx skills add "moldea-ai/skill#v2.0.1"
+```
+
+Add `-g` to the tagged command only when updating a global installation.
 
 Remove the project installation with:
 

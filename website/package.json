@@ -58,6 +58,6 @@
     "zod": "4.3.6"
   },
   "dependencies": {
-    "@moldea.ai/website-ui": "1.0.1"
+    "@moldea.ai/website-ui": "1.1.2"
   }
 }

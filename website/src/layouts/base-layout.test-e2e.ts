@@ -462,6 +462,44 @@ test('uses smooth client navigation while preserving ordinary static routes', as
   ).toBe(navigationMarker);
 });
 
+test('shows accessible progress during delayed client navigation and hides it after success', async ({
+  page,
+}) => {
+  await page.setViewportSize({ height: 740, width: 320 });
+  await page.goto(toPublicPath('/'));
+
+  const progress = page.getByRole('progressbar', {
+    includeHidden: true,
+    name: 'Page navigation progress',
+  });
+  const delayedRequest = Promise.withResolvers<void>();
+
+  await expect(progress).toBeHidden();
+  await page.route(
+    `**${toPublicPath('/docs/capabilities/')}`,
+    async (route) => {
+      await delayedRequest.promise;
+      await route.continue();
+    },
+    { times: 1 },
+  );
+
+  await page.getByLabel('Open navigation').click();
+  const navigation = page
+    .getByRole('navigation', { name: 'Mobile navigation' })
+    .getByRole('link', { name: 'Capabilities', exact: true })
+    .click();
+
+  await expect(progress).toBeVisible();
+  await expect(progress).toHaveAttribute('aria-valuetext', 'Loading next page');
+  expect((await progress.boundingBox())?.width).toBe(320);
+
+  delayedRequest.resolve();
+  await navigation;
+  await expect(page).toHaveURL(toPublicPath('/docs/capabilities/'));
+  await expect(progress).toBeHidden();
+});
+
 test('marks the most specific current desktop and mobile navigation destinations', async ({
   browser,
 }) => {

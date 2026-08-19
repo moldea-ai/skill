@@ -1,21 +1,21 @@
 ---
 name: moldea
 description: >-
-  Use when a developer asks their coding agent to initialize or work with moldea; plan an AI- or agent-enabled system and decide what should be agents versus deterministic software, services, tools, or human control; create or refine an AI agent or its behavioral system, including instructions, descriptions, handoff descriptions, tools, skills, schemas, variables and providers, routing or handoffs, bindings, or runtime integration; evaluate, reconcile, or validate an existing moldea system; or make ordinary behavior-affecting repository changes that may require maintaining an adopted moldea system. Loading the skill does not adopt moldea: initial adoption still requires explicit developer intent, while relevance-triggered maintenance applies once a repository uses or is adopting moldea.
+  Use when a developer asks their coding agent to initialize or work with moldea; plan an AI- or agent-enabled system and decide what should be agents versus deterministic software, services, tools, skills, or human control; create or refine an AI agent, a reusable Agent Skill, or a behavioral system, including instructions, descriptions, handoff descriptions, capabilities, schemas, variables and providers, routing or handoffs, bindings, or runtime integration; evaluate, reconcile, or validate an existing moldea system; or make ordinary behavior-affecting repository changes that may require maintaining an adopted moldea system. Loading the skill does not adopt moldea: initial adoption still requires explicit developer intent, while relevance-triggered maintenance applies once a repository uses or is adopting moldea.
 license: MIT
 metadata:
-  version: "2.0.1"
+  version: '3.0.0'
 ---
 
 # moldea
 
 ## Purpose and activation
 
-Use `moldea` as the semantic local operating layer for Git-owned project truth, agent-system planning, and agent behavior. Establish sufficient project understanding, prefer deterministic software when model reasoning does not earn an agent boundary, use deterministic local evidence when available and required, and keep affected canonical and implementation surfaces coherent without inventing behavior.
+Use `moldea` as the semantic local operating layer for Git-owned project truth, agent-system planning, agent behavior, and reusable Agent Skills. Establish sufficient project understanding, prefer deterministic software when model reasoning does not earn an agent boundary, use deterministic local evidence when available and required, and keep affected canonical, skill, and implementation surfaces coherent without inventing behavior.
 
 Activate this skill in either case:
 
-- **Explicit activation:** the developer requests initialization, agent-system planning, project or agent design or maintenance, `evaluate`, `reconcile`, `validate`, or another `moldea` outcome.
+- **Explicit activation:** the developer requests initialization, agent-system planning, project, agent, or Agent Skill design or maintenance, `evaluate`, `reconcile`, `validate`, or another `moldea` outcome.
 - **Relevance-triggered activation:** an ordinary developer-authorized change may materially affect current project truth or declared agent behavior in a repository that already uses or is adopting `moldea`.
 
 Relevance means reconsider the affected `moldea` state. It does not mean always edit `/moldea/**`. Preserve the legitimate no-change result when established truth and behavior remain correct.
@@ -26,9 +26,9 @@ Agent-system planning activates only when the developer clearly asks how an AI- 
 
 ## Release compatibility
 
-Skill release `2.0.1` supports exactly:
+Skill release `3.0.0` supports exactly:
 
-- `@moldea.ai/cli: >=2.0.0 <2.1.0`
+- `@moldea.ai/cli: >=3.1.3 <3.2.0`
 - CLI JSON schema: `1`
 - Node.js: `^22.11.0 || ^24.11.0`
 - npm: `>=10.9.0 <12.0.0`
@@ -54,7 +54,7 @@ These are compatibility ranges. A client repository stores one exact repository-
 
 - **Plan:** design the smallest robust agent-and-software system for an explicitly agent-enabled objective. Keep the operation read-only, allow zero agents, and never establish `moldea` state or local tooling merely to produce the recommendation.
 - **Initialize:** establish local tooling, project understanding, `/moldea/moldea.yaml`, `/moldea/project.md`, and the owned README awareness block. Do not create an agent automatically.
-- **Maintain:** reconsider and, when required, synchronize affected project context, decisions, runtime guidance, agents, relationships, schemas, capabilities, variables, requirements, mirrors, README guidance, or implementation.
+- **Maintain:** reconsider and, when required, synchronize affected project context, decisions, runtime guidance, agents, Agent Skills, relationships, schemas, capabilities, variables, requirements, mirrors, README guidance, or implementation.
 - **Evaluate:** perform read-only deterministic and semantic assessment. Never establish dependency state or write any repository or Git surface.
 - **Reconcile:** begin from the same evidence model as `evaluate`, establish intended state, and apply the smallest authorized coherent correction.
 - **Validate:** run deterministic repository-local validation only. Treat it as read-only.
@@ -63,13 +63,16 @@ Initialize, create, update, maintain, refine, fix, and reconcile requests are wr
 
 During `initialize`, an insufficient or partial project foundation is a pre-write stop condition. Before creating `/moldea/**` or the owned README awareness block, ask the focused clarification and wait for the developer's answer. Never convert developer-answerable foundational ambiguity into an unresolved requirement or claim initialization completed.
 
+Absence of evidence is not evidence that a consequential behavior is excluded. If the repository does not establish whether the project performs a materially different action, such as extracting payment data versus authorizing payments, classify the foundation as partial and clarify before writing.
+
 ## Load focused guidance
 
 - Read `references/local-tooling.md` before any deterministic CLI operation or any write-capable workflow that may establish or reconcile local tooling.
-- Read `references/context-gathering.md` before initialization, consequential project-context work, agent creation, semantic evaluation, or reconciliation.
+- Read `references/context-gathering.md` before initialization, consequential project-context work, Agent Skill creation or material maintenance, agent creation, semantic evaluation, or reconciliation.
 - Read `references/agent-system-planning.md` before planning an AI- or agent-enabled system, decomposing agent responsibilities, or recommending orchestration.
 - Read `references/continuous-maintenance.md` before initialization, relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
 - Read `references/agent-design.md` before creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, runtime relationship, or unresolved requirement.
+- Read `references/skill-design.md` before creating or materially changing an Agent Skill, its `SKILL.md`, references, scripts, assets, activation contract, installation relationship, or runtime registration.
 - Read `references/evaluate-and-reconcile.md` before `evaluate`, `reconcile`, or a scoped semantic alignment assessment.
 
 Load only the references triggered by the current operation. These files operationalize this contract; they do not override governing specifications or deterministic CLI, Core, or runtime-adapter results.
@@ -82,7 +85,7 @@ Load only the references triggered by the current operation. These files operati
 4. When the operation uses deterministic tooling, invoke the exact repository-local CLI and verify its machine envelope before interpreting command-specific fields.
 5. Gather the minimum sufficient repository context, beginning with high-information evidence and following material relationships until more investigation is unlikely to change a material conclusion.
 6. Distinguish current truth, developer-confirmed truth, intended resulting state, planned work, accepted rationale, historical state, unresolved state, and inference used only for investigation.
-7. Identify affected surfaces through exact bindings, impact paths, unresolved relationships, runtime-adapter evidence, and additional semantic evidence.
+7. Identify affected surfaces through exact bindings, impact paths, Agent Skill authoritative sources, resources, host metadata, installed or distributed copies, consumers, unresolved relationships, runtime-adapter evidence, and additional semantic evidence.
 8. Investigate contradictions and ask one focused question when multiple plausible answers would materially change the result. Use unresolved requirements only for genuine incomplete state, not answerable ambiguity or backlog work.
 9. Map runtime metadata by its established semantic purpose. Routing-facing metadata uses the target's effective routing description: the handoff description when present, otherwise the agent description. General-only metadata uses the agent description, regardless of property names.
 10. For write-capable work, apply the smallest coherent authorized change and synchronize every affected representation. Make no canonical edit when the existing state remains correct.
@@ -99,7 +102,7 @@ Runtime-adapter evidence is deterministic evidence about detectable implementati
 
 ## Report truthfully
 
-Report the selected operation and activation path, scope and repositories inspected, files changed or intentionally unchanged, exact local CLI version, deterministic commands and results, dependency changes, semantic decisions, relevant unresolved requirements, ambiguities, protected-instruction conflicts, evidence limitations, project-native checks, and checks not run.
+Report the selected operation and activation path, scope and repositories inspected, files changed or intentionally unchanged, exact local CLI version, deterministic commands and results, dependency changes, Agent Skill source, metadata, copy, consumer, and activation decisions when relevant, semantic decisions, relevant unresolved requirements, ambiguities, protected-instruction conflicts, evidence limitations, project-native checks, and checks not run.
 
 For `initialize`, also report the evidence-backed project foundation and whether initialization completed or is awaiting developer context. If awaiting context, end with the focused clarification needed to continue. If completed, end the report with an explicit `Next actions` handoff that offers reviewing the foundation and continuing ordinary development; include agent-system planning or agent creation only as optional choices when relevant. Validation or test status does not replace this handoff. Do not treat file creation or structural validity alone as semantic completion.
 

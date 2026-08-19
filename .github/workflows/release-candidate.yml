@@ -58,6 +58,8 @@ jobs:
           pnpm --dir packages/projects/repository pack --pack-destination "$candidate_directory"
           pnpm --dir packages/projects/repository-fs pack --pack-destination "$candidate_directory"
           pnpm --dir packages/projects/core pack --pack-destination "$candidate_directory"
+          pnpm --dir packages/projects/adapter-anthropic pack --pack-destination "$candidate_directory"
+          pnpm --dir packages/projects/adapter-google-genai pack --pack-destination "$candidate_directory"
           pnpm --dir packages/projects/adapter-openai pack --pack-destination "$candidate_directory"
           pnpm --dir packages/projects/cli pack --pack-destination "$candidate_directory"
 

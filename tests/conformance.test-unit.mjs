@@ -1,13 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import {
-  existsSync,
-  mkdirSync,
-  mkdtempSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -19,6 +12,7 @@ import {
   createPortableSkillSemanticDigest,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
+  validateSkillEvidenceConfiguration,
 } from './semantic-evaluation-runner.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -48,9 +42,11 @@ const REFERENCE_FILES = [
   'continuous-maintenance.md',
   'evaluate-and-reconcile.md',
   'local-tooling.md',
+  'skill-design.md',
 ];
 const ALLOWED_FRONTMATTER_KEYS = new Set([
   'allowed-tools',
+  'compatibility',
   'description',
   'license',
   'metadata',
@@ -58,6 +54,7 @@ const ALLOWED_FRONTMATTER_KEYS = new Set([
 ]);
 const REQUIRED_EVALUATION_CASE_IDS = {
   packageManagerCases: [
+    'below-minimum-installed-cli',
     'compatible-cli-missing-required-capability',
     'declared-executable-version-conflict',
     'evaluate-compatible-cli-missing-required-capability',
@@ -77,6 +74,7 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'yarn-third-party-plugin-config',
   ],
   cliEnvelopeCases: [
+    'below-minimum-cli',
     'command-mismatch',
     'compatibility-invalid',
     'compatibility-valid',
@@ -126,6 +124,15 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'routing-description-separate-properties',
     'routing-description-shared-property',
     'runtime-adapter-lifecycle',
+    'skill-boundary-surface-selection',
+    'skill-create-progressive-disclosure',
+    'skill-evaluate-read-only',
+    'skill-evaluate-script-authority',
+    'skill-maintain-host-invocation-policy',
+    'skill-maintain-linked-resources',
+    'skill-provider-registration-boundary',
+    'skill-reconcile-distributed-copy',
+    'skill-reuse-existing-cohesive',
     'unadopted-relevance-no-initialization',
     'unresolved-related-file-changed',
     'yarn-conflicting-cli-provider',
@@ -141,11 +148,7 @@ const parseFrontmatter = (content) => {
   const match = content.match(/^---\n([\s\S]*?)\n---\n/);
   assert.ok(match, 'SKILL.md must begin with YAML frontmatter.');
   const document = parseDocument(match[1], { uniqueKeys: true });
-  assert.equal(
-    document.errors.length,
-    0,
-    document.errors.map((error) => error.message).join('\n'),
-  );
+  assert.equal(document.errors.length, 0, document.errors.map((error) => error.message).join('\n'));
   const frontmatter = document.toJS();
   assert.ok(isPlainRecord(frontmatter));
 
@@ -156,22 +159,23 @@ const parseFrontmatter = (content) => {
   assert.match(frontmatter.name, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
   assert.ok(frontmatter.name.length <= 64);
   assert.equal(typeof frontmatter.description, 'string');
-  assert.ok(
-    frontmatter.description.trim().length >= 1 && frontmatter.description.length <= 1024,
-  );
+  assert.ok(frontmatter.description.trim().length >= 1 && frontmatter.description.length <= 1024);
   assert.doesNotMatch(frontmatter.description, /[<>]/);
   assert.equal(typeof frontmatter.license, 'string');
   assert.ok(frontmatter.license.trim().length > 0);
   assert.ok(isPlainRecord(frontmatter.metadata));
   assert.ok(
     Object.entries(frontmatter.metadata).every(
-      ([metadataKey, metadataValue]) =>
-        metadataKey.length > 0 && typeof metadataValue === 'string',
+      ([metadataKey, metadataValue]) => metadataKey.length > 0 && typeof metadataValue === 'string',
     ),
   );
   if ('allowed-tools' in frontmatter) {
     assert.equal(typeof frontmatter['allowed-tools'], 'string');
     assert.ok(frontmatter['allowed-tools'].trim().length > 0);
+  }
+  if ('compatibility' in frontmatter) {
+    assert.equal(typeof frontmatter.compatibility, 'string');
+    assert.ok(frontmatter.compatibility.trim().length > 0);
   }
   return frontmatter;
 };
@@ -195,16 +199,20 @@ const isSupportedManagerVersion = (manager, version) => {
   return false;
 };
 
-const isCompatibleCliVersion = (version) => /^2\.0\.\d+$/.test(version ?? '');
+const isCompatibleCliVersion = (version) => {
+  const match = version?.match(/^(\d+)\.(\d+)\.(\d+)$/);
+  if (!match) return false;
+
+  const [, majorText, minorText, patchText] = match;
+  return Number(majorText) === 3 && Number(minorText) === 1 && Number(patchText) >= 3;
+};
 
 const evaluatePackageManagerCase = ({ operation, input }) => {
   const cli = input.cli;
   const hasCompatibleInstall = isCompatibleCliVersion(cli.installedVersion);
   const isExactDeclaration = isCompatibleCliVersion(cli.declaration);
   const hasExactCompatibleCli =
-    isExactDeclaration &&
-    cli.declaration === cli.installedVersion &&
-    cli.executableResolves;
+    isExactDeclaration && cli.declaration === cli.installedVersion && cli.executableResolves;
   const hasRequiredCapability =
     !cli.requiredCapability || cli.installedCapabilities?.includes(cli.requiredCapability);
 
@@ -315,8 +323,8 @@ const evaluateCliEnvelopeCase = ({ input }) => {
 
 const evaluateReadmeMarkerCase = ({ input }) => {
   const lines = input.readme.split('\n');
-  const starts = lines.flatMap((line, index) => line === '<!-- moldea:start -->' ? [index] : []);
-  const ends = lines.flatMap((line, index) => line === '<!-- moldea:end -->' ? [index] : []);
+  const starts = lines.flatMap((line, index) => (line === '<!-- moldea:start -->' ? [index] : []));
+  const ends = lines.flatMap((line, index) => (line === '<!-- moldea:end -->' ? [index] : []));
 
   if (starts.length === 0 && ends.length === 0) {
     return ['report-missing', 'add-one-block'];
@@ -338,7 +346,7 @@ describe('portable Agent Skill contract', () => {
   test('uses valid portable identity and release metadata', () => {
     assert.equal(frontmatter.name, 'moldea');
     assert.equal(frontmatter.license, 'MIT');
-    assert.equal(frontmatter.metadata.version, '2.0.1');
+    assert.equal(frontmatter.metadata.version, '3.0.0');
     assert.equal(dirname(SKILL_PATH), SKILL_DIRECTORY);
     assert.equal(dirname(SKILL_PATH).split('/').at(-1), frontmatter.name);
     assert.ok(frontmatter.description.length >= 1 && frontmatter.description.length <= 1024);
@@ -351,19 +359,25 @@ describe('portable Agent Skill contract', () => {
       parseFrontmatter('---\nname: moldea\ndescription: valid\nunsupported: true\n---\n'),
     );
     assert.throws(() =>
-      parseFrontmatter('---\nname: moldea\ndescription: "   "\nlicense: MIT\nmetadata:\n  version: "1.0.0"\n---\n'),
+      parseFrontmatter(
+        '---\nname: moldea\ndescription: "   "\nlicense: MIT\nmetadata:\n  version: "1.0.0"\n---\n',
+      ),
     );
     assert.throws(() =>
-      parseFrontmatter('---\nname: moldea\ndescription: valid\nlicense: MIT\ncompatibility: 1\nmetadata:\n  version: "1.0.0"\n---\n'),
+      parseFrontmatter(
+        '---\nname: moldea\ndescription: valid\nlicense: MIT\ncompatibility: 1\nmetadata:\n  version: "1.0.0"\n---\n',
+      ),
     );
     assert.throws(() =>
-      parseFrontmatter('---\nname: moldea\ndescription: valid\nlicense: MIT\nallowed-tools: []\nmetadata:\n  version: "1.0.0"\n---\n'),
+      parseFrontmatter(
+        '---\nname: moldea\ndescription: valid\nlicense: MIT\nallowed-tools: []\nmetadata:\n  version: "1.0.0"\n---\n',
+      ),
     );
   });
 
   test('declares the exact release compatibility contract', () => {
     assertMatchesEvery(skill, [
-      /@moldea\.ai\/cli: >=2\.0\.0 <2\.1\.0/,
+      /@moldea\.ai\/cli: >=3\.1\.3 <3\.2\.0/,
       /CLI JSON schema: `1`/,
       /Node\.js: `\^22\.11\.0 \|\| \^24\.11\.0`/,
       /npm: `>=10\.9\.0 <12\.0\.0`/,
@@ -374,9 +388,9 @@ describe('portable Agent Skill contract', () => {
   });
 
   test('uses explicit progressive-disclosure triggers and resolvable references', () => {
-    const referencedPaths = [
-      ...skill.matchAll(/Read `references\/([^`]+\.md)` before/g),
-    ].map((match) => match[1]);
+    const referencedPaths = [...skill.matchAll(/Read `references\/([^`]+\.md)` before/g)].map(
+      (match) => match[1],
+    );
 
     assert.deepEqual([...referencedPaths].sort(), REFERENCE_FILES);
 
@@ -435,6 +449,28 @@ describe('portable Agent Skill contract', () => {
       /least-privilege constraints/i,
       /implementation order/i,
       /no repository files were changed by `plan`/i,
+    ]);
+  });
+
+  test('treats Agent Skills as first-class portable artifacts', () => {
+    assertMatchesEvery(portableContent, [
+      /Choose a skill deliberately/,
+      /primary activation contract/,
+      /representative positive requests/,
+      /adjacent requests that should remain outside/,
+      /Keep host metadata aligned/,
+      /Preserve an existing invocation policy/,
+      /Use progressive disclosure/,
+      /references\//,
+      /scripts\//,
+      /assets\//,
+      /Design scripts as real software/,
+      /supported environments/,
+      /generated, installed, or distributed copies/,
+      /report non-atomicity/,
+      /repository format version `1` defines no canonical `\/moldea\/skills` store/i,
+      /does not prove installation, activation, or runtime-agent registration/i,
+      /Structural validity does not prove useful activation, complete workflow behavior/i,
     ]);
   });
 
@@ -540,39 +576,31 @@ describe('source repository conformance', () => {
         assert.ok(conformanceCase.input && typeof conformanceCase.input === 'object');
         assert.ok(conformanceCase.expected.length > 0);
         assert.ok(conformanceCase.forbidden.length > 0);
+        if (categoryName === 'semanticCases') {
+          assert.doesNotThrow(() => validateSkillEvidenceConfiguration(conformanceCase));
+        }
       }
     }
   });
 
   test('binds semantic evaluations to exact or release-equivalent portable content', () => {
-    const result = JSON.parse(
-      readRepositoryFile('fixtures/semantic-evaluation-result.json'),
-    );
+    const result = JSON.parse(readRepositoryFile('fixtures/semantic-evaluation-result.json'));
     const semanticCases = new Map(
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
     );
 
     const portableSkillDigest = createPortableSkillDigest();
     assert.equal(result.schemaVersion, 1);
-    assert.equal(result.evaluationProtocolVersion, 4);
-    assert.equal(
-      result.caseSuiteDigest,
-      createSemanticCaseSuiteDigest(cases.semanticCases),
-    );
+    assert.equal(result.evaluationProtocolVersion, 6);
+    assert.equal(result.caseSuiteDigest, createSemanticCaseSuiteDigest(cases.semanticCases));
     assert.equal(result.artifact.sha256, result.skillDigest);
     assert.equal(result.artifactDigest, result.skillDigest);
     assert.equal(result.artifactSha256, result.skillDigest);
     if (result.skillDigest === portableSkillDigest) {
       assert.equal(result.releaseEvidenceCarryForward, undefined);
     } else {
-      assert.equal(
-        result.releaseEvidenceCarryForward.fromArtifactDigest,
-        result.skillDigest,
-      );
-      assert.equal(
-        result.releaseEvidenceCarryForward.toArtifactDigest,
-        portableSkillDigest,
-      );
+      assert.equal(result.releaseEvidenceCarryForward.fromArtifactDigest, result.skillDigest);
+      assert.equal(result.releaseEvidenceCarryForward.toArtifactDigest, portableSkillDigest);
       assert.notEqual(
         result.releaseEvidenceCarryForward.fromArtifactDigest,
         result.releaseEvidenceCarryForward.toArtifactDigest,
@@ -589,10 +617,7 @@ describe('source repository conformance', () => {
         result.releaseEvidenceCarryForward.toSemanticDigest,
         createPortableSkillSemanticDigest(),
       );
-      assert.match(
-        result.releaseEvidenceCarryForward.carriedForwardAt,
-        /^\d{4}-\d{2}-\d{2}T/,
-      );
+      assert.match(result.releaseEvidenceCarryForward.carriedForwardAt, /^\d{4}-\d{2}-\d{2}T/);
       assert.equal(
         result.releaseEvidenceCarryForward.reason,
         'Release-version declarations changed without changing semantic skill content.',
@@ -625,7 +650,70 @@ describe('source repository conformance', () => {
       );
       assert.deepEqual(evaluationCase.forbiddenTriggered, []);
       assert.ok(evaluationCase.rationale.length > 20);
+
+      const configuredArtifacts = conformanceCase.skillEvidence?.artifacts ?? [];
+      assert.equal(evaluationCase.skillArtifactEvidence.length, configuredArtifacts.length);
+      assert.deepEqual(
+        evaluationCase.skillArtifactEvidence.map(({ role, root }) => ({ role, root })),
+        configuredArtifacts,
+      );
     }
+
+    const skillCreationCase = semanticCases.get('skill-create-progressive-disclosure');
+    assert.ok(skillCreationCase.expected.includes('create-valid-skill-frontmatter'));
+    assert.ok(skillCreationCase.expected.includes('run-skill-structural-validation'));
+    assert.ok(skillCreationCase.expected.includes('support-positive-and-adjacent-non-activation'));
+    const skillCreationResult = result.cases.find(
+      ({ id }) => id === 'skill-create-progressive-disclosure',
+    );
+    assert.equal(skillCreationResult.skillArtifactEvidence.length, 1);
+    assert.equal(skillCreationResult.skillArtifactEvidence[0].validation.valid, true);
+    assert.equal(skillCreationResult.skillArtifactEvidence[0].validation.name, 'release-review');
+    const createdSkillContent = skillCreationResult.skillArtifactEvidence[0].files.find(
+      ({ path }) => path === 'skills/release-review/SKILL.md',
+    ).content;
+    assert.match(createdSkillContent, /release-policy\.md/);
+    assert.match(createdSkillContent, /verify-release\.mjs/);
+    assert.ok(skillCreationResult.skillArtifactEvidence[0].resourceReferences.length >= 2);
+    assert.ok(
+      skillCreationResult.skillArtifactEvidence[0].resourceReferences.every(
+        ({ isSafe, type }) => isSafe && type !== 'missing' && type !== 'unsafe',
+      ),
+    );
+
+    const skillMaintenanceCase = semanticCases.get('skill-maintain-linked-resources');
+    assert.ok(skillMaintenanceCase.expected.includes('produce-structurally-valid-updated-skill'));
+    assert.ok(skillMaintenanceCase.expected.includes('run-skill-structural-validation'));
+    const skillMaintenanceResult = result.cases.find(
+      ({ id }) => id === 'skill-maintain-linked-resources',
+    );
+    assert.equal(skillMaintenanceResult.skillArtifactEvidence.length, 1);
+    assert.equal(skillMaintenanceResult.skillArtifactEvidence[0].validation.valid, true);
+    const packageManagerReference = skillMaintenanceResult.skillArtifactEvidence[0].files.find(
+      ({ path }) => path === 'skills/release-review/references/package-managers.md',
+    ).content;
+    assert.match(packageManagerReference, /npm/i);
+    assert.match(packageManagerReference, /pnpm/i);
+
+    const hostMetadataResult = result.cases.find(
+      ({ id }) => id === 'skill-maintain-host-invocation-policy',
+    );
+    const maintainedHostMetadata = hostMetadataResult.skillArtifactEvidence[0].files.find(
+      ({ path }) => path === 'skills/deployment-review/agents/openai.yaml',
+    ).content;
+    assert.match(maintainedHostMetadata, /allow_implicit_invocation: false/);
+    assert.match(maintainedHostMetadata, /brand_color: ["']#336699["']/);
+
+    const reconciliationResult = result.cases.find(
+      ({ id }) => id === 'skill-reconcile-distributed-copy',
+    );
+    const authoritativeContent = reconciliationResult.skillArtifactEvidence[0].files.find(
+      ({ path }) => path === 'skills/release-review/SKILL.md',
+    ).content;
+    const distributedContent = reconciliationResult.skillArtifactEvidence[1].files.find(
+      ({ path }) => path === 'dist/skills/release-review/SKILL.md',
+    ).content;
+    assert.equal(distributedContent, authoritativeContent);
   });
 
   test('exercises package-manager selection, conflicts, and CLI pin decisions', () => {
@@ -681,7 +769,7 @@ describe('source repository conformance', () => {
       });
       const inspectionEnvelope = JSON.parse(inspection.stdout);
       assert.equal(inspection.status, 1);
-      assert.equal(inspectionEnvelope.cliVersion, '2.0.0');
+      assert.equal(inspectionEnvelope.cliVersion, '3.1.3');
       assert.equal(inspectionEnvelope.status, 'invalid');
       assert.equal(
         inspectionEnvelope.result.inspection.diagnostics[0].code,
@@ -694,16 +782,15 @@ describe('source repository conformance', () => {
       });
       const compatibilityEnvelope = JSON.parse(compatibility.stdout);
       assert.equal(compatibility.status, 0);
-      assert.equal(compatibilityEnvelope.cliVersion, '2.0.0');
+      assert.equal(compatibilityEnvelope.cliVersion, '3.1.3');
       assert.equal(compatibilityEnvelope.status, 'valid');
-      assert.deepEqual(
-        compatibilityEnvelope.result.packages,
-        [
-          { name: '@moldea.ai/core', version: '2.0.0' },
-          { name: '@moldea.ai/repository', version: '1.0.1' },
-          { name: '@moldea.ai/repository-fs', version: '1.0.1' },
-        ],
-      );
+      assert.deepEqual(compatibilityEnvelope.result.packages, [
+        { name: '@moldea.ai/adapter-anthropic', version: '2.0.1' },
+        { name: '@moldea.ai/adapter-google-genai', version: '1.0.3' },
+        { name: '@moldea.ai/core', version: '2.0.0' },
+        { name: '@moldea.ai/repository', version: '1.0.1' },
+        { name: '@moldea.ai/repository-fs', version: '1.0.2' },
+      ]);
       assert.deepEqual(
         compatibilityEnvelope.result.adapters.map(({ id }) => id),
         [
@@ -725,6 +812,20 @@ describe('source repository conformance', () => {
       );
       assert.equal(customCompatibility.active, true);
       assert.equal(customCompatibility.bundledVersion, '2.0.0');
+      const googleGenAiCompatibility = compatibilityEnvelope.result.adapters.find(
+        ({ id }) => id === 'google-genai',
+      );
+      assert.equal(googleGenAiCompatibility.active, true);
+      assert.equal(googleGenAiCompatibility.bundledVersion, '1.0.3');
+      assert.equal(googleGenAiCompatibility.matrix.implementation.versionRange, '^1.0.3');
+      assert.equal(
+        googleGenAiCompatibility.matrix.targets[0].id,
+        'typescript-models-generate-content-2',
+      );
+      assert.equal(
+        googleGenAiCompatibility.matrix.targets[0].packages[0].versionRange,
+        '>=2.17.1 <3.0.0',
+      );
     } finally {
       rmSync(repositoryPath, { force: true, recursive: true });
     }
@@ -760,9 +861,9 @@ describe('source repository conformance', () => {
     const projectInstallationIndex = readme.indexOf('### Project installation (recommended)');
     const globalInstallationIndex = readme.indexOf('### Global installation (optional)');
 
-    assert.match(readme, /The current release is `2\.0\.1`\./);
+    assert.match(readme, /The current release is `3\.0\.0`\./);
     assert.match(readme, /^npx skills add moldea-ai\/skill$/m);
-    assert.match(readme, /^npx skills add "moldea-ai\/skill#v2\.0\.1"$/m);
+    assert.match(readme, /^npx skills add "moldea-ai\/skill#v3\.0\.0"$/m);
     assert.match(readme, /^npx skills add moldea-ai\/skill -g$/m);
     assert.ok(projectInstallationIndex >= 0);
     assert.ok(globalInstallationIndex > projectInstallationIndex);
@@ -770,7 +871,7 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(readme, /https:\/\/github\.com\/moldea-ai\/skill\/tree\//);
     assert.match(readme, /do not install `@moldea\.ai\/cli` globally/);
     assert.match(readme, /repository-local exact `@moldea\.ai\/cli` development dependency/);
-    assert.match(readme, /recommended repository-local CLI version for this release is `2\.0\.0`/);
+    assert.match(readme, /recommended repository-local CLI version for this release is `3\.1\.3`/);
     assert.doesNotMatch(
       readme,
       /unpublished release candidate|future source URL|after release|candidate supports|prepared for, but has not created/i,
@@ -790,30 +891,25 @@ describe('source repository conformance', () => {
     const workflow = readRepositoryFile('.github/workflows/conformance.yml');
     const packageManifest = JSON.parse(readRepositoryFile('package.json'));
 
-    assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], '2.0.0');
-    assert.equal(workflow.match(/cli_version: "2\.0\.0"/g)?.length, 6);
-    assert.doesNotMatch(workflow, /cli_version: "1\./);
+    assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], '3.1.3');
+    assert.equal(workflow.match(/cli_version: "3\.1\.3"/g)?.length, 6);
+    assert.doesNotMatch(workflow, /cli_version: "[12]\./);
     assert.match(workflow, /MOLDEA_TEST_CLI_VERSION: \$\{\{ matrix\.cli_version \}\}/);
     assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 2);
     assert.equal(
-      workflow.match(
-        /sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap/g,
-      )?.length,
+      workflow.match(/sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap/g)
+        ?.length,
       1,
     );
     assert.equal(
-      workflow.match(/sudo apparmor_parser -r \/etc\/apparmor\.d\/bwrap-userns-restrict/g)
-        ?.length,
+      workflow.match(/sudo apparmor_parser -r \/etc\/apparmor\.d\/bwrap-userns-restrict/g)?.length,
       1,
     );
     assert.equal(
       workflow.match(/node --test tests\/package-manager\.test-integration\.mjs/g)?.length,
       1,
     );
-    assert.equal(
-      existsSync(join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'fake-cli')),
-      false,
-    );
+    assert.equal(existsSync(join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'fake-cli')), false);
   });
 
   test('candidate workflow verifies real package tarballs without publishing', () => {
@@ -833,6 +929,8 @@ describe('source repository conformance', () => {
       /projects\/repository pack/,
       /projects\/repository-fs pack/,
       /projects\/core pack/,
+      /projects\/adapter-anthropic pack/,
+      /projects\/adapter-google-genai pack/,
       /projects\/adapter-openai pack/,
       /projects\/cli pack/,
       /MOLDEA_CLI_ARTIFACT_DIRECTORY:/,
@@ -881,6 +979,10 @@ describe('source repository conformance', () => {
       /replaces only that case's compatible candidate evidence/,
       /only after every required case passes/,
       /Missing or failing evidence never replaces the committed result/,
+      /hashes and bounded text content for repository-visible changes/,
+      /bounded post-execution source or copy directories/,
+      /independent structural and resource-link evidence/,
+      /do not rely on the actor's report or leaked answer criteria/,
     ]);
     assert.match(gitignore, /fixtures\/\.semantic-evaluation-candidate\.json\*/);
   });
@@ -889,10 +991,14 @@ describe('source repository conformance', () => {
     const openaiMetadata = readRepositoryFile('moldea/agents/openai.yaml');
 
     assertMatchesEvery(openaiMetadata, [
-      /display_name: "moldea"/,
-      /plan, initialize, maintain, evaluate, reconcile, or validate/,
+      /display_name: 'moldea'/,
+      /plan, initialize, design, maintain, evaluate, reconcile, or validate/,
     ]);
-    assert.doesNotMatch(openaiMetadata, /initialize this repository context and agent instructions/);
+    assert.doesNotMatch(openaiMetadata, /^policy:/m);
+    assert.doesNotMatch(
+      openaiMetadata,
+      /initialize this repository context and agent instructions/,
+    );
   });
 
   test('keeps source and portable release versions synchronized', () => {
@@ -905,9 +1011,7 @@ describe('source repository conformance', () => {
     assert.ok(
       skill.includes(`Skill release \`${frontmatter.metadata.version}\` supports exactly:`),
     );
-    assert.ok(
-      localTooling.includes(`Release \`${frontmatter.metadata.version}\` supports:`),
-    );
+    assert.ok(localTooling.includes(`Release \`${frontmatter.metadata.version}\` supports:`));
     if (process.env.MOLDEA_RELEASE_TAG) {
       assert.equal(process.env.MOLDEA_RELEASE_TAG, `v${frontmatter.metadata.version}`);
     }

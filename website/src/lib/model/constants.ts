@@ -23,6 +23,7 @@ export const REQUIRED_DOCUMENT_ROUTES = [
   '/docs/project-state/',
   '/docs/planning-agent-systems/',
   '/docs/designing-agents/',
+  '/docs/designing-skills/',
   '/docs/continuous-maintenance/',
   '/docs/evaluate-reconcile-validate/',
   '/docs/safety-and-privacy/',

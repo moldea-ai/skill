@@ -28,6 +28,8 @@ import {
   validateHostCommand,
   validateSemanticCandidateCompatibility,
   validateSemanticResultRecording,
+  validateSkillDocument,
+  validateSkillEvidenceConfiguration,
 } from './semantic-evaluation-runner.mjs';
 
 const CASE_DEFINITION = {
@@ -55,6 +57,21 @@ const SECOND_CASE_DEFINITION = {
   id: 'second-evaluation',
   prompt: 'Evaluate a second repository scenario without changing it.',
 };
+const SKILL_CASE_DEFINITION = {
+  expected: ['expected-secret-label'],
+  forbidden: ['forbidden-secret-label'],
+  id: 'skill-evaluation',
+  input: { developerDirection: 'Create a release-review skill.' },
+  operation: 'create-agent-skill',
+  scenario: 'A repository needs a reusable release-review workflow.',
+  skillEvidence: {
+    activationScenarios: [
+      { request: 'Review this release.', shouldActivate: true },
+      { request: 'Update package.json.', shouldActivate: false },
+    ],
+    artifacts: [{ role: 'authoritative-source', root: 'skills/release-review' }],
+  },
+};
 const ACTOR_HOST = {
   model: 'gpt-5.6-terra',
   name: 'codex',
@@ -70,12 +87,16 @@ const JUDGE_HOST = {
 const ARTIFACT_DIGEST = 'a'.repeat(64);
 const EVALUATED_AT = '2026-08-16T12:00:00.000Z';
 const BEFORE_SNAPSHOT_STATE = {
+  content: 'before',
   mode: 33_204,
+  omission: null,
   sha256: 'b'.repeat(64),
   type: 'file',
 };
 const AFTER_SNAPSHOT_STATE = {
+  content: 'after',
   mode: 33_204,
+  omission: null,
   sha256: 'c'.repeat(64),
   type: 'file',
 };
@@ -87,9 +108,8 @@ const createCaseResult = (caseDefinition, passed) => ({
   id: caseDefinition.id,
   observed: passed ? [...caseDefinition.expected] : [],
   passed,
-  rationale: passed
-    ? 'The expected behavior was demonstrated.'
-    : 'Expected evidence was missing.',
+  rationale: passed ? 'The expected behavior was demonstrated.' : 'Expected evidence was missing.',
+  skillArtifactEvidence: [],
   workspaceChanges: {
     created: [],
     deleted: [],
@@ -111,36 +131,173 @@ test('actor prompt contains only the user scenario', () => {
 });
 
 test('structured actor prompt excludes evaluation criteria', () => {
-  const actorPrompt = buildActorPrompt({
-    expected: ['expected-secret-label'],
-    forbidden: ['forbidden-secret-label'],
-    id: 'structured-evaluation',
-    input: { changedPath: 'src/runtime.ts' },
-    operation: 'evaluate',
-    scenario: 'The adopted repository has one changed runtime file.',
-  });
+  const actorPrompt = buildActorPrompt(SKILL_CASE_DEFINITION);
 
-  assert.match(actorPrompt, /Requested operation: evaluate/);
-  assert.match(actorPrompt, /src\/runtime\.ts/);
+  assert.match(actorPrompt, /Requested operation: create-agent-skill/);
+  assert.match(actorPrompt, /Create a release-review skill/);
   assert.doesNotMatch(actorPrompt, /expected-secret-label|forbidden-secret-label/);
+  assert.doesNotMatch(actorPrompt, /Review this release|shouldActivate|authoritative-source/);
 });
 
 test('judge prompt receives criteria after actor execution', () => {
-  const judgePrompt = buildJudgePrompt(CASE_DEFINITION, 'Actor response', {
-    created: [],
-    deleted: [],
-    modified: [],
-  });
+  const judgePrompt = buildJudgePrompt(
+    SKILL_CASE_DEFINITION,
+    'Actor response',
+    {
+      created: [],
+      deleted: [],
+      modified: [],
+    },
+    [
+      {
+        directories: ['skills/release-review'],
+        excludedDirectoryCount: 0,
+        files: [],
+        resourceReferences: [],
+        role: 'authoritative-source',
+        root: 'skills/release-review',
+        rootType: 'directory',
+        truncatedDirectoryCount: 0,
+        truncatedFileCount: 0,
+        validation: {
+          description: 'Reviews releases.',
+          errors: [],
+          name: 'release-review',
+          valid: true,
+        },
+      },
+    ],
+  );
 
   assert.match(judgePrompt, /expected-secret-label/);
   assert.match(judgePrompt, /forbidden-secret-label/);
   assert.match(judgePrompt, /Actor response/);
+  assert.match(judgePrompt, /Independent skill artifact evidence/);
+  assert.match(judgePrompt, /"valid": true/);
+  assert.match(judgePrompt, /untrusted artifact evidence/);
+  assert.match(judgePrompt, /Evaluator-only activation scenarios/);
+  assert.match(judgePrompt, /Review this release/);
+});
+
+test('skill evidence configuration validates roles, paths, and activation scenarios', () => {
+  assert.deepEqual(validateSkillEvidenceConfiguration(SKILL_CASE_DEFINITION), {
+    activationScenarios: SKILL_CASE_DEFINITION.skillEvidence.activationScenarios,
+    artifacts: SKILL_CASE_DEFINITION.skillEvidence.artifacts,
+  });
+  assert.deepEqual(validateSkillEvidenceConfiguration(CASE_DEFINITION), {
+    activationScenarios: [],
+    artifacts: [],
+  });
+
+  for (const root of [
+    '/skills/release-review',
+    '../skills/release-review',
+    'skills\\release-review',
+    'skills/_archive/release-review',
+  ]) {
+    assert.throws(
+      () =>
+        validateSkillEvidenceConfiguration({
+          ...SKILL_CASE_DEFINITION,
+          skillEvidence: {
+            activationScenarios: [],
+            artifacts: [{ role: 'authoritative-source', root }],
+          },
+        }),
+      /invalid skill artifact root|unsafe skill artifact root/,
+    );
+  }
+
+  assert.throws(
+    () =>
+      validateSkillEvidenceConfiguration({
+        ...SKILL_CASE_DEFINITION,
+        skillEvidence: {
+          activationScenarios: [],
+          artifacts: [
+            { role: 'authoritative-source', root: 'skills/release-review' },
+            { role: 'distributed-copy', root: 'skills/release-review' },
+          ],
+        },
+      }),
+    /unsafe skill artifact root/,
+  );
+  assert.throws(
+    () =>
+      validateSkillEvidenceConfiguration({
+        ...SKILL_CASE_DEFINITION,
+        skillEvidence: {
+          activationScenarios: [{ request: '', shouldActivate: true }],
+          artifacts: SKILL_CASE_DEFINITION.skillEvidence.artifacts,
+        },
+      }),
+    /invalid skill activation scenarios/,
+  );
+});
+
+test('skill document validation enforces identity, activation, and body contracts', () => {
+  assert.deepEqual(
+    validateSkillDocument(
+      [
+        '---',
+        'name: release-review',
+        'description: Reviews npm and pnpm releases when publication readiness is requested.',
+        '---',
+        '',
+        '# Release review',
+      ].join('\n'),
+      'release-review',
+    ),
+    {
+      description: 'Reviews npm and pnpm releases when publication readiness is requested.',
+      errors: [],
+      name: 'release-review',
+      valid: true,
+    },
+  );
+
+  assert.deepEqual(
+    validateSkillDocument(
+      ['---', 'name: ReleaseReview', 'description: ""', 'unsupported: true', '---'].join('\n'),
+      'release-review',
+    ),
+    {
+      description: '',
+      errors: [
+        'unsupported-frontmatter-key:unsupported',
+        'invalid-name',
+        'invalid-description',
+        'empty-body',
+      ],
+      name: 'ReleaseReview',
+      valid: false,
+    },
+  );
+
+  assert.equal(
+    validateSkillDocument(
+      [
+        '---',
+        'name: release-review',
+        'description: Review <repository> releases.',
+        '---',
+        '',
+        '# Release review',
+      ].join('\n'),
+      'release-review',
+    ).valid,
+    false,
+  );
 });
 
 test('assessment derives failure when expected evidence is missing', () => {
   const assessment = assessJudgeOutput(
     CASE_DEFINITION,
-    JSON.stringify({ forbidden: [], observed: [], rationale: 'No supporting evidence.' }),
+    JSON.stringify({
+      forbidden: [],
+      observed: [],
+      rationale: 'No supporting evidence.',
+    }),
   );
 
   assert.equal(assessment.isPassed, false);
@@ -332,16 +489,14 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
     '2026-08-16T12:01:00.000Z',
   );
   assert.deepEqual(getPendingSemanticCaseDefinitions(candidate, caseDefinitions), []);
-  assert.doesNotThrow(() =>
-    validateSemanticResultRecording({ candidate, caseDefinitions }),
-  );
+  assert.doesNotThrow(() => validateSemanticResultRecording({ candidate, caseDefinitions }));
 
   const record = createSemanticEvaluationRecord({
     candidate,
     caseDefinitions,
     generatedAt: '2026-08-16T12:02:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 4);
+  assert.equal(record.evaluationProtocolVersion, 6);
   assert.equal(record.caseSuiteDigest, createSemanticCaseSuiteDigest(caseDefinitions));
   assert.deepEqual(
     record.cases.map(({ id }) => id),
@@ -350,6 +505,80 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
   assert.deepEqual(
     record.cases.map(({ caseDefinitionDigest }) => caseDefinitionDigest),
     caseDefinitions.map(createSemanticCaseDefinitionDigest),
+  );
+});
+
+test('semantic candidates accept explicitly truncated skill artifact evidence', () => {
+  const caseDefinitions = [SKILL_CASE_DEFINITION];
+  const result = createCaseResult(SKILL_CASE_DEFINITION, true);
+  result.skillArtifactEvidence = [
+    {
+      directories: ['skills/release-review'],
+      excludedDirectoryCount: 0,
+      files: [
+        {
+          content: null,
+          mode: 33_204,
+          omission: 'file-too-large',
+          path: 'skills/release-review/large-reference.md',
+          sha256: null,
+        },
+      ],
+      isTraversalTruncated: true,
+      resourceReferences: [],
+      role: 'authoritative-source',
+      root: 'skills/release-review',
+      rootType: 'directory',
+      truncatedDirectoryCount: 1,
+      truncatedFileCount: 1,
+      truncatedResourceReferenceCount: 8,
+      validation: {
+        description: null,
+        errors: ['missing-skill-document'],
+        name: null,
+        valid: false,
+      },
+    },
+  ];
+  const candidate = mergeSemanticCandidateResult(
+    createSemanticEvaluationCandidate({
+      actorHost: ACTOR_HOST,
+      artifactDigest: ARTIFACT_DIGEST,
+      caseDefinitions,
+      generatedAt: EVALUATED_AT,
+      judgeHost: JUDGE_HOST,
+    }),
+    SKILL_CASE_DEFINITION,
+    result,
+    EVALUATED_AT,
+  );
+
+  assert.doesNotThrow(() => validateSemanticResultRecording({ candidate, caseDefinitions }));
+  assert.throws(
+    () =>
+      validateSemanticResultRecording({
+        candidate: {
+          ...candidate,
+          results: [
+            {
+              ...candidate.results[0],
+              skillArtifactEvidence: [
+                {
+                  ...candidate.results[0].skillArtifactEvidence[0],
+                  files: [
+                    {
+                      ...candidate.results[0].skillArtifactEvidence[0].files[0],
+                      omission: 'non-utf8',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        caseDefinitions,
+      }),
+    /invalid case evidence/,
   );
 });
 
@@ -387,9 +616,84 @@ test('semantic candidate validation rejects internally inconsistent evidence', (
           results: [
             {
               ...candidate.results[0],
-              workspaceChanges: { created: [], deleted: [], modified: ['src/example.js'] },
+              workspaceChanges: {
+                created: [
+                  {
+                    path: 'src/oversized.js',
+                    state: {
+                      content: 'é'.repeat(16_385),
+                      mode: 33_204,
+                      omission: null,
+                      sha256: 'd'.repeat(64),
+                      type: 'file',
+                    },
+                  },
+                ],
+                deleted: [],
+                modified: [],
+              },
             },
           ],
+        },
+        caseDefinitions,
+      }),
+    /invalid case evidence/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticResultRecording({
+        candidate: {
+          ...candidate,
+          results: [
+            {
+              ...candidate.results[0],
+              workspaceChanges: {
+                created: [],
+                deleted: [],
+                modified: [
+                  {
+                    ...candidate.results[0].workspaceChanges.modified[0],
+                    after: {
+                      mode: AFTER_SNAPSHOT_STATE.mode,
+                      sha256: AFTER_SNAPSHOT_STATE.sha256,
+                      type: 'file',
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        },
+        caseDefinitions,
+      }),
+    /invalid case evidence/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticResultRecording({
+        candidate: {
+          ...candidate,
+          results: [
+            {
+              ...candidate.results[0],
+              workspaceChanges: {
+                created: [],
+                deleted: [],
+                modified: ['src/example.js'],
+              },
+            },
+          ],
+        },
+        caseDefinitions,
+      }),
+    /invalid case evidence/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticResultRecording({
+        candidate: {
+          ...candidate,
+          results: [{ ...candidate.results[0], skillArtifactEvidence: [{}] }],
         },
         caseDefinitions,
       }),
@@ -441,10 +745,7 @@ test('selects synthetic compatibility only for the two unsupported runtime state
     getSemanticToolingSource('dedicated-repository-runtime-selection'),
     'synthetic-compatibility',
   );
-  assert.equal(
-    getSemanticToolingSource('runtime-adapter-lifecycle'),
-    'synthetic-compatibility',
-  );
+  assert.equal(getSemanticToolingSource('runtime-adapter-lifecycle'), 'synthetic-compatibility');
   assert.equal(
     getSemanticToolingSource('agent-adoption-inline-runtime-instruction'),
     'published-package',
@@ -467,10 +768,12 @@ test('collects the exact published CLI production dependency closure', () => {
     .sort();
 
   assert.deepEqual(packageVersions, [
-    '@moldea.ai/adapter-openai@2.0.0',
-    '@moldea.ai/cli@2.0.0',
+    '@moldea.ai/adapter-anthropic@2.0.1',
+    '@moldea.ai/adapter-google-genai@1.0.3',
+    '@moldea.ai/adapter-openai@2.0.3',
+    '@moldea.ai/cli@3.1.3',
     '@moldea.ai/core@2.0.0',
-    '@moldea.ai/repository-fs@1.0.1',
+    '@moldea.ai/repository-fs@1.0.2',
     '@moldea.ai/repository@1.0.1',
     'error-message-utils@1.2.11',
     'semver@7.8.5',
@@ -509,19 +812,13 @@ test('sandbox uses an empty root, isolated network, and restricted relay', () =>
   assert.deepEqual(argumentsList.slice(0, 2), ['--die-with-parent', '--new-session']);
   assert.ok(argumentsList.includes('--unshare-net'));
   assert.ok(
-    argumentsList.some((part) =>
-      part.includes('TCP-LISTEN:3128,bind=127.0.0.1,reuseaddr,fork'),
-    ),
+    argumentsList.some((part) => part.includes('TCP-LISTEN:3128,bind=127.0.0.1,reuseaddr,fork')),
   );
   assert.ok(
-    argumentsList.some((part) =>
-      part.includes('UNIX-CONNECT:/home/evaluator/egress-proxy.sock'),
-    ),
+    argumentsList.some((part) => part.includes('UNIX-CONNECT:/home/evaluator/egress-proxy.sock')),
   );
   assert.equal(
-    argumentsList.some(
-      (part, index) => part === '--ro-bind' && argumentsList[index + 1] === '/',
-    ),
+    argumentsList.some((part, index) => part === '--ro-bind' && argumentsList[index + 1] === '/'),
     false,
   );
   assert.ok(
@@ -565,8 +862,7 @@ test('sandbox mounts related repositories read-only', () => {
   assert.equal(argumentsList[mountIndex + 2], '/related-application');
   assert.equal(
     argumentsList.some(
-      (part, index) =>
-        part === '--bind' && argumentsList[index + 1] === '/tmp/related-application',
+      (part, index) => part === '--bind' && argumentsList[index + 1] === '/tmp/related-application',
     ),
     false,
   );
@@ -576,12 +872,7 @@ test('host command requires externally sandboxed execution mode', () => {
   assert.doesNotThrow(() => validateHostCommand(SAFE_HOST_COMMAND));
   assert.throws(
     () =>
-      validateHostCommand([
-        ...SAFE_HOST_COMMAND.slice(0, -1),
-        '--sandbox',
-        'workspace-write',
-        '-',
-      ]),
+      validateHostCommand([...SAFE_HOST_COMMAND.slice(0, -1), '--sandbox', 'workspace-write', '-']),
     /sandbox-weakening/,
   );
 });
@@ -597,9 +888,7 @@ test('host command rejects missing external-sandbox delegation', () => {
   assert.throws(
     () =>
       validateHostCommand(
-        SAFE_HOST_COMMAND.filter(
-          (part) => part !== '--dangerously-bypass-approvals-and-sandbox',
-        ),
+        SAFE_HOST_COMMAND.filter((part) => part !== '--dangerously-bypass-approvals-and-sandbox'),
       ),
     /outer sandbox/,
   );

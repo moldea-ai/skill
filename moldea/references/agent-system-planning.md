@@ -19,8 +19,10 @@ Use an already available compatible repository-local CLI read-only when its dete
 1. Establish the outcome, recipient, trigger or cadence, deliverables, success criteria, constraints, and prohibited outcomes that materially shape the system.
 2. Gather planning context from high-information repository evidence before asking the developer to repeat discoverable facts. Inspect current workflows, services, rules, data sources and ownership, schemas, APIs, jobs, queues, integrations, AI usage, permissions, side effects, approvals, scale, latency, privacy, security, compliance, audit, and failure expectations as relevant.
 3. Decompose the objective into the smallest cohesive system responsibilities before naming agents or components. Describe outcome or decision boundaries rather than arbitrary technical steps.
-4. Classify each responsibility as deterministic application logic, deterministic data or transformation logic, an existing or proposed service or runtime-native tool, an AI agent, human control, or a deliberate combination with explicit boundaries.
+4. Classify each responsibility as deterministic application logic, deterministic data or transformation logic, an existing or proposed service or runtime-native tool, a reusable Agent Skill, an AI agent, human control, or a deliberate combination with explicit boundaries.
 5. Keep fixed calculations, eligibility rules, filtering, storage, delivery mechanics, and predictable sequencing deterministic unless evidence establishes a real need for model reasoning.
+
+Use an Agent Skill for reusable on-demand coding-agent knowledge, workflow, or supporting resources. Do not treat a skill as an independently executing runtime agent, a deterministic service, or authority to perform its described side effects.
 
 ## Minimize and justify agents
 

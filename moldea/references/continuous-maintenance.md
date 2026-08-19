@@ -12,9 +12,9 @@ Evidence that adoption exists or is underway includes canonical `/moldea/**` ass
 
 For every relevant developer-authorized change:
 
-1. Identify the implementation, contract, project, or agent behavior that may change.
-2. Map it through exact bindings, `affectedBy` paths, context and decision relationships, unresolved-requirement references, schemas, capabilities, runtime-agent construction, instruction loaders, variable providers, canonical descriptions, routing-facing metadata, mirrors, runtime guidance, runtime-adapter evidence, imports, tests, configuration, and other material semantic evidence.
-3. Inspect the affected project and agent surfaces deeply enough to establish whether truth or declared behavior actually changed.
+1. Identify the implementation, contract, project, agent, or Agent Skill behavior that may change.
+2. Map it through exact bindings, `affectedBy` paths, context and decision relationships, unresolved-requirement references, schemas, capabilities, Agent Skill resources and consumers, runtime-agent construction, instruction loaders, variable providers, canonical descriptions, routing-facing metadata, mirrors, runtime guidance, runtime-adapter evidence, imports, tests, configuration, and other material semantic evidence.
+3. Inspect the affected project, agent, and skill surfaces deeply enough to establish whether truth or declared behavior actually changed.
 4. Update all affected representations in the same coherent developer change when the intended state is sufficiently established and writes are authorized.
 5. Make no canonical edit when established project truth and declared behavior remain correct.
 6. Re-evaluate related unresolved requirements against their explicit resolution criteria; a related file change alone never resolves one.
@@ -32,6 +32,10 @@ If the developer prohibits corresponding `moldea` writes, respect the constraint
 Update `project.md` or focused context because durable project truth changed, not because code moved. Create or supersede decisions only when active rationale changed. Update runtime guidance when project-specific integration interpretation changed. Maintain relationships when they materially improve future relevance or deterministic evidence.
 
 Preserve still-valid content and controlled duplication. Do not broadly rewrite mature context or instructions for style. Do not fix unrelated problems unless they are necessary for the authorized change.
+
+When an Agent Skill is affected, establish its authoritative source and maintain its activation description, `SKILL.md`, linked resources, scripts, assets, dependencies, tests, host metadata, installation or packaging configuration, generated or installed copies, distribution path, coding-agent consumers, agent use conditions, and runtime registration as applicable. Preserve an established host invocation policy unless the developer requests a change or reliable evidence establishes the change as intended. The skill remains in its authoritative repository-native location; do not create a parallel `/moldea/skills` store.
+
+When an affected skill consumer or copy lives in another Git repository, preserve separate repository and authority boundaries. Coordinate corresponding changes only when both scopes are authorized, verify each repository independently, report non-atomicity, and never invent cross-repository bindings.
 
 ## Own one README awareness block
 
@@ -56,6 +60,7 @@ Recommended content:
 
 ```markdown
 <!-- moldea:start -->
+
 ## `moldea`
 
 This repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.

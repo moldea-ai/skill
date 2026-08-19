@@ -22,18 +22,13 @@ import {
 } from './package-manager-candidate/index.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const LIFECYCLE_FIXTURE_PATH = join(
-  REPOSITORY_ROOT,
-  'fixtures',
-  'tooling',
-  'lifecycle-cli',
-);
+const LIFECYCLE_FIXTURE_PATH = join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'lifecycle-cli');
 const LIFECYCLE_FIXTURE_MANIFEST = JSON.parse(
   readFileSync(join(LIFECYCLE_FIXTURE_PATH, 'package.json'), 'utf8'),
 );
 const MANAGER = process.env.MOLDEA_TEST_MANAGER ?? 'npm';
 const EXPECTED_MANAGER_VERSION = process.env.MOLDEA_TEST_MANAGER_VERSION;
-const PUBLISHED_CLI_VERSION = process.env.MOLDEA_TEST_CLI_VERSION ?? '2.0.0';
+const PUBLISHED_CLI_VERSION = process.env.MOLDEA_TEST_CLI_VERSION ?? '3.1.3';
 const EXECUTABLE = process.platform === 'win32' ? `${MANAGER}.cmd` : MANAGER;
 const CANDIDATE_ARTIFACT_DIRECTORY = process.env.MOLDEA_CLI_ARTIFACT_DIRECTORY;
 const REQUIRE_CANDIDATE_ARTIFACTS = process.env.MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS === '1';
@@ -54,8 +49,8 @@ const isSupportedVersion = (manager, version) => {
 };
 
 const isSupportedCliVersion = (version) => {
-  const [major, minor] = parseVersion(version);
-  return major === 2 && minor === 0;
+  const [major, minor, patch] = parseVersion(version);
+  return major === 3 && minor === 1 && patch >= 3;
 };
 
 /** Returns whether the selected Yarn version supports its command-scoped age-gate override. */
@@ -297,7 +292,10 @@ const seedConformanceProject = (clientDirectory, { includeOpenAi }) => {
     join(clientDirectory, 'moldea', 'runtimes', 'custom.md'),
     'Use the project-local custom runtime.\n',
   );
-  writeFileSync(join(clientDirectory, 'src', 'custom-agent.ts'), 'export const customAgent = {};\n');
+  writeFileSync(
+    join(clientDirectory, 'src', 'custom-agent.ts'),
+    'export const customAgent = {};\n',
+  );
 
   if (includeOpenAi) {
     mkdirSync(join(clientDirectory, 'moldea', 'agents', 'openai-agent'), {
@@ -432,11 +430,10 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
         ['exec', 'moldea', 'compatibility', '--json'],
         { cwd: clientDirectory, env: managerEnvironment },
       );
-      inspectionExecution = await runDetailed(
-        EXECUTABLE,
-        ['exec', 'moldea', 'inspect', '--json'],
-        { cwd: clientDirectory, env: managerEnvironment },
-      );
+      inspectionExecution = await runDetailed(EXECUTABLE, ['exec', 'moldea', 'inspect', '--json'], {
+        cwd: clientDirectory,
+        env: managerEnvironment,
+      });
     } else {
       versionOutput = await run(binaryPath, ['--version'], {
         cwd: clientDirectory,
@@ -465,6 +462,8 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
     const compatibilityEnvelope = JSON.parse(compatibilityExecution.stdout);
     const inspectionEnvelope = JSON.parse(inspectionExecution.stdout);
     const internalPackageNames = [
+      '@moldea.ai/adapter-anthropic',
+      '@moldea.ai/adapter-google-genai',
       '@moldea.ai/adapter-openai',
       '@moldea.ai/core',
       '@moldea.ai/repository',
@@ -475,6 +474,12 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
       version: cliPackage.manifest.dependencies[packageName],
     }));
     const customAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'custom');
+    const anthropicAdapter = compatibilityEnvelope.result.adapters.find(
+      ({ id }) => id === 'anthropic',
+    );
+    const googleGenAiAdapter = compatibilityEnvelope.result.adapters.find(
+      ({ id }) => id === 'google-genai',
+    );
     const openAiAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'openai');
 
     assert.equal(compatibilityEnvelope.cliVersion, cliVersion);
@@ -498,12 +503,20 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
         support: 'full',
       },
     ]);
+    assert.equal(anthropicAdapter.active, true);
+    assert.equal(
+      anthropicAdapter.bundledVersion,
+      cliPackage.manifest.dependencies['@moldea.ai/adapter-anthropic'],
+    );
+    assert.equal(googleGenAiAdapter.active, true);
+    assert.equal(
+      googleGenAiAdapter.bundledVersion,
+      cliPackage.manifest.dependencies['@moldea.ai/adapter-google-genai'],
+    );
     assert.equal(openAiAdapter.active, hasOpenAiAdapter);
     assert.equal(
       openAiAdapter.bundledVersion,
-      hasOpenAiAdapter
-        ? cliPackage.manifest.dependencies['@moldea.ai/adapter-openai']
-        : null,
+      hasOpenAiAdapter ? cliPackage.manifest.dependencies['@moldea.ai/adapter-openai'] : null,
     );
     assert.equal(inspectionEnvelope.cliVersion, cliVersion);
     assert.equal(inspectionEnvelope.command, 'inspect');
@@ -554,7 +567,9 @@ test('supported package-manager command exact-pins the CLI and suppresses lifecy
     '--pack-destination',
     packDirectory,
     LIFECYCLE_FIXTURE_PATH,
-  ]).split('\n').at(-1);
+  ])
+    .split('\n')
+    .at(-1);
   const archive = readFileSync(join(packDirectory, archiveName));
   const { registryUrl, server } = await createLifecycleRegistry(archive, archiveName);
   const managerEnvironment = {
@@ -612,10 +627,12 @@ test('supported package-manager command exact-pins the CLI and suppresses lifecy
 
     if (MANAGER === 'yarn') {
       assert.ok(
-        (await run(EXECUTABLE, ['bin', 'moldea'], {
-          cwd: clientDirectory,
-          env: managerEnvironment,
-        })).length > 0,
+        (
+          await run(EXECUTABLE, ['bin', 'moldea'], {
+            cwd: clientDirectory,
+            env: managerEnvironment,
+          })
+        ).length > 0,
       );
       assert.equal(
         await run(EXECUTABLE, ['exec', 'moldea', '--version'], {
@@ -661,9 +678,7 @@ test(
       CANDIDATE_ARTIFACT_DIRECTORY,
       'MOLDEA_CLI_ARTIFACT_DIRECTORY is required for candidate conformance.',
     );
-    const { artifacts, cliVersion } = loadCandidateArtifacts(
-      resolve(CANDIDATE_ARTIFACT_DIRECTORY),
-    );
+    const { artifacts, cliVersion } = loadCandidateArtifacts(resolve(CANDIDATE_ARTIFACT_DIRECTORY));
     const { registryUrl, server } = await createCandidateRegistry(artifacts);
 
     try {

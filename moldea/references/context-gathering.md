@@ -1,10 +1,10 @@
 # Context gathering
 
-Read this reference before initialization, agent-system planning, consequential project-context work, agent creation, semantic evaluation, or reconciliation.
+Read this reference before initialization, agent-system planning, consequential project-context work, Agent Skill creation or material maintenance, agent creation, semantic evaluation, or reconciliation.
 
 ## Establish the purpose
 
-Begin with the question that must be answered: project foundation, agent-system architecture, one domain, one agent, one behavior change, one contradiction, or one reconciliation. The purpose controls investigation depth and persistence.
+Begin with the question that must be answered: project foundation, agent-system architecture, one domain, one Agent Skill, one agent, one behavior change, one contradiction, or one reconciliation. The purpose controls investigation depth and persistence.
 
 Use deterministic `inspect --json` early when supported local tooling exists. It establishes structural state, canonical assets, registered relationships, and available adapter evidence; it does not establish developer intent or semantic correctness.
 
@@ -33,6 +33,7 @@ Assess evidence according to the fact it can establish:
 - project context states durable project truth but remains subject to evidence
 - accepted decisions explain active rationale
 - agent instructions state model-facing behavior but do not prove runtime support
+- Agent Skill source states reusable coding-agent behavior but does not prove installation, activation, or runtime-agent registration
 - runtime guidance explains project-specific integration
 - adapter evidence proves only what the adapter deterministically detected
 - developer direction establishes task intent within safety and repository constraints
@@ -44,7 +45,7 @@ When evidence conflicts, determine whether the claims concern the same scope and
 
 1. Inspect the root README and other high-information project surfaces first.
 2. Inspect package, runtime, entry-point, configuration, canonical `moldea`, and central contract evidence proportional to the task.
-3. Follow material imports, bindings, impact paths, schemas, capability registrations, runtime-agent construction, instruction loaders, variable providers, tests, runtime guidance, decisions, unresolved references, and adapter evidence.
+3. Follow material imports, bindings, impact paths, schemas, capability registrations, Agent Skill resources and consumers, runtime-agent construction, instruction loaders, variable providers, tests, runtime guidance, decisions, unresolved references, and adapter evidence.
 4. Test consequential conclusions against a second reliable surface when practical.
 5. Identify contradictions, temporal differences, and material unknowns.
 6. Ask one focused question only when different reasonable answers would materially change persisted truth, behavior, policy, permission, schema semantics, capability use, routing, failure handling, or implementation direction.
@@ -64,6 +65,7 @@ Route durable information by meaning:
 - `/moldea/runtimes/**/*.md`: project-specific runtime interpretation not reliably established by adapter and repository evidence alone
 - `/moldea/moldea.yaml`: supported semantic relationships, bindings, impact paths, runtime variables, capabilities, mirrors, and unresolved state
 - `instruction.md`: behavior the runtime model must know
+- the authoritative repository-native Agent Skill directory: reusable coding-agent procedure and its focused resources
 - nowhere: temporary, immaterial, easily rediscovered, speculative, secret, generic, or redundant information
 
 Never use canonical context as an issue tracker, implementation log, exhaustive inventory, generic runtime guide, or store for runtime secret values.
@@ -74,9 +76,23 @@ Planning begins from the developer's desired outcome rather than proposed agent 
 
 When relevant, establish the current workflow and services, domain rules, data sources and ownership, schemas and contracts, APIs, jobs, queues, integrations, existing agents and AI usage, capabilities, permissions, side effects, human approvals, scale, cadence, latency, privacy, security, compliance, audit, failure, and recovery expectations.
 
-Planning context is sufficient when the objective and material success criteria are clear and the current system, data, state, authority, side effects, contracts, and existing capabilities are understood well enough to classify responsibilities without consequential unsupported assumptions. It is insufficient when an unresolved fact could change whether a responsibility is deterministic, agent-owned, human-controlled, or separately owned.
+Planning context is sufficient when the objective and material success criteria are clear and the current system, data, state, authority, side effects, contracts, and existing capabilities are understood well enough to classify responsibilities without consequential unsupported assumptions. It is insufficient when an unresolved fact could change whether a responsibility is deterministic, Agent Skill-guided, agent-owned, human-controlled, or separately owned.
 
 Because `plan` is read-only, do not persist discovered context, proposed candidates, or architecture decisions during that operation. Recommend later initialization or maintenance for durable current truth when useful.
+
+## Gather for Agent Skill design
+
+Before creating or materially changing an Agent Skill, establish:
+
+- the requested reusable outcome and expected coding-agent users
+- whether protected coding instructions, a runtime-agent instruction, deterministic software or a tool, canonical project context, ordinary documentation, or an existing cohesive skill owns the behavior more accurately
+- applicable coding instructions and the authoritative project sources the workflow must use without duplicating
+- the authoritative skill source and any installed, generated, cached, mirrored, or distributed copies
+- representative positive activation, adjacent non-activation, ambiguous, and related-technology requests
+- the universal workflow, focused references, scripts, assets, dependencies, supported environments, tests, and verification needed
+- relevant host metadata, installation, packaging, distribution, coding-agent consumers, agent guidance, manifest declarations, and runtime registration
+
+Agent Skill design context is sufficient when those facts establish the behavior boundary, activation contract, authoritative sources, required resources, authority and failure rules, and material consumer relationships without unsupported assumptions. A directory name, installed copy, or request to “make a skill” is not sufficient evidence by itself.
 
 ## Initialize context first
 
@@ -85,7 +101,7 @@ Initialization requires an accessible supported Git working tree and compatible 
 Before finalizing canonical project truth, classify the available foundation as an interaction outcome rather than a persisted score or status:
 
 - **Insufficient:** meaningful purpose, users or systems served, principal goals, and relevant boundaries cannot be established. State that no meaningful project context was inferred, identify the high-information evidence inspected, stop before creating canonical project state or the owned README awareness block, ask the highest-value focused question needed to continue, and do not claim completion.
-- **Partial:** some foundational conclusions are supported, but a material gap or consequential alternative remains. Summarize the supported conclusions, label the uncertainty, stop before creating canonical project state or the owned README awareness block, ask one focused clarification question, and resume initialization after the developer answers.
+- **Partial:** some foundational conclusions are supported, but a material gap or consequential alternative remains. Do not turn missing evidence into a negative claim that the project excludes the unestablished behavior. Summarize the supported conclusions, label the uncertainty, stop before creating canonical project state or the owned README awareness block, ask one focused clarification question, and resume initialization after the developer answers.
 - **Sufficient:** the evidence supports a useful and truthful foundation without material unsupported assumptions. Complete initialization without a ceremonial question and report the established understanding, resulting files, validation, non-blocking limitations, and an explicit `Next actions` handoff.
 
 Judge evidence by its quality, coverage, consistency, and authority rather than documentation volume. A concise authoritative source may be sufficient; extensive stale or contradictory documentation may not be.

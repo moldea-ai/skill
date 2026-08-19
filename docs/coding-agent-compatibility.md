@@ -41,11 +41,11 @@ Every compatible host consumes the same portable semantic core:
 - Canonical project and agent state remains under `/moldea/**`.
 - Local work remains filesystem-first and does not require a `moldea` Cloud account.
 
-The optional `agents/openai.yaml` file adds OpenAI-host presentation metadata. It does not change the portable skill’s behavior or make OpenAI a semantic dependency.
+The optional `agents/openai.yaml` file adds OpenAI-host presentation, default-prompt, dependency, or invocation-policy metadata when needed. It remains consistent with the portable skill, does not become a semantic dependency, and preserves an existing invocation policy unless developer intent or reliable host evidence requires changing it.
 
 ## What can differ by host
 
-Coding agents can differ in how they discover skills, present them in the interface, combine them with project instructions, expose tools, and report work. Those host-level differences do not create separate `moldea` formats or sources of truth.
+Coding agents can differ in how they discover and install skills, present them in the interface, apply invocation policies, combine them with project instructions, expose tools, and report work. Those host-level differences do not create separate `moldea` formats or sources of truth, and an installed copy does not prove activation or runtime registration.
 
 Before installation, confirm that the host supports Agent Skills or is recognized by the current `skills` CLI. A host logo on this site identifies compatibility; it does not imply sponsorship or endorsement by that vendor.
 

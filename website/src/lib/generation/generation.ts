@@ -204,7 +204,7 @@ export const createLlmsText = (documents: IWebsiteDocument[], skill: ISkillMetad
   const lines = [
     '# `moldea` Agent Skill',
     '',
-    '> The Git-native semantic operating layer that helps coding agents plan, create, maintain, evaluate, reconcile, and validate grounded agent systems.',
+    '> The Git-native semantic operating layer that helps coding agents plan, create, maintain, evaluate, reconcile, and validate grounded agents, reusable Agent Skills, and project context.',
     '',
     `Current skill release: ${skill.version}.`,
     '',

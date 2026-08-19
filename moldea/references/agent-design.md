@@ -85,7 +85,9 @@ Trace every material invocation or configuration path. Within the authorized sco
 
 If the provenance chain cannot be established because required integration is missing, preserve the gap as a blocking unresolved requirement with explicit resolution criteria. When the relevant runtime implementation cannot be inspected, report the evidence limitation rather than claiming either connection or disconnection. Do not describe the agent as aligned, complete, or production-ready while a material provenance gap remains.
 
-## Tools and skills
+## Register tools and skills
+
+Read `skill-design.md` before creating or materially changing the Agent Skill artifact itself. This section governs only the agent's model-visible capability relationship.
 
 Manifest-register a tool or skill only when a qualifying repository-local implementation artifact exists and the version `1` capability contract can bind it.
 

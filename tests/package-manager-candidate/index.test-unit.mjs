@@ -11,6 +11,8 @@ import {
 
 const PACKAGE_NAMES = [
   '@moldea.ai/cli',
+  '@moldea.ai/adapter-anthropic',
+  '@moldea.ai/adapter-google-genai',
   '@moldea.ai/adapter-openai',
   '@moldea.ai/core',
   '@moldea.ai/repository',
@@ -20,11 +22,13 @@ const PACKAGE_NAMES = [
 /** Builds one complete synthetic candidate closure with independently configurable versions. */
 const createArtifacts = (
   versions = {
-    '@moldea.ai/cli': '2.0.0',
-    '@moldea.ai/adapter-openai': '2.0.0',
+    '@moldea.ai/cli': '3.1.3',
+    '@moldea.ai/adapter-anthropic': '2.0.1',
+    '@moldea.ai/adapter-google-genai': '1.0.3',
+    '@moldea.ai/adapter-openai': '2.0.3',
     '@moldea.ai/core': '2.0.0',
     '@moldea.ai/repository': '1.0.1',
-    '@moldea.ai/repository-fs': '1.0.1',
+    '@moldea.ai/repository-fs': '1.0.2',
   },
 ) =>
   new Map(
@@ -37,6 +41,8 @@ const createArtifacts = (
 
       if (packageName === '@moldea.ai/cli') {
         manifest.dependencies = {
+          '@moldea.ai/adapter-anthropic': versions['@moldea.ai/adapter-anthropic'],
+          '@moldea.ai/adapter-google-genai': versions['@moldea.ai/adapter-google-genai'],
           '@moldea.ai/adapter-openai': versions['@moldea.ai/adapter-openai'],
           '@moldea.ai/core': versions['@moldea.ai/core'],
           '@moldea.ai/repository': versions['@moldea.ai/repository'],
@@ -62,20 +68,22 @@ test('validates the current published package composition', () => {
 
   assert.deepEqual(validateCandidateArtifacts(artifacts), {
     artifacts,
-    cliVersion: '2.0.0',
+    cliVersion: '3.1.3',
   });
 });
 
 test('supports independently versioned candidate packages', () => {
   const artifacts = createArtifacts({
-    '@moldea.ai/cli': '1.0.5',
-    '@moldea.ai/adapter-openai': '1.0.2',
-    '@moldea.ai/core': '1.0.3',
-    '@moldea.ai/repository': '1.0.2',
-    '@moldea.ai/repository-fs': '1.0.4',
+    '@moldea.ai/cli': '3.1.5',
+    '@moldea.ai/adapter-anthropic': '2.0.4',
+    '@moldea.ai/adapter-google-genai': '1.0.4',
+    '@moldea.ai/adapter-openai': '2.0.6',
+    '@moldea.ai/core': '2.0.3',
+    '@moldea.ai/repository': '1.0.4',
+    '@moldea.ai/repository-fs': '1.0.7',
   });
 
-  assert.equal(validateCandidateArtifacts(artifacts).cliVersion, '1.0.5');
+  assert.equal(validateCandidateArtifacts(artifacts).cliVersion, '3.1.5');
 });
 
 test('rejects incomplete and mismatched candidate closures', () => {
@@ -116,15 +124,15 @@ test('derives registry metadata from each artifact manifest', () => {
     'http://127.0.0.1:4321',
   );
 
-  assert.equal(archivePath, '/@moldea.ai/cli/-/cli-2.0.0.tgz');
-  assert.deepEqual(metadata['dist-tags'], { latest: '2.0.0' });
-  assert.deepEqual(Object.keys(metadata.versions), ['2.0.0']);
+  assert.equal(archivePath, '/@moldea.ai/cli/-/cli-3.1.3.tgz');
+  assert.deepEqual(metadata['dist-tags'], { latest: '3.1.3' });
+  assert.deepEqual(Object.keys(metadata.versions), ['3.1.3']);
   assert.equal(
-    metadata.versions['2.0.0'].dist.integrity,
+    metadata.versions['3.1.3'].dist.integrity,
     `sha512-${createHash('sha512').update(artifact.archive).digest('base64')}`,
   );
   assert.equal(
-    metadata.versions['2.0.0'].dist.tarball,
-    'http://127.0.0.1:4321/@moldea.ai/cli/-/cli-2.0.0.tgz',
+    metadata.versions['3.1.3'].dist.tarball,
+    'http://127.0.0.1:4321/@moldea.ai/cli/-/cli-3.1.3.tgz',
   );
 });

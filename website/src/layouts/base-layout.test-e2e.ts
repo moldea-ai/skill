@@ -134,6 +134,55 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
   await expect(mobileDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
 });
 
+test('presents project and Agent Skill design as first-class landing capabilities', async ({
+  page,
+}) => {
+  await page.goto(toPublicPath('/'));
+
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    'content',
+    /reusable Agent Skills/,
+  );
+  await expect(page.locator('main > section').first()).toContainText('reusable Agent Skills');
+  await expect(
+    page.getByRole('heading', {
+      level: 2,
+      name: 'One operating layer for agents and Agent Skills.',
+    }),
+  ).toBeVisible();
+
+  const capabilityCardBounds = await page
+    .locator('[data-capability-grid] > a')
+    .evaluateAll((cards) =>
+      cards.map((card) => {
+        const bounds = card.getBoundingClientRect();
+
+        return { top: Math.round(bounds.top), width: Math.round(bounds.width) };
+      }),
+    );
+  expect(capabilityCardBounds).toHaveLength(6);
+  expect(new Set(capabilityCardBounds.slice(0, 3).map(({ top }) => top)).size).toBe(1);
+  expect(new Set(capabilityCardBounds.slice(3).map(({ top }) => top)).size).toBe(1);
+  expect(capabilityCardBounds[3]?.top).toBeGreaterThan(capabilityCardBounds[0]?.top ?? 0);
+  expect(Math.min(...capabilityCardBounds.map(({ width }) => width))).toBeGreaterThan(300);
+
+  const capabilityGrid = page.locator('[data-capability-grid]');
+  const projectContextLink = capabilityGrid.getByRole('link', {
+    name: /Initialize project context/,
+  });
+  await expect(projectContextLink).toBeVisible();
+  await expect(projectContextLink).toHaveAttribute('href', toPublicPath('/docs/project-state/'));
+
+  const skillDesignLink = capabilityGrid.getByRole('link', { name: /Design Agent Skills/ });
+  await expect(skillDesignLink).toBeVisible();
+  await expect(skillDesignLink).toHaveAttribute('href', toPublicPath('/docs/designing-skills/'));
+
+  await skillDesignLink.click();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Design reusable Agent Skills' }),
+  ).toBeVisible();
+});
+
 test('shows compatible coding agents with source-owned marks and a complete docs path', async ({
   page,
 }) => {
@@ -460,6 +509,44 @@ test('uses smooth client navigation while preserving ordinary static routes', as
       () => (window as Window & { __skillNavigationMarker?: string }).__skillNavigationMarker,
     ),
   ).toBe(navigationMarker);
+});
+
+test('shows accessible progress during delayed client navigation and hides it after success', async ({
+  page,
+}) => {
+  await page.setViewportSize({ height: 740, width: 320 });
+  await page.goto(toPublicPath('/'));
+
+  const progress = page.getByRole('progressbar', {
+    includeHidden: true,
+    name: 'Page navigation progress',
+  });
+  const delayedRequest = Promise.withResolvers<void>();
+
+  await expect(progress).toBeHidden();
+  await page.route(
+    `**${toPublicPath('/docs/capabilities/')}`,
+    async (route) => {
+      await delayedRequest.promise;
+      await route.continue();
+    },
+    { times: 1 },
+  );
+
+  await page.getByLabel('Open navigation').click();
+  const navigation = page
+    .getByRole('navigation', { name: 'Mobile navigation' })
+    .getByRole('link', { name: 'Capabilities', exact: true })
+    .click();
+
+  await expect(progress).toBeVisible();
+  await expect(progress).toHaveAttribute('aria-valuetext', 'Loading next page');
+  expect((await progress.boundingBox())?.width).toBe(320);
+
+  delayedRequest.resolve();
+  await navigation;
+  await expect(page).toHaveURL(toPublicPath('/docs/capabilities/'));
+  await expect(progress).toBeHidden();
 });
 
 test('marks the most specific current desktop and mobile navigation destinations', async ({

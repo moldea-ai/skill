@@ -1,6 +1,7 @@
 ---
 import {
   ArrowRight,
+  Blocks,
   BrainCircuit,
   GitBranch,
   RefreshCw,
@@ -60,7 +61,7 @@ const exampleDocuments = model.documents
 
 <BaseLayout
   title="moldea Agent Skill"
-  description="Install the skill once, then let your coding agent plan, create, maintain, evaluate, reconcile, and validate grounded agent systems while you work naturally."
+  description="Install the skill once, then let your coding agent design and maintain grounded agents, reusable Agent Skills, project context, and deterministic alignment while you work naturally."
 >
   <section class="relative overflow-hidden border-b border-border">
     <div
@@ -90,7 +91,7 @@ const exampleDocuments = model.documents
       <div class="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
         <p class="max-w-3xl text-xl leading-9 text-muted-foreground sm:text-2xl">
           <InlineBrandText
-            text="Install moldea once, then talk to your coding agent like you already do. It handles project context, grounded agent behavior, drift, and deterministic validation underneath."
+            text="Install moldea once, then talk to your coding agent like you already do. It understands project context, designs grounded agents and reusable Agent Skills, keeps their behavior aligned with the repository, and validates the deterministic layer underneath."
           />
         </p>
         <div
@@ -165,13 +166,18 @@ const exampleDocuments = model.documents
     <div class="page-shell">
       <div class="mb-12 max-w-4xl">
         <p class="eyebrow mb-4">Complete capability surface</p>
-        <h2 class="section-title font-semibold">One skill across the agent lifecycle.</h2>
+        <h2 class="section-title font-semibold">
+          One operating layer for agents and Agent Skills.
+        </h2>
         <p class="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-          From deciding whether an agent should exist to proving that its current behavior still
+          From deciding where agents and reusable skills belong to proving that their behavior still
           matches the implementation.
         </p>
       </div>
-      <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div
+        class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        data-capability-grid
+      >
         <CapabilityCard
           label="Design"
           title="Plan the system"
@@ -180,11 +186,25 @@ const exampleDocuments = model.documents
           icon={BrainCircuit}
         />
         <CapabilityCard
+          label="Context"
+          title="Initialize project context"
+          description="Create the smallest Git-owned foundation, adding focused context, decisions, and runtime guidance only when repository evidence justifies them."
+          href="/docs/project-state/"
+          icon={GitBranch}
+        />
+        <CapabilityCard
           label="Ground"
           title="Create real agents"
           description="Align instructions, descriptions, schemas, capabilities, variables, runtime wiring, and actual repository evidence."
           href="/docs/designing-agents/"
           icon={Workflow}
+        />
+        <CapabilityCard
+          label="Reuse"
+          title="Design Agent Skills"
+          description="Define precise activation, progressive disclosure, focused resources, safe scripts, and synchronized copies."
+          href="/docs/designing-skills/"
+          icon={Blocks}
         />
         <CapabilityCard
           label="Maintain"

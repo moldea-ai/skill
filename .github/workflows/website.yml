@@ -2,17 +2,10 @@ name: Website
 
 on:
   pull_request:
-    paths:
-      - '.github/workflows/pages.yml'
-      - '.github/workflows/website.yml'
-      - 'assets/**'
-      - 'CNAME'
-      - 'docs/**'
-      - 'moldea/SKILL.md'
-      - 'package.json'
-      - 'README.md'
-      - 'website/**'
-  push:
+    types:
+      - opened
+      - synchronize
+      - reopened
     paths:
       - '.github/workflows/pages.yml'
       - '.github/workflows/website.yml'

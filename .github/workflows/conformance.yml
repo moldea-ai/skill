@@ -2,14 +2,20 @@ name: Conformance
 
 on:
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
   push:
-    branches:
-      - "**"
     tags:
       - "v*"
 
 permissions:
   contents: read
+
+concurrency:
+  group: conformance-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   portable:

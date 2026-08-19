@@ -1,14 +1,14 @@
 ---
 title: Plan agent-enabled systems
 navigationTitle: Agent-system planning
-description: Start from the objective and decide what belongs to deterministic software, tools, agents, or human control.
+description: Start from the objective and decide what belongs to deterministic software, tools, skills, agents, or human control.
 section: workflows
 order: 50
 ---
 
 # Plan from the objective, not from an agent count
 
-Ask for `moldea` planning when you want to decide how an AI-enabled objective should be divided among agents, deterministic software, services or tools, and human control.
+Ask for `moldea` planning when you want to decide how an AI-enabled objective should be divided among agents, reusable Agent Skills, deterministic software, services or tools, and human control.
 
 ```text
 Plan an agent system for personalized ecommerce promotions. Decide which responsibilities should remain deterministic.
@@ -29,10 +29,13 @@ Each cohesive responsibility is assigned to one or more explicit owners:
 - deterministic application logic
 - deterministic data or transformation logic
 - an existing or proposed service or runtime-native tool
+- a reusable Agent Skill for on-demand coding-agent knowledge or workflow
 - an AI agent
 - human control
 
 Fixed calculations, eligibility rules, filtering, persistence, delivery mechanics, and predictable sequencing stay deterministic unless repository evidence proves a real need for model reasoning.
+
+An Agent Skill is not treated as an independently executing agent or as authority to perform side effects described by its workflow.
 
 ## Justify every agent
 

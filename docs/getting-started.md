@@ -21,7 +21,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v2.0.1"
+npx skills add "moldea-ai/skill#v3.0.0"
 ```
 
 Project installation is recommended because the team can share the skill through version control. Add `-g` when you deliberately want a global installation across projects.
@@ -113,10 +113,10 @@ npx skills add moldea-ai/skill -g
 A release-pinned installation never moves to another tag automatically. To update it, choose the desired published release and rerun the installation command with that tag. For example, the current release is:
 
 ```bash
-npx skills add "moldea-ai/skill#v2.0.1"
+npx skills add "moldea-ai/skill#v3.0.0"
 ```
 
-Replace `v2.0.1` with the newer published tag when one becomes available. Add `-g` to the tagged command only when updating a global installation.
+Replace `v3.0.0` with the newer published tag when one becomes available. Add `-g` to the tagged command only when updating a global installation.
 
 Updating the skill refreshes its portable instructions and references. It does not initialize a project, change `/moldea/**`, install the `moldea` CLI globally, or alter a repository's canonical project state.
 

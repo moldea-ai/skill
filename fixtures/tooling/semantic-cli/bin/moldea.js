@@ -4,6 +4,7 @@ const { createHash } = require('node:crypto');
 const { existsSync, readFileSync } = require('node:fs');
 
 const command = process.argv[2];
+const CLI_VERSION = '3.1.3';
 const OFFICIAL_ADAPTER_IDS = [
   'anthropic',
   'claude-agent-sdk',
@@ -20,7 +21,7 @@ const OFFICIAL_ADAPTER_IDS = [
 const BASE_COMPATIBILITY_PACKAGES = [
   { name: '@moldea.ai/core', version: '2.0.0' },
   { name: '@moldea.ai/repository', version: '1.0.1' },
-  { name: '@moldea.ai/repository-fs', version: '1.0.1' },
+  { name: '@moldea.ai/repository-fs', version: '1.0.2' },
 ];
 
 /** Reads one text asset using the repository-format digest and length semantics. */
@@ -133,11 +134,109 @@ const createCustomCompatibility = () => ({
   },
 });
 
-/** Builds the active experimental OpenAI adapter contract bundled by CLI 2.0.0. */
+/** Builds the active experimental Anthropic adapter contract bundled by the fixture CLI. */
+const createAnthropicCompatibility = () => ({
+  id: 'anthropic',
+  active: true,
+  bundledVersion: '2.0.1',
+  matrix: {
+    implementation: {
+      kind: 'package',
+      package: '@moldea.ai/adapter-anthropic',
+      versionRange: '^2.0.0',
+      distribution: 'public',
+    },
+    implementationStatus: 'available',
+    supportedRepositoryFormatVersions: [1],
+    compatibleCoreRange: '^2.0.0',
+    runtimeGuidance: {
+      expectation: 'optional',
+      notes:
+        'Project-local guidance is needed only for repository-specific wrappers or unsupported indirect integration patterns.',
+    },
+    targets: [
+      {
+        id: 'typescript-messages-api-0-117',
+        kind: 'package',
+        supportLevel: 'experimental',
+        language: 'typescript',
+        packages: [
+          {
+            ecosystem: 'npm',
+            name: '@anthropic-ai/sdk',
+            role: 'primary',
+            versionRange: '>=0.117.1 <0.118.0',
+          },
+        ],
+        evidenceKinds: [
+          'instruction-loader',
+          'language',
+          'runtime-package',
+          'runtime-pattern',
+          'schema',
+          'tool-registration',
+        ],
+        lastVerifiedAt: '2026-08-17',
+      },
+    ],
+    lastVerifiedAt: '2026-08-17',
+  },
+});
+
+/** Builds the active experimental Google Gen AI adapter contract bundled by the fixture CLI. */
+const createGoogleGenAiCompatibility = () => ({
+  id: 'google-genai',
+  active: true,
+  bundledVersion: '1.0.3',
+  matrix: {
+    implementation: {
+      kind: 'package',
+      package: '@moldea.ai/adapter-google-genai',
+      versionRange: '^1.0.3',
+      distribution: 'public',
+    },
+    implementationStatus: 'available',
+    supportedRepositoryFormatVersions: [1],
+    compatibleCoreRange: '^2.0.0',
+    runtimeGuidance: {
+      expectation: 'optional',
+      notes:
+        'Project-local guidance is needed only for repository-specific wrappers or unsupported indirect integration patterns.',
+    },
+    targets: [
+      {
+        id: 'typescript-models-generate-content-2',
+        kind: 'package',
+        supportLevel: 'experimental',
+        language: 'typescript',
+        packages: [
+          {
+            ecosystem: 'npm',
+            name: '@google/genai',
+            role: 'primary',
+            versionRange: '>=2.17.1 <3.0.0',
+          },
+        ],
+        evidenceKinds: [
+          'instruction-loader',
+          'language',
+          'runtime-package',
+          'runtime-pattern',
+          'schema',
+          'tool-registration',
+        ],
+        lastVerifiedAt: '2026-08-19',
+      },
+    ],
+    lastVerifiedAt: '2026-08-19',
+  },
+});
+
+/** Builds the active experimental OpenAI adapter contract bundled by the fixture CLI. */
 const createOpenAiCompatibility = () => ({
   id: 'openai',
   active: true,
-  bundledVersion: '2.0.0',
+  bundledVersion: '2.0.3',
   matrix: {
     implementation: {
       kind: 'package',
@@ -178,7 +277,7 @@ const createOpenAiCompatibility = () => ({
         lastVerifiedAt: '2026-08-15',
       },
     ],
-    lastVerifiedAt: '2026-08-15',
+    lastVerifiedAt: '2026-08-17',
   },
 });
 
@@ -207,7 +306,9 @@ const readCompatibilityAdapters = () => {
 
   return OFFICIAL_ADAPTER_IDS.map((id) => {
     if (overridesById.has(id)) return overridesById.get(id);
+    if (id === 'anthropic') return createAnthropicCompatibility();
     if (id === 'custom') return createCustomCompatibility();
+    if (id === 'google-genai') return createGoogleGenAiCompatibility();
     if (id === 'openai') return createOpenAiCompatibility();
     return createPlannedCompatibility(id);
   });
@@ -230,7 +331,7 @@ const readCompatibilityPackages = (adapters) => {
 };
 
 if (command === '--version') {
-  process.stdout.write('2.0.0\n');
+  process.stdout.write(`${CLI_VERSION}\n`);
 } else if (command === 'inspect' && process.argv.includes('--json')) {
   const manifest = readTextAsset('/moldea/moldea.yaml');
   const project = readTextAsset('/moldea/project.md');
@@ -275,9 +376,7 @@ if (command === '--version') {
               context: {
                 '/moldea/project.md': { affectedBy: ['/src/**'] },
               },
-              agents: Object.fromEntries(
-                agents.map(({ declaration, id }) => [id, declaration]),
-              ),
+              agents: Object.fromEntries(agents.map(({ declaration, id }) => [id, declaration])),
             },
           },
           project,
@@ -293,7 +392,7 @@ if (command === '--version') {
 
   process.stdout.write(
     `${JSON.stringify({
-      cliVersion: '2.0.0',
+      cliVersion: CLI_VERSION,
       command: 'inspect',
       error: null,
       result: {
@@ -309,7 +408,7 @@ if (command === '--version') {
   const adapters = readCompatibilityAdapters();
   process.stdout.write(
     `${JSON.stringify({
-      cliVersion: '2.0.0',
+      cliVersion: CLI_VERSION,
       command: 'compatibility',
       error: null,
       result: {

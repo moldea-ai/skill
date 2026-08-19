@@ -1,7 +1,7 @@
 ---
 title: What the skill can do
 navigationTitle: Capabilities
-description: A complete guide to planning, initialization, agent design, maintenance, evaluation, reconciliation, and validation.
+description: A complete guide to planning, initialization, agent and skill design, maintenance, evaluation, reconciliation, and validation.
 section: start
 order: 20
 ---
@@ -43,11 +43,24 @@ Focused context, decisions, runtime guidance, agents, or unresolved requirements
 
 The skill checks that declared behavior is supported by implementation and does not rely on hidden repository knowledge.
 
+## Create and refine Agent Skills
+
+`moldea` can help a coding agent understand, create, and maintain repository-local Agent Skills as complete reusable artifacts:
+
+- a precise activation description and valid portable frontmatter
+- a concise universal `SKILL.md` workflow
+- focused references loaded only when needed
+- safe scripts with explicit inputs, outputs, supported environments, side effects, and verification
+- assets used for generated output without placing them in model context unnecessarily
+- synchronized host metadata, invocation policy, installed or distributed copies, consumers, and runtime registrations
+
+The coding agent first decides whether the behavior belongs in a skill, protected coding instructions, an agent instruction, a tool, deterministic software, or ordinary documentation. It does not create a parallel `/moldea/skills` store or treat a skill directory as proof that a runtime agent receives the skill.
+
 ## Maintain context during ordinary development
 
 Once a repository adopts `moldea`, an ordinary behavior-affecting change can activate continuous maintenance even when your request does not mention `moldea`.
 
-The coding agent traces the affected implementation, contracts, context, decisions, agents, schemas, capabilities, variables, runtime guidance, mirrors, and unresolved requirements. It updates only representations whose truth actually changed. A correct outcome can be no `/moldea/**` edit.
+The coding agent traces the affected implementation, contracts, context, decisions, agents, Agent Skills, schemas, capabilities, variables, runtime guidance, mirrors, and unresolved requirements. It updates only representations whose truth actually changed. A correct outcome can be no `/moldea/**` edit.
 
 ## Evaluate alignment
 

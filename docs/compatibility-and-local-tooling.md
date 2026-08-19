@@ -12,7 +12,7 @@ The current skill release supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`
-- `@moldea.ai/cli >=2.0.0 <2.1.0`
+- `@moldea.ai/cli >=3.1.3 <3.2.0`
 - CLI JSON schema `1`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`

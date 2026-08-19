@@ -7,6 +7,8 @@ import { gunzipSync } from 'node:zlib';
 
 const CANDIDATE_PACKAGE_NAMES = [
   '@moldea.ai/cli',
+  '@moldea.ai/adapter-anthropic',
+  '@moldea.ai/adapter-google-genai',
   '@moldea.ai/adapter-openai',
   '@moldea.ai/core',
   '@moldea.ai/repository',
@@ -98,14 +100,16 @@ export const validateCandidateArtifacts = (artifacts) => {
 };
 
 /**
- * Loads and validates the exact five-package CLI candidate closure.
+ * Loads and validates the exact seven-package CLI candidate closure.
  * @param artifactDirectory The directory containing the packed candidate artifacts.
  * @returns The validated artifacts and derived CLI version.
  */
 export const loadCandidateArtifacts = (artifactDirectory) => {
   const artifacts = new Map();
 
-  for (const archiveName of readdirSync(artifactDirectory).filter((name) => name.endsWith('.tgz'))) {
+  for (const archiveName of readdirSync(artifactDirectory).filter((name) =>
+    name.endsWith('.tgz'),
+  )) {
     const archive = readFileSync(join(artifactDirectory, archiveName));
     const manifest = JSON.parse(readTarEntry(archive, 'package/package.json').toString('utf8'));
 

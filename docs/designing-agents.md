@@ -30,6 +30,8 @@ A manifest tool or skill requires a qualifying repository-local implementation a
 
 Provider-hosted capabilities without a qualifying repository-local artifact can still be described accurately in instructions or runtime guidance; they are not fabricated into the manifest.
 
+Creating or maintaining the reusable Agent Skill artifact is a separate workflow. See [Design reusable Agent Skills](/docs/designing-skills/) for activation, progressive disclosure, resources, scripts, maintenance, and verification guidance.
+
 ## Align schemas
 
 Executable and model-facing schemas are one semantic contract. Requiredness, nullability, literals, alternatives, field meaning, and material constraints stay aligned, while internal or hidden-reasoning fields remain excluded.

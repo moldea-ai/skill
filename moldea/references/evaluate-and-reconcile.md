@@ -4,7 +4,7 @@ Read this reference before `evaluate`, `reconcile`, or a scoped semantic alignme
 
 ## Build the evidence scope
 
-Both operations begin from the same evidence model: supported local tooling, `inspect --json`, compatibility data when material, relevant canonical state, implementation, executable contracts, tests, runtime integration, runtime-adapter evidence, developer intent, and unresolved state.
+Both operations begin from the same evidence model: supported local tooling, `inspect --json`, compatibility data when material, relevant canonical state, Agent Skill source and resources, implementation, executable contracts, tests, runtime integration, runtime-adapter evidence, developer intent, and unresolved state.
 
 When no explicit scope is provided:
 
@@ -12,7 +12,7 @@ When no explicit scope is provided:
 - **`HEAD` exists and the working tree is clean:** assess the current `moldea` system as a whole, beginning with project foundation, relationships, active decisions, agents, capabilities, schemas, runtime guidance, requirements, and runtime-adapter evidence, then progressively inspect relevant implementation without exhaustively reading the repository.
 - **No `HEAD` exists:** treat every current path as newly introduced for initial scope selection.
 
-An explicit agent, capability, domain, path, runtime, change, or contradiction defines the starting point, not an artificial prohibition on inspecting materially related evidence.
+An explicit agent, Agent Skill, capability, domain, path, runtime, change, or contradiction defines the starting point, not an artificial prohibition on inspecting materially related evidence.
 
 ## Evaluate read-only
 
@@ -29,6 +29,8 @@ An explicit agent, capability, domain, path, runtime, change, or contradiction d
 For every scoped registered agent, establish how canonical instruction content reaches each material runtime invocation or provider-side configuration path. Treat an unused canonical instruction, an independently maintained runtime instruction, or a material path that bypasses established canonical provenance as a confirmed semantic problem. A valid `instructionLoader` binding, declared mirror, or deterministic inspection does not by itself prove runtime consumption. When the relevant implementation is unavailable, report a material evidence limitation instead of assuming the relationship exists or is absent.
 
 For every scoped runtime description consumer, determine whether its actual semantic purpose is routing-facing or general-only. Routing-facing metadata uses the target's handoff description when present and otherwise its agent description; general-only metadata uses the agent description. A property name alone never establishes the role. When one established property serves both purposes, classify it as routing-facing and use the effective routing description; do not report that shared contract as misaligned or recommend a duplicate property solely to separate those purposes. Treat a supported closed form that proves the wrong source as a deterministic diagnostic or confirmed semantic problem according to the available evidence. Treat dynamic or unsupported wiring as unestablished and report a material evidence limitation when consequential rather than claiming that the relationship is absent or wrong.
+
+For every scoped Agent Skill, assess its authoritative source and repository ownership, directory identity, portable frontmatter, activation precision, universal workflow, resource routing and links, focused references, scripts and supported environments, assets, dependencies, tests, host metadata and invocation policy, installation and distribution paths, generated or installed copy synchronization, coding-agent consumers, project documentation, agent guidance, manifest declarations, and runtime registration as applicable. Structural validity does not prove useful activation, complete workflow behavior, safe execution, consumption, or runtime registration. Treat a skill directory or installed copy as evidence of an artifact, not proof that a coding or runtime agent receives it.
 
 Universal Core diagnostics prevent adapters from running. In that state `evidence: []` means adapter evidence was unavailable, not that runtime-native behavior is absent. In dedicated-repository mode, external implementation may also make local evidence empty or partial. Continue semantic inspection when useful, state the limitation, and rerun after structural repair before relying on adapter evidence.
 
@@ -54,7 +56,7 @@ Every evaluation reports scope, deterministic state, all five categories, toolin
 2. Do not assume code, tests, schemas, context, decisions, instructions, or adapter evidence always wins.
 3. Ask the developer before choosing among materially different plausible intended states.
 4. Use unresolved requirements only for genuine incomplete state, not to avoid an answerable clarification.
-5. Apply the smallest coherent change across every affected canonical, model-facing, runtime, implementation, schema, test, relationship, variable, requirement, and mirror surface. A routing-description correction includes the applicable canonical description, runtime loader or registration, routing behavior, and focused tests.
+5. Apply the smallest coherent change across every affected canonical, Agent Skill source, resource, host metadata, installed or distributed copy, coding-agent consumer, model-facing, runtime, implementation, schema, test, relationship, variable, requirement, and mirror surface. A routing-description correction includes the applicable canonical description, runtime loader or registration, routing behavior, and focused tests.
 6. Preserve still-valid behavior and unrelated defects. Remove superseded paths only when the authorized resulting state makes them unnecessary.
 7. Remove an unresolved requirement only after its explicit resolution criteria are satisfied.
 8. Run relevant project-native verification, synchronize mirrors, rerun root-local `inspect --json`, and perform semantic readiness review.

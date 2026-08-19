@@ -47,6 +47,12 @@ The description explains what the agent does. The optional handoff description e
 
 The manifest can register real repository-local relationships for runtime agents, schemas, instruction loaders, variable providers, tools, skills, mirrors, focused context, decisions, and broader impact paths. A relationship is added only when a real current artifact exists and the active format supports it.
 
+## Repository-local Agent Skills
+
+Reusable Agent Skills remain in their authoritative repository-native skill directories rather than under a canonical `/moldea/skills` store. Their `SKILL.md`, references, scripts, assets, host metadata, installation or distribution configuration, generated or installed copies, and consumers are maintained together when affected.
+
+Authoritative source, installed, generated, cached, mirrored, and distributed copies remain distinct evidence. A manifest skill relationship means a real repository-local implementation is exposed to a runtime agent; the existence of a skill directory or installed coding-agent skill does not prove discovery, activation, consumption, or runtime registration.
+
 ## Runtime variables
 
 Runtime-varying values use declared `{{VARIABLE_NAME}}` placeholders. Definitions explain the values and can bind real providers, but actual values remain private and transient.

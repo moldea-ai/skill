@@ -10,13 +10,13 @@ order: 80
 
 ## Evaluate
 
-Use evaluation when you want a read-only assessment of project and agent alignment:
+Use evaluation when you want a read-only assessment of project, Agent Skill, and agent alignment:
 
 ```text
 Evaluate the refund agent and do not change repository files.
 ```
 
-The coding agent runs deterministic inspection first, verifies the machine envelope, then compares relevant canonical state, implementation, contracts, tests, runtime wiring, adapter evidence, developer intent, and unresolved state.
+The coding agent runs deterministic inspection first, verifies the machine envelope, then compares relevant canonical state, Agent Skill authoritative source, activation, resources, scripts, host metadata, installed or distributed copies, consumers, implementation, contracts, tests, runtime wiring, adapter evidence, developer intent, and unresolved state.
 
 The report separates deterministic diagnostics, confirmed semantic problems, material ambiguities, relevant unresolved requirements, and evidence limitations. It explicitly states that no repository files changed.
 
@@ -30,7 +30,7 @@ Reconcile the refund agent with the current implementation.
 
 Reconciliation begins with the same evidence model, then establishes intended state. If multiple plausible directions would materially change behavior, the coding agent asks one focused question before writing.
 
-The resulting correction is the smallest coherent change across all genuinely affected canonical, runtime, implementation, schema, test, mirror, and documentation surfaces.
+The resulting correction is the smallest coherent change across all genuinely affected canonical, Agent Skill source, resource, metadata, copy, consumer, runtime, implementation, schema, test, mirror, and documentation surfaces.
 
 ## Validate
 
@@ -38,7 +38,7 @@ Use validation for deterministic structural evidence:
 
 > Validate the `moldea` project.
 
-Validation runs the root-local CLI's structural boundary. A structurally invalid result is a completed diagnostic result, not an operational failure. Validation does not prove that instructions are useful, runtime behavior consumes them, or implementation semantics match them.
+Validation runs the root-local CLI's structural boundary. A structurally invalid result is a completed diagnostic result, not an operational failure. Validation does not prove that instructions or skills are useful, runtime behavior consumes them, or implementation semantics match them.
 
 ## Quick comparison
 

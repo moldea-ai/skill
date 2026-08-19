@@ -40,7 +40,7 @@ The skill directs the coding agent to select one operation and honor its authori
 
 ## Focused guidance
 
-The portable skill has a small universal contract and focused references. The coding agent reads only the guidance needed for the active workflow, such as agent design, context gathering, continuous maintenance, evaluation, or local tooling.
+The portable skill has a small universal contract and focused references. The coding agent reads only the guidance needed for the active workflow, such as agent design, Agent Skill design, context gathering, continuous maintenance, evaluation, or local tooling.
 
 ## Evidence before edits
 

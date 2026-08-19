@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or explore the complete documentation at [`skill.moldea.ai`](https://skill.moldea.ai).
 
-The current release is `2.0.1`. Install the latest version from `main` in the current project with:
+The current release is `3.0.0`. Install the latest version from `main` in the current project with:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v2.0.1"
+npx skills add "moldea-ai/skill#v3.0.0"
 ```
 
 Both sources install the portable skill as `moldea`. They do not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
@@ -25,9 +25,10 @@ Both sources install the portable skill as `moldea`. They do not install `@molde
 This Agent Skill is the portable semantic operating layer used by a compatible coding agent to:
 
 - initialize a context-first `moldea` project
-- plan the smallest appropriate system of agents, deterministic software, services or tools, data contracts, and human control for an AI-enabled objective
-- continuously maintain affected project and agent state during ordinary development
+- plan the smallest appropriate system of agents, Agent Skills, deterministic software, services or tools, data contracts, and human control for an AI-enabled objective
+- continuously maintain affected project, Agent Skill, and agent state during ordinary development
 - create and refine grounded agent behavior
+- create and refine reusable Agent Skills with focused references, scripts, and assets when they are the right boundary
 - evaluate structural and semantic alignment without writing
 - reconcile confirmed drift through authorized repository changes
 - invoke deterministic repository-local validation
@@ -49,7 +50,7 @@ npx skills add moldea-ai/skill
 This source follows `main`. To install the current release reproducibly, use its immutable tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v2.0.1"
+npx skills add "moldea-ai/skill#v3.0.0"
 ```
 
 The `skills` CLI supports Agent Skills-compatible hosts including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and many others. Host detection and installation location are handled by the installer; the portable skill itself remains vendor-neutral.
@@ -78,10 +79,10 @@ Refresh a branch-tracking global installation with:
 npx skills add moldea-ai/skill -g
 ```
 
-A release-pinned installation remains on its immutable tag. To update it, replace `v2.0.1` in the following command with the desired newer published tag:
+A release-pinned installation remains on its immutable tag. To update it, replace `v3.0.0` in the following command with the desired newer published tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v2.0.1"
+npx skills add "moldea-ai/skill#v3.0.0"
 ```
 
 Add `-g` to the tagged command only when updating a global installation.
@@ -103,15 +104,15 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 - an established supported package manager, or npm when none is established
 - a repository-local exact `@moldea.ai/cli` development dependency in the supported range
 
-Release `2.0.1` supports:
+Release `3.0.0` supports:
 
-- `@moldea.ai/cli >=2.0.0 <2.1.0`
+- `@moldea.ai/cli >=3.1.3 <3.2.0`
 - CLI JSON schema `1`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
 - Yarn `>=4.0.0 <5.0.0`
 
-The recommended repository-local CLI version for this release is `2.0.0`. Existing compatible exact pins remain valid unless the authorized work materially requires a supported capability they do not provide.
+The recommended repository-local CLI version for this release is `3.1.3`. Existing compatible exact pins remain valid unless the authorized work materially requires a supported capability they do not provide.
 
 Write-capable workflows establish or reconcile the exact compatible repository-local CLI dependency without executing lifecycle scripts or repository-supplied package-manager hooks and plugins. `evaluate` is strictly read-only and reports missing or incompatible tooling instead of installing it. Agent-system `plan` is also read-only and may run before adoption or local tooling exists. The skill never falls back to a global CLI or transient CLI download.
 
@@ -163,6 +164,8 @@ Planning starts from the objective and may recommend zero, one, or multiple agen
 | Maintain context  | `Update the project context for the new refund policy.`                     |
 | Create an agent   | `Create a customer-support agent grounded in the current implementation.`   |
 | Maintain an agent | `Add the order lookup tool to the support agent and align its instruction.` |
+| Create a skill    | `Create a reusable release-review skill for coding agents.`                 |
+| Maintain a skill  | `Update the release-review skill for the current deployment workflow.`      |
 | Evaluate          | `Evaluate the current moldea project.`                                      |
 | Reconcile         | `Reconcile the billing agent with the implementation.`                      |
 | Validate          | `Validate the moldea project.`                                              |
@@ -188,12 +191,13 @@ moldea/
 │   ├── context-gathering.md
 │   ├── continuous-maintenance.md
 │   ├── evaluate-and-reconcile.md
-│   └── local-tooling.md
+│   ├── local-tooling.md
+│   └── skill-design.md
 └── agents/
     └── openai.yaml
 ```
 
-`SKILL.md` contains the universal activation, authority, compatibility, operation-selection, and reporting rules. Focused references are loaded only for the workflows that need them, including the objective-first agent-system planning method. `agents/openai.yaml` is an optional host extension and is not a semantic dependency of the portable core.
+`SKILL.md` contains the universal activation, authority, compatibility, operation-selection, and reporting rules. Focused references are loaded only for the workflows that need them, including objective-first agent-system planning and evidence-grounded Agent Skill design. `agents/openai.yaml` is an optional host extension whose presentation and invocation metadata supplements rather than redefines the portable core.
 
 ## Project blueprint
 
@@ -242,13 +246,13 @@ The static build defaults to `SITE_URL=https://skill.moldea.ai` and `BASE_PATH=/
 
 The Pages deployment reads the repository's configured origin and base path before building. Keep the GitHub Pages custom-domain setting and DNS record aligned with `CNAME`; the canonical production origin is [`https://skill.moldea.ai`](https://skill.moldea.ai).
 
-The complete integration suite requires Bubblewrap and defaults to the available npm executable and published `@moldea.ai/cli@2.0.0`. Portable CI jobs provision Bubblewrap, load Ubuntu's packaged Bubblewrap AppArmor profile, and run the complete suite. The package-manager matrices run the focused package-manager integration boundary across npm `10.9.0` and `11.19.0`, pnpm `11.20.0` and `11.21.0`, and Yarn `4.0.0` and `4.18.0` against every supported published CLI release, currently `2.0.0`, without repeating unrelated sandbox checks. Yarn versions with a minimum-release-age gate use their command-scoped override only inside the isolated conformance install so newly published exact package versions remain testable.
+The complete integration suite requires Bubblewrap and defaults to the available npm executable and published `@moldea.ai/cli@3.1.3`. Portable CI jobs provision Bubblewrap, load Ubuntu's packaged Bubblewrap AppArmor profile, and run the complete suite. The package-manager matrices run the focused package-manager integration boundary across npm `10.9.0` and `11.19.0`, pnpm `11.20.0` and `11.21.0`, and Yarn `4.0.0` and `4.18.0` against every supported published CLI release, currently `3.1.3`, without repeating unrelated sandbox checks. Yarn versions with a minimum-release-age gate use their command-scoped override only inside the isolated conformance install so newly published exact package versions remain testable.
 
 The ordinary package-manager integration suite first serves the adversarial lifecycle fixture through an isolated local registry with faithful package metadata. That fixture intentionally contains lifecycle scripts and remains the security proof for exact pinning and lifecycle suppression. A separate mandatory path installs the selected exact published CLI from npm, proves local executable provenance, and executes deterministic `compatibility --json` and `inspect --json` checks against a custom-runtime project.
 
-When `MOLDEA_CLI_ARTIFACT_DIRECTORY` identifies one packed artifact for each of `@moldea.ai/cli`, `@moldea.ai/adapter-openai`, `@moldea.ai/core`, `@moldea.ai/repository`, and `@moldea.ai/repository-fs`, the same suite derives their versions and internal dependency composition from the packed manifests. It then builds a scoped loopback registry and runs the shared real-CLI checks. The packages may version independently, but the CLI must exact-pin the four supplied internal artifacts. Set `MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS=1` at the release boundary so a missing artifact directory fails instead of skipping that candidate-only case. The manual Release Candidate workflow accepts an exact `moldea-ai/packages` ref, records the resolved commit, packs the artifacts, and runs this path across every supported package-manager version without publishing or tagging either repository.
+When `MOLDEA_CLI_ARTIFACT_DIRECTORY` identifies one packed artifact for each of `@moldea.ai/cli`, `@moldea.ai/adapter-anthropic`, `@moldea.ai/adapter-google-genai`, `@moldea.ai/adapter-openai`, `@moldea.ai/core`, `@moldea.ai/repository`, and `@moldea.ai/repository-fs`, the same suite derives their versions and internal dependency composition from the packed manifests. It then builds a scoped loopback registry and runs the shared real-CLI checks. The packages may version independently, but the CLI must exact-pin the six supplied internal artifacts. Set `MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS=1` at the release boundary so a missing artifact directory fails instead of skipping that candidate-only case. The manual Release Candidate workflow accepts an exact `moldea-ai/packages` ref, records the resolved commit, packs the artifacts, and runs this path across every supported package-manager version without publishing or tagging either repository.
 
-`fixtures/conformance-cases.json` contains package-manager, CLI-envelope, README-marker, planning, runtime, security, and semantic forward-evaluation scenarios. Deterministic tests execute the mechanical decisions and validate every semantic case's evidence, requested operation, expected outcomes, and forbidden outcomes. CI also installs the portable artifact into an isolated Agent Skills home and compares the installed tree byte-for-byte with `moldea/`.
+`fixtures/conformance-cases.json` contains package-manager, CLI-envelope, README-marker, planning, Agent Skill, runtime, security, and semantic forward-evaluation scenarios. Deterministic tests execute the mechanical decisions and validate every semantic case's evidence, requested operation, expected outcomes, and forbidden outcomes. CI also installs the portable artifact into an isolated Agent Skills home and compares the installed tree byte-for-byte with `moldea/`.
 
 Semantic evaluation is intentionally lengthy and can consume a significant number of model tokens because every case runs separate actor and judge processes. Do not start a full or targeted semantic evaluation without first explaining to the developer why fresh semantic evidence is important for the current change, why existing evidence or deterministic verification is insufficient, and the expected time and token cost when known. Obtain the developer's explicit approval before running it.
 
@@ -272,7 +276,7 @@ The runner requires Bubblewrap and `socat`, and validates the Codex command befo
 
 The isolated network namespace has no direct host or internet route. A repository-external CONNECT relay permits only HTTPS port `443`, exact configured hostnames, and DNS results containing exclusively public addresses. The default allowlist is `api.openai.com`, `auth.openai.com`, and `chatgpt.com`; add an exact model endpoint with `MOLDEA_EVAL_ALLOWED_HOSTS` when required. Localhost, private, link-local, and undeclared destinations remain inaccessible. Each actor or judge process is killed after 120 seconds by default; set a positive `MOLDEA_EVAL_HOST_TIMEOUT_MS` only when a deliberate evaluation requires a different bound.
 
-The runner installs the exact portable tree into a fresh project for every actor case, withholds the evaluation criteria from that actor, captures repository-visible changes, and starts a separate judge process in another workspace. Ordinary adopted-project cases receive a copied, locked production closure from the root `@moldea.ai/cli@2.0.0` dependency without running a package manager. Only `dedicated-repository-runtime-selection` and `runtime-adapter-lifecycle` use the synthetic compatibility CLI because they require hypothetical adapter states that the published matrix cannot expose. Set `MOLDEA_EVAL_JUDGE_COMMAND_JSON` to use a different safely configured Codex judge command; otherwise the actor command is reused in a fresh process and workspace.
+The runner installs the exact portable tree into a fresh project for every actor case, withholds the evaluation criteria from that actor, captures hashes and bounded text content for repository-visible changes, and starts a separate judge process in another workspace. Skill-focused cases declare evaluator-only artifact roots and activation scenarios. The judge receives bounded post-execution source or copy directories, file contents, independent structural and resource-link evidence, and positive or adjacent non-activation requests, so content-level outcomes do not rely on the actor's report or leaked answer criteria. Ordinary adopted-project cases receive a copied, locked production closure from the root `@moldea.ai/cli@3.1.3` dependency without running a package manager. Only `dedicated-repository-runtime-selection` and `runtime-adapter-lifecycle` use the synthetic compatibility CLI because they require hypothetical adapter states that the published matrix cannot expose. Set `MOLDEA_EVAL_JUDGE_COMMAND_JSON` to use a different safely configured Codex judge command; otherwise the actor command is reused in a fresh process and workspace.
 
 Use `--case <case-id>` without `--record` for a standalone diagnostic that must not update candidate or committed evidence. A targeted run with `--record` requires an existing compatible candidate and cannot promote it until the complete case suite passes.
 
@@ -291,7 +295,7 @@ The skill uses independent semantic versioning. Every release must:
 - use an immutable `v<version>` tag
 - preserve semantically identical `moldea/` content across every official distribution channel
 
-Release `2.0.1` uses the immutable `v2.0.1` tag.
+Release `3.0.0` uses the immutable `v3.0.0` tag.
 
 ## License
 

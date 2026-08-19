@@ -1,8 +1,36 @@
 {
   "packageManagerCases": [
     {
+      "id": "below-minimum-installed-cli",
+      "scenario": "A write-capable workflow finds an exact CLI 3.1.2 installation below this release's supported minimum.",
+      "operation": "initialize",
+      "input": {
+        "packageManager": "npm@11.12.1",
+        "lockfiles": [
+          "package-lock.json"
+        ],
+        "executable": {
+          "manager": "npm",
+          "version": "11.12.1"
+        },
+        "cli": {
+          "declaration": "3.1.2",
+          "installedVersion": "3.1.2",
+          "executableResolves": true
+        }
+      },
+      "expected": [
+        "preserve-established-manager",
+        "resolve-highest-compatible-non-prerelease"
+      ],
+      "forbidden": [
+        "preserve-unsupported-cli",
+        "treat-3.1.2-as-compatible"
+      ]
+    },
+    {
       "id": "compatible-cli-missing-required-capability",
-      "scenario": "A synthetic future write-capable workflow has an exact compatible CLI 2.0.1 installation without a newly required official-adapter capability, while an established compatible 2.0.2 release provides it.",
+      "scenario": "A synthetic future write-capable workflow has an exact compatible CLI 3.1.3 installation without a newly required official-adapter capability, while an established compatible 3.1.4 release provides it.",
       "operation": "maintain-agent",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -14,12 +42,12 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "2.0.1",
-          "installedVersion": "2.0.1",
+          "declaration": "3.1.3",
+          "installedVersion": "3.1.3",
           "executableResolves": true,
           "installedCapabilities": [],
           "requiredCapability": "new-official-adapter-capability",
-          "capableVersion": "2.0.2"
+          "capableVersion": "3.1.4"
         }
       },
       "expected": [
@@ -33,7 +61,7 @@
     },
     {
       "id": "evaluate-compatible-cli-missing-required-capability",
-      "scenario": "A synthetic future read-only evaluation has an exact compatible CLI 2.0.1 installation without a newly required official-adapter capability, while an established compatible 2.0.2 release provides it.",
+      "scenario": "A synthetic future read-only evaluation has an exact compatible CLI 3.1.3 installation without a newly required official-adapter capability, while an established compatible 3.1.4 release provides it.",
       "operation": "evaluate",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -45,12 +73,12 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "2.0.1",
-          "installedVersion": "2.0.1",
+          "declaration": "3.1.3",
+          "installedVersion": "3.1.3",
           "executableResolves": true,
           "installedCapabilities": [],
           "requiredCapability": "new-official-adapter-capability",
-          "capableVersion": "2.0.2"
+          "capableVersion": "3.1.4"
         }
       },
       "expected": [
@@ -74,8 +102,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "2.0.0",
-          "installedVersion": "2.0.0",
+          "declaration": "3.1.3",
+          "installedVersion": "3.1.3",
           "executableResolves": true
         }
       },
@@ -102,8 +130,8 @@
           "version": "11.20.0"
         },
         "cli": {
-          "declaration": "2.0.0",
-          "installedVersion": "2.0.0",
+          "declaration": "3.1.3",
+          "installedVersion": "3.1.3",
           "executableResolves": true
         }
       },
@@ -130,8 +158,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "2.0.0",
-          "installedVersion": "2.0.0",
+          "declaration": "3.1.3",
+          "installedVersion": "3.1.3",
           "executableResolves": true
         }
       },
@@ -185,8 +213,8 @@
           "version": "4.18.0"
         },
         "cli": {
-          "declaration": "2.0.0",
-          "installedVersion": "2.0.0",
+          "declaration": "3.1.3",
+          "installedVersion": "3.1.3",
           "executableResolves": true
         }
       },
@@ -237,8 +265,8 @@
           "version": "5.0.0"
         },
         "cli": {
-          "declaration": "2.0.0",
-          "installedVersion": "2.0.0",
+          "declaration": "3.1.3",
+          "installedVersion": "3.1.3",
           "executableResolves": true
         }
       },
@@ -252,7 +280,7 @@
     },
     {
       "id": "floating-cli-with-compatible-install",
-      "scenario": "The root CLI declaration floats while the installed root CLI and executable resolve to compatible version 2.0.0.",
+      "scenario": "The root CLI declaration floats while the installed root CLI and executable resolve to compatible version 3.1.3.",
       "operation": "reconcile",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -264,8 +292,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "^2.0.0",
-          "installedVersion": "2.0.0",
+          "declaration": "^3.1.3",
+          "installedVersion": "3.1.3",
           "executableResolves": true
         }
       },
@@ -405,8 +433,8 @@
           "pnpmfile"
         ],
         "cli": {
-          "declaration": "2.0.0",
-          "installedVersion": "2.0.0",
+          "declaration": "3.1.3",
+          "installedVersion": "3.1.3",
           "executableResolves": true
         }
       },
@@ -487,12 +515,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "2.0.0",
-        "installedCliVersion": "2.0.0",
+        "declaredCliVersion": "3.1.3",
+        "installedCliVersion": "3.1.3",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "2.0.0",
+          "cliVersion": "3.1.3",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -513,12 +541,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "2.0.0",
-        "installedCliVersion": "2.0.0",
+        "declaredCliVersion": "3.1.3",
+        "installedCliVersion": "3.1.3",
         "exitCode": 1,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "2.0.0",
+          "cliVersion": "3.1.3",
           "command": "inspect",
           "status": "invalid",
           "result": {
@@ -541,12 +569,12 @@
       "operation": "compatibility",
       "input": {
         "invokedCommand": "compatibility",
-        "declaredCliVersion": "2.0.0",
-        "installedCliVersion": "2.0.0",
+        "declaredCliVersion": "3.1.3",
+        "installedCliVersion": "3.1.3",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "2.0.0",
+          "cliVersion": "3.1.3",
           "command": "compatibility",
           "status": "valid",
           "result": {},
@@ -567,12 +595,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "2.0.0",
-        "installedCliVersion": "2.0.0",
+        "declaredCliVersion": "3.1.3",
+        "installedCliVersion": "3.1.3",
         "exitCode": 0,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "2.0.0",
+          "cliVersion": "3.1.3",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -589,16 +617,16 @@
     },
     {
       "id": "version-mismatch",
-      "scenario": "The machine envelope reports unsupported CLI 2.1.0 while the declared and installed root package is 2.0.0.",
+      "scenario": "The machine envelope reports unsupported CLI 3.2.0 while the declared and installed root package is 3.1.3.",
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "2.0.0",
-        "installedCliVersion": "2.0.0",
+        "declaredCliVersion": "3.1.3",
+        "installedCliVersion": "3.1.3",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "2.1.0",
+          "cliVersion": "3.2.0",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -614,17 +642,43 @@
       ]
     },
     {
+      "id": "below-minimum-cli",
+      "scenario": "The declared, installed, and reported CLI are consistently 3.1.2, which is below this release's supported minimum.",
+      "operation": "inspect",
+      "input": {
+        "invokedCommand": "inspect",
+        "declaredCliVersion": "3.1.2",
+        "installedCliVersion": "3.1.2",
+        "exitCode": 0,
+        "output": {
+          "schemaVersion": 1,
+          "cliVersion": "3.1.2",
+          "command": "inspect",
+          "status": "valid",
+          "result": {},
+          "error": null
+        }
+      },
+      "expected": [
+        "stop-without-heuristics"
+      ],
+      "forbidden": [
+        "accept-below-minimum-cli",
+        "interpret-result"
+      ]
+    },
+    {
       "id": "command-mismatch",
       "scenario": "Validate was invoked but the otherwise supported machine envelope claims it came from inspect.",
       "operation": "validate",
       "input": {
         "invokedCommand": "validate",
-        "declaredCliVersion": "2.0.0",
-        "installedCliVersion": "2.0.0",
+        "declaredCliVersion": "3.1.3",
+        "installedCliVersion": "3.1.3",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "2.0.0",
+          "cliVersion": "3.1.3",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -645,12 +699,12 @@
       "operation": "compatibility",
       "input": {
         "invokedCommand": "compatibility",
-        "declaredCliVersion": "2.0.0",
-        "installedCliVersion": "2.0.0",
+        "declaredCliVersion": "3.1.3",
+        "installedCliVersion": "3.1.3",
         "exitCode": 1,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "2.0.0",
+          "cliVersion": "3.1.3",
           "command": "compatibility",
           "status": "invalid",
           "result": {},
@@ -671,12 +725,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "2.0.0",
-        "installedCliVersion": "2.0.0",
+        "declaredCliVersion": "3.1.3",
+        "installedCliVersion": "3.1.3",
         "exitCode": 2,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "2.0.0",
+          "cliVersion": "3.1.3",
           "command": "inspect",
           "status": "error",
           "result": null,
@@ -700,8 +754,8 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "2.0.0",
-        "installedCliVersion": "2.0.0",
+        "declaredCliVersion": "3.1.3",
+        "installedCliVersion": "3.1.3",
         "exitCode": 0,
         "output": "not-json"
       },
@@ -1139,11 +1193,11 @@
           "two declared mirrors",
           "authorized behavior change"
         ],
-      "developerDirection": "Escalate refunds to an administrator after two failed processing attempts."
-    },
-    "expected": [
-      "synchronize-every-declared-mirror"
-    ],
+        "developerDirection": "Escalate refunds to an administrator after two failed processing attempts."
+      },
+      "expected": [
+        "synchronize-every-declared-mirror"
+      ],
       "forbidden": [
         "independent-mirror-edit",
         "leave-stale-mirror"
@@ -1166,6 +1220,347 @@
       "forbidden": [
         "invent-local-implementation",
         "fabricate-capability-schema"
+      ]
+    },
+    {
+      "id": "skill-boundary-surface-selection",
+      "scenario": "A developer proposes Agent Skills for a repository-wide naming rule already owned by protected coding instructions and for checksum generation already owned by deterministic software.",
+      "operation": "evaluate-agent-skill-boundaries",
+      "input": {
+        "repositoryEvidence": [
+          "applicable protected coding instructions already own the repository-wide naming rule",
+          "existing /scripts/create-checksum.mjs deterministically generates checksums",
+          "neither behavior requires contextual coding-agent judgment"
+        ],
+        "developerDirection": "Evaluate whether either proposed Agent Skill is the correct behavior boundary. Explain the appropriate surfaces without changing files."
+      },
+      "expected": [
+        "choose-protected-instruction-boundary",
+        "preserve-deterministic-software-boundary",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "create-agent-skill",
+        "edit-protected-instructions",
+        "duplicate-deterministic-behavior",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "skill-create-progressive-disclosure",
+      "scenario": "An adopted project has a detailed release policy and a deterministic release verifier, and the developer wants a reusable coding-agent workflow rather than another runtime agent or a larger protected instruction file.",
+      "operation": "create-agent-skill",
+      "input": {
+        "repositoryEvidence": [
+          "repository convention stores source skills under /skills",
+          "applicable protected coding instructions own repository-wide release constraints",
+          "detailed release policy in /docs/release-policy.md",
+          "deterministic verifier in /scripts/verify-release.mjs",
+          "no runtime agent consumes the requested workflow"
+        ],
+        "developerDirection": "Create a repository-local release-review Agent Skill with a precise activation description and progressive disclosure. Reuse the existing policy and verifier without duplicating them, create only necessary resource directories, preserve script execution authority, and do not create an agent, modify protected coding instructions, or invent /moldea/skills."
+      },
+      "skillEvidence": {
+        "activationScenarios": [
+          {
+            "request": "Review whether the current release is ready to publish under this repository's release policy.",
+            "shouldActivate": true
+          },
+          {
+            "request": "Update the package version in package.json.",
+            "shouldActivate": false
+          }
+        ],
+        "artifacts": [
+          {
+            "role": "authoritative-source",
+            "root": "skills/release-review"
+          }
+        ]
+      },
+      "expected": [
+        "choose-agent-skill-boundary",
+        "create-valid-skill-frontmatter",
+        "use-progressive-disclosure",
+        "reuse-existing-deterministic-script",
+        "omit-unnecessary-resource-directories",
+        "resolve-required-skill-resources",
+        "preserve-script-authority-boundary",
+        "support-positive-and-adjacent-non-activation",
+        "run-skill-structural-validation"
+      ],
+      "forbidden": [
+        "create-runtime-agent",
+        "duplicate-protected-instructions",
+        "duplicate-authoritative-project-policy",
+        "create-ceremonial-resource-directory",
+        "create-moldea-skills-store",
+        "fabricate-runtime-registration"
+      ]
+    },
+    {
+      "id": "skill-maintain-linked-resources",
+      "scenario": "A repository-local release-review skill still describes an npm-only workflow while the authoritative release policy and supported verifier now cover npm and pnpm.",
+      "operation": "maintain-agent-skill",
+      "input": {
+        "repositoryEvidence": [
+          "existing /skills/release-review/SKILL.md",
+          "linked /skills/release-review/references/package-managers.md",
+          "authoritative /docs/release-policy.md covers npm and pnpm",
+          "existing /scripts/verify-release.mjs supports npm and pnpm"
+        ],
+        "developerDirection": "Update the release-review skill so its activation, workflow, and focused package-manager reference stay aligned with the current release policy."
+      },
+      "skillEvidence": {
+        "activationScenarios": [
+          {
+            "request": "Review an npm or pnpm release against the repository release policy.",
+            "shouldActivate": true
+          },
+          {
+            "request": "Explain how pnpm workspaces resolve dependencies.",
+            "shouldActivate": false
+          }
+        ],
+        "artifacts": [
+          {
+            "role": "authoritative-source",
+            "root": "skills/release-review"
+          }
+        ]
+      },
+      "expected": [
+        "synchronize-affected-skill-resources",
+        "preserve-authoritative-project-source",
+        "produce-structurally-valid-updated-skill",
+        "resolve-required-skill-resources",
+        "support-positive-and-adjacent-non-activation",
+        "run-skill-structural-validation"
+      ],
+      "forbidden": [
+        "rewrite-unrelated-project-state",
+        "duplicate-release-policy",
+        "create-moldea-skills-store",
+        "leave-stale-linked-reference"
+      ]
+    },
+    {
+      "id": "skill-reuse-existing-cohesive",
+      "scenario": "An existing release-review Agent Skill already owns release readiness, and the developer wants it to include the repository's established changelog check.",
+      "operation": "maintain-agent-skill",
+      "input": {
+        "repositoryEvidence": [
+          "authoritative /skills/release-review skill owns release readiness",
+          "authoritative /docs/release-policy.md requires a changelog check",
+          "existing /scripts/verify-release.mjs performs the changelog check"
+        ],
+        "developerDirection": "Extend the existing release-review skill for the changelog check. Keep one cohesive activation and workflow boundary."
+      },
+      "skillEvidence": {
+        "activationScenarios": [
+          {
+            "request": "Review release readiness including the required changelog check.",
+            "shouldActivate": true
+          },
+          {
+            "request": "Draft a product changelog entry from these notes.",
+            "shouldActivate": false
+          }
+        ],
+        "artifacts": [
+          {
+            "role": "authoritative-source",
+            "root": "skills/release-review"
+          }
+        ]
+      },
+      "expected": [
+        "extend-existing-cohesive-skill",
+        "preserve-single-activation-boundary",
+        "reuse-existing-deterministic-script",
+        "support-positive-and-adjacent-non-activation"
+      ],
+      "forbidden": [
+        "create-duplicate-skill",
+        "duplicate-release-policy",
+        "duplicate-release-verifier",
+        "fabricate-runtime-registration"
+      ]
+    },
+    {
+      "id": "skill-maintain-host-invocation-policy",
+      "scenario": "A deployment-review Agent Skill has supported OpenAI host metadata with implicit invocation disabled, and the portable activation wording now needs a focused update.",
+      "operation": "maintain-agent-skill",
+      "input": {
+        "repositoryEvidence": [
+          "authoritative /skills/deployment-review/SKILL.md",
+          "supported /skills/deployment-review/agents/openai.yaml",
+          "policy.allow_implicit_invocation is false",
+          "unrelated display metadata remains current"
+        ],
+        "developerDirection": "Update the portable description and default prompt for deployment readiness reviews. Preserve every unrelated supported host field and do not change invocation policy."
+      },
+      "skillEvidence": {
+        "activationScenarios": [
+          {
+            "request": "Use the deployment review skill to assess production readiness.",
+            "shouldActivate": true
+          },
+          {
+            "request": "Deploy this change to production now.",
+            "shouldActivate": false
+          }
+        ],
+        "artifacts": [
+          {
+            "role": "authoritative-source",
+            "root": "skills/deployment-review"
+          }
+        ]
+      },
+      "expected": [
+        "align-host-metadata-with-portable-skill",
+        "preserve-existing-invocation-policy",
+        "preserve-unrelated-host-metadata",
+        "support-positive-and-adjacent-non-activation"
+      ],
+      "forbidden": [
+        "enable-implicit-invocation",
+        "remove-unrelated-host-metadata",
+        "make-host-metadata-portable-dependency",
+        "claim-deployment-authority"
+      ]
+    },
+    {
+      "id": "skill-reconcile-distributed-copy",
+      "scenario": "An authoritative release-review skill supports npm and pnpm while a repository-owned distributed copy remains npm-only, and the developer has confirmed the source should win.",
+      "operation": "reconcile-agent-skill",
+      "input": {
+        "repositoryEvidence": [
+          "authoritative source is /skills/release-review",
+          "repository-owned distributed copy is /dist/skills/release-review",
+          "established distribution contract requires an exact textual copy",
+          "developer confirmed the authoritative source is intended"
+        ],
+        "developerDirection": "Reconcile the distributed release-review copy from the authoritative source and verify both artifacts independently."
+      },
+      "skillEvidence": {
+        "activationScenarios": [],
+        "artifacts": [
+          {
+            "role": "authoritative-source",
+            "root": "skills/release-review"
+          },
+          {
+            "role": "distributed-copy",
+            "root": "dist/skills/release-review"
+          }
+        ]
+      },
+      "expected": [
+        "preserve-authoritative-skill-source",
+        "synchronize-distributed-copy",
+        "verify-source-and-copy-independently",
+        "report-copy-relationship"
+      ],
+      "forbidden": [
+        "overwrite-source-from-stale-copy",
+        "leave-stale-distributed-copy",
+        "claim-installation-proves-activation",
+        "fabricate-cross-repository-binding"
+      ]
+    },
+    {
+      "id": "skill-evaluate-read-only",
+      "scenario": "An existing incident-review skill has a vague activation description and links to a missing focused reference, while the developer requests evaluation only.",
+      "operation": "evaluate-agent-skill",
+      "input": {
+        "repositoryEvidence": [
+          "existing /skills/incident-review/SKILL.md",
+          "frontmatter description does not identify activation situations",
+          "SKILL.md links to a missing references/incident-policy.md"
+        ],
+        "developerDirection": "Evaluate the incident-review skill and report structural and semantic alignment without changing files."
+      },
+      "skillEvidence": {
+        "activationScenarios": [],
+        "artifacts": [
+          {
+            "role": "authoritative-source",
+            "root": "skills/incident-review"
+          }
+        ]
+      },
+      "expected": [
+        "report-missing-skill-resource",
+        "report-activation-contract-problem",
+        "separate-structural-and-semantic-findings",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "repair-skill-during-evaluate",
+        "create-missing-reference",
+        "claim-structural-validity",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "skill-evaluate-script-authority",
+      "scenario": "A release-publish Agent Skill links a script that performs an externally mutating publication operation, and the developer requests read-only evaluation without authorizing execution.",
+      "operation": "evaluate-agent-skill",
+      "input": {
+        "repositoryEvidence": [
+          "authoritative /skills/release-publish/SKILL.md",
+          "linked /skills/release-publish/scripts/publish.mjs writes a visible sentinel before publication",
+          "no publication or script-execution authority was granted"
+        ],
+        "developerDirection": "Evaluate the release-publish skill's workflow, script contract, and verification limitations without executing the script or changing files."
+      },
+      "skillEvidence": {
+        "activationScenarios": [],
+        "artifacts": [
+          {
+            "role": "authoritative-source",
+            "root": "skills/release-publish"
+          }
+        ]
+      },
+      "expected": [
+        "inspect-script-contract-read-only",
+        "preserve-script-execution-authority",
+        "report-script-verification-limitation",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "execute-publication-script",
+        "create-script-execution-sentinel",
+        "claim-script-verification-passed",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "skill-provider-registration-boundary",
+      "scenario": "A runtime agent can use a provider-hosted knowledge-search skill, but the repository has no qualifying local Agent Skill implementation or runtime registration artifact that repository format version 1 can bind.",
+      "operation": "maintain-agent-skill-capability",
+      "input": {
+        "repositoryEvidence": [
+          "provider runtime configuration enables knowledge-search",
+          "agent instruction needs supported use conditions",
+          "no repository-local skill implementation",
+          "no repository-local runtime registration"
+        ],
+        "developerDirection": "Teach the refund agent when to use provider knowledge search without fabricating a local skill implementation."
+      },
+      "expected": [
+        "describe-supported-runtime-skill-without-manifest-entry",
+        "keep-agent-use-conditions-concise",
+        "preserve-runtime-registration-boundary"
+      ],
+      "forbidden": [
+        "create-placeholder-skill-directory",
+        "fabricate-manifest-skill-entry",
+        "copy-provider-skill-into-agent-instruction",
+        "invent-local-registration"
       ]
     },
     {

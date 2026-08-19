@@ -134,6 +134,55 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
   await expect(mobileDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
 });
 
+test('presents project and Agent Skill design as first-class landing capabilities', async ({
+  page,
+}) => {
+  await page.goto(toPublicPath('/'));
+
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    'content',
+    /reusable Agent Skills/,
+  );
+  await expect(page.locator('main > section').first()).toContainText('reusable Agent Skills');
+  await expect(
+    page.getByRole('heading', {
+      level: 2,
+      name: 'One operating layer for agents and Agent Skills.',
+    }),
+  ).toBeVisible();
+
+  const capabilityCardBounds = await page
+    .locator('[data-capability-grid] > a')
+    .evaluateAll((cards) =>
+      cards.map((card) => {
+        const bounds = card.getBoundingClientRect();
+
+        return { top: Math.round(bounds.top), width: Math.round(bounds.width) };
+      }),
+    );
+  expect(capabilityCardBounds).toHaveLength(6);
+  expect(new Set(capabilityCardBounds.slice(0, 3).map(({ top }) => top)).size).toBe(1);
+  expect(new Set(capabilityCardBounds.slice(3).map(({ top }) => top)).size).toBe(1);
+  expect(capabilityCardBounds[3]?.top).toBeGreaterThan(capabilityCardBounds[0]?.top ?? 0);
+  expect(Math.min(...capabilityCardBounds.map(({ width }) => width))).toBeGreaterThan(300);
+
+  const capabilityGrid = page.locator('[data-capability-grid]');
+  const projectContextLink = capabilityGrid.getByRole('link', {
+    name: /Initialize project context/,
+  });
+  await expect(projectContextLink).toBeVisible();
+  await expect(projectContextLink).toHaveAttribute('href', toPublicPath('/docs/project-state/'));
+
+  const skillDesignLink = capabilityGrid.getByRole('link', { name: /Design Agent Skills/ });
+  await expect(skillDesignLink).toBeVisible();
+  await expect(skillDesignLink).toHaveAttribute('href', toPublicPath('/docs/designing-skills/'));
+
+  await skillDesignLink.click();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Design reusable Agent Skills' }),
+  ).toBeVisible();
+});
+
 test('shows compatible coding agents with source-owned marks and a complete docs path', async ({
   page,
 }) => {

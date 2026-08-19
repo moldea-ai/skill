@@ -32,6 +32,7 @@ describe('createWebsiteModel', () => {
     const model = createWebsiteModel();
 
     expect(model.llmsText).toContain('# `moldea` Agent Skill');
+    expect(model.llmsText).toContain('reusable Agent Skills');
     expect(model.llmsText).toContain(SKILLS_DIRECTORY_URL);
     expect(model.llmsText).toContain(INSTALL_COMMAND);
   });

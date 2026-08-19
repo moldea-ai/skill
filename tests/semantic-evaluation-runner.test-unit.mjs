@@ -508,6 +508,80 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
   );
 });
 
+test('semantic candidates accept explicitly truncated skill artifact evidence', () => {
+  const caseDefinitions = [SKILL_CASE_DEFINITION];
+  const result = createCaseResult(SKILL_CASE_DEFINITION, true);
+  result.skillArtifactEvidence = [
+    {
+      directories: ['skills/release-review'],
+      excludedDirectoryCount: 0,
+      files: [
+        {
+          content: null,
+          mode: 33_204,
+          omission: 'file-too-large',
+          path: 'skills/release-review/large-reference.md',
+          sha256: null,
+        },
+      ],
+      isTraversalTruncated: true,
+      resourceReferences: [],
+      role: 'authoritative-source',
+      root: 'skills/release-review',
+      rootType: 'directory',
+      truncatedDirectoryCount: 1,
+      truncatedFileCount: 1,
+      truncatedResourceReferenceCount: 8,
+      validation: {
+        description: null,
+        errors: ['missing-skill-document'],
+        name: null,
+        valid: false,
+      },
+    },
+  ];
+  const candidate = mergeSemanticCandidateResult(
+    createSemanticEvaluationCandidate({
+      actorHost: ACTOR_HOST,
+      artifactDigest: ARTIFACT_DIGEST,
+      caseDefinitions,
+      generatedAt: EVALUATED_AT,
+      judgeHost: JUDGE_HOST,
+    }),
+    SKILL_CASE_DEFINITION,
+    result,
+    EVALUATED_AT,
+  );
+
+  assert.doesNotThrow(() => validateSemanticResultRecording({ candidate, caseDefinitions }));
+  assert.throws(
+    () =>
+      validateSemanticResultRecording({
+        candidate: {
+          ...candidate,
+          results: [
+            {
+              ...candidate.results[0],
+              skillArtifactEvidence: [
+                {
+                  ...candidate.results[0].skillArtifactEvidence[0],
+                  files: [
+                    {
+                      ...candidate.results[0].skillArtifactEvidence[0].files[0],
+                      omission: 'non-utf8',
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        caseDefinitions,
+      }),
+    /invalid case evidence/,
+  );
+});
+
 test('semantic candidate validation rejects internally inconsistent evidence', () => {
   const caseDefinitions = [CASE_DEFINITION];
   const candidate = mergeSemanticCandidateResult(

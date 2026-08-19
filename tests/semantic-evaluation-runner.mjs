@@ -14,6 +14,8 @@ import {
   lstat,
   mkdir,
   mkdtemp,
+  open,
+  opendir,
   readFile,
   readdir,
   readlink,
@@ -59,6 +61,8 @@ const MAX_SKILL_EVIDENCE_FILES = 32;
 const MAX_SKILL_EVIDENCE_FILE_BYTES = 32_768;
 const MAX_SKILL_EVIDENCE_ROOTS = 8;
 const MAX_SKILL_EVIDENCE_DIRECTORIES = 32;
+const MAX_SKILL_EVIDENCE_TRAVERSAL_ENTRIES = 64;
+const MAX_SKILL_EVIDENCE_RESOURCE_REFERENCES = 32;
 const MAX_SKILL_ACTIVATION_SCENARIOS = 8;
 const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const REQUIRED_CODEX_FLAGS = [
@@ -446,6 +450,11 @@ const hasValidSkillArtifactEvidence = (skillArtifactEvidence, caseDefinition) =>
         entry.truncatedFileCount >= 0 &&
         Number.isSafeInteger(entry.truncatedDirectoryCount) &&
         entry.truncatedDirectoryCount >= 0 &&
+        (entry.isTraversalTruncated === undefined ||
+          typeof entry.isTraversalTruncated === 'boolean') &&
+        (entry.truncatedResourceReferenceCount === undefined ||
+          (Number.isSafeInteger(entry.truncatedResourceReferenceCount) &&
+            entry.truncatedResourceReferenceCount >= 0)) &&
         Number.isSafeInteger(entry.excludedDirectoryCount) &&
         entry.excludedDirectoryCount >= 0 &&
         entry.validation &&
@@ -460,6 +469,7 @@ const hasValidSkillArtifactEvidence = (skillArtifactEvidence, caseDefinition) =>
         entry.directories.length <= MAX_SKILL_EVIDENCE_DIRECTORIES &&
         entry.directories.every((path) => typeof path === 'string') &&
         Array.isArray(entry.resourceReferences) &&
+        entry.resourceReferences.length <= MAX_SKILL_EVIDENCE_RESOURCE_REFERENCES &&
         entry.resourceReferences.every(
           (reference) =>
             reference &&
@@ -475,7 +485,8 @@ const hasValidSkillArtifactEvidence = (skillArtifactEvidence, caseDefinition) =>
             file &&
             typeof file.path === 'string' &&
             Number.isSafeInteger(file.mode) &&
-            /^[a-f0-9]{64}$/.test(file.sha256) &&
+            (/^[a-f0-9]{64}$/.test(file.sha256) ||
+              (file.sha256 === null && file.omission === 'file-too-large')) &&
             (isBoundedEvidenceText(file.content, MAX_SKILL_EVIDENCE_FILE_BYTES) ||
               file.content === null) &&
             (file.omission === null ||
@@ -2310,12 +2321,79 @@ const inspectSkillResourceReference = async (repositoryPath, root, reference) =>
   }
 };
 
+/** Reads at most one byte beyond the evidence limit so oversized files stay resource-bounded. */
+const readBoundedEvidenceFile = async (path) => {
+  const fileHandle = await open(path, 'r');
+  const buffer = Buffer.alloc(MAX_SKILL_EVIDENCE_FILE_BYTES + 1);
+  let totalBytesRead = 0;
+
+  try {
+    while (totalBytesRead < buffer.byteLength) {
+      const { bytesRead } = await fileHandle.read(
+        buffer,
+        totalBytesRead,
+        buffer.byteLength - totalBytesRead,
+        totalBytesRead,
+      );
+      if (bytesRead === 0) break;
+      totalBytesRead += bytesRead;
+    }
+  } finally {
+    await fileHandle.close();
+  }
+
+  return {
+    content: buffer.subarray(0, Math.min(totalBytesRead, MAX_SKILL_EVIDENCE_FILE_BYTES)),
+    isTruncated: totalBytesRead > MAX_SKILL_EVIDENCE_FILE_BYTES,
+  };
+};
+
+/** Reads a deterministic directory batch only when the complete batch fits the remaining limit. */
+const readBoundedDirectoryEntries = async (directoryPath, maximumEntries) => {
+  const directory = await opendir(directoryPath);
+  const entries = [];
+
+  try {
+    while (entries.length <= maximumEntries) {
+      const entry = await directory.read();
+      if (entry === null) {
+        return {
+          entries: entries.sort((left, right) => left.name.localeCompare(right.name)),
+          isTruncated: false,
+        };
+      }
+      entries.push(entry);
+    }
+  } finally {
+    await directory.close();
+  }
+
+  return { entries: [], isTruncated: true };
+};
+
+/** Captures metadata for a file or symlink without reading regular-file content. */
+const inspectSkillArtifactPath = async (absolutePath) => {
+  const stats = await lstat(absolutePath);
+  if (stats.isDirectory()) return { type: 'directory' };
+  if (stats.isSymbolicLink()) {
+    return {
+      mode: stats.mode,
+      target: await readlink(absolutePath),
+      type: 'symlink',
+    };
+  }
+  if (stats.isFile()) return { mode: stats.mode, type: 'file' };
+  return { type: 'other' };
+};
+
 /** Collects bounded post-execution evidence from one configured skill artifact root. */
 const collectConfiguredSkillArtifact = async (repositoryPath, artifact) => {
   const absoluteRoot = join(repositoryPath, artifact.root);
   const directoryPaths = [];
   const fileStates = new Map();
   let excludedDirectoryCount = 0;
+  let isTraversalTruncated = false;
+  let remainingTraversalEntries = MAX_SKILL_EVIDENCE_TRAVERSAL_ENTRIES;
   let rootType = 'missing';
 
   try {
@@ -2333,9 +2411,18 @@ const collectConfiguredSkillArtifact = async (repositoryPath, artifact) => {
 
   const visit = async (directoryPath) => {
     directoryPaths.push(relative(repositoryPath, directoryPath).replaceAll('\\', '/'));
-    const entries = (await readdir(directoryPath, { withFileTypes: true })).sort((left, right) =>
-      left.name.localeCompare(right.name),
+    const directoryBatch = await readBoundedDirectoryEntries(
+      directoryPath,
+      remainingTraversalEntries,
     );
+    if (directoryBatch.isTruncated) {
+      isTraversalTruncated = true;
+      remainingTraversalEntries = 0;
+      return;
+    }
+    remainingTraversalEntries -= directoryBatch.entries.length;
+
+    const entries = directoryBatch.entries;
     for (const entry of entries) {
       if (EXCLUDED_CONTEXT_DIRECTORY_NAMES.has(entry.name)) {
         if (entry.isDirectory()) excludedDirectoryCount += 1;
@@ -2343,48 +2430,38 @@ const collectConfiguredSkillArtifact = async (repositoryPath, artifact) => {
       }
       const absolutePath = join(directoryPath, entry.name);
       const relativePath = relative(repositoryPath, absolutePath).replaceAll('\\', '/');
-      const stats = await lstat(absolutePath);
-      if (stats.isDirectory()) {
+      const state = await inspectSkillArtifactPath(absolutePath);
+      if (state.type === 'directory') {
         await visit(absolutePath);
-      } else if (stats.isSymbolicLink()) {
-        fileStates.set(relativePath, {
-          mode: stats.mode,
-          target: await readlink(absolutePath),
-          type: 'symlink',
-        });
-      } else if (stats.isFile()) {
-        fileStates.set(relativePath, {
-          mode: stats.mode,
-          sha256: createHash('sha256')
-            .update(await readFile(absolutePath))
-            .digest('hex'),
-          type: 'file',
-        });
+      } else if (state.type === 'symlink' || state.type === 'file') {
+        fileStates.set(relativePath, state);
       }
     }
   };
 
-  if (rootType === 'directory') await visit(absoluteRoot);
-
   const directoryName = basename(artifact.root);
   const skillDocumentPath = `${artifact.root}/SKILL.md`;
-  const skillDocumentState = fileStates.get(skillDocumentPath);
-  let skillDocumentContent = null;
-  let validation = {
-    description: null,
-    errors: [
-      rootType === 'directory' ? 'missing-skill-document' : `invalid-skill-root:${rootType}`,
-    ],
-    name: null,
-    valid: false,
-  };
-  if (skillDocumentState?.type === 'file') {
-    skillDocumentContent = await readFile(join(repositoryPath, skillDocumentPath), 'utf8');
-    validation = validateSkillDocument(skillDocumentContent, directoryName);
+  if (rootType === 'directory') {
+    try {
+      const skillDocumentState = await inspectSkillArtifactPath(
+        join(repositoryPath, skillDocumentPath),
+      );
+      if (skillDocumentState.type === 'symlink' || skillDocumentState.type === 'file') {
+        fileStates.set(skillDocumentPath, skillDocumentState);
+      }
+    } catch (error) {
+      if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error;
+    }
+    await visit(absoluteRoot);
   }
 
   const artifactPaths = [...fileStates.keys()].sort();
-  const selectedPaths = artifactPaths.slice(0, MAX_SKILL_EVIDENCE_FILES);
+  const selectedPaths = artifactPaths.includes(skillDocumentPath)
+    ? [skillDocumentPath, ...artifactPaths.filter((path) => path !== skillDocumentPath)].slice(
+        0,
+        MAX_SKILL_EVIDENCE_FILES,
+      )
+    : artifactPaths.slice(0, MAX_SKILL_EVIDENCE_FILES);
   const files = [];
   for (const path of selectedPaths) {
     const state = fileStates.get(path);
@@ -2399,29 +2476,48 @@ const collectConfiguredSkillArtifact = async (repositoryPath, artifact) => {
       continue;
     }
 
-    const fileContent = await readFile(join(repositoryPath, path));
+    const boundedFile = await readBoundedEvidenceFile(join(repositoryPath, path));
     let content = null;
     let omission = 'file-too-large';
-    if (fileContent.byteLength <= MAX_SKILL_EVIDENCE_FILE_BYTES) {
+    let sha256 = null;
+    if (!boundedFile.isTruncated) {
+      sha256 = createHash('sha256').update(boundedFile.content).digest('hex');
       try {
-        content = new TextDecoder('utf-8', { fatal: true }).decode(fileContent);
+        content = new TextDecoder('utf-8', { fatal: true }).decode(boundedFile.content);
         omission = null;
       } catch {
         omission = 'non-utf8';
       }
     }
-    files.push({
-      content,
-      mode: state.mode,
-      omission,
-      path,
-      sha256: state.sha256,
-    });
+    files.push({ content, mode: state.mode, omission, path, sha256 });
+  }
+
+  const skillDocumentEvidence = files.find(({ path }) => path === skillDocumentPath);
+  let skillDocumentContent = null;
+  let validation = {
+    description: null,
+    errors: [
+      rootType === 'directory' ? 'missing-skill-document' : `invalid-skill-root:${rootType}`,
+    ],
+    name: null,
+    valid: false,
+  };
+  if (skillDocumentEvidence?.content !== null && skillDocumentEvidence?.content !== undefined) {
+    skillDocumentContent = skillDocumentEvidence.content;
+    validation = validateSkillDocument(skillDocumentContent, directoryName);
+  } else if (skillDocumentEvidence?.omission === 'file-too-large') {
+    validation.errors = ['skill-document-too-large'];
+  } else if (skillDocumentEvidence?.omission === 'non-utf8') {
+    validation.errors = ['invalid-skill-document-encoding'];
   }
 
   const resourceReferences = [];
+  let truncatedResourceReferenceCount = 0;
   if (skillDocumentContent !== null) {
-    for (const reference of extractSkillResourceReferences(skillDocumentContent)) {
+    const references = extractSkillResourceReferences(skillDocumentContent);
+    const selectedReferences = references.slice(0, MAX_SKILL_EVIDENCE_RESOURCE_REFERENCES);
+    truncatedResourceReferenceCount = references.length - selectedReferences.length;
+    for (const reference of selectedReferences) {
       resourceReferences.push(
         await inspectSkillResourceReference(repositoryPath, artifact.root, reference),
       );
@@ -2433,12 +2529,14 @@ const collectConfiguredSkillArtifact = async (repositoryPath, artifact) => {
     directories: selectedDirectories,
     excludedDirectoryCount,
     files,
+    isTraversalTruncated,
     resourceReferences,
     role: artifact.role,
     root: artifact.root,
     rootType,
     truncatedDirectoryCount: directoryPaths.length - selectedDirectories.length,
     truncatedFileCount: artifactPaths.length - selectedPaths.length,
+    truncatedResourceReferenceCount,
     validation,
   };
 };

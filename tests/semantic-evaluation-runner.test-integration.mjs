@@ -119,11 +119,100 @@ test('skill artifact evidence exposes bounded content and independent validation
     );
     assert.match(evidence[0].files[0].content, /Read `references\/package-managers\.md`/);
     assert.equal(evidence[0].files[1].omission, 'file-too-large');
+    assert.equal(evidence[0].files[1].sha256, null);
     assert.equal(evidence[0].files[2].omission, 'symlink');
     assert.match(evidence[0].files[3].content, /Verify npm and pnpm/);
+    assert.equal(evidence[0].isTraversalTruncated, false);
+    assert.equal(evidence[0].truncatedResourceReferenceCount, 0);
     assert.equal(evidence[1].role, 'distributed-copy');
     assert.equal(evidence[1].validation.valid, true);
     assert.equal(evidence[1].files[0].path, 'dist/skills/release-review/SKILL.md');
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('skill artifact evidence stops traversal and reference inspection at hard limits', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-skill-evidence-limits-test-'));
+  const skillRoot = join(evaluationRoot, 'skills', 'bounded-skill');
+  mkdirSync(skillRoot, { recursive: true });
+  const references = Array.from(
+    { length: 40 },
+    (_, index) => `Read \`references/resource-${String(index).padStart(2, '0')}.md\`.`,
+  );
+  writeFileSync(
+    join(skillRoot, 'SKILL.md'),
+    [
+      '---',
+      'name: bounded-skill',
+      'description: Exercises evaluator evidence limits when skill artifacts are unusually large.',
+      '---',
+      '',
+      '# Bounded skill',
+      '',
+      ...references,
+    ].join('\n'),
+  );
+  for (let index = 0; index < 40; index += 1) {
+    mkdirSync(join(skillRoot, `directory-${String(index).padStart(2, '0')}`));
+    writeFileSync(join(skillRoot, `file-${String(index).padStart(2, '0')}.txt`), 'evidence');
+  }
+
+  try {
+    const [evidence] = await collectSkillArtifactEvidence(evaluationRoot, {
+      id: 'skill-evidence-resource-limits',
+      skillEvidence: {
+        activationScenarios: [],
+        artifacts: [{ role: 'authoritative-source', root: 'skills/bounded-skill' }],
+      },
+    });
+
+    assert.equal(evidence.isTraversalTruncated, true);
+    assert.deepEqual(evidence.directories, ['skills/bounded-skill']);
+    assert.deepEqual(
+      evidence.files.map(({ path }) => path),
+      ['skills/bounded-skill/SKILL.md'],
+    );
+    assert.equal(evidence.resourceReferences.length, 32);
+    assert.equal(evidence.truncatedResourceReferenceCount, 8);
+    assert.equal(evidence.validation.valid, true);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('skill artifact evidence accepts the exact traversal limit without a false truncation', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-skill-evidence-boundary-test-'));
+  const skillRoot = join(evaluationRoot, 'skills', 'boundary-skill');
+  mkdirSync(skillRoot, { recursive: true });
+  writeFileSync(
+    join(skillRoot, 'SKILL.md'),
+    [
+      '---',
+      'name: boundary-skill',
+      'description: Exercises the exact semantic evidence traversal boundary.',
+      '---',
+      '',
+      '# Boundary skill',
+    ].join('\n'),
+  );
+  for (let index = 0; index < 63; index += 1) {
+    mkdirSync(join(skillRoot, `directory-${String(index).padStart(2, '0')}`));
+  }
+
+  try {
+    const [evidence] = await collectSkillArtifactEvidence(evaluationRoot, {
+      id: 'skill-evidence-exact-traversal-limit',
+      skillEvidence: {
+        activationScenarios: [],
+        artifacts: [{ role: 'authoritative-source', root: 'skills/boundary-skill' }],
+      },
+    });
+
+    assert.equal(evidence.isTraversalTruncated, false);
+    assert.equal(evidence.directories.length, 32);
+    assert.equal(evidence.truncatedDirectoryCount, 32);
+    assert.equal(evidence.validation.valid, true);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

@@ -14,7 +14,7 @@ const FORWARDED_ENVIRONMENT_NAMES = [
 ] as const;
 
 /** Creates the minimal inherited environment used by Codex and its sandboxed commands. */
-export const createCodexEnvironment = (candidateRuntimeDirectory: string): NodeJS.ProcessEnv => {
+export const createCodexEnvironment = (projectDirectory: string): NodeJS.ProcessEnv => {
   const environment: NodeJS.ProcessEnv = {};
 
   for (const environmentName of FORWARDED_ENVIRONMENT_NAMES) {
@@ -25,7 +25,7 @@ export const createCodexEnvironment = (candidateRuntimeDirectory: string): NodeJ
     }
   }
 
-  const candidateBinaryDirectory = path.join(candidateRuntimeDirectory, 'node_modules', '.bin');
+  const candidateBinaryDirectory = path.join(projectDirectory, 'node_modules', '.bin');
   environment['PATH'] = `${candidateBinaryDirectory}${path.delimiter}${environment['PATH'] ?? ''}`;
   environment['NO_COLOR'] = '1';
   environment['CI'] = 'true';

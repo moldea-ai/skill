@@ -2,7 +2,7 @@ import { access } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
-  PACKAGES_REPOSITORY_ROOT,
+  DEFAULT_PACKAGES_REPOSITORY,
   QUALIFICATION_CASES_PATH,
   QUALIFICATION_PROFILES_ROOT,
 } from '../constants/index.ts';
@@ -20,8 +20,6 @@ import {
   type IRuntimeCompatibilityMatrix,
 } from './types.ts';
 
-const matrixPath = path.join(PACKAGES_REPOSITORY_ROOT, 'compatibility', 'runtimes.yaml');
-
 const pathExists = async (candidatePath: string): Promise<boolean> => {
   try {
     await access(candidatePath);
@@ -32,9 +30,13 @@ const pathExists = async (candidatePath: string): Promise<boolean> => {
 };
 
 /** Reads the canonical strict runtime compatibility matrix. */
-export const loadRuntimeCompatibilityMatrix = async (): Promise<IRuntimeCompatibilityMatrix> => {
-  return readYamlFile(matrixPath, RuntimeCompatibilityMatrixSchema);
-};
+export const loadRuntimeCompatibilityMatrix = async (
+  packagesRepository: string = DEFAULT_PACKAGES_REPOSITORY,
+): Promise<IRuntimeCompatibilityMatrix> =>
+  readYamlFile(
+    path.join(packagesRepository, 'compatibility', 'runtimes.yaml'),
+    RuntimeCompatibilityMatrixSchema,
+  );
 
 /** Lists every matrix adapter and implementation with an explicit local availability reason. */
 export const listQualificationImplementations = async (): Promise<
@@ -85,9 +87,10 @@ export const listQualificationImplementations = async (): Promise<
 /** Resolves one exact adapter target and validates its committed profile and case catalog. */
 export const resolveQualificationTarget = async (
   candidateSelection: IQualificationSelection,
+  packagesRepository: string = DEFAULT_PACKAGES_REPOSITORY,
 ): Promise<IResolvedQualificationTarget> => {
   const selection = QualificationSelectionSchema.parse(candidateSelection);
-  const matrix = await loadRuntimeCompatibilityMatrix();
+  const matrix = await loadRuntimeCompatibilityMatrix(packagesRepository);
   const adapter = matrix.adapters[selection.adapterId];
 
   if (adapter === undefined) {

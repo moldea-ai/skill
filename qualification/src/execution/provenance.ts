@@ -21,6 +21,7 @@ export const createQualificationExecutionProvenance = async (options: {
   qualificationDigest: string;
   qualificationState: IGitRepositoryState;
   skillState: IGitRepositoryState;
+  targetSupportLevel: string;
 }): Promise<IQualificationExecutionProvenance> => {
   const [codexVersion, pnpmVersion, gitVersion] = await Promise.all([
     readVersion(() => options.host.getVersion()),
@@ -46,6 +47,7 @@ export const createQualificationExecutionProvenance = async (options: {
     packagesRepositoryCommit: options.packagesState.commit,
     packagesRepositoryFingerprint: options.packagesState.fingerprint,
     packagesRepositoryDirty: options.packagesState.isDirty,
+    targetSupportLevel: options.targetSupportLevel,
     qualificationRepositoryCommit: options.qualificationState.commit,
     qualificationRepositoryDirty: options.qualificationState.isDirty,
     skillRepositoryCommit: options.skillState.commit,

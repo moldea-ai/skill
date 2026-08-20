@@ -1,3 +1,8 @@
+import { execFileSync } from 'node:child_process';
+import { lstatSync } from 'node:fs';
+import path from 'node:path';
+
+import { parseRepositoryPath } from '@moldea.ai/repository';
 import { createMemoryRepositoryReader } from '@moldea.ai/repository/memory';
 import { createFilesystemRepositoryReader } from '@moldea.ai/repository-fs';
 import { createCore } from '@moldea.ai/core';
@@ -8,9 +13,35 @@ if (projectDirectory === undefined) {
   throw new TypeError('The direct verifier requires one project directory.');
 }
 
+const gitPaths = execFileSync(
+  'git',
+  ['ls-files', '-z', '--cached', '--others', '--exclude-standard'],
+  {
+    cwd: projectDirectory,
+    encoding: 'utf8',
+    maxBuffer: 16 * 1024 * 1024,
+  },
+)
+  .split('\0')
+  .filter((relativePath) => relativePath !== '')
+  .filter((relativePath) => {
+    try {
+      lstatSync(path.join(projectDirectory, relativePath));
+      return true;
+    } catch (error) {
+      if (error !== null && typeof error === 'object' && error.code === 'ENOENT') {
+        return false;
+      }
+
+      throw error;
+    }
+  });
+const selectedPaths = [...new Set(gitPaths)].map((relativePath) =>
+  parseRepositoryPath(`/${relativePath}`),
+);
 const filesystemRepository = await createFilesystemRepositoryReader({
   rootDirectory: projectDirectory,
-  selection: { kind: 'directory' },
+  selection: { kind: 'paths', paths: selectedPaths },
 });
 const memoryEntries = [];
 

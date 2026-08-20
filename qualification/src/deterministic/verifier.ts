@@ -2,7 +2,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 
-import { PACKAGES_REPOSITORY_ROOT } from '../constants/index.ts';
 import { DeterministicVerificationSchema, type ICandidateClosure } from '../contracts/index.ts';
 import { collectDirectoryFingerprintEntries, copyFileWithParents } from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
@@ -41,6 +40,7 @@ const parseCliOutput = (output: string): z.infer<typeof CliEnvelopeSchema> =>
 export const verifyDeterministicProject = async (options: {
   candidate: ICandidateClosure;
   expectedInspectionStatus: 'invalid' | 'valid';
+  packagesRepository: string;
   signal?: AbortSignal | undefined;
   workspaceDirectory: string;
 }): Promise<IDeterministicVerificationArtifact> => {
@@ -65,7 +65,7 @@ export const verifyDeterministicProject = async (options: {
   });
   const direct = DirectVerificationSchema.parse(JSON.parse(directResult.stdout) as unknown);
   const cliExecutablePath = path.join(
-    options.candidate.runtimeDirectory,
+    options.workspaceDirectory,
     'node_modules',
     '@moldea.ai',
     'cli',
@@ -110,7 +110,7 @@ export const verifyDeterministicProject = async (options: {
     executeProcess({
       command: process.execPath,
       args: [
-        path.join(PACKAGES_REPOSITORY_ROOT, 'node_modules', 'typescript', 'bin', 'tsc'),
+        path.join(options.packagesRepository, 'node_modules', 'typescript', 'bin', 'tsc'),
         '--project',
         path.join(options.workspaceDirectory, 'tsconfig.json'),
         '--noEmit',

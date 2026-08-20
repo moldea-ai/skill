@@ -1,6 +1,12 @@
 import type { IQualificationCommand } from './types.ts';
 
-const VALUE_OPTIONS = new Set(['--adapter', '--attempt', '--implementation', '--skill-repository']);
+const VALUE_OPTIONS = new Set([
+  '--adapter',
+  '--attempt',
+  '--implementation',
+  '--packages-repository',
+  '--skill-repository',
+]);
 const BOOLEAN_OPTIONS = new Set([
   '--all',
   '--confirm-paid-execution',
@@ -119,6 +125,7 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           '--implementation',
           '--json',
           '--no-cache',
+          '--packages-repository',
           '--skill-repository',
         ]),
       );
@@ -128,6 +135,9 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           adapterId: requireValue(options, '--adapter'),
           implementationId: requireValue(options, '--implementation'),
         },
+        ...(options.values.has('--packages-repository')
+          ? { packagesRepository: requireValue(options, '--packages-repository') }
+          : {}),
         ...(options.values.has('--skill-repository')
           ? { skillRepository: requireValue(options, '--skill-repository') }
           : {}),

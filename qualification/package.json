@@ -9,6 +9,9 @@
     "npm": ">=10.9.0 <12.0.0"
   },
   "scripts": {
+    "format": "prettier --write --config .prettierrc . ../tooling/package-candidate/index.d.mts ../README.md ../package.json",
+    "format:check": "prettier --check --config .prettierrc . ../tooling/package-candidate/index.d.mts ../README.md ../package.json",
+    "lint": "eslint eslint.config.js profiles src vitest",
     "qualification": "node src/bin/index.ts",
     "test": "npm run test:unit && npm run test:integration",
     "test:integration": "vitest run --config vitest/test-integration.config.ts",
@@ -21,8 +24,14 @@
     "zod": "4.3.6"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@types/node": "22.20.1",
+    "eslint": "10.8.1",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.9.0",
+    "prettier": "3.9.6",
     "typescript": "6.0.3",
+    "typescript-eslint": "8.66.0",
     "vitest": "4.1.10"
   }
 }

@@ -65,13 +65,13 @@ describe('qualification execution', () => {
     let actorCalls = 0;
     let judgeCalls = 0;
     const host = new FakeCodexHost({
-      actor: async () => {
+      actor: () => {
         actorCalls += 1;
-        throw new Error('Actor must not run after source-state failure.');
+        return Promise.reject(new Error('Actor must not run after source-state failure.'));
       },
-      judge: async () => {
+      judge: () => {
         judgeCalls += 1;
-        throw new Error('Judge must not run after source-state failure.');
+        return Promise.reject(new Error('Judge must not run after source-state failure.'));
       },
     });
     const outcome = await runQualification({

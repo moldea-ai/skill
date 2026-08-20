@@ -29,7 +29,10 @@ import {
 } from '../filesystem/index.ts';
 import {
   applyExpectedDryRunState,
+  assertCandidateProjectRuntimeIntegrity,
   captureQualificationProjectSnapshot,
+  MOUNTED_SKILL_RELATIVE_PATH,
+  QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,
   restoreQualificationProjectSnapshot,
   type IPreparedQualificationProject,
 } from '../project-fixture/index.ts';
@@ -82,7 +85,8 @@ type ISharedModelStageOptions = {
 
 const getProjectFingerprint = (project: IPreparedQualificationProject): Promise<string> =>
   calculateDirectoryFingerprint(project.workspaceDirectory, {
-    excludedDirectoryNames: new Set(['.git', '.moldea-qualification', 'node_modules']),
+    excludedDirectoryNames: new Set(QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES),
+    excludedRelativePathPrefixes: [MOUNTED_SKILL_RELATIVE_PATH],
   });
 
 const writeModelArtifacts = async <TOutput>(options: {
@@ -124,9 +128,6 @@ export const executeActorModelStage = async (
   options: ISharedModelStageOptions & { snapshotDirectory: string },
 ): Promise<IActorStageResult> => {
   const prompt = buildActorPrompt({
-    adapterId: options.adapterId,
-    implementationId: options.implementationId,
-    scenario: options.project.scenario,
     task: options.task,
   });
   const cacheKey = calculateModelCacheKey({
@@ -170,7 +171,7 @@ export const executeActorModelStage = async (
     const execution = await options.host.runActor({
       artifactDirectory: options.caseArtifactDirectory,
       caseId: options.project.scenario.id,
-      environment: createCodexEnvironment(options.candidate.runtimeDirectory),
+      environment: createCodexEnvironment(options.project.workspaceDirectory),
       prompt,
       scenario: options.project.scenario,
       schema: ActorOutputSchema,
@@ -184,18 +185,20 @@ export const executeActorModelStage = async (
     createdAt = new Date().toISOString();
     sourceAttemptId = options.attemptId;
     cacheSourceAttemptId = null;
+  }
 
-    if (options.useCache && !options.isDryRun) {
-      await writeActorCache({
-        cacheKey,
-        sourceAttemptId: options.attemptId,
-        output,
-        durationMs,
-        events,
-        usage,
-        workspaceDirectory: options.project.workspaceDirectory,
-      });
-    }
+  await assertCandidateProjectRuntimeIntegrity(options.project);
+
+  if (cacheHit === null && options.useCache && !options.isDryRun) {
+    await writeActorCache({
+      cacheKey,
+      sourceAttemptId: options.attemptId,
+      output,
+      durationMs,
+      events,
+      usage,
+      workspaceDirectory: options.project.workspaceDirectory,
+    });
   }
 
   await rm(options.snapshotDirectory, { force: true, recursive: true });
@@ -221,6 +224,7 @@ export const restoreActorModelStage = async (options: {
   snapshotDirectory: string;
 }): Promise<IActorStageResult> => {
   await restoreQualificationProjectSnapshot(options.project, options.snapshotDirectory);
+  await assertCandidateProjectRuntimeIntegrity(options.project);
   const output = await readJsonFile(
     path.join(options.caseArtifactDirectory, 'actor-output.json'),
     ActorOutputSchema,
@@ -289,7 +293,7 @@ export const executeJudgeModelStage = async (
     const execution = await options.host.runJudge({
       artifactDirectory: options.caseArtifactDirectory,
       caseId: options.project.scenario.id,
-      environment: createCodexEnvironment(options.candidate.runtimeDirectory),
+      environment: createCodexEnvironment(options.project.workspaceDirectory),
       prompt,
       scenario: options.project.scenario,
       schema: JudgeOutputSchema,

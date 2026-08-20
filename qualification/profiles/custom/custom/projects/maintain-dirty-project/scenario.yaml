@@ -14,6 +14,7 @@ inspection:
 workspace:
   expectation: changed
   mustPreservePaths:
+    - .agents/project-policy.md
     - src/operator-notes.ts
     - notes/local-observation.md
     - src/support-agent.ts
@@ -22,6 +23,7 @@ workspace:
     - moldea/moldea.yaml
     - moldea/agents/support/instruction.md
   mustExistPaths:
+    - .agents/project-policy.md
     - moldea/context/billing.md
     - notes/local-observation.md
     - src/operator-notes.ts
@@ -32,6 +34,6 @@ judgeRequirements:
   - id: updates-instruction
     description: The agent instruction explains when the new billing context should be used while preserving its required opening identity.
   - id: preserves-dirty-state
-    description: The unrelated tracked operator note and untracked local observation remain byte-for-byte unchanged.
+    description: The unrelated project agent policy, tracked operator note, and untracked local observation remain byte-for-byte unchanged.
   - id: validates-project
     description: Repository FS, Repository memory, Core, CLI, and project typechecking all confirm the final project without read-time mutation.

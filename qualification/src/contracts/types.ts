@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { z } from 'zod';
 
-import { QUALIFICATION_PROTOCOL_VERSION } from '../constants/index.ts';
+import { DEFAULT_PACKAGES_REPOSITORY, QUALIFICATION_PROTOCOL_VERSION } from '../constants/index.ts';
 
 const StableIdSchema = z
   .string()
@@ -312,6 +312,7 @@ export const QualificationAttemptCheckpointSchema = z.strictObject({
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   completedAt: z.string().datetime().nullable(),
+  packagesRepository: z.string().min(1).default(DEFAULT_PACKAGES_REPOSITORY),
   skillRepository: z.string().min(1),
   profileDigest: z.string().regex(/^[a-f0-9]{64}$/u),
   qualificationDigest: z
@@ -320,6 +321,11 @@ export const QualificationAttemptCheckpointSchema = z.strictObject({
     .nullable()
     .default(null),
   skillDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+  packagesRepositoryFingerprint: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/u)
+    .nullable()
+    .default(null),
   packagesDigest: z.string().regex(/^[a-f0-9]{64}$/u),
   candidate: CandidateClosureSchema.nullable(),
   stages: z.record(z.string(), QualificationStageCheckpointSchema),
@@ -362,6 +368,7 @@ export const QualificationProvenanceSchema = z.strictObject({
   packagesRepositoryCommit: z.string().trim().min(1),
   packagesRepositoryFingerprint: z.string().regex(/^[a-f0-9]{64}$/u),
   packagesRepositoryDirty: z.boolean(),
+  targetSupportLevel: z.string().trim().min(1),
   qualificationRepositoryCommit: z.string().trim().min(1),
   qualificationRepositoryDirty: z.boolean(),
   skillRepositoryCommit: z.string().trim().min(1),

@@ -1,9 +1,15 @@
-import { readdir, readFile, rm } from 'node:fs/promises';
+import { readdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { stringify as stringifyYaml } from 'yaml';
 import { z } from 'zod';
 
-import { LOCAL_QUALIFICATION_ROOT, PACKAGES_REPOSITORY_ROOT } from '../constants/index.ts';
+import {
+  createSourceCandidatePlan,
+  loadCandidateArtifacts,
+  type ISourcePackageManifest,
+} from '../../../tooling/package-candidate/index.mjs';
+
+import { LOCAL_QUALIFICATION_ROOT } from '../constants/index.ts';
 import {
   CandidateClosureSchema,
   type ICandidateClosure,
@@ -18,15 +24,7 @@ import {
   writeTextFileAtomically,
 } from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
-import { resolveBuildClosure, resolveRuntimeClosure } from './resolver.ts';
-import type { ICandidatePreparationOptions, ILocalPackageManifest } from './types.ts';
-
-const PackageManifestSchema = z.object({
-  name: z.string().min(1),
-  version: z.string().min(1),
-  dependencies: z.record(z.string(), z.string()).optional(),
-  devDependencies: z.record(z.string(), z.string()).optional(),
-});
+import type { ICandidatePreparationOptions } from './types.ts';
 
 const CachedCandidateManifestSchema = z.strictObject({
   fingerprint: z.string().regex(/^[a-f0-9]{64}$/u),
@@ -41,73 +39,64 @@ const CachedCandidateManifestSchema = z.strictObject({
   ),
 });
 
-const discoverPackageManifests = async (): Promise<Map<string, ILocalPackageManifest>> => {
-  const manifests = new Map<string, ILocalPackageManifest>();
+const createCandidateFingerprint = (
+  packagesDigest: string,
+  runtimeClosure: readonly ISourcePackageManifest[],
+): string =>
+  calculateSha256(
+    `${packagesDigest}\n${runtimeClosure
+      .map(({ name, version }) => `${name}@${version}`)
+      .join('\n')}\n`,
+  );
 
-  for (const collectionDirectory of ['packages', 'projects']) {
-    const collectionPath = path.join(PACKAGES_REPOSITORY_ROOT, collectionDirectory);
-    const directoryEntries = await readdir(collectionPath, { withFileTypes: true });
-
-    for (const directoryEntry of directoryEntries) {
-      if (!directoryEntry.isDirectory()) {
-        continue;
-      }
-
-      const projectDirectory = path.join(collectionDirectory, directoryEntry.name);
-      const manifestPath = path.join(PACKAGES_REPOSITORY_ROOT, projectDirectory, 'package.json');
-
-      try {
-        const source = await readFile(manifestPath, 'utf8');
-        const manifest = PackageManifestSchema.parse(JSON.parse(source) as unknown);
-
-        manifests.set(manifest.name, {
-          name: manifest.name,
-          version: manifest.version,
-          dependencies: manifest.dependencies ?? {},
-          devDependencies: manifest.devDependencies ?? {},
-          projectDirectory,
-        });
-      } catch (error) {
-        if (
-          typeof error === 'object' &&
-          error !== null &&
-          'code' in error &&
-          error.code === 'ENOENT'
-        ) {
-          continue;
-        }
-
-        throw error;
-      }
-    }
-  }
-
-  return manifests;
-};
-
-const validateCachedCandidate = async (
-  cacheDirectory: string,
-  expectedFingerprint: string,
-): Promise<ICandidatePackage[] | null> => {
-  const manifestPath = path.join(cacheDirectory, 'candidate.json');
-
+const validateCachedCandidate = async (options: {
+  adapterPackage: string;
+  cacheDirectory: string;
+  expectedFingerprint: string;
+  runtimeClosure: readonly ISourcePackageManifest[];
+}): Promise<ICandidatePackage[] | null> => {
   try {
-    const cachedManifest = await readJsonFile(manifestPath, CachedCandidateManifestSchema);
+    const cachedManifest = await readJsonFile(
+      path.join(options.cacheDirectory, 'candidate.json'),
+      CachedCandidateManifestSchema,
+    );
 
-    if (cachedManifest.fingerprint !== expectedFingerprint) {
+    if (cachedManifest.fingerprint !== options.expectedFingerprint) {
       return null;
     }
 
+    const expectedPackages = options.runtimeClosure.map(({ name, projectDirectory, version }) => ({
+      name,
+      projectDirectory,
+      version,
+    }));
+    const cachedPackages = cachedManifest.packages.map(({ name, projectDirectory, version }) => ({
+      name,
+      projectDirectory,
+      version,
+    }));
+
+    if (JSON.stringify(cachedPackages) !== JSON.stringify(expectedPackages)) {
+      return null;
+    }
+
+    const candidate = loadCandidateArtifacts(options.cacheDirectory, [options.adapterPackage]);
     const packages: ICandidatePackage[] = [];
 
-    for (const candidatePackage of cachedManifest.packages) {
-      const tarballPath = path.join(cacheDirectory, candidatePackage.tarballName);
+    for (const cachedPackage of cachedManifest.packages) {
+      const artifact = candidate.artifacts.get(cachedPackage.name);
+      const tarballPath = path.join(options.cacheDirectory, cachedPackage.tarballName);
 
-      if ((await calculateFileSha256(tarballPath)) !== candidatePackage.sha256) {
+      if (
+        artifact === undefined ||
+        artifact.archiveName !== cachedPackage.tarballName ||
+        artifact.manifest.version !== cachedPackage.version ||
+        (await calculateFileSha256(tarballPath)) !== cachedPackage.sha256
+      ) {
         return null;
       }
 
-      packages.push({ ...candidatePackage, tarballPath });
+      packages.push({ ...cachedPackage, tarballPath });
     }
 
     return packages;
@@ -116,79 +105,74 @@ const validateCachedCandidate = async (
   }
 };
 
-const buildAndPackCandidate = async (
-  manifests: ReadonlyMap<string, ILocalPackageManifest>,
-  runtimeClosure: readonly ILocalPackageManifest[],
-  cacheDirectory: string,
-  fingerprint: string,
-  signal: AbortSignal | undefined,
-): Promise<ICandidatePackage[]> => {
-  const buildClosure = resolveBuildClosure(manifests, runtimeClosure);
-
-  for (const manifest of buildClosure) {
+const buildAndPackCandidate = async (options: {
+  adapterPackage: string;
+  buildClosure: readonly ISourcePackageManifest[];
+  cacheDirectory: string;
+  fingerprint: string;
+  packagesRepository: string;
+  runtimeClosure: readonly ISourcePackageManifest[];
+  signal: AbortSignal | undefined;
+}): Promise<ICandidatePackage[]> => {
+  for (const manifest of options.buildClosure) {
     await executeProcess({
       command: 'pnpm',
       args: ['--filter', manifest.name, 'build'],
-      cwd: PACKAGES_REPOSITORY_ROOT,
-      signal,
+      cwd: options.packagesRepository,
+      signal: options.signal,
     });
   }
 
-  await ensureDirectory(cacheDirectory);
-  const packages: ICandidatePackage[] = [];
+  await ensureDirectory(options.cacheDirectory);
 
-  for (const manifest of runtimeClosure) {
+  for (const manifest of options.runtimeClosure) {
     const existingTarballs = new Set(
-      (await readdir(cacheDirectory)).filter((fileName) => fileName.endsWith('.tgz')),
+      (await readdir(options.cacheDirectory)).filter((fileName) => fileName.endsWith('.tgz')),
     );
-
     await executeProcess({
       command: 'pnpm',
-      args: [
-        '--dir',
-        path.join(PACKAGES_REPOSITORY_ROOT, manifest.projectDirectory),
-        'pack',
-        '--pack-destination',
-        cacheDirectory,
-      ],
-      cwd: PACKAGES_REPOSITORY_ROOT,
-      signal,
+      args: ['pack', '--pack-destination', options.cacheDirectory],
+      cwd: path.join(options.packagesRepository, manifest.projectDirectory),
+      signal: options.signal,
     });
-
-    const newTarballs = (await readdir(cacheDirectory)).filter(
+    const newTarballs = (await readdir(options.cacheDirectory)).filter(
       (fileName) => fileName.endsWith('.tgz') && !existingTarballs.has(fileName),
     );
 
     if (newTarballs.length !== 1) {
       throw new Error(`Packing ${manifest.name} did not create exactly one candidate tarball.`);
     }
-
-    const tarballName = newTarballs[0];
-
-    if (tarballName === undefined) {
-      throw new Error(`Packing ${manifest.name} did not report a candidate tarball.`);
-    }
-
-    const tarballPath = path.join(cacheDirectory, tarballName);
-
-    packages.push({
-      name: manifest.name,
-      version: manifest.version,
-      projectDirectory: manifest.projectDirectory,
-      tarballPath,
-      tarballName,
-      sha256: await calculateFileSha256(tarballPath),
-    });
   }
 
-  await writeJsonFileAtomically(path.join(cacheDirectory, 'candidate.json'), {
-    fingerprint,
-    packages: packages.map((candidatePackage) => ({
-      name: candidatePackage.name,
-      version: candidatePackage.version,
-      projectDirectory: candidatePackage.projectDirectory,
-      tarballName: candidatePackage.tarballName,
-      sha256: candidatePackage.sha256,
+  const candidate = loadCandidateArtifacts(options.cacheDirectory, [options.adapterPackage]);
+  const packages = await Promise.all(
+    options.runtimeClosure.map(async (manifest): Promise<ICandidatePackage> => {
+      const artifact = candidate.artifacts.get(manifest.name);
+
+      if (artifact === undefined || artifact.manifest.version !== manifest.version) {
+        throw new Error(`Packed artifact identity does not match ${manifest.name}.`);
+      }
+
+      const tarballPath = path.join(options.cacheDirectory, artifact.archiveName);
+      return {
+        name: manifest.name,
+        version: manifest.version,
+        projectDirectory: manifest.projectDirectory,
+        tarballPath,
+        tarballName: artifact.archiveName,
+        sha256: await calculateFileSha256(tarballPath),
+      };
+    }),
+  );
+
+  await writeJsonFileAtomically(path.join(options.cacheDirectory, 'candidate.json'), {
+    fingerprint: options.fingerprint,
+    packages: packages.map(({ name, projectDirectory, sha256, tarballName, version }) => ({
+      name,
+      projectDirectory,
+      sha256,
+      tarballName,
+      version,
     })),
   });
 
@@ -207,15 +191,14 @@ const installCandidateRuntime = async (
       `file:${candidatePackage.tarballPath}`,
     ]),
   );
-  const packageJson = {
+
+  await writeJsonFileAtomically(path.join(runtimeDirectory, 'package.json'), {
     name: 'moldea-qualification-runtime',
     version: '0.0.0',
     private: true,
     type: 'module',
     dependencies: localDependencies,
-  };
-
-  await writeJsonFileAtomically(path.join(runtimeDirectory, 'package.json'), packageJson);
+  });
   await writeTextFileAtomically(
     path.join(runtimeDirectory, 'pnpm-workspace.yaml'),
     stringifyYaml({ overrides: localDependencies }),
@@ -229,21 +212,22 @@ const installCandidateRuntime = async (
   });
 };
 
-/** Builds, packs, verifies, caches, and installs one exact local candidate package closure. */
+/** Builds, validates, caches, and installs one exact local candidate package closure. */
 export const prepareCandidateClosure = async (
   options: ICandidatePreparationOptions,
 ): Promise<ICandidateClosure> => {
-  const manifests = await discoverPackageManifests();
-  const runtimeClosure = resolveRuntimeClosure(manifests, [
-    '@moldea.ai/cli',
+  const { buildClosure, runtimeClosure } = createSourceCandidatePlan(options.packagesRepository, [
     options.adapterPackage,
   ]);
-  const fingerprint = calculateSha256(
-    `${options.packagesDigest}\n${runtimeClosure.map(({ name, version }) => `${name}@${version}`).join('\n')}\n`,
-  );
+  const fingerprint = createCandidateFingerprint(options.packagesDigest, runtimeClosure);
   const cacheDirectory = path.join(LOCAL_QUALIFICATION_ROOT, 'candidates', fingerprint);
   const runtimeDirectory = path.join(options.attemptDirectory, 'runtime');
-  const cachedPackages = await validateCachedCandidate(cacheDirectory, fingerprint);
+  const cachedPackages = await validateCachedCandidate({
+    adapterPackage: options.adapterPackage,
+    cacheDirectory,
+    expectedFingerprint: fingerprint,
+    runtimeClosure,
+  });
 
   if (cachedPackages === null) {
     await rm(cacheDirectory, { force: true, recursive: true });
@@ -251,19 +235,17 @@ export const prepareCandidateClosure = async (
 
   const packages =
     cachedPackages ??
-    (await buildAndPackCandidate(
-      manifests,
-      runtimeClosure,
+    (await buildAndPackCandidate({
+      adapterPackage: options.adapterPackage,
+      buildClosure,
       cacheDirectory,
       fingerprint,
-      options.signal,
-    ));
+      packagesRepository: options.packagesRepository,
+      runtimeClosure,
+      signal: options.signal,
+    }));
 
   await installCandidateRuntime(packages, runtimeDirectory, options.signal);
 
-  return CandidateClosureSchema.parse({
-    fingerprint,
-    packages,
-    runtimeDirectory,
-  });
+  return CandidateClosureSchema.parse({ fingerprint, packages, runtimeDirectory });
 };

@@ -30,10 +30,12 @@ describe('qualification checkpoints', () => {
       selection: { adapterId: 'custom', implementationId: 'custom' },
       isDryRun: true,
       useCache: true,
+      packagesRepository: '/packages',
       skillRepository: '/skill',
       profileDigest: 'a'.repeat(64),
       qualificationDigest: 'd'.repeat(64),
       skillDigest: 'b'.repeat(64),
+      packagesRepositoryFingerprint: 'e'.repeat(64),
       packagesDigest: 'c'.repeat(64),
       stageIds: ['coverage', 'candidate'],
     });
@@ -57,6 +59,8 @@ describe('qualification checkpoints', () => {
 
     expect(await readAttemptCheckpoint(temporaryDirectory)).toMatchObject({
       status: 'incomplete',
+      packagesRepository: '/packages',
+      packagesRepositoryFingerprint: 'e'.repeat(64),
       qualificationDigest: 'd'.repeat(64),
       stages: {
         coverage: {

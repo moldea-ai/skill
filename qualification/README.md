@@ -8,8 +8,8 @@ The workflow answers a narrower question than semantic evaluation alone: can the
 
 Each profile combines three complementary layers:
 
-1. Matrix probes map every current compatibility claim for the selected implementation to one or more concrete cases. Missing claims, unknown claims, and uncovered cases fail before candidate construction.
-2. Deterministic verification runs before and after the actor. It compares Repository FS with an independently reconstructed Repository memory reader, exercises Core, runs the installed CLI `compatibility`, `validate`, and `inspect` commands, typechecks the fixture, and verifies that read-only inspection did not mutate the project.
+1. Matrix probes map every current behavior-affecting compatibility claim for the selected implementation to one or more concrete cases. Missing claims, unknown claims, and uncovered cases fail before candidate construction. Target maturity and verification dates are recorded as context, not treated as behavior the candidate must reproduce.
+2. Deterministic verification runs before and after the actor. It gives Repository FS the exact current Git-derived project inventory, compares that reader with an independently reconstructed Repository memory reader, exercises Core, runs the installed CLI `compatibility`, `validate`, and `inspect` commands, typechecks the fixture, and verifies that read-only inspection did not mutate the project. Runner-owned Agent Skill files, qualification inputs, and project dependencies remain outside the repository evidence inventory. The candidate dependency tree has its own integrity fingerprint and must remain exact before any post-actor command runs.
 3. Semantic journeys give the fixed Terra actor a real project task and give a separate read-only Terra judge the task, final workspace, Git diff, deterministic evidence, and explicit requirements.
 
 A passing qualification requires every layer and every case to pass. A failed semantic judgment cannot be overridden by deterministic success, and a passing model judgment cannot override a deterministic or workspace assertion failure.
@@ -23,6 +23,7 @@ The committed inputs are deliberately inspectable:
 - `profiles/<adapter>/<implementation>/probes/*.yaml` maps current compatibility claims to those cases.
 - Each project contains `scenario.yaml`, `task.md`, a committed `seed/`, optional pre-existing dirty state in `overlay/`, and the expected fake-host state in `expected/`.
 - [`profiles/custom/custom/`](profiles/custom/custom/) is the complete baseline profile for the built-in Custom adapter.
+- Each isolated workspace installs the portable skill at `.agents/skills/moldea`, which is the real Agent Skill discovery location, and installs the packed candidate CLI as an exact project-local development dependency. Other project-owned `.agents` content remains part of preservation assertions, checkpoints, and cache identity.
 
 Profiles are strict, versioned YAML contracts. Every profile must include every shared catalog case. A matrix change that creates a new claim invalidates an incomplete profile instead of silently reducing coverage.
 
@@ -45,6 +46,7 @@ npm run qualification -- list
 npm run qualification -- status
 npm run qualification -- status --all
 npm run qualification -- run --adapter custom --implementation custom
+npm run qualification -- run --adapter custom --implementation custom --packages-repository /absolute/path/to/packages
 npm run qualification -- resume --attempt <attempt-id>
 npm run qualification -- retry --attempt <attempt-id>
 npm run qualification -- record --attempt <attempt-id>
@@ -66,19 +68,22 @@ Qualification-only verification remains separate from ordinary repository tests:
 ```bash
 npm run qualification:test
 npm run qualification:typecheck
+npm run qualification:lint
+npm run qualification:format:check
+npm run qualification:verify
 ```
 
 ## Candidate construction
 
 Candidate construction discovers current immediate package projects from `projects/` and `packages/`. It starts from `@moldea.ai/cli` and the selected adapter implementation package, traverses local runtime dependencies, extends the build order with local development dependencies required to compile those packages, builds them dependency-first, and packs every runtime package.
 
-The attempt creates a nested pnpm workspace that overrides every local package identity to its exact tarball, then installs the closure with offline resolution, lifecycle scripts disabled, and strict peer dependency checks. Public evidence records every tarball's package name, version, source project, filename, and SHA-256 digest. There is no hardcoded package list and no fallback to workspace linking or published package versions.
+The attempt creates a nested pnpm workspace that overrides every local package identity to its exact tarball, then installs the closure with offline resolution, lifecycle scripts disabled, and strict peer dependency checks. Every project records the exact CLI version in `devDependencies` and receives that packed runtime under its own `node_modules`, so actor commands and deterministic checks use the project-local candidate. The runner fingerprints that dependency tree after preparation, rejects actor mutations before caching evidence or running post-actor checks, and verifies it again with the workspace assertions. Public evidence records every tarball's package name, version, source project, filename, and SHA-256 digest. There is no hardcoded package list and no fallback to workspace linking or published package versions.
 
 ## Terra execution contract
 
 Paid semantic stages always use `gpt-5.6-terra` with `medium` reasoning effort. There is no frontier-model or alternate-model fallback. The actor runs with Codex's `workspace-write` sandbox, while the independent judge runs with `read-only`. Both use non-interactive structured output, ephemeral sessions, disabled web search, ignored user configuration and exec-policy rules, a minimal environment, and approval policy `never` inside the stage.
 
-The only paid boundary is the local Codex host. Actor and judge prompts prohibit network calls, subagents, provider calls, agent execution, and runtime SDK calls. The candidate `moldea` executable is placed first on `PATH` so the skill exercises the packed local candidate.
+The only paid boundary is the local Codex host. Actor and judge prompts prohibit network calls, subagents, provider calls, agent execution, and runtime SDK calls. The project-local candidate `moldea` executable is placed first on `PATH`, and the actor receives only the natural project task rather than adapter identity or judge criteria.
 
 ## Checkpoints, resume, and cache integrity
 
@@ -96,9 +101,9 @@ Local mutable state lives under `.runtime-qualification/`, which is ignored by G
   candidates/<candidate-fingerprint>/
 ```
 
-The workflow writes a validated checkpoint atomically before and after every meaningful stage. An interruption turns the active stage back into `pending`; completed stages retain their evidence and can be restored. Resume is allowed only when the qualification suite, profile, portable skill, and package repository fingerprints still match the attempt. The portable-skill fingerprint covers only the selected skill directory. The qualification-suite fingerprint covers the engine, cases, profiles, fixtures, tests, lockfile, and documentation while excluding installed dependencies and append-only public results. Changed inputs require `retry`, which creates a new attempt identity.
+The workflow writes a validated checkpoint atomically before and after every meaningful stage. An interruption turns the active stage back into `pending`; completed stages retain their evidence and can be restored. Resume is allowed only when the exact packages checkout, qualification suite, profile, and portable skill still match the attempt, so resumed evidence cannot claim a different source fingerprint. The selected target maturity is recorded as provenance but does not become a behavioral qualification claim. Existing committed passing evidence therefore remains valid after a maturity promotion. The portable-skill fingerprint covers only the selected skill directory. The qualification-suite fingerprint covers the engine, cases, profiles, fixtures, tests, lockfile, and documentation while excluding installed dependencies and append-only public results. Changed inputs require `retry`, which creates a new attempt identity.
 
-Candidate caches are content-addressed by the package worktree fingerprint and resolved runtime closure. Candidate manifests and tarball checksums are validated before reuse; invalid or partial entries are discarded and rebuilt.
+Candidate caches are independently content-addressed by the behavior-sensitive package input digest and resolved runtime closure. This lets a new attempt reuse identical tarballs after a maturity-only matrix change without weakening the exact resume boundary. Candidate manifests and tarball checksums are validated before reuse; invalid or partial entries are discarded and rebuilt.
 
 Actor cache keys include the protocol, role, fixed model and reasoning effort, Codex version, candidate fingerprint, profile digest, skill digest, case, project state, and complete prompt. Actor entries include the exact post-actor workspace snapshot. Judge keys additionally reflect the post-actor project and complete judge prompt. Cache metadata is committed last, so incomplete writes are not considered hits. Reused evidence preserves its original creation time and source attempt in local and public provenance.
 

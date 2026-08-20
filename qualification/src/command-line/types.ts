@@ -22,6 +22,7 @@ export type IQualificationCommand =
   | {
       kind: 'run';
       selection: IQualificationSelection;
+      packagesRepository?: string;
       skillRepository?: string;
       isDryRun: boolean;
       useCache: boolean;

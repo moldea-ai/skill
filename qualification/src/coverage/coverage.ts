@@ -11,12 +11,7 @@ export const deriveRequiredQualificationClaims = (
   adapter: IRuntimeAdapterEntry,
   target: IRuntimeTarget,
 ): string[] => {
-  const claims = [
-    'qualification.support-gate',
-    'target.kind',
-    'target.language',
-    'target.support-level',
-  ];
+  const claims = ['qualification.support-gate', 'target.kind', 'target.language'];
 
   if (adapter.compatibleCoreRange !== undefined) {
     claims.push(`adapter.compatible-core-range.${adapter.compatibleCoreRange}`);

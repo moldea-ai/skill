@@ -36,7 +36,24 @@ describe('qualification model cache', () => {
     const cacheRoot = path.join(temporaryRoot, 'cache');
     const workspaceDirectory = path.join(temporaryRoot, 'workspace');
     await ensureDirectory(path.join(workspaceDirectory, '.git'));
+    await ensureDirectory(path.join(workspaceDirectory, '.agents', 'skills', 'moldea'));
+    await ensureDirectory(path.join(workspaceDirectory, 'node_modules', 'candidate'));
     await writeFile(path.join(workspaceDirectory, '.git', 'sentinel'), 'git-state\n', 'utf8');
+    await writeFile(
+      path.join(workspaceDirectory, '.agents', 'project-policy.md'),
+      'cached policy\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(workspaceDirectory, '.agents', 'skills', 'moldea', 'SKILL.md'),
+      'mounted skill\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(workspaceDirectory, 'node_modules', 'candidate', 'index.js'),
+      'candidate runtime\n',
+      'utf8',
+    );
     await writeFile(path.join(workspaceDirectory, 'project.txt'), 'cached project\n', 'utf8');
     const cacheKey = calculateModelCacheKey({ role: 'actor', input: 'stable' });
 
@@ -58,6 +75,21 @@ describe('qualification model cache', () => {
       cacheRoot,
     });
     await writeFile(path.join(workspaceDirectory, 'project.txt'), 'mutated\n', 'utf8');
+    await writeFile(
+      path.join(workspaceDirectory, '.agents', 'project-policy.md'),
+      'mutated policy\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(workspaceDirectory, '.agents', 'skills', 'moldea', 'SKILL.md'),
+      'current mounted skill\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(workspaceDirectory, 'node_modules', 'candidate', 'index.js'),
+      'current candidate runtime\n',
+      'utf8',
+    );
     await writeFile(path.join(workspaceDirectory, 'unexpected.txt'), 'remove me\n', 'utf8');
     const hit = await readActorCache(cacheKey, workspaceDirectory, cacheRoot);
 
@@ -77,6 +109,21 @@ describe('qualification model cache', () => {
     expect(await readFile(path.join(workspaceDirectory, '.git', 'sentinel'), 'utf8')).toBe(
       'git-state\n',
     );
+    expect(
+      await readFile(path.join(workspaceDirectory, '.agents', 'project-policy.md'), 'utf8'),
+    ).toBe('cached policy\n');
+    expect(
+      await readFile(
+        path.join(workspaceDirectory, '.agents', 'skills', 'moldea', 'SKILL.md'),
+        'utf8',
+      ),
+    ).toBe('current mounted skill\n');
+    expect(
+      await readFile(
+        path.join(workspaceDirectory, 'node_modules', 'candidate', 'index.js'),
+        'utf8',
+      ),
+    ).toBe('current candidate runtime\n');
   });
 
   test('round-trips a judge decision and rejects corrupted structured output', async () => {

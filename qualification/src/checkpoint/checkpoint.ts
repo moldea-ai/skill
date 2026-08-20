@@ -35,10 +35,12 @@ export const createAttemptCheckpoint = async (options: {
   selection: IQualificationSelection;
   isDryRun: boolean;
   useCache: boolean;
+  packagesRepository: string;
   skillRepository: string;
   profileDigest: string;
   qualificationDigest: string;
   skillDigest: string;
+  packagesRepositoryFingerprint: string;
   packagesDigest: string;
   stageIds: readonly string[];
 }): Promise<IQualificationAttemptCheckpoint> => {
@@ -54,10 +56,12 @@ export const createAttemptCheckpoint = async (options: {
     createdAt: timestamp,
     updatedAt: timestamp,
     completedAt: null,
+    packagesRepository: options.packagesRepository,
     skillRepository: options.skillRepository,
     profileDigest: options.profileDigest,
     qualificationDigest: options.qualificationDigest,
     skillDigest: options.skillDigest,
+    packagesRepositoryFingerprint: options.packagesRepositoryFingerprint,
     packagesDigest: options.packagesDigest,
     candidate: null,
     stages: Object.fromEntries(

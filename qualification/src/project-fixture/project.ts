@@ -1,7 +1,8 @@
 import { lstat, readFile, readdir, readlink, rm, symlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { z } from 'zod';
 
-import type { IQualificationProfileCase } from '../contracts/index.ts';
+import type { ICandidateClosure, IQualificationProfileCase } from '../contracts/index.ts';
 import { QualificationCaseScenarioSchema } from '../contracts/index.ts';
 import {
   calculateDirectoryFingerprint,
@@ -9,23 +10,84 @@ import {
   copyDirectory,
   copyFileWithParents,
   ensureDirectory,
+  listDirectoryFiles,
   readYamlFile,
   resolveContainedPath,
 } from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
+import {
+  MOUNTED_SKILL_RELATIVE_PATH,
+  QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,
+} from './constants.ts';
 import type { IPreparedQualificationProject } from './types.ts';
 
-const PROJECT_STATE_EXCLUDED_DIRECTORIES = new Set([
-  '.git',
-  '.moldea-qualification',
-  'node_modules',
-]);
+const PROJECT_STATE_EXCLUDED_DIRECTORIES = new Set<string>(
+  QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,
+);
+const PROJECT_STATE_EXCLUDED_PATH_PREFIXES = [MOUNTED_SKILL_RELATIVE_PATH];
 
 const collectProjectFiles = async (workspaceDirectory: string) =>
   collectDirectoryFingerprintEntries(workspaceDirectory, {
     excludedDirectoryNames: PROJECT_STATE_EXCLUDED_DIRECTORIES,
+    excludedRelativePathPrefixes: PROJECT_STATE_EXCLUDED_PATH_PREFIXES,
   });
+
+const ProjectManifestSchema = z.looseObject({
+  devDependencies: z.record(z.string(), z.string()).optional(),
+});
+
+const InstalledCliManifestSchema = z.object({
+  name: z.literal('@moldea.ai/cli'),
+  version: z.string().min(1),
+});
+
+/** Installs the packed CLI composition as one exact project-local development dependency. */
+const installCandidateProjectRuntime = async (
+  workspaceDirectory: string,
+  candidate: ICandidateClosure,
+): Promise<string> => {
+  const cliPackage = candidate.packages.find(({ name }) => name === '@moldea.ai/cli');
+
+  if (cliPackage === undefined) {
+    throw new Error('Candidate closure does not contain @moldea.ai/cli.');
+  }
+
+  const manifestPath = path.join(workspaceDirectory, 'package.json');
+  const manifest = ProjectManifestSchema.parse(
+    JSON.parse(await readFile(manifestPath, 'utf8')) as unknown,
+  );
+  await writeFile(
+    manifestPath,
+    `${JSON.stringify(
+      {
+        ...manifest,
+        devDependencies: {
+          ...manifest.devDependencies,
+          '@moldea.ai/cli': cliPackage.version,
+        },
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+
+  const projectNodeModules = path.join(workspaceDirectory, 'node_modules');
+  await rm(projectNodeModules, { force: true, recursive: true });
+  await copyDirectory(path.join(candidate.runtimeDirectory, 'node_modules'), projectNodeModules);
+  const installedManifest = InstalledCliManifestSchema.parse(
+    JSON.parse(
+      await readFile(path.join(projectNodeModules, '@moldea.ai', 'cli', 'package.json'), 'utf8'),
+    ) as unknown,
+  );
+
+  if (installedManifest.version !== cliPackage.version) {
+    throw new Error('Project-local CLI version does not match the packed candidate.');
+  }
+
+  return calculateDirectoryFingerprint(projectNodeModules);
+};
 
 const copySkillSnapshot = async (
   skillRepository: string,
@@ -78,6 +140,7 @@ const applyScenarioOverlay = async (
 /** Prepares one isolated committed baseline, applies declared dirty state, and mounts the skill copy. */
 export const prepareQualificationProject = async (options: {
   attemptDirectory: string;
+  candidate: ICandidateClosure;
   profileCase: IQualificationProfileCase;
   profileDirectory: string;
   skillRepository: string;
@@ -114,6 +177,15 @@ export const prepareQualificationProject = async (options: {
     cwd: workspaceDirectory,
     signal: options.signal,
   });
+  await writeFile(
+    path.join(workspaceDirectory, '.git', 'info', 'exclude'),
+    '.agents/skills/moldea/\n.moldea-qualification/\nnode_modules/\n',
+    { encoding: 'utf8', flag: 'a' },
+  );
+  const candidateRuntimeDigest = await installCandidateProjectRuntime(
+    workspaceDirectory,
+    options.candidate,
+  );
   await executeProcess({
     command: 'git',
     args: ['add', '-A'],
@@ -151,15 +223,10 @@ export const prepareQualificationProject = async (options: {
   );
 
   const internalDirectory = path.join(workspaceDirectory, '.moldea-qualification');
-  const skillDirectory = path.join(internalDirectory, 'skill');
+  const skillDirectory = path.join(workspaceDirectory, MOUNTED_SKILL_RELATIVE_PATH);
   await copySkillSnapshot(options.skillRepository, options.skillState, skillDirectory);
   const taskPath = path.join(internalDirectory, 'task.md');
   await copyFileWithParents(resolveContainedPath(scenarioDirectory, scenario.taskFile), taskPath);
-  await writeFile(
-    path.join(workspaceDirectory, '.git', 'info', 'exclude'),
-    '.moldea-qualification/\nnode_modules/\n',
-    { encoding: 'utf8', flag: 'a' },
-  );
 
   return {
     profileCase: options.profileCase,
@@ -169,7 +236,9 @@ export const prepareQualificationProject = async (options: {
     taskPath,
     baselineCommit,
     beforeActorFiles: await collectProjectFiles(workspaceDirectory),
+    candidateRuntimeDigest,
     internalDigest: await calculateDirectoryFingerprint(internalDirectory),
+    skillDigest: await calculateDirectoryFingerprint(skillDirectory),
   };
 };
 
@@ -185,14 +254,62 @@ export const applyExpectedDryRunState = async (
   );
 };
 
-/** Captures the project-visible actor state without Git metadata, dependencies, or mounted inputs. */
+/**
+ * Captures project-visible state without Git metadata, dependencies, or runner-owned inputs.
+ * @returns A promise resolving after the snapshot is complete.
+ */
+export const captureQualificationWorkspaceSnapshot = async (
+  workspaceDirectory: string,
+  snapshotDirectory: string,
+): Promise<void> => {
+  await copyDirectory(workspaceDirectory, snapshotDirectory, {
+    excludedDirectoryNames: new Set(QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES),
+    excludedRelativePathPrefixes: PROJECT_STATE_EXCLUDED_PATH_PREFIXES,
+  });
+};
+
+/**
+ * Restores project-visible state while preserving Git metadata and runner-owned inputs.
+ * @returns A promise resolving after the workspace is restored.
+ */
+export const restoreQualificationWorkspaceSnapshot = async (
+  workspaceDirectory: string,
+  snapshotDirectory: string,
+): Promise<void> => {
+  const entries = await readdir(workspaceDirectory, { withFileTypes: true });
+
+  for (const entry of entries) {
+    if (PROJECT_STATE_EXCLUDED_DIRECTORIES.has(entry.name)) {
+      continue;
+    }
+
+    if (entry.name === '.agents') {
+      const agentsDirectory = path.join(workspaceDirectory, entry.name);
+      const visibleAgentPaths = await listDirectoryFiles(agentsDirectory, {
+        excludedRelativePathPrefixes: [path.posix.relative('.agents', MOUNTED_SKILL_RELATIVE_PATH)],
+      });
+
+      for (const relativePath of visibleAgentPaths) {
+        await rm(resolveContainedPath(agentsDirectory, relativePath), {
+          force: true,
+          recursive: true,
+        });
+      }
+      continue;
+    }
+
+    await rm(path.join(workspaceDirectory, entry.name), { force: true, recursive: true });
+  }
+
+  await copyDirectory(snapshotDirectory, workspaceDirectory, { overwrite: true });
+};
+
+/** Captures the project-visible actor state for checkpoint resume. */
 export const captureQualificationProjectSnapshot = async (
   project: IPreparedQualificationProject,
   snapshotDirectory: string,
 ): Promise<void> => {
-  await copyDirectory(project.workspaceDirectory, snapshotDirectory, {
-    excludedDirectoryNames: new Set(['.git', '.moldea-qualification', 'node_modules']),
-  });
+  await captureQualificationWorkspaceSnapshot(project.workspaceDirectory, snapshotDirectory);
 };
 
 /** Restores an exact project-visible actor state over one freshly prepared fixture. */
@@ -200,21 +317,7 @@ export const restoreQualificationProjectSnapshot = async (
   project: IPreparedQualificationProject,
   snapshotDirectory: string,
 ): Promise<void> => {
-  const entries = await readdir(project.workspaceDirectory, { withFileTypes: true });
-
-  for (const entry of entries) {
-    if (
-      entry.name === '.git' ||
-      entry.name === '.moldea-qualification' ||
-      entry.name === 'node_modules'
-    ) {
-      continue;
-    }
-
-    await rm(path.join(project.workspaceDirectory, entry.name), { force: true, recursive: true });
-  }
-
-  await copyDirectory(snapshotDirectory, project.workspaceDirectory);
+  await restoreQualificationWorkspaceSnapshot(project.workspaceDirectory, snapshotDirectory);
 };
 
 /** Returns the exact UTF-8 task text copied into the isolated actor workspace. */

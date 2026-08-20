@@ -10,7 +10,7 @@ export const QUALIFICATION_REASONING_EFFORT = 'medium' as const;
 export const SKILL_REPOSITORY_ROOT = path.resolve(
   fileURLToPath(new URL('../../../', import.meta.url)),
 );
-export const PACKAGES_REPOSITORY_ROOT = path.resolve(SKILL_REPOSITORY_ROOT, '../packages');
+export const DEFAULT_PACKAGES_REPOSITORY = path.resolve(SKILL_REPOSITORY_ROOT, '../packages');
 export const QUALIFICATION_ROOT = path.join(SKILL_REPOSITORY_ROOT, 'qualification');
 export const QUALIFICATION_CASES_PATH = path.join(QUALIFICATION_ROOT, 'cases', 'cases.yaml');
 export const QUALIFICATION_PROFILES_ROOT = path.join(QUALIFICATION_ROOT, 'profiles');

@@ -1,9 +1,6 @@
 import { CodexCliHost, FakeCodexHost, type ICodexHost } from '../codex-host/index.ts';
 import type { IQualificationCommand } from '../command-line/index.ts';
-import {
-  listQualificationImplementations,
-  resolveQualificationTarget,
-} from '../compatibility/index.ts';
+import { listQualificationImplementations } from '../compatibility/index.ts';
 import type { IQualificationSelection } from '../contracts/index.ts';
 import {
   getLocalAttemptDirectory,
@@ -24,10 +21,12 @@ import {
   presentQualificationOutput,
 } from '../presentation/index.ts';
 import { listLatestQualificationResults, verifyQualificationResults } from '../result/index.ts';
+import { getQualificationModelCallCount } from './utilities.ts';
 
 const requirePaidExecutionApproval = async (options: {
   hasConfirmedPaidExecution: boolean;
   isJson: boolean;
+  packagesRepository?: string;
   selection: IQualificationSelection;
 }): Promise<void> => {
   if (options.hasConfirmedPaidExecution) {
@@ -40,8 +39,10 @@ const requirePaidExecutionApproval = async (options: {
     );
   }
 
-  const target = await resolveQualificationTarget(options.selection);
-  const modelCallCount = target.profile.cases.length * 2;
+  const modelCallCount = await getQualificationModelCallCount(
+    options.selection,
+    options.packagesRepository,
+  );
 
   if (!(await confirmPaidQualificationExecution(modelCallCount))) {
     throw new Error('Paid qualification was not approved.');
@@ -125,6 +126,9 @@ export const executeQualificationCommand = async (
       const outcome = await runQualification({
         host: createHost(command.isDryRun),
         selection: command.selection,
+        ...(command.packagesRepository === undefined
+          ? {}
+          : { packagesRepository: command.packagesRepository }),
         ...(command.skillRepository === undefined
           ? {}
           : { skillRepository: command.skillRepository }),
@@ -138,7 +142,11 @@ export const executeQualificationCommand = async (
       const checkpoint = await readAttemptCheckpoint(getLocalAttemptDirectory(command.attemptId));
 
       if (!checkpoint.isDryRun) {
-        await requirePaidExecutionApproval({ ...command, selection: checkpoint.selection });
+        await requirePaidExecutionApproval({
+          ...command,
+          packagesRepository: checkpoint.packagesRepository,
+          selection: checkpoint.selection,
+        });
       }
 
       const outcome = await runQualification({
@@ -156,12 +164,17 @@ export const executeQualificationCommand = async (
       }
 
       if (!checkpoint.isDryRun) {
-        await requirePaidExecutionApproval({ ...command, selection: checkpoint.selection });
+        await requirePaidExecutionApproval({
+          ...command,
+          packagesRepository: checkpoint.packagesRepository,
+          selection: checkpoint.selection,
+        });
       }
 
       const outcome = await runQualification({
         host: createHost(checkpoint.isDryRun),
         selection: checkpoint.selection,
+        packagesRepository: checkpoint.packagesRepository,
         skillRepository: checkpoint.skillRepository,
         isDryRun: checkpoint.isDryRun,
         useCache: checkpoint.useCache,

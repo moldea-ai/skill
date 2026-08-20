@@ -13,5 +13,7 @@ export type IPreparedQualificationProject = {
   taskPath: string;
   baselineCommit: string;
   beforeActorFiles: IWorkspaceFileState[];
+  candidateRuntimeDigest: string;
   internalDigest: string;
+  skillDigest: string;
 };

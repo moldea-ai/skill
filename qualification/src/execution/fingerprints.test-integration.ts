@@ -4,8 +4,11 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { ensureDirectory } from '../filesystem/index.ts';
-import { calculateQualificationDigest } from './fingerprints.ts';
+import { calculateSha256, ensureDirectory } from '../filesystem/index.ts';
+import {
+  calculatePackagesQualificationDigest,
+  calculateQualificationDigest,
+} from './fingerprints.ts';
 
 describe('qualification input fingerprint', () => {
   let temporaryRoot: string | null = null;
@@ -42,5 +45,58 @@ describe('qualification input fingerprint', () => {
 
     await writeFile(sourcePath, 'export const version = 2;\n', 'utf8');
     expect(await calculateQualificationDigest(temporaryRoot)).not.toBe(initialDigest);
+  });
+
+  test('excludes maturity metadata while retaining compatibility behavior', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-packages-fingerprint-'));
+    const matrixPath = path.join(temporaryRoot, 'compatibility', 'runtimes.yaml');
+    await ensureDirectory(path.dirname(matrixPath));
+    const repositoryEntries = [
+      {
+        path: 'compatibility/runtimes.yaml',
+        kind: 'file' as const,
+        mode: 0o100644,
+        sha256: calculateSha256('source matrix'),
+      },
+      {
+        path: 'projects/core/src/index.ts',
+        kind: 'file' as const,
+        mode: 0o100644,
+        sha256: calculateSha256('core source'),
+      },
+    ];
+    await writeFile(
+      matrixPath,
+      'version: 1\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: any\n        supportLevel: experimental\n        lastVerifiedAt: 2026-08-20\n',
+      'utf8',
+    );
+    const initialDigest = await calculatePackagesQualificationDigest(
+      temporaryRoot,
+      repositoryEntries,
+    );
+
+    await writeFile(
+      matrixPath,
+      'version: 1\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: any\n        supportLevel: supported\n        lastVerifiedAt: 2026-08-21\n',
+      'utf8',
+    );
+    expect(await calculatePackagesQualificationDigest(temporaryRoot, repositoryEntries)).toBe(
+      initialDigest,
+    );
+    expect(
+      await calculatePackagesQualificationDigest(temporaryRoot, [
+        repositoryEntries[0]!,
+        { ...repositoryEntries[1]!, sha256: calculateSha256('changed core source') },
+      ]),
+    ).not.toBe(initialDigest);
+
+    await writeFile(
+      matrixPath,
+      'version: 1\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: typescript\n        supportLevel: supported\n        lastVerifiedAt: 2026-08-21\n',
+      'utf8',
+    );
+    expect(await calculatePackagesQualificationDigest(temporaryRoot, repositoryEntries)).not.toBe(
+      initialDigest,
+    );
   });
 });

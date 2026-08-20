@@ -12,9 +12,17 @@ import type {
   IQualificationCaseScenario,
   IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
-import { ensureDirectory, writeJsonFileAtomically } from '../filesystem/index.ts';
+import {
+  calculateDirectoryFingerprint,
+  ensureDirectory,
+  writeJsonFileAtomically,
+} from '../filesystem/index.ts';
 import type { IPreparedQualificationProject } from '../project-fixture/index.ts';
-import { executeJudgeModelStage, restoreJudgeModelStage } from './model-stages.ts';
+import {
+  executeActorModelStage,
+  executeJudgeModelStage,
+  restoreJudgeModelStage,
+} from './model-stages.ts';
 
 const scenario = {
   version: 1,
@@ -98,10 +106,12 @@ describe('qualification model stages', () => {
       taskPath: path.join(temporaryRoot, 'task.md'),
       baselineCommit: 'fixture',
       beforeActorFiles: [],
+      candidateRuntimeDigest: '0'.repeat(64),
       internalDigest: 'a'.repeat(64),
+      skillDigest: 'b'.repeat(64),
     };
     const candidate: ICandidateClosure = {
-      fingerprint: 'b'.repeat(64),
+      fingerprint: 'c'.repeat(64),
       packages: [],
       runtimeDirectory,
     };
@@ -135,10 +145,10 @@ describe('qualification model stages', () => {
         implementationId: 'custom',
         isDryRun: true,
         packagesRepository: '/packages',
-        profileDigest: 'c'.repeat(64),
-        qualificationDigest: 'd'.repeat(64),
+        profileDigest: 'd'.repeat(64),
+        qualificationDigest: 'e'.repeat(64),
         project,
-        skillDigest: 'e'.repeat(64),
+        skillDigest: 'f'.repeat(64),
         skillRepository: '/skill',
         task: 'Complete the test task.',
         useCache: false,
@@ -156,7 +166,7 @@ describe('qualification model stages', () => {
         createdAt: '2026-08-20T00:00:00.000Z',
         durationMs: 0,
         usage: null,
-        cacheKey: 'f'.repeat(64),
+        cacheKey: '0'.repeat(64),
         sourceAttemptId: 'attempt',
         cacheSourceAttemptId: null,
       }),
@@ -165,5 +175,83 @@ describe('qualification model stages', () => {
     await expect(restoreJudgeModelStage({ caseArtifactDirectory, scenario })).rejects.toThrow(
       'missing declared requirement ids: required-check',
     );
+  });
+
+  test('rejects actor changes to the project-local candidate before accepting evidence', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-model-stage-'));
+    const workspaceDirectory = path.join(temporaryRoot, 'workspace');
+    const caseArtifactDirectory = path.join(temporaryRoot, 'artifacts');
+    const runtimeDirectory = path.join(temporaryRoot, 'runtime');
+    const candidateFile = path.join(workspaceDirectory, 'node_modules', 'candidate', 'index.js');
+    await Promise.all([
+      ensureDirectory(path.dirname(candidateFile)),
+      ensureDirectory(caseArtifactDirectory),
+      ensureDirectory(runtimeDirectory),
+    ]);
+    await writeFile(path.join(workspaceDirectory, 'package.json'), '{}\n', 'utf8');
+    await writeFile(candidateFile, 'export const candidate = true;\n', 'utf8');
+    const project: IPreparedQualificationProject = {
+      profileCase: {
+        id: scenario.id,
+        projectDirectory: 'projects/test-case',
+        scenarioFile: 'scenario.yaml',
+      },
+      scenario,
+      scenarioDirectory: temporaryRoot,
+      workspaceDirectory,
+      taskPath: path.join(temporaryRoot, 'task.md'),
+      baselineCommit: 'fixture',
+      beforeActorFiles: [],
+      candidateRuntimeDigest: await calculateDirectoryFingerprint(
+        path.join(workspaceDirectory, 'node_modules'),
+      ),
+      internalDigest: 'a'.repeat(64),
+      skillDigest: 'b'.repeat(64),
+    };
+    const candidate: ICandidateClosure = {
+      fingerprint: 'c'.repeat(64),
+      packages: [],
+      runtimeDirectory,
+    };
+    const host = new FakeCodexHost({
+      actor: async () => {
+        await writeFile(candidateFile, 'export const candidate = false;\n', 'utf8');
+        return {
+          output: {
+            outcome: 'completed',
+            summary: 'Changed the candidate runtime.',
+            commands: [],
+            changedFiles: [],
+            observations: [],
+            unresolved: [],
+          },
+          usage: null,
+          durationMs: 0,
+          events: '',
+        };
+      },
+    });
+
+    await expect(
+      executeActorModelStage({
+        adapterId: 'custom',
+        attemptId: 'attempt',
+        candidate,
+        caseArtifactDirectory,
+        codexVersion: 'codex-cli test',
+        host,
+        implementationId: 'custom',
+        isDryRun: false,
+        packagesRepository: '/packages',
+        profileDigest: 'd'.repeat(64),
+        qualificationDigest: 'e'.repeat(64),
+        project,
+        skillDigest: 'f'.repeat(64),
+        skillRepository: '/skill',
+        snapshotDirectory: path.join(temporaryRoot, 'snapshot'),
+        task: 'Complete the test task.',
+        useCache: false,
+      }),
+    ).rejects.toThrow('The project-local candidate runtime was modified after preparation.');
   });
 });

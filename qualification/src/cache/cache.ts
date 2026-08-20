@@ -1,4 +1,4 @@
-import { readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { readFile, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 
@@ -11,11 +11,14 @@ import {
 } from '../contracts/index.ts';
 import {
   calculateSha256,
-  copyDirectory,
   ensureDirectory,
   readJsonFile,
   writeJsonFileAtomically,
 } from '../filesystem/index.ts';
+import {
+  captureQualificationWorkspaceSnapshot,
+  restoreQualificationWorkspaceSnapshot,
+} from '../project-fixture/index.ts';
 import type { IActorCacheHit, IJudgeCacheHit, IModelCacheMetadata } from './types.ts';
 
 const ModelCacheMetadataSchema = z.strictObject({
@@ -86,27 +89,6 @@ const readCacheMetadata = async (
   }
 };
 
-const replaceWorkspaceFromSnapshot = async (
-  workspaceDirectory: string,
-  snapshotDirectory: string,
-): Promise<void> => {
-  const entries = await readdir(workspaceDirectory, { withFileTypes: true });
-
-  for (const entry of entries) {
-    if (
-      entry.name === '.git' ||
-      entry.name === '.moldea-qualification' ||
-      entry.name === 'node_modules'
-    ) {
-      continue;
-    }
-
-    await rm(path.join(workspaceDirectory, entry.name), { force: true, recursive: true });
-  }
-
-  await copyDirectory(snapshotDirectory, workspaceDirectory);
-};
-
 /** Restores an actor output and exact post-actor project snapshot for one matching cache key. */
 export const readActorCache = async (
   cacheKey: string,
@@ -123,7 +105,10 @@ export const readActorCache = async (
     const cacheDirectory = getCacheDirectory(cacheRoot, cacheKey);
     const output = await readJsonFile(path.join(cacheDirectory, 'output.json'), ActorOutputSchema);
     const events = await readFile(path.join(cacheDirectory, 'events.jsonl'), 'utf8');
-    await replaceWorkspaceFromSnapshot(workspaceDirectory, path.join(cacheDirectory, 'workspace'));
+    await restoreQualificationWorkspaceSnapshot(
+      workspaceDirectory,
+      path.join(cacheDirectory, 'workspace'),
+    );
     return { metadata: { ...metadata, role: 'actor' }, output, events };
   } catch {
     return null;
@@ -149,9 +134,10 @@ export const writeActorCache = async (options: {
   await ensureDirectory(cacheDirectory);
   await writeJsonFileAtomically(path.join(cacheDirectory, 'output.json'), options.output);
   await writeFile(path.join(cacheDirectory, 'events.jsonl'), options.events, 'utf8');
-  await copyDirectory(options.workspaceDirectory, path.join(cacheDirectory, 'workspace'), {
-    excludedDirectoryNames: new Set(['.git', '.moldea-qualification', 'node_modules']),
-  });
+  await captureQualificationWorkspaceSnapshot(
+    options.workspaceDirectory,
+    path.join(cacheDirectory, 'workspace'),
+  );
   await writeJsonFileAtomically(path.join(cacheDirectory, 'metadata.json'), {
     protocolVersion: QUALIFICATION_PROTOCOL_VERSION,
     cacheKey: options.cacheKey,

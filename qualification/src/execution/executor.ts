@@ -12,8 +12,8 @@ import {
 } from '../checkpoint/index.ts';
 import { resolveQualificationTarget } from '../compatibility/index.ts';
 import {
+  DEFAULT_PACKAGES_REPOSITORY,
   DEFAULT_SKILL_REPOSITORY,
-  PACKAGES_REPOSITORY_ROOT,
   QUALIFICATION_RESULTS_ROOT,
   QUALIFICATION_ROOT,
 } from '../constants/index.ts';
@@ -48,7 +48,10 @@ import {
   sanitizeEvidenceValue,
 } from '../result/index.ts';
 import { getLocalAttemptDirectory } from './attempts.ts';
-import { calculateQualificationDigest } from './fingerprints.ts';
+import {
+  calculatePackagesQualificationDigest,
+  calculateQualificationDigest,
+} from './fingerprints.ts';
 import {
   executeActorModelStage,
   executeJudgeModelStage,
@@ -98,10 +101,11 @@ const pathExists = async (candidatePath: string): Promise<boolean> => {
  * @returns The package, qualification-suite, and portable-skill repository states.
  */
 const inspectQualificationInputState = async (
+  packagesRepository: string,
   skillRepository: string,
 ): Promise<IQualificationInputState> => {
   const [packagesState, qualificationDigest, qualificationState, skillState] = await Promise.all([
-    inspectGitRepositoryState(PACKAGES_REPOSITORY_ROOT, {
+    inspectGitRepositoryState(packagesRepository, {
       excludedRelativePathPrefixes: ['qualification'],
     }),
     calculateQualificationDigest(),
@@ -110,8 +114,12 @@ const inspectQualificationInputState = async (
     }),
     inspectGitRepositoryState(skillRepository),
   ]);
+  const packagesDigest = await calculatePackagesQualificationDigest(
+    packagesRepository,
+    packagesState.entries,
+  );
 
-  return { packagesState, qualificationDigest, qualificationState, skillState };
+  return { packagesDigest, packagesState, qualificationDigest, qualificationState, skillState };
 };
 
 const createAttemptId = (adapterId: string, implementationId: string): string => {
@@ -189,14 +197,17 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
     );
   }
 
-  const target = await resolveQualificationTarget(options.selection);
+  const packagesRepository = path.resolve(
+    options.packagesRepository ?? DEFAULT_PACKAGES_REPOSITORY,
+  );
+  const target = await resolveQualificationTarget(options.selection, packagesRepository);
   const skillRepository = path.resolve(options.skillRepository ?? DEFAULT_SKILL_REPOSITORY);
 
   if (!(await pathExists(path.join(skillRepository, 'SKILL.md')))) {
     throw new Error(`Candidate skill directory does not contain SKILL.md: ${skillRepository}`);
   }
 
-  const inputState = await inspectQualificationInputState(skillRepository);
+  const inputState = await inspectQualificationInputState(packagesRepository, skillRepository);
   const attemptId = createAttemptId(
     options.selection.adapterId,
     options.selection.implementationId,
@@ -209,11 +220,13 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
     selection: options.selection,
     isDryRun: options.isDryRun ?? false,
     useCache: options.useCache ?? true,
+    packagesRepository,
     skillRepository,
     profileDigest: target.profileDigest,
     qualificationDigest: inputState.qualificationDigest,
     skillDigest: inputState.skillState.fingerprint,
-    packagesDigest: inputState.packagesState.fingerprint,
+    packagesRepositoryFingerprint: inputState.packagesState.fingerprint,
+    packagesDigest: inputState.packagesDigest,
     stageIds: createStageIds(target.profile.cases.map(({ id }) => id)),
   });
 
@@ -227,7 +240,10 @@ export const runQualification = async (
   const preparedAttempt = await prepareAttempt(options);
   const { attemptDirectory } = preparedAttempt;
   let checkpoint = preparedAttempt.checkpoint;
-  const target = await resolveQualificationTarget(checkpoint.selection);
+  const target = await resolveQualificationTarget(
+    checkpoint.selection,
+    checkpoint.packagesRepository,
+  );
   const stageIds = createStageIds(target.profile.cases.map(({ id }) => id));
   const publicDirectory = path.join(attemptDirectory, 'public');
   const internalDirectory = path.join(attemptDirectory, 'internal');
@@ -240,7 +256,10 @@ export const runQualification = async (
     );
   }
 
-  const inputState = await inspectQualificationInputState(checkpoint.skillRepository);
+  const inputState = await inspectQualificationInputState(
+    checkpoint.packagesRepository,
+    checkpoint.skillRepository,
+  );
   const { packagesState, qualificationState, skillState } = inputState;
   const { qualificationDigest } = inputState;
 
@@ -260,6 +279,7 @@ export const runQualification = async (
     qualificationDigest,
     qualificationState,
     skillState,
+    targetSupportLevel: target.target.supportLevel,
   });
   const caseResults: IQualificationCaseResult[] = [];
   let activeStageId: string | null = null;
@@ -383,6 +403,7 @@ export const runQualification = async (
         adapterPackage: target.adapter.implementation.package,
         attemptDirectory,
         packagesDigest: checkpoint.packagesDigest,
+        packagesRepository: checkpoint.packagesRepository,
         signal: options.signal,
       });
       checkpoint = QualificationAttemptCheckpointSchema.parse({
@@ -428,6 +449,7 @@ export const runQualification = async (
 
       const project = await prepareQualificationProject({
         attemptDirectory,
+        candidate,
         profileCase,
         profileDirectory: target.profileDirectory,
         skillRepository: checkpoint.skillRepository,
@@ -472,13 +494,14 @@ export const runQualification = async (
             const result = await verifyDeterministicProject({
               candidate,
               expectedInspectionStatus: project.scenario.inspection.before,
+              packagesRepository: checkpoint.packagesRepository,
               signal: options.signal,
               workspaceDirectory: project.workspaceDirectory,
             });
             await writeJsonFileAtomically(
               deterministicBeforePath,
               sanitizeEvidenceValue(result, {
-                packagesRepository: PACKAGES_REPOSITORY_ROOT,
+                packagesRepository: checkpoint.packagesRepository,
                 skillRepository: checkpoint.skillRepository,
                 workspaceDirectory: project.workspaceDirectory,
               }),
@@ -524,7 +547,7 @@ export const runQualification = async (
               host: options.host,
               implementationId: target.selection.implementationId,
               isDryRun: checkpoint.isDryRun,
-              packagesRepository: PACKAGES_REPOSITORY_ROOT,
+              packagesRepository: checkpoint.packagesRepository,
               profileDigest: checkpoint.profileDigest,
               qualificationDigest,
               project,
@@ -563,13 +586,14 @@ export const runQualification = async (
             const result = await verifyDeterministicProject({
               candidate,
               expectedInspectionStatus: project.scenario.inspection.after,
+              packagesRepository: checkpoint.packagesRepository,
               signal: options.signal,
               workspaceDirectory: project.workspaceDirectory,
             });
             await writeJsonFileAtomically(
               deterministicAfterPath,
               sanitizeEvidenceValue(result, {
-                packagesRepository: PACKAGES_REPOSITORY_ROOT,
+                packagesRepository: checkpoint.packagesRepository,
                 skillRepository: checkpoint.skillRepository,
                 workspaceDirectory: project.workspaceDirectory,
               }),
@@ -609,7 +633,7 @@ export const runQualification = async (
       const patchContent = sanitizeEvidenceText(
         await captureWorkspacePatch(project.workspaceDirectory),
         {
-          packagesRepository: PACKAGES_REPOSITORY_ROOT,
+          packagesRepository: checkpoint.packagesRepository,
           skillRepository: checkpoint.skillRepository,
           workspaceDirectory: project.workspaceDirectory,
         },
@@ -639,7 +663,7 @@ export const runQualification = async (
               host: options.host,
               implementationId: target.selection.implementationId,
               isDryRun: checkpoint.isDryRun,
-              packagesRepository: PACKAGES_REPOSITORY_ROOT,
+              packagesRepository: checkpoint.packagesRepository,
               profileDigest: checkpoint.profileDigest,
               qualificationDigest,
               project,
@@ -706,7 +730,10 @@ export const runQualification = async (
     }
 
     if (!checkpoint.isDryRun) {
-      const finalInputState = await inspectQualificationInputState(checkpoint.skillRepository);
+      const finalInputState = await inspectQualificationInputState(
+        checkpoint.packagesRepository,
+        checkpoint.skillRepository,
+      );
       const hasDirtyFinalInput =
         finalInputState.packagesState.isDirty ||
         finalInputState.qualificationState.isDirty ||
@@ -749,7 +776,7 @@ export const runQualification = async (
     const safeError = sanitizeEvidenceText(
       error instanceof Error ? error.message : 'Unknown qualification execution failure.',
       {
-        packagesRepository: PACKAGES_REPOSITORY_ROOT,
+        packagesRepository: checkpoint.packagesRepository,
         skillRepository: checkpoint.skillRepository,
       },
     );
@@ -773,7 +800,7 @@ export const runQualification = async (
           message: safeError,
         },
         {
-          packagesRepository: PACKAGES_REPOSITORY_ROOT,
+          packagesRepository: checkpoint.packagesRepository,
           skillRepository: checkpoint.skillRepository,
         },
       ),

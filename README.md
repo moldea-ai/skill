@@ -235,11 +235,15 @@ Adapter qualification is a separate local workflow and is not included in `npm t
 ```bash
 npm run qualification
 npm run qualification:dry-run
+npm run qualification:list
 npm run qualification:test
 npm run qualification:typecheck
+npm run qualification:lint
+npm run qualification:format:check
+npm run qualification:verify
 ```
 
-The runner reads the adjacent packages repository at `../packages`, builds exact local package tarballs, and always pins paid actor and judge stages to `gpt-5.6-terra`. Official runs require clean package, qualification-suite, and portable-skill inputs; dirty inputs are recorded as a failed preflight before any paid stage. See the [adapter qualification guide](qualification/README.md) for profiles, transparent projects, checkpoint recovery, caching, and public result artifacts.
+The runner reads the adjacent packages repository at `../packages` by default; explicit runs can select another checkout with `--packages-repository /absolute/path/to/packages`. It builds exact local package tarballs, installs the portable skill through `.agents/skills/moldea`, uses the candidate CLI from each project, and always pins paid actor and judge stages to `gpt-5.6-terra`. Official runs require clean package, qualification-suite, and portable-skill inputs; dirty inputs are recorded as a failed preflight before any paid stage. See the [adapter qualification guide](qualification/README.md) for profiles, transparent projects, checkpoint recovery, caching, and public result artifacts.
 
 The documentation website uses an isolated Node.js 24.15.0 dependency boundary and exact `@moldea.ai/website-ui` package release. Install its exact dependency closure with `npm --prefix website ci --ignore-scripts`, then use:
 

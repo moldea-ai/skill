@@ -11,13 +11,15 @@ import {
   collectDirectoryFingerprintEntries,
   resolveContainedPath,
 } from '../filesystem/index.ts';
+import {
+  MOUNTED_SKILL_RELATIVE_PATH,
+  QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,
+} from './constants.ts';
 import type { IPreparedQualificationProject } from './types.ts';
 
-const PROJECT_STATE_EXCLUDED_DIRECTORIES = new Set([
-  '.git',
-  '.moldea-qualification',
-  'node_modules',
-]);
+const PROJECT_STATE_EXCLUDED_DIRECTORIES = new Set<string>(
+  QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,
+);
 
 const mapFilesByPath = (
   files: readonly IWorkspaceFileState[],
@@ -42,12 +44,32 @@ const pathExists = async (candidatePath: string): Promise<boolean> => {
   }
 };
 
+const calculateCandidateProjectRuntimeDigest = (
+  project: IPreparedQualificationProject,
+): Promise<string> =>
+  calculateDirectoryFingerprint(path.join(project.workspaceDirectory, 'node_modules'));
+
+/**
+ * Verifies that the project-local packages still match the prepared candidate runtime.
+ * @returns A promise that resolves after the runtime identity is confirmed.
+ * @throws
+ * - If the project-local candidate runtime was modified after preparation
+ */
+export const assertCandidateProjectRuntimeIntegrity = async (
+  project: IPreparedQualificationProject,
+): Promise<void> => {
+  if ((await calculateCandidateProjectRuntimeDigest(project)) !== project.candidateRuntimeDigest) {
+    throw new Error('The project-local candidate runtime was modified after preparation.');
+  }
+};
+
 /** Evaluates declared preservation, mutation, existence, and internal-integrity requirements. */
 export const inspectWorkspaceAssertions = async (
   project: IPreparedQualificationProject,
 ): Promise<IWorkspaceAssertionResult> => {
   const after = await collectDirectoryFingerprintEntries(project.workspaceDirectory, {
     excludedDirectoryNames: PROJECT_STATE_EXCLUDED_DIRECTORIES,
+    excludedRelativePathPrefixes: [MOUNTED_SKILL_RELATIVE_PATH],
   });
   const beforeByPath = mapFilesByPath(project.beforeActorFiles);
   const afterByPath = mapFilesByPath(after);
@@ -95,7 +117,17 @@ export const inspectWorkspaceAssertions = async (
   const internalDirectory = path.join(project.workspaceDirectory, '.moldea-qualification');
 
   if ((await calculateDirectoryFingerprint(internalDirectory)) !== project.internalDigest) {
-    failures.push('The mounted candidate skill or qualification task was modified.');
+    failures.push('The mounted qualification task was modified.');
+  }
+
+  const skillDirectory = path.join(project.workspaceDirectory, MOUNTED_SKILL_RELATIVE_PATH);
+
+  if ((await calculateDirectoryFingerprint(skillDirectory)) !== project.skillDigest) {
+    failures.push('The installed candidate skill was modified.');
+  }
+
+  if ((await calculateCandidateProjectRuntimeDigest(project)) !== project.candidateRuntimeDigest) {
+    failures.push('The project-local candidate runtime was modified.');
   }
 
   return WorkspaceAssertionResultSchema.parse({

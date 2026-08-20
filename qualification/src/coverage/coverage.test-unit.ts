@@ -42,7 +42,6 @@ describe('deriveRequiredQualificationClaims', () => {
       'target.kind',
       'target.language',
       'target.pattern.explicit-repository-relationships',
-      'target.support-level',
     ]);
   });
 });

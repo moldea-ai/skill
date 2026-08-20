@@ -50,14 +50,6 @@ probes:
       - evaluate-aligned-project
       - maintain-dirty-project
       - reconcile-drift-and-boundaries
-  - id: target-support-level
-    kind: support-gate
-    matrixPath: target.support-level
-    description: The supported Custom baseline must continue to pass the complete qualification protocol.
-    coveredBy:
-      - evaluate-aligned-project
-      - maintain-dirty-project
-      - reconcile-drift-and-boundaries
   - id: explicit-repository-relationships
     kind: pattern
     matrixPath: target.pattern.explicit-repository-relationships

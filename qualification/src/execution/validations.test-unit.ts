@@ -120,6 +120,7 @@ describe('judge output validation', () => {
 describe('qualification source-state validation', () => {
   test('accepts clean inputs for an official run', () => {
     const inputState = {
+      packagesDigest: 'a'.repeat(64),
       packagesState: createRepositoryState(false),
       qualificationDigest: 'a'.repeat(64),
       qualificationState: createRepositoryState(false),
@@ -142,7 +143,7 @@ describe('qualification source-state validation', () => {
     expect(
       haveQualificationInputsChanged(
         {
-          packagesDigest: 'a'.repeat(64),
+          packagesRepositoryFingerprint: 'a'.repeat(64),
           qualificationDigest: 'a'.repeat(64),
           skillDigest: 'a'.repeat(64),
         },
@@ -204,23 +205,48 @@ describe('qualification source-state validation', () => {
   });
 
   test.each([
-    ['packages', { packagesDigest: 'b'.repeat(64) }],
+    ['packages', { packagesRepositoryFingerprint: 'b'.repeat(64) }],
     ['qualification', { qualificationDigest: 'b'.repeat(64) }],
     ['skill', { skillDigest: 'b'.repeat(64) }],
   ])('detects a changed %s fingerprint before publication', (_source, changedDigest) => {
     const inputState = {
+      packagesDigest: 'a'.repeat(64),
       packagesState: createRepositoryState(false),
       qualificationDigest: 'a'.repeat(64),
       qualificationState: createRepositoryState(false),
       skillState: createRepositoryState(false),
     };
     const checkpointDigests = {
-      packagesDigest: 'a'.repeat(64),
+      packagesRepositoryFingerprint: 'a'.repeat(64),
       qualificationDigest: 'a'.repeat(64),
       skillDigest: 'a'.repeat(64),
       ...changedDigest,
     };
 
     expect(haveQualificationInputsChanged(checkpointDigests, inputState)).toBe(true);
+  });
+
+  test('rejects resume when exact package source changes but its cache digest remains reusable', () => {
+    const inputState = {
+      packagesDigest: 'a'.repeat(64),
+      packagesState: {
+        ...createRepositoryState(false),
+        fingerprint: 'b'.repeat(64),
+      },
+      qualificationDigest: 'a'.repeat(64),
+      qualificationState: createRepositoryState(false),
+      skillState: createRepositoryState(false),
+    };
+
+    expect(
+      haveQualificationInputsChanged(
+        {
+          packagesRepositoryFingerprint: 'a'.repeat(64),
+          qualificationDigest: 'a'.repeat(64),
+          skillDigest: 'a'.repeat(64),
+        },
+        inputState,
+      ),
+    ).toBe(true);
   });
 });

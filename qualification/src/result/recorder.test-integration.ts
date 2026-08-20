@@ -38,6 +38,7 @@ const createResult = (
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'a'.repeat(64),
       packagesRepositoryDirty: false,
+      targetSupportLevel: 'supported',
       qualificationRepositoryCommit: 'qualification-commit',
       qualificationRepositoryDirty: false,
       skillRepositoryCommit: 'skill-commit',
@@ -234,17 +235,14 @@ describe('qualification result recording', () => {
       ),
     ]);
 
-    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
-      passed: false,
-      attempts: 0,
-      issues: [
-        {
-          path: 'custom/custom',
-          message: expect.stringContaining(
-            'Passing qualification evidence requires clean repository inputs.',
-          ),
-        },
-      ],
-    });
+    const verification = await verifyQualificationResults(resultsRoot);
+
+    expect(verification.passed).toBe(false);
+    expect(verification.attempts).toBe(0);
+    expect(verification.issues).toHaveLength(1);
+    expect(verification.issues[0]?.path).toBe('custom/custom');
+    expect(verification.issues[0]?.message).toContain(
+      'Passing qualification evidence requires clean repository inputs.',
+    );
   });
 });

@@ -26,6 +26,7 @@ describe('qualification result transformation', () => {
       profileDigest: 'a'.repeat(64),
       qualificationDigest: 'b'.repeat(64),
       skillDigest: 'c'.repeat(64),
+      packagesRepositoryFingerprint: 'e'.repeat(64),
       packagesDigest: 'd'.repeat(64),
       candidate: null,
       stages: {
@@ -52,6 +53,7 @@ describe('qualification result transformation', () => {
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'd'.repeat(64),
       packagesRepositoryDirty: true,
+      targetSupportLevel: 'supported',
       qualificationRepositoryCommit: 'qualification-commit',
       qualificationRepositoryDirty: true,
       skillRepositoryCommit: 'skill-commit',

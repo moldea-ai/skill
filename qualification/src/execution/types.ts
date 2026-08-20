@@ -11,6 +11,7 @@ import type { IGitRepositoryState } from '../repository-state/index.ts';
 export type IRunQualificationOptions = {
   host: ICodexHost;
   selection?: IQualificationSelection;
+  packagesRepository?: string;
   skillRepository?: string;
   isDryRun?: boolean;
   useCache?: boolean;
@@ -31,6 +32,7 @@ export type IQualificationExecutionProvenance = Omit<IQualificationProvenance, '
 
 // source repositories that determine one attempt's reproducible input identity
 export type IQualificationInputState = {
+  packagesDigest: string;
   packagesState: IGitRepositoryState;
   qualificationDigest: string;
   qualificationState: IGitRepositoryState;

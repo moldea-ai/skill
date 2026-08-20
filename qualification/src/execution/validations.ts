@@ -55,13 +55,13 @@ export const inspectQualificationSourceState = (
 export const haveQualificationInputsChanged = (
   checkpoint: Pick<
     IQualificationAttemptCheckpoint,
-    'packagesDigest' | 'qualificationDigest' | 'skillDigest'
+    'packagesRepositoryFingerprint' | 'qualificationDigest' | 'skillDigest'
   >,
   inputState: IQualificationInputState,
 ): boolean =>
   checkpoint.qualificationDigest !== inputState.qualificationDigest ||
   checkpoint.skillDigest !== inputState.skillState.fingerprint ||
-  checkpoint.packagesDigest !== inputState.packagesState.fingerprint;
+  checkpoint.packagesRepositoryFingerprint !== inputState.packagesState.fingerprint;
 
 /**
  * Validates one judge decision against the exact requirements declared by its scenario.

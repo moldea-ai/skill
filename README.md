@@ -207,6 +207,7 @@ moldea/
 - `CNAME` declares `skill.moldea.ai` as the GitHub Pages custom domain.
 - `tests/` contains deterministic metadata, packaging, published-package, candidate-release, reference, and semantic-contract checks.
 - `fixtures/` contains development-only conformance cases, a hostile lifecycle-script fixture, and a narrow synthetic compatibility fixture.
+- `qualification/` contains the isolated local adapter-support qualification runner, transparent mock projects, checkpoints, and committed result history.
 - `.github/workflows/conformance.yml` runs portable conformance across supported Node.js lines and representative minimum/latest package-manager versions.
 - `.github/workflows/release-candidate.yml` manually packs an exact packages-repository ref and runs the real CLI candidate closure across the same package-manager matrix without publishing it.
 - `README.md` documents public installation, adoption, development, and release behavior.
@@ -227,6 +228,17 @@ Run the categories separately:
 npm run test:unit
 npm run test:integration
 ```
+
+Adapter qualification is a separate local workflow and is not included in `npm test` or CI. Install its isolated dependency closure with `npm --prefix qualification ci --ignore-scripts`, then use:
+
+```bash
+npm run qualification
+npm run qualification:dry-run
+npm run qualification:test
+npm run qualification:typecheck
+```
+
+The runner reads the adjacent packages repository at `../packages`, builds exact local package tarballs, and always pins paid actor and judge stages to `gpt-5.6-terra`. Official runs require clean package, qualification-suite, and portable-skill inputs; dirty inputs are recorded as a failed preflight before any paid stage. See the [adapter qualification guide](qualification/README.md) for profiles, transparent projects, checkpoint recovery, caching, and public result artifacts.
 
 The documentation website uses an isolated Node.js 24.15.0 dependency boundary and exact `@moldea.ai/website-ui` package release. Install its exact dependency closure with `npm --prefix website ci --ignore-scripts`, then use:
 

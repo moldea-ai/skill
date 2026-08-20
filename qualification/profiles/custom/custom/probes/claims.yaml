@@ -1,0 +1,68 @@
+version: 1
+adapterId: custom
+implementationId: custom
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The complete workflow runs against the packed local Core 2.x implementation declared compatible with this adapter.
+    coveredBy:
+      - evaluate-aligned-project
+      - maintain-dirty-project
+      - reconcile-drift-and-boundaries
+  - id: repository-format-version-1
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Repository format version 1 is exercised through Repository FS, Repository memory, Core, and CLI validation in every project.
+    coveredBy:
+      - evaluate-aligned-project
+      - maintain-dirty-project
+      - reconcile-drift-and-boundaries
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: Required project-local custom runtime guidance is present and reconciled with the registered agent.
+    coveredBy:
+      - evaluate-aligned-project
+      - maintain-dirty-project
+      - reconcile-drift-and-boundaries
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: All semantic journeys and deterministic full-stack checks must pass for qualification.
+    coveredBy:
+      - evaluate-aligned-project
+      - maintain-dirty-project
+      - reconcile-drift-and-boundaries
+  - id: target-kind
+    kind: support-gate
+    matrixPath: target.kind
+    description: The projects exercise the built-in custom runtime target without a provider package.
+    coveredBy:
+      - evaluate-aligned-project
+      - maintain-dirty-project
+      - reconcile-drift-and-boundaries
+  - id: target-language
+    kind: support-gate
+    matrixPath: target.language
+    description: Repository relationships remain valid around ordinary TypeScript project sources without language-specific adapter inference.
+    coveredBy:
+      - evaluate-aligned-project
+      - maintain-dirty-project
+      - reconcile-drift-and-boundaries
+  - id: target-support-level
+    kind: support-gate
+    matrixPath: target.support-level
+    description: The supported Custom baseline must continue to pass the complete qualification protocol.
+    coveredBy:
+      - evaluate-aligned-project
+      - maintain-dirty-project
+      - reconcile-drift-and-boundaries
+  - id: explicit-repository-relationships
+    kind: pattern
+    matrixPath: target.pattern.explicit-repository-relationships
+    description: Explicit bindings, context relationships, affected paths, and unresolved requirements are validated without runtime-specific inference.
+    coveredBy:
+      - evaluate-aligned-project
+      - maintain-dirty-project
+      - reconcile-drift-and-boundaries

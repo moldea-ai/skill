@@ -1,0 +1,16 @@
+version: 1
+adapterId: custom
+implementationId: custom
+title: Custom runtime qualification
+description: Qualifies universal repository behavior without invoking a provider or runtime SDK.
+probesFile: probes/claims.yaml
+cases:
+  - id: evaluate-aligned-project
+    projectDirectory: projects/evaluate-aligned-project
+    scenarioFile: scenario.yaml
+  - id: maintain-dirty-project
+    projectDirectory: projects/maintain-dirty-project
+    scenarioFile: scenario.yaml
+  - id: reconcile-drift-and-boundaries
+    projectDirectory: projects/reconcile-drift-and-boundaries
+    scenarioFile: scenario.yaml

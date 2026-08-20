@@ -1,0 +1,109 @@
+import path from 'node:path';
+
+import { QUALIFICATION_PROTOCOL_VERSION } from '../constants/index.ts';
+import {
+  QualificationAttemptCheckpointSchema,
+  QualificationStageCheckpointSchema,
+  type IQualificationAttemptCheckpoint,
+  type IQualificationSelection,
+  type IQualificationStageCheckpoint,
+} from '../contracts/index.ts';
+import { readJsonFile, writeJsonFileAtomically } from '../filesystem/index.ts';
+
+/** Returns the canonical local checkpoint path for one attempt directory. */
+export const getCheckpointPath = (attemptDirectory: string): string =>
+  path.join(attemptDirectory, 'checkpoint.json');
+
+/** Creates one pending stage state. */
+export const createPendingStage = (stageId: string): IQualificationStageCheckpoint =>
+  QualificationStageCheckpointSchema.parse({
+    id: stageId,
+    status: 'pending',
+    startedAt: null,
+    completedAt: null,
+    durationMs: null,
+    cacheKey: null,
+    cacheSourceAttemptId: null,
+    error: null,
+  });
+
+/** Creates the first atomic checkpoint for a new qualification attempt. */
+export const createAttemptCheckpoint = async (options: {
+  attemptDirectory: string;
+  attemptId: string;
+  parentAttemptId: string | null;
+  selection: IQualificationSelection;
+  isDryRun: boolean;
+  useCache: boolean;
+  skillRepository: string;
+  profileDigest: string;
+  qualificationDigest: string;
+  skillDigest: string;
+  packagesDigest: string;
+  stageIds: readonly string[];
+}): Promise<IQualificationAttemptCheckpoint> => {
+  const timestamp = new Date().toISOString();
+  const checkpoint = QualificationAttemptCheckpointSchema.parse({
+    protocolVersion: QUALIFICATION_PROTOCOL_VERSION,
+    attemptId: options.attemptId,
+    parentAttemptId: options.parentAttemptId,
+    selection: options.selection,
+    status: 'running',
+    isDryRun: options.isDryRun,
+    useCache: options.useCache,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    completedAt: null,
+    skillRepository: options.skillRepository,
+    profileDigest: options.profileDigest,
+    qualificationDigest: options.qualificationDigest,
+    skillDigest: options.skillDigest,
+    packagesDigest: options.packagesDigest,
+    candidate: null,
+    stages: Object.fromEntries(
+      options.stageIds.map((stageId) => [stageId, createPendingStage(stageId)]),
+    ),
+    workspaceDirectories: {},
+  });
+
+  await writeAttemptCheckpoint(options.attemptDirectory, checkpoint);
+  return checkpoint;
+};
+
+/** Loads and validates one local checkpoint without changing it. */
+export const readAttemptCheckpoint = async (
+  attemptDirectory: string,
+): Promise<IQualificationAttemptCheckpoint> =>
+  readJsonFile(getCheckpointPath(attemptDirectory), QualificationAttemptCheckpointSchema);
+
+/** Atomically replaces one local checkpoint after validating the complete state. */
+export const writeAttemptCheckpoint = async (
+  attemptDirectory: string,
+  checkpoint: IQualificationAttemptCheckpoint,
+): Promise<void> => {
+  const validatedCheckpoint = QualificationAttemptCheckpointSchema.parse({
+    ...checkpoint,
+    updatedAt: new Date().toISOString(),
+  });
+  await writeJsonFileAtomically(getCheckpointPath(attemptDirectory), validatedCheckpoint);
+};
+
+/** Converts an interrupted running stage back to resumable pending state. */
+export const normalizeInterruptedCheckpoint = (
+  checkpoint: IQualificationAttemptCheckpoint,
+): IQualificationAttemptCheckpoint => {
+  const stages = Object.fromEntries(
+    Object.entries(checkpoint.stages).map(([stageId, stage]) => [
+      stageId,
+      stage.status === 'running'
+        ? createPendingStage(stageId)
+        : QualificationStageCheckpointSchema.parse(stage),
+    ]),
+  );
+
+  return QualificationAttemptCheckpointSchema.parse({
+    ...checkpoint,
+    status: checkpoint.status === 'running' ? 'incomplete' : checkpoint.status,
+    stages,
+  });
+};

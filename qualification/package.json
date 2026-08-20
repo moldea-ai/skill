@@ -1,0 +1,28 @@
+{
+  "name": "@moldea.ai/adapter-qualification",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local adapter support qualification for the moldea Agent Skill.",
+  "type": "module",
+  "engines": {
+    "node": "^24.15.0",
+    "npm": ">=10.9.0 <12.0.0"
+  },
+  "scripts": {
+    "qualification": "node src/bin/index.ts",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:integration": "vitest run --config vitest/test-integration.config.ts",
+    "test:unit": "vitest run --config vitest/test-unit.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "8.4.1",
+    "yaml": "2.9.0",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.1",
+    "typescript": "6.0.3",
+    "vitest": "4.1.10"
+  }
+}

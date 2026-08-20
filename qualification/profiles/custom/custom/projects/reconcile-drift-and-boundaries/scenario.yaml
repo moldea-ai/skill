@@ -1,0 +1,38 @@
+version: 1
+id: reconcile-drift-and-boundaries
+title: Reconcile drift and boundaries
+purpose: Verify stale-reference repair and conservative unresolved reporting for dynamic code.
+taskFile: task.md
+seedDirectory: seed
+overlayDirectory: overlay
+expectedDirectory: expected
+removePaths:
+  - src/support-agent.ts
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: valid
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    - src/support-assistant.ts
+    - src/dynamic-tools.ts
+    - moldea/runtimes/custom.md
+    - moldea/agents/support/instruction.md
+  mustChangePaths:
+    - moldea/moldea.yaml
+  mustExistPaths:
+    - src/support-assistant.ts
+    - src/dynamic-tools.ts
+    - moldea/moldea.yaml
+  mustNotExistPaths:
+    - src/support-agent.ts
+judgeRequirements:
+  - id: repairs-binding
+    description: The stale runtime-agent reference is updated to the existing supportAssistant export and no obsolete source is recreated.
+  - id: records-boundary
+    description: Dynamic tool registration is recorded as an unresolved warning with a concrete resolution and related source instead of an invented binding.
+  - id: preserves-source
+    description: Both pre-existing implementation files and the canonical agent assets remain unchanged.
+  - id: validates-project
+    description: The initially invalid project becomes valid through Repository FS, Repository memory, Core, CLI, and project typechecking without read-time mutation.

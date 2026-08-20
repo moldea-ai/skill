@@ -1,0 +1,807 @@
+import { randomUUID } from 'node:crypto';
+import { access, rm } from 'node:fs/promises';
+import path from 'node:path';
+import { z } from 'zod';
+
+import { prepareCandidateClosure } from '../candidate-closure/index.ts';
+import {
+  createAttemptCheckpoint,
+  normalizeInterruptedCheckpoint,
+  readAttemptCheckpoint,
+  writeAttemptCheckpoint,
+} from '../checkpoint/index.ts';
+import { resolveQualificationTarget } from '../compatibility/index.ts';
+import {
+  DEFAULT_SKILL_REPOSITORY,
+  PACKAGES_REPOSITORY_ROOT,
+  QUALIFICATION_RESULTS_ROOT,
+  QUALIFICATION_ROOT,
+} from '../constants/index.ts';
+import {
+  DeterministicVerificationSchema,
+  QualificationAttemptCheckpointSchema,
+  QualificationCaseResultSchema,
+  QualificationSourceStateResultSchema,
+  WorkspaceAssertionResultSchema,
+  type IQualificationAttemptCheckpoint,
+  type IQualificationAttemptResult,
+  type IQualificationCaseResult,
+} from '../contracts/index.ts';
+import { inspectQualificationCoverage } from '../coverage/index.ts';
+import { verifyDeterministicProject } from '../deterministic/index.ts';
+import {
+  ensureDirectory,
+  readJsonFile,
+  writeJsonFileAtomically,
+  writeTextFileAtomically,
+} from '../filesystem/index.ts';
+import {
+  captureWorkspacePatch,
+  inspectWorkspaceAssertions,
+  prepareQualificationProject,
+  readQualificationTask,
+} from '../project-fixture/index.ts';
+import { inspectGitRepositoryState } from '../repository-state/index.ts';
+import {
+  recordQualificationResult,
+  sanitizeEvidenceText,
+  sanitizeEvidenceValue,
+} from '../result/index.ts';
+import { getLocalAttemptDirectory } from './attempts.ts';
+import { calculateQualificationDigest } from './fingerprints.ts';
+import {
+  executeActorModelStage,
+  executeJudgeModelStage,
+  restoreActorModelStage,
+  restoreJudgeModelStage,
+} from './model-stages.ts';
+import { createQualificationExecutionProvenance } from './provenance.ts';
+import {
+  completeQualificationStage,
+  isQualificationStageComplete,
+  startQualificationStage,
+} from './stages.ts';
+import { createQualificationAttemptResult } from './transformers.ts';
+import { haveQualificationInputsChanged, inspectQualificationSourceState } from './validations.ts';
+import type {
+  IQualificationExecutionProvenance,
+  IQualificationInputState,
+  IQualificationRunOutcome,
+  IRunQualificationOptions,
+} from './types.ts';
+
+const CoverageResultSchema = z.strictObject({
+  passed: z.boolean(),
+  requiredClaims: z.array(z.string()),
+  declaredClaims: z.array(z.string()),
+  missingClaims: z.array(z.string()),
+  unknownClaims: z.array(z.string()),
+  uncoveredCaseIds: z.array(z.string()),
+});
+
+const DeterministicArtifactSchema = z.strictObject({
+  summary: DeterministicVerificationSchema,
+  details: z.unknown(),
+});
+
+const pathExists = async (candidatePath: string): Promise<boolean> => {
+  try {
+    await access(candidatePath);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Inspects every source tree that can affect qualification evidence.
+ * @returns The package, qualification-suite, and portable-skill repository states.
+ */
+const inspectQualificationInputState = async (
+  skillRepository: string,
+): Promise<IQualificationInputState> => {
+  const [packagesState, qualificationDigest, qualificationState, skillState] = await Promise.all([
+    inspectGitRepositoryState(PACKAGES_REPOSITORY_ROOT, {
+      excludedRelativePathPrefixes: ['qualification'],
+    }),
+    calculateQualificationDigest(),
+    inspectGitRepositoryState(QUALIFICATION_ROOT, {
+      excludedRelativePathPrefixes: ['results'],
+    }),
+    inspectGitRepositoryState(skillRepository),
+  ]);
+
+  return { packagesState, qualificationDigest, qualificationState, skillState };
+};
+
+const createAttemptId = (adapterId: string, implementationId: string): string => {
+  const timestamp = new Date().toISOString().replace(/[-:.]/gu, '');
+  return `${timestamp}-${adapterId}-${implementationId}-${randomUUID().slice(0, 8)}`;
+};
+
+const createStageIds = (caseIds: readonly string[]): string[] => [
+  'source-state',
+  'coverage',
+  'candidate',
+  ...caseIds.flatMap((caseId) => [
+    `case:${caseId}:prepare`,
+    `case:${caseId}:deterministic-before`,
+    `case:${caseId}:actor`,
+    `case:${caseId}:deterministic-after`,
+    `case:${caseId}:assertions`,
+    `case:${caseId}:judge`,
+    `case:${caseId}:result`,
+  ]),
+];
+
+const persistFinalState = async (options: {
+  attemptDirectory: string;
+  caseResults: IQualificationCaseResult[];
+  checkpoint: IQualificationAttemptCheckpoint;
+  provenance: IQualificationExecutionProvenance;
+  stageIds: readonly string[];
+  status: 'errored' | 'failed' | 'incomplete' | 'passed';
+  summary: string;
+}): Promise<{
+  checkpoint: IQualificationAttemptCheckpoint;
+  result: IQualificationAttemptResult;
+}> => {
+  const completedAt = options.status === 'incomplete' ? null : new Date().toISOString();
+  const checkpoint = QualificationAttemptCheckpointSchema.parse({
+    ...options.checkpoint,
+    status: options.status,
+    completedAt,
+    updatedAt: new Date().toISOString(),
+  });
+  await writeAttemptCheckpoint(options.attemptDirectory, checkpoint);
+  const result = createQualificationAttemptResult({
+    caseResults: options.caseResults,
+    checkpoint,
+    completedAt,
+    provenance: options.provenance,
+    status: options.status,
+    summary: options.summary,
+    stageIds: options.stageIds,
+  });
+  await writeJsonFileAtomically(path.join(options.attemptDirectory, 'result-draft.json'), result);
+  return { checkpoint, result };
+};
+
+const prepareAttempt = async (options: IRunQualificationOptions) => {
+  if (options.resumeAttemptId !== undefined) {
+    const attemptDirectory = getLocalAttemptDirectory(options.resumeAttemptId);
+    const rawCheckpoint = await readAttemptCheckpoint(attemptDirectory);
+
+    if (rawCheckpoint.status !== 'incomplete' && rawCheckpoint.status !== 'running') {
+      throw new Error(
+        `Attempt ${rawCheckpoint.attemptId} is ${rawCheckpoint.status}; use retry for terminal attempts.`,
+      );
+    }
+
+    const checkpoint = normalizeInterruptedCheckpoint(rawCheckpoint);
+    await writeAttemptCheckpoint(attemptDirectory, checkpoint);
+    return { attemptDirectory, checkpoint };
+  }
+
+  if (options.selection === undefined) {
+    throw new Error(
+      'A new qualification attempt requires an adapter and implementation selection.',
+    );
+  }
+
+  const target = await resolveQualificationTarget(options.selection);
+  const skillRepository = path.resolve(options.skillRepository ?? DEFAULT_SKILL_REPOSITORY);
+
+  if (!(await pathExists(path.join(skillRepository, 'SKILL.md')))) {
+    throw new Error(`Candidate skill directory does not contain SKILL.md: ${skillRepository}`);
+  }
+
+  const inputState = await inspectQualificationInputState(skillRepository);
+  const attemptId = createAttemptId(
+    options.selection.adapterId,
+    options.selection.implementationId,
+  );
+  const attemptDirectory = getLocalAttemptDirectory(attemptId);
+  const checkpoint = await createAttemptCheckpoint({
+    attemptDirectory,
+    attemptId,
+    parentAttemptId: options.parentAttemptId ?? null,
+    selection: options.selection,
+    isDryRun: options.isDryRun ?? false,
+    useCache: options.useCache ?? true,
+    skillRepository,
+    profileDigest: target.profileDigest,
+    qualificationDigest: inputState.qualificationDigest,
+    skillDigest: inputState.skillState.fingerprint,
+    packagesDigest: inputState.packagesState.fingerprint,
+    stageIds: createStageIds(target.profile.cases.map(({ id }) => id)),
+  });
+
+  return { attemptDirectory, checkpoint };
+};
+
+/** Runs or resumes one local qualification attempt with atomic evidence after every stage. */
+export const runQualification = async (
+  options: IRunQualificationOptions,
+): Promise<IQualificationRunOutcome> => {
+  const preparedAttempt = await prepareAttempt(options);
+  const { attemptDirectory } = preparedAttempt;
+  let checkpoint = preparedAttempt.checkpoint;
+  const target = await resolveQualificationTarget(checkpoint.selection);
+  const stageIds = createStageIds(target.profile.cases.map(({ id }) => id));
+  const publicDirectory = path.join(attemptDirectory, 'public');
+  const internalDirectory = path.join(attemptDirectory, 'internal');
+  const resultsRoot = options.resultsRoot ?? QUALIFICATION_RESULTS_ROOT;
+  await Promise.all([ensureDirectory(publicDirectory), ensureDirectory(internalDirectory)]);
+
+  if (!(await pathExists(path.join(checkpoint.skillRepository, 'SKILL.md')))) {
+    throw new Error(
+      `Candidate skill directory does not contain SKILL.md: ${checkpoint.skillRepository}`,
+    );
+  }
+
+  const inputState = await inspectQualificationInputState(checkpoint.skillRepository);
+  const { packagesState, qualificationState, skillState } = inputState;
+  const { qualificationDigest } = inputState;
+
+  if (
+    checkpoint.profileDigest !== target.profileDigest ||
+    haveQualificationInputsChanged(checkpoint, inputState)
+  ) {
+    throw new Error(
+      'Attempt inputs changed after checkpoint creation. Start a retry so the new evidence has a new identity.',
+    );
+  }
+
+  const provenance = await createQualificationExecutionProvenance({
+    host: options.host,
+    packagesState,
+    profileDigest: target.profileDigest,
+    qualificationDigest,
+    qualificationState,
+    skillState,
+  });
+  const caseResults: IQualificationCaseResult[] = [];
+  let activeStageId: string | null = null;
+
+  try {
+    const sourceStateStageId = 'source-state';
+    const sourceStatePath = path.join(publicDirectory, 'source-state.json');
+    const sourceState = isQualificationStageComplete(checkpoint, sourceStateStageId)
+      ? await readJsonFile(sourceStatePath, QualificationSourceStateResultSchema)
+      : await (async () => {
+          activeStageId = sourceStateStageId;
+          checkpoint = await startQualificationStage(
+            attemptDirectory,
+            checkpoint,
+            sourceStateStageId,
+          );
+          const sourceStateResult = inspectQualificationSourceState({
+            isDryRun: checkpoint.isDryRun,
+            packagesState,
+            qualificationState,
+            skillState,
+          });
+          await writeJsonFileAtomically(sourceStatePath, sourceStateResult);
+          checkpoint = await completeQualificationStage(
+            attemptDirectory,
+            checkpoint,
+            sourceStateStageId,
+            { status: sourceStateResult.passed ? 'passed' : 'failed' },
+          );
+          activeStageId = null;
+          return sourceStateResult;
+        })();
+
+    if (!sourceState.passed) {
+      const finalState = await persistFinalState({
+        attemptDirectory,
+        caseResults,
+        checkpoint,
+        provenance,
+        stageIds,
+        status: 'failed',
+        summary:
+          'Qualification stopped before candidate construction because official evidence requires clean package, qualification-suite, and portable-skill inputs.',
+      });
+
+      await recordQualificationResult(
+        {
+          artifactDirectory: publicDirectory,
+          result: finalState.result,
+        },
+        resultsRoot,
+      );
+
+      return { attemptDirectory, result: finalState.result, wasRecorded: true };
+    }
+
+    const coverageStageId = 'coverage';
+    const coveragePath = path.join(publicDirectory, 'coverage.json');
+    const coverage = isQualificationStageComplete(checkpoint, coverageStageId)
+      ? await readJsonFile(coveragePath, CoverageResultSchema)
+      : await (async () => {
+          activeStageId = coverageStageId;
+          checkpoint = await startQualificationStage(attemptDirectory, checkpoint, coverageStageId);
+          const coverageResult = await inspectQualificationCoverage(
+            target.profileDirectory,
+            target.profile,
+            target.adapter,
+            target.target,
+          );
+          await writeJsonFileAtomically(coveragePath, coverageResult);
+          checkpoint = await completeQualificationStage(
+            attemptDirectory,
+            checkpoint,
+            coverageStageId,
+            { status: coverageResult.passed ? 'passed' : 'failed' },
+          );
+          activeStageId = null;
+          return coverageResult;
+        })();
+
+    if (!coverage.passed) {
+      const finalState = await persistFinalState({
+        attemptDirectory,
+        caseResults,
+        checkpoint,
+        provenance,
+        stageIds,
+        status: 'failed',
+        summary:
+          'Qualification failed because the profile does not cover the current matrix claims.',
+      });
+      const wasRecorded = !checkpoint.isDryRun;
+
+      if (wasRecorded) {
+        await recordQualificationResult(
+          {
+            artifactDirectory: publicDirectory,
+            result: finalState.result,
+          },
+          resultsRoot,
+        );
+      }
+
+      return { attemptDirectory, result: finalState.result, wasRecorded };
+    }
+
+    const candidateStageId = 'candidate';
+    let candidate = checkpoint.candidate;
+
+    if (
+      candidate === null ||
+      !(await pathExists(path.join(candidate.runtimeDirectory, 'package.json')))
+    ) {
+      activeStageId = candidateStageId;
+
+      if (!isQualificationStageComplete(checkpoint, candidateStageId)) {
+        checkpoint = await startQualificationStage(attemptDirectory, checkpoint, candidateStageId);
+      }
+
+      candidate = await prepareCandidateClosure({
+        adapterPackage: target.adapter.implementation.package,
+        attemptDirectory,
+        packagesDigest: checkpoint.packagesDigest,
+        signal: options.signal,
+      });
+      checkpoint = QualificationAttemptCheckpointSchema.parse({
+        ...checkpoint,
+        candidate,
+      });
+
+      if (!isQualificationStageComplete(checkpoint, candidateStageId)) {
+        checkpoint = await completeQualificationStage(
+          attemptDirectory,
+          checkpoint,
+          candidateStageId,
+          { status: 'passed' },
+        );
+      } else {
+        await writeAttemptCheckpoint(attemptDirectory, checkpoint);
+      }
+
+      activeStageId = null;
+    }
+
+    for (const profileCase of target.profile.cases) {
+      const resultStageId = `case:${profileCase.id}:result`;
+      const caseArtifactDirectory = path.join(publicDirectory, 'cases', profileCase.id);
+      const caseResultPath = path.join(caseArtifactDirectory, 'case-result.json');
+
+      if (isQualificationStageComplete(checkpoint, resultStageId)) {
+        caseResults.push(await readJsonFile(caseResultPath, QualificationCaseResultSchema));
+        continue;
+      }
+
+      const caseStartedAt = performance.now();
+      const workspaceDirectory = path.join(attemptDirectory, 'workspaces', profileCase.id);
+      await rm(workspaceDirectory, { force: true, recursive: true });
+      await ensureDirectory(caseArtifactDirectory);
+      const prepareStageId = `case:${profileCase.id}:prepare`;
+      const isPrepareComplete = isQualificationStageComplete(checkpoint, prepareStageId);
+
+      if (!isPrepareComplete) {
+        activeStageId = prepareStageId;
+        checkpoint = await startQualificationStage(attemptDirectory, checkpoint, prepareStageId);
+      }
+
+      const project = await prepareQualificationProject({
+        attemptDirectory,
+        profileCase,
+        profileDirectory: target.profileDirectory,
+        skillRepository: checkpoint.skillRepository,
+        skillState,
+        signal: options.signal,
+      });
+      checkpoint = QualificationAttemptCheckpointSchema.parse({
+        ...checkpoint,
+        workspaceDirectories: {
+          ...checkpoint.workspaceDirectories,
+          [profileCase.id]: project.workspaceDirectory,
+        },
+      });
+
+      if (!isPrepareComplete) {
+        checkpoint = await completeQualificationStage(
+          attemptDirectory,
+          checkpoint,
+          prepareStageId,
+          { status: 'passed' },
+        );
+        activeStageId = null;
+      } else {
+        await writeAttemptCheckpoint(attemptDirectory, checkpoint);
+      }
+
+      const task = await readQualificationTask(project);
+      const deterministicBeforeStageId = `case:${profileCase.id}:deterministic-before`;
+      const deterministicBeforePath = path.join(caseArtifactDirectory, 'deterministic-before.json');
+      const deterministicBefore = isQualificationStageComplete(
+        checkpoint,
+        deterministicBeforeStageId,
+      )
+        ? await readJsonFile(deterministicBeforePath, DeterministicArtifactSchema)
+        : await (async () => {
+            activeStageId = deterministicBeforeStageId;
+            checkpoint = await startQualificationStage(
+              attemptDirectory,
+              checkpoint,
+              deterministicBeforeStageId,
+            );
+            const result = await verifyDeterministicProject({
+              candidate,
+              expectedInspectionStatus: project.scenario.inspection.before,
+              signal: options.signal,
+              workspaceDirectory: project.workspaceDirectory,
+            });
+            await writeJsonFileAtomically(
+              deterministicBeforePath,
+              sanitizeEvidenceValue(result, {
+                packagesRepository: PACKAGES_REPOSITORY_ROOT,
+                skillRepository: checkpoint.skillRepository,
+                workspaceDirectory: project.workspaceDirectory,
+              }),
+            );
+            checkpoint = await completeQualificationStage(
+              attemptDirectory,
+              checkpoint,
+              deterministicBeforeStageId,
+              { status: result.summary.passed ? 'passed' : 'failed' },
+            );
+            activeStageId = null;
+            return result;
+          })();
+
+      if (!deterministicBefore.summary.passed) {
+        throw new Error(
+          `Case ${profileCase.id} failed deterministic preflight: ${deterministicBefore.summary.failures.join(' ')}`,
+        );
+      }
+
+      const actorStageId = `case:${profileCase.id}:actor`;
+      const snapshotDirectory = path.join(
+        internalDirectory,
+        'cases',
+        profileCase.id,
+        'actor-workspace',
+      );
+      const actorResult = isQualificationStageComplete(checkpoint, actorStageId)
+        ? await restoreActorModelStage({
+            caseArtifactDirectory,
+            project,
+            snapshotDirectory,
+          })
+        : await (async () => {
+            activeStageId = actorStageId;
+            checkpoint = await startQualificationStage(attemptDirectory, checkpoint, actorStageId);
+            const result = await executeActorModelStage({
+              adapterId: target.selection.adapterId,
+              attemptId: checkpoint.attemptId,
+              candidate,
+              caseArtifactDirectory,
+              codexVersion: provenance.codexVersion,
+              host: options.host,
+              implementationId: target.selection.implementationId,
+              isDryRun: checkpoint.isDryRun,
+              packagesRepository: PACKAGES_REPOSITORY_ROOT,
+              profileDigest: checkpoint.profileDigest,
+              qualificationDigest,
+              project,
+              signal: options.signal,
+              skillDigest: checkpoint.skillDigest,
+              skillRepository: checkpoint.skillRepository,
+              snapshotDirectory,
+              task,
+              useCache: checkpoint.useCache,
+            });
+            checkpoint = await completeQualificationStage(
+              attemptDirectory,
+              checkpoint,
+              actorStageId,
+              {
+                status: result.evidence.cacheSourceAttemptId === null ? 'passed' : 'cached',
+                cacheKey: result.evidence.cacheKey,
+                cacheSourceAttemptId: result.evidence.cacheSourceAttemptId,
+              },
+            );
+            activeStageId = null;
+            return result;
+          })();
+
+      const deterministicAfterStageId = `case:${profileCase.id}:deterministic-after`;
+      const deterministicAfterPath = path.join(caseArtifactDirectory, 'deterministic-after.json');
+      const deterministicAfter = isQualificationStageComplete(checkpoint, deterministicAfterStageId)
+        ? await readJsonFile(deterministicAfterPath, DeterministicArtifactSchema)
+        : await (async () => {
+            activeStageId = deterministicAfterStageId;
+            checkpoint = await startQualificationStage(
+              attemptDirectory,
+              checkpoint,
+              deterministicAfterStageId,
+            );
+            const result = await verifyDeterministicProject({
+              candidate,
+              expectedInspectionStatus: project.scenario.inspection.after,
+              signal: options.signal,
+              workspaceDirectory: project.workspaceDirectory,
+            });
+            await writeJsonFileAtomically(
+              deterministicAfterPath,
+              sanitizeEvidenceValue(result, {
+                packagesRepository: PACKAGES_REPOSITORY_ROOT,
+                skillRepository: checkpoint.skillRepository,
+                workspaceDirectory: project.workspaceDirectory,
+              }),
+            );
+            checkpoint = await completeQualificationStage(
+              attemptDirectory,
+              checkpoint,
+              deterministicAfterStageId,
+              { status: result.summary.passed ? 'passed' : 'failed' },
+            );
+            activeStageId = null;
+            return result;
+          })();
+
+      const assertionsStageId = `case:${profileCase.id}:assertions`;
+      const assertionsPath = path.join(caseArtifactDirectory, 'workspace-assertions.json');
+      const workspaceAssertions = isQualificationStageComplete(checkpoint, assertionsStageId)
+        ? await readJsonFile(assertionsPath, WorkspaceAssertionResultSchema)
+        : await (async () => {
+            activeStageId = assertionsStageId;
+            checkpoint = await startQualificationStage(
+              attemptDirectory,
+              checkpoint,
+              assertionsStageId,
+            );
+            const result = await inspectWorkspaceAssertions(project);
+            await writeJsonFileAtomically(assertionsPath, result);
+            checkpoint = await completeQualificationStage(
+              attemptDirectory,
+              checkpoint,
+              assertionsStageId,
+              { status: result.passed ? 'passed' : 'failed' },
+            );
+            activeStageId = null;
+            return result;
+          })();
+      const patchContent = sanitizeEvidenceText(
+        await captureWorkspacePatch(project.workspaceDirectory),
+        {
+          packagesRepository: PACKAGES_REPOSITORY_ROOT,
+          skillRepository: checkpoint.skillRepository,
+          workspaceDirectory: project.workspaceDirectory,
+        },
+      );
+      await writeTextFileAtomically(
+        path.join(caseArtifactDirectory, 'workspace.patch'),
+        patchContent,
+      );
+
+      const judgeStageId = `case:${profileCase.id}:judge`;
+      const judgeResult = isQualificationStageComplete(checkpoint, judgeStageId)
+        ? await restoreJudgeModelStage({
+            caseArtifactDirectory,
+            scenario: project.scenario,
+          })
+        : await (async () => {
+            activeStageId = judgeStageId;
+            checkpoint = await startQualificationStage(attemptDirectory, checkpoint, judgeStageId);
+            const result = await executeJudgeModelStage({
+              actorOutput: actorResult.output,
+              adapterId: target.selection.adapterId,
+              attemptId: checkpoint.attemptId,
+              candidate,
+              caseArtifactDirectory,
+              codexVersion: provenance.codexVersion,
+              deterministicAfter: deterministicAfter.summary,
+              host: options.host,
+              implementationId: target.selection.implementationId,
+              isDryRun: checkpoint.isDryRun,
+              packagesRepository: PACKAGES_REPOSITORY_ROOT,
+              profileDigest: checkpoint.profileDigest,
+              qualificationDigest,
+              project,
+              signal: options.signal,
+              skillDigest: checkpoint.skillDigest,
+              skillRepository: checkpoint.skillRepository,
+              task,
+              useCache: checkpoint.useCache,
+              workspaceAssertions,
+            });
+            checkpoint = await completeQualificationStage(
+              attemptDirectory,
+              checkpoint,
+              judgeStageId,
+              {
+                status: result.evidence.cacheSourceAttemptId === null ? 'passed' : 'cached',
+                cacheKey: result.evidence.cacheKey,
+                cacheSourceAttemptId: result.evidence.cacheSourceAttemptId,
+              },
+            );
+            activeStageId = null;
+            return result;
+          })();
+
+      const failedJudgeRequirements = judgeResult.output.requirements
+        .filter(({ verdict }) => verdict === 'fail')
+        .map(({ evidence, id }) => `Judge requirement ${id} failed: ${evidence}`);
+      const failures = [
+        ...deterministicAfter.summary.failures,
+        ...workspaceAssertions.failures,
+        ...(actorResult.output.outcome === 'blocked'
+          ? ['The actor reported a blocked outcome.']
+          : []),
+        ...failedJudgeRequirements,
+        ...(judgeResult.output.verdict === 'fail' ? judgeResult.output.failures : []),
+      ];
+      const caseResult = QualificationCaseResultSchema.parse({
+        caseId: profileCase.id,
+        title: project.scenario.title,
+        status: failures.length === 0 ? 'passed' : 'failed',
+        durationMs: Math.max(0, Math.round(performance.now() - caseStartedAt)),
+        deterministicBeforePath: `cases/${profileCase.id}/deterministic-before.json`,
+        deterministicAfterPath: `cases/${profileCase.id}/deterministic-after.json`,
+        actorOutputPath: `cases/${profileCase.id}/actor-output.json`,
+        judgeOutputPath: `cases/${profileCase.id}/judge-output.json`,
+        workspaceAssertionsPath: `cases/${profileCase.id}/workspace-assertions.json`,
+        patchPath: `cases/${profileCase.id}/workspace.patch`,
+        actorUsage: actorResult.evidence.usage,
+        judgeUsage: judgeResult.evidence.usage,
+        actorEvidenceCreatedAt: actorResult.evidence.createdAt,
+        judgeEvidenceCreatedAt: judgeResult.evidence.createdAt,
+        actorCacheSourceAttemptId: actorResult.evidence.cacheSourceAttemptId,
+        judgeCacheSourceAttemptId: judgeResult.evidence.cacheSourceAttemptId,
+        failures,
+      });
+      activeStageId = resultStageId;
+      checkpoint = await startQualificationStage(attemptDirectory, checkpoint, resultStageId);
+      await writeJsonFileAtomically(caseResultPath, caseResult);
+      checkpoint = await completeQualificationStage(attemptDirectory, checkpoint, resultStageId, {
+        status: 'passed',
+      });
+      activeStageId = null;
+      caseResults.push(caseResult);
+    }
+
+    if (!checkpoint.isDryRun) {
+      const finalInputState = await inspectQualificationInputState(checkpoint.skillRepository);
+      const hasDirtyFinalInput =
+        finalInputState.packagesState.isDirty ||
+        finalInputState.qualificationState.isDirty ||
+        finalInputState.skillState.isDirty;
+
+      if (haveQualificationInputsChanged(checkpoint, finalInputState) || hasDirtyFinalInput) {
+        throw new Error(
+          'Qualification inputs changed during execution. Start a retry so the recorded evidence uses committed source with a new identity.',
+        );
+      }
+    }
+
+    const hasFailedCase = caseResults.some(({ status }) => status !== 'passed');
+    const finalState = await persistFinalState({
+      attemptDirectory,
+      caseResults,
+      checkpoint,
+      provenance,
+      stageIds,
+      status: hasFailedCase ? 'failed' : 'passed',
+      summary: hasFailedCase
+        ? 'Qualification completed with one or more failed cases.'
+        : 'Qualification passed every deterministic and semantic case.',
+    });
+    const wasRecorded = !checkpoint.isDryRun;
+
+    if (wasRecorded) {
+      await recordQualificationResult(
+        {
+          artifactDirectory: publicDirectory,
+          result: finalState.result,
+        },
+        resultsRoot,
+      );
+    }
+
+    return { attemptDirectory, result: finalState.result, wasRecorded };
+  } catch (error) {
+    const isInterrupted = options.signal?.aborted === true;
+    const safeError = sanitizeEvidenceText(
+      error instanceof Error ? error.message : 'Unknown qualification execution failure.',
+      {
+        packagesRepository: PACKAGES_REPOSITORY_ROOT,
+        skillRepository: checkpoint.skillRepository,
+      },
+    );
+
+    if (activeStageId !== null && !isInterrupted) {
+      checkpoint = await completeQualificationStage(attemptDirectory, checkpoint, activeStageId, {
+        status: 'errored',
+        error: safeError,
+      });
+    }
+
+    if (isInterrupted) {
+      checkpoint = normalizeInterruptedCheckpoint(checkpoint);
+    }
+
+    await writeJsonFileAtomically(
+      path.join(publicDirectory, isInterrupted ? 'interruption.json' : 'error.json'),
+      sanitizeEvidenceValue(
+        {
+          stageId: activeStageId,
+          message: safeError,
+        },
+        {
+          packagesRepository: PACKAGES_REPOSITORY_ROOT,
+          skillRepository: checkpoint.skillRepository,
+        },
+      ),
+    );
+    const status = isInterrupted ? 'incomplete' : 'errored';
+    const finalState = await persistFinalState({
+      attemptDirectory,
+      caseResults,
+      checkpoint,
+      provenance,
+      stageIds,
+      status,
+      summary: isInterrupted
+        ? 'Qualification was interrupted and can be resumed from its last atomic checkpoint.'
+        : `Qualification stopped with an execution error: ${safeError}`,
+    });
+    const wasRecorded = !checkpoint.isDryRun && !isInterrupted;
+
+    if (wasRecorded) {
+      await recordQualificationResult(
+        {
+          artifactDirectory: publicDirectory,
+          result: finalState.result,
+        },
+        resultsRoot,
+      );
+    }
+
+    return { attemptDirectory, result: finalState.result, wasRecorded };
+  }
+};

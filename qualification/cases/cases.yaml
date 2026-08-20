@@ -1,0 +1,17 @@
+version: 1
+cases:
+  - id: evaluate-aligned-project
+    title: Evaluate an aligned project
+    layer: semantic-journey
+    description: Inspect a valid project and explain its existing repository relationships without changing it.
+    challenge: Confirms that the skill can recognize a correct project and avoid unnecessary edits.
+  - id: maintain-dirty-project
+    title: Maintain a dirty project
+    layer: semantic-journey
+    description: Add project context while preserving unrelated tracked and untracked developer work.
+    challenge: Exercises safe mutation, explicit relationships, validation, and dirty-worktree preservation together.
+  - id: reconcile-drift-and-boundaries
+    title: Reconcile drift and boundaries
+    layer: semantic-journey
+    description: Repair a stale runtime binding while recording a dynamic relationship that static evidence cannot prove.
+    challenge: Requires a valid final repository without inventing evidence for an ambiguous integration.

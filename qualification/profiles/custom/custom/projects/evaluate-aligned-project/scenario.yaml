@@ -1,0 +1,33 @@
+version: 1
+id: evaluate-aligned-project
+title: Evaluate an aligned project
+purpose: Verify that the skill can inspect a correct Custom project and leave it untouched.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+workspace:
+  expectation: unchanged
+  mustPreservePaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/instruction.md
+    - moldea/runtimes/custom.md
+    - src/support-agent.ts
+  mustChangePaths: []
+  mustExistPaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/runtimes/custom.md
+    - src/support-agent.ts
+  mustNotExistPaths: []
+judgeRequirements:
+  - id: explains-alignment
+    description: The actor identifies the registered agent, custom runtime guidance, and explicit runtime binding using repository evidence.
+  - id: avoids-churn
+    description: The actor makes no project-visible changes because the repository is already valid and aligned.
+  - id: validates-project
+    description: Repository FS, Repository memory, Core, CLI, and project typechecking all confirm the valid project without mutation.

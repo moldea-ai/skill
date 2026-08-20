@@ -10,7 +10,6 @@ import {
 import {
   chmod,
   cp,
-  copyFile,
   lstat,
   mkdir,
   mkdtemp,
@@ -25,11 +24,20 @@ import {
   unlink,
   writeFile,
 } from 'node:fs/promises';
-import { homedir, tmpdir } from 'node:os';
-import { basename, delimiter, dirname, isAbsolute, join, relative, resolve } from 'node:path';
-import { spawn, spawnSync } from 'node:child_process';
+import { tmpdir } from 'node:os';
+import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parseDocument } from 'yaml';
+
+import {
+  CODEX_EVALUATION_NPM_VERSION,
+  buildCodexEvaluationHostCommand,
+  identifyCodexEvaluationHost,
+  parseCodexEvaluationHostCommand,
+  prepareCodexEvaluationHome,
+  runCodexEvaluationHost,
+} from '../tooling/codex-evaluation-host/index.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PORTABLE_SKILL_ROOT = join(REPOSITORY_ROOT, 'moldea');
@@ -46,16 +54,8 @@ const PUBLISHED_CLI_MANIFEST = JSON.parse(
   readFileSync(join(PUBLISHED_CLI_ROOT, 'package.json'), 'utf8'),
 );
 const SEMANTIC_CLI_ROOT = join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'semantic-cli');
-const EGRESS_PROXY_PATH = join(REPOSITORY_ROOT, 'tests', 'semantic-evaluation-proxy.mjs');
 const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
-const DEFAULT_HOST_TIMEOUT_MS = 120_000;
-const DEFAULT_ALLOWED_EGRESS_HOSTS = ['api.openai.com', 'auth.openai.com', 'chatgpt.com'];
-const EGRESS_PROXY_PORT = 3128;
-const SEMANTIC_EVALUATION_MODEL = 'gpt-5.6-terra';
-const SEMANTIC_EVALUATION_REASONING_EFFORT = 'medium';
 const EVALUATION_PROTOCOL_VERSION = 6;
-const NODE_EXECUTABLE_PATH = realpathSync(process.execPath);
-const SEMANTIC_EVALUATION_NPM_VERSION = '11.12.1';
 const MAX_WORKSPACE_EVIDENCE_FILE_BYTES = 32_768;
 const MAX_SKILL_EVIDENCE_FILES = 32;
 const MAX_SKILL_EVIDENCE_FILE_BYTES = 32_768;
@@ -65,14 +65,6 @@ const MAX_SKILL_EVIDENCE_TRAVERSAL_ENTRIES = 64;
 const MAX_SKILL_EVIDENCE_RESOURCE_REFERENCES = 32;
 const MAX_SKILL_ACTIVATION_SCENARIOS = 8;
 const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
-const REQUIRED_CODEX_FLAGS = [
-  '--ephemeral',
-  '--ignore-rules',
-  '--ignore-user-config',
-  '--skip-git-repo-check',
-];
-const REQUIRED_CODEX_CONFIG = ['shell_environment_policy.inherit=none'];
-const SAFE_HOST_ENVIRONMENT_NAMES = ['OPENAI_API_KEY', 'OPENAI_BASE_URL', 'SSL_CERT_FILE'];
 // unadopted initialization cases that use the published CLI with different context quality
 const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
   'initialize-insufficient-context',
@@ -116,171 +108,6 @@ export const getSemanticToolingSource = (caseId) => {
   if (CUSTOM_SETUP_CASE_IDS.has(caseId)) return 'scenario-specific';
   if (SYNTHETIC_COMPATIBILITY_CASE_IDS.has(caseId)) return 'synthetic-compatibility';
   return 'published-package';
-};
-
-/** Parses and validates a host command from an environment variable. */
-const parseHostCommand = (variableName, fallback) => {
-  const rawCommand = process.env[variableName];
-  if (!rawCommand) {
-    if (fallback) return fallback;
-    throw new Error(`${variableName} must contain a JSON command array.`);
-  }
-
-  const command = JSON.parse(rawCommand);
-  if (
-    !Array.isArray(command) ||
-    command.length === 0 ||
-    command.some((part) => typeof part !== 'string')
-  ) {
-    throw new Error(`${variableName} must contain a non-empty JSON array of strings.`);
-  }
-
-  return command;
-};
-
-/** Rejects base host commands that could weaken the nested evaluation sandbox. */
-const validateBaseHostCommand = (command) => {
-  if (basename(command[0]) !== 'codex' || command[1] !== 'exec') {
-    throw new Error('Semantic evaluation currently requires a Codex exec host command.');
-  }
-
-  for (const requiredFlag of REQUIRED_CODEX_FLAGS) {
-    if (!command.includes(requiredFlag)) {
-      throw new Error(`The evaluation host command must include ${requiredFlag}.`);
-    }
-  }
-
-  if (!command.includes('--dangerously-bypass-approvals-and-sandbox')) {
-    throw new Error(
-      'The evaluation host command must delegate execution isolation to the outer sandbox.',
-    );
-  }
-
-  for (const requiredConfig of REQUIRED_CODEX_CONFIG) {
-    const hasRequiredConfig = command.some(
-      (part, index) =>
-        (part === '-c' || part === '--config') && command[index + 1] === requiredConfig,
-    );
-    if (!hasRequiredConfig) {
-      throw new Error(`The evaluation host command must set ${requiredConfig}.`);
-    }
-  }
-
-  const forbiddenParts = [
-    '--add-dir',
-    '--approve-for-me',
-    '--dangerously-bypass-hook-trust',
-    '--sandbox',
-    'danger-full-access',
-  ];
-  if (
-    command.some(
-      (part) =>
-        forbiddenParts.includes(part) ||
-        part.includes('sandbox_permissions') ||
-        part.includes('permission_profile'),
-    )
-  ) {
-    throw new Error('The evaluation host command contains a sandbox-weakening option.');
-  }
-
-  if (command.at(-1) !== '-') {
-    throw new Error('The evaluation host command must read the scenario from standard input.');
-  }
-};
-
-/** Returns one command-level Codex configuration assignment when present. */
-const identifyConfiguredValue = (command, key) => {
-  for (const [index, commandPart] of command.entries()) {
-    const assignment =
-      commandPart === '-c' || commandPart === '--config'
-        ? command[index + 1]
-        : commandPart.startsWith('--config=')
-          ? commandPart.slice('--config='.length)
-          : undefined;
-    if (!assignment) continue;
-
-    const separatorIndex = assignment.indexOf('=');
-    if (separatorIndex === -1) continue;
-    if (assignment.slice(0, separatorIndex).trim() !== key) continue;
-
-    const configuredValue = assignment.slice(separatorIndex + 1).trim();
-    if (configuredValue) return configuredValue;
-  }
-
-  return undefined;
-};
-
-/** Returns the explicit host model. */
-export const identifyConfiguredModel = (command) => {
-  for (const [index, commandPart] of command.entries()) {
-    if (commandPart === '--model' || commandPart === '-m') {
-      const configuredModel = command[index + 1]?.trim();
-      if (configuredModel) return configuredModel;
-    }
-
-    if (commandPart.startsWith('--model=')) {
-      const configuredModel = commandPart.slice('--model='.length).trim();
-      if (configuredModel) return configuredModel;
-    }
-  }
-
-  throw new Error('The semantic evaluation host command does not declare its model.');
-};
-
-/** Returns the explicit host reasoning effort. */
-export const identifyConfiguredReasoningEffort = (command) => {
-  const configuredEffort = identifyConfiguredValue(command, 'model_reasoning_effort');
-  if (configuredEffort) return configuredEffort;
-
-  throw new Error('The semantic evaluation host command does not declare its reasoning effort.');
-};
-
-/** Builds one host command with the runner-owned model and reasoning effort. */
-export const buildSemanticEvaluationHostCommand = (command) => {
-  validateBaseHostCommand(command);
-  const hasModelOverride = command.some(
-    (commandPart) =>
-      commandPart === '--model' ||
-      commandPart === '-m' ||
-      commandPart.startsWith('--model=') ||
-      commandPart.startsWith('-m='),
-  );
-  if (hasModelOverride || identifyConfiguredValue(command, 'model')) {
-    throw new Error(
-      `The evaluation host command must not override the runner-owned ${SEMANTIC_EVALUATION_MODEL} model.`,
-    );
-  }
-  if (identifyConfiguredValue(command, 'model_reasoning_effort')) {
-    throw new Error(
-      'The evaluation host command must not override the runner-owned reasoning effort.',
-    );
-  }
-
-  const effectiveCommand = [
-    ...command.slice(0, -1),
-    '--model',
-    SEMANTIC_EVALUATION_MODEL,
-    '-c',
-    `model_reasoning_effort=${SEMANTIC_EVALUATION_REASONING_EFFORT}`,
-    '-',
-  ];
-  validateHostCommand(effectiveCommand);
-
-  return effectiveCommand;
-};
-
-/** Requires the complete sandbox and model contract for one executable host command. */
-export const validateHostCommand = (command) => {
-  validateBaseHostCommand(command);
-  if (identifyConfiguredModel(command) !== SEMANTIC_EVALUATION_MODEL) {
-    throw new Error(`Semantic evaluation must use ${SEMANTIC_EVALUATION_MODEL}.`);
-  }
-  if (identifyConfiguredReasoningEffort(command) !== SEMANTIC_EVALUATION_REASONING_EFFORT) {
-    throw new Error(
-      `Semantic evaluation must use ${SEMANTIC_EVALUATION_REASONING_EFFORT} reasoning effort.`,
-    );
-  }
 };
 
 /** Hashes one JSON-compatible semantic-evaluation contract exactly. */
@@ -640,39 +467,6 @@ export const readSemanticEvaluationCandidate = async (path = CANDIDATE_RESULT_PA
 export const writeSemanticEvaluationCandidate = async (candidate, path = CANDIDATE_RESULT_PATH) =>
   writeJsonAtomically(path, candidate);
 
-/** Resolves a command from PATH without invoking a shell. */
-const resolveExecutablePath = (commandName) => {
-  const candidates = commandName.includes('/')
-    ? [commandName]
-    : (process.env.PATH ?? '')
-        .split(delimiter)
-        .filter(Boolean)
-        .map((pathEntry) => join(pathEntry, commandName));
-
-  for (const candidate of candidates) {
-    try {
-      accessSync(candidate, constants.X_OK);
-      return realpathSync(candidate);
-    } catch {
-      // continue until an executable candidate is found
-    }
-  }
-
-  throw new Error(`Unable to resolve the evaluation host executable: ${commandName}`);
-};
-
-/** Resolves the executable companion shipped beside the Codex host binary. */
-export const resolveCodeModeHostPath = (hostExecutable) => {
-  const companionPath = join(dirname(hostExecutable), 'codex-code-mode-host');
-
-  try {
-    accessSync(companionPath, constants.X_OK);
-    return realpathSync(companionPath);
-  } catch {
-    throw new Error(`Unable to resolve the Codex code-mode host beside ${hostExecutable}.`);
-  }
-};
-
 /** Returns only scenario evidence, never evaluation criteria, to the acting host. */
 export const buildActorPrompt = (caseDefinition) => {
   if (typeof caseDefinition.prompt === 'string') return caseDefinition.prompt;
@@ -768,292 +562,6 @@ export const assessJudgeOutput = (caseDefinition, output) => {
     caseDefinition.expected.every((label) => observed.includes(label)) && forbidden.length === 0;
 
   return { forbidden, isPassed, observed, rationale: assessment.rationale };
-};
-
-/** Prepares isolated authentication state and non-installing evaluation tooling. */
-export const prepareSandboxHome = async (sandboxHome) => {
-  const sandboxCodexHome = join(sandboxHome, '.codex');
-  await mkdir(sandboxCodexHome, { recursive: true, mode: 0o700 });
-
-  const sourceCodexHome = process.env.CODEX_HOME ?? join(homedir(), '.codex');
-  try {
-    await copyFile(join(sourceCodexHome, 'auth.json'), join(sandboxCodexHome, 'auth.json'));
-  } catch (error) {
-    if (!(error instanceof Error) || !('code' in error) || error.code !== 'ENOENT') throw error;
-  }
-
-  const sandboxBinDirectory = join(sandboxHome, 'bin');
-  const npmProbePath = join(sandboxBinDirectory, 'npm');
-  await mkdir(sandboxBinDirectory, { recursive: true, mode: 0o700 });
-  await writeFile(
-    npmProbePath,
-    [
-      '#!/opt/node',
-      'const argumentsList = process.argv.slice(2);',
-      "if (argumentsList.length === 1 && ['--version', '-v'].includes(argumentsList[0])) {",
-      `  process.stdout.write('${SEMANTIC_EVALUATION_NPM_VERSION}\\n');`,
-      '} else {',
-      "  process.stderr.write('The semantic evaluation npm probe supports only version checks.\\n');",
-      '  process.exitCode = 2;',
-      '}',
-      '',
-    ].join('\n'),
-    'utf8',
-  );
-  await chmod(npmProbePath, 0o755);
-};
-
-/** Returns the bounded host-process timeout. */
-const getHostTimeoutMs = () => {
-  const configuredTimeout = process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
-  if (!configuredTimeout) return DEFAULT_HOST_TIMEOUT_MS;
-
-  const timeoutMs = Number(configuredTimeout);
-  if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
-    throw new Error('MOLDEA_EVAL_HOST_TIMEOUT_MS must be a positive integer.');
-  }
-  return timeoutMs;
-};
-
-/** Returns exact public HTTPS hosts the sandbox may reach through its relay. */
-const getAllowedEgressHosts = () => {
-  const hosts = new Set(DEFAULT_ALLOWED_EGRESS_HOSTS);
-  const configuredHosts = process.env.MOLDEA_EVAL_ALLOWED_HOSTS;
-  for (const host of configuredHosts?.split(',') ?? []) {
-    const normalizedHost = host.trim().toLowerCase();
-    if (normalizedHost) hosts.add(normalizedHost);
-  }
-  if (process.env.OPENAI_BASE_URL) {
-    hosts.add(new URL(process.env.OPENAI_BASE_URL).hostname.toLowerCase());
-  }
-  return [...hosts].sort();
-};
-
-/** Builds the isolated Bubblewrap invocation for one disposable evaluation repository. */
-export const buildBwrapArguments = ({
-  command,
-  cwd,
-  hostCompanionExecutable,
-  hostExecutable,
-  nodeExecutable = NODE_EXECUTABLE_PATH,
-  readOnlyMounts = [],
-  sandboxHome,
-}) => [
-  '--die-with-parent',
-  '--new-session',
-  '--unshare-pid',
-  '--unshare-ipc',
-  '--unshare-uts',
-  '--unshare-net',
-  '--unshare-cgroup-try',
-  '--cap-drop',
-  'ALL',
-  '--tmpfs',
-  '/',
-  '--ro-bind',
-  '/usr',
-  '/usr',
-  '--ro-bind-try',
-  '/bin',
-  '/bin',
-  '--ro-bind-try',
-  '/lib',
-  '/lib',
-  '--ro-bind-try',
-  '/lib64',
-  '/lib64',
-  '--dir',
-  '/etc',
-  '--ro-bind-try',
-  '/etc/ssl',
-  '/etc/ssl',
-  '--ro-bind-try',
-  '/etc/pki',
-  '/etc/pki',
-  '--ro-bind-try',
-  '/etc/ca-certificates',
-  '/etc/ca-certificates',
-  '--ro-bind-try',
-  '/etc/resolv.conf',
-  '/etc/resolv.conf',
-  '--ro-bind-try',
-  '/etc/nsswitch.conf',
-  '/etc/nsswitch.conf',
-  '--ro-bind-try',
-  '/etc/hosts',
-  '/etc/hosts',
-  '--ro-bind-try',
-  '/etc/passwd',
-  '/etc/passwd',
-  '--ro-bind-try',
-  '/etc/group',
-  '/etc/group',
-  '--dir',
-  '/opt',
-  '--ro-bind',
-  hostExecutable,
-  '/opt/codex',
-  ...(hostCompanionExecutable
-    ? ['--ro-bind', hostCompanionExecutable, '/opt/codex-code-mode-host']
-    : []),
-  '--ro-bind',
-  nodeExecutable,
-  '/opt/node',
-  '--dir',
-  '/home',
-  '--dir',
-  '/home/evaluator',
-  '--bind',
-  sandboxHome,
-  '/home/evaluator',
-  '--bind',
-  cwd,
-  '/mnt',
-  ...readOnlyMounts.flatMap(({ source, target }) => ['--dir', target, '--ro-bind', source, target]),
-  '--tmpfs',
-  '/tmp',
-  '--proc',
-  '/proc',
-  '--dev',
-  '/dev',
-  '--chdir',
-  '/mnt',
-  '--clearenv',
-  '--setenv',
-  'CODEX_HOME',
-  '/home/evaluator/.codex',
-  '--setenv',
-  'HOME',
-  '/home/evaluator',
-  '--setenv',
-  'LANG',
-  'C.UTF-8',
-  '--setenv',
-  'PATH',
-  '/home/evaluator/bin:/opt:/usr/bin:/bin',
-  '--setenv',
-  'TMPDIR',
-  '/tmp',
-  '--setenv',
-  'HTTPS_PROXY',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'HTTP_PROXY',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'ALL_PROXY',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'NO_PROXY',
-  '',
-  '--setenv',
-  'https_proxy',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'http_proxy',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'all_proxy',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'no_proxy',
-  '',
-  ...SAFE_HOST_ENVIRONMENT_NAMES.flatMap((environmentName) => {
-    const environmentValue = process.env[environmentName];
-    return environmentValue ? ['--setenv', environmentName, environmentValue] : [];
-  }),
-  '--',
-  '/bin/sh',
-  '-eu',
-  '-c',
-  `socat TCP-LISTEN:${EGRESS_PROXY_PORT},bind=127.0.0.1,reuseaddr,fork UNIX-CONNECT:/home/evaluator/egress-proxy.sock & exec "$@"`,
-  'moldea-evaluation-sandbox',
-  '/opt/codex',
-  ...command.slice(1),
-];
-
-/** Waits until the restricted egress relay is listening. */
-const waitForProxyReady = (proxyProcess) =>
-  new Promise((resolvePromise, rejectPromise) => {
-    const timeout = setTimeout(
-      () => rejectPromise(new Error('The evaluation egress proxy did not become ready.')),
-      5_000,
-    );
-    let stderr = '';
-    proxyProcess.stderr.setEncoding('utf8');
-    proxyProcess.stderr.on('data', (chunk) => {
-      stderr += chunk;
-    });
-    proxyProcess.stdout.setEncoding('utf8');
-    let stdout = '';
-    proxyProcess.stdout.on('data', (chunk) => {
-      stdout += chunk;
-      if (!stdout.includes('\n')) return;
-      clearTimeout(timeout);
-      if (stdout.trim() === 'ready') resolvePromise();
-      else rejectPromise(new Error(`Unexpected evaluation proxy response: ${stdout.trim()}`));
-    });
-    proxyProcess.once('error', (error) => {
-      clearTimeout(timeout);
-      rejectPromise(error);
-    });
-    proxyProcess.once('exit', (status) => {
-      clearTimeout(timeout);
-      rejectPromise(new Error(`Evaluation egress proxy exited with ${status}: ${stderr.trim()}`));
-    });
-  });
-
-/** Runs one host process with only disposable paths and restricted public egress available. */
-const runHost = async (command, prompt, cwd, sandboxHome, readOnlyMounts = []) => {
-  validateHostCommand(command);
-  const hostExecutable = resolveExecutablePath(command[0]);
-  const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);
-  const proxyProcess = spawn(process.execPath, [EGRESS_PROXY_PATH], {
-    env: {
-      MOLDEA_EVAL_ALLOWED_HOSTS: getAllowedEgressHosts().join(','),
-      MOLDEA_EVAL_PROXY_SOCKET: join(sandboxHome, 'egress-proxy.sock'),
-    },
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
-
-  try {
-    await waitForProxyReady(proxyProcess);
-    const result = spawnSync(
-      'bwrap',
-      buildBwrapArguments({
-        command,
-        cwd,
-        hostCompanionExecutable,
-        hostExecutable,
-        nodeExecutable: NODE_EXECUTABLE_PATH,
-        readOnlyMounts,
-        sandboxHome,
-      }),
-      {
-        encoding: 'utf8',
-        input: prompt,
-        killSignal: 'SIGKILL',
-        maxBuffer: 16 * 1024 * 1024,
-        timeout: getHostTimeoutMs(),
-      },
-    );
-
-    if (result.error) {
-      if ('code' in result.error && result.error.code === 'ETIMEDOUT') {
-        throw new Error(`Evaluation host exceeded ${getHostTimeoutMs()} milliseconds.`);
-      }
-      throw result.error;
-    }
-    if (result.status !== 0) {
-      throw new Error(
-        `Evaluation host failed with exit code ${result.status}: ${result.stderr.trim()}`,
-      );
-    }
-
-    return result.stdout.trim();
-  } finally {
-    proxyProcess.kill('SIGTERM');
-  }
 };
 
 /** Writes one scenario file and creates its parent directories. */
@@ -1198,7 +706,7 @@ export const seedSemanticTooling = async (repositoryPath, caseDefinition) => {
     `${JSON.stringify(
       {
         devDependencies: { '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version },
-        packageManager: `npm@${SEMANTIC_EVALUATION_NPM_VERSION}`,
+        packageManager: `npm@${CODEX_EVALUATION_NPM_VERSION}`,
         private: true,
       },
       null,
@@ -2616,22 +2124,6 @@ export const createPortableSkillSemanticDigest = () =>
     return normalizePortableSkillSemanticEvidence(relativePath, content.toString('utf8'));
   });
 
-/** Returns non-sensitive host identity metadata. */
-const identifyHost = (command) => {
-  const versionResult = spawnSync(command[0], ['--version'], {
-    encoding: 'utf8',
-  });
-  return {
-    model: identifyConfiguredModel(command),
-    name: basename(command[0]),
-    reasoningEffort: identifyConfiguredReasoningEffort(command),
-    version:
-      versionResult.status === 0
-        ? versionResult.stdout.trim() || versionResult.stderr.trim()
-        : 'unavailable',
-  };
-};
-
 /** Builds the canonical result from one complete passing checkpoint. */
 export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, generatedAt }) => {
   validateSemanticResultRecording({ candidate, caseDefinitions });
@@ -2690,30 +2182,35 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
     const actorHome = join(evaluationRoot, 'actor-home');
     const judgeRepository = join(evaluationRoot, 'judge');
     const judgeHome = join(evaluationRoot, 'judge-home');
-    await prepareSandboxHome(actorHome);
+    await prepareCodexEvaluationHome(actorHome);
     await mkdir(judgeRepository, { recursive: true });
-    await prepareSandboxHome(judgeHome);
+    await prepareCodexEvaluationHome(judgeHome);
 
     const before = await snapshotWorkspace(actorRepository);
-    const actorResponse = await runHost(
-      actorCommand,
-      buildActorPrompt(caseDefinition),
-      actorRepository,
-      actorHome,
+    const actorResponse = await runCodexEvaluationHost({
+      command: actorCommand,
+      cwd: actorRepository,
+      prompt: buildActorPrompt(caseDefinition),
       readOnlyMounts,
-    );
+      sandboxHome: actorHome,
+    });
     const after = await snapshotWorkspace(actorRepository);
     const workspaceChanges = diffSnapshots(before, after);
     const skillArtifactEvidence = await collectSkillArtifactEvidence(
       actorRepository,
       caseDefinition,
     );
-    const judgeResponse = await runHost(
-      judgeCommand,
-      buildJudgePrompt(caseDefinition, actorResponse, workspaceChanges, skillArtifactEvidence),
-      judgeRepository,
-      judgeHome,
-    );
+    const judgeResponse = await runCodexEvaluationHost({
+      command: judgeCommand,
+      cwd: judgeRepository,
+      prompt: buildJudgePrompt(
+        caseDefinition,
+        actorResponse,
+        workspaceChanges,
+        skillArtifactEvidence,
+      ),
+      sandboxHome: judgeHome,
+    });
     const assessment = assessJudgeOutput(caseDefinition, judgeResponse);
 
     return {
@@ -2738,10 +2235,13 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
 
 /** Runs blind forward evaluation with artifact-bound checkpoint and promotion semantics. */
 const main = async () => {
-  const actorBaseCommand = parseHostCommand('MOLDEA_EVAL_ACTOR_COMMAND_JSON');
-  const judgeBaseCommand = parseHostCommand('MOLDEA_EVAL_JUDGE_COMMAND_JSON', actorBaseCommand);
-  const actorCommand = buildSemanticEvaluationHostCommand(actorBaseCommand);
-  const judgeCommand = buildSemanticEvaluationHostCommand(judgeBaseCommand);
+  const actorBaseCommand = parseCodexEvaluationHostCommand('MOLDEA_EVAL_ACTOR_COMMAND_JSON');
+  const judgeBaseCommand = parseCodexEvaluationHostCommand(
+    'MOLDEA_EVAL_JUDGE_COMMAND_JSON',
+    actorBaseCommand,
+  );
+  const actorCommand = buildCodexEvaluationHostCommand(actorBaseCommand);
+  const judgeCommand = buildCodexEvaluationHostCommand(judgeBaseCommand);
   const fixture = JSON.parse(await readFile(CASES_PATH, 'utf8'));
   const caseDefinitions = fixture.semanticCases;
   const caseArgumentIndex = process.argv.indexOf('--case');
@@ -2764,8 +2264,8 @@ const main = async () => {
 
   const artifactDigest = createPortableSkillDigest();
   const caseSuiteDigest = createSemanticCaseSuiteDigest(caseDefinitions);
-  const actorHost = identifyHost(actorCommand);
-  const judgeHost = identifyHost(judgeCommand);
+  const actorHost = identifyCodexEvaluationHost(actorCommand);
+  const judgeHost = identifyCodexEvaluationHost(judgeCommand);
   const evidenceBoundary = {
     actorHost,
     artifactDigest,

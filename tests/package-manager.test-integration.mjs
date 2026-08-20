@@ -19,7 +19,7 @@ import test from 'node:test';
 import {
   createCandidateRegistry,
   loadCandidateArtifacts,
-} from './package-manager-candidate/index.mjs';
+} from '../tooling/package-candidate/index.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const LIFECYCLE_FIXTURE_PATH = join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'lifecycle-cli');

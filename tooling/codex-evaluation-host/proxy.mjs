@@ -4,7 +4,11 @@ import { connect, isIP } from 'node:net';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-/** Returns whether an IP address is globally routable rather than host-local or private. */
+/**
+ * Returns whether an IP address is globally routable.
+ * @param address The IPv4 or IPv6 address to inspect.
+ * @returns Whether the address is public.
+ */
 export const isPublicIpAddress = (address) => {
   const family = isIP(address);
   if (family === 4) {
@@ -38,7 +42,11 @@ export const isPublicIpAddress = (address) => {
   return false;
 };
 
-/** Parses one HTTPS CONNECT authority and permits only port 443. */
+/**
+ * Parses one HTTPS CONNECT authority and permits only port 443.
+ * @param authority The CONNECT request authority.
+ * @returns The normalized host and port.
+ */
 export const parseConnectAuthority = (authority) => {
   const parsedAuthority = new URL(`https://${authority}`);
   const host = parsedAuthority.hostname.replace(/^\[|\]$/g, '').toLowerCase();
@@ -49,8 +57,11 @@ export const parseConnectAuthority = (authority) => {
   return { host, port };
 };
 
-/** Starts the exact-host, public-address-only CONNECT relay. */
-const main = async () => {
+/**
+ * Starts the exact-host, public-address-only CONNECT relay.
+ * @returns A promise that settles when the relay closes.
+ */
+export const runCodexEvaluationProxy = async () => {
   const socketPath = process.env.MOLDEA_EVAL_PROXY_SOCKET;
   const allowedHosts = new Set(
     (process.env.MOLDEA_EVAL_ALLOWED_HOSTS ?? '')
@@ -98,14 +109,26 @@ const main = async () => {
       clientSocket.end('HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n');
     }
   });
-  server.listen(socketPath, () => process.stdout.write('ready\n'));
-  const close = () => server.close(() => process.exit(0));
-  process.once('SIGINT', close);
-  process.once('SIGTERM', close);
+
+  await new Promise((resolvePromise, rejectPromise) => {
+    server.once('error', rejectPromise);
+    server.listen(socketPath, () => {
+      process.stdout.write('ready\n');
+      resolvePromise();
+    });
+  });
+
+  await new Promise((resolvePromise) => {
+    const close = () => server.close(resolvePromise);
+    process.once('SIGINT', close);
+    process.once('SIGTERM', close);
+  });
 };
 
-if (process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url) {
-  main().catch((error) => {
+const isDirectExecution =
+  process.argv[1] && pathToFileURL(resolve(process.argv[1])).href === import.meta.url;
+if (isDirectExecution) {
+  runCodexEvaluationProxy().catch((error) => {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
     process.exitCode = 1;
   });

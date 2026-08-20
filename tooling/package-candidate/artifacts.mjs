@@ -5,27 +5,14 @@ import { createServer } from 'node:http';
 import { basename, join } from 'node:path';
 import { gunzipSync } from 'node:zlib';
 
-const CANDIDATE_PACKAGE_NAMES = [
-  '@moldea.ai/cli',
-  '@moldea.ai/adapter-anthropic',
-  '@moldea.ai/adapter-google-genai',
-  '@moldea.ai/adapter-openai',
-  '@moldea.ai/core',
-  '@moldea.ai/repository',
-  '@moldea.ai/repository-fs',
-];
-const CANDIDATE_PACKAGE_NAME_SET = new Set(CANDIDATE_PACKAGE_NAMES);
-const INTERNAL_CLI_DEPENDENCY_NAMES = CANDIDATE_PACKAGE_NAMES.filter(
-  (packageName) => packageName !== '@moldea.ai/cli',
-);
+const CLI_PACKAGE_NAME = '@moldea.ai/cli';
+const MOLDEA_PACKAGE_PREFIX = '@moldea.ai/';
 const STABLE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
 
-/**
- * Reads one regular entry from a gzip-compressed USTAR-compatible package archive.
- * @param tarball The complete package archive bytes.
- * @param entryPath The exact archive path to read.
- * @returns The selected entry bytes.
- */
+/** Returns whether a package belongs to the local Moldea package namespace. */
+const isMoldeaPackageName = (packageName) => packageName.startsWith(MOLDEA_PACKAGE_PREFIX);
+
+/** Reads one regular entry from a gzip-compressed USTAR-compatible package archive. */
 const readTarEntry = (tarball, entryPath) => {
   const archive = gunzipSync(tarball);
   let offset = 0;
@@ -52,8 +39,35 @@ const readTarEntry = (tarball, entryPath) => {
   throw new Error(`The candidate archive is missing ${entryPath}.`);
 };
 
+/** Returns local runtime dependencies declared by one packed package. */
+const getInternalRuntimeDependencies = (manifest) =>
+  Object.entries({
+    ...(manifest.dependencies ?? {}),
+    ...(manifest.optionalDependencies ?? {}),
+  })
+    .filter(([packageName]) => isMoldeaPackageName(packageName))
+    .sort(([left], [right]) => left.localeCompare(right, 'en'));
+
+/** Validates an exact internal dependency when the declaring package requires one. */
+const validateInternalDependencyVersion = ({
+  dependencyArtifact,
+  dependencyName,
+  dependencyVersion,
+  manifest,
+}) => {
+  const isExactVersion = STABLE_VERSION_PATTERN.test(dependencyVersion);
+  if (manifest.name === CLI_PACKAGE_NAME && !isExactVersion) {
+    throw new Error(`${CLI_PACKAGE_NAME} must exact-pin ${dependencyName}.`);
+  }
+  if (isExactVersion && dependencyArtifact.manifest.version !== dependencyVersion) {
+    throw new Error(
+      `${dependencyName} must be exact-pinned to its supplied candidate artifact.`,
+    );
+  }
+};
+
 /**
- * Registers one expected candidate artifact without allowing duplicate package identities.
+ * Registers one candidate artifact without allowing duplicate identities.
  * @param artifacts The artifacts already keyed by package name.
  * @param artifact The candidate artifact to register.
  * @returns The updated artifact map.
@@ -61,62 +75,98 @@ const readTarEntry = (tarball, entryPath) => {
 export const registerCandidateArtifact = (artifacts, artifact) => {
   const packageName = artifact.manifest.name;
 
-  assert.ok(CANDIDATE_PACKAGE_NAME_SET.has(packageName), `Unexpected ${packageName} tarball.`);
+  assert.equal(typeof packageName, 'string', 'Candidate package names must be strings.');
+  assert.ok(isMoldeaPackageName(packageName), `Unexpected ${packageName} tarball.`);
   assert.equal(artifacts.has(packageName), false, `Duplicate ${packageName} tarball.`);
   artifacts.set(packageName, artifact);
   return artifacts;
 };
 
 /**
- * Validates the identities, versions, and exact internal dependencies of a candidate closure.
+ * Validates the exact reachable candidate graph rooted at the CLI and selected packages.
  * @param artifacts The artifacts keyed by package name.
+ * @param selectedRootPackageNames Additional package roots required by the consumer.
  * @returns The validated artifacts and derived CLI version.
  */
-export const validateCandidateArtifacts = (artifacts) => {
-  assert.deepEqual([...artifacts.keys()].sort(), [...CANDIDATE_PACKAGE_NAMES].sort());
+export const validateCandidateArtifacts = (artifacts, selectedRootPackageNames = []) => {
+  const rootPackageNames = [CLI_PACKAGE_NAME, ...selectedRootPackageNames];
+  const visiting = new Set();
+  const visited = new Set();
 
-  for (const packageName of CANDIDATE_PACKAGE_NAMES) {
+  const visitPackage = (packageName) => {
+    if (visited.has(packageName)) return;
+    if (visiting.has(packageName)) {
+      throw new Error(`Candidate package dependency cycle includes ${packageName}.`);
+    }
+
     const artifact = artifacts.get(packageName);
+    if (!artifact) {
+      throw new Error(`Candidate closure requires missing package ${packageName}.`);
+    }
     assert.equal(artifact.manifest.name, packageName);
     assert.match(
       artifact.manifest.version,
       STABLE_VERSION_PATTERN,
       `${packageName} must use a stable semantic version.`,
     );
+
+    visiting.add(packageName);
+    for (const [dependencyName, dependencyVersion] of getInternalRuntimeDependencies(
+      artifact.manifest,
+    )) {
+      const dependencyArtifact = artifacts.get(dependencyName);
+      if (!dependencyArtifact) {
+        throw new Error(`Candidate closure requires missing package ${dependencyName}.`);
+      }
+      validateInternalDependencyVersion({
+        dependencyArtifact,
+        dependencyName,
+        dependencyVersion,
+        manifest: artifact.manifest,
+      });
+      visitPackage(dependencyName);
+    }
+    visiting.delete(packageName);
+    visited.add(packageName);
+  };
+
+  for (const rootPackageName of [...new Set(rootPackageNames)].sort((left, right) =>
+    left.localeCompare(right, 'en'),
+  )) {
+    visitPackage(rootPackageName);
   }
 
-  const cliManifest = artifacts.get('@moldea.ai/cli').manifest;
-
-  for (const dependencyName of INTERNAL_CLI_DEPENDENCY_NAMES) {
-    assert.equal(
-      cliManifest.dependencies?.[dependencyName],
-      artifacts.get(dependencyName).manifest.version,
-      `${dependencyName} must be exact-pinned to its supplied candidate artifact.`,
-    );
+  const unreachablePackageNames = [...artifacts.keys()]
+    .filter((packageName) => !visited.has(packageName))
+    .sort((left, right) => left.localeCompare(right, 'en'));
+  if (unreachablePackageNames.length > 0) {
+    throw new Error(`Unreachable candidate artifacts: ${unreachablePackageNames.join(', ')}.`);
   }
 
+  const cliManifest = artifacts.get(CLI_PACKAGE_NAME).manifest;
   assert.equal(cliManifest.preferUnplugged, true);
   return { artifacts, cliVersion: cliManifest.version };
 };
 
 /**
- * Loads and validates the exact seven-package CLI candidate closure.
- * @param artifactDirectory The directory containing the packed candidate artifacts.
+ * Loads and validates one dynamic package candidate closure.
+ * @param artifactDirectory The directory containing packed candidate artifacts.
+ * @param selectedRootPackageNames Additional package roots required by the consumer.
  * @returns The validated artifacts and derived CLI version.
  */
-export const loadCandidateArtifacts = (artifactDirectory) => {
+export const loadCandidateArtifacts = (artifactDirectory, selectedRootPackageNames = []) => {
   const artifacts = new Map();
 
-  for (const archiveName of readdirSync(artifactDirectory).filter((name) =>
-    name.endsWith('.tgz'),
-  )) {
+  for (const archiveName of readdirSync(artifactDirectory)
+    .filter((name) => name.endsWith('.tgz'))
+    .sort((left, right) => left.localeCompare(right, 'en'))) {
     const archive = readFileSync(join(artifactDirectory, archiveName));
     const manifest = JSON.parse(readTarEntry(archive, 'package/package.json').toString('utf8'));
 
     registerCandidateArtifact(artifacts, { archive, archiveName, manifest });
   }
 
-  return validateCandidateArtifacts(artifacts);
+  return validateCandidateArtifacts(artifacts, selectedRootPackageNames);
 };
 
 /**
@@ -156,8 +206,8 @@ export const createCandidatePackageMetadata = (artifact, registryUrl) => {
 };
 
 /**
- * Serves actual candidate manifests and tarballs through a loopback scoped registry.
- * @param artifacts The validated candidate artifacts keyed by package name.
+ * Serves candidate manifests and tarballs through a loopback scoped registry.
+ * @param artifacts The validated artifacts keyed by package name.
  * @returns A promise resolving to the loopback registry URL and server.
  */
 export const createCandidateRegistry = async (artifacts) => {

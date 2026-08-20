@@ -2,10 +2,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import {
-  isPublicIpAddress,
-  parseConnectAuthority,
-} from './semantic-evaluation-proxy.mjs';
+import { isPublicIpAddress, parseConnectAuthority } from './proxy.mjs';
 
 test('public-address check rejects host-local and private destinations', () => {
   for (const address of [

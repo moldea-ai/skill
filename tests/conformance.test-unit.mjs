@@ -926,17 +926,15 @@ describe('source repository conformance', () => {
       /packages_ref:/,
       /repository: moldea-ai\/packages/,
       /git -C packages rev-parse HEAD/,
-      /projects\/repository pack/,
-      /projects\/repository-fs pack/,
-      /projects\/core pack/,
-      /projects\/adapter-anthropic pack/,
-      /projects\/adapter-google-genai pack/,
-      /projects\/adapter-openai pack/,
-      /projects\/cli pack/,
+      /node tooling\/package-candidate\/pack\.mjs/,
+      /--workspace packages/,
+      /--output "\$candidate_directory"/,
       /MOLDEA_CLI_ARTIFACT_DIRECTORY:/,
       /MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS: "1"/,
       /node --test tests\/package-manager\.test-integration\.mjs/,
     ]);
+    assert.doesNotMatch(workflow, /projects\/[a-z0-9-]+ pack/);
+    assert.doesNotMatch(workflow, /qualification|runtime-qualification/);
     assert.doesNotMatch(workflow, /npm publish|pnpm publish|git tag|git push/);
   });
 

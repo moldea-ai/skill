@@ -18,8 +18,8 @@
     "qualification:test:unit": "npm --prefix qualification run test:unit",
     "qualification:typecheck": "npm --prefix qualification run typecheck",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "node --test tests/*.test-unit.mjs tests/package-manager-candidate/*.test-unit.mjs",
-    "test:integration": "node --test tests/*.test-integration.mjs",
+    "test:unit": "node --test tooling/*/*.test-unit.mjs tests/*.test-unit.mjs",
+    "test:integration": "node --test tooling/*/*.test-integration.mjs tests/*.test-integration.mjs",
     "website:build": "npm --prefix website run build",
     "website:check": "npm --prefix website run check",
     "website:dev": "npm --prefix website run dev"

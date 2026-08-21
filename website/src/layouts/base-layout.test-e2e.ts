@@ -763,7 +763,7 @@ test('keeps essential documentation available without JavaScript', async ({ brow
   await context.close();
 });
 
-test('publishes the transparent Custom profile and its explicit empty result state', async ({
+test('publishes the transparent Custom profile and its committed result history', async ({
   page,
 }) => {
   await page.goto(toPublicPath('/qualification/'));
@@ -771,16 +771,20 @@ test('publishes the transparent Custom profile and its explicit empty result sta
   await expect(
     page.getByRole('heading', { level: 1, name: 'Adapter qualification evidence' }),
   ).toBeVisible();
-  await expect(page.getByText('1 profile · 0 recorded attempts')).toBeVisible();
+  await expect(page.getByText(/1 profile · \d+ recorded attempts?/u)).toBeVisible();
   const profileLink = page.getByRole('link', { name: /Custom runtime qualification/ });
-  await expect(profileLink).toContainText('No recorded attempt');
+  await expect(profileLink.locator('[data-qualification-status]')).not.toHaveAttribute(
+    'data-qualification-status',
+    'not-recorded',
+  );
   await expect(profileLink).toContainText('3');
 
   await profileLink.click();
   await expect(
     page.getByRole('heading', { level: 1, name: 'Custom runtime qualification' }),
   ).toBeVisible();
-  await expect(page.getByText('No official attempt has been committed.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Qualification status summary' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Inspect latest attempt' })).toBeVisible();
   await expect(page.getByRole('heading', { name: '3 realistic journeys' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Evaluate an aligned project' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Maintain a dirty project' })).toBeVisible();
@@ -840,8 +844,9 @@ test('keeps profile evidence available without JavaScript', async ({ browser }) 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Custom runtime qualification' }),
   ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Qualification status summary' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Complete attempt history' })).toBeVisible();
-  await expect(page.getByText('No official attempt has been committed.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Inspect latest attempt' })).toBeVisible();
 
   await context.close();
 });

@@ -3,7 +3,7 @@ import { basename, join } from 'node:path';
 
 import {
   ActorOutputSchema,
-  DeterministicVerificationSchema,
+  DeterministicVerificationArtifactSchema,
   JudgeOutputSchema,
   QualificationAttemptResultSchema,
   QualificationCaseCatalogSchema,
@@ -15,6 +15,7 @@ import {
   QualificationScenarioSchema,
   QualificationSourceStateResultSchema,
   WorkspaceAssertionResultSchema,
+  type IDeterministicVerification,
   type IQualificationArtifactModel,
   type IQualificationAttemptCaseModel,
   type IQualificationAttemptModel,
@@ -151,6 +152,13 @@ const readAttemptArtifact = <Output>(
   return readJsonFile(path, schema);
 };
 
+const readDeterministicArtifactSummary = (
+  attemptDirectory: string,
+  relativePath: string,
+): IDeterministicVerification =>
+  readAttemptArtifact(attemptDirectory, relativePath, DeterministicVerificationArtifactSchema)
+    .summary;
+
 const loadAttemptCase = (
   repositoryRoot: string,
   attemptDirectory: string,
@@ -196,15 +204,13 @@ const loadAttemptCase = (
   const caseEvidence: IQualificationAttemptCaseModel = {
     actor: readAttemptArtifact(attemptDirectory, result.actorOutputPath, ActorOutputSchema),
     artifacts: artifacts.filter(({ path }) => path.startsWith(casePrefix)),
-    deterministicAfter: readAttemptArtifact(
+    deterministicAfter: readDeterministicArtifactSummary(
       attemptDirectory,
       result.deterministicAfterPath,
-      DeterministicVerificationSchema,
     ),
-    deterministicBefore: readAttemptArtifact(
+    deterministicBefore: readDeterministicArtifactSummary(
       attemptDirectory,
       result.deterministicBeforePath,
-      DeterministicVerificationSchema,
     ),
     judge: readAttemptArtifact(attemptDirectory, result.judgeOutputPath, JudgeOutputSchema),
     result,

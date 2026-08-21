@@ -102,8 +102,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "3.1.3",
-          "installedVersion": "3.1.3",
+          "declaration": "3.3.5",
+          "installedVersion": "3.3.5",
           "executableResolves": true
         }
       },
@@ -617,7 +617,7 @@
     },
     {
       "id": "version-mismatch",
-      "scenario": "The machine envelope reports unsupported CLI 3.2.0 while the declared and installed root package is 3.1.3.",
+      "scenario": "The machine envelope reports unsupported CLI 4.0.0 while the declared and installed root package is 3.1.3.",
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
@@ -626,7 +626,7 @@
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "3.2.0",
+          "cliVersion": "4.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {},

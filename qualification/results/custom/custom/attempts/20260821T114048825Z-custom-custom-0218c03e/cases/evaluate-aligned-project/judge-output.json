@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The project is aligned and unchanged. Canonical registration, custom runtime guidance, and the TypeScript runtime record consistently identify the support email agent; deterministic post-actor validation confirms filesystem, memory, Core, CLI, and typechecking validity.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` registers `support` with custom runtime guidance at `/moldea/runtimes/custom.md` and explicit binding `/src/support-agent.ts#supportAgent`. The canonical description states customer support via email; `src/support-agent.ts` exports `supportAgent` with `id: 'support'` and `channel: 'email'`; the runtime guidance names that exported record and contract."
+    },
+    {
+      "id": "avoids-churn",
+      "verdict": "pass",
+      "evidence": "Git status and diff were empty on independent inspection, and workspace assertions report identical before/after hashes with `changedPaths: []`."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Deterministic post-actor summary reports `inspectionStatus: valid`, repository filesystem and memory equivalence, Core validity, CLI compatibility, valid CLI inspect/validate results, and passed typechecking, with no failures."
+    }
+  ],
+  "failures": []
+}

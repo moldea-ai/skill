@@ -8,7 +8,7 @@ Release `3.0.0` supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`
-- `@moldea.ai/cli >=3.1.3 <3.2.0`
+- `@moldea.ai/cli >=3.1.3 <4.0.0`
 - CLI JSON schema `1`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
@@ -36,12 +36,12 @@ Resolve the executable that will perform the operation and verify its actual ver
 Compatible tooling state requires all of the following:
 
 - `@moldea.ai/cli` is a root `devDependency` declared as one exact semantic version, not a range, tag, URL, workspace protocol, alias, or other floating specifier.
-- the declared version satisfies `>=3.1.3 <3.2.0`
+- the declared version satisfies `>=3.1.3 <4.0.0`
 - the installed repository-local package manifest reports the same exact version
 - the established manager resolves the repository-local `moldea` executable from that root package
 - the machine envelope reports the same exact `cliVersion` and schema `1`
 
-Preserve an existing compatible exact declaration and executable. Do not upgrade it merely because a newer compatible version exists. A write-capable workflow may replace it within the supported range only when an official adapter or machine-contract capability materially required by the authorized work is absent from the installed composition and a released supported replacement providing it is established. Release `3.0.0` recommends exact CLI `3.1.3`, but that recommendation alone never justifies replacing another compatible `3.1.x` pin.
+Preserve an existing compatible exact declaration and executable. Do not upgrade it merely because a newer compatible version exists. A write-capable workflow may replace it within the supported range only when an official adapter or machine-contract capability materially required by the authorized work is absent from the installed composition and a released supported replacement providing it is established. Exact CLI `3.1.3` is this release's minimum compatibility and conformance baseline, not a preferred pin over another compatible `3.x` release.
 
 During a write-capable workflow:
 
@@ -94,7 +94,7 @@ Use `inspect --json` as the primary deterministic integration. Use `compatibilit
 Parse JSON only after the process completes, then validate the version `1` envelope before reading `result`:
 
 - `schemaVersion` is integer `1`
-- `cliVersion` is an exact semantic version equal to the declared and installed CLI version and satisfies `>=3.1.3 <3.2.0`
+- `cliVersion` is an exact semantic version equal to the declared and installed CLI version and satisfies `>=3.1.3 <4.0.0`
 - `command` equals the command invoked
 - `status` is `valid`, `invalid`, or `error`
 - `valid` has non-null `result` and null `error`

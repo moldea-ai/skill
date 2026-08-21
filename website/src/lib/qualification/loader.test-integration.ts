@@ -154,6 +154,12 @@ const createAttempt = (
     durationMs: 12,
     futureField: 'accepted',
   };
+  const deterministicArtifact = {
+    summary: deterministic,
+    details: {
+      futureField: 'accepted',
+    },
+  };
   const artifactValues: Record<string, unknown> = {
     'coverage.json': {
       passed: true,
@@ -183,8 +189,8 @@ const createAttempt = (
       unresolved: [],
       futureField: 'accepted',
     },
-    'cases/evaluate-project/deterministic-after.json': deterministic,
-    'cases/evaluate-project/deterministic-before.json': deterministic,
+    'cases/evaluate-project/deterministic-after.json': deterministicArtifact,
+    'cases/evaluate-project/deterministic-before.json': deterministicArtifact,
     'cases/evaluate-project/judge-output.json': {
       verdict: caseStatus === 'passed' ? 'pass' : 'fail',
       summary: caseStatus === 'passed' ? 'Every requirement passed.' : 'One requirement failed.',

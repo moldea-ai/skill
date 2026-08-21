@@ -21,12 +21,13 @@ describe('createWebsiteModel', () => {
     expect(model.navigation.flatMap(({ documents }) => documents)).toStrictEqual(model.documents);
     expect(model.qualification.route).toBe('/qualification/');
     expect(model.qualification.profiles).toHaveLength(1);
-    expect(model.qualification.profiles[0]).toMatchObject({
+    const qualificationProfile = model.qualification.profiles[0];
+    expect(qualificationProfile).toMatchObject({
       adapterId: 'custom',
-      attempts: [],
       implementationId: 'custom',
-      latest: null,
     });
+    expect(qualificationProfile?.attempts.length).toBeGreaterThan(0);
+    expect(qualificationProfile?.latest).not.toBeNull();
 
     for (const route of REQUIRED_DOCUMENT_ROUTES) expect(model.routes).toContain(route);
     for (const document of model.documents) {

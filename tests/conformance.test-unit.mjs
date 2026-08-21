@@ -204,7 +204,11 @@ const isCompatibleCliVersion = (version) => {
   if (!match) return false;
 
   const [, majorText, minorText, patchText] = match;
-  return Number(majorText) === 3 && Number(minorText) === 1 && Number(patchText) >= 3;
+  const major = Number(majorText);
+  const minor = Number(minorText);
+  const patch = Number(patchText);
+
+  return major === 3 && (minor > 1 || (minor === 1 && patch >= 3));
 };
 
 const evaluatePackageManagerCase = ({ operation, input }) => {
@@ -377,7 +381,7 @@ describe('portable Agent Skill contract', () => {
 
   test('declares the exact release compatibility contract', () => {
     assertMatchesEvery(skill, [
-      /@moldea\.ai\/cli: >=3\.1\.3 <3\.2\.0/,
+      /@moldea\.ai\/cli: >=3\.1\.3 <4\.0\.0/,
       /CLI JSON schema: `1`/,
       /Node\.js: `\^22\.11\.0 \|\| \^24\.11\.0`/,
       /npm: `>=10\.9\.0 <12\.0\.0`/,
@@ -599,6 +603,10 @@ describe('source repository conformance', () => {
     if (result.skillDigest === portableSkillDigest) {
       assert.equal(result.releaseEvidenceCarryForward, undefined);
     } else {
+      assert.ok(
+        result.releaseEvidenceCarryForward,
+        'Semantic evidence must match portable content or include a valid release-only carry-forward.',
+      );
       assert.equal(result.releaseEvidenceCarryForward.fromArtifactDigest, result.skillDigest);
       assert.equal(result.releaseEvidenceCarryForward.toArtifactDigest, portableSkillDigest);
       assert.notEqual(
@@ -871,7 +879,7 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(readme, /https:\/\/github\.com\/moldea-ai\/skill\/tree\//);
     assert.match(readme, /do not install `@moldea\.ai\/cli` globally/);
     assert.match(readme, /repository-local exact `@moldea\.ai\/cli` development dependency/);
-    assert.match(readme, /recommended repository-local CLI version for this release is `3\.1\.3`/);
+    assert.match(readme, /`3\.1\.3`.*minimum compatibility and conformance baseline/);
     assert.doesNotMatch(
       readme,
       /unpublished release candidate|future source URL|after release|candidate supports|prepared for, but has not created/i,
@@ -887,7 +895,7 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(workflow, /add .* --list/);
   });
 
-  test('CI exercises every supported published CLI version across every package manager', () => {
+  test('CI exercises the minimum supported CLI version across every package manager', () => {
     const workflow = readRepositoryFile('.github/workflows/conformance.yml');
     const packageManifest = JSON.parse(readRepositoryFile('package.json'));
 

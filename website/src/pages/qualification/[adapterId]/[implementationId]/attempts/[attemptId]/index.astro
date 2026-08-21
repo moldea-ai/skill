@@ -166,7 +166,7 @@ const breadcrumbs = [
         >
           <h2
             id="attempt-error-title"
-            class="text-xl font-semibold text-destructive"
+            class="text-xl font-semibold text-foreground"
           >
             Recorded execution failure
           </h2>
@@ -290,7 +290,7 @@ const breadcrumbs = [
             </dl>
             {attempt.coverage.uncoveredCaseIds.length > 0 && (
               <div class="mt-4 rounded-xl border border-destructive/30 bg-destructive/10 p-4">
-                <p class="font-semibold text-destructive">Uncovered project cases</p>
+                <p class="font-semibold text-foreground">Uncovered project cases</p>
                 <ul class="mt-2 flex flex-wrap gap-2">
                   {attempt.coverage.uncoveredCaseIds.map((caseId) => (
                     <li>
@@ -308,7 +308,7 @@ const breadcrumbs = [
                   { claims: attempt.coverage.unknownClaims, label: 'Unknown claims' },
                 ].map(({ claims, label }) => (
                   <div class="rounded-xl border border-destructive/30 bg-destructive/10 p-4">
-                    <h3 class="font-semibold text-destructive">{label}</h3>
+                    <h3 class="font-semibold text-foreground">{label}</h3>
                     {claims.length === 0 ? (
                       <p class="mt-2 text-sm text-muted-foreground">None recorded.</p>
                     ) : (

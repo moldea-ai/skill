@@ -106,13 +106,13 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 
 Release `3.0.0` supports:
 
-- `@moldea.ai/cli >=3.1.3 <3.2.0`
+- `@moldea.ai/cli >=3.1.3 <4.0.0`
 - CLI JSON schema `1`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
 - Yarn `>=4.0.0 <5.0.0`
 
-The recommended repository-local CLI version for this release is `3.1.3`. Existing compatible exact pins remain valid unless the authorized work materially requires a supported capability they do not provide.
+Exact CLI `3.1.3` is this release's minimum compatibility and conformance baseline. Existing compatible exact `3.x` pins remain valid unless the authorized work materially requires a supported capability they do not provide.
 
 Write-capable workflows establish or reconcile the exact compatible repository-local CLI dependency without executing lifecycle scripts or repository-supplied package-manager hooks and plugins. `evaluate` is strictly read-only and reports missing or incompatible tooling instead of installing it. Agent-system `plan` is also read-only and may run before adoption or local tooling exists. The skill never falls back to a global CLI or transient CLI download.
 
@@ -263,7 +263,7 @@ The static build defaults to `SITE_URL=https://skill.moldea.ai` and `BASE_PATH=/
 
 The Pages deployment reads the repository's configured origin and base path before building. Keep the GitHub Pages custom-domain setting and DNS record aligned with `CNAME`; the canonical production origin is [`https://skill.moldea.ai`](https://skill.moldea.ai).
 
-The complete integration suite requires Bubblewrap and defaults to the available npm executable and published `@moldea.ai/cli@3.1.3`. Portable CI jobs provision Bubblewrap, load Ubuntu's packaged Bubblewrap AppArmor profile, and run the complete suite. The package-manager matrices run the focused package-manager integration boundary across npm `10.9.0` and `11.19.0`, pnpm `11.20.0` and `11.21.0`, and Yarn `4.0.0` and `4.18.0` against every supported published CLI release, currently `3.1.3`, without repeating unrelated sandbox checks. Yarn versions with a minimum-release-age gate use their command-scoped override only inside the isolated conformance install so newly published exact package versions remain testable.
+The complete integration suite requires Bubblewrap and defaults to the available npm executable and published `@moldea.ai/cli@3.1.3`. Portable CI jobs provision Bubblewrap, load Ubuntu's packaged Bubblewrap AppArmor profile, and run the complete suite. The package-manager matrices run the focused package-manager integration boundary across npm `10.9.0` and `11.19.0`, pnpm `11.20.0` and `11.21.0`, and Yarn `4.0.0` and `4.18.0` against the minimum supported CLI release, `3.1.3`, without repeating unrelated sandbox checks. Candidate qualification independently exercises the selected exact local CLI release, including newer compatible `3.x` releases. Yarn versions with a minimum-release-age gate use their command-scoped override only inside the isolated conformance install so newly published exact package versions remain testable.
 
 The ordinary package-manager integration suite first serves the adversarial lifecycle fixture through an isolated local registry with faithful package metadata. That fixture intentionally contains lifecycle scripts and remains the security proof for exact pinning and lifecycle suppression. A separate mandatory path installs the selected exact published CLI from npm, proves local executable provenance, and executes deterministic `compatibility --json` and `inspect --json` checks against a custom-runtime project.
 

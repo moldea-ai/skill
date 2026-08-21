@@ -50,7 +50,7 @@ const isSupportedVersion = (manager, version) => {
 
 const isSupportedCliVersion = (version) => {
   const [major, minor, patch] = parseVersion(version);
-  return major === 3 && minor === 1 && patch >= 3;
+  return major === 3 && (minor > 1 || (minor === 1 && patch >= 3));
 };
 
 /** Returns whether the selected Yarn version supports its command-scoped age-gate override. */

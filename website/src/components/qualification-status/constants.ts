@@ -10,11 +10,11 @@ export const QUALIFICATION_STATUS_PRESENTATION: Record<
     label: 'Cached',
   },
   errored: {
-    className: 'border-destructive/30 bg-destructive/10 text-destructive',
+    className: 'border-destructive bg-destructive text-background',
     label: 'Execution error',
   },
   failed: {
-    className: 'border-destructive/30 bg-destructive/10 text-destructive',
+    className: 'border-destructive bg-destructive text-background',
     label: 'Failed',
   },
   incomplete: {

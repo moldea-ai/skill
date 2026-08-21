@@ -38,7 +38,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
     {
       result.failures.length > 0 && (
         <div class="mt-5 rounded-xl border border-destructive/30 bg-destructive/10 p-4">
-          <p class="font-semibold text-destructive">Case failures</p>
+          <p class="font-semibold text-foreground">Case failures</p>
           <ul class="mt-2 list-disc space-y-1 ps-5 text-sm leading-6 text-foreground">
             {result.failures.map((failure) => (
               <li>

@@ -245,6 +245,11 @@ export const DeterministicVerificationSchema = z.object({
   failures: z.array(z.string()),
   durationMs: z.number().int().nonnegative(),
 });
+// additive producer artifact carrying the stable summary and inspectable diagnostics
+export const DeterministicVerificationArtifactSchema = z.object({
+  summary: DeterministicVerificationSchema,
+  details: z.object({}),
+});
 export const WorkspaceAssertionResultSchema = z.object({
   passed: z.boolean(),
   failures: z.array(z.string()),

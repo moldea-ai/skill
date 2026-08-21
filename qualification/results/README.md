@@ -13,3 +13,5 @@ npm run qualification -- verify
 ```
 
 The verifier checks evidence protocol version 2 schemas, artifact SHA-256 digests, the latest-attempt pointer, its required attempt history, and the independent last-passing pointer. Dry runs never write into this directory.
+
+The static skill website independently consumes these files through additive schemas and repeats pointer, identity, inventory, and digest validation during every build. Public profile pages distinguish latest status from the last passing baseline, preserve complete history, and link each summarized artifact to its raw committed source without indexing full prompts or event transcripts.

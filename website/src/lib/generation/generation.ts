@@ -7,6 +7,10 @@ import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
 import {
+  loadQualificationWebsiteModel,
+  type IQualificationWebsiteModel,
+} from '../qualification/index.ts';
+import {
   DOCUMENT_SECTION_LABELS,
   INSTALL_COMMAND,
   REQUIRED_DOCUMENT_ROUTES,
@@ -25,7 +29,7 @@ import { DEFAULT_SITE_URL } from '../site/constants.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const GENERATED_NOTICE =
-  'Generated from repository-owned documentation and moldea/SKILL.md metadata. Do not edit generated output.';
+  'Generated from repository-owned documentation, qualification evidence, and moldea/SKILL.md metadata. Do not edit generated output.';
 
 const DocumentFrontmatterSchema = z.strictObject({
   description: z.string().min(1),
@@ -199,8 +203,69 @@ export const createSearchRecords = (documents: IWebsiteDocument[]): ISearchRecor
   }));
 };
 
+/** Creates bounded search records for qualification profiles and attempts without transcripts. */
+export const createQualificationSearchRecords = (
+  qualification: IQualificationWebsiteModel,
+): ISearchRecord[] => {
+  const landingRecord: ISearchRecord = {
+    description:
+      'Inspect adapter support-gate methodology, transparent project profiles, and complete recorded evidence.',
+    route: qualification.route,
+    searchText: normalizeSearchText(
+      'Adapter qualification support gate methodology profiles projects attempts evidence results',
+    ),
+    title: 'Adapter qualification',
+  };
+  const profileRecords = qualification.profiles.flatMap((profile): ISearchRecord[] => {
+    const profileRecord: ISearchRecord = {
+      description: profile.description,
+      route: profile.route,
+      searchText: normalizeSearchText(
+        [
+          profile.title,
+          profile.adapterId,
+          profile.implementationId,
+          profile.description,
+          ...profile.cases.flatMap((profileCase) => [
+            profileCase.title,
+            profileCase.catalogDescription,
+            profileCase.catalogChallenge,
+            profileCase.purpose,
+          ]),
+          ...profile.probes.flatMap(({ description, matrixPath }) => [description, matrixPath]),
+        ].join(' '),
+      ),
+      title: profile.title,
+    };
+    const attemptRecords = profile.attempts.map(({ result, route }): ISearchRecord => ({
+      description: `Recorded ${result.status} qualification attempt for ${profile.adapterId}/${profile.implementationId}.`,
+      route,
+      searchText: normalizeSearchText(
+        [
+          result.attemptId,
+          result.status,
+          result.summary,
+          profile.adapterId,
+          profile.implementationId,
+          ...result.cases.flatMap(({ caseId, failures, title }) => [caseId, title, ...failures]),
+          ...result.provenance.packages.flatMap(({ name, version }) => [name, version]),
+        ].join(' '),
+      ),
+      title: `${profile.title}: ${result.attemptId}`,
+    }));
+
+    return [profileRecord, ...attemptRecords];
+  });
+
+  return [landingRecord, ...profileRecords];
+};
+
 /** Creates the concise machine-oriented skill map from canonical public sources. */
-export const createLlmsText = (documents: IWebsiteDocument[], skill: ISkillMetadata): string => {
+export const createLlmsText = (
+  documents: IWebsiteDocument[],
+  skill: ISkillMetadata,
+  qualification: IQualificationWebsiteModel,
+): string => {
   const lines = [
     '# `moldea` Agent Skill',
     '',
@@ -233,6 +298,18 @@ export const createLlmsText = (documents: IWebsiteDocument[], skill: ISkillMetad
   }
 
   lines.push(
+    '## Adapter qualification',
+    '',
+    '- [Qualification evidence](/qualification/): Inspect the support gate, transparent profiles, latest outcomes, last passing baselines, and immutable attempt history.',
+  );
+
+  for (const profile of qualification.profiles) {
+    lines.push(`- [${profile.title}](${profile.route}): ${profile.description}`);
+  }
+
+  lines.push('');
+
+  lines.push(
     '## Canonical references',
     '',
     `- [Source repository](${SOURCE_REPOSITORY_URL})`,
@@ -246,7 +323,10 @@ export const createLlmsText = (documents: IWebsiteDocument[], skill: ISkillMetad
 };
 
 /** Creates the unique deterministic public route manifest. */
-export const createRouteManifest = (documents: IWebsiteDocument[]): string[] => {
+export const createRouteManifest = (
+  documents: IWebsiteDocument[],
+  qualification: IQualificationWebsiteModel,
+): string[] => {
   const routes = new Set([
     '/',
     '/404.html',
@@ -262,6 +342,17 @@ export const createRouteManifest = (documents: IWebsiteDocument[]): string[] => 
     routes.add(document.route);
   }
 
+  for (const route of [
+    qualification.route,
+    ...qualification.profiles.flatMap((profile) => [
+      profile.route,
+      ...profile.attempts.map(({ route }) => route),
+    ]),
+  ]) {
+    if (routes.has(route)) throw new Error(`Two public items resolve to ${route}.`);
+    routes.add(route);
+  }
+
   return [...routes].sort();
 };
 
@@ -272,6 +363,7 @@ export const createRouteManifest = (documents: IWebsiteDocument[]): string[] => 
 export const createWebsiteModel = (): IWebsiteModel => {
   const repositoryRoot = getRepositoryRoot();
   const documents = discoverDocuments(repositoryRoot);
+  const qualification = loadQualificationWebsiteModel(repositoryRoot);
   const skill = readSkillMetadata(repositoryRoot);
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
@@ -290,10 +382,14 @@ export const createWebsiteModel = (): IWebsiteModel => {
   return {
     documents,
     generatedNotice: GENERATED_NOTICE,
-    llmsText: createLlmsText(documents, skill),
+    llmsText: createLlmsText(documents, skill, qualification),
     navigation: createNavigation(documents),
-    routes: createRouteManifest(documents),
-    searchRecords: createSearchRecords(documents),
+    qualification,
+    routes: createRouteManifest(documents, qualification),
+    searchRecords: [
+      ...createSearchRecords(documents),
+      ...createQualificationSearchRecords(qualification),
+    ],
     skill,
   };
 };

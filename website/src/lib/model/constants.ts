@@ -1,6 +1,7 @@
 // primary public distribution and repository destinations
 export const SKILLS_DIRECTORY_URL = 'https://www.skills.sh/moldea-ai/skill/moldea';
 export const SOURCE_REPOSITORY_URL = 'https://github.com/moldea-ai/skill';
+export const RAW_SOURCE_REPOSITORY_URL = 'https://raw.githubusercontent.com/moldea-ai/skill';
 export const PACKAGES_WEBSITE_URL = 'https://packages.moldea.ai/';
 export const INSTALL_COMMAND = 'npx skills add moldea-ai/skill';
 
@@ -20,6 +21,7 @@ export const REQUIRED_DOCUMENT_ROUTES = [
   '/docs/coding-agent-compatibility/',
   '/docs/capabilities/',
   '/docs/how-it-works/',
+  '/docs/adapter-qualification/',
   '/docs/repository-format/',
   '/docs/project-state/',
   '/docs/planning-agent-systems/',

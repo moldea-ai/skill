@@ -3,7 +3,11 @@ import { extname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { parseSearchDocuments } from '@moldea.ai/website-ui/search';
-import { DEFAULT_BASE_PATH, normalizeBasePath } from '@moldea.ai/website-ui/site';
+import {
+  createCanonicalUrl,
+  DEFAULT_BASE_PATH,
+  normalizeBasePath,
+} from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../src/lib/generation/generation.ts';
 import { SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
@@ -257,6 +261,14 @@ export const verifyProductionBuild = (): void => {
     }
   }
 
+  for (const searchRecord of model.searchRecords) {
+    const searchDocument = searchDocuments.find(({ url }) => url.endsWith(searchRecord.route));
+
+    if (!searchDocument || searchDocument.description !== searchRecord.description) {
+      throw new Error(`The search index omits or contradicts ${searchRecord.route}.`);
+    }
+  }
+
   for (const document of model.documents) {
     const llmsLine = llmsText.split('\n').find((line) => line.startsWith(`- [${document.title}](`));
 
@@ -265,6 +277,14 @@ export const verifyProductionBuild = (): void => {
     }
     if (!searchDocuments.some(({ url }) => url.endsWith(document.route))) {
       throw new Error(`The search index omits ${document.route}.`);
+    }
+  }
+
+  for (const profile of model.qualification.profiles) {
+    const expectedLlmsLine = `- [${profile.title}](${createCanonicalUrl(profile.route, siteUrl, basePath)}): ${profile.description}`;
+
+    if (!llmsText.split('\n').includes(expectedLlmsLine)) {
+      throw new Error(`llms.txt omits qualification profile ${profile.adapterId}.`);
     }
   }
 };

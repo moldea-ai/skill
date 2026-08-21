@@ -15,11 +15,14 @@ const REPRESENTATIVE_PATHS = [
   '/docs/capabilities/',
   '/docs/coding-agent-compatibility/',
   '/docs/how-it-works/',
+  '/docs/adapter-qualification/',
   '/docs/repository-format/',
   '/docs/safety-and-privacy/',
   '/examples/',
   '/examples/create-a-support-agent/',
   '/examples/evaluate-and-reconcile/',
+  '/qualification/',
+  '/qualification/custom/custom/',
   '/search/',
 ] as const;
 const CODING_AGENT_MARKS = [
@@ -574,6 +577,9 @@ test('marks the most specific current desktop and mobile navigation destinations
     await page.goto(toPublicPath('/docs/coding-agent-compatibility/'));
     await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
 
+    await page.goto(toPublicPath('/qualification/custom/custom/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Qualification');
+
     const navigationMarker = await page.evaluate(() => {
       const marker = crypto.randomUUID();
       (window as Window & { __moldeaNavigationMarker?: string }).__moldeaNavigationMarker = marker;
@@ -753,6 +759,89 @@ test('keeps essential documentation available without JavaScript', async ({ brow
   await page.goto(toPublicPath('/docs/getting-started/'));
   await expect(page.getByRole('heading', { level: 1, name: 'Getting started' })).toBeVisible();
   await expect(page.getByText(/The primary distribution page is/)).toBeVisible();
+
+  await context.close();
+});
+
+test('publishes the transparent Custom profile and its explicit empty result state', async ({
+  page,
+}) => {
+  await page.goto(toPublicPath('/qualification/'));
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Adapter qualification evidence' }),
+  ).toBeVisible();
+  await expect(page.getByText('1 profile · 0 recorded attempts')).toBeVisible();
+  const profileLink = page.getByRole('link', { name: /Custom runtime qualification/ });
+  await expect(profileLink).toContainText('No recorded attempt');
+  await expect(profileLink).toContainText('3');
+
+  await profileLink.click();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Custom runtime qualification' }),
+  ).toBeVisible();
+  await expect(page.getByText('No official attempt has been committed.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: '3 realistic journeys' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Evaluate an aligned project' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Maintain a dirty project' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Reconcile drift and boundaries' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '7 behavior claims covered' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'View profile source' })).toHaveAttribute(
+    'href',
+    'https://github.com/moldea-ai/skill/blob/main/qualification/profiles/custom/custom/profile.yaml',
+  );
+
+  await page.getByRole('link', { name: 'Methodology' }).click();
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Adapter qualification' }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Three evidence layers' })).toBeVisible();
+});
+
+test('keeps qualification evidence readable at 320px in both themes without page overflow', async ({
+  browser,
+}) => {
+  for (const colorScheme of ['light', 'dark'] as const) {
+    const context = await browser.newContext({
+      colorScheme,
+      viewport: { height: 740, width: 320 },
+    });
+    const page = await context.newPage();
+
+    for (const route of ['/qualification/', '/qualification/custom/custom/']) {
+      await page.goto(toPublicPath(route));
+      const widths = await page.evaluate(() => ({
+        client: document.documentElement.clientWidth,
+        scroll: document.documentElement.scrollWidth,
+      }));
+      expect(widths.scroll, `${route} overflows in ${colorScheme} mode`).toBeLessThanOrEqual(
+        widths.client,
+      );
+
+      const accessibilityResults = await new AxeBuilder({ page }).analyze();
+      const materialViolations = accessibilityResults.violations.filter(
+        ({ impact }) => impact === 'critical' || impact === 'serious',
+      );
+      expect(
+        materialViolations,
+        `${route} has material accessibility violations in ${colorScheme} mode`,
+      ).toStrictEqual([]);
+    }
+
+    await context.close();
+  }
+});
+
+test('keeps profile evidence available without JavaScript', async ({ browser }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+
+  await page.goto(toPublicPath('/qualification/custom/custom/'));
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Custom runtime qualification' }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Complete attempt history' })).toBeVisible();
+  await expect(page.getByText('No official attempt has been committed.')).toBeVisible();
 
   await context.close();
 });

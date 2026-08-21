@@ -1,0 +1,21 @@
+---
+import { QUALIFICATION_STATUS_PRESENTATION } from './constants.ts';
+import type { IQualificationDisplayStatus } from './types.ts';
+
+interface Props {
+  status: IQualificationDisplayStatus;
+}
+
+const { status } = Astro.props;
+const presentation = QUALIFICATION_STATUS_PRESENTATION[status];
+---
+
+<span
+  class:list={[
+    'inline-flex min-h-7 items-center rounded-full border px-2.5 py-1 text-xs font-bold',
+    presentation.className,
+  ]}
+  data-qualification-status={status}
+>
+  {presentation.label}
+</span>

@@ -17,8 +17,16 @@ describe('createWebsiteModel', () => {
     expect(model.skill.description.length).toBeGreaterThan(0);
     expect(new Set(model.routes).size).toBe(model.routes.length);
     expect(model.documents.length).toBeGreaterThanOrEqual(18);
-    expect(model.searchRecords).toHaveLength(model.documents.length);
+    expect(model.searchRecords.length).toBeGreaterThan(model.documents.length);
     expect(model.navigation.flatMap(({ documents }) => documents)).toStrictEqual(model.documents);
+    expect(model.qualification.route).toBe('/qualification/');
+    expect(model.qualification.profiles).toHaveLength(1);
+    expect(model.qualification.profiles[0]).toMatchObject({
+      adapterId: 'custom',
+      attempts: [],
+      implementationId: 'custom',
+      latest: null,
+    });
 
     for (const route of REQUIRED_DOCUMENT_ROUTES) expect(model.routes).toContain(route);
     for (const document of model.documents) {
@@ -26,6 +34,13 @@ describe('createWebsiteModel', () => {
       expect(model.searchRecords.some(({ route }) => route === document.route)).toBe(true);
       expect(model.llmsText).toContain(`- [${document.title}](${document.route})`);
     }
+    for (const profile of model.qualification.profiles) {
+      expect(model.routes).toContain(profile.route);
+      expect(model.searchRecords.some(({ route }) => route === profile.route)).toBe(true);
+      expect(model.llmsText).toContain(`- [${profile.title}](${profile.route})`);
+    }
+    expect(model.routes).toContain('/qualification/');
+    expect(model.searchRecords.some(({ route }) => route === '/qualification/')).toBe(true);
   });
 
   test('keeps distribution and product-name presentation in generated LLM guidance', () => {
@@ -35,6 +50,7 @@ describe('createWebsiteModel', () => {
     expect(model.llmsText).toContain('reusable Agent Skills');
     expect(model.llmsText).toContain(SKILLS_DIRECTORY_URL);
     expect(model.llmsText).toContain(INSTALL_COMMAND);
+    expect(model.llmsText).toContain('## Adapter qualification');
   });
 
   test('requires reader-facing product mentions in Markdown to use inline code', () => {

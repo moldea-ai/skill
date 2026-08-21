@@ -1,0 +1,14 @@
+---
+interface Props {
+  text: string;
+}
+
+const { text } = Astro.props;
+const segments = text.split(/(\bmoldea\b)/giu);
+---
+
+{
+  segments.map((segment) =>
+    /^moldea$/iu.test(segment) ? <code>moldea</code> : <Fragment>{segment}</Fragment>,
+  )
+}

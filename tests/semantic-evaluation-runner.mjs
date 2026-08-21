@@ -38,6 +38,10 @@ import {
   prepareCodexEvaluationHome,
   runCodexEvaluationHost,
 } from '../tooling/codex-evaluation-host/index.mjs';
+import {
+  createSemanticCliIdentity,
+  SEMANTIC_EVALUATION_PROTOCOL_VERSION,
+} from '../tooling/release-identity/index.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PORTABLE_SKILL_ROOT = join(REPOSITORY_ROOT, 'moldea');
@@ -55,7 +59,6 @@ const PUBLISHED_CLI_MANIFEST = JSON.parse(
 );
 const SEMANTIC_CLI_ROOT = join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'semantic-cli');
 const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
-const EVALUATION_PROTOCOL_VERSION = 6;
 const MAX_WORKSPACE_EVIDENCE_FILE_BYTES = 32_768;
 const MAX_SKILL_EVIDENCE_FILES = 32;
 const MAX_SKILL_EVIDENCE_FILE_BYTES = 32_768;
@@ -139,13 +142,15 @@ export const createSemanticEvaluationCandidate = ({
   actorHost,
   artifactDigest,
   caseDefinitions,
+  cli,
   generatedAt,
   judgeHost,
 }) => ({
   actorHost,
   artifactDigest,
   caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
-  evaluationProtocolVersion: EVALUATION_PROTOCOL_VERSION,
+  cli,
+  evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt,
   judgeHost,
   results: [],
@@ -155,6 +160,16 @@ export const createSemanticEvaluationCandidate = ({
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
+
+const hasValidSemanticCliIdentity = (cli) =>
+  isPlainRecord(cli) &&
+  cli.name === '@moldea.ai/cli' &&
+  typeof cli.version === 'string' &&
+  /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u.test(cli.version) &&
+  typeof cli.integrity === 'string' &&
+  cli.integrity.startsWith('sha512-') &&
+  typeof cli.packageLockSha256 === 'string' &&
+  /^[a-f0-9]{64}$/u.test(cli.packageLockSha256);
 
 /** Validates evaluator-only skill evidence without exposing it to the actor prompt. */
 export const validateSkillEvidenceConfiguration = (caseDefinition) => {
@@ -331,7 +346,8 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
   if (
     !candidate ||
     candidate.schemaVersion !== 1 ||
-    candidate.evaluationProtocolVersion !== EVALUATION_PROTOCOL_VERSION ||
+    candidate.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
+    !hasValidSemanticCliIdentity(candidate.cli) ||
     typeof candidate.generatedAt !== 'string' ||
     typeof candidate.updatedAt !== 'string' ||
     !Array.isArray(candidate.results)
@@ -380,7 +396,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
 /** Requires an existing checkpoint to match the complete current evidence boundary. */
 export const validateSemanticCandidateCompatibility = (
   candidate,
-  { actorHost, artifactDigest, caseDefinitions, judgeHost },
+  { actorHost, artifactDigest, caseDefinitions, cli, judgeHost },
 ) => {
   validateSemanticCandidateEvidence(candidate, caseDefinitions);
   if (candidate.artifactDigest !== artifactDigest) {
@@ -393,6 +409,11 @@ export const validateSemanticCandidateCompatibility = (
   if (candidate.caseSuiteDigest !== caseSuiteDigest) {
     throw new Error(
       'The semantic evaluation candidate belongs to a different case suite. Use --restart to replace it.',
+    );
+  }
+  if (JSON.stringify(candidate.cli) !== JSON.stringify(cli)) {
+    throw new Error(
+      'The semantic evaluation candidate belongs to a different release CLI. Use --restart to replace it.',
     );
   }
   if (
@@ -2067,7 +2088,10 @@ const PORTABLE_RELEASE_VERSION_PATHS = new Set(['SKILL.md', 'references/local-to
 export const normalizePortableSkillSemanticEvidence = (relativePath, content) => {
   if (relativePath === 'SKILL.md') {
     return content
-      .replace(/^(\s*version:\s*")[^"]+("\s*)$/m, `$1${PORTABLE_RELEASE_VERSION_PLACEHOLDER}$2`)
+      .replace(
+        /^(\s*version:\s*['"])[^'"]+(['"]\s*)$/m,
+        `$1${PORTABLE_RELEASE_VERSION_PLACEHOLDER}$2`,
+      )
       .replace(
         /Skill release `[^`]+` supports exactly:/,
         `Skill release \`${PORTABLE_RELEASE_VERSION_PLACEHOLDER}\` supports exactly:`,
@@ -2148,7 +2172,8 @@ export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, gen
       workspaceChanges: result.workspaceChanges,
     })),
     caseSuiteDigest: candidate.caseSuiteDigest,
-    evaluationProtocolVersion: EVALUATION_PROTOCOL_VERSION,
+    cli: candidate.cli,
+    evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     evaluatedAt: generatedAt,
     generatedAt,
     host: candidate.actorHost,
@@ -2160,13 +2185,20 @@ export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, gen
 };
 
 /** Stops checkpoint reuse when long-running evaluation inputs change mid-run. */
-const assertSemanticEvaluationInputsUnchanged = async ({ artifactDigest, caseSuiteDigest }) => {
+const assertSemanticEvaluationInputsUnchanged = async ({
+  artifactDigest,
+  caseSuiteDigest,
+  cli,
+}) => {
   if (createPortableSkillDigest() !== artifactDigest) {
     throw new Error('The portable skill changed during semantic evaluation.');
   }
   const currentFixture = JSON.parse(await readFile(CASES_PATH, 'utf8'));
   if (createSemanticCaseSuiteDigest(currentFixture.semanticCases) !== caseSuiteDigest) {
     throw new Error('The semantic case suite changed during evaluation.');
+  }
+  if (JSON.stringify(createSemanticCliIdentity(REPOSITORY_ROOT)) !== JSON.stringify(cli)) {
+    throw new Error('The release CLI changed during semantic evaluation.');
   }
 };
 
@@ -2264,12 +2296,14 @@ const main = async () => {
 
   const artifactDigest = createPortableSkillDigest();
   const caseSuiteDigest = createSemanticCaseSuiteDigest(caseDefinitions);
+  const cli = createSemanticCliIdentity(REPOSITORY_ROOT);
   const actorHost = identifyCodexEvaluationHost(actorCommand);
   const judgeHost = identifyCodexEvaluationHost(judgeCommand);
   const evidenceBoundary = {
     actorHost,
     artifactDigest,
     caseDefinitions,
+    cli,
     judgeHost,
   };
   let candidate = null;
@@ -2309,12 +2343,14 @@ const main = async () => {
     await assertSemanticEvaluationInputsUnchanged({
       artifactDigest,
       caseSuiteDigest,
+      cli,
     });
     process.stderr.write(`[semantic-evaluation] start ${caseDefinition.id}\n`);
     const result = await evaluateCase(caseDefinition, actorCommand, judgeCommand);
     await assertSemanticEvaluationInputsUnchanged({
       artifactDigest,
       caseSuiteDigest,
+      cli,
     });
     const evaluatedAt = new Date().toISOString();
     const enrichedResult = {
@@ -2338,6 +2374,7 @@ const main = async () => {
     await assertSemanticEvaluationInputsUnchanged({
       artifactDigest,
       caseSuiteDigest,
+      cli,
     });
     const pendingCaseDefinitions = getPendingSemanticCaseDefinitions(candidate, caseDefinitions);
     if (pendingCaseDefinitions.length === 0) {
@@ -2375,7 +2412,8 @@ const main = async () => {
         workspaceChanges: result.workspaceChanges,
       })),
       caseSuiteDigest,
-      evaluationProtocolVersion: EVALUATION_PROTOCOL_VERSION,
+      cli,
+      evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
       evaluatedAt,
       generatedAt: evaluatedAt,
       host: actorHost,

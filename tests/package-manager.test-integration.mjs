@@ -26,9 +26,12 @@ const LIFECYCLE_FIXTURE_PATH = join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'lif
 const LIFECYCLE_FIXTURE_MANIFEST = JSON.parse(
   readFileSync(join(LIFECYCLE_FIXTURE_PATH, 'package.json'), 'utf8'),
 );
+const ROOT_PACKAGE_MANIFEST = JSON.parse(
+  readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf8'),
+);
 const MANAGER = process.env.MOLDEA_TEST_MANAGER ?? 'npm';
 const EXPECTED_MANAGER_VERSION = process.env.MOLDEA_TEST_MANAGER_VERSION;
-const PUBLISHED_CLI_VERSION = process.env.MOLDEA_TEST_CLI_VERSION ?? '3.1.3';
+const PUBLISHED_CLI_VERSION = ROOT_PACKAGE_MANIFEST.devDependencies['@moldea.ai/cli'];
 const EXECUTABLE = process.platform === 'win32' ? `${MANAGER}.cmd` : MANAGER;
 const CANDIDATE_ARTIFACT_DIRECTORY = process.env.MOLDEA_CLI_ARTIFACT_DIRECTORY;
 const REQUIRE_CANDIDATE_ARTIFACTS = process.env.MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS === '1';
@@ -46,11 +49,6 @@ const isSupportedVersion = (manager, version) => {
   if (manager === 'pnpm') return major === 11 && minor >= 20;
   if (manager === 'yarn') return major === 4;
   return false;
-};
-
-const isSupportedCliVersion = (version) => {
-  const [major, minor, patch] = parseVersion(version);
-  return major === 3 && (minor > 1 || (minor === 1 && patch >= 3));
 };
 
 /** Returns whether the selected Yarn version supports its command-scoped age-gate override. */
@@ -322,7 +320,7 @@ const seedConformanceProject = (clientDirectory, { includeOpenAi }) => {
 
 /** Installs and exercises one real published or packed CLI dependency closure. */
 const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
-  assert.ok(isSupportedCliVersion(cliVersion), `Unsupported CLI candidate ${cliVersion}.`);
+  parseVersion(cliVersion);
   const actualManagerVersion = readPackageManagerVersion();
   const clientDirectory = mkdtempSync(join(tmpdir(), `moldea-${sourceLabel}-${MANAGER}-`));
   const lifecycleSentinelPath = join(clientDirectory, 'lifecycle-ran.txt');
@@ -461,18 +459,10 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
 
     const compatibilityEnvelope = JSON.parse(compatibilityExecution.stdout);
     const inspectionEnvelope = JSON.parse(inspectionExecution.stdout);
-    const internalPackageNames = [
-      '@moldea.ai/adapter-anthropic',
-      '@moldea.ai/adapter-google-genai',
-      '@moldea.ai/adapter-openai',
-      '@moldea.ai/core',
-      '@moldea.ai/repository',
-      '@moldea.ai/repository-fs',
-    ].filter((packageName) => cliPackage.manifest.dependencies?.[packageName] !== undefined);
-    const expectedPackages = internalPackageNames.map((packageName) => ({
-      name: packageName,
-      version: cliPackage.manifest.dependencies[packageName],
-    }));
+    const expectedPackages = Object.entries(cliPackage.manifest.dependencies ?? {})
+      .filter(([packageName]) => packageName.startsWith('@moldea.ai/'))
+      .map(([name, version]) => ({ name, version }))
+      .sort(({ name: left }, { name: right }) => left.localeCompare(right));
     const customAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'custom');
     const anthropicAdapter = compatibilityEnvelope.result.adapters.find(
       ({ id }) => id === 'anthropic',

@@ -1,8 +1,8 @@
 {
   "packageManagerCases": [
     {
-      "id": "below-minimum-installed-cli",
-      "scenario": "A write-capable workflow finds an exact CLI 3.1.2 installation below this release's supported minimum.",
+      "id": "different-installed-cli",
+      "scenario": "A write-capable workflow finds exact CLI 3.3.6 instead of this skill release's exact CLI 3.3.7.",
       "operation": "initialize",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -14,23 +14,23 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "3.1.2",
-          "installedVersion": "3.1.2",
+          "declaration": "3.3.6",
+          "installedVersion": "3.3.6",
           "executableResolves": true
         }
       },
       "expected": [
         "preserve-established-manager",
-        "resolve-highest-compatible-non-prerelease"
+        "install-exact-release-cli"
       ],
       "forbidden": [
-        "preserve-unsupported-cli",
-        "treat-3.1.2-as-compatible"
+        "preserve-different-cli",
+        "treat-3.3.6-as-the-release-cli"
       ]
     },
     {
-      "id": "compatible-cli-missing-required-capability",
-      "scenario": "A synthetic future write-capable workflow has an exact compatible CLI 3.1.3 installation without a newly required official-adapter capability, while an established compatible 3.1.4 release provides it.",
+      "id": "release-cli-missing-required-capability",
+      "scenario": "A synthetic write-capable workflow has this skill release's exact CLI 3.3.7, but that CLI does not expose a required official-adapter capability.",
       "operation": "maintain-agent",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -42,26 +42,25 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "3.1.3",
-          "installedVersion": "3.1.3",
+          "declaration": "3.3.7",
+          "installedVersion": "3.3.7",
           "executableResolves": true,
           "installedCapabilities": [],
-          "requiredCapability": "new-official-adapter-capability",
-          "capableVersion": "3.1.4"
+          "requiredCapability": "required-official-adapter-capability"
         }
       },
       "expected": [
         "preserve-established-manager",
-        "replace-with-capable-compatible-cli"
+        "report-release-capability-defect"
       ],
       "forbidden": [
-        "preserve-incapable-cli",
-        "upgrade-outside-supported-range"
+        "select-another-cli",
+        "continue-with-missing-capability"
       ]
     },
     {
-      "id": "evaluate-compatible-cli-missing-required-capability",
-      "scenario": "A synthetic future read-only evaluation has an exact compatible CLI 3.1.3 installation without a newly required official-adapter capability, while an established compatible 3.1.4 release provides it.",
+      "id": "evaluate-release-cli-missing-required-capability",
+      "scenario": "A synthetic read-only evaluation has this skill release's exact CLI 3.3.7, but that CLI does not expose a required official-adapter capability.",
       "operation": "evaluate",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -73,21 +72,20 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "3.1.3",
-          "installedVersion": "3.1.3",
+          "declaration": "3.3.7",
+          "installedVersion": "3.3.7",
           "executableResolves": true,
           "installedCapabilities": [],
-          "requiredCapability": "new-official-adapter-capability",
-          "capableVersion": "3.1.4"
+          "requiredCapability": "required-official-adapter-capability"
         }
       },
       "expected": [
         "preserve-established-manager",
-        "report-read-only-remediation"
+        "report-release-capability-defect"
       ],
       "forbidden": [
         "replace-cli-during-evaluate",
-        "install-required-capability"
+        "continue-with-missing-capability"
       ]
     },
     {
@@ -102,8 +100,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "3.3.5",
-          "installedVersion": "3.3.5",
+          "declaration": "3.3.7",
+          "installedVersion": "3.3.7",
           "executableResolves": true
         }
       },
@@ -118,7 +116,7 @@
     },
     {
       "id": "matching-package-manager-and-lockfile",
-      "scenario": "Concrete pnpm metadata, its lockfile, the executable, and an exact compatible CLI installation all agree.",
+      "scenario": "Concrete pnpm metadata, its lockfile, the executable, and this skill release's exact CLI installation all agree.",
       "operation": "maintain",
       "input": {
         "packageManager": "pnpm@11.20.0",
@@ -130,8 +128,8 @@
           "version": "11.20.0"
         },
         "cli": {
-          "declaration": "3.1.3",
-          "installedVersion": "3.1.3",
+          "declaration": "3.3.7",
+          "installedVersion": "3.3.7",
           "executableResolves": true
         }
       },
@@ -141,7 +139,7 @@
       ],
       "forbidden": [
         "switch-manager",
-        "upgrade-compatible-cli"
+        "switch-release-cli"
       ]
     },
     {
@@ -158,8 +156,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "3.1.3",
-          "installedVersion": "3.1.3",
+          "declaration": "3.3.7",
+          "installedVersion": "3.3.7",
           "executableResolves": true
         }
       },
@@ -213,8 +211,8 @@
           "version": "4.18.0"
         },
         "cli": {
-          "declaration": "3.1.3",
-          "installedVersion": "3.1.3",
+          "declaration": "3.3.7",
+          "installedVersion": "3.3.7",
           "executableResolves": true
         }
       },
@@ -265,8 +263,8 @@
           "version": "5.0.0"
         },
         "cli": {
-          "declaration": "3.1.3",
-          "installedVersion": "3.1.3",
+          "declaration": "3.3.7",
+          "installedVersion": "3.3.7",
           "executableResolves": true
         }
       },
@@ -279,8 +277,8 @@
       ]
     },
     {
-      "id": "floating-cli-with-compatible-install",
-      "scenario": "The root CLI declaration floats while the installed root CLI and executable resolve to compatible version 3.1.3.",
+      "id": "floating-cli-with-release-install",
+      "scenario": "The root CLI declaration floats while the installed root CLI and executable resolve to this skill release's exact version 3.3.7.",
       "operation": "reconcile",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -292,23 +290,23 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "^3.1.3",
-          "installedVersion": "3.1.3",
+          "declaration": "^3.3.7",
+          "installedVersion": "3.3.7",
           "executableResolves": true
         }
       },
       "expected": [
         "preserve-established-manager",
-        "pin-compatible-installed-version"
+        "pin-exact-release-cli"
       ],
       "forbidden": [
-        "resolve-newer-cli",
+        "select-another-cli",
         "retain-floating-declaration"
       ]
     },
     {
-      "id": "missing-compatible-cli",
-      "scenario": "A write-capable workflow has an established supported manager but no compatible installed root CLI.",
+      "id": "missing-release-cli",
+      "scenario": "A write-capable workflow has an established supported manager but no installation of this skill release's exact root CLI.",
       "operation": "initialize",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -327,7 +325,7 @@
       },
       "expected": [
         "preserve-established-manager",
-        "resolve-highest-compatible-non-prerelease"
+        "install-exact-release-cli"
       ],
       "forbidden": [
         "use-global-cli",
@@ -433,8 +431,8 @@
           "pnpmfile"
         ],
         "cli": {
-          "declaration": "3.1.3",
-          "installedVersion": "3.1.3",
+          "declaration": "3.3.7",
+          "installedVersion": "3.3.7",
           "executableResolves": true
         }
       },
@@ -515,12 +513,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "3.1.3",
-        "installedCliVersion": "3.1.3",
+        "declaredCliVersion": "3.3.7",
+        "installedCliVersion": "3.3.7",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "3.1.3",
+          "cliVersion": "3.3.7",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -541,12 +539,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "3.1.3",
-        "installedCliVersion": "3.1.3",
+        "declaredCliVersion": "3.3.7",
+        "installedCliVersion": "3.3.7",
         "exitCode": 1,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "3.1.3",
+          "cliVersion": "3.3.7",
           "command": "inspect",
           "status": "invalid",
           "result": {
@@ -569,12 +567,12 @@
       "operation": "compatibility",
       "input": {
         "invokedCommand": "compatibility",
-        "declaredCliVersion": "3.1.3",
-        "installedCliVersion": "3.1.3",
+        "declaredCliVersion": "3.3.7",
+        "installedCliVersion": "3.3.7",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "3.1.3",
+          "cliVersion": "3.3.7",
           "command": "compatibility",
           "status": "valid",
           "result": {},
@@ -595,12 +593,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "3.1.3",
-        "installedCliVersion": "3.1.3",
+        "declaredCliVersion": "3.3.7",
+        "installedCliVersion": "3.3.7",
         "exitCode": 0,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "3.1.3",
+          "cliVersion": "3.3.7",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -617,12 +615,12 @@
     },
     {
       "id": "version-mismatch",
-      "scenario": "The machine envelope reports unsupported CLI 4.0.0 while the declared and installed root package is 3.1.3.",
+      "scenario": "The machine envelope reports unsupported CLI 4.0.0 while the declared and installed root package is 3.3.7.",
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "3.1.3",
-        "installedCliVersion": "3.1.3",
+        "declaredCliVersion": "3.3.7",
+        "installedCliVersion": "3.3.7",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
@@ -642,17 +640,17 @@
       ]
     },
     {
-      "id": "below-minimum-cli",
-      "scenario": "The declared, installed, and reported CLI are consistently 3.1.2, which is below this release's supported minimum.",
+      "id": "different-cli-version",
+      "scenario": "The declared, installed, and reported CLI are consistently 3.3.6 instead of this skill release's exact CLI 3.3.7.",
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "3.1.2",
-        "installedCliVersion": "3.1.2",
+        "declaredCliVersion": "3.3.6",
+        "installedCliVersion": "3.3.6",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "3.1.2",
+          "cliVersion": "3.3.6",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -663,7 +661,7 @@
         "stop-without-heuristics"
       ],
       "forbidden": [
-        "accept-below-minimum-cli",
+        "accept-different-cli-version",
         "interpret-result"
       ]
     },
@@ -673,12 +671,12 @@
       "operation": "validate",
       "input": {
         "invokedCommand": "validate",
-        "declaredCliVersion": "3.1.3",
-        "installedCliVersion": "3.1.3",
+        "declaredCliVersion": "3.3.7",
+        "installedCliVersion": "3.3.7",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "3.1.3",
+          "cliVersion": "3.3.7",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -699,12 +697,12 @@
       "operation": "compatibility",
       "input": {
         "invokedCommand": "compatibility",
-        "declaredCliVersion": "3.1.3",
-        "installedCliVersion": "3.1.3",
+        "declaredCliVersion": "3.3.7",
+        "installedCliVersion": "3.3.7",
         "exitCode": 1,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "3.1.3",
+          "cliVersion": "3.3.7",
           "command": "compatibility",
           "status": "invalid",
           "result": {},
@@ -725,12 +723,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "3.1.3",
-        "installedCliVersion": "3.1.3",
+        "declaredCliVersion": "3.3.7",
+        "installedCliVersion": "3.3.7",
         "exitCode": 2,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "3.1.3",
+          "cliVersion": "3.3.7",
           "command": "inspect",
           "status": "error",
           "result": null,
@@ -754,8 +752,8 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "3.1.3",
-        "installedCliVersion": "3.1.3",
+        "declaredCliVersion": "3.3.7",
+        "installedCliVersion": "3.3.7",
         "exitCode": 0,
         "output": "not-json"
       },
@@ -1921,7 +1919,7 @@
     },
     {
       "id": "runtime-adapter-lifecycle",
-      "scenario": "An existing agent still matches its published deprecated runtime target, the installed compatible CLI does not activate that adapter, and the matrix requires project-local runtime guidance.",
+      "scenario": "An existing agent still matches its published deprecated runtime target, the installed release CLI does not activate that adapter, and the matrix requires project-local runtime guidance.",
       "operation": "evaluate-runtime-relationship",
       "input": {
         "repositoryEvidence": [

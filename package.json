@@ -1,6 +1,6 @@
 {
   "name": "@moldea.ai/skill-conformance",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "private": true,
   "description": "Development-only conformance checks for the moldea Agent Skill.",
   "type": "module",
@@ -21,6 +21,9 @@
     "qualification:test:unit": "npm --prefix qualification run test:unit",
     "qualification:typecheck": "npm --prefix qualification run typecheck",
     "qualification:verify": "npm --prefix qualification run qualification -- verify",
+    "release:check": "npm test && npm run qualification:verify && node tooling/release-identity/check-release.mjs",
+    "release:identity:check": "node tooling/release-identity/check-release.mjs --identity-only",
+    "release:update-cli": "node tooling/release-identity/update-cli.mjs",
     "test": "npm run test:unit && npm run test:integration",
     "test:unit": "node --test tooling/*/*.test-unit.mjs tests/*.test-unit.mjs",
     "test:integration": "node --test tooling/*/*.test-integration.mjs tests/*.test-integration.mjs",
@@ -29,7 +32,7 @@
     "website:dev": "npm --prefix website run dev"
   },
   "devDependencies": {
-    "@moldea.ai/cli": "3.1.3",
+    "@moldea.ai/cli": "3.3.7",
     "yaml": "2.9.0"
   }
 }

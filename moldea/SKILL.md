@@ -4,7 +4,7 @@ description: >-
   Use when a developer asks their coding agent to initialize or work with moldea; plan an AI- or agent-enabled system and decide what should be agents versus deterministic software, services, tools, skills, or human control; create or refine an AI agent, a reusable Agent Skill, or a behavioral system, including instructions, descriptions, handoff descriptions, capabilities, schemas, variables and providers, routing or handoffs, bindings, or runtime integration; evaluate, reconcile, or validate an existing moldea system; or make ordinary behavior-affecting repository changes that may require maintaining an adopted moldea system. Loading the skill does not adopt moldea: initial adoption still requires explicit developer intent, while relevance-triggered maintenance applies once a repository uses or is adopting moldea.
 license: MIT
 metadata:
-  version: '3.0.0'
+  version: '3.1.0'
 ---
 
 # moldea
@@ -26,16 +26,16 @@ Agent-system planning activates only when the developer clearly asks how an AI- 
 
 ## Release compatibility
 
-Skill release `3.0.0` supports exactly:
+Skill release `3.1.0` supports exactly:
 
-- `@moldea.ai/cli: >=3.1.3 <4.0.0`
+- `@moldea.ai/cli: 3.3.7`
 - CLI JSON schema: `1`
 - Node.js: `^22.11.0 || ^24.11.0`
 - npm: `>=10.9.0 <12.0.0`
 - pnpm: `>=11.20.0 <12.0.0`
 - yarn: `>=4.0.0 <5.0.0`
 
-These are compatibility ranges. A client repository stores one exact repository-root `@moldea.ai/cli` development-dependency version satisfying the CLI range.
+The CLI version is an exact release dependency. A client repository stores that exact repository-root `@moldea.ai/cli` development dependency; the remaining entries retain their stated compatibility ranges.
 
 ## Preserve authority and safety
 
@@ -96,7 +96,7 @@ Load only the references triggered by the current operation. These files operati
 
 Use the repository-local CLI as mechanical authority for Git inventory, snapshots, repository-format parsing and validation, path and placeholder rules, mirror comparison, Core diagnostics, runtime-adapter invocation, and compatibility reporting. Do not recreate or heuristically reinterpret those mechanics.
 
-Before using a JSON result, require supported `schemaVersion`, compatible `cliVersion`, the expected `command`, and a valid `status`/payload combination. Structural `invalid` results from `inspect` or `validate` are valid deterministic evidence; `error` is an operational failure. Unsupported or contradictory envelopes stop interpretation.
+Before using a JSON result, require supported `schemaVersion`, the exact release `cliVersion`, the expected `command`, and a valid `status`/payload combination. Structural `invalid` results from `inspect` or `validate` are valid deterministic evidence; `error` is an operational failure. Unsupported or contradictory envelopes stop interpretation.
 
 Runtime-adapter evidence is deterministic evidence about detectable implementation, not authority for developer intent. Universal Core invalidity prevents adapters from running, so empty evidence in that state means unavailable evidence, not absence of runtime behavior. In dedicated-repository mode, implementation outside the canonical snapshot may also make evidence empty or partial without proving the runtime is absent.
 

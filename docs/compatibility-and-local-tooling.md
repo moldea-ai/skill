@@ -12,17 +12,17 @@ The current skill release supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`
-- `@moldea.ai/cli >=3.1.3 <3.2.0`
+- `@moldea.ai/cli 3.3.7`
 - CLI JSON schema `1`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
 - Yarn `>=4.0.0 <5.0.0`
 
-A client repository stores one exact repository-root `@moldea.ai/cli` development-dependency version inside the supported range. Compatible exact pins are preserved rather than upgraded merely because another version exists.
+A client repository stores the exact release-owned repository-root `@moldea.ai/cli` development dependency. Another CLI version belongs to another skill release and is not treated as interchangeable.
 
 ## The coding agent owns the tooling boundary
 
-Write-capable workflows can establish or reconcile compatible tooling when authorized. Planning never installs tooling merely to produce a recommendation. Evaluation and validation remain read-only and report missing or incompatible tooling instead of changing dependencies.
+Write-capable workflows can establish or reconcile the exact release tooling when authorized. Planning never installs tooling merely to produce a recommendation. Evaluation and validation remain read-only and report missing or mismatched tooling instead of changing dependencies.
 
 Before deterministic execution, the coding agent verifies:
 

@@ -13,7 +13,7 @@ describe('createWebsiteModel', () => {
     const model = createWebsiteModel();
 
     expect(model.skill.name).toBe('moldea');
-    expect(model.skill.version).toBe('3.0.0');
+    expect(model.skill.version).toBe('3.1.0');
     expect(model.skill.description.length).toBeGreaterThan(0);
     expect(new Set(model.routes).size).toBe(model.routes.length);
     expect(model.documents.length).toBeGreaterThanOrEqual(18);
@@ -26,8 +26,8 @@ describe('createWebsiteModel', () => {
       adapterId: 'custom',
       implementationId: 'custom',
     });
-    expect(qualificationProfile?.attempts.length).toBeGreaterThan(0);
-    expect(qualificationProfile?.latest).not.toBeNull();
+    expect(qualificationProfile?.attempts).toHaveLength(0);
+    expect(qualificationProfile?.latest).toBeNull();
 
     for (const route of REQUIRED_DOCUMENT_ROUTES) expect(model.routes).toContain(route);
     for (const document of model.documents) {

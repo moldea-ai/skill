@@ -4,7 +4,9 @@ const { createHash } = require('node:crypto');
 const { existsSync, readFileSync } = require('node:fs');
 
 const command = process.argv[2];
-const CLI_VERSION = '3.1.3';
+const FIXTURE_MANIFEST = require('../package.json');
+const CLI_VERSION = FIXTURE_MANIFEST.version;
+const CLI_DEPENDENCIES = FIXTURE_MANIFEST.dependencies;
 const OFFICIAL_ADAPTER_IDS = [
   'anthropic',
   'claude-agent-sdk',
@@ -18,11 +20,10 @@ const OFFICIAL_ADAPTER_IDS = [
   'openai-agents-sdk',
   'vercel-ai-sdk',
 ];
-const BASE_COMPATIBILITY_PACKAGES = [
-  { name: '@moldea.ai/core', version: '2.0.0' },
-  { name: '@moldea.ai/repository', version: '1.0.1' },
-  { name: '@moldea.ai/repository-fs', version: '1.0.2' },
-];
+const COMPATIBILITY_PACKAGES = Object.entries(CLI_DEPENDENCIES)
+  .filter(([name]) => name.startsWith('@moldea.ai/'))
+  .map(([name, version]) => ({ name, version }))
+  .sort(({ name: left }, { name: right }) => left.localeCompare(right));
 
 /** Reads one text asset using the repository-format digest and length semantics. */
 const readTextAsset = (logicalPath) => {
@@ -99,7 +100,7 @@ const readIndexedAgents = (manifestContent) => {
 const createCustomCompatibility = () => ({
   id: 'custom',
   active: true,
-  bundledVersion: '2.0.0',
+  bundledVersion: CLI_DEPENDENCIES['@moldea.ai/core'],
   matrix: {
     implementation: {
       kind: 'built-in',
@@ -138,7 +139,7 @@ const createCustomCompatibility = () => ({
 const createAnthropicCompatibility = () => ({
   id: 'anthropic',
   active: true,
-  bundledVersion: '2.0.1',
+  bundledVersion: CLI_DEPENDENCIES['@moldea.ai/adapter-anthropic'],
   matrix: {
     implementation: {
       kind: 'package',
@@ -187,7 +188,7 @@ const createAnthropicCompatibility = () => ({
 const createGoogleGenAiCompatibility = () => ({
   id: 'google-genai',
   active: true,
-  bundledVersion: '1.0.3',
+  bundledVersion: CLI_DEPENDENCIES['@moldea.ai/adapter-google-genai'],
   matrix: {
     implementation: {
       kind: 'package',
@@ -236,7 +237,7 @@ const createGoogleGenAiCompatibility = () => ({
 const createOpenAiCompatibility = () => ({
   id: 'openai',
   active: true,
-  bundledVersion: '2.0.3',
+  bundledVersion: CLI_DEPENDENCIES['@moldea.ai/adapter-openai'],
   matrix: {
     implementation: {
       kind: 'package',
@@ -315,20 +316,7 @@ const readCompatibilityAdapters = () => {
 };
 
 /** Lists the complete package composition represented by the adapter inventory. */
-const readCompatibilityPackages = (adapters) => {
-  const packages = [...BASE_COMPATIBILITY_PACKAGES];
-  for (const adapter of adapters) {
-    if (!adapter.active || adapter.id === 'custom') continue;
-    packages.push({
-      name: adapter.matrix.implementation.package,
-      version: adapter.bundledVersion,
-    });
-  }
-
-  return packages.sort(({ name: left }, { name: right }) =>
-    left < right ? -1 : left > right ? 1 : 0,
-  );
-};
+const readCompatibilityPackages = () => COMPATIBILITY_PACKAGES;
 
 if (command === '--version') {
   process.stdout.write(`${CLI_VERSION}\n`);

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import test from 'node:test';
 
 import {
@@ -65,6 +65,12 @@ const JUDGE_HOST = {
   version: '1.2.3',
 };
 const ARTIFACT_DIGEST = 'a'.repeat(64);
+const CLI_IDENTITY = {
+  integrity: `sha512-${'a'.repeat(86)}`,
+  name: '@moldea.ai/cli',
+  packageLockSha256: 'd'.repeat(64),
+  version: '3.3.7',
+};
 const EVALUATED_AT = '2026-08-16T12:00:00.000Z';
 const BEFORE_SNAPSHOT_STATE = {
   content: 'before',
@@ -317,6 +323,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
     actorHost: ACTOR_HOST,
     artifactDigest: ARTIFACT_DIGEST,
     caseDefinitions,
+    cli: CLI_IDENTITY,
     generatedAt: EVALUATED_AT,
     judgeHost: JUDGE_HOST,
   });
@@ -334,6 +341,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
       actorHost: ACTOR_HOST,
       artifactDigest: ARTIFACT_DIGEST,
       caseDefinitions,
+      cli: CLI_IDENTITY,
       judgeHost: JUDGE_HOST,
     }),
   );
@@ -343,6 +351,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
         actorHost: ACTOR_HOST,
         artifactDigest: 'b'.repeat(64),
         caseDefinitions,
+        cli: CLI_IDENTITY,
         judgeHost: JUDGE_HOST,
       }),
     /different portable artifact/,
@@ -356,6 +365,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
           { ...CASE_DEFINITION, prompt: 'Changed evaluation prompt.' },
           SECOND_CASE_DEFINITION,
         ],
+        cli: CLI_IDENTITY,
         judgeHost: JUDGE_HOST,
       }),
     /different case suite/,
@@ -363,9 +373,21 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
   assert.throws(
     () =>
       validateSemanticCandidateCompatibility(candidate, {
+        actorHost: ACTOR_HOST,
+        artifactDigest: ARTIFACT_DIGEST,
+        caseDefinitions,
+        cli: { ...CLI_IDENTITY, version: '3.3.8' },
+        judgeHost: JUDGE_HOST,
+      }),
+    /different release CLI/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticCandidateCompatibility(candidate, {
         actorHost: { ...ACTOR_HOST, version: '2.0.0' },
         artifactDigest: ARTIFACT_DIGEST,
         caseDefinitions,
+        cli: CLI_IDENTITY,
         judgeHost: JUDGE_HOST,
       }),
     /different actor or judge hosts/,
@@ -376,6 +398,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
         actorHost: { ...ACTOR_HOST, reasoningEffort: 'high' },
         artifactDigest: ARTIFACT_DIGEST,
         caseDefinitions,
+        cli: CLI_IDENTITY,
         judgeHost: { ...JUDGE_HOST, reasoningEffort: 'high' },
       }),
     /different actor or judge hosts/,
@@ -388,6 +411,7 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
     actorHost: ACTOR_HOST,
     artifactDigest: ARTIFACT_DIGEST,
     caseDefinitions,
+    cli: CLI_IDENTITY,
     generatedAt: EVALUATED_AT,
     judgeHost: JUDGE_HOST,
   });
@@ -428,7 +452,8 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
     caseDefinitions,
     generatedAt: '2026-08-16T12:02:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 6);
+  assert.equal(record.evaluationProtocolVersion, 7);
+  assert.deepEqual(record.cli, CLI_IDENTITY);
   assert.equal(record.caseSuiteDigest, createSemanticCaseSuiteDigest(caseDefinitions));
   assert.deepEqual(
     record.cases.map(({ id }) => id),
@@ -477,6 +502,7 @@ test('semantic candidates accept explicitly truncated skill artifact evidence', 
       actorHost: ACTOR_HOST,
       artifactDigest: ARTIFACT_DIGEST,
       caseDefinitions,
+      cli: CLI_IDENTITY,
       generatedAt: EVALUATED_AT,
       judgeHost: JUDGE_HOST,
     }),
@@ -521,6 +547,7 @@ test('semantic candidate validation rejects internally inconsistent evidence', (
       actorHost: ACTOR_HOST,
       artifactDigest: ARTIFACT_DIGEST,
       caseDefinitions,
+      cli: CLI_IDENTITY,
       generatedAt: EVALUATED_AT,
       judgeHost: JUDGE_HOST,
     }),
@@ -636,7 +663,7 @@ test('semantic candidate validation rejects internally inconsistent evidence', (
 test('semantic evidence normalization permits only release-version declarations', () => {
   const previousSkill = [
     'metadata:',
-    '  version: "1.0.0"',
+    "  version: '1.0.0'",
     '',
     'Skill release `1.0.0` supports exactly:',
     '',
@@ -690,27 +717,23 @@ test('selects synthetic compatibility only for the two unsupported runtime state
 });
 
 test('collects the exact published CLI production dependency closure', () => {
-  const packageVersions = collectProductionPackageRoots(
+  const rootNodeModules = join(process.cwd(), 'node_modules');
+  const packageEntries = collectProductionPackageRoots(
     join(process.cwd(), 'node_modules', '@moldea.ai', 'cli'),
-  )
-    .map((packageRoot) => {
-      const manifest = JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8'));
-      return `${manifest.name}@${manifest.version}`;
-    })
-    .sort();
+  ).map((packageRoot) => ({
+    lockPath: `node_modules/${relative(rootNodeModules, packageRoot)}`,
+    manifest: JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8')),
+  }));
+  const manifestsByName = new Map(packageEntries.map(({ manifest }) => [manifest.name, manifest]));
+  const rootLock = JSON.parse(readFileSync(join(process.cwd(), 'package-lock.json'), 'utf8'));
+  const rootManifest = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'));
+  const cliManifest = manifestsByName.get('@moldea.ai/cli');
 
-  assert.deepEqual(packageVersions, [
-    '@moldea.ai/adapter-anthropic@2.0.1',
-    '@moldea.ai/adapter-google-genai@1.0.3',
-    '@moldea.ai/adapter-openai@2.0.3',
-    '@moldea.ai/cli@3.1.3',
-    '@moldea.ai/core@2.0.0',
-    '@moldea.ai/repository-fs@1.0.2',
-    '@moldea.ai/repository@1.0.1',
-    'error-message-utils@1.2.11',
-    'semver@7.8.5',
-    'typescript@6.0.3',
-    'yaml@2.9.0',
-    'zod@4.3.6',
-  ]);
+  assert.equal(cliManifest.version, rootManifest.devDependencies['@moldea.ai/cli']);
+  for (const dependencyName of Object.keys(cliManifest.dependencies)) {
+    assert.ok(manifestsByName.has(dependencyName), `Missing CLI dependency ${dependencyName}.`);
+  }
+  for (const { lockPath, manifest } of packageEntries) {
+    assert.equal(rootLock.packages[lockPath]?.version, manifest.version);
+  }
 });

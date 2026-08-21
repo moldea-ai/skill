@@ -4,19 +4,19 @@ Read this reference before deterministic CLI use or any write-capable workflow t
 
 ## Compatibility contract
 
-Release `3.0.0` supports:
+Release `3.1.0` supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`
-- `@moldea.ai/cli >=3.1.3 <4.0.0`
+- `@moldea.ai/cli 3.3.7`
 - CLI JSON schema `1`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
 - Yarn `>=4.0.0 <5.0.0`
 
-Use node-semver range semantics. Do not broaden these ranges or automatically select a prerelease CLI.
+Use node-semver range semantics for the Node.js and package-manager entries. Do not substitute another CLI release or select a prerelease CLI.
 
-`plan` does not establish this tooling merely to produce an architecture recommendation. It may use an already available compatible repository-local CLI read-only after verifying the same provider and envelope contract. When tooling is absent or incompatible, continue planning from sufficient repository evidence and disclose the unavailable deterministic evidence without selecting a package manager, creating metadata, or changing dependencies.
+`plan` does not establish this tooling merely to produce an architecture recommendation. It may use an already available exact release CLI read-only after verifying the same provider and envelope contract. When tooling is absent or does not match this release, continue planning from sufficient repository evidence and disclose the unavailable deterministic evidence without selecting a package manager, creating metadata, or changing dependencies.
 
 ## Determine the package manager
 
@@ -33,20 +33,20 @@ Resolve the executable that will perform the operation and verify its actual ver
 
 ## Establish the exact local CLI
 
-Compatible tooling state requires all of the following:
+Release tooling state requires all of the following:
 
 - `@moldea.ai/cli` is a root `devDependency` declared as one exact semantic version, not a range, tag, URL, workspace protocol, alias, or other floating specifier.
-- the declared version satisfies `>=3.1.3 <4.0.0`
+- the declared version is exactly `3.3.7`
 - the installed repository-local package manifest reports the same exact version
 - the established manager resolves the repository-local `moldea` executable from that root package
 - the machine envelope reports the same exact `cliVersion` and schema `1`
 
-Preserve an existing compatible exact declaration and executable. Do not upgrade it merely because a newer compatible version exists. A write-capable workflow may replace it within the supported range only when an official adapter or machine-contract capability materially required by the authorized work is absent from the installed composition and a released supported replacement providing it is established. Exact CLI `3.1.3` is this release's minimum compatibility and conformance baseline, not a preferred pin over another compatible `3.x` release.
+Preserve an existing exact `3.3.7` declaration and executable. A different installed version belongs to a different skill release and must not be treated as interchangeable. If this release's exact CLI lacks a required official adapter or machine-contract capability, stop and report the release defect instead of selecting another CLI version.
 
 During a write-capable workflow:
 
-- if a floating declaration has a compatible installed executable, pin that same installed version exactly and update the ordinary lockfile
-- if no compatible installed executable exists, query published registry metadata through the established manager, select the highest published non-prerelease version satisfying the supported range, install it exactly, and update the ordinary lockfile
+- if the installed repository-local CLI is exactly `3.3.7` but the declaration floats, pin `3.3.7` exactly and update the ordinary lockfile
+- if the exact release CLI is absent or another version is installed, verify published registry metadata for `3.3.7`, install that version exactly, and update the ordinary lockfile
 - if installed and declared state conflict in a way that cannot be established reliably, stop and report the prerequisite instead of guessing
 
 During `plan`, `evaluate`, or `validate`, never create `package.json`, change dependency declarations or lockfiles, or install packages. Report the detected state and the write-capable remediation when relevant.
@@ -64,7 +64,7 @@ pnpm add --workspace-root --save-dev --save-exact --ignore-scripts @moldea.ai/cl
 yarn add --dev --exact --mode=skip-build @moldea.ai/cli@<resolved-version>
 ```
 
-Use the pnpm `--workspace-root` form only when the root is a pnpm workspace; otherwise use the non-workspace form. Yarn's supported `skip-build` mode omits the build step. npm and pnpm use their supported `ignore-scripts` setting. Do not write the literal placeholder or the compatibility range into a client manifest.
+Use the pnpm `--workspace-root` form only when the root is a pnpm workspace; otherwise use the non-workspace form. Yarn's supported `skip-build` mode omits the build step. npm and pnpm use their supported `ignore-scripts` setting. Replace the placeholder with exact version `3.3.7`; never write a range into a client manifest.
 
 Inspect applicable package-manager configuration as data before execution. Treat pnpmfiles, hook-bearing pnpm configuration, repository-declared third-party Yarn plugins, and equivalent extension mechanisms as executable repository code. Use only tested controls that prevent those surfaces from loading without making dependency resolution materially different or unreliable.
 
@@ -94,7 +94,7 @@ Use `inspect --json` as the primary deterministic integration. Use `compatibilit
 Parse JSON only after the process completes, then validate the version `1` envelope before reading `result`:
 
 - `schemaVersion` is integer `1`
-- `cliVersion` is an exact semantic version equal to the declared and installed CLI version and satisfies `>=3.1.3 <4.0.0`
+- `cliVersion` is exactly `3.3.7` and equals the declared and installed CLI version
 - `command` equals the command invoked
 - `status` is `valid`, `invalid`, or `error`
 - `valid` has non-null `result` and null `error`

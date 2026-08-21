@@ -21,6 +21,9 @@ import {
   writeSemanticEvaluationCandidate,
 } from './semantic-evaluation-runner.mjs';
 
+const ROOT_PACKAGE_MANIFEST = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'));
+const RELEASE_CLI_VERSION = ROOT_PACKAGE_MANIFEST.devDependencies['@moldea.ai/cli'];
+
 test('skill artifact evidence exposes bounded content and independent validation', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-skill-evidence-test-'));
   const skillRoot = join(evaluationRoot, 'skills', 'release-review');
@@ -264,27 +267,32 @@ test('semantic actors execute the copied published CLI closure', async () => {
     });
     const compatibilityEnvelope = JSON.parse(compatibilityResult.stdout);
 
-    assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': '3.1.3' });
+    assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': RELEASE_CLI_VERSION });
     assert.equal(cliManifest.bin.moldea, './dist/moldea.js');
     assert.equal(versionResult.status, 0, versionResult.stderr);
-    assert.equal(versionResult.stdout.trim(), '3.1.3');
+    assert.equal(versionResult.stdout.trim(), RELEASE_CLI_VERSION);
     assert.equal(compatibilityResult.status, 0, compatibilityResult.stderr);
-    assert.deepEqual(compatibilityEnvelope.result.packages, [
-      { name: '@moldea.ai/adapter-anthropic', version: '2.0.1' },
-      { name: '@moldea.ai/adapter-google-genai', version: '1.0.3' },
-      { name: '@moldea.ai/adapter-openai', version: '2.0.3' },
-      { name: '@moldea.ai/core', version: '2.0.0' },
-      { name: '@moldea.ai/repository', version: '1.0.1' },
-      { name: '@moldea.ai/repository-fs', version: '1.0.2' },
-    ]);
+    assert.deepEqual(
+      compatibilityEnvelope.result.packages,
+      Object.entries(cliManifest.dependencies)
+        .filter(([name]) => name.startsWith('@moldea.ai/'))
+        .map(([name, version]) => ({ name, version }))
+        .sort(({ name: left }, { name: right }) => left.localeCompare(right)),
+    );
     const openAiAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'openai');
     assert.equal(openAiAdapter.active, true);
-    assert.equal(openAiAdapter.bundledVersion, '2.0.3');
+    assert.equal(
+      openAiAdapter.bundledVersion,
+      cliManifest.dependencies['@moldea.ai/adapter-openai'],
+    );
     const googleGenAiAdapter = compatibilityEnvelope.result.adapters.find(
       ({ id }) => id === 'google-genai',
     );
     assert.equal(googleGenAiAdapter.active, true);
-    assert.equal(googleGenAiAdapter.bundledVersion, '1.0.3');
+    assert.equal(
+      googleGenAiAdapter.bundledVersion,
+      cliManifest.dependencies['@moldea.ai/adapter-google-genai'],
+    );
     assert.equal(googleGenAiAdapter.matrix.implementation.versionRange, '^1.0.3');
     assert.equal(googleGenAiAdapter.matrix.lastVerifiedAt, '2026-08-19');
     assert.equal(googleGenAiAdapter.matrix.targets[0].packages[0].versionRange, '>=2.17.1 <3.0.0');

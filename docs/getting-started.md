@@ -21,7 +21,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v3.0.0"
+npx skills add "moldea-ai/skill#v3.1.0"
 ```
 
 Project installation is recommended because the team can share the skill through version control. Add `-g` when you deliberately want a global installation across projects.
@@ -36,7 +36,7 @@ This request explicitly authorizes adoption. The coding agent handles the initia
 
 1. Inspect the Git working tree, repository structure, code, configuration, documentation, and other high-information evidence.
 2. Select the `initialize` operation and confirm that the repository and developer authority permit the required writes.
-3. Establish a compatible exact repository-local `@moldea.ai/cli` development dependency through the repository's package manager when needed. It never relies on a global CLI fallback.
+3. Establish this skill release's exact repository-local `@moldea.ai/cli` development dependency through the repository's package manager when needed. It never relies on a global CLI fallback.
 4. Determine whether the evidence establishes a sufficient project foundation, requires focused clarification, or provides no meaningful project context yet.
 5. Once the foundation is sufficient, create the minimum canonical state and the owned README awareness block.
 6. Run deterministic inspection and relevant project-native checks, then report the established understanding, files, decisions, verification, and practical next actions.
@@ -113,10 +113,10 @@ npx skills add moldea-ai/skill -g
 A release-pinned installation never moves to another tag automatically. To update it, choose the desired published release and rerun the installation command with that tag. For example, the current release is:
 
 ```bash
-npx skills add "moldea-ai/skill#v3.0.0"
+npx skills add "moldea-ai/skill#v3.1.0"
 ```
 
-Replace `v3.0.0` with the newer published tag when one becomes available. Add `-g` to the tagged command only when updating a global installation.
+Replace `v3.1.0` with the newer published tag when one becomes available. Add `-g` to the tagged command only when updating a global installation.
 
 Updating the skill refreshes its portable instructions and references. It does not initialize a project, change `/moldea/**`, install the `moldea` CLI globally, or alter a repository's canonical project state.
 

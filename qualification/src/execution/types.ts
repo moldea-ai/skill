@@ -1,4 +1,5 @@
 import type {
+  IQualificationAttemptCheckpoint,
   IQualificationAttemptResult,
   IQualificationCaseResult,
   IQualificationExecutionEnvironment,
@@ -34,6 +35,20 @@ export type IQualificationRunOutcome = {
   attemptDirectory: string;
   result: IQualificationAttemptResult;
   wasRecorded: boolean;
+};
+
+// local checkpoints that the current runner preserves but cannot safely operate on
+export type IUnavailableLocalAttempt = {
+  attemptId: string;
+  kind: 'invalid-checkpoint' | 'unreadable-checkpoint' | 'unsupported-protocol';
+  message: string;
+  protocolVersion: number | null;
+};
+
+// non-mutating discovery result used by status and interactive recovery
+export type ILocalAttemptCheckpointInspection = {
+  attempts: IQualificationAttemptCheckpoint[];
+  unavailableAttempts: IUnavailableLocalAttempt[];
 };
 
 // immutable tool and repository identity assembled before candidate execution

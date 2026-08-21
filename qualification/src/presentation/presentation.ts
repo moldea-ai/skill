@@ -4,6 +4,7 @@ import type {
   IQualificationLatestResult,
 } from '../contracts/index.ts';
 import type { IQualificationImplementation } from '../compatibility/index.ts';
+import type { IUnavailableLocalAttempt } from '../execution/index.ts';
 import type { IQualificationResultVerification } from '../result/index.ts';
 
 /** Writes one stable JSON document or concise human report to stdout. */
@@ -32,6 +33,7 @@ export const formatImplementationList = (
 /** Formats local checkpoints and committed latest pointers for status inspection. */
 export const formatQualificationStatus = (options: {
   attempts: readonly IQualificationAttemptCheckpoint[];
+  unavailableAttempts: readonly IUnavailableLocalAttempt[];
   latestResults: readonly IQualificationLatestResult[];
 }): string => {
   const lines = ['Local attempts:'];
@@ -44,6 +46,19 @@ export const formatQualificationStatus = (options: {
         (attempt) =>
           `  ${attempt.attemptId}  ${attempt.selection.adapterId}/${attempt.selection.implementationId}  ${attempt.status}`,
       ),
+    );
+  }
+
+  lines.push('Unavailable local attempts:');
+
+  if (options.unavailableAttempts.length === 0) {
+    lines.push('  none');
+  } else {
+    lines.push(
+      ...options.unavailableAttempts.map((attempt) => {
+        const protocol = attempt.protocolVersion === null ? 'unknown' : attempt.protocolVersion;
+        return `  ${attempt.attemptId}  protocol ${protocol}  ${attempt.kind}`;
+      }),
     );
   }
 

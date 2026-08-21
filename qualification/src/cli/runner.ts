@@ -3,8 +3,8 @@ import type { IQualificationCommand } from '../command-line/index.ts';
 import { listQualificationImplementations } from '../compatibility/index.ts';
 import {
   getLocalAttemptDirectory,
+  inspectLocalAttemptCheckpoints,
   type IQualificationPaidExecutionRequest,
-  listLocalAttemptCheckpoints,
   recordIncompleteAttempt,
   runQualification,
 } from '../execution/index.ts';
@@ -82,8 +82,8 @@ export const executeQualificationCommand = async (
       return 0;
     }
     case 'status': {
-      const [allAttempts, latestResults] = await Promise.all([
-        listLocalAttemptCheckpoints(),
+      const [{ attempts: allAttempts, unavailableAttempts }, latestResults] = await Promise.all([
+        inspectLocalAttemptCheckpoints(),
         listLatestQualificationResults(),
       ]);
       const attempts = command.isAll
@@ -91,7 +91,7 @@ export const executeQualificationCommand = async (
         : allAttempts.filter(
             ({ recordedAt, status }) => status === 'incomplete' && recordedAt === null,
           );
-      const status = { attempts, latestResults };
+      const status = { attempts, unavailableAttempts, latestResults };
       presentQualificationOutput(status, command.isJson, formatQualificationStatus(status));
       return 0;
     }

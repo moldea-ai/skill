@@ -15,6 +15,7 @@ const REPRESENTATIVE_PATHS = [
   '/docs/capabilities/',
   '/docs/coding-agent-compatibility/',
   '/docs/how-it-works/',
+  '/docs/repository-format/',
   '/docs/safety-and-privacy/',
   '/examples/',
   '/examples/create-a-support-agent/',

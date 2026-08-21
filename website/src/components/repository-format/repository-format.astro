@@ -1,0 +1,327 @@
+---
+import { ArrowRight, FileText, FolderTree, MapPin, Network } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import { REPOSITORY_FORMAT_EXAMPLE } from './constants.ts';
+
+const organizationLayers = [
+  {
+    description:
+      'The root-level canonical directory keeps durable project truth beside the implementation it describes.',
+    detail: 'support-platform/moldea/',
+    icon: MapPin,
+    label: 'Project placement',
+    number: '01',
+    title: 'Project truth has one visible home.',
+  },
+  {
+    description:
+      'The registered agent owns a concise description and complete instructions that keep its purpose and operating boundaries easy to review.',
+    detail: '1 agent, 2 behavior files',
+    icon: FileText,
+    label: 'Agent ownership',
+    number: '02',
+    title: 'Behavior stays focused and reviewable.',
+  },
+  {
+    description:
+      'The manifest connects canonical context and agent behavior to the source paths that may affect them.',
+    detail: 'moldea.yaml → support-agent.ts',
+    icon: Network,
+    label: 'Explicit relationships',
+    number: '03',
+    title: 'Connections remain inspectable.',
+  },
+] as const;
+const basePath = import.meta.env.BASE_URL;
+const getTreeConnector = (index: number, length: number): string =>
+  index === length - 1 ? '└──' : '├──';
+---
+
+<section
+  class="border-y border-border bg-sidebar py-section-gap"
+  aria-labelledby="repository-format-title"
+  data-repository-format
+>
+  <div class="page-shell">
+    <div class="mb-12 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+      <div>
+        <p class="eyebrow mb-4">Repository format</p>
+        <h2
+          id="repository-format-title"
+          class="section-title max-w-4xl font-semibold"
+        >
+          Start with two files. Add structure only when it earns a home.
+        </h2>
+        <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+          Repository format lives in a root-level <code
+            class="rounded bg-code px-1.5 py-1 font-mono text-sm text-code-foreground">moldea/</code
+          > directory beside <code
+            class="rounded bg-code px-1.5 py-1 font-mono text-sm text-code-foreground">src/</code
+          > and the rest of your project. It starts with <code
+            class="rounded bg-code px-1.5 py-1 font-mono text-sm text-code-foreground"
+            >moldea.yaml</code
+          > and <code class="rounded bg-code px-1.5 py-1 font-mono text-sm text-code-foreground"
+            >project.md</code
+          >, then adds focused context and agent behavior only when the repository needs them.
+        </p>
+      </div>
+      <ActionLink
+        class="font-bold shadow-surface"
+        href={withBase('/docs/repository-format/', basePath)}
+        size="lg"
+        variant="outline"
+      >
+        Explore the Repository format
+        <ArrowRight
+          class="size-4"
+          aria-hidden="true"
+        />
+      </ActionLink>
+    </div>
+
+    <div class="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+      <div
+        class="h-full min-w-0 overflow-hidden rounded-2xl border border-primary bg-primary text-primary-foreground shadow-raised"
+        data-repository-format-filesystem
+      >
+        <div
+          class="flex flex-wrap items-center justify-between gap-3 border-b border-current/15 px-4 py-4 sm:px-7"
+        >
+          <div class="flex min-w-0 items-center gap-3">
+            <span
+              class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-current/10"
+            >
+              <FolderTree
+                class="size-4"
+                aria-hidden="true"
+              />
+            </span>
+            <p class="min-w-0 font-mono text-sm font-bold">Repository filesystem</p>
+          </div>
+          <span
+            class="rounded-full border border-current/20 px-2.5 py-1 font-mono text-xs font-bold text-current/70"
+          >
+            format v1
+          </span>
+        </div>
+
+        <div class="p-4 sm:p-7">
+          <ul
+            class="font-mono text-xs sm:text-sm"
+            aria-label="Example project filesystem"
+          >
+            <li>
+              <div class="flex min-w-0 items-center border-b border-current/10 px-2 pb-3 font-bold">
+                <code class="min-w-0 break-all">{REPOSITORY_FORMAT_EXAMPLE.projectDirectory}</code>
+                <span class="ml-auto shrink-0 text-[0.625rem] font-bold text-current/70">
+                  project root
+                </span>
+              </div>
+
+              <ul class="mt-2 ml-1 grid gap-1 border-l border-current/20 pl-2 sm:ml-3 sm:pl-3">
+                <li
+                  class="min-w-0 px-2 py-2"
+                  data-project-root-branch="moldea"
+                >
+                  <div class="flex min-w-0 items-center gap-2 font-bold">
+                    <span
+                      class="text-current/40"
+                      aria-hidden="true"
+                      >├──</span
+                    >
+                    <code class="min-w-0 break-all">moldea/</code>
+                    <span class="ml-auto shrink-0 text-[0.625rem] text-current/70">
+                      canonical state
+                    </span>
+                  </div>
+
+                  <ul class="mt-1 ml-1 space-y-1 border-l border-current/15 pl-2 sm:ml-3 sm:pl-3">
+                    <li class="flex min-w-0 items-center gap-2 px-3 py-1.5 text-current/75">
+                      <span
+                        class="text-current/40"
+                        aria-hidden="true"
+                        >├──</span
+                      >
+                      <code class="min-w-0 break-all">moldea.yaml</code>
+                    </li>
+                    <li class="flex min-w-0 items-center gap-2 px-3 py-1.5 text-current/75">
+                      <span
+                        class="text-current/40"
+                        aria-hidden="true"
+                        >├──</span
+                      >
+                      <code class="min-w-0 break-all">project.md</code>
+                    </li>
+                    <li>
+                      <div
+                        class="flex min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-current/80"
+                      >
+                        <span
+                          class="text-current/40"
+                          aria-hidden="true"
+                          >├──</span
+                        >
+                        <code class="min-w-0 break-all">context/</code>
+                      </div>
+                      <ul
+                        class="ml-2 border-l border-current/15 pl-2 text-current/75 sm:ml-5 sm:pl-3"
+                      >
+                        {
+                          REPOSITORY_FORMAT_EXAMPLE.contextFiles.map((file, index) => (
+                            <li class="flex min-w-0 items-center gap-2 py-1.5">
+                              <span aria-hidden="true">
+                                {getTreeConnector(
+                                  index,
+                                  REPOSITORY_FORMAT_EXAMPLE.contextFiles.length,
+                                )}
+                              </span>
+                              <code class="min-w-0 break-all">{file}</code>
+                            </li>
+                          ))
+                        }
+                      </ul>
+                    </li>
+                    <li>
+                      <div
+                        class="flex min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-current/80"
+                      >
+                        <span
+                          class="text-current/40"
+                          aria-hidden="true"
+                          >└──</span
+                        >
+                        <code class="min-w-0 break-all">agents/</code>
+                      </div>
+                      <ul
+                        class="ml-2 border-l border-current/15 pl-2 text-current/75 sm:ml-5 sm:pl-3"
+                      >
+                        {
+                          REPOSITORY_FORMAT_EXAMPLE.agents.map((agent) => (
+                            <li class="py-1.5">
+                              <div class="flex min-w-0 items-center gap-2">
+                                <span aria-hidden="true">├──</span>
+                                <code class="min-w-0 font-bold break-all">{agent.id}/</code>
+                              </div>
+                              <ul class="ml-2 border-l border-current/15 pl-2 text-current/70 sm:ml-5 sm:pl-3">
+                                {agent.behaviorFiles.map((file, fileIndex) => (
+                                  <li class="flex min-w-0 items-center gap-2 py-1.5">
+                                    <span aria-hidden="true">
+                                      {getTreeConnector(fileIndex, agent.behaviorFiles.length)}
+                                    </span>
+                                    <code class="min-w-0 break-all">{file}</code>
+                                  </li>
+                                ))}
+                              </ul>
+                            </li>
+                          ))
+                        }
+                        <li class="flex min-w-0 items-center gap-2 py-1.5">
+                          <span aria-hidden="true">└──</span>
+                          <code aria-label="Additional agent directories">...</code>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+
+                <li
+                  class="min-w-0 px-2 py-2"
+                  data-project-root-branch="src"
+                >
+                  <div class="flex min-w-0 items-center gap-2 font-bold">
+                    <span
+                      class="text-current/40"
+                      aria-hidden="true"
+                      >└──</span
+                    >
+                    <code class="min-w-0 break-all">src/</code>
+                    <span class="ml-auto shrink-0 text-[0.625rem] text-current/70">
+                      implementation
+                    </span>
+                  </div>
+
+                  <ul
+                    class="mt-1 ml-1 space-y-1 border-l border-current/15 pl-2 text-current/75 sm:ml-3 sm:pl-3"
+                  >
+                    <li>
+                      <div
+                        class="flex min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-current/80"
+                      >
+                        <span
+                          class="text-current/40"
+                          aria-hidden="true"
+                          >├──</span
+                        >
+                        <code class="min-w-0 break-all">agents/</code>
+                      </div>
+                      <ul class="ml-2 border-l border-current/15 pl-2 sm:ml-5 sm:pl-3">
+                        {
+                          REPOSITORY_FORMAT_EXAMPLE.agents.flatMap((agent) =>
+                            agent.implementationFiles.map((file) => (
+                              <li class="flex min-w-0 items-center gap-2 py-1.5">
+                                <span aria-hidden="true">├──</span>
+                                <code class="min-w-0 font-bold break-all">{file}</code>
+                              </li>
+                            )),
+                          )
+                        }
+                        <li class="flex min-w-0 items-center gap-2 py-1.5">
+                          <span aria-hidden="true">└──</span>
+                          <code aria-label="Additional agent implementations">...</code>
+                        </li>
+                      </ul>
+                    </li>
+                    <li
+                      class="flex min-w-0 items-center gap-2 rounded-lg px-3 py-2 text-current/75"
+                    >
+                      <span
+                        class="text-current/40"
+                        aria-hidden="true"
+                        >└──</span
+                      >
+                      <code aria-label="Additional source files and directories">...</code>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <ol
+        class="grid h-full auto-rows-fr gap-3"
+        aria-label="How the Repository format scales"
+        data-repository-format-layers
+      >
+        {
+          organizationLayers.map(
+            ({ description, detail, icon: LayerIcon, label, number, title }) => (
+              <li class="surface-card h-full min-w-0 p-5 sm:p-6">
+                <div class="flex items-center gap-3">
+                  <span class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted">
+                    <LayerIcon
+                      class="size-5"
+                      aria-hidden="true"
+                    />
+                  </span>
+                  <p class="eyebrow min-w-0">{label}</p>
+                  <span class="ml-auto shrink-0 font-mono text-xs font-bold text-muted-foreground">
+                    {number}
+                  </span>
+                </div>
+                <h3 class="mt-4 text-xl font-semibold tracking-tight">{title}</h3>
+                <p class="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+                <code class="mt-4 block rounded-lg border border-border bg-muted/60 px-3 py-2 font-mono text-xs font-bold break-words text-foreground">
+                  {detail}
+                </code>
+              </li>
+            ),
+          )
+        }
+      </ol>
+    </div>
+  </div>
+</section>

@@ -10,6 +10,8 @@ order: 40
 
 A project owns its canonical `moldea` state under `/moldea/**`. The state is reviewed, versioned, and changed with the implementation rather than hidden in a hosted memory store.
 
+Start with the [Repository format guide](/docs/repository-format/) for the complete structure and progressive examples. This page describes the responsibilities of each canonical state surface in more detail.
+
 ## Minimum foundation
 
 Initialization creates only:

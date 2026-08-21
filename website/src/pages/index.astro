@@ -21,6 +21,7 @@ import Conversation from '../components/conversation/conversation.astro';
 import type { IConversationTurn } from '../components/conversation/types.ts';
 import GettingStartedSimulation from '../components/getting-started-simulation/getting-started-simulation.astro';
 import PackageFoundations from '../components/package-foundations/package-foundations.astro';
+import RepositoryFormat from '../components/repository-format/repository-format.astro';
 import BaseLayout from '../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../lib/generation/generation.ts';
 import { SKILLS_DIRECTORY_URL } from '../lib/model/constants.ts';
@@ -282,6 +283,8 @@ const exampleDocuments = model.documents
       </div>
     </div>
   </section>
+
+  <RepositoryFormat />
 
   <PackageFoundations />
 

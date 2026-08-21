@@ -1,6 +1,14 @@
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { z } from 'zod';
+
+import {
+  identifyCodexEvaluationHost,
+  prepareCodexEvaluationHome,
+  runCodexEvaluationHost,
+  type ICodexEvaluationWorkspaceAccess,
+} from '../../../tooling/codex-evaluation-host/index.mjs';
 
 import {
   ModelUsageSchema,
@@ -8,7 +16,6 @@ import {
   type IJudgeOutput,
   type IModelUsage,
 } from '../contracts/index.ts';
-import { executeProcess } from '../process/index.ts';
 import { writeJsonFileAtomically } from '../filesystem/index.ts';
 import type {
   IActorExecutionInput,
@@ -17,7 +24,10 @@ import type {
   ICodexRoleExecutionResult,
   IJudgeExecutionInput,
 } from './types.ts';
-import { createCodexExecArgs } from './utilities.ts';
+import { createCodexExecCommand } from './utilities.ts';
+
+const SANDBOX_OUTPUT_PATH = '/home/evaluator/output.json';
+const SANDBOX_SCHEMA_PATH = '/home/evaluator/output.schema.json';
 
 const extractUsageCandidate = (candidate: unknown): IModelUsage | null => {
   if (typeof candidate !== 'object' || candidate === null) {
@@ -70,20 +80,24 @@ const extractLatestUsage = (events: string): IModelUsage | null => {
 
 /** Production Codex CLI host fixed to the Terra floor and structured-output protocol. */
 export class CodexCliHost implements ICodexHost {
+  /** Returns the exact local Codex CLI version used for checkpoint identity. */
   public async getVersion(): Promise<string> {
-    const result = await executeProcess({
-      command: 'codex',
-      args: ['--version'],
-      cwd: process.cwd(),
-    });
-
-    return result.stdout.trim();
+    return Promise.resolve(
+      identifyCodexEvaluationHost(
+        createCodexExecCommand({
+          outputPath: SANDBOX_OUTPUT_PATH,
+          schemaPath: SANDBOX_SCHEMA_PATH,
+        }),
+      ).version,
+    );
   }
 
+  /** Executes one actor in its writable isolated project workspace. */
   public runActor(input: IActorExecutionInput): Promise<ICodexRoleExecutionResult<IActorOutput>> {
-    return this.__runRole('actor', input, 'workspace-write');
+    return this.__runRole('actor', input, 'read-write');
   }
 
+  /** Executes one judge in an independent read-only project workspace. */
   public runJudge(input: IJudgeExecutionInput): Promise<ICodexRoleExecutionResult<IJudgeOutput>> {
     return this.__runRole('judge', input, 'read-only');
   }
@@ -91,31 +105,46 @@ export class CodexCliHost implements ICodexHost {
   private async __runRole<TResult>(
     role: 'actor' | 'judge',
     input: ICodexRoleExecutionInput<TResult>,
-    sandbox: 'read-only' | 'workspace-write',
+    workspaceAccess: ICodexEvaluationWorkspaceAccess,
   ): Promise<ICodexRoleExecutionResult<TResult>> {
-    const outputPath = path.join(input.artifactDirectory, `${role}-output.json`);
-    const schemaPath = path.join(input.artifactDirectory, `${role}-output.schema.json`);
-    await writeJsonFileAtomically(schemaPath, z.toJSONSchema(input.schema));
-    const execution = await executeProcess({
-      command: 'codex',
-      args: createCodexExecArgs({
-        outputPath,
-        sandbox,
-        schemaPath,
-        workspaceDirectory: input.workspaceDirectory,
-      }),
-      cwd: input.workspaceDirectory,
-      environment: input.environment,
-      input: input.prompt,
-      signal: input.signal,
-    });
-    const output = input.schema.parse(JSON.parse(await readFile(outputPath, 'utf8')) as unknown);
+    const executionPrefix = path.join(os.tmpdir(), `moldea-qualification-${role}-`);
+    const executionRoot = await mkdtemp(executionPrefix);
 
-    return {
-      output,
-      usage: extractLatestUsage(execution.stdout),
-      durationMs: execution.durationMs,
-      events: execution.stdout,
-    };
+    if (!executionRoot.startsWith(executionPrefix)) {
+      throw new Error('Qualification host created a path outside its temporary prefix.');
+    }
+
+    const sandboxHome = path.join(executionRoot, 'home');
+    const outputPath = path.join(sandboxHome, 'output.json');
+    const schemaPath = path.join(sandboxHome, 'output.schema.json');
+
+    try {
+      await prepareCodexEvaluationHome(sandboxHome);
+      await writeJsonFileAtomically(schemaPath, z.toJSONSchema(input.schema));
+      const command = createCodexExecCommand({
+        outputPath: SANDBOX_OUTPUT_PATH,
+        schemaPath: SANDBOX_SCHEMA_PATH,
+      });
+      const startedAt = performance.now();
+      const events = await runCodexEvaluationHost({
+        command,
+        cwd: input.workspaceDirectory,
+        includeWorkspaceBinaryDirectory: role === 'actor',
+        prompt: input.prompt,
+        sandboxHome,
+        ...(input.signal === undefined ? {} : { signal: input.signal }),
+        workspaceAccess,
+      });
+      const output = input.schema.parse(JSON.parse(await readFile(outputPath, 'utf8')) as unknown);
+
+      return {
+        output,
+        usage: extractLatestUsage(events),
+        durationMs: Math.max(0, Math.round(performance.now() - startedAt)),
+        events,
+      };
+    } finally {
+      await rm(executionRoot, { force: true, recursive: true });
+    }
   }
 }

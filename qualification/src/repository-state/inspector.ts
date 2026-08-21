@@ -25,6 +25,15 @@ const isExcludedPath = (
   );
 };
 
+const isIncludedPath = (
+  relativePath: string,
+  includedRelativePathPrefixes: readonly string[],
+): boolean =>
+  includedRelativePathPrefixes.length === 0 ||
+  includedRelativePathPrefixes.some(
+    (prefix) => relativePath === prefix || relativePath.startsWith(`${prefix}/`),
+  );
+
 /** Extracts current and source paths from NUL-delimited porcelain status records. */
 const extractStatusPaths = (statusOutput: string): string[] => {
   const records = statusOutput.split('\0');
@@ -124,16 +133,20 @@ export const inspectGitRepositoryState = async (
     }),
   ]);
   const excludedRelativePathPrefixes = options.excludedRelativePathPrefixes ?? [];
+  const includedRelativePathPrefixes = options.includedRelativePathPrefixes ?? [];
   const relativePaths = filesResult.stdout
     .split('\0')
     .filter((relativePath) => relativePath !== '')
+    .filter((relativePath) => isIncludedPath(relativePath, includedRelativePathPrefixes))
     .filter((relativePath) => !isExcludedPath(relativePath, excludedRelativePathPrefixes))
     .sort((left, right) => left.localeCompare(right, 'en'));
   const entries = await Promise.all(
     relativePaths.map((relativePath) => collectGitFileEntry(repositoryRoot, relativePath)),
   );
   const isDirty = extractStatusPaths(statusResult.stdout).some(
-    (relativePath) => !isExcludedPath(relativePath, excludedRelativePathPrefixes),
+    (relativePath) =>
+      isIncludedPath(relativePath, includedRelativePathPrefixes) &&
+      !isExcludedPath(relativePath, excludedRelativePathPrefixes),
   );
 
   return {

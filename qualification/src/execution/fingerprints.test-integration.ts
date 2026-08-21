@@ -34,17 +34,64 @@ describe('qualification input fingerprint', () => {
       writeFile(dependencyPath, 'export const dependency = 1;\n', 'utf8'),
       writeFile(resultPath, '{"status":"passed"}\n', 'utf8'),
     ]);
-    const initialDigest = await calculateQualificationDigest(temporaryRoot);
+    const digestRoots = [
+      {
+        pathPrefix: 'qualification',
+        rootDirectory: temporaryRoot,
+        excludedDirectoryNames: new Set(['node_modules']),
+        excludedRelativePathPrefixes: ['results'],
+      },
+    ];
+    const initialDigest = await calculateQualificationDigest(digestRoots);
 
     await Promise.all([
       writeFile(dependencyPath, 'export const dependency = 2;\n', 'utf8'),
       writeFile(resultPath, '{"status":"failed"}\n', 'utf8'),
     ]);
 
-    expect(await calculateQualificationDigest(temporaryRoot)).toBe(initialDigest);
+    expect(await calculateQualificationDigest(digestRoots)).toBe(initialDigest);
 
     await writeFile(sourcePath, 'export const version = 2;\n', 'utf8');
-    expect(await calculateQualificationDigest(temporaryRoot)).not.toBe(initialDigest);
+    expect(await calculateQualificationDigest(digestRoots)).not.toBe(initialDigest);
+  });
+
+  test('binds the shared evaluation host and package candidate source into the engine digest', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-engine-'));
+    const qualificationPath = path.join(temporaryRoot, 'qualification', 'src', 'executor.ts');
+    const hostPath = path.join(temporaryRoot, 'tooling', 'codex-evaluation-host', 'host.mjs');
+    const candidatePath = path.join(temporaryRoot, 'tooling', 'package-candidate', 'index.mjs');
+    await Promise.all([
+      ensureDirectory(path.dirname(qualificationPath)),
+      ensureDirectory(path.dirname(hostPath)),
+      ensureDirectory(path.dirname(candidatePath)),
+    ]);
+    await Promise.all([
+      writeFile(qualificationPath, 'export const executor = 1;\n', 'utf8'),
+      writeFile(hostPath, 'export const host = 1;\n', 'utf8'),
+      writeFile(candidatePath, 'export const candidate = 1;\n', 'utf8'),
+    ]);
+    const digestRoots = [
+      {
+        pathPrefix: 'qualification',
+        rootDirectory: path.join(temporaryRoot, 'qualification'),
+      },
+      {
+        pathPrefix: 'tooling/codex-evaluation-host',
+        rootDirectory: path.join(temporaryRoot, 'tooling', 'codex-evaluation-host'),
+      },
+      {
+        pathPrefix: 'tooling/package-candidate',
+        rootDirectory: path.join(temporaryRoot, 'tooling', 'package-candidate'),
+      },
+    ];
+    const initialDigest = await calculateQualificationDigest(digestRoots);
+
+    await writeFile(hostPath, 'export const host = 2;\n', 'utf8');
+    const changedHostDigest = await calculateQualificationDigest(digestRoots);
+    expect(changedHostDigest).not.toBe(initialDigest);
+
+    await writeFile(candidatePath, 'export const candidate = 2;\n', 'utf8');
+    expect(await calculateQualificationDigest(digestRoots)).not.toBe(changedHostDigest);
   });
 
   test('excludes maturity metadata while retaining compatibility behavior', async () => {

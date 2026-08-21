@@ -2,6 +2,7 @@
 export type {
   IQualificationExecutionProvenance,
   IQualificationExecutionState,
+  IQualificationPaidExecutionRequest,
   IQualificationRunOutcome,
   IRunQualificationOptions,
 } from './types.ts';

@@ -1,7 +1,11 @@
-import { access, readdir, rename, rm } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { access, lstat, readFile, readdir, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 
-import { QUALIFICATION_PROTOCOL_VERSION, QUALIFICATION_RESULTS_ROOT } from '../constants/index.ts';
+import {
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+  QUALIFICATION_RESULTS_ROOT,
+} from '../constants/index.ts';
 import {
   QualificationAttemptResultSchema,
   QualificationLatestResultSchema,
@@ -10,12 +14,13 @@ import {
 } from '../contracts/index.ts';
 import {
   calculateFileSha256,
-  copyDirectory,
   ensureDirectory,
   listDirectoryFiles,
   readJsonFile,
   writeJsonFileAtomically,
+  writeTextFileAtomically,
 } from '../filesystem/index.ts';
+import { sanitizeEvidenceText, sanitizeEvidenceValue } from './sanitizer.ts';
 import type {
   IQualificationResultVerification,
   IQualificationResultVerificationIssue,
@@ -51,6 +56,53 @@ const calculateArtifactDigests = async (
   );
 
   return Object.fromEntries(digestEntries);
+};
+
+/** Sanitizes every structured event in a JSON Lines artifact while preserving line boundaries. */
+const sanitizeJsonLines = (
+  source: string,
+  context: IRecordQualificationResultOptions['sanitizationContext'],
+): string =>
+  source
+    .split('\n')
+    .map((eventLine) =>
+      eventLine.trim() === ''
+        ? ''
+        : JSON.stringify(sanitizeEvidenceValue(JSON.parse(eventLine) as unknown, context)),
+    )
+    .join('\n');
+
+/** Copies public evidence through a final path, credential, JSON, and symlink sanitization boundary. */
+const sanitizeArtifactDirectory = async (
+  sourceDirectory: string,
+  destinationDirectory: string,
+  context: IRecordQualificationResultOptions['sanitizationContext'],
+): Promise<void> => {
+  const artifactPaths = await listDirectoryFiles(sourceDirectory);
+  await ensureDirectory(destinationDirectory);
+
+  for (const artifactPath of artifactPaths) {
+    const sourcePath = path.join(sourceDirectory, artifactPath);
+    const stats = await lstat(sourcePath);
+
+    if (!stats.isFile()) {
+      throw new Error(`Public qualification evidence must be a regular file: ${artifactPath}`);
+    }
+
+    const destinationPath = path.join(destinationDirectory, artifactPath);
+    const source = await readFile(sourcePath, 'utf8');
+
+    if (artifactPath.endsWith('.json')) {
+      await writeJsonFileAtomically(
+        destinationPath,
+        sanitizeEvidenceValue(JSON.parse(source) as unknown, context),
+      );
+    } else if (artifactPath.endsWith('.jsonl')) {
+      await writeTextFileAtomically(destinationPath, sanitizeJsonLines(source, context));
+    } else {
+      await writeTextFileAtomically(destinationPath, sanitizeEvidenceText(source, context));
+    }
+  }
 };
 
 const readRecordedAttempts = async (
@@ -109,7 +161,7 @@ const updateLatestResult = async (
 
   const lastPassingAttempt = attempts.filter(({ status }) => status === 'passed').at(-1);
   const latestResult = QualificationLatestResultSchema.parse({
-    protocolVersion: QUALIFICATION_PROTOCOL_VERSION,
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     adapterId,
     implementationId,
     latestAttemptId: latestAttempt.attemptId,
@@ -141,54 +193,63 @@ export const recordQualificationResult = async (
     throw new Error('Passing qualification evidence requires clean repository inputs.');
   }
 
-  const artifactDigests = await calculateArtifactDigests(options.artifactDirectory);
-  const result = QualificationAttemptResultSchema.parse({
-    ...options.result,
-    artifactDigests,
-  });
+  const sanitizedDraft = sanitizeEvidenceValue(options.result, options.sanitizationContext);
   const targetRoot = getTargetRoot(
     resultsRoot,
-    result.selection.adapterId,
-    result.selection.implementationId,
+    sanitizedDraft.selection.adapterId,
+    sanitizedDraft.selection.implementationId,
   );
   const attemptsRoot = path.join(targetRoot, 'attempts');
-  const attemptDirectory = path.join(attemptsRoot, result.attemptId);
+  const attemptDirectory = path.join(attemptsRoot, sanitizedDraft.attemptId);
+  const stagingDirectory = path.join(
+    attemptsRoot,
+    `.${sanitizedDraft.attemptId}.${process.pid}.${randomUUID()}.tmp`,
+  );
+  await ensureDirectory(attemptsRoot);
 
-  if (await pathExists(attemptDirectory)) {
-    const recordedResult = await readJsonFile(
-      path.join(attemptDirectory, 'attempt.json'),
-      QualificationAttemptResultSchema,
+  try {
+    await rm(stagingDirectory, { force: true, recursive: true });
+    await sanitizeArtifactDirectory(
+      options.artifactDirectory,
+      stagingDirectory,
+      options.sanitizationContext,
     );
+    const artifactDigests = await calculateArtifactDigests(stagingDirectory);
+    const result = QualificationAttemptResultSchema.parse({
+      ...sanitizedDraft,
+      artifactDigests,
+    });
 
-    if (JSON.stringify(recordedResult) !== JSON.stringify(result)) {
-      throw new Error(`Attempt ${result.attemptId} is already recorded with different evidence.`);
+    if (await pathExists(attemptDirectory)) {
+      const recordedResult = await readJsonFile(
+        path.join(attemptDirectory, 'attempt.json'),
+        QualificationAttemptResultSchema,
+      );
+
+      if (JSON.stringify(recordedResult) !== JSON.stringify(result)) {
+        throw new Error(`Attempt ${result.attemptId} is already recorded with different evidence.`);
+      }
+
+      await updateLatestResult(
+        resultsRoot,
+        result.selection.adapterId,
+        result.selection.implementationId,
+      );
+      return recordedResult;
     }
+
+    await writeJsonFileAtomically(path.join(stagingDirectory, 'attempt.json'), result);
+    await rename(stagingDirectory, attemptDirectory);
 
     await updateLatestResult(
       resultsRoot,
       result.selection.adapterId,
       result.selection.implementationId,
     );
-    return recordedResult;
-  }
-
-  await ensureDirectory(attemptsRoot);
-  const stagingDirectory = path.join(attemptsRoot, `.${result.attemptId}.${process.pid}.tmp`);
-
-  try {
-    await copyDirectory(options.artifactDirectory, stagingDirectory);
-    await writeJsonFileAtomically(path.join(stagingDirectory, 'attempt.json'), result);
-    await rename(stagingDirectory, attemptDirectory);
+    return result;
   } finally {
     await rm(stagingDirectory, { force: true, recursive: true });
   }
-
-  await updateLatestResult(
-    resultsRoot,
-    result.selection.adapterId,
-    result.selection.implementationId,
-  );
-  return result;
 };
 
 const verifyAttemptArtifacts = async (
@@ -251,11 +312,10 @@ export const verifyQualificationResults = async (
           );
         }
 
+        const latestPath = path.join(targetRoot, 'latest.json');
+
         if (recordedAttempts.length > 0) {
-          const latest = await readJsonFile(
-            path.join(targetRoot, 'latest.json'),
-            QualificationLatestResultSchema,
-          );
+          const latest = await readJsonFile(latestPath, QualificationLatestResultSchema);
           const expectedLatest = recordedAttempts.at(-1);
           const expectedPassing = recordedAttempts
             .filter(({ status }) => status === 'passed')
@@ -273,6 +333,11 @@ export const verifyQualificationResults = async (
               message: 'Latest pointer does not match recorded attempt history.',
             });
           }
+        } else if (await pathExists(latestPath)) {
+          issues.push({
+            path: path.relative(resultsRoot, latestPath),
+            message: 'Latest pointer exists without any recorded attempt history.',
+          });
         }
       } catch (error) {
         issues.push({

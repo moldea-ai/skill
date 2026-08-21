@@ -63,6 +63,24 @@ export const assertCandidateProjectRuntimeIntegrity = async (
   }
 };
 
+/** Verifies that actor execution preserved every runner-owned project input. */
+export const assertQualificationProjectInputIntegrity = async (
+  project: IPreparedQualificationProject,
+): Promise<void> => {
+  await assertCandidateProjectRuntimeIntegrity(project);
+  const internalDirectory = path.join(project.workspaceDirectory, '.moldea-qualification');
+
+  if ((await calculateDirectoryFingerprint(internalDirectory)) !== project.internalDigest) {
+    throw new Error('The mounted qualification task was modified after preparation.');
+  }
+
+  const skillDirectory = path.join(project.workspaceDirectory, MOUNTED_SKILL_RELATIVE_PATH);
+
+  if ((await calculateDirectoryFingerprint(skillDirectory)) !== project.skillDigest) {
+    throw new Error('The installed candidate skill was modified after preparation.');
+  }
+};
+
 /** Evaluates declared preservation, mutation, existence, and internal-integrity requirements. */
 export const inspectWorkspaceAssertions = async (
   project: IPreparedQualificationProject,

@@ -1,32 +1,26 @@
-import { QUALIFICATION_MODEL, QUALIFICATION_REASONING_EFFORT } from '../constants/index.ts';
+import { buildCodexEvaluationHostCommand } from '../../../tooling/codex-evaluation-host/index.mjs';
 
-/** Builds the fixed non-interactive Codex argument contract for one qualification role. */
-export const createCodexExecArgs = (options: {
+/** Builds the externally sandboxed, fixed-Terra command for one qualification role. */
+export const createCodexExecCommand = (options: {
   outputPath: string;
-  sandbox: 'read-only' | 'workspace-write';
   schemaPath: string;
-  workspaceDirectory: string;
-}): string[] => [
-  'exec',
-  '--model',
-  QUALIFICATION_MODEL,
-  '--sandbox',
-  options.sandbox,
-  '--ignore-user-config',
-  '--ignore-rules',
-  '--ephemeral',
-  '--json',
-  '--output-schema',
-  options.schemaPath,
-  '--output-last-message',
-  options.outputPath,
-  '--cd',
-  options.workspaceDirectory,
-  '-c',
-  'approval_policy="never"',
-  '-c',
-  `model_reasoning_effort="${QUALIFICATION_REASONING_EFFORT}"`,
-  '-c',
-  'web_search="disabled"',
-  '-',
-];
+}): string[] =>
+  buildCodexEvaluationHostCommand([
+    'codex',
+    'exec',
+    '--ignore-user-config',
+    '--ignore-rules',
+    '--ephemeral',
+    '--skip-git-repo-check',
+    '--dangerously-bypass-approvals-and-sandbox',
+    '--json',
+    '--output-schema',
+    options.schemaPath,
+    '--output-last-message',
+    options.outputPath,
+    '-c',
+    'shell_environment_policy.inherit=none',
+    '-c',
+    'web_search=disabled',
+    '-',
+  ]);

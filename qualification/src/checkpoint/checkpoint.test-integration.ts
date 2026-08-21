@@ -37,6 +37,18 @@ describe('qualification checkpoints', () => {
       skillDigest: 'b'.repeat(64),
       packagesRepositoryFingerprint: 'e'.repeat(64),
       packagesDigest: 'c'.repeat(64),
+      executionEnvironment: {
+        model: 'gpt-5.6-terra',
+        reasoningEffort: 'medium',
+        codexVersion: 'codex-cli test',
+        nodeVersion: process.version,
+        pnpmVersion: '11.9.0',
+        gitVersion: 'git version test',
+        allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
+        hostTimeoutMs: 120_000,
+        modelEndpoint: null,
+        sslCertificateFileSha256: null,
+      },
       stageIds: ['coverage', 'candidate'],
     });
     const runningCheckpoint = QualificationAttemptCheckpointSchema.parse({
@@ -62,6 +74,12 @@ describe('qualification checkpoints', () => {
       packagesRepository: '/packages',
       packagesRepositoryFingerprint: 'e'.repeat(64),
       qualificationDigest: 'd'.repeat(64),
+      recordedAt: null,
+      executionEnvironment: {
+        model: 'gpt-5.6-terra',
+        reasoningEffort: 'medium',
+        codexVersion: 'codex-cli test',
+      },
       stages: {
         coverage: {
           id: 'coverage',

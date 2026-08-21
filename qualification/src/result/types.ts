@@ -1,4 +1,5 @@
 import type { IQualificationAttemptResult } from '../contracts/index.ts';
+import type { ISanitizationContext } from './sanitizer.ts';
 
 // result verification issue with a public repository-relative evidence path
 export type IQualificationResultVerificationIssue = {
@@ -15,4 +16,5 @@ export type IQualificationResultVerification = {
 export type IRecordQualificationResultOptions = {
   artifactDirectory: string;
   result: IQualificationAttemptResult;
+  sanitizationContext: ISanitizationContext;
 };

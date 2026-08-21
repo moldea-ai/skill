@@ -1,10 +1,17 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
-import type { IJudgeOutput, IQualificationCaseScenario } from '../contracts/index.ts';
+import type {
+  ICandidateClosure,
+  IJudgeOutput,
+  IQualificationCaseScenario,
+  IQualificationExecutionEnvironment,
+} from '../contracts/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import {
   haveQualificationInputsChanged,
+  haveCandidateClosuresChanged,
+  haveQualificationExecutionInputsChanged,
   inspectQualificationSourceState,
   validateJudgeOutput,
 } from './validations.ts';
@@ -54,6 +61,19 @@ const createPassingOutput = (): IJudgeOutput => ({
   requirements: scenario.judgeRequirements.map(({ id }) => createRequirement(id)),
   failures: [],
 });
+
+const executionEnvironment: IQualificationExecutionEnvironment = {
+  model: 'gpt-5.6-terra',
+  reasoningEffort: 'medium',
+  codexVersion: 'codex-cli 1',
+  nodeVersion: 'v24.15.0',
+  pnpmVersion: '11.9.0',
+  gitVersion: 'git version 2.51.0',
+  allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
+  hostTimeoutMs: 120_000,
+  modelEndpoint: null,
+  sslCertificateFileSha256: null,
+};
 
 describe('judge output validation', () => {
   test('accepts an exact and internally consistent pass', () => {
@@ -129,12 +149,14 @@ describe('qualification source-state validation', () => {
 
     expect(
       inspectQualificationSourceState({
+        executionEnvironment,
         isDryRun: false,
         ...inputState,
       }),
     ).toStrictEqual({
       passed: true,
       requiresCleanInputs: true,
+      isExecutionHostTrusted: true,
       packagesRepositoryDirty: false,
       qualificationRepositoryDirty: false,
       skillRepositoryDirty: false,
@@ -155,6 +177,7 @@ describe('qualification source-state validation', () => {
   test('permits dirty inputs only for model-free dry runs', () => {
     expect(
       inspectQualificationSourceState({
+        executionEnvironment,
         isDryRun: true,
         packagesState: createRepositoryState(true),
         qualificationState: createRepositoryState(true),
@@ -163,6 +186,7 @@ describe('qualification source-state validation', () => {
     ).toStrictEqual({
       passed: true,
       requiresCleanInputs: false,
+      isExecutionHostTrusted: true,
       packagesRepositoryDirty: true,
       qualificationRepositoryDirty: true,
       skillRepositoryDirty: true,
@@ -178,6 +202,7 @@ describe('qualification source-state validation', () => {
     'rejects official inputs with packages dirty=%s and skill dirty=%s',
     (isPackagesDirty, isSkillDirty, expectedFailure) => {
       const result = inspectQualificationSourceState({
+        executionEnvironment,
         isDryRun: false,
         packagesState: createRepositoryState(isPackagesDirty),
         qualificationState: createRepositoryState(false),
@@ -192,6 +217,7 @@ describe('qualification source-state validation', () => {
 
   test('rejects an official run from a dirty qualification suite', () => {
     const result = inspectQualificationSourceState({
+      executionEnvironment,
       isDryRun: false,
       packagesState: createRepositoryState(false),
       qualificationState: createRepositoryState(true),
@@ -247,6 +273,96 @@ describe('qualification source-state validation', () => {
         },
         inputState,
       ),
+    ).toBe(true);
+  });
+
+  test.each([
+    [
+      'a custom model endpoint',
+      {
+        modelEndpoint: {
+          origin: 'https://model-gateway.example.com',
+          sha256: 'b'.repeat(64),
+        },
+      },
+      'default Codex model transport',
+    ],
+    [
+      'additional egress',
+      {
+        allowedEgressHosts: [...executionEnvironment.allowedEgressHosts, 'registry.example.com'],
+      },
+      'cannot expose additional network hosts',
+    ],
+    [
+      'a custom TLS certificate file',
+      { sslCertificateFileSha256: 'b'.repeat(64) },
+      'cannot use a custom TLS certificate file',
+    ],
+  ])(
+    'rejects official execution through %s',
+    (_description, environmentChange, expectedFailure) => {
+      const result = inspectQualificationSourceState({
+        executionEnvironment: { ...executionEnvironment, ...environmentChange },
+        isDryRun: false,
+        packagesState: createRepositoryState(false),
+        qualificationState: createRepositoryState(false),
+        skillState: createRepositoryState(false),
+      });
+
+      expect(result.passed).toBe(false);
+      expect(result.isExecutionHostTrusted).toBe(false);
+      expect(result.failures.join(' ')).toContain(expectedFailure);
+    },
+  );
+});
+
+describe('qualification resume identity validation', () => {
+  const candidate: ICandidateClosure = {
+    fingerprint: 'a'.repeat(64),
+    packages: [
+      {
+        name: '@moldea.ai/cli',
+        version: '1.0.0',
+        projectDirectory: 'projects/cli',
+        tarballPath: '/cache/cli.tgz',
+        tarballName: 'moldea-cli.tgz',
+        sha256: 'b'.repeat(64),
+      },
+    ],
+    runtimeDirectory: '/attempt/runtime',
+  };
+
+  test('rejects changed host tooling while accepting the exact checkpoint identity', () => {
+    expect(
+      haveQualificationExecutionInputsChanged(executionEnvironment, executionEnvironment),
+    ).toBe(false);
+    for (const environmentChange of [
+      { codexVersion: 'codex-cli 2' },
+      { hostTimeoutMs: 240_000 },
+      { modelEndpoint: { origin: 'https://api.openai.com', sha256: 'b'.repeat(64) } },
+      { allowedEgressHosts: [...executionEnvironment.allowedEgressHosts, 'example.com'] },
+      { sslCertificateFileSha256: 'b'.repeat(64) },
+    ]) {
+      expect(
+        haveQualificationExecutionInputsChanged(executionEnvironment, {
+          ...executionEnvironment,
+          ...environmentChange,
+        }),
+      ).toBe(true);
+    }
+  });
+
+  test('rejects changed candidate packages while accepting exact reconstruction', () => {
+    expect(haveCandidateClosuresChanged(candidate, candidate)).toBe(false);
+    expect(
+      haveCandidateClosuresChanged(candidate, {
+        ...candidate,
+        packages: candidate.packages.map((candidatePackage) => ({
+          ...candidatePackage,
+          sha256: 'c'.repeat(64),
+        })),
+      }),
     ).toBe(true);
   });
 });

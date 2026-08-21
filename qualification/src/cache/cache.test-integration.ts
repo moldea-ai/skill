@@ -31,6 +31,24 @@ describe('qualification model cache', () => {
     }
   });
 
+  test('binds cache keys to exact structured inputs independent of object key order', () => {
+    const firstKey = calculateModelCacheKey({
+      role: 'actor',
+      executionEnvironment: { codexVersion: 'codex-cli 1', nodeVersion: 'v24.15.0' },
+    });
+    const reorderedKey = calculateModelCacheKey({
+      executionEnvironment: { nodeVersion: 'v24.15.0', codexVersion: 'codex-cli 1' },
+      role: 'actor',
+    });
+    const changedKey = calculateModelCacheKey({
+      role: 'actor',
+      executionEnvironment: { codexVersion: 'codex-cli 2', nodeVersion: 'v24.15.0' },
+    });
+
+    expect(reorderedKey).toBe(firstKey);
+    expect(changedKey).not.toBe(firstKey);
+  });
+
   test('restores exact actor state and preserves immutable source provenance', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-cache-'));
     const cacheRoot = path.join(temporaryRoot, 'cache');
@@ -126,6 +144,49 @@ describe('qualification model cache', () => {
     ).toBe('current candidate runtime\n');
   });
 
+  test('rejects corrupted or partial actor entries before changing the live workspace', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-cache-'));
+    const cacheRoot = path.join(temporaryRoot, 'cache');
+    const workspaceDirectory = path.join(temporaryRoot, 'workspace');
+    const cacheKey = calculateModelCacheKey({ role: 'actor', input: 'corruption-check' });
+    await ensureDirectory(workspaceDirectory);
+    await writeFile(path.join(workspaceDirectory, 'project.txt'), 'cached project\n', 'utf8');
+    await writeActorCache({
+      cacheKey,
+      sourceAttemptId: 'source-attempt',
+      output: {
+        outcome: 'completed',
+        summary: 'Completed the cached task.',
+        commands: [],
+        changedFiles: ['project.txt'],
+        observations: [],
+        unresolved: [],
+      },
+      durationMs: 4,
+      events: '{"type":"completed"}\n',
+      usage: null,
+      workspaceDirectory,
+      cacheRoot,
+    });
+    await writeFile(path.join(workspaceDirectory, 'project.txt'), 'live project\n', 'utf8');
+    await writeFile(
+      path.join(cacheRoot, cacheKey, 'workspace', 'project.txt'),
+      'corrupted snapshot\n',
+      'utf8',
+    );
+
+    expect(await readActorCache(cacheKey, workspaceDirectory, cacheRoot)).toBeNull();
+    expect(await readFile(path.join(workspaceDirectory, 'project.txt'), 'utf8')).toBe(
+      'live project\n',
+    );
+
+    await rm(path.join(cacheRoot, cacheKey, 'metadata.json'));
+    expect(await readActorCache(cacheKey, workspaceDirectory, cacheRoot)).toBeNull();
+    expect(await readFile(path.join(workspaceDirectory, 'project.txt'), 'utf8')).toBe(
+      'live project\n',
+    );
+  });
+
   test('round-trips a judge decision and rejects corrupted structured output', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-cache-'));
     const cacheRoot = path.join(temporaryRoot, 'cache');
@@ -152,6 +213,9 @@ describe('qualification model cache', () => {
     });
 
     await writeFile(path.join(cacheRoot, cacheKey, 'output.json'), '{}\n', 'utf8');
+    expect(await readJudgeCache(cacheKey, cacheRoot)).toBeNull();
+
+    await rm(path.join(cacheRoot, cacheKey, 'metadata.json'));
     expect(await readJudgeCache(cacheKey, cacheRoot)).toBeNull();
   });
 });

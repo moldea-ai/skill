@@ -12,7 +12,7 @@ import { createQualificationAttemptResult } from './transformers.ts';
 describe('qualification result transformation', () => {
   test('permits a dirty passing dry-run draft without making it publishable', () => {
     const checkpoint = QualificationAttemptCheckpointSchema.parse({
-      protocolVersion: 1,
+      protocolVersion: 2,
       attemptId: 'dry-run-attempt',
       parentAttemptId: null,
       selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -50,6 +50,10 @@ describe('qualification result transformation', () => {
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',
       gitVersion: 'git version test',
+      allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
+      hostTimeoutMs: 120_000,
+      modelEndpoint: null,
+      sslCertificateFileSha256: null,
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'd'.repeat(64),
       packagesRepositoryDirty: true,

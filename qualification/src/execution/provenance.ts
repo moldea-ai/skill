@@ -1,36 +1,37 @@
+import { identifyCodexEvaluationHostConfiguration } from '../../../tooling/codex-evaluation-host/index.mjs';
+
 import { QUALIFICATION_MODEL, QUALIFICATION_REASONING_EFFORT } from '../constants/index.ts';
 import type { ICodexHost } from '../codex-host/index.ts';
+import type { IQualificationExecutionEnvironment } from '../contracts/index.ts';
 import { executeProcess } from '../process/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import type { IQualificationExecutionProvenance } from './types.ts';
 
-const readVersion = async (read: () => Promise<string>): Promise<string> => {
+const readVersion = async (toolName: string, read: () => Promise<string>): Promise<string> => {
   try {
     const version = (await read()).trim();
-    return version === '' ? 'unavailable' : version;
-  } catch {
-    return 'unavailable';
+    if (version === '' || version === 'unavailable') {
+      throw new Error(`${toolName} did not report a version.`);
+    }
+    return version;
+  } catch (error) {
+    throw new Error(`Unable to establish the exact ${toolName} version.`, { cause: error });
   }
 };
 
-/** Captures exact local tool versions and immutable repository fingerprints for public provenance. */
-export const createQualificationExecutionProvenance = async (options: {
-  host: ICodexHost;
-  packagesState: IGitRepositoryState;
-  profileDigest: string;
-  qualificationDigest: string;
-  qualificationState: IGitRepositoryState;
-  skillState: IGitRepositoryState;
-  targetSupportLevel: string;
-}): Promise<IQualificationExecutionProvenance> => {
+/** Captures the model host and local tool identity that must remain exact during resume. */
+export const inspectQualificationExecutionEnvironment = async (
+  host: ICodexHost,
+): Promise<IQualificationExecutionEnvironment> => {
+  const hostConfiguration = identifyCodexEvaluationHostConfiguration();
   const [codexVersion, pnpmVersion, gitVersion] = await Promise.all([
-    readVersion(() => options.host.getVersion()),
-    readVersion(() =>
+    readVersion('Codex', () => host.getVersion()),
+    readVersion('pnpm', () =>
       executeProcess({ command: 'pnpm', args: ['--version'], cwd: process.cwd() }).then(
         ({ stdout }) => stdout,
       ),
     ),
-    readVersion(() =>
+    readVersion('Git', () =>
       executeProcess({ command: 'git', args: ['--version'], cwd: process.cwd() }).then(
         ({ stdout }) => stdout,
       ),
@@ -44,6 +45,22 @@ export const createQualificationExecutionProvenance = async (options: {
     nodeVersion: process.version,
     pnpmVersion,
     gitVersion,
+    ...hostConfiguration,
+  };
+};
+
+/** Combines exact execution and repository identities for public provenance. */
+export const createQualificationExecutionProvenance = (options: {
+  executionEnvironment: IQualificationExecutionEnvironment;
+  packagesState: IGitRepositoryState;
+  profileDigest: string;
+  qualificationDigest: string;
+  qualificationState: IGitRepositoryState;
+  skillState: IGitRepositoryState;
+  targetSupportLevel: string;
+}): IQualificationExecutionProvenance => {
+  return {
+    ...options.executionEnvironment,
     packagesRepositoryCommit: options.packagesState.commit,
     packagesRepositoryFingerprint: options.packagesState.fingerprint,
     packagesRepositoryDirty: options.packagesState.isDirty,

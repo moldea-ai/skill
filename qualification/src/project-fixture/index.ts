@@ -21,6 +21,7 @@ export {
 // assertions and evidence
 export {
   assertCandidateProjectRuntimeIntegrity,
+  assertQualificationProjectInputIntegrity,
   inspectWorkspaceAssertions,
 } from './assertions.ts';
 export { captureWorkspacePatch } from './patch.ts';

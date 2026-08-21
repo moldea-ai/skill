@@ -1,10 +1,11 @@
 import path from 'node:path';
 
-import { QUALIFICATION_PROTOCOL_VERSION } from '../constants/index.ts';
+import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import {
   QualificationAttemptCheckpointSchema,
   QualificationStageCheckpointSchema,
   type IQualificationAttemptCheckpoint,
+  type IQualificationExecutionEnvironment,
   type IQualificationSelection,
   type IQualificationStageCheckpoint,
 } from '../contracts/index.ts';
@@ -42,11 +43,12 @@ export const createAttemptCheckpoint = async (options: {
   skillDigest: string;
   packagesRepositoryFingerprint: string;
   packagesDigest: string;
+  executionEnvironment: IQualificationExecutionEnvironment;
   stageIds: readonly string[];
 }): Promise<IQualificationAttemptCheckpoint> => {
   const timestamp = new Date().toISOString();
   const checkpoint = QualificationAttemptCheckpointSchema.parse({
-    protocolVersion: QUALIFICATION_PROTOCOL_VERSION,
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     attemptId: options.attemptId,
     parentAttemptId: options.parentAttemptId,
     selection: options.selection,
@@ -56,6 +58,7 @@ export const createAttemptCheckpoint = async (options: {
     createdAt: timestamp,
     updatedAt: timestamp,
     completedAt: null,
+    recordedAt: null,
     packagesRepository: options.packagesRepository,
     skillRepository: options.skillRepository,
     profileDigest: options.profileDigest,
@@ -63,6 +66,7 @@ export const createAttemptCheckpoint = async (options: {
     skillDigest: options.skillDigest,
     packagesRepositoryFingerprint: options.packagesRepositoryFingerprint,
     packagesDigest: options.packagesDigest,
+    executionEnvironment: options.executionEnvironment,
     candidate: null,
     stages: Object.fromEntries(
       options.stageIds.map((stageId) => [stageId, createPendingStage(stageId)]),

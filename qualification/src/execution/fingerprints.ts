@@ -2,15 +2,40 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
-import { QUALIFICATION_ROOT } from '../constants/index.ts';
 import {
-  calculateDirectoryFingerprint,
+  QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
+  QUALIFICATION_ROOT,
+  SKILL_REPOSITORY_ROOT,
+} from '../constants/index.ts';
+import {
+  collectDirectoryFingerprintEntries,
   calculateSha256,
   type IDirectoryFingerprintEntry,
 } from '../filesystem/index.ts';
 
 const COMPATIBILITY_MATRIX_PATH = 'compatibility/runtimes.yaml';
 const NON_BEHAVIORAL_COMPATIBILITY_FIELDS = new Set(['lastVerifiedAt', 'supportLevel']);
+
+// one namespaced source root included in the qualification engine identity
+export type IQualificationDigestRoot = {
+  pathPrefix: string;
+  rootDirectory: string;
+  excludedDirectoryNames?: ReadonlySet<string>;
+  excludedRelativePathPrefixes?: readonly string[];
+};
+
+const DEFAULT_QUALIFICATION_DIGEST_ROOTS: readonly IQualificationDigestRoot[] = [
+  {
+    pathPrefix: QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES[0],
+    rootDirectory: QUALIFICATION_ROOT,
+    excludedDirectoryNames: new Set(['node_modules']),
+    excludedRelativePathPrefixes: ['results'],
+  },
+  ...QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES.slice(1).map((pathPrefix) => ({
+    pathPrefix,
+    rootDirectory: path.join(SKILL_REPOSITORY_ROOT, pathPrefix),
+  })),
+];
 
 /** Removes maturity and verification metadata while retaining every behavioral matrix field. */
 const normalizeCompatibilityInput = (input: unknown): unknown => {
@@ -34,13 +59,33 @@ const normalizeCompatibilityInput = (input: unknown): unknown => {
  * Calculates the stable source-input fingerprint for the qualification suite.
  * @returns A promise resolving to the qualification input digest.
  */
-export const calculateQualificationDigest = (
-  qualificationRoot: string = QUALIFICATION_ROOT,
-): Promise<string> =>
-  calculateDirectoryFingerprint(qualificationRoot, {
-    excludedDirectoryNames: new Set(['node_modules']),
-    excludedRelativePathPrefixes: ['results'],
-  });
+export const calculateQualificationDigest = async (
+  digestRoots: readonly IQualificationDigestRoot[] = DEFAULT_QUALIFICATION_DIGEST_ROOTS,
+): Promise<string> => {
+  const entries = (
+    await Promise.all(
+      digestRoots.map(async (digestRoot) => {
+        const rootEntries = await collectDirectoryFingerprintEntries(digestRoot.rootDirectory, {
+          ...(digestRoot.excludedDirectoryNames === undefined
+            ? {}
+            : { excludedDirectoryNames: digestRoot.excludedDirectoryNames }),
+          ...(digestRoot.excludedRelativePathPrefixes === undefined
+            ? {}
+            : { excludedRelativePathPrefixes: digestRoot.excludedRelativePathPrefixes }),
+        });
+
+        return rootEntries.map((entry) => ({
+          ...entry,
+          path: path.posix.join(digestRoot.pathPrefix, entry.path),
+        }));
+      }),
+    )
+  )
+    .flat()
+    .sort((left, right) => left.path.localeCompare(right.path, 'en'));
+
+  return calculateSha256(`${JSON.stringify(entries)}\n`);
+};
 
 /**
  * Calculates the packages input digest without treating maturity or verification dates as behavior.

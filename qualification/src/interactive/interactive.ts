@@ -16,7 +16,9 @@ export const promptQualificationAction = async (): Promise<IInteractiveQualifica
     listLocalAttemptCheckpoints(),
     listQualificationImplementations(),
   ]);
-  const resumableAttempts = attempts.filter(({ status }) => status === 'incomplete');
+  const resumableAttempts = attempts.filter(
+    ({ recordedAt, status }) => status === 'incomplete' && recordedAt === null,
+  );
   const action = await select<string>({
     message: 'Select a qualification action',
     choices: [

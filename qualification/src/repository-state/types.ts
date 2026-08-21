@@ -10,4 +10,5 @@ export type IGitRepositoryState = {
 
 export type IGitRepositoryStateOptions = {
   excludedRelativePathPrefixes?: readonly string[];
+  includedRelativePathPrefixes?: readonly string[];
 };

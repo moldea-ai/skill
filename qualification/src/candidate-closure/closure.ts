@@ -184,6 +184,7 @@ const installCandidateRuntime = async (
   runtimeDirectory: string,
   signal: AbortSignal | undefined,
 ): Promise<void> => {
+  await rm(runtimeDirectory, { force: true, recursive: true });
   await ensureDirectory(runtimeDirectory);
   const localDependencies = Object.fromEntries(
     packages.map((candidatePackage) => [

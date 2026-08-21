@@ -1,4 +1,4 @@
-import { QUALIFICATION_PROTOCOL_VERSION } from '../constants/index.ts';
+import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import {
   QualificationAttemptResultDraftSchema,
   type ICandidateClosure,
@@ -41,7 +41,7 @@ export const createQualificationAttemptResult = (options: {
   stageIds: readonly string[];
 }): IQualificationAttemptResult =>
   QualificationAttemptResultDraftSchema.parse({
-    protocolVersion: QUALIFICATION_PROTOCOL_VERSION,
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     attemptId: options.checkpoint.attemptId,
     parentAttemptId: options.checkpoint.parentAttemptId,
     selection: options.checkpoint.selection,

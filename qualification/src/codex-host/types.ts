@@ -9,8 +9,6 @@ import type {
 
 // common execution boundary supplied to a model role
 export type ICodexRoleExecutionInput<TResult> = {
-  artifactDirectory: string;
-  environment: NodeJS.ProcessEnv;
   prompt: string;
   schema: ZodType<TResult>;
   signal?: AbortSignal | undefined;

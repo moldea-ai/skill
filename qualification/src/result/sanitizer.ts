@@ -1,6 +1,7 @@
 import path from 'node:path';
 
 export type ISanitizationContext = {
+  attemptDirectory?: string;
   packagesRepository: string;
   skillRepository: string;
   workspaceDirectory?: string;
@@ -14,9 +15,12 @@ export const sanitizeEvidenceText = (source: string, context: ISanitizationConte
   let sanitized = source;
   const replacements: ReadonlyArray<readonly [string | undefined, string]> = [
     [context.workspaceDirectory, '<workspace>'],
+    [context.attemptDirectory, '<attempt>'],
     [context.skillRepository, '<skill-repository>'],
     [context.packagesRepository, '<packages-repository>'],
     [process.env['HOME'], '<home>'],
+    ['/home/evaluator', '<sandbox-home>'],
+    ['/mnt', '<workspace>'],
   ];
 
   for (const [literal, replacement] of replacements) {
@@ -27,8 +31,32 @@ export const sanitizeEvidenceText = (source: string, context: ISanitizationConte
 
   return sanitized
     .replace(/\bsk-[A-Za-z0-9_-]{16,}\b/gu, '<redacted-token>')
+    .replace(
+      /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/gu,
+      '<redacted-token>',
+    )
+    .replace(/\b(?:npm_[A-Za-z0-9]{20,}|xox[baprs]-[A-Za-z0-9-]{16,})\b/gu, '<redacted-token>')
+    .replace(/\bAKIA[A-Z0-9]{16}\b/gu, '<redacted-access-key>')
+    .replace(
+      /\b(Bearer|Basic)\s+[A-Za-z0-9._~+/=-]{12,}(?=$|[\s"',;])/giu,
+      '$1 <redacted-credential>',
+    )
+    .replace(
+      /\b([A-Z][A-Z0-9_]*(?:API_KEY|ACCESS_TOKEN|AUTH_TOKEN|PASSWORD|SECRET))=([^\s]+)/gu,
+      '$1=<redacted-credential>',
+    )
     .replace(/-----BEGIN [^-]+-----[\s\S]*?-----END [^-]+-----/gu, '<redacted-private-key>')
     .replace(/(https?:\/\/)[^\s/@:]+:[^\s/@]+@/gu, '$1<redacted-credentials>@');
+};
+
+const isSensitiveFieldName = (fieldName: string): boolean => {
+  const normalizedFieldName = fieldName.replace(/[^A-Za-z0-9]/gu, '').toLowerCase();
+
+  return (
+    ['authorization', 'credentials', 'password', 'privatekey', 'secret', 'token'].some(
+      (suffix) => normalizedFieldName === suffix || normalizedFieldName.endsWith(suffix),
+    ) || normalizedFieldName.endsWith('apikey')
+  );
 };
 
 const sanitizeUnknownEvidenceValue = (source: unknown, context: ISanitizationContext): unknown => {
@@ -44,7 +72,9 @@ const sanitizeUnknownEvidenceValue = (source: unknown, context: ISanitizationCon
     return Object.fromEntries(
       Object.entries(source).map(([key, value]) => [
         key,
-        sanitizeUnknownEvidenceValue(value, context),
+        isSensitiveFieldName(key) && value !== null
+          ? '<redacted-credential>'
+          : sanitizeUnknownEvidenceValue(value, context),
       ]),
     );
   }

@@ -1,6 +1,7 @@
 import type {
   IQualificationAttemptResult,
   IQualificationCaseResult,
+  IQualificationExecutionEnvironment,
   IQualificationProvenance,
   IQualificationSelection,
 } from '../contracts/index.ts';
@@ -18,7 +19,15 @@ export type IRunQualificationOptions = {
   parentAttemptId?: string | null;
   resumeAttemptId?: string;
   resultsRoot?: string;
+  requestPaidExecutionApproval?: (request: IQualificationPaidExecutionRequest) => Promise<boolean>;
   signal?: AbortSignal | undefined;
+};
+
+// exact cost boundary presented immediately before the first uncached model call
+export type IQualificationPaidExecutionRequest = {
+  model: IQualificationExecutionEnvironment['model'];
+  modelCallCount: number;
+  reasoningEffort: IQualificationExecutionEnvironment['reasoningEffort'];
 };
 
 export type IQualificationRunOutcome = {

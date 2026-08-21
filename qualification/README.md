@@ -37,7 +37,7 @@ Keep the `skill` and `packages` repositories adjacent, install the packages repo
 npm run qualification
 ```
 
-The guided CLI prioritizes resumable attempts, disables adapter implementations without a committed profile, and asks for a default-deny confirmation immediately before a paid execution.
+The guided CLI prioritizes resumable attempts, disables adapter implementations without a committed profile, and asks for a default-deny confirmation only after free preflight, candidate preparation, and cache lookup have finished. The prompt appears immediately before the first uncached Terra call and derives its maximum call count from the selected profile. The three-case Custom profile therefore reports exactly six possible calls.
 
 The same operations are available explicitly:
 
@@ -53,7 +53,7 @@ npm run qualification -- record --attempt <attempt-id>
 npm run qualification -- verify
 ```
 
-Use `--json` for machine-readable output. Paid `run`, `resume`, and `retry` operations require `--confirm-paid-execution` when the process is non-interactive or uses `--json`. `retry` creates a new attempt linked to a terminal parent; it never rewrites prior evidence. `record` explicitly publishes an incomplete interrupted attempt. Pass `--no-cache` to a new paid run when fresh actor and judge evidence is required.
+Use `--json` for machine-readable output. Paid `run`, `resume`, and `retry` operations require `--confirm-paid-execution` when the process is non-interactive or uses `--json`; that flag is checked at the same just-in-time model boundary. A compatible cache hit makes no paid call and does not require an approval prompt. `retry` creates a new attempt linked to a terminal parent; it never rewrites prior evidence. `record` explicitly publishes an incomplete interrupted attempt and makes that attempt identity immutable. Continue from it with `retry`, not `resume`. Pass `--no-cache` to a new paid run when fresh actor and judge evidence is required.
 
 The model-free validation command is:
 
@@ -81,9 +81,9 @@ The attempt creates a nested pnpm workspace that overrides every local package i
 
 ## Terra execution contract
 
-Paid semantic stages always use `gpt-5.6-terra` with `medium` reasoning effort. There is no frontier-model or alternate-model fallback. The actor runs with Codex's `workspace-write` sandbox, while the independent judge runs with `read-only`. Both use non-interactive structured output, ephemeral sessions, disabled web search, ignored user configuration and exec-policy rules, a minimal environment, and approval policy `never` inside the stage.
+Paid semantic stages always use `gpt-5.6-terra` with `medium` reasoning effort. There is no frontier-model or alternate-model fallback. Actor and judge calls use the shared development host under `tooling/codex-evaluation-host/`. Codex delegates isolation to an outer Bubblewrap boundary that provides an empty filesystem root, a fresh process and network namespace, dropped capabilities, bounded execution, and a restricted HTTPS relay. User configuration, exec-policy rules, web search, and persistent sessions remain disabled. Official evidence rejects a custom model origin, custom TLS certificate file, or expanded egress allowlist before candidate construction or any paid call.
 
-The only paid boundary is the local Codex host. Actor and judge prompts prohibit network calls, subagents, provider calls, agent execution, and runtime SDK calls. The project-local candidate `moldea` executable is placed first on `PATH`, and the actor receives only the natural project task rather than adapter identity or judge criteria.
+The actor receives a writable isolated project and the project-local candidate `moldea` executable first on `PATH`. The judge receives a byte-identical copy in a different workspace and Bubblewrap mounts that copy read-only. Actor and judge are separate Codex processes with separate disposable homes. Only the authentication state required by Codex is copied into those homes; unrelated host environment and filesystem state are unavailable. Their prompts prohibit network calls beyond the Codex model transport, subagents, provider calls, agent execution, and runtime SDK calls. The actor receives only the natural project task rather than adapter identity or judge criteria.
 
 ## Checkpoints, resume, and cache integrity
 
@@ -94,6 +94,9 @@ Local mutable state lives under `.runtime-qualification/`, which is ignored by G
   attempts/<attempt-id>/
     checkpoint.json
     internal/
+      cases/<case-id>/
+        actor-workspace/
+        judge-workspace/
     public/
     runtime/
     workspaces/
@@ -101,17 +104,19 @@ Local mutable state lives under `.runtime-qualification/`, which is ignored by G
   candidates/<candidate-fingerprint>/
 ```
 
-The workflow writes a validated checkpoint atomically before and after every meaningful stage. An interruption turns the active stage back into `pending`; completed stages retain their evidence and can be restored. Resume is allowed only when the exact packages checkout, qualification suite, profile, and portable skill still match the attempt, so resumed evidence cannot claim a different source fingerprint. The selected target maturity is recorded as provenance but does not become a behavioral qualification claim. Existing committed passing evidence therefore remains valid after a maturity promotion. The portable-skill fingerprint covers only the selected skill directory. The qualification-suite fingerprint covers the engine, cases, profiles, fixtures, tests, lockfile, and documentation while excluding installed dependencies and append-only public results. Changed inputs require `retry`, which creates a new attempt identity.
+The workflow writes a validated checkpoint atomically before and after every meaningful stage. An interruption turns the active stage back into `pending`; completed stages retain their evidence and can be restored. Resume is allowed only when the exact packages checkout, qualification engine, profile, portable skill, fixed model, reasoning effort, Codex version, resolved model endpoint identity, TLS certificate identity, egress allowlist, host timeout, Node.js version, pnpm version, Git version, and reconstructed candidate closure still match the attempt. These inputs are checked again before accepting a cache hit, before and after every fresh model call, and before publication. The actor's exact post-stage workspace snapshot is restored before deterministic checks continue. Changed inputs require `retry`, which creates a new attempt identity instead of mixing evidence.
+
+The selected target maturity is recorded as provenance but does not become a behavioral qualification claim. Existing committed passing evidence therefore remains valid after a maturity promotion. The portable-skill fingerprint covers only the selected skill directory. The qualification-engine fingerprint covers `qualification/`, `tooling/codex-evaluation-host/`, and `tooling/package-candidate/`, including their tests, lockfile, and documentation while excluding installed dependencies and append-only public results.
 
 Candidate caches are independently content-addressed by the behavior-sensitive package input digest and resolved runtime closure. This lets a new attempt reuse identical tarballs after a maturity-only matrix change without weakening the exact resume boundary. Candidate manifests and tarball checksums are validated before reuse; invalid or partial entries are discarded and rebuilt.
 
-Actor cache keys include the protocol, role, fixed model and reasoning effort, Codex version, candidate fingerprint, profile digest, skill digest, case, project state, and complete prompt. Actor entries include the exact post-actor workspace snapshot. Judge keys additionally reflect the post-actor project and complete judge prompt. Cache metadata is committed last, so incomplete writes are not considered hits. Reused evidence preserves its original creation time and source attempt in local and public provenance.
+Actor cache keys include the protocol, role, complete execution-host identity, candidate fingerprint, profile digest, skill digest, case, project state, and complete prompt. Actor entries include the exact post-actor workspace snapshot. The candidate runtime, installed skill, and runner-owned task are revalidated before fresh or restored actor evidence can continue. Judge keys additionally reflect the post-actor project and complete judge prompt. Output, event, and actor-workspace digests are validated before reuse. Entries are assembled in a staging directory and metadata is committed last, so incomplete or corrupt writes are not considered hits and cannot partially restore a live workspace. Reused evidence preserves its original creation time and source attempt in local and public provenance.
 
 Cached and restored judge outputs are revalidated against the exact declared requirement ids. A pass cannot omit, duplicate, fail, or invent requirements, and a failed verdict must include an actionable failure. Caching never bypasses deterministic verification, workspace assertions, result generation, or artifact digest verification. Dry runs never read or write model cache entries.
 
 ## Public results
 
-Paid terminal attempts are recorded whether they pass, fail, or stop with an execution error. Interrupted attempts remain local and resumable by default; the operator can publish one explicitly with `record`. Public history is append-only:
+Paid terminal attempts are recorded whether they pass, fail, or stop with an execution error. Interrupted attempts remain local and resumable by default; the operator can publish one explicitly with `record`. A recorded incomplete attempt cannot later be resumed under the same identity because that would rewrite public history. Public history is append-only:
 
 ```text
 qualification/results/<adapter>/<implementation>/
@@ -139,9 +144,15 @@ qualification/results/<adapter>/<implementation>/
       workspace.patch
 ```
 
-`latest.json` always identifies the newest recorded attempt and independently preserves the newest passing attempt. Each attempt records repository commits and source-state fingerprints, qualification-suite and profile digests, tool versions, exact package checksums, stage states, per-case summaries, token usage when Codex reports it, cache provenance, original evidence timestamps, and a SHA-256 digest for every public artifact. A passing attempt always records clean package, qualification-suite, and portable-skill inputs; dirty-state fingerprints can appear only in published failures or incomplete evidence.
+`latest.json` always identifies the newest recorded attempt and independently preserves the newest passing attempt. Evidence protocol version 2 records repository commits and source-state fingerprints, qualification-engine and profile digests, tool versions, the resolved non-secret host configuration, exact package checksums, stage states, per-case summaries, token usage when Codex reports it, cache provenance, original evidence timestamps, and a SHA-256 digest for every public artifact. A passing attempt always records clean package, qualification-engine, and portable-skill inputs through the trusted host boundary; dirty or untrusted state can appear only in published failures or incomplete evidence. Verification rejects latest pointers without their referenced append-only history.
 
-Before publication, host-specific paths and recognizable credential forms are sanitized from text and structured model evidence. The Codex stage receives only a minimal environment and no provider credentials. Operators must still inspect the complete new result directory before committing it. Run `npm run qualification -- verify` to validate all committed schemas, pointers, and artifact digests.
+Before publication, host-specific paths and recognizable credential forms are sanitized from text and structured model evidence. The append-only recorder repeats that sanitization over every JSON and text artifact, rejects symlinks, then computes the published artifact digests. Operators must still inspect the complete new result directory before committing it. Run `npm run qualification -- verify` to validate all committed schemas, pointers, and artifact digests.
+
+## Recovery
+
+Use `npm run qualification -- status` to find resumable attempts. `resume` reconstructs and validates the candidate, recreates each case from committed inputs, restores completed actor state, and continues at the first pending stage without repeating compatible completed model calls. If a source, host, profile, or candidate identity changed, keep the old local evidence and start `retry` so the new run receives a linked attempt id.
+
+Corrupt or partial candidate and model cache entries are misses, not evidence. The runner rebuilds candidates or reruns the affected model stage after approval. Use `--no-cache` only when new model evidence is intentionally required. If the process was interrupted, do not delete `.runtime-qualification/`; the atomic checkpoint and actor snapshot are the recovery state. `MOLDEA_EVAL_HOST_TIMEOUT_MS` can set a deliberate positive per-call timeout before an attempt. Its resolved value is checkpointed, so a change requires `retry`. `OPENAI_BASE_URL`, `SSL_CERT_FILE`, and `MOLDEA_EVAL_ALLOWED_HOSTS` remain available to the shared semantic runner, but setting a custom TLS certificate or using noncanonical transport values makes an official qualification preflight fail.
 
 The stable result layout is intended to be consumed by the packages website so each adapter implementation can link to its complete history, latest result, and last passing evidence without requiring a separate service.
 

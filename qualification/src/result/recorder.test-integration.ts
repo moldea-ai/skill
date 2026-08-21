@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
@@ -13,19 +13,25 @@ import {
 import { ensureDirectory, readJsonFile } from '../filesystem/index.ts';
 import { recordQualificationResult, verifyQualificationResults } from './recorder.ts';
 
+const sanitizationContext = {
+  attemptDirectory: '/attempt',
+  packagesRepository: '/packages',
+  skillRepository: '/skill',
+};
+
 const createResult = (
   attemptId: string,
   createdAt: string,
-  status: 'failed' | 'passed',
+  status: 'errored' | 'failed' | 'incomplete' | 'passed',
 ): IQualificationAttemptResult =>
   QualificationAttemptResultSchema.parse({
-    protocolVersion: 1,
+    protocolVersion: 2,
     attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
     status,
     createdAt,
-    completedAt: createdAt,
+    completedAt: status === 'incomplete' ? null : createdAt,
     evidenceGeneratedAt: createdAt,
     summary: `Fixture ${status} result.`,
     provenance: {
@@ -35,6 +41,10 @@ const createResult = (
       nodeVersion: process.version,
       pnpmVersion: '11.9.0',
       gitVersion: 'git version test',
+      allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
+      hostTimeoutMs: 120_000,
+      modelEndpoint: null,
+      sslCertificateFileSha256: null,
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'a'.repeat(64),
       packagesRepositoryDirty: false,
@@ -73,6 +83,7 @@ describe('qualification result recording', () => {
       {
         artifactDirectory,
         result: createResult('attempt-passed', '2026-08-20T10:00:00.000Z', 'passed'),
+        sanitizationContext,
       },
       resultsRoot,
     );
@@ -80,6 +91,7 @@ describe('qualification result recording', () => {
       {
         artifactDirectory,
         result: createResult('attempt-failed', '2026-08-20T11:00:00.000Z', 'failed'),
+        sanitizationContext,
       },
       resultsRoot,
     );
@@ -118,6 +130,46 @@ describe('qualification result recording', () => {
     });
   });
 
+  test('persists execution errors and explicitly published incomplete attempts', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    await ensureDirectory(artifactDirectory);
+    await writeFile(path.join(artifactDirectory, 'error.json'), '{}\n', 'utf8');
+
+    await recordQualificationResult(
+      {
+        artifactDirectory,
+        result: createResult('attempt-errored', '2026-08-20T10:00:00.000Z', 'errored'),
+        sanitizationContext,
+      },
+      resultsRoot,
+    );
+    await recordQualificationResult(
+      {
+        artifactDirectory,
+        result: createResult('attempt-incomplete', '2026-08-20T11:00:00.000Z', 'incomplete'),
+        sanitizationContext,
+      },
+      resultsRoot,
+    );
+    const latest = await readJsonFile(
+      path.join(resultsRoot, 'custom', 'custom', 'latest.json'),
+      QualificationLatestResultSchema,
+    );
+
+    expect(latest).toMatchObject({
+      latestAttemptId: 'attempt-incomplete',
+      latestStatus: 'incomplete',
+      lastPassingAttemptId: null,
+    });
+    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
+      passed: true,
+      attempts: 2,
+      issues: [],
+    });
+  });
+
   test('rejects a latest pointer whose status does not match its attempt', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
@@ -127,6 +179,7 @@ describe('qualification result recording', () => {
       {
         artifactDirectory,
         result: createResult('attempt-passed', '2026-08-20T10:00:00.000Z', 'passed'),
+        sanitizationContext,
       },
       resultsRoot,
     );
@@ -148,6 +201,90 @@ describe('qualification result recording', () => {
         },
       ],
     });
+  });
+
+  test('rejects a latest pointer without recorded attempt history', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    const targetRoot = path.join(resultsRoot, 'custom', 'custom');
+    await ensureDirectory(targetRoot);
+    await writeFile(
+      path.join(targetRoot, 'latest.json'),
+      `${JSON.stringify(
+        {
+          protocolVersion: 2,
+          adapterId: 'custom',
+          implementationId: 'custom',
+          latestAttemptId: 'missing-attempt',
+          latestStatus: 'passed',
+          lastPassingAttemptId: 'missing-attempt',
+          updatedAt: '2026-08-20T10:00:00.000Z',
+        },
+        null,
+        2,
+      )}\n`,
+      'utf8',
+    );
+
+    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
+      passed: false,
+      attempts: 0,
+      issues: [
+        {
+          path: 'custom/custom/latest.json',
+          message: 'Latest pointer exists without any recorded attempt history.',
+        },
+      ],
+    });
+  });
+
+  test('sanitizes structured and text evidence again at the publication boundary', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    await ensureDirectory(artifactDirectory);
+    await writeFile(
+      path.join(artifactDirectory, 'actor-output.json'),
+      `${JSON.stringify({ apiKey: 'opaque-secret', path: '/attempt/workspace/file.ts' })}\n`,
+      'utf8',
+    );
+    await writeFile(
+      path.join(artifactDirectory, 'actor-events.jsonl'),
+      `${JSON.stringify({ authorization: `Bearer ${'a'.repeat(24)}`, path: '/packages/project' })}\n`,
+      'utf8',
+    );
+
+    const recorded = await recordQualificationResult(
+      {
+        artifactDirectory,
+        result: {
+          ...createResult('sanitized-attempt', '2026-08-20T10:00:00.000Z', 'failed'),
+          summary: `Failure at /skill/SKILL.md with sk-${'b'.repeat(24)}.`,
+        },
+        sanitizationContext,
+      },
+      resultsRoot,
+    );
+    const recordedDirectory = path.join(
+      resultsRoot,
+      'custom',
+      'custom',
+      'attempts',
+      recorded.attemptId,
+    );
+
+    expect(recorded.summary).toBe('Failure at <skill-repository>/SKILL.md with <redacted-token>.');
+    expect(await readFile(path.join(recordedDirectory, 'actor-output.json'), 'utf8')).toBe(
+      `${JSON.stringify(
+        { apiKey: '<redacted-credential>', path: '<attempt>/workspace/file.ts' },
+        null,
+        2,
+      )}\n`,
+    );
+    expect(await readFile(path.join(recordedDirectory, 'actor-events.jsonl'), 'utf8')).toBe(
+      `${JSON.stringify({ authorization: '<redacted-credential>', path: '<packages-repository>/project' })}\n`,
+    );
+    expect(await verifyQualificationResults(resultsRoot)).toMatchObject({ passed: true });
   });
 
   test('rejects dirty passing evidence while preserving a dirty preflight failure', async () => {
@@ -172,7 +309,10 @@ describe('qualification result recording', () => {
     expect(QualificationAttemptResultSchema.safeParse(dirtyPassingResult).success).toBe(false);
 
     await expect(
-      recordQualificationResult({ artifactDirectory, result: dirtyPassingResult }, resultsRoot),
+      recordQualificationResult(
+        { artifactDirectory, result: dirtyPassingResult, sanitizationContext },
+        resultsRoot,
+      ),
     ).rejects.toThrow('Passing qualification evidence requires clean repository inputs.');
 
     const dirtyFailedResult = QualificationAttemptResultSchema.parse({
@@ -183,7 +323,7 @@ describe('qualification result recording', () => {
       },
     });
     const recordedResult = await recordQualificationResult(
-      { artifactDirectory, result: dirtyFailedResult },
+      { artifactDirectory, result: dirtyFailedResult, sanitizationContext },
       resultsRoot,
     );
 
@@ -193,6 +333,37 @@ describe('qualification result recording', () => {
       passed: true,
       attempts: 1,
     });
+  });
+
+  test('rejects passing evidence from a custom model endpoint or expanded egress boundary', () => {
+    const passingResult = createResult(
+      'untrusted-host-attempt',
+      '2026-08-20T10:00:00.000Z',
+      'passed',
+    );
+
+    for (const provenanceChange of [
+      {
+        modelEndpoint: {
+          origin: 'https://gateway.example.com',
+          sha256: 'f'.repeat(64),
+        },
+      },
+      {
+        allowedEgressHosts: [
+          ...passingResult.provenance.allowedEgressHosts,
+          'registry.example.com',
+        ],
+      },
+      { sslCertificateFileSha256: 'f'.repeat(64) },
+    ]) {
+      expect(
+        QualificationAttemptResultSchema.safeParse({
+          ...passingResult,
+          provenance: { ...passingResult.provenance, ...provenanceChange },
+        }).success,
+      ).toBe(false);
+    }
   });
 
   test('rejects manually committed dirty passing evidence during verification', async () => {
@@ -213,7 +384,7 @@ describe('qualification result recording', () => {
       },
     };
     const latestResult = QualificationLatestResultSchema.parse({
-      protocolVersion: 1,
+      protocolVersion: 2,
       adapterId: 'custom',
       implementationId: 'custom',
       latestAttemptId: dirtyPassingResult.attemptId,

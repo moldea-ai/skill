@@ -14,8 +14,9 @@ import { resolveQualificationTarget } from '../compatibility/index.ts';
 import {
   DEFAULT_PACKAGES_REPOSITORY,
   DEFAULT_SKILL_REPOSITORY,
+  QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
   QUALIFICATION_RESULTS_ROOT,
-  QUALIFICATION_ROOT,
+  SKILL_REPOSITORY_ROOT,
 } from '../constants/index.ts';
 import {
   DeterministicVerificationSchema,
@@ -58,20 +59,32 @@ import {
   restoreActorModelStage,
   restoreJudgeModelStage,
 } from './model-stages.ts';
-import { createQualificationExecutionProvenance } from './provenance.ts';
+import {
+  createQualificationExecutionProvenance,
+  inspectQualificationExecutionEnvironment,
+} from './provenance.ts';
 import {
   completeQualificationStage,
+  getQualificationModelCallCount,
   isQualificationStageComplete,
   startQualificationStage,
 } from './stages.ts';
 import { createQualificationAttemptResult } from './transformers.ts';
-import { haveQualificationInputsChanged, inspectQualificationSourceState } from './validations.ts';
+import {
+  haveCandidateClosuresChanged,
+  haveQualificationExecutionInputsChanged,
+  haveQualificationInputsChanged,
+  inspectQualificationSourceState,
+} from './validations.ts';
 import type {
   IQualificationExecutionProvenance,
   IQualificationInputState,
   IQualificationRunOutcome,
   IRunQualificationOptions,
 } from './types.ts';
+
+// internal control-flow signal for a declined or unavailable paid-execution approval
+class PaidExecutionApprovalError extends Error {}
 
 const CoverageResultSchema = z.strictObject({
   passed: z.boolean(),
@@ -109,8 +122,9 @@ const inspectQualificationInputState = async (
       excludedRelativePathPrefixes: ['qualification'],
     }),
     calculateQualificationDigest(),
-    inspectGitRepositoryState(QUALIFICATION_ROOT, {
-      excludedRelativePathPrefixes: ['results'],
+    inspectGitRepositoryState(SKILL_REPOSITORY_ROOT, {
+      includedRelativePathPrefixes: QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
+      excludedRelativePathPrefixes: ['qualification/results'],
     }),
     inspectGitRepositoryState(skillRepository),
   ]);
@@ -186,9 +200,15 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
       );
     }
 
+    if (rawCheckpoint.recordedAt !== null) {
+      throw new Error(
+        `Attempt ${rawCheckpoint.attemptId} was recorded as immutable incomplete evidence; retry it with a new attempt identity.`,
+      );
+    }
+
     const checkpoint = normalizeInterruptedCheckpoint(rawCheckpoint);
     await writeAttemptCheckpoint(attemptDirectory, checkpoint);
-    return { attemptDirectory, checkpoint };
+    return { attemptDirectory, checkpoint, isResume: true };
   }
 
   if (options.selection === undefined) {
@@ -208,6 +228,7 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
   }
 
   const inputState = await inspectQualificationInputState(packagesRepository, skillRepository);
+  const executionEnvironment = await inspectQualificationExecutionEnvironment(options.host);
   const attemptId = createAttemptId(
     options.selection.adapterId,
     options.selection.implementationId,
@@ -227,10 +248,11 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
     skillDigest: inputState.skillState.fingerprint,
     packagesRepositoryFingerprint: inputState.packagesState.fingerprint,
     packagesDigest: inputState.packagesDigest,
+    executionEnvironment,
     stageIds: createStageIds(target.profile.cases.map(({ id }) => id)),
   });
 
-  return { attemptDirectory, checkpoint };
+  return { attemptDirectory, checkpoint, isResume: false };
 };
 
 /** Runs or resumes one local qualification attempt with atomic evidence after every stage. */
@@ -248,6 +270,11 @@ export const runQualification = async (
   const publicDirectory = path.join(attemptDirectory, 'public');
   const internalDirectory = path.join(attemptDirectory, 'internal');
   const resultsRoot = options.resultsRoot ?? QUALIFICATION_RESULTS_ROOT;
+  const resultSanitizationContext = {
+    attemptDirectory,
+    packagesRepository: checkpoint.packagesRepository,
+    skillRepository: checkpoint.skillRepository,
+  };
   await Promise.all([ensureDirectory(publicDirectory), ensureDirectory(internalDirectory)]);
 
   if (!(await pathExists(path.join(checkpoint.skillRepository, 'SKILL.md')))) {
@@ -272,8 +299,29 @@ export const runQualification = async (
     );
   }
 
-  const provenance = await createQualificationExecutionProvenance({
-    host: options.host,
+  if (checkpoint.executionEnvironment === null) {
+    throw new Error(
+      'Attempt checkpoint predates exact execution-host identity. Start a retry with the current qualification engine.',
+    );
+  }
+  const executionEnvironment = checkpoint.executionEnvironment;
+
+  if (preparedAttempt.isResume) {
+    const currentExecutionEnvironment = await inspectQualificationExecutionEnvironment(
+      options.host,
+    );
+
+    if (
+      haveQualificationExecutionInputsChanged(executionEnvironment, currentExecutionEnvironment)
+    ) {
+      throw new Error(
+        'Attempt execution-host inputs changed after checkpoint creation. Start a retry so the new evidence has a new identity.',
+      );
+    }
+  }
+
+  const provenance = createQualificationExecutionProvenance({
+    executionEnvironment,
     packagesState,
     profileDigest: target.profileDigest,
     qualificationDigest,
@@ -283,6 +331,66 @@ export const runQualification = async (
   });
   const caseResults: IQualificationCaseResult[] = [];
   let activeStageId: string | null = null;
+  const verifyExecutionInputs = async (): Promise<void> => {
+    if (checkpoint.isDryRun) {
+      return;
+    }
+
+    const [currentInputState, currentExecutionEnvironment] = await Promise.all([
+      inspectQualificationInputState(checkpoint.packagesRepository, checkpoint.skillRepository),
+      inspectQualificationExecutionEnvironment(options.host),
+    ]);
+    const hasDirtyInput =
+      currentInputState.packagesState.isDirty ||
+      currentInputState.qualificationState.isDirty ||
+      currentInputState.skillState.isDirty;
+
+    if (
+      haveQualificationInputsChanged(checkpoint, currentInputState) ||
+      haveQualificationExecutionInputsChanged(executionEnvironment, currentExecutionEnvironment) ||
+      hasDirtyInput
+    ) {
+      throw new Error(
+        'Qualification inputs changed during execution. Start a retry so the recorded evidence uses committed source and host configuration with a new identity.',
+      );
+    }
+  };
+  let hasApprovedPaidExecution = false;
+  const approvePaidExecution = async (): Promise<void> => {
+    if (checkpoint.isDryRun || hasApprovedPaidExecution) {
+      return;
+    }
+
+    try {
+      const isApproved =
+        options.requestPaidExecutionApproval === undefined
+          ? false
+          : await options.requestPaidExecutionApproval({
+              model: executionEnvironment.model,
+              modelCallCount: getQualificationModelCallCount(target.profile.cases.length),
+              reasoningEffort: executionEnvironment.reasoningEffort,
+            });
+
+      if (!isApproved) {
+        throw new PaidExecutionApprovalError(
+          'Paid qualification was not approved immediately before Terra execution.',
+        );
+      }
+    } catch (error) {
+      if (error instanceof PaidExecutionApprovalError) {
+        throw error;
+      }
+
+      throw new PaidExecutionApprovalError(
+        error instanceof Error
+          ? error.message
+          : 'Paid qualification approval could not be established.',
+        { cause: error },
+      );
+    }
+
+    hasApprovedPaidExecution = true;
+  };
 
   try {
     const sourceStateStageId = 'source-state';
@@ -297,6 +405,7 @@ export const runQualification = async (
             sourceStateStageId,
           );
           const sourceStateResult = inspectQualificationSourceState({
+            executionEnvironment,
             isDryRun: checkpoint.isDryRun,
             packagesState,
             qualificationState,
@@ -322,18 +431,19 @@ export const runQualification = async (
         stageIds,
         status: 'failed',
         summary:
-          'Qualification stopped before candidate construction because official evidence requires clean package, qualification-suite, and portable-skill inputs.',
+          'Qualification stopped before candidate construction because official evidence requires clean source inputs and the trusted execution-host boundary.',
       });
 
-      await recordQualificationResult(
+      const recordedResult = await recordQualificationResult(
         {
           artifactDirectory: publicDirectory,
           result: finalState.result,
+          sanitizationContext: resultSanitizationContext,
         },
         resultsRoot,
       );
 
-      return { attemptDirectory, result: finalState.result, wasRecorded: true };
+      return { attemptDirectory, result: recordedResult, wasRecorded: true };
     }
 
     const coverageStageId = 'coverage';
@@ -372,46 +482,58 @@ export const runQualification = async (
           'Qualification failed because the profile does not cover the current matrix claims.',
       });
       const wasRecorded = !checkpoint.isDryRun;
+      let result = finalState.result;
 
       if (wasRecorded) {
-        await recordQualificationResult(
+        result = await recordQualificationResult(
           {
             artifactDirectory: publicDirectory,
             result: finalState.result,
+            sanitizationContext: resultSanitizationContext,
           },
           resultsRoot,
         );
       }
 
-      return { attemptDirectory, result: finalState.result, wasRecorded };
+      return { attemptDirectory, result, wasRecorded };
     }
 
     const candidateStageId = 'candidate';
+    const expectedCandidate = checkpoint.candidate;
     let candidate = checkpoint.candidate;
 
-    if (
-      candidate === null ||
-      !(await pathExists(path.join(candidate.runtimeDirectory, 'package.json')))
-    ) {
-      activeStageId = candidateStageId;
+    {
+      const isCandidateComplete = isQualificationStageComplete(checkpoint, candidateStageId);
 
-      if (!isQualificationStageComplete(checkpoint, candidateStageId)) {
+      if (!isCandidateComplete) {
+        activeStageId = candidateStageId;
         checkpoint = await startQualificationStage(attemptDirectory, checkpoint, candidateStageId);
       }
 
-      candidate = await prepareCandidateClosure({
+      const preparedCandidate = await prepareCandidateClosure({
         adapterPackage: target.adapter.implementation.package,
         attemptDirectory,
         packagesDigest: checkpoint.packagesDigest,
         packagesRepository: checkpoint.packagesRepository,
         signal: options.signal,
       });
+
+      if (
+        expectedCandidate !== null &&
+        haveCandidateClosuresChanged(expectedCandidate, preparedCandidate)
+      ) {
+        throw new Error(
+          'Candidate closure changed after checkpoint creation. Start a retry so the new package artifacts have a new identity.',
+        );
+      }
+
+      candidate = preparedCandidate;
       checkpoint = QualificationAttemptCheckpointSchema.parse({
         ...checkpoint,
         candidate,
       });
 
-      if (!isQualificationStageComplete(checkpoint, candidateStageId)) {
+      if (!isCandidateComplete) {
         checkpoint = await completeQualificationStage(
           attemptDirectory,
           checkpoint,
@@ -540,10 +662,12 @@ export const runQualification = async (
             checkpoint = await startQualificationStage(attemptDirectory, checkpoint, actorStageId);
             const result = await executeActorModelStage({
               adapterId: target.selection.adapterId,
+              approvePaidExecution,
+              attemptDirectory,
               attemptId: checkpoint.attemptId,
               candidate,
               caseArtifactDirectory,
-              codexVersion: provenance.codexVersion,
+              executionEnvironment,
               host: options.host,
               implementationId: target.selection.implementationId,
               isDryRun: checkpoint.isDryRun,
@@ -557,6 +681,7 @@ export const runQualification = async (
               snapshotDirectory,
               task,
               useCache: checkpoint.useCache,
+              verifyExecutionInputs,
             });
             checkpoint = await completeQualificationStage(
               attemptDirectory,
@@ -644,6 +769,12 @@ export const runQualification = async (
       );
 
       const judgeStageId = `case:${profileCase.id}:judge`;
+      const judgeWorkspaceDirectory = path.join(
+        internalDirectory,
+        'cases',
+        profileCase.id,
+        'judge-workspace',
+      );
       const judgeResult = isQualificationStageComplete(checkpoint, judgeStageId)
         ? await restoreJudgeModelStage({
             caseArtifactDirectory,
@@ -655,14 +786,17 @@ export const runQualification = async (
             const result = await executeJudgeModelStage({
               actorOutput: actorResult.output,
               adapterId: target.selection.adapterId,
+              approvePaidExecution,
+              attemptDirectory,
               attemptId: checkpoint.attemptId,
               candidate,
               caseArtifactDirectory,
-              codexVersion: provenance.codexVersion,
+              executionEnvironment,
               deterministicAfter: deterministicAfter.summary,
               host: options.host,
               implementationId: target.selection.implementationId,
               isDryRun: checkpoint.isDryRun,
+              judgeWorkspaceDirectory,
               packagesRepository: checkpoint.packagesRepository,
               profileDigest: checkpoint.profileDigest,
               qualificationDigest,
@@ -672,6 +806,7 @@ export const runQualification = async (
               skillRepository: checkpoint.skillRepository,
               task,
               useCache: checkpoint.useCache,
+              verifyExecutionInputs,
               workspaceAssertions,
             });
             checkpoint = await completeQualificationStage(
@@ -700,25 +835,35 @@ export const runQualification = async (
         ...failedJudgeRequirements,
         ...(judgeResult.output.verdict === 'fail' ? judgeResult.output.failures : []),
       ];
-      const caseResult = QualificationCaseResultSchema.parse({
-        caseId: profileCase.id,
-        title: project.scenario.title,
-        status: failures.length === 0 ? 'passed' : 'failed',
-        durationMs: Math.max(0, Math.round(performance.now() - caseStartedAt)),
-        deterministicBeforePath: `cases/${profileCase.id}/deterministic-before.json`,
-        deterministicAfterPath: `cases/${profileCase.id}/deterministic-after.json`,
-        actorOutputPath: `cases/${profileCase.id}/actor-output.json`,
-        judgeOutputPath: `cases/${profileCase.id}/judge-output.json`,
-        workspaceAssertionsPath: `cases/${profileCase.id}/workspace-assertions.json`,
-        patchPath: `cases/${profileCase.id}/workspace.patch`,
-        actorUsage: actorResult.evidence.usage,
-        judgeUsage: judgeResult.evidence.usage,
-        actorEvidenceCreatedAt: actorResult.evidence.createdAt,
-        judgeEvidenceCreatedAt: judgeResult.evidence.createdAt,
-        actorCacheSourceAttemptId: actorResult.evidence.cacheSourceAttemptId,
-        judgeCacheSourceAttemptId: judgeResult.evidence.cacheSourceAttemptId,
-        failures,
-      });
+      const caseResult = QualificationCaseResultSchema.parse(
+        sanitizeEvidenceValue(
+          {
+            caseId: profileCase.id,
+            title: project.scenario.title,
+            status: failures.length === 0 ? 'passed' : 'failed',
+            durationMs: Math.max(0, Math.round(performance.now() - caseStartedAt)),
+            deterministicBeforePath: `cases/${profileCase.id}/deterministic-before.json`,
+            deterministicAfterPath: `cases/${profileCase.id}/deterministic-after.json`,
+            actorOutputPath: `cases/${profileCase.id}/actor-output.json`,
+            judgeOutputPath: `cases/${profileCase.id}/judge-output.json`,
+            workspaceAssertionsPath: `cases/${profileCase.id}/workspace-assertions.json`,
+            patchPath: `cases/${profileCase.id}/workspace.patch`,
+            actorUsage: actorResult.evidence.usage,
+            judgeUsage: judgeResult.evidence.usage,
+            actorEvidenceCreatedAt: actorResult.evidence.createdAt,
+            judgeEvidenceCreatedAt: judgeResult.evidence.createdAt,
+            actorCacheSourceAttemptId: actorResult.evidence.cacheSourceAttemptId,
+            judgeCacheSourceAttemptId: judgeResult.evidence.cacheSourceAttemptId,
+            failures,
+          },
+          {
+            attemptDirectory,
+            packagesRepository: checkpoint.packagesRepository,
+            skillRepository: checkpoint.skillRepository,
+            workspaceDirectory: project.workspaceDirectory,
+          },
+        ),
+      );
       activeStageId = resultStageId;
       checkpoint = await startQualificationStage(attemptDirectory, checkpoint, resultStageId);
       await writeJsonFileAtomically(caseResultPath, caseResult);
@@ -729,22 +874,7 @@ export const runQualification = async (
       caseResults.push(caseResult);
     }
 
-    if (!checkpoint.isDryRun) {
-      const finalInputState = await inspectQualificationInputState(
-        checkpoint.packagesRepository,
-        checkpoint.skillRepository,
-      );
-      const hasDirtyFinalInput =
-        finalInputState.packagesState.isDirty ||
-        finalInputState.qualificationState.isDirty ||
-        finalInputState.skillState.isDirty;
-
-      if (haveQualificationInputsChanged(checkpoint, finalInputState) || hasDirtyFinalInput) {
-        throw new Error(
-          'Qualification inputs changed during execution. Start a retry so the recorded evidence uses committed source with a new identity.',
-        );
-      }
-    }
+    await verifyExecutionInputs();
 
     const hasFailedCase = caseResults.some(({ status }) => status !== 'passed');
     const finalState = await persistFinalState({
@@ -759,23 +889,27 @@ export const runQualification = async (
         : 'Qualification passed every deterministic and semantic case.',
     });
     const wasRecorded = !checkpoint.isDryRun;
+    let result = finalState.result;
 
     if (wasRecorded) {
-      await recordQualificationResult(
+      result = await recordQualificationResult(
         {
           artifactDirectory: publicDirectory,
           result: finalState.result,
+          sanitizationContext: resultSanitizationContext,
         },
         resultsRoot,
       );
     }
 
-    return { attemptDirectory, result: finalState.result, wasRecorded };
+    return { attemptDirectory, result, wasRecorded };
   } catch (error) {
-    const isInterrupted = options.signal?.aborted === true;
+    const isApprovalDeclined = error instanceof PaidExecutionApprovalError;
+    const isInterrupted = options.signal?.aborted === true || isApprovalDeclined;
     const safeError = sanitizeEvidenceText(
       error instanceof Error ? error.message : 'Unknown qualification execution failure.',
       {
+        attemptDirectory,
         packagesRepository: checkpoint.packagesRepository,
         skillRepository: checkpoint.skillRepository,
       },
@@ -800,6 +934,7 @@ export const runQualification = async (
           message: safeError,
         },
         {
+          attemptDirectory,
           packagesRepository: checkpoint.packagesRepository,
           skillRepository: checkpoint.skillRepository,
         },
@@ -814,21 +949,25 @@ export const runQualification = async (
       stageIds,
       status,
       summary: isInterrupted
-        ? 'Qualification was interrupted and can be resumed from its last atomic checkpoint.'
+        ? isApprovalDeclined
+          ? `Qualification paused before paid execution: ${safeError}`
+          : 'Qualification was interrupted and can be resumed from its last atomic checkpoint.'
         : `Qualification stopped with an execution error: ${safeError}`,
     });
     const wasRecorded = !checkpoint.isDryRun && !isInterrupted;
+    let result = finalState.result;
 
     if (wasRecorded) {
-      await recordQualificationResult(
+      result = await recordQualificationResult(
         {
           artifactDirectory: publicDirectory,
           result: finalState.result,
+          sanitizationContext: resultSanitizationContext,
         },
         resultsRoot,
       );
     }
 
-    return { attemptDirectory, result: finalState.result, wasRecorded };
+    return { attemptDirectory, result, wasRecorded };
   }
 };

@@ -1,5 +1,6 @@
 import { spawn, spawnSync } from 'node:child_process';
-import { accessSync, constants, realpathSync } from 'node:fs';
+import { createHash } from 'node:crypto';
+import { accessSync, constants, readFileSync, realpathSync } from 'node:fs';
 import { chmod, copyFile, mkdir, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { basename, delimiter, dirname, join } from 'node:path';
@@ -10,10 +11,15 @@ export const CODEX_EVALUATION_MODEL = 'gpt-5.6-terra';
 export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
 export const CODEX_EVALUATION_REASONING_EFFORT = 'medium';
 
-const DEFAULT_HOST_TIMEOUT_MS = 120_000;
-const DEFAULT_ALLOWED_EGRESS_HOSTS = ['api.openai.com', 'auth.openai.com', 'chatgpt.com'];
+export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS = 120_000;
+export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS = [
+  'api.openai.com',
+  'auth.openai.com',
+  'chatgpt.com',
+];
 const EGRESS_PROXY_PATH = fileURLToPath(new URL('./proxy.mjs', import.meta.url));
 const EGRESS_PROXY_PORT = 3128;
+const MAX_HOST_OUTPUT_BYTES = 16 * 1024 * 1024;
 const NODE_EXECUTABLE_PATH = realpathSync(process.execPath);
 const REQUIRED_CODEX_FLAGS = [
   '--ephemeral',
@@ -290,8 +296,7 @@ export const prepareCodexEvaluationHome = async (sandboxHome) => {
     [
       '#!/opt/node',
       'const argumentsList = process.argv.slice(2);',
-      "if (argumentsList.length === 1 && " +
-        "['--version', '-v'].includes(argumentsList[0])) {",
+      "if (argumentsList.length === 1 && ['--version', '-v'].includes(argumentsList[0])) {",
       `  process.stdout.write('${CODEX_EVALUATION_NPM_VERSION}\\n');`,
       '} else {',
       "  process.stderr.write('The evaluation npm probe supports only version checks.\\n');",
@@ -307,7 +312,7 @@ export const prepareCodexEvaluationHome = async (sandboxHome) => {
 /** Returns the configured bounded host timeout. */
 const getHostTimeoutMs = () => {
   const configuredTimeout = process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
-  if (!configuredTimeout) return DEFAULT_HOST_TIMEOUT_MS;
+  if (!configuredTimeout) return CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS;
 
   const timeoutMs = Number(configuredTimeout);
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
@@ -318,7 +323,7 @@ const getHostTimeoutMs = () => {
 
 /** Returns exact public HTTPS hosts exposed through the restricted relay. */
 const getAllowedEgressHosts = () => {
-  const hosts = new Set(DEFAULT_ALLOWED_EGRESS_HOSTS);
+  const hosts = new Set(CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS);
   const configuredHosts = process.env.MOLDEA_EVAL_ALLOWED_HOSTS;
   for (const host of configuredHosts?.split(',') ?? []) {
     const normalizedHost = host.trim().toLowerCase();
@@ -330,6 +335,21 @@ const getAllowedEgressHosts = () => {
   return [...hosts].sort();
 };
 
+/** Returns the resolved non-secret configuration that affects host execution. */
+export const identifyCodexEvaluationHostConfiguration = () => ({
+  allowedEgressHosts: getAllowedEgressHosts(),
+  hostTimeoutMs: getHostTimeoutMs(),
+  modelEndpoint: process.env.OPENAI_BASE_URL
+    ? {
+        origin: new URL(process.env.OPENAI_BASE_URL).origin,
+        sha256: createHash('sha256').update(process.env.OPENAI_BASE_URL).digest('hex'),
+      }
+    : null,
+  sslCertificateFileSha256: process.env.SSL_CERT_FILE
+    ? createHash('sha256').update(readFileSync(process.env.SSL_CERT_FILE)).digest('hex')
+    : null,
+});
+
 /**
  * Builds the isolated Bubblewrap invocation for one disposable repository.
  * @param options The host command, mounts, runtime paths, and disposable directories.
@@ -340,12 +360,16 @@ export const buildCodexEvaluationBwrapArguments = ({
   cwd,
   hostCompanionExecutable,
   hostExecutable,
+  includeWorkspaceBinaryDirectory = false,
   nodeExecutable = NODE_EXECUTABLE_PATH,
   readOnlyMounts = [],
   sandboxHome,
+  statusFileDescriptor,
+  workspaceAccess = 'read-write',
 }) => [
   '--die-with-parent',
   '--new-session',
+  ...(statusFileDescriptor === undefined ? [] : ['--json-status-fd', String(statusFileDescriptor)]),
   '--unshare-pid',
   '--unshare-ipc',
   '--unshare-uts',
@@ -411,7 +435,7 @@ export const buildCodexEvaluationBwrapArguments = ({
   '--bind',
   sandboxHome,
   '/home/evaluator',
-  '--bind',
+  workspaceAccess === 'read-only' ? '--ro-bind' : '--bind',
   cwd,
   '/mnt',
   ...readOnlyMounts.flatMap(({ source, target }) => ['--dir', target, '--ro-bind', source, target]),
@@ -435,7 +459,9 @@ export const buildCodexEvaluationBwrapArguments = ({
   'C.UTF-8',
   '--setenv',
   'PATH',
-  '/home/evaluator/bin:/opt:/usr/bin:/bin',
+  includeWorkspaceBinaryDirectory
+    ? '/mnt/node_modules/.bin:/home/evaluator/bin:/opt:/usr/bin:/bin'
+    : '/home/evaluator/bin:/opt:/usr/bin:/bin',
   '--setenv',
   'TMPDIR',
   '/tmp',
@@ -478,6 +504,114 @@ export const buildCodexEvaluationBwrapArguments = ({
   ...command.slice(1),
 ];
 
+/** Runs Bubblewrap with cancellation, bounded output, and timeout enforcement. */
+const runBubblewrapProcess = ({ argumentsList, prompt, signal, timeoutMs }) =>
+  new Promise((resolvePromise, rejectPromise) => {
+    const sandboxProcess = spawn('bwrap', argumentsList, {
+      stdio: ['pipe', 'pipe', 'pipe', 'pipe'],
+    });
+    const stdoutChunks = [];
+    const stderrChunks = [];
+    let outputBytes = 0;
+    let pendingError = null;
+    let hasSettled = false;
+    let sandboxChildPid = null;
+    let statusOutput = '';
+
+    const killSandbox = () => {
+      if (sandboxChildPid !== null) {
+        try {
+          process.kill(sandboxChildPid, 'SIGKILL');
+        } catch {
+          // the child may already have exited between status and cancellation
+        }
+      }
+      sandboxProcess.kill('SIGKILL');
+    };
+
+    const timeout = setTimeout(() => {
+      pendingError = new Error(`Evaluation host exceeded ${timeoutMs} milliseconds.`);
+      killSandbox();
+    }, timeoutMs);
+
+    const abortProcess = () => {
+      pendingError = new Error('Evaluation host execution was aborted.');
+      killSandbox();
+    };
+
+    const settle = (operation) => {
+      if (hasSettled) return;
+      hasSettled = true;
+      clearTimeout(timeout);
+      signal?.removeEventListener('abort', abortProcess);
+      operation();
+    };
+
+    const captureChunk = (chunks, chunk) => {
+      if (pendingError !== null) return;
+
+      if (outputBytes + chunk.byteLength > MAX_HOST_OUTPUT_BYTES) {
+        pendingError = new Error(
+          `Evaluation host output exceeded ${MAX_HOST_OUTPUT_BYTES} bytes and was stopped.`,
+        );
+        killSandbox();
+        return;
+      }
+      outputBytes += chunk.byteLength;
+      chunks.push(chunk);
+    };
+
+    sandboxProcess.stdout.on('data', (chunk) => captureChunk(stdoutChunks, chunk));
+    sandboxProcess.stderr.on('data', (chunk) => captureChunk(stderrChunks, chunk));
+    sandboxProcess.stdin.on('error', () => {
+      // process close owns the actionable exit status and captured diagnostic output
+    });
+    sandboxProcess.stdio[3].setEncoding('utf8');
+    sandboxProcess.stdio[3].on('data', (chunk) => {
+      statusOutput += chunk;
+      for (const statusLine of statusOutput.split('\n')) {
+        if (statusLine.trim() === '') continue;
+        try {
+          const status = JSON.parse(statusLine);
+          if (Number.isSafeInteger(status['child-pid']) && status['child-pid'] > 0) {
+            sandboxChildPid = status['child-pid'];
+            if (pendingError !== null) killSandbox();
+          }
+        } catch {
+          // wait for the remainder of a potentially partial status document
+        }
+      }
+    });
+    sandboxProcess.once('error', (error) => settle(() => rejectPromise(error)));
+    sandboxProcess.once('close', (status) => {
+      settle(() => {
+        if (pendingError !== null) {
+          rejectPromise(pendingError);
+          return;
+        }
+
+        const stdout = Buffer.concat(stdoutChunks).toString('utf8');
+        const stderr = Buffer.concat(stderrChunks).toString('utf8');
+        if (status !== 0) {
+          rejectPromise(
+            new Error(`Evaluation host failed with exit code ${status}: ${stderr.trim()}`),
+          );
+          return;
+        }
+
+        resolvePromise(stdout.trim());
+      });
+    });
+
+    if (signal?.aborted === true) {
+      abortProcess();
+    } else {
+      signal?.addEventListener('abort', abortProcess, { once: true });
+    }
+
+    sandboxProcess.stdin.end(prompt, 'utf8');
+  });
+
 /** Waits until the restricted egress relay is listening. */
 const waitForProxyReady = (proxyProcess) =>
   new Promise((resolvePromise, rejectPromise) => {
@@ -517,16 +651,23 @@ const waitForProxyReady = (proxyProcess) =>
 export const runCodexEvaluationHost = async ({
   command,
   cwd,
+  includeWorkspaceBinaryDirectory = false,
   prompt,
   readOnlyMounts = [],
   sandboxHome,
+  signal,
+  workspaceAccess = 'read-write',
 }) => {
   validateCodexEvaluationHostCommand(command);
+  if (!['read-only', 'read-write'].includes(workspaceAccess)) {
+    throw new Error(`Unsupported evaluation workspace access: ${workspaceAccess}`);
+  }
   const hostExecutable = resolveExecutablePath(command[0]);
   const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);
+  const hostConfiguration = identifyCodexEvaluationHostConfiguration();
   const proxyProcess = spawn(process.execPath, [EGRESS_PROXY_PATH], {
     env: {
-      MOLDEA_EVAL_ALLOWED_HOSTS: getAllowedEgressHosts().join(','),
+      MOLDEA_EVAL_ALLOWED_HOSTS: hostConfiguration.allowedEgressHosts.join(','),
       MOLDEA_EVAL_PROXY_SOCKET: join(sandboxHome, 'egress-proxy.sock'),
     },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -534,40 +675,23 @@ export const runCodexEvaluationHost = async ({
 
   try {
     await waitForProxyReady(proxyProcess);
-    const timeoutMs = getHostTimeoutMs();
-    const result = spawnSync(
-      'bwrap',
-      buildCodexEvaluationBwrapArguments({
+    return await runBubblewrapProcess({
+      argumentsList: buildCodexEvaluationBwrapArguments({
         command,
         cwd,
         hostCompanionExecutable,
         hostExecutable,
+        includeWorkspaceBinaryDirectory,
         nodeExecutable: NODE_EXECUTABLE_PATH,
         readOnlyMounts,
         sandboxHome,
+        statusFileDescriptor: 3,
+        workspaceAccess,
       }),
-      {
-        encoding: 'utf8',
-        input: prompt,
-        killSignal: 'SIGKILL',
-        maxBuffer: 16 * 1024 * 1024,
-        timeout: timeoutMs,
-      },
-    );
-
-    if (result.error) {
-      if ('code' in result.error && result.error.code === 'ETIMEDOUT') {
-        throw new Error(`Evaluation host exceeded ${timeoutMs} milliseconds.`);
-      }
-      throw result.error;
-    }
-    if (result.status !== 0) {
-      throw new Error(
-        `Evaluation host failed with exit code ${result.status}: ${result.stderr.trim()}`,
-      );
-    }
-
-    return result.stdout.trim();
+      prompt,
+      signal,
+      timeoutMs: hostConfiguration.hostTimeoutMs,
+    });
   } finally {
     proxyProcess.kill('SIGTERM');
   }

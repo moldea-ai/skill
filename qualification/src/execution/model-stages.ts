@@ -19,8 +19,10 @@ import {
   type IDeterministicVerification,
   type IJudgeOutput,
   type IModelUsage,
+  type IQualificationExecutionEnvironment,
   type IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
+import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import {
   calculateDirectoryFingerprint,
   readJsonFile,
@@ -29,7 +31,7 @@ import {
 } from '../filesystem/index.ts';
 import {
   applyExpectedDryRunState,
-  assertCandidateProjectRuntimeIntegrity,
+  assertQualificationProjectInputIntegrity,
   captureQualificationProjectSnapshot,
   MOUNTED_SKILL_RELATIVE_PATH,
   QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,
@@ -38,8 +40,8 @@ import {
 } from '../project-fixture/index.ts';
 import { buildActorPrompt, buildJudgePrompt } from '../prompts/index.ts';
 import { sanitizeEvidenceText, sanitizeEvidenceValue } from '../result/index.ts';
-import { createCodexEnvironment } from '../sandbox/index.ts';
 import { validateJudgeOutput } from './validations.ts';
+import { prepareJudgeWorkspace } from './workspaces.ts';
 
 const ModelStageEvidenceSchema = z.strictObject({
   role: z.enum(['actor', 'judge']),
@@ -65,10 +67,12 @@ export type IJudgeStageResult = {
 
 type ISharedModelStageOptions = {
   adapterId: string;
+  approvePaidExecution: () => Promise<void>;
   attemptId: string;
+  attemptDirectory: string;
   candidate: ICandidateClosure;
   caseArtifactDirectory: string;
-  codexVersion: string;
+  executionEnvironment: IQualificationExecutionEnvironment;
   host: ICodexHost;
   implementationId: string;
   isDryRun: boolean;
@@ -81,6 +85,7 @@ type ISharedModelStageOptions = {
   skillRepository: string;
   task: string;
   useCache: boolean;
+  verifyExecutionInputs: () => Promise<void>;
 };
 
 const getProjectFingerprint = (project: IPreparedQualificationProject): Promise<string> =>
@@ -98,6 +103,7 @@ const writeModelArtifacts = async <TOutput>(options: {
   role: 'actor' | 'judge';
 }): Promise<void> => {
   const sanitizationContext = {
+    attemptDirectory: options.context.attemptDirectory,
     packagesRepository: options.context.packagesRepository,
     skillRepository: options.context.skillRepository,
     workspaceDirectory: options.context.project.workspaceDirectory,
@@ -118,7 +124,11 @@ const writeModelArtifacts = async <TOutput>(options: {
     ),
     writeTextFileAtomically(
       path.join(options.context.caseArtifactDirectory, `${options.role}-prompt.md`),
-      `${options.prompt.trim()}\n`,
+      `${sanitizeEvidenceText(options.prompt, sanitizationContext).trim()}\n`,
+    ),
+    writeJsonFileAtomically(
+      path.join(options.context.caseArtifactDirectory, `${options.role}-output.schema.json`),
+      z.toJSONSchema(options.role === 'actor' ? ActorOutputSchema : JudgeOutputSchema),
     ),
   ]);
 };
@@ -127,14 +137,17 @@ const writeModelArtifacts = async <TOutput>(options: {
 export const executeActorModelStage = async (
   options: ISharedModelStageOptions & { snapshotDirectory: string },
 ): Promise<IActorStageResult> => {
+  if (!options.isDryRun) {
+    await options.verifyExecutionInputs();
+  }
+
   const prompt = buildActorPrompt({
     task: options.task,
   });
   const cacheKey = calculateModelCacheKey({
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     role: 'actor',
-    model: 'gpt-5.6-terra',
-    reasoningEffort: 'medium',
-    codexVersion: options.codexVersion,
+    executionEnvironment: options.executionEnvironment,
     candidateFingerprint: options.candidate.fingerprint,
     profileDigest: options.profileDigest,
     qualificationDigest: options.qualificationDigest,
@@ -166,18 +179,23 @@ export const executeActorModelStage = async (
   } else {
     if (options.isDryRun) {
       await applyExpectedDryRunState(options.project);
+    } else {
+      await options.approvePaidExecution();
     }
 
     const execution = await options.host.runActor({
-      artifactDirectory: options.caseArtifactDirectory,
       caseId: options.project.scenario.id,
-      environment: createCodexEnvironment(options.project.workspaceDirectory),
       prompt,
       scenario: options.project.scenario,
       schema: ActorOutputSchema,
       signal: options.signal,
       workspaceDirectory: options.project.workspaceDirectory,
     });
+
+    if (!options.isDryRun) {
+      await options.verifyExecutionInputs();
+    }
+
     output = execution.output;
     usage = execution.usage;
     durationMs = execution.durationMs;
@@ -187,7 +205,7 @@ export const executeActorModelStage = async (
     cacheSourceAttemptId = null;
   }
 
-  await assertCandidateProjectRuntimeIntegrity(options.project);
+  await assertQualificationProjectInputIntegrity(options.project);
 
   if (cacheHit === null && options.useCache && !options.isDryRun) {
     await writeActorCache({
@@ -224,7 +242,7 @@ export const restoreActorModelStage = async (options: {
   snapshotDirectory: string;
 }): Promise<IActorStageResult> => {
   await restoreQualificationProjectSnapshot(options.project, options.snapshotDirectory);
-  await assertCandidateProjectRuntimeIntegrity(options.project);
+  await assertQualificationProjectInputIntegrity(options.project);
   const output = await readJsonFile(
     path.join(options.caseArtifactDirectory, 'actor-output.json'),
     ActorOutputSchema,
@@ -247,9 +265,14 @@ export const executeJudgeModelStage = async (
   options: ISharedModelStageOptions & {
     actorOutput: IActorOutput;
     deterministicAfter: IDeterministicVerification;
+    judgeWorkspaceDirectory: string;
     workspaceAssertions: IWorkspaceAssertionResult;
   },
 ): Promise<IJudgeStageResult> => {
+  if (!options.isDryRun) {
+    await options.verifyExecutionInputs();
+  }
+
   const prompt = buildJudgePrompt({
     actorOutput: options.actorOutput,
     adapterId: options.adapterId,
@@ -260,10 +283,9 @@ export const executeJudgeModelStage = async (
     workspaceAssertions: options.workspaceAssertions,
   });
   const cacheKey = calculateModelCacheKey({
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     role: 'judge',
-    model: 'gpt-5.6-terra',
-    reasoningEffort: 'medium',
-    codexVersion: options.codexVersion,
+    executionEnvironment: options.executionEnvironment,
     candidateFingerprint: options.candidate.fingerprint,
     profileDigest: options.profileDigest,
     qualificationDigest: options.qualificationDigest,
@@ -290,16 +312,35 @@ export const executeJudgeModelStage = async (
     sourceAttemptId = cacheHit.metadata.sourceAttemptId;
     cacheSourceAttemptId = cacheHit.metadata.sourceAttemptId;
   } else {
+    const judgeWorkspaceFingerprint = await prepareJudgeWorkspace(
+      options.project.workspaceDirectory,
+      options.judgeWorkspaceDirectory,
+    );
+
+    if (!options.isDryRun) {
+      await options.approvePaidExecution();
+    }
+
     const execution = await options.host.runJudge({
-      artifactDirectory: options.caseArtifactDirectory,
       caseId: options.project.scenario.id,
-      environment: createCodexEnvironment(options.project.workspaceDirectory),
       prompt,
       scenario: options.project.scenario,
       schema: JudgeOutputSchema,
       signal: options.signal,
-      workspaceDirectory: options.project.workspaceDirectory,
+      workspaceDirectory: options.judgeWorkspaceDirectory,
     });
+
+    if (!options.isDryRun) {
+      await options.verifyExecutionInputs();
+    }
+
+    const postJudgeWorkspaceFingerprint = await calculateDirectoryFingerprint(
+      options.judgeWorkspaceDirectory,
+    );
+
+    if (postJudgeWorkspaceFingerprint !== judgeWorkspaceFingerprint) {
+      throw new Error('The read-only judge modified its independent workspace.');
+    }
     output = validateJudgeOutput(options.project.scenario, execution.output);
     usage = execution.usage;
     durationMs = execution.durationMs;

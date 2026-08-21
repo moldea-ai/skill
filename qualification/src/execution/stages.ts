@@ -4,6 +4,9 @@ import {
 } from '../contracts/index.ts';
 import { writeAttemptCheckpoint } from '../checkpoint/index.ts';
 
+/** Returns one actor and one judge call for every selected profile case. */
+export const getQualificationModelCallCount = (caseCount: number): number => caseCount * 2;
+
 const updateCheckpointStage = (
   checkpoint: IQualificationAttemptCheckpoint,
   stageId: string,

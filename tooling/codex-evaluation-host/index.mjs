@@ -1,5 +1,7 @@
 // constants
 export {
+  CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS,
+  CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
   CODEX_EVALUATION_MODEL,
   CODEX_EVALUATION_NPM_VERSION,
   CODEX_EVALUATION_REASONING_EFFORT,
@@ -10,6 +12,7 @@ export {
   buildCodexEvaluationBwrapArguments,
   buildCodexEvaluationHostCommand,
   identifyCodexEvaluationHost,
+  identifyCodexEvaluationHostConfiguration,
   identifyConfiguredModel,
   identifyConfiguredReasoningEffort,
   parseCodexEvaluationHostCommand,

@@ -1,30 +1,29 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
-import { createCodexExecArgs } from './utilities.ts';
+import { createCodexExecCommand } from './utilities.ts';
 
-describe('createCodexExecArgs', () => {
-  test.each([
-    ['actor', 'workspace-write'],
-    ['judge', 'read-only'],
-  ] as const)('creates the fixed %s host contract', (_role, sandbox) => {
-    const args = createCodexExecArgs({
-      outputPath: '/attempt/output.json',
-      sandbox,
-      schemaPath: '/attempt/schema.json',
-      workspaceDirectory: '/attempt/workspace',
+describe('createCodexExecCommand', () => {
+  test('creates the shared externally sandboxed fixed-Terra contract', () => {
+    const command = createCodexExecCommand({
+      outputPath: '/home/evaluator/output.json',
+      schemaPath: '/home/evaluator/schema.json',
     });
 
-    expect(args).toContain('gpt-5.6-terra');
-    expect(args).toContain('model_reasoning_effort="medium"');
-    expect(args).toContain('approval_policy="never"');
-    expect(args).toContain('web_search="disabled"');
-    expect(args).toContain('--ephemeral');
-    expect(args).toContain('--ignore-user-config');
-    expect(args).toContain('--ignore-rules');
-    expect(args).toContain('--output-schema');
-    expect(args).toContain('--output-last-message');
-    expect(args.slice(-1)).toStrictEqual(['-']);
-    expect(args[args.indexOf('--sandbox') + 1]).toBe(sandbox);
+    expect(command.slice(0, 2)).toStrictEqual(['codex', 'exec']);
+    expect(command).toContain('gpt-5.6-terra');
+    expect(command).toContain('model_reasoning_effort=medium');
+    expect(command).toContain('shell_environment_policy.inherit=none');
+    expect(command).toContain('web_search=disabled');
+    expect(command).toContain('--dangerously-bypass-approvals-and-sandbox');
+    expect(command).toContain('--skip-git-repo-check');
+    expect(command).toContain('--ephemeral');
+    expect(command).toContain('--ignore-user-config');
+    expect(command).toContain('--ignore-rules');
+    expect(command).toContain('--output-schema');
+    expect(command).toContain('--output-last-message');
+    expect(command).not.toContain('--sandbox');
+    expect(command).not.toContain('--cd');
+    expect(command.slice(-1)).toStrictEqual(['-']);
   });
 });

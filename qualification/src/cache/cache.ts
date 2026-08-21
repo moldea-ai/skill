@@ -1,8 +1,12 @@
-import { readFile, rm, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 
-import { LOCAL_QUALIFICATION_ROOT, QUALIFICATION_PROTOCOL_VERSION } from '../constants/index.ts';
+import {
+  LOCAL_QUALIFICATION_ROOT,
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+} from '../constants/index.ts';
 import {
   ActorOutputSchema,
   JudgeOutputSchema,
@@ -11,6 +15,8 @@ import {
 } from '../contracts/index.ts';
 import {
   calculateSha256,
+  calculateDirectoryFingerprint,
+  calculateFileSha256,
   ensureDirectory,
   readJsonFile,
   writeJsonFileAtomically,
@@ -22,18 +28,24 @@ import {
 import type { IActorCacheHit, IJudgeCacheHit, IModelCacheMetadata } from './types.ts';
 
 const ModelCacheMetadataSchema = z.strictObject({
-  protocolVersion: z.literal(QUALIFICATION_PROTOCOL_VERSION),
+  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   cacheKey: z.string().regex(/^[a-f0-9]{64}$/u),
   role: z.enum(['actor', 'judge']),
   sourceAttemptId: z.string().min(1),
   createdAt: z.string().datetime(),
   durationMs: z.number().int().nonnegative(),
+  eventsSha256: z.string().regex(/^[a-f0-9]{64}$/u),
+  outputSha256: z.string().regex(/^[a-f0-9]{64}$/u),
   usage: z
     .strictObject({
       inputTokens: z.number().int().nonnegative(),
       cachedInputTokens: z.number().int().nonnegative(),
       outputTokens: z.number().int().nonnegative(),
     })
+    .nullable(),
+  workspaceFingerprint: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/u)
     .nullable(),
 });
 
@@ -70,6 +82,18 @@ const getDefaultCacheRoot = (): string => path.join(LOCAL_QUALIFICATION_ROOT, 'c
 const getCacheDirectory = (cacheRoot: string, cacheKey: string): string =>
   path.join(cacheRoot, cacheKey);
 
+const createCacheStagingDirectory = (cacheRoot: string, cacheKey: string): string =>
+  path.join(cacheRoot, `.${cacheKey}.${process.pid}.${randomUUID()}.tmp`);
+
+/** Commits one fully written cache entry without exposing partial files as a hit. */
+const commitCacheDirectory = async (
+  stagingDirectory: string,
+  cacheDirectory: string,
+): Promise<void> => {
+  await rm(cacheDirectory, { force: true, recursive: true });
+  await rename(stagingDirectory, cacheDirectory);
+};
+
 /** Calculates an exact, order-stable cache key from JSON-compatible stage inputs. */
 export const calculateModelCacheKey = (input: unknown): string =>
   calculateSha256(`${JSON.stringify(canonicalize(input))}\n`);
@@ -101,18 +125,36 @@ export const readActorCache = async (
     return null;
   }
 
+  let output: IActorOutput;
+  let events: string;
+  let workspaceSnapshotDirectory: string;
+
   try {
     const cacheDirectory = getCacheDirectory(cacheRoot, cacheKey);
-    const output = await readJsonFile(path.join(cacheDirectory, 'output.json'), ActorOutputSchema);
-    const events = await readFile(path.join(cacheDirectory, 'events.jsonl'), 'utf8');
-    await restoreQualificationWorkspaceSnapshot(
-      workspaceDirectory,
-      path.join(cacheDirectory, 'workspace'),
-    );
-    return { metadata: { ...metadata, role: 'actor' }, output, events };
+    const outputPath = path.join(cacheDirectory, 'output.json');
+    const eventsPath = path.join(cacheDirectory, 'events.jsonl');
+    workspaceSnapshotDirectory = path.join(cacheDirectory, 'workspace');
+    output = await readJsonFile(outputPath, ActorOutputSchema);
+    events = await readFile(eventsPath, 'utf8');
+    const [outputSha256, eventsSha256, workspaceFingerprint] = await Promise.all([
+      calculateFileSha256(outputPath),
+      calculateFileSha256(eventsPath),
+      calculateDirectoryFingerprint(workspaceSnapshotDirectory),
+    ]);
+
+    if (
+      metadata.outputSha256 !== outputSha256 ||
+      metadata.eventsSha256 !== eventsSha256 ||
+      metadata.workspaceFingerprint !== workspaceFingerprint
+    ) {
+      return null;
+    }
   } catch {
     return null;
   }
+
+  await restoreQualificationWorkspaceSnapshot(workspaceDirectory, workspaceSnapshotDirectory);
+  return { metadata: { ...metadata, role: 'actor' }, output, events };
 };
 
 /** Persists a successful actor output and exact project snapshot under an immutable cache key. */
@@ -130,23 +172,43 @@ export const writeActorCache = async (options: {
     options.cacheRoot ?? getDefaultCacheRoot(),
     options.cacheKey,
   );
-  await rm(cacheDirectory, { force: true, recursive: true });
-  await ensureDirectory(cacheDirectory);
-  await writeJsonFileAtomically(path.join(cacheDirectory, 'output.json'), options.output);
-  await writeFile(path.join(cacheDirectory, 'events.jsonl'), options.events, 'utf8');
-  await captureQualificationWorkspaceSnapshot(
-    options.workspaceDirectory,
-    path.join(cacheDirectory, 'workspace'),
-  );
-  await writeJsonFileAtomically(path.join(cacheDirectory, 'metadata.json'), {
-    protocolVersion: QUALIFICATION_PROTOCOL_VERSION,
-    cacheKey: options.cacheKey,
-    role: 'actor',
-    sourceAttemptId: options.sourceAttemptId,
-    createdAt: new Date().toISOString(),
-    durationMs: options.durationMs,
-    usage: options.usage,
-  });
+  const cacheRoot = path.dirname(cacheDirectory);
+  const stagingDirectory = createCacheStagingDirectory(cacheRoot, options.cacheKey);
+  await ensureDirectory(cacheRoot);
+  await rm(stagingDirectory, { force: true, recursive: true });
+
+  try {
+    await ensureDirectory(stagingDirectory);
+    const outputPath = path.join(stagingDirectory, 'output.json');
+    const eventsPath = path.join(stagingDirectory, 'events.jsonl');
+    const workspaceSnapshotDirectory = path.join(stagingDirectory, 'workspace');
+    await writeJsonFileAtomically(outputPath, options.output);
+    await writeFile(eventsPath, options.events, 'utf8');
+    await captureQualificationWorkspaceSnapshot(
+      options.workspaceDirectory,
+      workspaceSnapshotDirectory,
+    );
+    const [outputSha256, eventsSha256, workspaceFingerprint] = await Promise.all([
+      calculateFileSha256(outputPath),
+      calculateFileSha256(eventsPath),
+      calculateDirectoryFingerprint(workspaceSnapshotDirectory),
+    ]);
+    await writeJsonFileAtomically(path.join(stagingDirectory, 'metadata.json'), {
+      protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+      cacheKey: options.cacheKey,
+      role: 'actor',
+      sourceAttemptId: options.sourceAttemptId,
+      createdAt: new Date().toISOString(),
+      durationMs: options.durationMs,
+      eventsSha256,
+      outputSha256,
+      usage: options.usage,
+      workspaceFingerprint,
+    });
+    await commitCacheDirectory(stagingDirectory, cacheDirectory);
+  } finally {
+    await rm(stagingDirectory, { force: true, recursive: true });
+  }
 };
 
 /** Reads one exact cached judge decision without changing its original evidence timestamp. */
@@ -161,14 +223,24 @@ export const readJudgeCache = async (
   }
 
   try {
-    const output = await readJsonFile(
-      path.join(getCacheDirectory(cacheRoot, cacheKey), 'output.json'),
-      JudgeOutputSchema,
-    );
-    const events = await readFile(
-      path.join(getCacheDirectory(cacheRoot, cacheKey), 'events.jsonl'),
-      'utf8',
-    );
+    const cacheDirectory = getCacheDirectory(cacheRoot, cacheKey);
+    const outputPath = path.join(cacheDirectory, 'output.json');
+    const eventsPath = path.join(cacheDirectory, 'events.jsonl');
+    const output = await readJsonFile(outputPath, JudgeOutputSchema);
+    const events = await readFile(eventsPath, 'utf8');
+    const [outputSha256, eventsSha256] = await Promise.all([
+      calculateFileSha256(outputPath),
+      calculateFileSha256(eventsPath),
+    ]);
+
+    if (
+      metadata.outputSha256 !== outputSha256 ||
+      metadata.eventsSha256 !== eventsSha256 ||
+      metadata.workspaceFingerprint !== null
+    ) {
+      return null;
+    }
+
     return { metadata: { ...metadata, role: 'judge' }, output, events };
   } catch {
     return null;
@@ -189,17 +261,35 @@ export const writeJudgeCache = async (options: {
     options.cacheRoot ?? getDefaultCacheRoot(),
     options.cacheKey,
   );
-  await rm(cacheDirectory, { force: true, recursive: true });
-  await ensureDirectory(cacheDirectory);
-  await writeJsonFileAtomically(path.join(cacheDirectory, 'output.json'), options.output);
-  await writeFile(path.join(cacheDirectory, 'events.jsonl'), options.events, 'utf8');
-  await writeJsonFileAtomically(path.join(cacheDirectory, 'metadata.json'), {
-    protocolVersion: QUALIFICATION_PROTOCOL_VERSION,
-    cacheKey: options.cacheKey,
-    role: 'judge',
-    sourceAttemptId: options.sourceAttemptId,
-    createdAt: new Date().toISOString(),
-    durationMs: options.durationMs,
-    usage: options.usage,
-  });
+  const cacheRoot = path.dirname(cacheDirectory);
+  const stagingDirectory = createCacheStagingDirectory(cacheRoot, options.cacheKey);
+  await ensureDirectory(cacheRoot);
+  await rm(stagingDirectory, { force: true, recursive: true });
+
+  try {
+    await ensureDirectory(stagingDirectory);
+    const outputPath = path.join(stagingDirectory, 'output.json');
+    const eventsPath = path.join(stagingDirectory, 'events.jsonl');
+    await writeJsonFileAtomically(outputPath, options.output);
+    await writeFile(eventsPath, options.events, 'utf8');
+    const [outputSha256, eventsSha256] = await Promise.all([
+      calculateFileSha256(outputPath),
+      calculateFileSha256(eventsPath),
+    ]);
+    await writeJsonFileAtomically(path.join(stagingDirectory, 'metadata.json'), {
+      protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+      cacheKey: options.cacheKey,
+      role: 'judge',
+      sourceAttemptId: options.sourceAttemptId,
+      createdAt: new Date().toISOString(),
+      durationMs: options.durationMs,
+      eventsSha256,
+      outputSha256,
+      usage: options.usage,
+      workspaceFingerprint: null,
+    });
+    await commitCacheDirectory(stagingDirectory, cacheDirectory);
+  } finally {
+    await rm(stagingDirectory, { force: true, recursive: true });
+  }
 };

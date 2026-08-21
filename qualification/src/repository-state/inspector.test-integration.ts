@@ -52,8 +52,21 @@ describe('Git repository state inspection', () => {
       isDirty: false,
       entries: [{ path: 'SKILL.md' }],
     });
+    expect(
+      await inspectGitRepositoryState(temporaryRoot, {
+        includedRelativePathPrefixes: ['moldea'],
+      }),
+    ).toMatchObject({
+      isDirty: false,
+      entries: [{ path: 'moldea/SKILL.md' }],
+    });
 
     await writeFile(skillPath, '# Changed skill\n', 'utf8');
     expect(await inspectGitRepositoryState(skillDirectory)).toMatchObject({ isDirty: true });
+    expect(
+      await inspectGitRepositoryState(temporaryRoot, {
+        includedRelativePathPrefixes: ['moldea'],
+      }),
+    ).toMatchObject({ isDirty: true });
   });
 });

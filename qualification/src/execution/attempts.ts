@@ -7,7 +7,7 @@ import {
   type IQualificationAttemptCheckpoint,
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
-import { readAttemptCheckpoint } from '../checkpoint/index.ts';
+import { readAttemptCheckpoint, writeAttemptCheckpoint } from '../checkpoint/index.ts';
 import { readJsonFile } from '../filesystem/index.ts';
 import { recordQualificationResult } from '../result/index.ts';
 
@@ -53,6 +53,7 @@ export const listLocalAttemptCheckpoints = async (): Promise<IQualificationAttem
 /** Records a previously interrupted attempt's explicit incomplete result draft. */
 export const recordIncompleteAttempt = async (
   attemptId: string,
+  resultsRoot?: string,
 ): Promise<IQualificationAttemptResult> => {
   const attemptDirectory = getLocalAttemptDirectory(attemptId);
   const checkpoint = await readAttemptCheckpoint(attemptDirectory);
@@ -69,9 +70,24 @@ export const recordIncompleteAttempt = async (
     path.join(attemptDirectory, 'result-draft.json'),
     QualificationAttemptResultDraftSchema,
   );
+  const recordedAt = new Date().toISOString();
 
-  return recordQualificationResult({
-    artifactDirectory: path.join(attemptDirectory, 'public'),
-    result,
+  await writeAttemptCheckpoint(attemptDirectory, {
+    ...checkpoint,
+    recordedAt,
   });
+
+  const recordedResult = await recordQualificationResult(
+    {
+      artifactDirectory: path.join(attemptDirectory, 'public'),
+      result,
+      sanitizationContext: {
+        attemptDirectory,
+        packagesRepository: checkpoint.packagesRepository,
+        skillRepository: checkpoint.skillRepository,
+      },
+    },
+    resultsRoot,
+  );
+  return recordedResult;
 };

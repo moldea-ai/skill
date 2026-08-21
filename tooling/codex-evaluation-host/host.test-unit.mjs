@@ -8,6 +8,7 @@ import test from 'node:test';
 import {
   buildCodexEvaluationBwrapArguments,
   buildCodexEvaluationHostCommand,
+  identifyCodexEvaluationHostConfiguration,
   identifyConfiguredModel,
   identifyConfiguredReasoningEffort,
   resolveCodeModeHostPath,
@@ -27,6 +28,49 @@ const BASE_HOST_COMMAND = [
   '-',
 ];
 const SAFE_HOST_COMMAND = buildCodexEvaluationHostCommand(BASE_HOST_COMMAND);
+
+test('host configuration resolves every non-secret execution setting', () => {
+  const originalAllowedHosts = process.env.MOLDEA_EVAL_ALLOWED_HOSTS;
+  const originalBaseUrl = process.env.OPENAI_BASE_URL;
+  const originalSslCertificateFile = process.env.SSL_CERT_FILE;
+  const originalTimeout = process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
+  const temporaryDirectory = mkdtempSync(join(tmpdir(), 'moldea-host-configuration-'));
+  const certificateFile = join(temporaryDirectory, 'certificate.pem');
+
+  try {
+    writeFileSync(certificateFile, 'fixture certificate\n', 'utf8');
+    process.env.MOLDEA_EVAL_ALLOWED_HOSTS = 'registry.example.com,api.openai.com';
+    process.env.OPENAI_BASE_URL = 'https://gateway.example.com/v1';
+    process.env.SSL_CERT_FILE = certificateFile;
+    process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS = '240000';
+
+    assert.deepEqual(identifyCodexEvaluationHostConfiguration(), {
+      allowedEgressHosts: [
+        'api.openai.com',
+        'auth.openai.com',
+        'chatgpt.com',
+        'gateway.example.com',
+        'registry.example.com',
+      ],
+      hostTimeoutMs: 240_000,
+      modelEndpoint: {
+        origin: 'https://gateway.example.com',
+        sha256: '2467c53b1babc443bf5bd26d6e2bf571499a5e6324bae883d466c67157b51c25',
+      },
+      sslCertificateFileSha256: 'abffccc2e499fcbd8f543b252e1e7a008c00d333648e38d7d18ea0dad19c2884',
+    });
+  } finally {
+    if (originalAllowedHosts === undefined) delete process.env.MOLDEA_EVAL_ALLOWED_HOSTS;
+    else process.env.MOLDEA_EVAL_ALLOWED_HOSTS = originalAllowedHosts;
+    if (originalBaseUrl === undefined) delete process.env.OPENAI_BASE_URL;
+    else process.env.OPENAI_BASE_URL = originalBaseUrl;
+    if (originalSslCertificateFile === undefined) delete process.env.SSL_CERT_FILE;
+    else process.env.SSL_CERT_FILE = originalSslCertificateFile;
+    if (originalTimeout === undefined) delete process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
+    else process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS = originalTimeout;
+    rmSync(temporaryDirectory, { force: true, recursive: true });
+  }
+});
 
 test('host commands use the runner-owned model and reasoning effort', () => {
   assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-5.6-terra');
@@ -108,9 +152,7 @@ test('sandbox uses an empty root, isolated network, and restricted relay', () =>
     argumentsList.some((part) => part.includes('TCP-LISTEN:3128,bind=127.0.0.1,reuseaddr,fork')),
   );
   assert.ok(
-    argumentsList.some((part) =>
-      part.includes('UNIX-CONNECT:/home/evaluator/egress-proxy.sock'),
-    ),
+    argumentsList.some((part) => part.includes('UNIX-CONNECT:/home/evaluator/egress-proxy.sock')),
   );
   assert.equal(
     argumentsList.some((part, index) => part === '--ro-bind' && argumentsList[index + 1] === '/'),
@@ -163,6 +205,35 @@ test('sandbox mounts related repositories read-only', () => {
   );
 });
 
+test('sandbox can expose the project-local binary directory and mount the workspace read-only', () => {
+  const argumentsList = buildCodexEvaluationBwrapArguments({
+    command: SAFE_HOST_COMMAND,
+    cwd: '/tmp/evaluation',
+    hostExecutable: '/usr/bin/codex',
+    includeWorkspaceBinaryDirectory: true,
+    sandboxHome: '/tmp/evaluation-home',
+    workspaceAccess: 'read-only',
+  });
+
+  assert.ok(
+    argumentsList.includes('/mnt/node_modules/.bin:/home/evaluator/bin:/opt:/usr/bin:/bin'),
+  );
+  assert.ok(
+    argumentsList.some(
+      (part, index) =>
+        part === '--ro-bind' &&
+        argumentsList[index + 1] === '/tmp/evaluation' &&
+        argumentsList[index + 2] === '/mnt',
+    ),
+  );
+  assert.equal(
+    argumentsList.some(
+      (part, index) => part === '--bind' && argumentsList[index + 1] === '/tmp/evaluation',
+    ),
+    false,
+  );
+});
+
 test('host command requires externally sandboxed execution mode', () => {
   assert.doesNotThrow(() => validateCodexEvaluationHostCommand(SAFE_HOST_COMMAND));
   assert.throws(
@@ -194,9 +265,7 @@ test('host command rejects missing external-sandbox delegation', () => {
   assert.throws(
     () =>
       validateCodexEvaluationHostCommand(
-        SAFE_HOST_COMMAND.filter(
-          (part) => part !== '--dangerously-bypass-approvals-and-sandbox',
-        ),
+        SAFE_HOST_COMMAND.filter((part) => part !== '--dangerously-bypass-approvals-and-sandbox'),
       ),
     /outer sandbox/,
   );

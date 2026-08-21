@@ -1,7 +1,15 @@
 import path from 'node:path';
 import { z } from 'zod';
 
-import { DEFAULT_PACKAGES_REPOSITORY, QUALIFICATION_PROTOCOL_VERSION } from '../constants/index.ts';
+import {
+  DEFAULT_PACKAGES_REPOSITORY,
+  QUALIFICATION_ALLOWED_EGRESS_HOSTS,
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+  QUALIFICATION_MODEL,
+  QUALIFICATION_MODEL_ENDPOINT_ORIGINS,
+  QUALIFICATION_PROTOCOL_VERSION,
+  QUALIFICATION_REASONING_EFFORT,
+} from '../constants/index.ts';
 
 const StableIdSchema = z
   .string()
@@ -165,6 +173,32 @@ export const ModelUsageSchema = z.strictObject({
 
 export type IModelUsage = z.infer<typeof ModelUsageSchema>;
 
+// exact local execution identity that must remain stable across resume boundaries
+export const QualificationExecutionEnvironmentSchema = z.strictObject({
+  model: z.literal(QUALIFICATION_MODEL),
+  reasoningEffort: z.literal(QUALIFICATION_REASONING_EFFORT),
+  codexVersion: z.string().trim().min(1),
+  nodeVersion: z.string().trim().min(1),
+  pnpmVersion: z.string().trim().min(1),
+  gitVersion: z.string().trim().min(1),
+  allowedEgressHosts: z.array(z.string().trim().min(1)).min(1),
+  hostTimeoutMs: z.number().int().positive(),
+  modelEndpoint: z
+    .strictObject({
+      origin: z.url(),
+      sha256: z.string().regex(/^[a-f0-9]{64}$/u),
+    })
+    .nullable(),
+  sslCertificateFileSha256: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/u)
+    .nullable(),
+});
+
+export type IQualificationExecutionEnvironment = z.infer<
+  typeof QualificationExecutionEnvironmentSchema
+>;
+
 // structured actor completion written through the Codex output-schema boundary
 export const ActorOutputSchema = z.strictObject({
   outcome: z.enum(['blocked', 'completed']).meta({
@@ -258,6 +292,7 @@ export type IWorkspaceAssertionResult = z.infer<typeof WorkspaceAssertionResultS
 export const QualificationSourceStateResultSchema = z.strictObject({
   passed: z.boolean(),
   requiresCleanInputs: z.boolean(),
+  isExecutionHostTrusted: z.boolean(),
   packagesRepositoryDirty: z.boolean(),
   qualificationRepositoryDirty: z.boolean(),
   skillRepositoryDirty: z.boolean(),
@@ -302,7 +337,7 @@ export const QualificationAttemptStatusSchema = z.enum([
 
 // local checkpoint may contain absolute paths and is never committed as public evidence
 export const QualificationAttemptCheckpointSchema = z.strictObject({
-  protocolVersion: z.literal(QUALIFICATION_PROTOCOL_VERSION),
+  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   attemptId: z.string().trim().min(1),
   parentAttemptId: z.string().trim().min(1).nullable(),
   selection: QualificationSelectionSchema,
@@ -312,6 +347,7 @@ export const QualificationAttemptCheckpointSchema = z.strictObject({
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
   completedAt: z.string().datetime().nullable(),
+  recordedAt: z.string().datetime().nullable().default(null),
   packagesRepository: z.string().min(1).default(DEFAULT_PACKAGES_REPOSITORY),
   skillRepository: z.string().min(1),
   profileDigest: z.string().regex(/^[a-f0-9]{64}$/u),
@@ -327,6 +363,7 @@ export const QualificationAttemptCheckpointSchema = z.strictObject({
     .nullable()
     .default(null),
   packagesDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+  executionEnvironment: QualificationExecutionEnvironmentSchema.nullable().default(null),
   candidate: CandidateClosureSchema.nullable(),
   stages: z.record(z.string(), QualificationStageCheckpointSchema),
   workspaceDirectories: z.record(z.string(), z.string()),
@@ -359,12 +396,7 @@ export type IQualificationCaseResult = z.infer<typeof QualificationCaseResultSch
 
 // public provenance is content-addressed and intentionally contains no host-absolute paths
 export const QualificationProvenanceSchema = z.strictObject({
-  model: z.literal('gpt-5.6-terra'),
-  reasoningEffort: z.literal('medium'),
-  codexVersion: z.string().trim().min(1),
-  nodeVersion: z.string().trim().min(1),
-  pnpmVersion: z.string().trim().min(1),
-  gitVersion: z.string().trim().min(1),
+  ...QualificationExecutionEnvironmentSchema.shape,
   packagesRepositoryCommit: z.string().trim().min(1),
   packagesRepositoryFingerprint: z.string().regex(/^[a-f0-9]{64}$/u),
   packagesRepositoryDirty: z.boolean(),
@@ -387,7 +419,7 @@ export type IQualificationProvenance = z.infer<typeof QualificationProvenanceSch
 
 // local result draft shared by dry runs and official result publication
 export const QualificationAttemptResultDraftSchema = z.strictObject({
-  protocolVersion: z.literal(QUALIFICATION_PROTOCOL_VERSION),
+  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   attemptId: z.string().trim().min(1),
   parentAttemptId: z.string().trim().min(1).nullable(),
   selection: QualificationSelectionSchema,
@@ -419,12 +451,34 @@ export const QualificationAttemptResultSchema = QualificationAttemptResultDraftS
         path: ['provenance'],
       });
     }
+
+    const hasTrustedModelEndpoint =
+      result.provenance.modelEndpoint === null ||
+      QUALIFICATION_MODEL_ENDPOINT_ORIGINS.some(
+        (origin) => origin === result.provenance.modelEndpoint?.origin,
+      );
+    const hasRestrictedEgress =
+      JSON.stringify([...result.provenance.allowedEgressHosts].sort()) ===
+      JSON.stringify(QUALIFICATION_ALLOWED_EGRESS_HOSTS);
+
+    if (
+      result.status === 'passed' &&
+      (!hasTrustedModelEndpoint ||
+        !hasRestrictedEgress ||
+        result.provenance.sslCertificateFileSha256 !== null)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Passing qualification evidence requires the trusted execution-host boundary.',
+        path: ['provenance'],
+      });
+    }
   },
 );
 
 // latest always names the newest attempt while preserving the newest passing baseline separately
 export const QualificationLatestResultSchema = z.strictObject({
-  protocolVersion: z.literal(QUALIFICATION_PROTOCOL_VERSION),
+  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   adapterId: StableIdSchema,
   implementationId: StableIdSchema,
   latestAttemptId: z.string().trim().min(1),

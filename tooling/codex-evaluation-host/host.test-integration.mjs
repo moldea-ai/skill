@@ -1,7 +1,7 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { chmodSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -9,7 +9,9 @@ import test from 'node:test';
 
 import {
   buildCodexEvaluationBwrapArguments,
+  buildCodexEvaluationHostCommand,
   prepareCodexEvaluationHome,
+  runCodexEvaluationHost,
 } from './host.mjs';
 
 test('sandbox npm probe reports the fixture version and rejects execution commands', async () => {
@@ -185,6 +187,90 @@ test('Bubblewrap exposes related repositories without write authority', () => {
     );
     assert.equal(result.status, 0, result.stderr);
   } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('Bubblewrap can mount the primary evaluation workspace read-only for judges', () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-read-only-judge-test-'));
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  mkdirSync(repositoryPath);
+  mkdirSync(sandboxHome);
+  writeFileSync(join(repositoryPath, 'marker'), 'judge input');
+
+  const probe = `
+    if printf 'unexpected' > marker 2>/dev/null; then
+      exit 10
+    fi
+    test "$(cat marker)" = "judge input"
+  `;
+
+  try {
+    const result = spawnSync(
+      'bwrap',
+      buildCodexEvaluationBwrapArguments({
+        command: ['codex', '-c', probe],
+        cwd: repositoryPath,
+        hostExecutable: realpathSync('/bin/sh'),
+        nodeExecutable: process.execPath,
+        sandboxHome,
+        workspaceAccess: 'read-only',
+      }),
+      { encoding: 'utf8', timeout: 2_000 },
+    );
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('shared host cancellation stops the outer Bubblewrap execution', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-cancellation-test-'));
+  const executableDirectory = join(evaluationRoot, 'bin');
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  const codexPath = join(executableDirectory, 'codex');
+  const companionPath = join(executableDirectory, 'codex-code-mode-host');
+  mkdirSync(executableDirectory);
+  mkdirSync(repositoryPath);
+  mkdirSync(sandboxHome);
+  writeFileSync(codexPath, '#!/bin/sh\nsleep 10\n');
+  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+  chmodSync(codexPath, 0o755);
+  chmodSync(companionPath, 0o755);
+  await prepareCodexEvaluationHome(sandboxHome);
+  const originalPath = process.env.PATH;
+  process.env.PATH = `${executableDirectory}:${originalPath ?? ''}`;
+  const abortController = new AbortController();
+  const abortTimeout = setTimeout(() => abortController.abort(), 50);
+
+  try {
+    await assert.rejects(
+      runCodexEvaluationHost({
+        command: buildCodexEvaluationHostCommand([
+          'codex',
+          'exec',
+          '--ignore-user-config',
+          '--ignore-rules',
+          '--ephemeral',
+          '--skip-git-repo-check',
+          '--dangerously-bypass-approvals-and-sandbox',
+          '-c',
+          'shell_environment_policy.inherit=none',
+          '-',
+        ]),
+        cwd: repositoryPath,
+        prompt: 'test cancellation',
+        sandboxHome,
+        signal: abortController.signal,
+      }),
+      /execution was aborted/,
+    );
+  } finally {
+    clearTimeout(abortTimeout);
+    if (originalPath === undefined) delete process.env.PATH;
+    else process.env.PATH = originalPath;
     rmSync(evaluationRoot, { force: true, recursive: true });
   }
 });

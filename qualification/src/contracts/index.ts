@@ -24,6 +24,7 @@ export type {
   IDeterministicVerification,
   IJudgeOutput,
   IModelUsage,
+  IQualificationExecutionEnvironment,
   IWorkspaceAssertionResult,
   IWorkspaceFileState,
 } from './types.ts';
@@ -34,6 +35,7 @@ export {
   DeterministicVerificationSchema,
   JudgeOutputSchema,
   ModelUsageSchema,
+  QualificationExecutionEnvironmentSchema,
   WorkspaceAssertionResultSchema,
   WorkspaceFileStateSchema,
 } from './types.ts';

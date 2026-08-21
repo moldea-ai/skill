@@ -1,9 +1,9 @@
 import { CodexCliHost, FakeCodexHost, type ICodexHost } from '../codex-host/index.ts';
 import type { IQualificationCommand } from '../command-line/index.ts';
 import { listQualificationImplementations } from '../compatibility/index.ts';
-import type { IQualificationSelection } from '../contracts/index.ts';
 import {
   getLocalAttemptDirectory,
+  type IQualificationPaidExecutionRequest,
   listLocalAttemptCheckpoints,
   recordIncompleteAttempt,
   runQualification,
@@ -21,33 +21,26 @@ import {
   presentQualificationOutput,
 } from '../presentation/index.ts';
 import { listLatestQualificationResults, verifyQualificationResults } from '../result/index.ts';
-import { getQualificationModelCallCount } from './utilities.ts';
 
-const requirePaidExecutionApproval = async (options: {
-  hasConfirmedPaidExecution: boolean;
-  isJson: boolean;
-  packagesRepository?: string;
-  selection: IQualificationSelection;
-}): Promise<void> => {
-  if (options.hasConfirmedPaidExecution) {
-    return;
-  }
+/** Builds the default-deny callback evaluated only at an uncached paid model boundary. */
+const createPaidExecutionApprovalRequester =
+  (options: {
+    hasConfirmedPaidExecution: boolean;
+    isJson: boolean;
+  }): ((request: IQualificationPaidExecutionRequest) => Promise<boolean>) =>
+  async (request) => {
+    if (options.hasConfirmedPaidExecution) {
+      return true;
+    }
 
-  if (options.isJson || process.stdin.isTTY !== true) {
-    throw new Error(
-      'Paid qualification requires --confirm-paid-execution in JSON or non-interactive mode.',
-    );
-  }
+    if (options.isJson || process.stdin.isTTY !== true) {
+      throw new Error(
+        'Paid qualification requires --confirm-paid-execution in JSON or non-interactive mode.',
+      );
+    }
 
-  const modelCallCount = await getQualificationModelCallCount(
-    options.selection,
-    options.packagesRepository,
-  );
-
-  if (!(await confirmPaidQualificationExecution(modelCallCount))) {
-    throw new Error('Paid qualification was not approved.');
-  }
-};
+    return confirmPaidQualificationExecution(request.modelCallCount);
+  };
 
 const createHost = (isDryRun: boolean): ICodexHost =>
   isDryRun ? new FakeCodexHost() : new CodexCliHost();
@@ -95,7 +88,9 @@ export const executeQualificationCommand = async (
       ]);
       const attempts = command.isAll
         ? allAttempts
-        : allAttempts.filter(({ status }) => status === 'incomplete');
+        : allAttempts.filter(
+            ({ recordedAt, status }) => status === 'incomplete' && recordedAt === null,
+          );
       const status = { attempts, latestResults };
       presentQualificationOutput(status, command.isJson, formatQualificationStatus(status));
       return 0;
@@ -119,10 +114,6 @@ export const executeQualificationCommand = async (
       return 0;
     }
     case 'run': {
-      if (!command.isDryRun) {
-        await requirePaidExecutionApproval({ ...command, selection: command.selection });
-      }
-
       const outcome = await runQualification({
         host: createHost(command.isDryRun),
         selection: command.selection,
@@ -134,6 +125,7 @@ export const executeQualificationCommand = async (
           : { skillRepository: command.skillRepository }),
         isDryRun: command.isDryRun,
         useCache: command.useCache,
+        requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         signal,
       });
       return presentRunOutcome(outcome, command.isJson);
@@ -141,17 +133,10 @@ export const executeQualificationCommand = async (
     case 'resume': {
       const checkpoint = await readAttemptCheckpoint(getLocalAttemptDirectory(command.attemptId));
 
-      if (!checkpoint.isDryRun) {
-        await requirePaidExecutionApproval({
-          ...command,
-          packagesRepository: checkpoint.packagesRepository,
-          selection: checkpoint.selection,
-        });
-      }
-
       const outcome = await runQualification({
         host: createHost(checkpoint.isDryRun),
         resumeAttemptId: checkpoint.attemptId,
+        requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         signal,
       });
       return presentRunOutcome(outcome, command.isJson);
@@ -159,16 +144,11 @@ export const executeQualificationCommand = async (
     case 'retry': {
       const checkpoint = await readAttemptCheckpoint(getLocalAttemptDirectory(command.attemptId));
 
-      if (checkpoint.status === 'running' || checkpoint.status === 'incomplete') {
+      if (
+        checkpoint.status === 'running' ||
+        (checkpoint.status === 'incomplete' && checkpoint.recordedAt === null)
+      ) {
         throw new Error(`Attempt ${checkpoint.attemptId} is resumable and cannot be retried yet.`);
-      }
-
-      if (!checkpoint.isDryRun) {
-        await requirePaidExecutionApproval({
-          ...command,
-          packagesRepository: checkpoint.packagesRepository,
-          selection: checkpoint.selection,
-        });
       }
 
       const outcome = await runQualification({
@@ -179,6 +159,7 @@ export const executeQualificationCommand = async (
         isDryRun: checkpoint.isDryRun,
         useCache: checkpoint.useCache,
         parentAttemptId: checkpoint.attemptId,
+        requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         signal,
       });
       return presentRunOutcome(outcome, command.isJson);

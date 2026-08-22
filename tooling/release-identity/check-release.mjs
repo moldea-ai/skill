@@ -18,7 +18,7 @@ if (unsupportedArgument) {
 } else {
   try {
     const identity = assertReleaseIdentity(repositoryRoot);
-    if (!process.argv.includes('--identity-only')) assertReleaseEvidence(repositoryRoot);
+    if (!process.argv.includes('--identity-only')) await assertReleaseEvidence(repositoryRoot);
     process.stdout.write(
       `Release identity is synchronized for skill ${identity.releaseVersion} and ${identity.cliVersion}.\n`,
     );

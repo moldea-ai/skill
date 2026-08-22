@@ -379,6 +379,12 @@ const breadcrumbs = [
             </dd>
           </div>
           <div>
+            <dt class="text-muted-foreground">Compatibility target digest</dt>
+            <dd class="mt-1 font-mono text-xs break-all">
+              {result.provenance.targetDigest}
+            </dd>
+          </div>
+          <div>
             <dt class="text-muted-foreground">Portable skill fingerprint</dt>
             <dd class="mt-1 font-mono text-xs break-all">
               {result.provenance.skillRepositoryFingerprint}
@@ -421,8 +427,10 @@ const breadcrumbs = [
             </dd>
           </div>
           <div>
-            <dt class="text-muted-foreground">Target maturity at execution</dt>
-            <dd class="mt-1 font-mono">{result.provenance.targetSupportLevel}</dd>
+            <dt class="text-muted-foreground">Custom baseline attempt</dt>
+            <dd class="mt-1 font-mono text-xs break-all">
+              {result.provenance.baselineAttemptId ?? 'Not required'}
+            </dd>
           </div>
         </dl>
       </div>
@@ -434,13 +442,14 @@ const breadcrumbs = [
         role="region"
         aria-label="Scrollable candidate package inventory"
       >
-        <table class="w-full min-w-[58rem] border-collapse text-left text-sm">
+        <table class="w-full min-w-[80rem] border-collapse text-left text-sm">
           <thead class="bg-muted">
             <tr>
               <th class="px-4 py-3 font-semibold">Package</th>
               <th class="px-4 py-3 font-semibold">Version</th>
-              <th class="px-4 py-3 font-semibold">Source project</th>
-              <th class="px-4 py-3 font-semibold">Tarball</th>
+              <th class="px-4 py-3 font-semibold">npm integrity</th>
+              <th class="px-4 py-3 font-semibold">Registry tarball</th>
+              <th class="px-4 py-3 font-semibold">npm SHA-1</th>
               <th class="px-4 py-3 font-semibold">SHA-256</th>
             </tr>
           </thead>
@@ -453,10 +462,24 @@ const breadcrumbs = [
                   </td>
                   <td class="px-4 py-3 align-top font-mono">{candidatePackage.version}</td>
                   <td class="px-4 py-3 align-top">
-                    <code>{candidatePackage.projectDirectory}</code>
+                    <code class="break-all">{candidatePackage.registryIntegrity}</code>
                   </td>
                   <td class="px-4 py-3 align-top">
-                    <code>{candidatePackage.tarballName}</code>
+                    <a
+                      class="inline-flex max-w-xs items-start gap-2 font-medium text-link hover:underline"
+                      href={candidatePackage.registryTarballUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <code class="break-all">{candidatePackage.tarballName}</code>
+                      <ExternalLink
+                        class="mt-0.5 size-3.5 shrink-0"
+                        aria-hidden="true"
+                      />
+                    </a>
+                  </td>
+                  <td class="px-4 py-3 align-top font-mono text-xs break-all">
+                    {candidatePackage.registryShasum}
                   </td>
                   <td class="px-4 py-3 align-top font-mono text-xs break-all">
                     {candidatePackage.sha256}

@@ -13,7 +13,7 @@ import type { ICodexHost } from '../codex-host/index.ts';
 import {
   ActorOutputSchema,
   JudgeOutputSchema,
-  ModelUsageSchema,
+  QualificationModelStageEvidenceSchema,
   type IActorOutput,
   type ICandidateClosure,
   type IDeterministicVerification,
@@ -43,17 +43,7 @@ import { sanitizeEvidenceText, sanitizeEvidenceValue } from '../result/index.ts'
 import { validateJudgeOutput } from './validations.ts';
 import { prepareJudgeWorkspace } from './workspaces.ts';
 
-const ModelStageEvidenceSchema = z.strictObject({
-  role: z.enum(['actor', 'judge']),
-  createdAt: z.string().datetime(),
-  durationMs: z.number().int().nonnegative(),
-  usage: ModelUsageSchema.nullable(),
-  cacheKey: z.string().regex(/^[a-f0-9]{64}$/u),
-  sourceAttemptId: z.string().min(1),
-  cacheSourceAttemptId: z.string().min(1).nullable(),
-});
-
-export type IModelStageEvidence = z.infer<typeof ModelStageEvidenceSchema>;
+export type IModelStageEvidence = z.infer<typeof QualificationModelStageEvidenceSchema>;
 
 export type IActorStageResult = {
   output: IActorOutput;
@@ -82,6 +72,7 @@ type ISharedModelStageOptions = {
   project: IPreparedQualificationProject;
   signal?: AbortSignal | undefined;
   skillDigest: string;
+  targetDigest: string;
   skillRepository: string;
   task: string;
   useCache: boolean;
@@ -152,6 +143,7 @@ export const executeActorModelStage = async (
     profileDigest: options.profileDigest,
     qualificationDigest: options.qualificationDigest,
     skillDigest: options.skillDigest,
+    targetDigest: options.targetDigest,
     caseId: options.project.scenario.id,
     projectFingerprint: await getProjectFingerprint(options.project),
     prompt,
@@ -221,7 +213,7 @@ export const executeActorModelStage = async (
 
   await rm(options.snapshotDirectory, { force: true, recursive: true });
   await captureQualificationProjectSnapshot(options.project, options.snapshotDirectory);
-  const evidence = ModelStageEvidenceSchema.parse({
+  const evidence = QualificationModelStageEvidenceSchema.parse({
     role: 'actor',
     createdAt,
     durationMs,
@@ -247,7 +239,7 @@ export const restoreActorModelStage = async (options: {
     path.join(options.caseArtifactDirectory, 'actor-output.json'),
     ActorOutputSchema,
   );
-  const evidence = ModelStageEvidenceSchema.parse(
+  const evidence = QualificationModelStageEvidenceSchema.parse(
     JSON.parse(
       await readFile(path.join(options.caseArtifactDirectory, 'actor-evidence.json'), 'utf8'),
     ) as unknown,
@@ -290,6 +282,7 @@ export const executeJudgeModelStage = async (
     profileDigest: options.profileDigest,
     qualificationDigest: options.qualificationDigest,
     skillDigest: options.skillDigest,
+    targetDigest: options.targetDigest,
     caseId: options.project.scenario.id,
     projectFingerprint: await getProjectFingerprint(options.project),
     prompt,
@@ -361,7 +354,7 @@ export const executeJudgeModelStage = async (
     }
   }
 
-  const evidence = ModelStageEvidenceSchema.parse({
+  const evidence = QualificationModelStageEvidenceSchema.parse({
     role: 'judge',
     createdAt,
     durationMs,
@@ -386,7 +379,7 @@ export const restoreJudgeModelStage = async (options: {
   );
   const evidence = await readJsonFile(
     path.join(options.caseArtifactDirectory, 'judge-evidence.json'),
-    ModelStageEvidenceSchema,
+    QualificationModelStageEvidenceSchema,
   );
 
   if (evidence.role !== 'judge') {

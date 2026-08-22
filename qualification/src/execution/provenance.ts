@@ -55,16 +55,15 @@ export const createQualificationExecutionProvenance = (options: {
   packagesState: IGitRepositoryState;
   profileDigest: string;
   qualificationDigest: string;
+  targetDigest: string;
   qualificationState: IGitRepositoryState;
   skillState: IGitRepositoryState;
-  targetSupportLevel: string;
 }): IQualificationExecutionProvenance => {
   return {
     ...options.executionEnvironment,
     packagesRepositoryCommit: options.packagesState.commit,
     packagesRepositoryFingerprint: options.packagesState.fingerprint,
     packagesRepositoryDirty: options.packagesState.isDirty,
-    targetSupportLevel: options.targetSupportLevel,
     qualificationRepositoryCommit: options.qualificationState.commit,
     qualificationRepositoryDirty: options.qualificationState.isDirty,
     skillRepositoryCommit: options.skillState.commit,
@@ -72,5 +71,7 @@ export const createQualificationExecutionProvenance = (options: {
     skillRepositoryDirty: options.skillState.isDirty,
     profileDigest: options.profileDigest,
     qualificationDigest: options.qualificationDigest,
+    targetDigest: options.targetDigest,
+    baselineAttemptId: null,
   };
 };

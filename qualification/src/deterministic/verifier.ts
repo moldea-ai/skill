@@ -13,6 +13,7 @@ const DirectVerificationSchema = z.strictObject({
     valid: z.boolean(),
     formatVersion: z.number().int().nullable(),
     diagnosticCodes: z.array(z.string()),
+    evidenceKinds: z.array(z.string()),
     evidenceCount: z.number().int().nonnegative(),
     agentCount: z.number().int().nonnegative(),
   }),
@@ -20,13 +21,15 @@ const DirectVerificationSchema = z.strictObject({
     valid: z.boolean(),
     formatVersion: z.number().int().nullable(),
     diagnosticCodes: z.array(z.string()),
+    evidenceKinds: z.array(z.string()),
     evidenceCount: z.number().int().nonnegative(),
     agentCount: z.number().int().nonnegative(),
   }),
 });
 
-const CliEnvelopeSchema = z.object({
-  schemaVersion: z.literal(1),
+const CliEnvelopeSchema = z.strictObject({
+  schemaVersion: z.number().int().positive(),
+  cliVersion: z.string(),
   command: z.enum(['compatibility', 'inspect', 'validate']),
   status: z.enum(['error', 'invalid', 'valid']),
   result: z.unknown().nullable(),
@@ -36,9 +39,63 @@ const CliEnvelopeSchema = z.object({
 const parseCliOutput = (output: string): z.infer<typeof CliEnvelopeSchema> =>
   CliEnvelopeSchema.parse(JSON.parse(output) as unknown);
 
+const CompatibilityResultSchema = z.object({
+  adapters: z.array(
+    z.object({
+      id: z.string(),
+      repositoryFormatVersions: z.array(z.number().int().positive()),
+    }),
+  ),
+  packages: z.array(z.object({ name: z.string(), version: z.string() })),
+  repositoryFormatVersions: z.array(z.number().int().positive()),
+});
+
+const hasValidEnvelope = (options: {
+  candidate: ICandidateClosure;
+  command: 'compatibility' | 'inspect' | 'validate';
+  envelope: z.infer<typeof CliEnvelopeSchema>;
+  exitCode: number;
+}): boolean => {
+  const expectedExitCode = options.envelope.status === 'valid' ? 0 : 1;
+  return (
+    options.envelope.schemaVersion === options.candidate.cliJsonSchemaVersion &&
+    options.envelope.cliVersion === options.candidate.cliVersion &&
+    options.envelope.command === options.command &&
+    options.envelope.status !== 'error' &&
+    options.envelope.result !== null &&
+    options.envelope.error === null &&
+    options.exitCode === expectedExitCode &&
+    (options.command !== 'compatibility' || options.envelope.status === 'valid')
+  );
+};
+
+const inspectDeclaredEvidence = (options: {
+  actual: readonly string[];
+  forbidden: readonly string[];
+  label: string;
+  required: readonly string[];
+}): string[] => {
+  const actual = new Set(options.actual);
+  return [
+    ...options.required
+      .filter((requiredValue) => !actual.has(requiredValue))
+      .map((requiredValue) => `Required ${options.label} was not observed: ${requiredValue}.`),
+    ...options.forbidden
+      .filter((forbiddenValue) => actual.has(forbiddenValue))
+      .map((forbiddenValue) => `Forbidden ${options.label} was observed: ${forbiddenValue}.`),
+  ];
+};
+
 /** Exercises Repository FS, Repository memory, Core, installed CLI commands, and project typecheck. */
 export const verifyDeterministicProject = async (options: {
+  adapterId: string;
   candidate: ICandidateClosure;
+  expectedEvidence: {
+    requiredDiagnosticCodes: readonly string[];
+    forbiddenDiagnosticCodes: readonly string[];
+    requiredEvidenceKinds: readonly string[];
+    forbiddenEvidenceKinds: readonly string[];
+  };
   expectedInspectionStatus: 'invalid' | 'valid';
   packagesRepository: string;
   signal?: AbortSignal | undefined;
@@ -131,6 +188,46 @@ export const verifyDeterministicProject = async (options: {
   });
   const repositoryUnchanged =
     JSON.stringify(projectStateBefore) === JSON.stringify(projectStateAfter);
+  const compatibilityResultPayload = CompatibilityResultSchema.safeParse(cliCompatibility.result);
+  const cliIdentityValid = [
+    ['compatibility', cliCompatibility, compatibilityResult.exitCode],
+    ['validate', cliValidate, validateResult.exitCode],
+    ['inspect', cliInspect, inspectResult.exitCode],
+  ].every(([command, envelope, exitCode]) =>
+    hasValidEnvelope({
+      candidate: options.candidate,
+      command: command as 'compatibility' | 'inspect' | 'validate',
+      envelope: envelope as z.infer<typeof CliEnvelopeSchema>,
+      exitCode: exitCode as number,
+    }),
+  );
+  const expectedPackages = options.candidate.packages
+    .filter(({ name }) => name !== '@moldea.ai/cli')
+    .map(({ name, version }) => ({ name, version }))
+    .sort(({ name: left }, { name: right }) => left.localeCompare(right, 'en'));
+  const actualPackages = compatibilityResultPayload.success
+    ? [...compatibilityResultPayload.data.packages].sort(({ name: left }, { name: right }) =>
+        left.localeCompare(right, 'en'),
+      )
+    : [];
+  const cliPackageInventoryValid =
+    compatibilityResultPayload.success &&
+    JSON.stringify(actualPackages) === JSON.stringify(expectedPackages);
+  const selectedAdapter = compatibilityResultPayload.success
+    ? compatibilityResultPayload.data.adapters.find(({ id }) => id === options.adapterId)
+    : undefined;
+  const expectedRepositoryFormatVersions =
+    direct.filesystem.formatVersion === null
+      ? compatibilityResultPayload.success
+        ? compatibilityResultPayload.data.repositoryFormatVersions
+        : []
+      : [direct.filesystem.formatVersion];
+  const cliAdapterInventoryValid =
+    selectedAdapter !== undefined &&
+    expectedRepositoryFormatVersions.some((formatVersion) =>
+      selectedAdapter.repositoryFormatVersions.includes(formatVersion),
+    );
+  const cliEnvelopeValid = cliIdentityValid;
 
   if (direct.filesystem.valid !== expectedCoreValidity) {
     failures.push(
@@ -140,6 +237,35 @@ export const verifyDeterministicProject = async (options: {
 
   if (!direct.equivalent) {
     failures.push('Repository FS and reconstructed Repository memory inspection results differ.');
+  }
+
+  failures.push(
+    ...inspectDeclaredEvidence({
+      actual: direct.filesystem.diagnosticCodes,
+      forbidden: options.expectedEvidence.forbiddenDiagnosticCodes,
+      label: 'diagnostic code',
+      required: options.expectedEvidence.requiredDiagnosticCodes,
+    }),
+    ...inspectDeclaredEvidence({
+      actual: direct.filesystem.evidenceKinds,
+      forbidden: options.expectedEvidence.forbiddenEvidenceKinds,
+      label: 'evidence kind',
+      required: options.expectedEvidence.requiredEvidenceKinds,
+    }),
+  );
+
+  if (!cliIdentityValid) {
+    failures.push(
+      'Installed CLI version, schema, command, status, payload, or exit code differed.',
+    );
+  }
+
+  if (!cliPackageInventoryValid) {
+    failures.push('Installed CLI package inventory did not match the published candidate closure.');
+  }
+
+  if (!cliAdapterInventoryValid) {
+    failures.push(`Installed CLI did not expose adapter ${options.adapterId} for this format.`);
   }
 
   if (cliCompatibility.status !== 'valid') {
@@ -170,7 +296,12 @@ export const verifyDeterministicProject = async (options: {
     repositoryFilesystemValid: direct.filesystem.valid === expectedCoreValidity,
     memoryRepositoryEquivalent: direct.equivalent,
     coreValid: direct.filesystem.valid === expectedCoreValidity,
-    cliCompatibilityValid: cliCompatibility.status === 'valid',
+    cliCompatibilityValid:
+      cliCompatibility.status === 'valid' && cliPackageInventoryValid && cliAdapterInventoryValid,
+    cliIdentityValid,
+    cliPackageInventoryValid,
+    cliAdapterInventoryValid,
+    cliEnvelopeValid,
     cliValidateStatus: cliValidate.status,
     cliInspectStatus: cliInspect.status,
     typecheckPassed,

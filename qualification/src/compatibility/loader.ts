@@ -13,6 +13,7 @@ import {
   type IQualificationSelection,
 } from '../contracts/index.ts';
 import { calculateDirectoryFingerprint, readYamlFile } from '../filesystem/index.ts';
+import { calculateCompatibilityBehaviorDigest } from '../execution/fingerprints.ts';
 import {
   RuntimeCompatibilityMatrixSchema,
   type IQualificationImplementation,
@@ -52,7 +53,6 @@ export const listQualificationImplementations = async (): Promise<
         implementationId: null,
         implementationPackage: adapter.implementation.package,
         implementationStatus: adapter.implementationStatus,
-        supportLevel: null,
         hasProfile: false,
         disabledReason: 'No available compatibility target is defined.',
       });
@@ -74,7 +74,6 @@ export const listQualificationImplementations = async (): Promise<
         implementationId: target.id,
         implementationPackage: adapter.implementation.package,
         implementationStatus: adapter.implementationStatus,
-        supportLevel: target.supportLevel,
         hasProfile,
         disabledReason,
       });
@@ -137,6 +136,7 @@ export const resolveQualificationTarget = async (
   const caseCatalog = await readYamlFile(QUALIFICATION_CASES_PATH, QualificationCaseCatalogSchema);
   const catalogCaseIds = new Set(caseCatalog.cases.map(({ id }) => id));
   const missingCaseIds = caseCatalog.cases
+    .filter(({ layer }) => layer === 'universal-baseline')
     .map(({ id }) => id)
     .filter((caseId) => !caseIds.includes(caseId));
 
@@ -160,6 +160,7 @@ export const resolveQualificationTarget = async (
     profile,
     profileDirectory,
     profileDigest: await calculateDirectoryFingerprint(profileDirectory),
+    targetDigest: calculateCompatibilityBehaviorDigest({ adapter, target }),
     caseCatalog,
   };
 };

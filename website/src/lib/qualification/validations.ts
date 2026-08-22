@@ -3,8 +3,10 @@ import type {
   IDeterministicVerification,
   IJudgeOutput,
   IQualificationAttemptResult,
+  IQualificationBaselineCheck,
   IQualificationCoverageResult,
   IQualificationExecutionError,
+  IQualificationJudgeSkipped,
   IQualificationProfileCaseModel,
   IQualificationSourceStateResult,
   IWorkspaceAssertionResult,
@@ -16,6 +18,7 @@ const createExpectedStageIds = (caseIds: readonly string[]): string[] => [
   'source-state',
   'coverage',
   'candidate',
+  'baseline',
   ...caseIds.flatMap((caseId) => [
     `case:${caseId}:prepare`,
     `case:${caseId}:deterministic-before`,
@@ -48,6 +51,10 @@ const assertPassingDeterministicEvidence = (
     !verification.memoryRepositoryEquivalent ||
     !verification.coreValid ||
     !verification.cliCompatibilityValid ||
+    !verification.cliIdentityValid ||
+    !verification.cliPackageInventoryValid ||
+    !verification.cliAdapterInventoryValid ||
+    !verification.cliEnvelopeValid ||
     verification.cliValidateStatus !== expectedInspectionStatus ||
     verification.cliInspectStatus !== expectedInspectionStatus ||
     !verification.typecheckPassed ||
@@ -63,31 +70,45 @@ export const assertQualificationCaseEvidence = (options: {
   actor: IActorOutput;
   deterministicAfter: IDeterministicVerification;
   deterministicBefore: IDeterministicVerification;
-  judge: IJudgeOutput;
+  judge: IJudgeOutput | null;
+  judgeSkipped: IQualificationJudgeSkipped | null;
   profileCase: IQualificationProfileCaseModel;
   result: IQualificationAttemptResult['cases'][number];
   workspaceAssertions: IWorkspaceAssertionResult;
 }): void => {
   const { actor, deterministicAfter, deterministicBefore, judge, profileCase, result } = options;
   const expectedRequirementIds = profileCase.scenario.judgeRequirements.map(({ id }) => id);
-  const actualRequirementIds = judge.requirements.map(({ id }) => id);
+  const actualRequirementIds = judge?.requirements.map(({ id }) => id) ?? [];
 
   if (result.title !== profileCase.title) {
     throw new Error(`Qualification case ${result.caseId} contradicts its profile title.`);
   }
 
+  if (result.judgeStatus === 'completed' && (judge === null || options.judgeSkipped !== null)) {
+    throw new Error(
+      `Qualification case ${result.caseId} has inconsistent completed judge evidence.`,
+    );
+  }
+
+  if (result.judgeStatus === 'skipped' && (judge !== null || options.judgeSkipped === null)) {
+    throw new Error(`Qualification case ${result.caseId} has inconsistent skipped judge evidence.`);
+  }
+
   if (
-    new Set(actualRequirementIds).size !== actualRequirementIds.length ||
-    !haveSameMembers(actualRequirementIds, expectedRequirementIds)
+    judge !== null &&
+    (new Set(actualRequirementIds).size !== actualRequirementIds.length ||
+      !haveSameMembers(actualRequirementIds, expectedRequirementIds))
   ) {
     throw new Error(`Qualification case ${result.caseId} has inconsistent judge requirements.`);
   }
 
-  const hasFailedRequirement = judge.requirements.some(({ verdict }) => verdict === 'fail');
+  const hasFailedRequirement =
+    judge?.requirements.some(({ verdict }) => verdict === 'fail') ?? false;
 
   if (
-    (judge.verdict === 'pass' && (hasFailedRequirement || judge.failures.length > 0)) ||
-    (judge.verdict === 'fail' && judge.failures.length === 0)
+    judge !== null &&
+    ((judge.verdict === 'pass' && (hasFailedRequirement || judge.failures.length > 0)) ||
+      (judge.verdict === 'fail' && judge.failures.length === 0))
   ) {
     throw new Error(`Qualification case ${result.caseId} has a contradictory judge verdict.`);
   }
@@ -110,10 +131,11 @@ export const assertQualificationCaseEvidence = (options: {
   );
 
   if (
-    actor.outcome !== 'completed' ||
+    actor.outcome !== profileCase.scenario.expectedActorOutcome ||
     !options.workspaceAssertions.passed ||
     options.workspaceAssertions.failures.length > 0 ||
-    judge.verdict !== 'pass' ||
+    judge?.verdict !== 'pass' ||
+    result.judgeStatus !== 'completed' ||
     result.failures.length > 0
   ) {
     throw new Error(`Passing qualification case ${result.caseId} has contradictory evidence.`);
@@ -122,6 +144,7 @@ export const assertQualificationCaseEvidence = (options: {
 
 /** Validates one attempt's status against its profile, preflight decision, and public artifacts. */
 export const assertQualificationAttemptEvidence = (options: {
+  baseline: IQualificationBaselineCheck | null;
   coverage: IQualificationCoverageResult | null;
   error: IQualificationExecutionError | null;
   errorArtifactKind: 'error' | 'interruption' | null;
@@ -130,7 +153,8 @@ export const assertQualificationAttemptEvidence = (options: {
   result: IQualificationAttemptResult;
   sourceState: IQualificationSourceStateResult | null;
 }): void => {
-  const { coverage, error, errorArtifactKind, profileCaseIds, result, sourceState } = options;
+  const { baseline, coverage, error, errorArtifactKind, profileCaseIds, result, sourceState } =
+    options;
   const expectedErrorKind =
     result.status === 'errored' ? 'error' : result.status === 'incomplete' ? 'interruption' : null;
 
@@ -177,6 +201,11 @@ export const assertQualificationAttemptEvidence = (options: {
     !haveSameMembers(coverage.requiredClaims, coverage.declaredClaims) ||
     !haveSameMembers(coverage.declaredClaims, options.probeMatrixPaths) ||
     sourceState?.passed !== true ||
+    baseline?.passed !== true ||
+    (result.selection.adapterId === 'custom'
+      ? baseline.status !== 'not-required' || result.provenance.baselineAttemptId !== null
+      : baseline.status !== 'passed' ||
+        baseline.baselineAttemptId !== result.provenance.baselineAttemptId) ||
     !sourceState.requiresCleanInputs ||
     !sourceState.isExecutionHostTrusted ||
     sourceState.failures.length > 0 ||

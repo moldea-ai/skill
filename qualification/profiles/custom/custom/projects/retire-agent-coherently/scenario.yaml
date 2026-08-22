@@ -1,0 +1,61 @@
+version: 1
+id: retire-agent-coherently
+title: Retire an agent coherently
+purpose: Verify that removing an implementation also removes its complete obsolete canonical surface.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths:
+  - src/support-agent.ts
+expectedRemovePaths:
+  - moldea/agents/support/description.md
+  - moldea/agents/support/instruction.md
+  - moldea/runtimes/custom.md
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    - moldea/project.md
+    - src/project-state.ts
+  mustChangePaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/runtimes/custom.md
+  mustExistPaths:
+    - moldea/moldea.yaml
+    - moldea/project.md
+    - src/project-state.ts
+  mustNotExistPaths:
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/runtimes/custom.md
+    - src/support-agent.ts
+  allowedChangePaths:
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/moldea.yaml
+    - moldea/runtimes/custom.md
+judgeRequirements:
+  - id: removes-obsolete-declaration
+    description: The final manifest no longer declares the removed support agent, its binding, or its custom runtime guidance.
+  - id: removes-orphaned-assets
+    description: The obsolete agent description, instruction, and runtime guidance are deleted together rather than left as misleading canonical state.
+  - id: preserves-surviving-context
+    description: Project context and unrelated source remain byte-for-byte unchanged.
+  - id: validates-project
+    description: Repository FS, Repository memory, Core, CLI, and project typechecking accept the reconciled project without read-time mutation.

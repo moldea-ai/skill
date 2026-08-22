@@ -36,16 +36,15 @@ describe('qualification execution provenance', () => {
         packagesState: createRepositoryState('packages-commit', 'a'.repeat(64)),
         profileDigest: 'b'.repeat(64),
         qualificationDigest: 'c'.repeat(64),
+        targetDigest: 'f'.repeat(64),
         qualificationState: createRepositoryState('qualification-commit', 'd'.repeat(64)),
         skillState: createRepositoryState('skill-commit', 'e'.repeat(64)),
-        targetSupportLevel: 'experimental',
       }),
     ).toStrictEqual({
       ...executionEnvironment,
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'a'.repeat(64),
       packagesRepositoryDirty: false,
-      targetSupportLevel: 'experimental',
       qualificationRepositoryCommit: 'qualification-commit',
       qualificationRepositoryDirty: false,
       skillRepositoryCommit: 'skill-commit',
@@ -53,6 +52,8 @@ describe('qualification execution provenance', () => {
       skillRepositoryDirty: false,
       profileDigest: 'b'.repeat(64),
       qualificationDigest: 'c'.repeat(64),
+      targetDigest: 'f'.repeat(64),
+      baselineAttemptId: null,
     });
   });
 

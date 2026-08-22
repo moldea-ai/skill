@@ -12,7 +12,7 @@ import { createQualificationAttemptResult } from './transformers.ts';
 describe('qualification result transformation', () => {
   test('permits a dirty passing dry-run draft without making it publishable', () => {
     const checkpoint = QualificationAttemptCheckpointSchema.parse({
-      protocolVersion: 2,
+      protocolVersion: 3,
       attemptId: 'dry-run-attempt',
       parentAttemptId: null,
       selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -28,6 +28,7 @@ describe('qualification result transformation', () => {
       skillDigest: 'c'.repeat(64),
       packagesRepositoryFingerprint: 'e'.repeat(64),
       packagesDigest: 'd'.repeat(64),
+      targetDigest: 'f'.repeat(64),
       candidate: null,
       stages: {
         'source-state': {
@@ -57,7 +58,6 @@ describe('qualification result transformation', () => {
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'd'.repeat(64),
       packagesRepositoryDirty: true,
-      targetSupportLevel: 'supported',
       qualificationRepositoryCommit: 'qualification-commit',
       qualificationRepositoryDirty: true,
       skillRepositoryCommit: 'skill-commit',
@@ -65,6 +65,8 @@ describe('qualification result transformation', () => {
       skillRepositoryDirty: true,
       profileDigest: 'a'.repeat(64),
       qualificationDigest: 'b'.repeat(64),
+      targetDigest: 'f'.repeat(64),
+      baselineAttemptId: null,
     };
     const result = createQualificationAttemptResult({
       caseResults: [],

@@ -15,3 +15,6 @@ export {
   resolveBuildPackageClosure,
   resolveRuntimePackageClosure,
 } from './workspace.mjs';
+
+// published registry closure
+export { downloadPublishedPackageClosure, resolvePublishedPackageClosure } from './published.mjs';

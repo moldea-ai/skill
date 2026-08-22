@@ -134,7 +134,6 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'routing-description-reconciliation',
     'routing-description-separate-properties',
     'routing-description-shared-property',
-    'runtime-adapter-lifecycle',
     'skill-boundary-surface-selection',
     'skill-create-progressive-disclosure',
     'skill-evaluate-read-only',
@@ -145,6 +144,7 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'skill-reconcile-distributed-copy',
     'skill-reuse-existing-cohesive',
     'unadopted-relevance-no-initialization',
+    'unavailable-runtime-selection',
     'unresolved-related-file-changed',
     'yarn-conflicting-cli-provider',
     'yarn-plugin-install-blocked',
@@ -154,6 +154,7 @@ const REQUIRED_EVALUATION_CASE_IDS = {
 const readRepositoryFile = (path) => readFileSync(join(REPOSITORY_ROOT, path), 'utf8');
 const ROOT_PACKAGE_MANIFEST = JSON.parse(readRepositoryFile('package.json'));
 const RELEASE_CLI_VERSION = ROOT_PACKAGE_MANIFEST.devDependencies['@moldea.ai/cli'];
+const RELEASE_CLI_JSON_SCHEMA_VERSION = ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion;
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
 
@@ -294,7 +295,7 @@ const evaluateCliEnvelopeCase = ({ input }) => {
 
   const envelope = input.output;
   if (
-    envelope.schemaVersion !== 1 ||
+    envelope.schemaVersion !== ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion ||
     !isReleaseCliVersion(envelope.cliVersion) ||
     envelope.cliVersion !== input.declaredCliVersion ||
     envelope.cliVersion !== input.installedCliVersion ||
@@ -379,7 +380,7 @@ describe('portable Agent Skill contract', () => {
   test('declares the exact release compatibility contract', () => {
     assertMatchesEvery(skill, [
       new RegExp(`@moldea\\.ai/cli: ${RELEASE_CLI_VERSION.replaceAll('.', '\\.')}\\b`),
-      /CLI JSON schema: `1`/,
+      new RegExp('CLI JSON schema: `' + RELEASE_CLI_JSON_SCHEMA_VERSION + '`'),
       /Node\.js: `\^22\.11\.0 \|\| \^24\.11\.0`/,
       /npm: `>=10\.9\.0 <12\.0\.0`/,
       /pnpm: `>=11\.20\.0 <12\.0\.0`/,
@@ -504,7 +505,7 @@ describe('portable Agent Skill contract', () => {
       /yarn bin moldea/,
       /yarn exec moldea/,
       /never use a bare global command/i,
-      /`schemaVersion` is integer `1`/,
+      new RegExp('`schemaVersion` is integer `' + RELEASE_CLI_JSON_SCHEMA_VERSION + '`'),
       /`command` equals the command invoked/,
       /`compatibility` never uses `invalid`/,
       /Structural `invalid` output is deterministic project evidence/,
@@ -544,8 +545,8 @@ describe('portable Agent Skill contract', () => {
     assertMatchesEvery(portableContent, [
       /exactly one `runtime\.id`/,
       /primary runtime integration boundary/,
-      /still-matching `deprecated` adapter/,
-      /`runtimeGuidance` expectation/,
+      /compact CLI inventory/,
+      /unavailable adapter/,
       /filesystem-monitor hooks/,
       /external diff helpers/,
       /text-conversion drivers/,
@@ -734,16 +735,20 @@ describe('source repository conformance', () => {
     }
   });
 
-  test('keeps the synthetic semantic CLI envelope contract-faithful', () => {
+  test('keeps the semantic CLI fixture contract faithful to release metadata', () => {
     const repositoryPath = mkdtempSync(join(tmpdir(), 'moldea-semantic-cli-test-'));
 
     try {
+      assert.equal(
+        SEMANTIC_CLI_MANIFEST.moldeaRelease.cliJsonSchemaVersion,
+        RELEASE_CLI_JSON_SCHEMA_VERSION,
+      );
       mkdirSync(join(repositoryPath, 'moldea', 'agents', 'refund-agent'), {
         recursive: true,
       });
       writeFileSync(
         join(repositoryPath, 'moldea', 'moldea.yaml'),
-        'version: 1\n\nagents:\n  refund-agent:\n    runtime:\n      id: openai\n',
+        'version: 1\n\nagents:\n  refund-agent:\n    runtime:\n      id: unavailable-runtime\n',
       );
       writeFileSync(join(repositoryPath, 'moldea', 'project.md'), '# Test project\n');
       writeFileSync(
@@ -754,27 +759,6 @@ describe('source repository conformance', () => {
         join(repositoryPath, 'moldea', 'agents', 'refund-agent', 'instruction.md'),
         '# Refund agent\n\nYou are the `refund-agent` agent.\n',
       );
-      writeFileSync(
-        join(repositoryPath, 'runtime-compatibility-fixture.json'),
-        `${JSON.stringify({
-          adapters: [
-            {
-              id: 'openai',
-              active: false,
-              bundledVersion: null,
-              matrix: {
-                implementation: {
-                  kind: 'package',
-                  package: '@moldea.ai/adapter-openai',
-                  distribution: 'public',
-                },
-                implementationStatus: 'planned',
-              },
-            },
-          ],
-        })}\n`,
-      );
-
       const inspection = spawnSync(SEMANTIC_CLI_PATH, ['inspect', '--json'], {
         cwd: repositoryPath,
         encoding: 'utf8',
@@ -782,6 +766,7 @@ describe('source repository conformance', () => {
       const inspectionEnvelope = JSON.parse(inspection.stdout);
       assert.equal(inspection.status, 1);
       assert.equal(inspectionEnvelope.cliVersion, RELEASE_CLI_VERSION);
+      assert.equal(inspectionEnvelope.schemaVersion, RELEASE_CLI_JSON_SCHEMA_VERSION);
       assert.equal(inspectionEnvelope.status, 'invalid');
       assert.equal(
         inspectionEnvelope.result.inspection.diagnostics[0].code,
@@ -795,6 +780,7 @@ describe('source repository conformance', () => {
       const compatibilityEnvelope = JSON.parse(compatibility.stdout);
       assert.equal(compatibility.status, 0);
       assert.equal(compatibilityEnvelope.cliVersion, RELEASE_CLI_VERSION);
+      assert.equal(compatibilityEnvelope.schemaVersion, RELEASE_CLI_JSON_SCHEMA_VERSION);
       assert.equal(compatibilityEnvelope.status, 'valid');
       assert.deepEqual(
         compatibilityEnvelope.result.packages,
@@ -806,44 +792,20 @@ describe('source repository conformance', () => {
       assert.deepEqual(
         compatibilityEnvelope.result.adapters.map(({ id }) => id),
         [
-          'anthropic',
-          'claude-agent-sdk',
-          'cloudflare-agents',
           'custom',
-          'eve',
-          'google-genai',
-          'langchain',
-          'langgraph',
-          'openai',
-          'openai-agents-sdk',
-          'vercel-ai-sdk',
-        ],
+          ...Object.keys(SEMANTIC_CLI_MANIFEST.dependencies)
+            .filter((name) => name.startsWith('@moldea.ai/adapter-'))
+            .map((name) => name.slice('@moldea.ai/adapter-'.length)),
+        ].sort((left, right) => left.localeCompare(right)),
       );
       const customCompatibility = compatibilityEnvelope.result.adapters.find(
         ({ id }) => id === 'custom',
       );
-      assert.equal(customCompatibility.active, true);
-      assert.equal(
-        customCompatibility.bundledVersion,
-        SEMANTIC_CLI_MANIFEST.dependencies['@moldea.ai/core'],
-      );
+      assert.deepEqual(customCompatibility.repositoryFormatVersions, [1]);
       const googleGenAiCompatibility = compatibilityEnvelope.result.adapters.find(
         ({ id }) => id === 'google-genai',
       );
-      assert.equal(googleGenAiCompatibility.active, true);
-      assert.equal(
-        googleGenAiCompatibility.bundledVersion,
-        SEMANTIC_CLI_MANIFEST.dependencies['@moldea.ai/adapter-google-genai'],
-      );
-      assert.equal(googleGenAiCompatibility.matrix.implementation.versionRange, '^1.0.3');
-      assert.equal(
-        googleGenAiCompatibility.matrix.targets[0].id,
-        'typescript-models-generate-content-2',
-      );
-      assert.equal(
-        googleGenAiCompatibility.matrix.targets[0].packages[0].versionRange,
-        '>=2.17.1 <3.0.0',
-      );
+      assert.deepEqual(googleGenAiCompatibility.repositoryFormatVersions, [1]);
     } finally {
       rmSync(repositoryPath, { force: true, recursive: true });
     }

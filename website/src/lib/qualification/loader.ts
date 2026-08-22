@@ -6,10 +6,12 @@ import {
   DeterministicVerificationArtifactSchema,
   JudgeOutputSchema,
   QualificationAttemptResultSchema,
+  QualificationBaselineCheckSchema,
   QualificationCaseCatalogSchema,
   QualificationCoverageResultSchema,
   QualificationExecutionErrorSchema,
   QualificationLatestResultSchema,
+  QualificationJudgeSkippedSchema,
   QualificationProbesSchema,
   QualificationProfileSchema,
   QualificationScenarioSchema,
@@ -170,9 +172,10 @@ const loadAttemptCase = (
     result.deterministicBeforePath,
     result.deterministicAfterPath,
     result.actorOutputPath,
-    result.judgeOutputPath,
     result.workspaceAssertionsPath,
     result.patchPath,
+    ...(result.judgeOutputPath === null ? [] : [result.judgeOutputPath]),
+    ...(result.judgeSkippedPath === null ? [] : [result.judgeSkippedPath]),
   ];
   const expectedPathPrefix = `cases/${result.caseId}/`;
 
@@ -201,6 +204,15 @@ const loadAttemptCase = (
     join(attemptDirectory, 'cases', result.caseId),
   )}/`;
 
+  if (
+    (result.judgeStatus === 'completed' &&
+      (result.judgeOutputPath === null || result.judgeSkippedPath !== null)) ||
+    (result.judgeStatus === 'skipped' &&
+      (result.judgeOutputPath !== null || result.judgeSkippedPath === null))
+  ) {
+    throw new Error(`Qualification case ${result.caseId} has inconsistent judge artifacts.`);
+  }
+
   const caseEvidence: IQualificationAttemptCaseModel = {
     actor: readAttemptArtifact(attemptDirectory, result.actorOutputPath, ActorOutputSchema),
     artifacts: artifacts.filter(({ path }) => path.startsWith(casePrefix)),
@@ -212,7 +224,18 @@ const loadAttemptCase = (
       attemptDirectory,
       result.deterministicBeforePath,
     ),
-    judge: readAttemptArtifact(attemptDirectory, result.judgeOutputPath, JudgeOutputSchema),
+    judge:
+      result.judgeOutputPath === null
+        ? null
+        : readAttemptArtifact(attemptDirectory, result.judgeOutputPath, JudgeOutputSchema),
+    judgeSkipped:
+      result.judgeSkippedPath === null
+        ? null
+        : readAttemptArtifact(
+            attemptDirectory,
+            result.judgeSkippedPath,
+            QualificationJudgeSkippedSchema,
+          ),
     result,
     workspaceAssertions: readAttemptArtifact(
       attemptDirectory,
@@ -276,6 +299,11 @@ const loadAttempt = (
     'source-state.json',
     QualificationSourceStateResultSchema,
   );
+  const baseline = readOptionalArtifact(
+    attemptDirectory,
+    'baseline.json',
+    QualificationBaselineCheckSchema,
+  );
   const executionError = readOptionalArtifact(
     attemptDirectory,
     'error.json',
@@ -307,6 +335,7 @@ const loadAttempt = (
     `Qualification attempt ${result.attemptId} stage ids`,
   );
   assertQualificationAttemptEvidence({
+    baseline,
     coverage,
     error,
     errorArtifactKind: executionError ? 'error' : interruption ? 'interruption' : null,
@@ -318,6 +347,7 @@ const loadAttempt = (
 
   return {
     artifacts: [createArtifactModel(repositoryRoot, attemptPath, null), ...artifacts],
+    baseline,
     cases,
     coverage,
     error,
@@ -410,12 +440,21 @@ const loadProfile = (
     `Qualification profile ${profile.adapterId}/${profile.implementationId} case ids`,
   );
   const profileCaseIds = new Set(profile.cases.map(({ id }) => id));
+  const missingUniversalCaseIds = [...catalog.values()]
+    .filter(({ layer }) => layer === 'universal-baseline')
+    .map(({ id }) => id)
+    .filter((caseId) => !profileCaseIds.has(caseId));
 
-  if (
-    profileCaseIds.size !== catalog.size ||
-    [...catalog.keys()].some((caseId) => !profileCaseIds.has(caseId))
-  ) {
-    throw new Error(`Qualification profile must include every catalog case.`);
+  if (missingUniversalCaseIds.length > 0) {
+    throw new Error(
+      `Qualification profile is missing universal baseline cases: ${missingUniversalCaseIds.join(', ')}.`,
+    );
+  }
+
+  for (const caseId of profileCaseIds) {
+    if (!catalog.has(caseId)) {
+      throw new Error(`Qualification profile references an unknown catalog case.`);
+    }
   }
 
   const probesPath = resolveContainedPath(profileDirectory, profile.probesFile);

@@ -43,6 +43,7 @@ export const createAttemptCheckpoint = async (options: {
   skillDigest: string;
   packagesRepositoryFingerprint: string;
   packagesDigest: string;
+  targetDigest: string;
   executionEnvironment: IQualificationExecutionEnvironment;
   stageIds: readonly string[];
 }): Promise<IQualificationAttemptCheckpoint> => {
@@ -66,6 +67,7 @@ export const createAttemptCheckpoint = async (options: {
     skillDigest: options.skillDigest,
     packagesRepositoryFingerprint: options.packagesRepositoryFingerprint,
     packagesDigest: options.packagesDigest,
+    targetDigest: options.targetDigest,
     executionEnvironment: options.executionEnvironment,
     candidate: null,
     stages: Object.fromEntries(

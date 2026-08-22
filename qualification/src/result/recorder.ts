@@ -20,6 +20,7 @@ import {
   writeJsonFileAtomically,
   writeTextFileAtomically,
 } from '../filesystem/index.ts';
+import { validateQualificationAttemptEvidence } from './evidence.ts';
 import { sanitizeEvidenceText, sanitizeEvidenceValue } from './sanitizer.ts';
 import type {
   IQualificationResultVerification,
@@ -220,6 +221,12 @@ export const recordQualificationResult = async (
       artifactDigests,
     });
 
+    await validateQualificationAttemptEvidence({
+      attemptDirectory: stagingDirectory,
+      result,
+      resultsRoot,
+    });
+
     if (await pathExists(attemptDirectory)) {
       const recordedResult = await readJsonFile(
         path.join(attemptDirectory, 'attempt.json'),
@@ -304,12 +311,24 @@ export const verifyQualificationResults = async (
         attempts += recordedAttempts.length;
 
         for (const result of recordedAttempts) {
-          await verifyAttemptArtifacts(
-            path.join(targetRoot, 'attempts', result.attemptId),
-            result,
-            issues,
-            resultsRoot,
-          );
+          const attemptDirectory = path.join(targetRoot, 'attempts', result.attemptId);
+          await verifyAttemptArtifacts(attemptDirectory, result, issues, resultsRoot);
+
+          try {
+            await validateQualificationAttemptEvidence({
+              attemptDirectory,
+              result,
+              resultsRoot,
+            });
+          } catch (error) {
+            issues.push({
+              path: path.relative(resultsRoot, attemptDirectory),
+              message:
+                error instanceof Error
+                  ? error.message
+                  : 'Unknown qualification evidence validation failure.',
+            });
+          }
         }
 
         const latestPath = path.join(targetRoot, 'latest.json');

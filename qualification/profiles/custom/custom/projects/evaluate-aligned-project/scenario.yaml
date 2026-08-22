@@ -9,6 +9,18 @@ expectedRemovePaths: []
 inspection:
   before: valid
   after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
 workspace:
   expectation: unchanged
   mustPreservePaths:
@@ -24,6 +36,7 @@ workspace:
     - moldea/runtimes/custom.md
     - src/support-agent.ts
   mustNotExistPaths: []
+  allowedChangePaths: []
 judgeRequirements:
   - id: explains-alignment
     description: The actor identifies the registered agent, custom runtime guidance, and explicit runtime binding using repository evidence.

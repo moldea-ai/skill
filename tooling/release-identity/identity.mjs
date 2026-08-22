@@ -8,6 +8,14 @@ import { CLI_PACKAGE_NAME, RELEASE_PATHS } from './constants.mjs';
 
 const STABLE_VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u;
 
+const parsePositiveInteger = (input, name) => {
+  if (!Number.isInteger(input) || input < 1) {
+    throw new Error(`${name} must be a positive integer.`);
+  }
+
+  return input;
+};
+
 /** Parses one stable exact semantic version. */
 export const parseStableVersion = (version) => {
   if (typeof version !== 'string' || !STABLE_VERSION_PATTERN.test(version)) {
@@ -41,6 +49,10 @@ export const readReleaseIdentity = (repositoryRoot) => {
   const packageManifest = readJson(repositoryRoot, RELEASE_PATHS.packageManifest);
   const packageLock = readJson(repositoryRoot, RELEASE_PATHS.packageLock);
   const cliVersion = parseStableVersion(packageManifest.devDependencies?.[CLI_PACKAGE_NAME]);
+  const cliJsonSchemaVersion = parsePositiveInteger(
+    packageManifest.moldeaRelease?.cliJsonSchemaVersion,
+    'package.json moldeaRelease.cliJsonSchemaVersion',
+  );
   const releaseVersion = parseStableVersion(packageManifest.version);
   const lockCliPackage = packageLock.packages?.[`node_modules/${CLI_PACKAGE_NAME}`];
 
@@ -56,6 +68,7 @@ export const readReleaseIdentity = (repositoryRoot) => {
   return {
     cliDependencies: lockCliPackage.dependencies ?? {},
     cliIntegrity: lockCliPackage.integrity,
+    cliJsonSchemaVersion,
     cliVersion,
     packageLock,
     packageLockSha256: createHash('sha256')
@@ -72,6 +85,7 @@ export const createSemanticCliIdentity = (repositoryRoot) => {
 
   return {
     integrity: identity.cliIntegrity,
+    jsonSchemaVersion: identity.cliJsonSchemaVersion,
     name: CLI_PACKAGE_NAME,
     packageLockSha256: identity.packageLockSha256,
     version: identity.cliVersion,
@@ -102,11 +116,19 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
     return [error instanceof Error ? error.message : String(error)];
   }
 
-  const { cliDependencies, cliVersion, packageLock, packageManifest, releaseVersion } = identity;
+  const {
+    cliDependencies,
+    cliJsonSchemaVersion,
+    cliVersion,
+    packageLock,
+    packageManifest,
+    releaseVersion,
+  } = identity;
   const skill = readText(repositoryRoot, RELEASE_PATHS.skill);
   const localTooling = readText(repositoryRoot, RELEASE_PATHS.skillLocalTooling);
   const readme = readText(repositoryRoot, RELEASE_PATHS.readme);
   const compatibility = readText(repositoryRoot, 'docs/compatibility-and-local-tooling.md');
+  const qualificationReadme = readText(repositoryRoot, RELEASE_PATHS.qualificationReadme);
   const gettingStarted = readText(repositoryRoot, RELEASE_PATHS.gettingStarted);
   const workflow = readText(repositoryRoot, RELEASE_PATHS.conformanceWorkflow);
   const semanticCliManifest = readJson(repositoryRoot, RELEASE_PATHS.semanticCliManifest);
@@ -134,6 +156,7 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
     RELEASE_PATHS.skill,
   );
   requireText(issues, skill, `- \`${CLI_PACKAGE_NAME}: ${cliVersion}\``, RELEASE_PATHS.skill);
+  requireText(issues, skill, `- CLI JSON schema: \`${cliJsonSchemaVersion}\``, RELEASE_PATHS.skill);
   requireText(
     issues,
     localTooling,
@@ -148,6 +171,12 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
   );
   requireText(
     issues,
+    localTooling,
+    `- CLI JSON schema \`${cliJsonSchemaVersion}\``,
+    RELEASE_PATHS.skillLocalTooling,
+  );
+  requireText(
+    issues,
     readme,
     `The current release is \`${releaseVersion}\`.`,
     RELEASE_PATHS.readme,
@@ -156,17 +185,38 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
   requireText(issues, readme, `- \`${CLI_PACKAGE_NAME} ${cliVersion}\``, RELEASE_PATHS.readme);
   requireText(
     issues,
+    readme,
+    `- CLI JSON schema \`${cliJsonSchemaVersion}\``,
+    RELEASE_PATHS.readme,
+  );
+  requireText(
+    issues,
     compatibility,
     `- \`${CLI_PACKAGE_NAME} ${cliVersion}\``,
     'docs/compatibility-and-local-tooling.md',
   );
+  requireText(
+    issues,
+    compatibility,
+    `- CLI JSON schema \`${cliJsonSchemaVersion}\``,
+    'docs/compatibility-and-local-tooling.md',
+  );
   requireText(issues, gettingStarted, `#v${releaseVersion}`, RELEASE_PATHS.gettingStarted);
+  requireText(
+    issues,
+    qualificationReadme,
+    `strict CLI schema \`${cliJsonSchemaVersion}\` envelope`,
+    RELEASE_PATHS.qualificationReadme,
+  );
 
   if (/cli_version:|MOLDEA_TEST_CLI_VERSION/u.test(workflow)) {
     issues.push('The conformance workflow must derive the exact CLI from package.json.');
   }
   if (semanticCliManifest.version !== cliVersion) {
     issues.push(`The semantic CLI fixture version is not ${cliVersion}.`);
+  }
+  if (semanticCliManifest.moldeaRelease?.cliJsonSchemaVersion !== cliJsonSchemaVersion) {
+    issues.push(`The semantic CLI fixture JSON schema version is not ${cliJsonSchemaVersion}.`);
   }
   if (!areStringRecordsEqual(semanticCliManifest.dependencies ?? {}, cliDependencies)) {
     issues.push('The semantic CLI fixture dependency inventory does not match package-lock.json.');

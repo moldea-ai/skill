@@ -54,9 +54,9 @@ Expose the principal inputs, outputs, events, service and tool contracts, and fa
 
 ## Treat runtime compatibility honestly
 
-Runtime selection is optional during architecture planning unless it changes the recommendation. Use official compatibility claims only from a verified active matrix and preserve target maturity such as `experimental`, `supported`, or `deprecated` exactly.
+Runtime selection is optional during architecture planning unless it changes the recommendation. The exact CLI can establish which adapter IDs are available in its installed package composition, but it does not establish behavioral support for a specific target or provider usage.
 
-When compatibility data is unavailable, describe runtime requirements or candidate considerations without claiming an official adapter or target is supported. Final `runtime.id`, provider limits, complete behavior, and runtime integration belong to later agent design and implementation.
+When reliable adapter documentation and repository evidence are unavailable, describe runtime requirements or candidate considerations without claiming that a target, provider limit, pattern, or complete behavior is supported. Final `runtime.id` and runtime integration belong to later agent design and implementation.
 
 ## Produce one actionable recommendation
 

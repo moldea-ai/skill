@@ -1,0 +1,126 @@
+// @vitest-environment node
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import { resolvePublishedPackageClosure } from './published.mjs';
+
+const createMetadata = (name, version, dependencies = {}) => ({
+  dependencies,
+  dist: {
+    integrity: `sha512-${Buffer.from(`${name}@${version}`).toString('base64')}`,
+    shasum: 'a'.repeat(40),
+    tarball: `https://registry.npmjs.org/${name}/-/${name.split('/').at(-1)}-${version}.tgz`,
+  },
+  name,
+  preferUnplugged: name === '@moldea.ai/cli' ? true : undefined,
+  version,
+});
+
+const createRegistryFetch = (metadataByIdentity) => async (url) => {
+  const decodedUrl = decodeURIComponent(url);
+  const metadata = [...metadataByIdentity.entries()].find(([identity]) =>
+    decodedUrl.endsWith(`/${identity}`),
+  )?.[1];
+
+  return {
+    json: async () => metadata,
+    ok: metadata !== undefined,
+    status: metadata === undefined ? 404 : 200,
+  };
+};
+
+test('resolves the exact dependency-first published closure from the CLI', async () => {
+  const metadata = new Map([
+    [
+      '@moldea.ai/cli/4.0.0',
+      createMetadata('@moldea.ai/cli', '4.0.0', {
+        '@moldea.ai/adapter-example': '1.0.0',
+        '@moldea.ai/core': '2.0.0',
+      }),
+    ],
+    [
+      '@moldea.ai/adapter-example/1.0.0',
+      createMetadata('@moldea.ai/adapter-example', '1.0.0', {
+        '@moldea.ai/core': '^2.0.0',
+      }),
+    ],
+    ['@moldea.ai/core/2.0.0', createMetadata('@moldea.ai/core', '2.0.0')],
+  ]);
+
+  const closure = await resolvePublishedPackageClosure({
+    cliVersion: '4.0.0',
+    fetchResource: createRegistryFetch(metadata),
+    selectedPackageName: '@moldea.ai/adapter-example',
+  });
+
+  assert.deepEqual(
+    closure.map(({ name, version }) => `${name}@${version}`),
+    ['@moldea.ai/core@2.0.0', '@moldea.ai/adapter-example@1.0.0', '@moldea.ai/cli@4.0.0'],
+  );
+});
+
+test('rejects non-exact CLI pins and unreachable selected packages', async () => {
+  const nonExactMetadata = new Map([
+    [
+      '@moldea.ai/cli/4.0.0',
+      createMetadata('@moldea.ai/cli', '4.0.0', {
+        '@moldea.ai/core': '^2.0.0',
+      }),
+    ],
+  ]);
+  await assert.rejects(
+    resolvePublishedPackageClosure({
+      cliVersion: '4.0.0',
+      fetchResource: createRegistryFetch(nonExactMetadata),
+      selectedPackageName: '@moldea.ai/core',
+    }),
+    /must pin @moldea\.ai\/core to an exact version/u,
+  );
+
+  const reachableMetadata = new Map([
+    ['@moldea.ai/cli/4.0.0', createMetadata('@moldea.ai/cli', '4.0.0')],
+  ]);
+  await assert.rejects(
+    resolvePublishedPackageClosure({
+      cliVersion: '4.0.0',
+      fetchResource: createRegistryFetch(reachableMetadata),
+      selectedPackageName: '@moldea.ai/adapter-example',
+    }),
+    /is not reachable/u,
+  );
+});
+
+test('rejects conflicting versions for one package identity', async () => {
+  const metadata = new Map([
+    [
+      '@moldea.ai/cli/4.0.0',
+      createMetadata('@moldea.ai/cli', '4.0.0', {
+        '@moldea.ai/adapter-a': '1.0.0',
+        '@moldea.ai/adapter-b': '1.0.0',
+        '@moldea.ai/core': '2.0.0',
+      }),
+    ],
+    [
+      '@moldea.ai/adapter-a/1.0.0',
+      createMetadata('@moldea.ai/adapter-a', '1.0.0', {
+        '@moldea.ai/core': '^2.0.0',
+      }),
+    ],
+    [
+      '@moldea.ai/adapter-b/1.0.0',
+      createMetadata('@moldea.ai/adapter-b', '1.0.0', {
+        '@moldea.ai/core': '^3.0.0',
+      }),
+    ],
+    ['@moldea.ai/core/2.0.0', createMetadata('@moldea.ai/core', '2.0.0')],
+  ]);
+
+  await assert.rejects(
+    resolvePublishedPackageClosure({
+      cliVersion: '4.0.0',
+      fetchResource: createRegistryFetch(metadata),
+      selectedPackageName: '@moldea.ai/adapter-a',
+    }),
+    /does not satisfy published dependency range \^3\.0\.0/u,
+  );
+});

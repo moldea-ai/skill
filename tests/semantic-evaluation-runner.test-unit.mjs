@@ -16,7 +16,6 @@ import {
   createSemanticEvaluationRecord,
   getPendingSemanticCaseDefinitions,
   getSemanticToolingSource,
-  getSyntheticCompatibilityCaseIds,
   mergeSemanticCandidateResult,
   normalizePortableSkillSemanticEvidence,
   validateSemanticCandidateCompatibility,
@@ -67,9 +66,10 @@ const JUDGE_HOST = {
 const ARTIFACT_DIGEST = 'a'.repeat(64);
 const CLI_IDENTITY = {
   integrity: `sha512-${'a'.repeat(86)}`,
+  jsonSchemaVersion: 2,
   name: '@moldea.ai/cli',
   packageLockSha256: 'd'.repeat(64),
-  version: '3.3.7',
+  version: '4.0.0',
 };
 const EVALUATED_AT = '2026-08-16T12:00:00.000Z';
 const BEFORE_SNAPSHOT_STATE = {
@@ -452,7 +452,7 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
     caseDefinitions,
     generatedAt: '2026-08-16T12:02:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 7);
+  assert.equal(record.evaluationProtocolVersion, 8);
   assert.deepEqual(record.cli, CLI_IDENTITY);
   assert.equal(record.caseSuiteDigest, createSemanticCaseSuiteDigest(caseDefinitions));
   assert.deepEqual(
@@ -695,16 +695,12 @@ test('semantic evidence normalization permits only release-version declarations'
   assert.match(createPortableSkillSemanticDigest(), /^[a-f0-9]{64}$/);
 });
 
-test('selects synthetic compatibility only for the two unsupported runtime states', () => {
-  assert.deepEqual(getSyntheticCompatibilityCaseIds(), [
-    'dedicated-repository-runtime-selection',
-    'runtime-adapter-lifecycle',
-  ]);
+test('uses the published CLI for compatibility-sensitive runtime states', () => {
   assert.equal(
     getSemanticToolingSource('dedicated-repository-runtime-selection'),
-    'synthetic-compatibility',
+    'published-package',
   );
-  assert.equal(getSemanticToolingSource('runtime-adapter-lifecycle'), 'synthetic-compatibility');
+  assert.equal(getSemanticToolingSource('unavailable-runtime-selection'), 'published-package');
   assert.equal(
     getSemanticToolingSource('agent-adoption-inline-runtime-instruction'),
     'published-package',

@@ -57,7 +57,6 @@ const PUBLISHED_CLI_ROOT = join(ROOT_NODE_MODULES, '@moldea.ai', 'cli');
 const PUBLISHED_CLI_MANIFEST = JSON.parse(
   readFileSync(join(PUBLISHED_CLI_ROOT, 'package.json'), 'utf8'),
 );
-const SEMANTIC_CLI_ROOT = join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'semantic-cli');
 const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
 const MAX_WORKSPACE_EVIDENCE_FILE_BYTES = 32_768;
 const MAX_SKILL_EVIDENCE_FILES = 32;
@@ -84,10 +83,6 @@ const CUSTOM_SETUP_CASE_IDS = new Set([
   'yarn-conflicting-cli-provider',
   'yarn-plugin-install-blocked',
 ]);
-const SYNTHETIC_COMPATIBILITY_CASE_IDS = new Set([
-  'dedicated-repository-runtime-selection',
-  'runtime-adapter-lifecycle',
-]);
 const SKILL_ARTIFACT_ROLES = new Set([
   'authoritative-source',
   'distributed-copy',
@@ -103,13 +98,9 @@ const ALLOWED_SKILL_FRONTMATTER_KEYS = new Set([
 ]);
 const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
-/** Lists the exact cases allowed to replace the published CLI with compatibility fixtures. */
-export const getSyntheticCompatibilityCaseIds = () => [...SYNTHETIC_COMPATIBILITY_CASE_IDS];
-
 /** Identifies the CLI source owned by one semantic evaluation scenario. */
 export const getSemanticToolingSource = (caseId) => {
   if (CUSTOM_SETUP_CASE_IDS.has(caseId)) return 'scenario-specific';
-  if (SYNTHETIC_COMPATIBILITY_CASE_IDS.has(caseId)) return 'synthetic-compatibility';
   return 'published-package';
 };
 
@@ -168,6 +159,8 @@ const hasValidSemanticCliIdentity = (cli) =>
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u.test(cli.version) &&
   typeof cli.integrity === 'string' &&
   cli.integrity.startsWith('sha512-') &&
+  Number.isInteger(cli.jsonSchemaVersion) &&
+  cli.jsonSchemaVersion > 0 &&
   typeof cli.packageLockSha256 === 'string' &&
   /^[a-f0-9]{64}$/u.test(cli.packageLockSha256);
 
@@ -702,18 +695,6 @@ const seedPublishedCli = async (repositoryPath) => {
   await linkLocalCliExecutable(repositoryPath, installedCliRoot, PUBLISHED_CLI_MANIFEST);
 };
 
-/** Copies the narrow compatibility fixture into one explicitly synthetic actor case. */
-const seedSyntheticCompatibilityCli = async (repositoryPath) => {
-  const installedCliRoot = join(repositoryPath, 'node_modules', '@moldea.ai', 'cli');
-  await mkdir(dirname(installedCliRoot), { recursive: true });
-  await cp(SEMANTIC_CLI_ROOT, installedCliRoot, { recursive: true });
-  const cliManifest = JSON.parse(readFileSync(join(SEMANTIC_CLI_ROOT, 'package.json'), 'utf8'));
-  if (cliManifest.version !== PUBLISHED_CLI_MANIFEST.version) {
-    throw new Error('The semantic CLI fixture must match the published development CLI version.');
-  }
-  await linkLocalCliExecutable(repositoryPath, installedCliRoot, cliManifest);
-};
-
 /** Installs the exact deterministic CLI source selected for one semantic case. */
 export const seedSemanticTooling = async (repositoryPath, caseDefinition) => {
   const toolingSource = getSemanticToolingSource(caseDefinition.id);
@@ -735,11 +716,7 @@ export const seedSemanticTooling = async (repositoryPath, caseDefinition) => {
     )}\n`,
   );
 
-  if (toolingSource === 'synthetic-compatibility') {
-    await seedSyntheticCompatibilityCli(repositoryPath);
-  } else {
-    await seedPublishedCli(repositoryPath);
-  }
+  await seedPublishedCli(repositoryPath);
 };
 
 /** Seeds the minimum adopted project state used by semantic cases. */
@@ -1077,64 +1054,6 @@ const seedPackageManagerExecutionTrap = async (repositoryPath, manager) => {
   );
 };
 
-/** Seeds one active compatibility-matrix adapter for runtime relationship scenarios. */
-const seedRuntimeCompatibility = async (
-  repositoryPath,
-  { active, implementationStatus, runtimeGuidance },
-) => {
-  await writeScenarioFile(
-    repositoryPath,
-    'runtime-compatibility-fixture.json',
-    `${JSON.stringify(
-      {
-        adapters: [
-          {
-            id: 'openai',
-            active,
-            bundledVersion: active ? '2.0.3' : null,
-            matrix: {
-              implementation: {
-                kind: 'package',
-                package: '@moldea.ai/adapter-openai',
-                distribution: 'public',
-                versionRange: '^2.0.0',
-              },
-              implementationStatus,
-              supportedRepositoryFormatVersions: [1],
-              compatibleCoreRange: '^2.0.0',
-              runtimeGuidance: {
-                expectation: runtimeGuidance,
-                notes: 'Synthetic compatibility guidance for semantic evaluation.',
-              },
-              targets: [
-                {
-                  id: 'typescript',
-                  kind: 'package',
-                  supportLevel: implementationStatus === 'deprecated' ? 'deprecated' : 'supported',
-                  language: 'typescript',
-                  packages: [
-                    {
-                      ecosystem: 'npm',
-                      name: 'openai',
-                      role: 'primary',
-                      versionRange: '^6.0.0',
-                    },
-                  ],
-                  evidenceKinds: ['runtime-package', 'language'],
-                  lastVerifiedAt: '2026-08-12',
-                },
-              ],
-              lastVerifiedAt: '2026-08-12',
-            },
-          },
-        ],
-      },
-      null,
-      2,
-    )}\n`,
-  );
-};
-
 /** Seeds an unadopted repository with the context quality required by one initialization case. */
 const seedInitializationContext = async (repositoryPath, caseDefinition) => {
   await seedSemanticTooling(repositoryPath, caseDefinition);
@@ -1428,22 +1347,11 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
         'Use the configured runtime to assess refund requests.',
         { runtimeId: 'custom', withMirrors: false },
       );
-      await seedRuntimeCompatibility(repositoryPath, {
-        active: true,
-        implementationStatus: 'available',
-        runtimeGuidance: 'optional',
-      });
       break;
-    case 'runtime-adapter-lifecycle':
-      await seedRefundAgent(
-        repositoryPath,
-        'Use the established runtime to assess refund requests.',
-        { runtimeId: 'openai', withMirrors: false },
-      );
-      await seedRuntimeCompatibility(repositoryPath, {
-        active: false,
-        implementationStatus: 'deprecated',
-        runtimeGuidance: 'required',
+    case 'unavailable-runtime-selection':
+      await seedRefundAgent(repositoryPath, 'Use the declared runtime to assess refund requests.', {
+        runtimeId: 'unavailable-runtime',
+        withMirrors: false,
       });
       break;
     case 'read-only-git-helper-suppression':
@@ -2109,7 +2017,7 @@ export const normalizePortableSkillSemanticEvidence = (relativePath, content) =>
 };
 
 /** Hashes distributed paths with a caller-provided content transformation. */
-const createPortableSkillContentDigest = (transformContent) => {
+const createPortableSkillContentDigest = (transformContent, portableSkillRoot) => {
   const paths = [];
 
   const collect = (directoryPath) => {
@@ -2121,12 +2029,12 @@ const createPortableSkillContentDigest = (transformContent) => {
     }
   };
 
-  collect(PORTABLE_SKILL_ROOT);
+  collect(portableSkillRoot);
   paths.sort((left, right) => left.localeCompare(right));
 
   const hash = createHash('sha256');
   for (const absolutePath of paths) {
-    const relativePath = relative(PORTABLE_SKILL_ROOT, absolutePath).replaceAll('\\', '/');
+    const relativePath = relative(portableSkillRoot, absolutePath).replaceAll('\\', '/');
     const content = readFileSync(absolutePath);
     hash.update(relativePath);
     hash.update('\0');
@@ -2138,15 +2046,21 @@ const createPortableSkillContentDigest = (transformContent) => {
 };
 
 /** Hashes every distributed path and byte in deterministic relative-path order. */
-export const createPortableSkillDigest = () =>
-  createPortableSkillContentDigest((_relativePath, content) => content);
+export const createPortableSkillDigest = (repositoryRoot = REPOSITORY_ROOT) =>
+  createPortableSkillContentDigest(
+    (_relativePath, content) => content,
+    join(repositoryRoot, 'moldea'),
+  );
 
 /** Hashes semantic skill content while excluding only release-version declarations. */
-export const createPortableSkillSemanticDigest = () =>
-  createPortableSkillContentDigest((relativePath, content) => {
-    if (!PORTABLE_RELEASE_VERSION_PATHS.has(relativePath)) return content;
-    return normalizePortableSkillSemanticEvidence(relativePath, content.toString('utf8'));
-  });
+export const createPortableSkillSemanticDigest = (repositoryRoot = REPOSITORY_ROOT) =>
+  createPortableSkillContentDigest(
+    (relativePath, content) => {
+      if (!PORTABLE_RELEASE_VERSION_PATHS.has(relativePath)) return content;
+      return normalizePortableSkillSemanticEvidence(relativePath, content.toString('utf8'));
+    },
+    join(repositoryRoot, 'moldea'),
+  );
 
 /** Builds the canonical result from one complete passing checkpoint. */
 export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, generatedAt }) => {

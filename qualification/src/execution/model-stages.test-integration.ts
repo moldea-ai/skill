@@ -39,12 +39,28 @@ const scenario = {
   removePaths: [],
   expectedRemovePaths: [],
   inspection: { before: 'valid', after: 'valid' },
+  deterministicEvidence: {
+    before: {
+      requiredDiagnosticCodes: [],
+      forbiddenDiagnosticCodes: [],
+      requiredEvidenceKinds: [],
+      forbiddenEvidenceKinds: [],
+    },
+    after: {
+      requiredDiagnosticCodes: [],
+      forbiddenDiagnosticCodes: [],
+      requiredEvidenceKinds: [],
+      forbiddenEvidenceKinds: [],
+    },
+  },
+  expectedActorOutcome: 'completed',
   workspace: {
     expectation: 'unchanged',
     mustPreservePaths: [],
     mustChangePaths: [],
     mustExistPaths: [],
     mustNotExistPaths: [],
+    allowedChangePaths: [],
   },
   judgeRequirements: [{ id: 'required-check', description: 'The required check passes.' }],
 } satisfies IQualificationCaseScenario;
@@ -63,6 +79,10 @@ const deterministicAfter: IDeterministicVerification = {
   memoryRepositoryEquivalent: true,
   coreValid: true,
   cliCompatibilityValid: true,
+  cliIdentityValid: true,
+  cliPackageInventoryValid: true,
+  cliAdapterInventoryValid: true,
+  cliEnvelopeValid: true,
   cliValidateStatus: 'valid',
   cliInspectStatus: 'valid',
   typecheckPassed: true,
@@ -116,6 +136,8 @@ describe('qualification model stages', () => {
       skillDigest: 'b'.repeat(64),
     };
     const candidate: ICandidateClosure = {
+      cliJsonSchemaVersion: 2,
+      cliVersion: '4.0.0',
       fingerprint: 'c'.repeat(64),
       packages: [],
       runtimeDirectory,
@@ -176,6 +198,7 @@ describe('qualification model stages', () => {
         qualificationDigest: 'e'.repeat(64),
         project,
         skillDigest: 'f'.repeat(64),
+        targetDigest: '1'.repeat(64),
         skillRepository: '/skill',
         task: 'Complete the test task.',
         useCache: false,
@@ -243,6 +266,8 @@ describe('qualification model stages', () => {
       skillDigest: 'b'.repeat(64),
     };
     const candidate: ICandidateClosure = {
+      cliJsonSchemaVersion: 2,
+      cliVersion: '4.0.0',
       fingerprint: 'c'.repeat(64),
       packages: [],
       runtimeDirectory,
@@ -299,6 +324,7 @@ describe('qualification model stages', () => {
         qualificationDigest: 'e'.repeat(64),
         project,
         skillDigest: 'f'.repeat(64),
+        targetDigest: '1'.repeat(64),
         skillRepository: '/skill',
         snapshotDirectory: path.join(temporaryRoot, 'snapshot'),
         task: 'Complete the test task.',

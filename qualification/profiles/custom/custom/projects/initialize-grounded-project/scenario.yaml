@@ -1,0 +1,57 @@
+version: 1
+id: initialize-grounded-project
+title: Initialize a grounded project
+purpose: Verify minimal evidence-backed adoption without speculative agent state.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes:
+      - MOLDEA_MANIFEST_MISSING
+      - MOLDEA_PROJECT_FILE_MISSING
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes:
+      - MOLDEA_MANIFEST_MISSING
+      - MOLDEA_PROJECT_FILE_MISSING
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    - src/invoice-review.ts
+  mustChangePaths:
+    - README.md
+    - moldea/moldea.yaml
+    - moldea/project.md
+  mustExistPaths:
+    - README.md
+    - moldea/moldea.yaml
+    - moldea/project.md
+    - src/invoice-review.ts
+  mustNotExistPaths:
+    - moldea/agents
+    - moldea/runtimes
+  allowedChangePaths:
+    - README.md
+    - moldea/moldea.yaml
+    - moldea/project.md
+judgeRequirements:
+  - id: grounds-project
+    description: The project description states the invoice-review purpose and deterministic non-authorizing result from repository evidence.
+  - id: keeps-foundation-minimal
+    description: Initialization creates only the manifest, project context, and README awareness block, without inventing an agent or runtime.
+  - id: preserves-existing-work
+    description: Existing README content and implementation remain intact.
+  - id: validates-project
+    description: The missing-project diagnostics are resolved and every deterministic layer accepts the final project without read-time mutation.

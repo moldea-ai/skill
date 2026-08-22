@@ -1,3 +1,4 @@
+import { createPublicCandidatePackage } from '../candidate-closure/index.ts';
 import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import {
   QualificationAttemptResultDraftSchema,
@@ -9,21 +10,16 @@ import {
 import type { IQualificationExecutionProvenance } from './types.ts';
 
 const createPublicPackages = (candidate: ICandidateClosure | null) =>
-  candidate?.packages.map((candidatePackage) => ({
-    name: candidatePackage.name,
-    version: candidatePackage.version,
-    projectDirectory: candidatePackage.projectDirectory,
-    tarballName: candidatePackage.tarballName,
-    sha256: candidatePackage.sha256,
-  })) ?? [];
+  candidate?.packages.map(createPublicCandidatePackage) ?? [];
 
 const calculateEvidenceGeneratedAt = (
   caseResults: readonly IQualificationCaseResult[],
 ): string | null => {
-  const evidenceTimestamps = caseResults.flatMap((caseResult) => [
-    caseResult.actorEvidenceCreatedAt,
-    caseResult.judgeEvidenceCreatedAt,
-  ]);
+  const evidenceTimestamps = caseResults.flatMap((caseResult) =>
+    [caseResult.actorEvidenceCreatedAt, caseResult.judgeEvidenceCreatedAt].filter(
+      (timestamp): timestamp is string => timestamp !== null,
+    ),
+  );
   return evidenceTimestamps.sort((left, right) => left.localeCompare(right, 'en')).at(0) ?? null;
 };
 

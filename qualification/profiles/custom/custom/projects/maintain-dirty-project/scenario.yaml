@@ -11,6 +11,18 @@ expectedRemovePaths: []
 inspection:
   before: valid
   after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
 workspace:
   expectation: changed
   mustPreservePaths:
@@ -22,12 +34,17 @@ workspace:
   mustChangePaths:
     - moldea/moldea.yaml
     - moldea/agents/support/instruction.md
+    - moldea/context/billing.md
   mustExistPaths:
     - .agents/project-policy.md
     - moldea/context/billing.md
     - notes/local-observation.md
     - src/operator-notes.ts
   mustNotExistPaths: []
+  allowedChangePaths:
+    - moldea/agents/support/instruction.md
+    - moldea/context/billing.md
+    - moldea/moldea.yaml
 judgeRequirements:
   - id: adds-context
     description: The billing context is canonical, registered globally, and assigned to the support agent with an explicit affected path.

@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import {
   WorkspaceAssertionResultSchema,
+  type IActorOutput,
   type IWorkspaceAssertionResult,
   type IWorkspaceFileState,
 } from '../contracts/index.ts';
@@ -84,6 +85,7 @@ export const assertQualificationProjectInputIntegrity = async (
 /** Evaluates declared preservation, mutation, existence, and internal-integrity requirements. */
 export const inspectWorkspaceAssertions = async (
   project: IPreparedQualificationProject,
+  actorOutput?: IActorOutput,
 ): Promise<IWorkspaceAssertionResult> => {
   const after = await collectDirectoryFingerprintEntries(project.workspaceDirectory, {
     excludedDirectoryNames: PROJECT_STATE_EXCLUDED_DIRECTORIES,
@@ -106,6 +108,30 @@ export const inspectWorkspaceAssertions = async (
 
   if (project.scenario.workspace.expectation === 'changed' && changedPaths.length === 0) {
     failures.push('Expected a project mutation, but no project files changed.');
+  }
+
+  const allowedChangePaths = new Set(project.scenario.workspace.allowedChangePaths);
+  const unexpectedChangePaths = changedPaths.filter(
+    (relativePath) => !allowedChangePaths.has(relativePath),
+  );
+  if (unexpectedChangePaths.length > 0) {
+    failures.push(`Changes escaped the declared allowlist: ${unexpectedChangePaths.join(', ')}.`);
+  }
+
+  if (actorOutput !== undefined) {
+    if (actorOutput.outcome !== project.scenario.expectedActorOutcome) {
+      failures.push(
+        `Actor outcome was ${actorOutput.outcome}; expected ${project.scenario.expectedActorOutcome}.`,
+      );
+    }
+    const reportedChangePaths = [...actorOutput.changedFiles].sort((left, right) =>
+      left.localeCompare(right, 'en'),
+    );
+    if (JSON.stringify(reportedChangePaths) !== JSON.stringify(changedPaths)) {
+      failures.push(
+        `Actor changed-file report differed from the workspace: reported ${reportedChangePaths.join(', ') || 'none'}; observed ${changedPaths.join(', ') || 'none'}.`,
+      );
+    }
   }
 
   for (const relativePath of project.scenario.workspace.mustPreservePaths) {

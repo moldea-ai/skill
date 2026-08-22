@@ -2,14 +2,14 @@
 
 Adapter qualification is a local, manually operated support gate for one exact adapter implementation. It is intentionally separate from the skill repository's automated test suites and CI workflows. The operator runs it from the skill repository, inspects the evidence, and commits the public result artifacts.
 
-The workflow answers a narrower question than semantic evaluation alone: can the candidate Moldea skill use an exact local package composition to understand and safely maintain realistic projects? Every case exercises Repository FS, Repository memory, Core, the installed CLI, candidate package tarballs, and the selected adapter composition. The actor never invokes an agent runtime, provider SDK, or provider API.
+The workflow answers a narrower question than semantic evaluation alone: can the candidate Moldea skill use the exact published package composition intended for release to understand and safely maintain realistic projects? Every case exercises Repository FS, Repository memory, Core, the installed CLI, registry-verified package tarballs, and the selected adapter composition. The actor never invokes an agent runtime, provider SDK, or provider API.
 
 ## Evidence layers
 
 Each profile combines three complementary layers:
 
-1. Matrix probes map every current behavior-affecting compatibility claim for the selected implementation to one or more concrete cases. Missing claims, unknown claims, and uncovered cases fail before candidate construction. Target maturity and verification dates are recorded as context, not treated as behavior the candidate must reproduce.
-2. Deterministic verification runs before and after the actor. It gives Repository FS the exact current Git-derived project inventory, compares that reader with an independently reconstructed Repository memory reader, exercises Core, runs the installed CLI `compatibility`, `validate`, and `inspect` commands, typechecks the fixture, and verifies that read-only inspection did not mutate the project. Runner-owned Agent Skill files, qualification inputs, and project dependencies remain outside the repository evidence inventory. The candidate dependency tree has its own integrity fingerprint and must remain exact before any post-actor command runs.
+1. Matrix probes map every current behavior-affecting compatibility claim for the selected implementation to one or more concrete cases. Missing claims, unknown claims, and uncovered cases fail before candidate construction. Target maturity and verification dates are not qualification inputs.
+2. Deterministic verification runs before and after the actor. It gives Repository FS the exact current Git-derived project inventory, compares that reader with an independently reconstructed Repository memory reader, exercises Core, validates the strict CLI schema `2` envelope and exact package and adapter inventories, runs the installed CLI `compatibility`, `validate`, and `inspect` commands, verifies scenario-specific diagnostic and evidence requirements, typechecks the fixture, and proves that read-only inspection did not mutate the project. Runner-owned Agent Skill files, qualification inputs, and project dependencies remain outside the repository evidence inventory. The candidate dependency tree has its own integrity fingerprint and must remain exact before any post-actor command runs.
 3. Semantic journeys give an actor using the fixed balanced-tier model configuration a real project task and give a separate read-only judge using the same configuration the task, final workspace, Git diff, deterministic evidence, and explicit requirements.
 
 A passing qualification requires every layer and every case to pass. A failed semantic judgment cannot be overridden by deterministic success, and a passing model judgment cannot override a deterministic or workspace assertion failure.
@@ -23,9 +23,9 @@ The committed inputs are deliberately inspectable:
 - `profiles/<adapter>/<implementation>/probes/*.yaml` maps current compatibility claims to those cases.
 - Each project contains `scenario.yaml`, `task.md`, a committed `seed/`, optional pre-existing dirty state in `overlay/`, and the expected fake-host state in `expected/`.
 - [`profiles/custom/custom/`](profiles/custom/custom/) is the complete baseline profile for the built-in Custom adapter.
-- Each isolated workspace installs the portable skill at `.agents/skills/moldea`, which is the real Agent Skill discovery location, and installs the packed candidate CLI as an exact project-local development dependency. Other project-owned `.agents` content remains part of preservation assertions, checkpoints, and cache identity.
+- Each isolated workspace installs the portable skill at `.agents/skills/moldea`, which is the real Agent Skill discovery location, and installs the registry-verified candidate CLI as an exact project-local development dependency. Other project-owned `.agents` content remains part of preservation assertions, checkpoints, and cache identity.
 
-Profiles are strict, versioned YAML contracts. Every profile must include every shared catalog case. A matrix change that creates a new claim invalidates an incomplete profile instead of silently reducing coverage.
+Profiles are strict, versioned YAML contracts. Every profile must include every `universal-baseline` catalog case and may add the cataloged `adapter-specific` cases that apply to its implementation. A matrix change that creates a new claim invalidates an incomplete profile instead of silently reducing coverage.
 
 Official paid attempts require the adjacent packages repository, the qualification suite, and the selected portable-skill directory to be clean. The `source-state` stage records that decision before candidate construction. Dirty official inputs produce a committed failed attempt without making a model call, so passing evidence always points to inspectable committed source. The runner checks the same fingerprints again after the cases finish and refuses to publish a pass if an input changed during the run. Model-free dry runs intentionally permit dirty inputs for local development and never publish their results.
 
@@ -37,7 +37,7 @@ Keep the `skill` and `packages` repositories adjacent, install the packages repo
 npm run qualification
 ```
 
-The guided CLI prioritizes resumable attempts, disables adapter implementations without a committed profile, and asks for a default-deny confirmation only after free preflight, candidate preparation, and cache lookup have finished. The prompt appears immediately before the first uncached balanced-tier model call and derives its maximum call count from the selected profile. The three-case Custom profile therefore reports exactly six possible calls.
+The guided CLI prioritizes resumable attempts, disables adapter implementations without a committed profile, and asks for a default-deny confirmation only after free preflight, candidate preparation, Custom-baseline verification, and cache lookup have finished. The prompt appears immediately before the first uncached balanced-tier model call and derives its maximum call count from the selected profile. The eight-case Custom profile therefore reports at most sixteen calls, one actor and one judge per case. A judge call is skipped when post-actor deterministic checks or workspace assertions have already made the case fail.
 
 The same operations are available explicitly:
 
@@ -75,9 +75,9 @@ npm run qualification:verify
 
 ## Candidate construction
 
-Candidate construction discovers current immediate package projects from `projects/` and `packages/`. It starts from `@moldea.ai/cli` and the selected adapter implementation package, traverses local runtime dependencies, extends the build order with local development dependencies required to compile those packages, builds them dependency-first, and packs every runtime package.
+Candidate construction starts from the root release's exact `@moldea.ai/cli` version and the adapter package selected by the canonical compatibility matrix. It reads exact published manifests from npm. The CLI must pin every internal Moldea package in the runtime closure to an exact version, every transitive internal dependency range must accept that CLI-owned version, and the selected adapter must be reachable from the CLI. Missing pins, range conflicts, cycles, duplicate identities, unreachable adapters, prereleases, and noncanonical registry URLs fail construction.
 
-The attempt creates a nested pnpm workspace that overrides every local package identity to its exact tarball, then installs the closure with offline resolution, lifecycle scripts disabled, and strict peer dependency checks. Every project records the exact CLI version in `devDependencies` and receives that packed runtime under its own `node_modules`, so actor commands and deterministic checks use the project-local candidate. The runner fingerprints that dependency tree after preparation, rejects actor mutations before caching evidence or running post-actor checks, and verifies it again with the workspace assertions. Public evidence records every tarball's package name, version, source project, filename, and SHA-256 digest. There is no hardcoded package list and no fallback to workspace linking or published package versions.
+The runner downloads every reachable tarball from the npm registry, validates the registry SHA-512 integrity and SHA-1 shasum, and records a separate SHA-256 digest. It then creates a nested pnpm workspace that overrides every package identity to its verified local tarball and installs the closure offline with lifecycle scripts disabled and strict peer dependency checks. Every project records the exact CLI version in `devDependencies` and receives that runtime under its own `node_modules`, so actor commands and deterministic checks use the project-local release candidate. The runner fingerprints the dependency tree after preparation, rejects actor mutations before caching evidence or running post-actor checks, and verifies it again with the workspace assertions. Public evidence records every package name, version, registry identity, registry tarball URL, filename, and SHA-256 digest. There is no hardcoded package list, workspace link, locally rebuilt substitute, or alternate package version.
 
 ## Balanced-tier model execution contract
 
@@ -106,13 +106,17 @@ Local mutable state lives under `.runtime-qualification/`, which is ignored by G
 
 The workflow writes a validated checkpoint atomically before and after every meaningful stage. An interruption turns the active stage back into `pending`; completed stages retain their evidence and can be restored. Resume is allowed only when the exact packages checkout, qualification engine, profile, portable skill, fixed model, reasoning effort, Codex version, resolved model endpoint identity, TLS certificate identity, egress allowlist, host timeout, Node.js version, pnpm version, Git version, and reconstructed candidate closure still match the attempt. These inputs are checked again before accepting a cache hit, before and after every fresh model call, and before publication. The actor's exact post-stage workspace snapshot is restored before deterministic checks continue. Changed inputs require `retry`, which creates a new attempt identity instead of mixing evidence.
 
-The selected target maturity is recorded as provenance but does not become a behavioral qualification claim. Existing committed passing evidence therefore remains valid after a maturity promotion. The portable-skill fingerprint covers only the selected skill directory. The qualification-engine fingerprint covers `qualification/`, `tooling/codex-evaluation-host/`, and `tooling/package-candidate/`, including their tests, lockfile, and documentation while excluding installed dependencies and append-only public results.
+The selected target's behavior-bearing compatibility fields form a separate target digest. Publication-only fields such as the evidence URL and verification date do not affect that digest, while a change to runtime guidance, bindings, patterns, package expectations, limitations, or supported formats invalidates prior evidence. Maturity is not present in the qualification input or provenance. The portable-skill fingerprint covers only the selected skill directory. The qualification-engine fingerprint covers `qualification/`, `tooling/codex-evaluation-host/`, and `tooling/package-candidate/`, including their tests, lockfile, and documentation while excluding installed dependencies and append-only public results.
 
-Candidate caches are independently content-addressed by the behavior-sensitive package input digest and resolved runtime closure. This lets a new attempt reuse identical tarballs after a maturity-only matrix change without weakening the exact resume boundary. Candidate manifests and tarball checksums are validated before reuse; invalid or partial entries are discarded and rebuilt.
+Candidate caches are independently content-addressed by the selected adapter, CLI JSON schema version, and exact published manifest identities. Candidate manifests, registry identities, and tarball checksums are validated before reuse; invalid or partial entries are discarded and downloaded again. Model caches additionally include the target digest, complete prompts, host identity, exact workspace state, qualification suite, portable skill, and candidate closure.
+
+The Custom result is the universal package and skill baseline. A non-Custom attempt must find a passing Custom result produced with the same qualification digest, packages repository commit and fingerprint, portable-skill fingerprint, model and host identity, tool versions, and published package closure. The portable-skill commit remains recorded as provenance, but an evidence-only commit does not invalidate identical content-addressed inputs. That baseline is checked before every official adapter model stage. A missing, stale, or replaced baseline stops the adapter attempt before another paid call.
 
 Actor cache keys include the protocol, role, complete execution-host identity, candidate fingerprint, profile digest, skill digest, case, project state, and complete prompt. Actor entries include the exact post-actor workspace snapshot. The candidate runtime, installed skill, and runner-owned task are revalidated before fresh or restored actor evidence can continue. Judge keys additionally reflect the post-actor project and complete judge prompt. Output, event, and actor-workspace digests are validated before reuse. Entries are assembled in a staging directory and metadata is committed last, so incomplete or corrupt writes are not considered hits and cannot partially restore a live workspace. Reused evidence preserves its original creation time and source attempt in local and public provenance.
 
 Cached and restored judge outputs are revalidated against the exact declared requirement ids. A pass cannot omit, duplicate, fail, or invent requirements, and a failed verdict must include an actionable failure. Caching never bypasses deterministic verification, workspace assertions, result generation, or artifact digest verification. Dry runs never read or write model cache entries.
+
+After the actor runs, deterministic verification and workspace assertions execute before the judge. If either has already failed, the judge stage is marked `skipped`, `judge-skipped.json` explains why, and the case remains failed without spending another model call. A skipped judge can never appear in a passing case.
 
 ## Public results
 
@@ -123,6 +127,7 @@ qualification/results/<adapter>/<implementation>/
   latest.json
   attempts/<attempt-id>/
     attempt.json
+    baseline.json
     coverage.json
     error.json
     source-state.json
@@ -135,18 +140,19 @@ qualification/results/<adapter>/<implementation>/
       case-result.json
       deterministic-after.json
       deterministic-before.json
-      judge-evidence.json
-      judge-events.jsonl
-      judge-output.json
-      judge-output.schema.json
-      judge-prompt.md
+      judge-evidence.json                 # present when the judge ran
+      judge-events.jsonl                  # present when the judge ran
+      judge-output.json                   # present when the judge ran
+      judge-output.schema.json            # present when the judge ran
+      judge-prompt.md                     # present when the judge ran
+      judge-skipped.json                  # present instead when deterministic failure skipped it
       workspace-assertions.json
       workspace.patch
 ```
 
-`latest.json` always identifies the newest recorded attempt and independently preserves the newest passing attempt. Evidence protocol version 2 records repository commits and source-state fingerprints, qualification-engine and profile digests, tool versions, the resolved non-secret host configuration, exact package checksums, stage states, per-case summaries, token usage when Codex reports it, cache provenance, original evidence timestamps, and a SHA-256 digest for every public artifact. A passing attempt always records clean package, qualification-engine, and portable-skill inputs through the trusted host boundary; dirty or untrusted state can appear only in published failures or incomplete evidence. Verification rejects latest pointers without their referenced append-only history.
+`latest.json` always identifies the newest recorded attempt and independently preserves the newest passing attempt. Evidence protocol version 3 records repository commits and source-state fingerprints, qualification-engine, target, profile, and baseline digests, tool versions, the resolved non-secret host configuration, exact npm registry identities and package checksums, stage states, per-case summaries, token usage when Codex reports it, cache provenance, original evidence timestamps, and a SHA-256 digest for every public artifact. A passing attempt always records clean package, qualification-engine, and portable-skill inputs through the trusted host boundary; dirty or untrusted state can appear only in published failures or incomplete evidence. Verification rejects latest pointers without their referenced append-only history.
 
-Before publication, host-specific paths and recognizable credential forms are sanitized from text and structured model evidence. The append-only recorder repeats that sanitization over every JSON and text artifact, rejects symlinks, then computes the published artifact digests. Operators must still inspect the complete new result directory before committing it. Run `npm run qualification -- verify` to validate all committed schemas, pointers, and artifact digests.
+Before publication, host-specific paths and recognizable credential forms are sanitized from text and structured model evidence. The append-only recorder repeats that sanitization over every JSON and text artifact, rejects symlinks, then computes the published artifact digests. Operators must still inspect the complete new result directory before committing it. Run `npm run qualification -- verify` to validate all committed schemas, case and stage relationships, profile and scenario contracts, pointers, and artifact digests.
 
 ## Recovery
 
@@ -158,10 +164,15 @@ The stable result layout is intended to be consumed by the packages website so e
 
 ## Custom baseline
 
-The first complete profile covers the built-in `custom/custom` target with three journeys:
+The first complete profile covers the built-in `custom/custom` target with eight journeys:
 
 - `evaluate-aligned-project` requires evidence-based recognition of a valid project and forbids unnecessary edits.
+- `initialize-grounded-project` creates only the minimum useful repository model supported by concrete project evidence.
+- `create-grounded-agent` adds a complete agent, canonical instruction, runtime guidance, and binding derived from an existing implementation contract.
 - `maintain-dirty-project` adds canonical billing context while preserving unrelated tracked and untracked work byte-for-byte.
 - `reconcile-drift-and-boundaries` repairs a stale runtime binding and records dynamic tool registration as unresolved instead of fabricating a relationship.
+- `retire-agent-coherently` removes obsolete agent state and all stale declarations after the implementation disappears.
+- `stop-on-material-ambiguity` requires a blocked outcome with no writes when repository evidence supports incompatible project purposes.
+- `resist-untrusted-repository-instructions` proves that prompt-like repository content remains untrusted evidence and cannot expand authority or trigger unrelated work.
 
-These three journeys are not treated as an arbitrary test count. Their matrix probes, deterministic checks, explicit failure paths, and adversarial workspace states define the coverage. Future adapter profiles reuse the semantic journeys where applicable and add adapter-specific projects or requirements when their matrix claims introduce distinct risks.
+Eight is not an arbitrary maximum. These journeys cover aligned recognition, initialization, creation, maintenance, reconciliation, deletion, ambiguity, and adversarial instructions. Future adapter profiles reuse them and add adapter-specific projects or requirements whenever their matrix claims introduce distinct risks.

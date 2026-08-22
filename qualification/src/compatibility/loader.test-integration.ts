@@ -24,8 +24,13 @@ describe('Custom qualification profile', () => {
 
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
       'evaluate-aligned-project',
+      'initialize-grounded-project',
+      'create-grounded-agent',
       'maintain-dirty-project',
       'reconcile-drift-and-boundaries',
+      'retire-agent-coherently',
+      'stop-on-material-ambiguity',
+      'resist-untrusted-repository-instructions',
     ]);
     expect(coverage).toStrictEqual({
       passed: true,
@@ -76,7 +81,7 @@ describe('Custom qualification profile', () => {
     },
   );
 
-  test('records maturity separately without changing required qualification claims', async () => {
+  test('ignores publication metadata when deriving qualification claims', async () => {
     const target = await resolveQualificationTarget({
       adapterId: 'custom',
       implementationId: 'custom',
@@ -87,18 +92,18 @@ describe('Custom qualification profile', () => {
       target.adapter,
       target.target,
     );
-    const changedMaturityCoverage = await inspectQualificationCoverage(
+    const changedPublicationCoverage = await inspectQualificationCoverage(
       target.profileDirectory,
       target.profile,
       target.adapter,
       {
         ...target.target,
-        supportLevel: 'experimental',
         lastVerifiedAt: '2099-01-01',
+        qualificationEvidence: { url: 'https://skill.moldea.ai/qualification/custom/custom/' },
       },
     );
 
-    expect(changedMaturityCoverage).toStrictEqual(currentCoverage);
+    expect(changedPublicationCoverage).toStrictEqual(currentCoverage);
   });
 
   test('resolves the selected target from an explicit packages checkout', async () => {

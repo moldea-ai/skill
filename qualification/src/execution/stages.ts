@@ -53,7 +53,7 @@ export const completeQualificationStage = async (
   checkpoint: IQualificationAttemptCheckpoint,
   stageId: string,
   options: {
-    status: 'cached' | 'errored' | 'failed' | 'passed';
+    status: 'cached' | 'errored' | 'failed' | 'passed' | 'skipped';
     cacheKey?: string | null;
     cacheSourceAttemptId?: string | null;
     error?: string | null;
@@ -86,5 +86,5 @@ export const isQualificationStageComplete = (
   stageId: string,
 ): boolean => {
   const status = checkpoint.stages[stageId]?.status;
-  return status === 'cached' || status === 'failed' || status === 'passed';
+  return status === 'cached' || status === 'failed' || status === 'passed' || status === 'skipped';
 };

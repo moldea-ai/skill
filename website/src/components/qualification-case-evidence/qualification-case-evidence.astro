@@ -10,8 +10,15 @@ interface Props {
 }
 
 const { evidence } = Astro.props;
-const { actor, deterministicAfter, deterministicBefore, judge, result, workspaceAssertions } =
-  evidence;
+const {
+  actor,
+  deterministicAfter,
+  deterministicBefore,
+  judge,
+  judgeSkipped,
+  result,
+  workspaceAssertions,
+} = evidence;
 const verificationRows: Array<{
   label: string;
   verification: IQualificationAttemptCaseModel['deterministicBefore'];
@@ -181,78 +188,98 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
         </dl>
       </div>
 
-      <div class="rounded-xl border border-border p-4 sm:p-5">
-        <div class="flex flex-wrap items-center gap-2">
-          <h4 class="font-semibold">Independent judge</h4>
-          <QualificationStatus status={judge.verdict === 'pass' ? 'passed' : 'failed'} />
-        </div>
-        <p class="mt-3 text-sm leading-6 text-muted-foreground">
-          <QualificationText text={judge.summary} />
-        </p>
-        <dl class="mt-4 grid gap-2 text-sm">
-          <div class="flex flex-wrap justify-between gap-2">
-            <dt class="text-muted-foreground">Evidence created</dt>
-            <dd>
-              <time datetime={result.judgeEvidenceCreatedAt}>{result.judgeEvidenceCreatedAt}</time>
-            </dd>
+      {
+        judge ? (
+          <div class="rounded-xl border border-border p-4 sm:p-5">
+            <div class="flex flex-wrap items-center gap-2">
+              <h4 class="font-semibold">Independent judge</h4>
+              <QualificationStatus status={judge.verdict === 'pass' ? 'passed' : 'failed'} />
+            </div>
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">
+              <QualificationText text={judge.summary} />
+            </p>
+            <dl class="mt-4 grid gap-2 text-sm">
+              <div class="flex flex-wrap justify-between gap-2">
+                <dt class="text-muted-foreground">Evidence created</dt>
+                <dd>
+                  <time datetime={result.judgeEvidenceCreatedAt ?? undefined}>
+                    {result.judgeEvidenceCreatedAt ?? 'Unavailable'}
+                  </time>
+                </dd>
+              </div>
+              <div class="flex flex-wrap justify-between gap-2">
+                <dt class="text-muted-foreground">Cache source</dt>
+                <dd class="font-mono text-xs">
+                  {result.judgeCacheSourceAttemptId ?? 'Fresh evidence'}
+                </dd>
+              </div>
+              <div class="flex flex-wrap justify-between gap-2">
+                <dt class="text-muted-foreground">Reported tokens</dt>
+                <dd>{judgeTokenTotal ?? 'Unavailable'}</dd>
+              </div>
+            </dl>
           </div>
-          <div class="flex flex-wrap justify-between gap-2">
-            <dt class="text-muted-foreground">Cache source</dt>
-            <dd class="font-mono text-xs">
-              {result.judgeCacheSourceAttemptId ?? 'Fresh evidence'}
-            </dd>
+        ) : (
+          <div class="rounded-xl border border-warning/40 bg-warning/10 p-4 sm:p-5">
+            <div class="flex flex-wrap items-center gap-2">
+              <h4 class="font-semibold">Independent judge</h4>
+              <QualificationStatus status="skipped" />
+            </div>
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">
+              <QualificationText
+                text={judgeSkipped?.reason ?? 'The judge did not run for this case.'}
+              />
+            </p>
           </div>
-          <div class="flex flex-wrap justify-between gap-2">
-            <dt class="text-muted-foreground">Reported tokens</dt>
-            <dd>{judgeTokenTotal ?? 'Unavailable'}</dd>
-          </div>
-        </dl>
-      </div>
+        )
+      }
     </section>
 
-    <section aria-labelledby={`${result.caseId}-requirements-title`}>
-      <h4
-        id={`${result.caseId}-requirements-title`}
-        class="text-lg font-semibold"
-      >
-        Judge requirements
-      </h4>
-      <div
-        class="table-scroll mt-3 overflow-x-auto rounded-xl border border-border"
-        tabindex="0"
-        role="region"
-        aria-label={`Scrollable judge requirements for ${result.caseId}`}
-      >
-        <table class="w-full min-w-[42rem] border-collapse text-left text-sm">
-          <thead class="bg-muted">
-            <tr>
-              <th class="px-4 py-3 font-semibold">Requirement</th>
-              <th class="px-4 py-3 font-semibold">Verdict</th>
-              <th class="px-4 py-3 font-semibold">Evidence</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-border">
-            {
-              judge.requirements.map((requirement) => (
+    {
+      judge && (
+        <section aria-labelledby={`${result.caseId}-requirements-title`}>
+          <h4
+            id={`${result.caseId}-requirements-title`}
+            class="text-lg font-semibold"
+          >
+            Judge requirements
+          </h4>
+          <div
+            class="table-scroll mt-3 overflow-x-auto rounded-xl border border-border"
+            tabindex="0"
+            role="region"
+            aria-label={`Scrollable judge requirements for ${result.caseId}`}
+          >
+            <table class="w-full min-w-[42rem] border-collapse text-left text-sm">
+              <thead class="bg-muted">
                 <tr>
-                  <td class="px-4 py-3 align-top">
-                    <code>{requirement.id}</code>
-                  </td>
-                  <td class="px-4 py-3 align-top">
-                    <QualificationStatus
-                      status={requirement.verdict === 'pass' ? 'passed' : 'failed'}
-                    />
-                  </td>
-                  <td class="px-4 py-3 leading-6 text-muted-foreground">
-                    <QualificationText text={requirement.evidence} />
-                  </td>
+                  <th class="px-4 py-3 font-semibold">Requirement</th>
+                  <th class="px-4 py-3 font-semibold">Verdict</th>
+                  <th class="px-4 py-3 font-semibold">Evidence</th>
                 </tr>
-              ))
-            }
-          </tbody>
-        </table>
-      </div>
-    </section>
+              </thead>
+              <tbody class="divide-y divide-border">
+                {judge.requirements.map((requirement) => (
+                  <tr>
+                    <td class="px-4 py-3 align-top">
+                      <code>{requirement.id}</code>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                      <QualificationStatus
+                        status={requirement.verdict === 'pass' ? 'passed' : 'failed'}
+                      />
+                    </td>
+                    <td class="px-4 py-3 leading-6 text-muted-foreground">
+                      <QualificationText text={requirement.evidence} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )
+    }
 
     <details class="rounded-xl border border-border">
       <summary class="min-h-12 cursor-pointer px-4 py-3 font-semibold">

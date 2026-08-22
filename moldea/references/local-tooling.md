@@ -8,8 +8,8 @@ Release `3.1.0` supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`
-- `@moldea.ai/cli 3.3.7`
-- CLI JSON schema `1`
+- `@moldea.ai/cli 4.0.0`
+- CLI JSON schema `2`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
 - Yarn `>=4.0.0 <5.0.0`
@@ -36,17 +36,17 @@ Resolve the executable that will perform the operation and verify its actual ver
 Release tooling state requires all of the following:
 
 - `@moldea.ai/cli` is a root `devDependency` declared as one exact semantic version, not a range, tag, URL, workspace protocol, alias, or other floating specifier.
-- the declared version is exactly `3.3.7`
+- the declared version is exactly `4.0.0`
 - the installed repository-local package manifest reports the same exact version
 - the established manager resolves the repository-local `moldea` executable from that root package
-- the machine envelope reports the same exact `cliVersion` and schema `1`
+- the machine envelope reports the same exact `cliVersion` and schema `2`
 
-Preserve an existing exact `3.3.7` declaration and executable. A different installed version belongs to a different skill release and must not be treated as interchangeable. If this release's exact CLI lacks a required official adapter or machine-contract capability, stop and report the release defect instead of selecting another CLI version.
+Preserve an existing exact `4.0.0` declaration and executable. A different installed version belongs to a different skill release and must not be treated as interchangeable. If this release's exact CLI lacks a required official adapter or machine-contract capability, stop and report the release defect instead of selecting another CLI version.
 
 During a write-capable workflow:
 
-- if the installed repository-local CLI is exactly `3.3.7` but the declaration floats, pin `3.3.7` exactly and update the ordinary lockfile
-- if the exact release CLI is absent or another version is installed, verify published registry metadata for `3.3.7`, install that version exactly, and update the ordinary lockfile
+- if the installed repository-local CLI is exactly `4.0.0` but the declaration floats, pin `4.0.0` exactly and update the ordinary lockfile
+- if the exact release CLI is absent or another version is installed, verify published registry metadata for `4.0.0`, install that version exactly, and update the ordinary lockfile
 - if installed and declared state conflict in a way that cannot be established reliably, stop and report the prerequisite instead of guessing
 
 During `plan`, `evaluate`, or `validate`, never create `package.json`, change dependency declarations or lockfiles, or install packages. Report the detected state and the write-capable remediation when relevant.
@@ -64,7 +64,7 @@ pnpm add --workspace-root --save-dev --save-exact --ignore-scripts @moldea.ai/cl
 yarn add --dev --exact --mode=skip-build @moldea.ai/cli@<resolved-version>
 ```
 
-Use the pnpm `--workspace-root` form only when the root is a pnpm workspace; otherwise use the non-workspace form. Yarn's supported `skip-build` mode omits the build step. npm and pnpm use their supported `ignore-scripts` setting. Replace the placeholder with exact version `3.3.7`; never write a range into a client manifest.
+Use the pnpm `--workspace-root` form only when the root is a pnpm workspace; otherwise use the non-workspace form. Yarn's supported `skip-build` mode omits the build step. npm and pnpm use their supported `ignore-scripts` setting. Replace the placeholder with exact version `4.0.0`; never write a range into a client manifest.
 
 Inspect applicable package-manager configuration as data before execution. Treat pnpmfiles, hook-bearing pnpm configuration, repository-declared third-party Yarn plugins, and equivalent extension mechanisms as executable repository code. Use only tested controls that prevent those surfaces from loading without making dependency resolution materially different or unreliable.
 
@@ -87,14 +87,14 @@ After provider verification, require the executable's machine envelope to report
 
 Never use a bare global command, `npx`, `pnpm dlx`, `yarn dlx`, or another form that may download an undeclared CLI.
 
-Use `inspect --json` as the primary deterministic integration. Use `compatibility --json` only when current adapter, runtime, package, provider-limit, or feature support can affect the task. Use `validate --json` when narrower structural validation is sufficient.
+Use `inspect --json` as the primary deterministic integration. Use `compatibility --json` only when the installed package composition, available adapter IDs, repository-format versions, or Node.js and Git requirements can affect the task. Its compact result does not establish target maturity, provider limits, supported patterns, or other behavioral compatibility claims. Use `validate --json` when narrower structural validation is sufficient.
 
 ## Verify the machine envelope
 
-Parse JSON only after the process completes, then validate the version `1` envelope before reading `result`:
+Parse JSON only after the process completes, then validate the version `2` envelope before reading `result`:
 
-- `schemaVersion` is integer `1`
-- `cliVersion` is exactly `3.3.7` and equals the declared and installed CLI version
+- `schemaVersion` is integer `2`
+- `cliVersion` is exactly `4.0.0` and equals the declared and installed CLI version
 - `command` equals the command invoked
 - `status` is `valid`, `invalid`, or `error`
 - `valid` has non-null `result` and null `error`

@@ -42,9 +42,14 @@ const seedProfile = (root: string): void => {
 cases:
   - id: evaluate-project
     title: Evaluate project
-    layer: semantic-journey
+    layer: universal-baseline
     description: Inspect one project.
     challenge: Avoid unsupported edits.
+  - id: provider-streaming
+    title: Provider streaming
+    layer: adapter-specific
+    description: Exercise one provider-specific streaming path.
+    challenge: Preserve the selected adapter's streaming behavior.
 `,
   );
   writeText(
@@ -89,12 +94,25 @@ seedDirectory: seed
 inspection:
   before: valid
   after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
 workspace:
   expectation: unchanged
   mustPreservePaths: []
   mustChangePaths: []
   mustExistPaths: []
   mustNotExistPaths: []
+  allowedChangePaths: []
 judgeRequirements:
   - id: validates-project
     description: The complete project remains valid.
@@ -130,6 +148,7 @@ const createAttempt = (
   options: {
     attemptId: string;
     createdAt: string;
+    judgeSkipped?: boolean;
     status: 'failed' | 'passed';
   },
 ): void => {
@@ -139,6 +158,7 @@ const createAttempt = (
     options.attemptId,
   );
   const caseStatus = options.status === 'passed' ? 'passed' : 'failed';
+  const isJudgeSkipped = options.judgeSkipped === true;
   const deterministic = {
     passed: true,
     inspectionStatus: 'valid',
@@ -146,6 +166,10 @@ const createAttempt = (
     memoryRepositoryEquivalent: true,
     coreValid: true,
     cliCompatibilityValid: true,
+    cliIdentityValid: true,
+    cliPackageInventoryValid: true,
+    cliAdapterInventoryValid: true,
+    cliEnvelopeValid: true,
     cliValidateStatus: 'valid',
     cliInspectStatus: 'valid',
     typecheckPassed: true,
@@ -161,6 +185,13 @@ const createAttempt = (
     },
   };
   const artifactValues: Record<string, unknown> = {
+    'baseline.json': {
+      required: false,
+      passed: true,
+      status: 'not-required',
+      baselineAttemptId: null,
+      failures: [],
+    },
     'coverage.json': {
       passed: true,
       requiredClaims: ['qualification.support-gate'],
@@ -206,14 +237,24 @@ const createAttempt = (
       futureField: 'accepted',
     },
     'cases/evaluate-project/workspace-assertions.json': {
-      passed: true,
-      failures: [],
+      passed: !isJudgeSkipped,
+      failures: isJudgeSkipped ? ['Actor-reported changes did not match the workspace.'] : [],
       before: [],
       after: [],
       changedPaths: [],
       futureField: 'accepted',
     },
   };
+
+  if (isJudgeSkipped) {
+    delete artifactValues['cases/evaluate-project/judge-output.json'];
+    artifactValues['cases/evaluate-project/judge-skipped.json'] = {
+      reason:
+        'The judge was skipped because deterministic postchecks or workspace assertions already failed.',
+      deterministicAfterPassed: true,
+      workspaceAssertionsPassed: false,
+    };
+  }
 
   for (const [artifactPath, value] of Object.entries(artifactValues)) {
     writeJson(attemptDirectory, artifactPath, value);
@@ -227,7 +268,7 @@ const createAttempt = (
     ]),
   );
   writeJson(attemptDirectory, 'attempt.json', {
-    protocolVersion: 2,
+    protocolVersion: 3,
     attemptId: options.attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -250,7 +291,6 @@ const createAttempt = (
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: SHA_A,
       packagesRepositoryDirty: false,
-      targetSupportLevel: 'experimental',
       qualificationRepositoryCommit: 'qualification-commit',
       qualificationRepositoryDirty: false,
       skillRepositoryCommit: 'skill-commit',
@@ -258,12 +298,16 @@ const createAttempt = (
       skillRepositoryDirty: false,
       profileDigest: SHA_A,
       qualificationDigest: SHA_B,
+      targetDigest: SHA_A,
+      baselineAttemptId: null,
       packages: [
         {
           name: '@moldea.ai/cli',
-          version: '3.3.4',
-          projectDirectory: 'projects/cli',
-          tarballName: 'moldea-cli.tgz',
+          version: '4.0.0',
+          registryIntegrity: `sha512-${'c'.repeat(86)}`,
+          registryShasum: 'd'.repeat(40),
+          registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-4.0.0.tgz',
+          tarballName: 'cli-4.0.0.tgz',
           sha256: SHA_A,
           futureField: 'accepted',
         },
@@ -274,6 +318,7 @@ const createAttempt = (
       'source-state',
       'coverage',
       'candidate',
+      'baseline',
       'case:evaluate-project:prepare',
       'case:evaluate-project:deterministic-before',
       'case:evaluate-project:actor',
@@ -283,7 +328,7 @@ const createAttempt = (
       'case:evaluate-project:result',
     ].map((id) => ({
       id,
-      status: 'passed',
+      status: isJudgeSkipped && id.endsWith(':judge') ? 'skipped' : 'passed',
       startedAt: options.createdAt,
       completedAt: options.createdAt,
       durationMs: 5,
@@ -301,13 +346,15 @@ const createAttempt = (
         deterministicBeforePath: 'cases/evaluate-project/deterministic-before.json',
         deterministicAfterPath: 'cases/evaluate-project/deterministic-after.json',
         actorOutputPath: 'cases/evaluate-project/actor-output.json',
-        judgeOutputPath: 'cases/evaluate-project/judge-output.json',
+        judgeStatus: isJudgeSkipped ? 'skipped' : 'completed',
+        judgeOutputPath: isJudgeSkipped ? null : 'cases/evaluate-project/judge-output.json',
+        judgeSkippedPath: isJudgeSkipped ? 'cases/evaluate-project/judge-skipped.json' : null,
         workspaceAssertionsPath: 'cases/evaluate-project/workspace-assertions.json',
         patchPath: 'cases/evaluate-project/workspace.patch',
         actorUsage: { inputTokens: 10, cachedInputTokens: 2, outputTokens: 3 },
         judgeUsage: null,
         actorEvidenceCreatedAt: options.createdAt,
-        judgeEvidenceCreatedAt: options.createdAt,
+        judgeEvidenceCreatedAt: isJudgeSkipped ? null : options.createdAt,
         actorCacheSourceAttemptId: null,
         judgeCacheSourceAttemptId: null,
         failures: caseStatus === 'passed' ? [] : ['Validation was incomplete.'],
@@ -363,7 +410,7 @@ const writeLatest = (
   lastPassingAttemptId: string | null,
 ): void => {
   writeJson(root, 'qualification/results/custom/custom/latest.json', {
-    protocolVersion: 2,
+    protocolVersion: 3,
     adapterId: 'custom',
     implementationId: 'custom',
     latestAttemptId,
@@ -379,7 +426,7 @@ afterEach(() => {
 });
 
 describe('loadQualificationWebsiteModel', () => {
-  test('loads a transparent profile with an explicit empty result state', () => {
+  test('loads a profile without unrelated adapter-specific catalog cases', () => {
     const root = createTemporaryRoot();
     seedProfile(root);
 
@@ -390,6 +437,7 @@ describe('loadQualificationWebsiteModel', () => {
     expect(model.profiles[0]).toMatchObject({
       adapterId: 'custom',
       attempts: [],
+      cases: [{ id: 'evaluate-project' }],
       implementationId: 'custom',
       latest: null,
       title: 'Custom qualification',
@@ -454,6 +502,28 @@ describe('loadQualificationWebsiteModel', () => {
       latestAttemptId: 'attempt-fail',
       latestStatus: 'failed',
       lastPassingAttemptId: 'attempt-pass',
+    });
+  });
+
+  test('loads an explicit skipped judge after deterministic failure', () => {
+    const root = createTemporaryRoot();
+    seedProfile(root);
+    createAttempt(root, {
+      attemptId: 'attempt-skipped-judge',
+      createdAt: '2026-08-20T11:00:00.000Z',
+      judgeSkipped: true,
+      status: 'failed',
+    });
+    writeLatest(root, 'attempt-skipped-judge', 'failed', null);
+
+    const caseEvidence = loadQualificationWebsiteModel(root).profiles[0]?.attempts[0]?.cases[0];
+
+    expect(caseEvidence).toMatchObject({
+      judge: null,
+      judgeSkipped: {
+        deterministicAfterPassed: true,
+        workspaceAssertionsPassed: false,
+      },
     });
   });
 

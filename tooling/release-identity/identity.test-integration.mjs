@@ -37,21 +37,37 @@ test('release identity inspection detects a stale maintained copy', () => {
       'package.json',
     );
     const semanticCliManifest = JSON.parse(readFileSync(semanticCliManifestPath, 'utf8'));
+    const reorderedSemanticCliManifest = {
+      ...semanticCliManifest,
+      dependencies: Object.fromEntries(Object.entries(semanticCliManifest.dependencies).reverse()),
+    };
+    writeFileSync(
+      semanticCliManifestPath,
+      `${JSON.stringify(reorderedSemanticCliManifest, null, 2)}\n`,
+      'utf8',
+    );
+    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
+
     writeFileSync(
       semanticCliManifestPath,
       `${JSON.stringify(
         {
-          ...semanticCliManifest,
-          dependencies: Object.fromEntries(
-            Object.entries(semanticCliManifest.dependencies).reverse(),
-          ),
+          ...reorderedSemanticCliManifest,
+          moldeaRelease: { cliJsonSchemaVersion: 999 },
         },
         null,
         2,
       )}\n`,
       'utf8',
     );
-    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
+    assert.deepEqual(inspectReleaseIdentity(temporaryRoot), [
+      `The semantic CLI fixture JSON schema version is not ${semanticCliManifest.moldeaRelease.cliJsonSchemaVersion}.`,
+    ]);
+    writeFileSync(
+      semanticCliManifestPath,
+      `${JSON.stringify(reorderedSemanticCliManifest, null, 2)}\n`,
+      'utf8',
+    );
 
     const compatibilityPath = join(temporaryRoot, 'docs', 'compatibility-and-local-tooling.md');
     writeFileSync(

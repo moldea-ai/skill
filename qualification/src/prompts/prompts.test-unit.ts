@@ -21,12 +21,28 @@ const scenario: IQualificationCaseScenario = {
   removePaths: [],
   expectedRemovePaths: [],
   inspection: { before: 'valid', after: 'valid' },
+  deterministicEvidence: {
+    before: {
+      requiredDiagnosticCodes: [],
+      forbiddenDiagnosticCodes: [],
+      requiredEvidenceKinds: [],
+      forbiddenEvidenceKinds: [],
+    },
+    after: {
+      requiredDiagnosticCodes: [],
+      forbiddenDiagnosticCodes: [],
+      requiredEvidenceKinds: [],
+      forbiddenEvidenceKinds: [],
+    },
+  },
+  expectedActorOutcome: 'completed',
   workspace: {
     expectation: 'changed',
     mustPreservePaths: [],
     mustChangePaths: ['moldea/moldea.yaml'],
     mustExistPaths: ['moldea/moldea.yaml'],
     mustNotExistPaths: [],
+    allowedChangePaths: ['moldea/moldea.yaml'],
   },
   judgeRequirements: [
     {
@@ -52,6 +68,10 @@ const deterministicVerification: IDeterministicVerification = {
   memoryRepositoryEquivalent: true,
   coreValid: true,
   cliCompatibilityValid: true,
+  cliIdentityValid: true,
+  cliPackageInventoryValid: true,
+  cliAdapterInventoryValid: true,
+  cliEnvelopeValid: true,
   cliValidateStatus: 'valid',
   cliInspectStatus: 'valid',
   typecheckPassed: true,

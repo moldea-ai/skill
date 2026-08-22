@@ -37,4 +37,8 @@ export const QUALIFICATION_STATUS_PRESENTATION: Record<
     className: 'border-accent bg-accent text-accent-foreground',
     label: 'Running',
   },
+  skipped: {
+    className: 'border-warning/40 bg-warning/20 text-warning-foreground',
+    label: 'Skipped',
+  },
 };

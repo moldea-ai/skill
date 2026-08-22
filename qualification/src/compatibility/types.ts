@@ -44,8 +44,12 @@ const RuntimeTargetSchema = z.object({
       }),
     )
     .optional(),
-  supportLevel: z.string().min(1),
   lastVerifiedAt: z.string().min(1),
+  qualificationEvidence: z
+    .object({
+      url: z.url(),
+    })
+    .optional(),
 });
 
 const RuntimeAdapterEntrySchema = z.object({
@@ -66,7 +70,7 @@ const RuntimeAdapterEntrySchema = z.object({
 // additive read model for the packages repository's canonical compatibility matrix
 export const RuntimeCompatibilityMatrixSchema = z.object({
   adapters: z.record(z.string(), RuntimeAdapterEntrySchema),
-  version: z.literal(1),
+  version: z.literal(2),
 });
 
 export type IRuntimeAdapterEntry = z.infer<typeof RuntimeAdapterEntrySchema>;
@@ -79,7 +83,6 @@ export type IQualificationImplementation = {
   implementationId: string | null;
   implementationPackage: string;
   implementationStatus: string;
-  supportLevel: string | null;
   hasProfile: boolean;
   disabledReason: string | null;
 };
@@ -93,5 +96,6 @@ export type IResolvedQualificationTarget = {
   profile: IQualificationProfile;
   profileDirectory: string;
   profileDigest: string;
+  targetDigest: string;
   caseCatalog: IQualificationCaseCatalog;
 };

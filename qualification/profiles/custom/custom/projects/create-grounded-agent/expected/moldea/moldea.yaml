@@ -1,0 +1,18 @@
+version: 1
+
+context:
+  /moldea/project.md:
+    affectedBy:
+      - /src/**
+
+agents:
+  order-triage:
+    runtime:
+      id: custom
+      guidance: /moldea/runtimes/custom.md
+    bindings:
+      runtimeAgent:
+        path: /src/order-triage-agent.ts
+        symbol: createOrderTriageAgent
+    affectedBy:
+      - /src/order-triage-agent.ts

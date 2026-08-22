@@ -47,21 +47,19 @@ Use the agent description for general-only runtime metadata. Establish the runti
 
 ## Select the runtime honestly
 
-Every registered agent declares exactly one `runtime.id`. Inspect repository runtime evidence and run `compatibility --json` when official support information matters.
+Every registered agent declares exactly one `runtime.id`. Inspect repository runtime evidence and run `compatibility --json` when the installed adapter inventory matters.
 
 1. Identify the primary runtime integration boundary that governs model invocation and, when applicable, instruction loading, capabilities, schemas, routing, or variable provision.
-2. When supported runtime layers are nested, select the highest-level available official adapter whose verified target covers that boundary and composition. Treat provider SDKs beneath it as implementation dependencies rather than competing runtime IDs.
+2. When runtime layers are nested, select the highest-level available official adapter whose reliable documentation and repository evidence cover that boundary and composition. Treat provider SDKs beneath it as implementation dependencies rather than competing runtime IDs.
 3. Select `openai`, `anthropic`, or `google-genai` only when that provider SDK is itself the primary integration boundary.
-4. Use `custom` when multiple runtime layers materially and independently govern the agent and no verified official target covers the composition, or when the established integration does not reliably match an available official adapter.
+4. Use `custom` when multiple runtime layers materially and independently govern the agent and no available official adapter reliably covers the composition, or when the established integration does not reliably match one.
 5. Clarify when the runtime itself is genuinely unknown rather than inventing a declaration.
 
-Planned and in-development matrix entries do not establish support. Preserve published target maturity exactly: an `experimental` target may establish the correct identity but is not production-ready, while an existing agent may retain a still-matching `deprecated` adapter. Deprecation or an inactive local adapter alone is not a reason to rewrite `runtime.id` to `custom`.
+When a needed adapter is absent from the installed CLI inventory, treat that as a tooling prerequisite. Do not select another CLI release because this skill owns one exact version. Report the release limitation; `evaluate` never changes the dependency.
 
-When a matching published adapter is inactive in the installed CLI, treat that as a tooling prerequisite. A write-capable workflow may replace a compatible exact CLI pin only when the required adapter or machine capability materially affects the authorized work and a released CLI inside this skill's supported range is established to provide it. Otherwise report the limitation; `evaluate` never changes the dependency.
+Create project-local runtime guidance when repository-specific behavior, limitations, or integration decisions are material and not established elsewhere. Do not turn optional manifest syntax into a Core structural error.
 
-Honor the active matrix's `runtimeGuidance` expectation. `required` blocks semantic readiness until appropriate project-local guidance exists and is referenced, `recommended` requires a material-usefulness evaluation, and `optional` adds no readiness requirement. This does not turn optional manifest syntax into a Core structural error.
-
-Do not infer compatibility from package names or general runtime knowledge, install adapters dynamically, or claim support absent from verified compatibility data.
+Do not infer behavioral compatibility from package names, the compact CLI inventory, or general runtime knowledge, install adapters dynamically, or claim support without reliable adapter documentation and repository evidence.
 
 ## Register real relationships
 

@@ -12,6 +12,18 @@ expectedRemovePaths: []
 inspection:
   before: invalid
   after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
 workspace:
   expectation: changed
   mustPreservePaths:
@@ -27,6 +39,8 @@ workspace:
     - moldea/moldea.yaml
   mustNotExistPaths:
     - src/support-agent.ts
+  allowedChangePaths:
+    - moldea/moldea.yaml
 judgeRequirements:
   - id: repairs-binding
     description: The stale runtime-agent reference is updated to the existing supportAssistant export and no obsolete source is recreated.

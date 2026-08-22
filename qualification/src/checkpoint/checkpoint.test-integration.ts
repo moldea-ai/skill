@@ -37,6 +37,7 @@ describe('qualification checkpoints', () => {
       skillDigest: 'b'.repeat(64),
       packagesRepositoryFingerprint: 'e'.repeat(64),
       packagesDigest: 'c'.repeat(64),
+      targetDigest: 'f'.repeat(64),
       executionEnvironment: {
         model: 'gpt-5.6-terra',
         reasoningEffort: 'medium',
@@ -74,6 +75,7 @@ describe('qualification checkpoints', () => {
       packagesRepository: '/packages',
       packagesRepositoryFingerprint: 'e'.repeat(64),
       qualificationDigest: 'd'.repeat(64),
+      targetDigest: 'f'.repeat(64),
       recordedAt: null,
       executionEnvironment: {
         model: 'gpt-5.6-terra',

@@ -52,12 +52,28 @@ describe('qualification project input integrity', () => {
         removePaths: [],
         expectedRemovePaths: [],
         inspection: { before: 'valid', after: 'valid' },
+        deterministicEvidence: {
+          before: {
+            requiredDiagnosticCodes: [],
+            forbiddenDiagnosticCodes: [],
+            requiredEvidenceKinds: [],
+            forbiddenEvidenceKinds: [],
+          },
+          after: {
+            requiredDiagnosticCodes: [],
+            forbiddenDiagnosticCodes: [],
+            requiredEvidenceKinds: [],
+            forbiddenEvidenceKinds: [],
+          },
+        },
+        expectedActorOutcome: 'completed',
         workspace: {
           expectation: 'unchanged',
           mustPreservePaths: [],
           mustChangePaths: [],
           mustExistPaths: [],
           mustNotExistPaths: [],
+          allowedChangePaths: [],
         },
         judgeRequirements: [
           { id: 'preserve-inputs', description: 'Runner-owned inputs remain unchanged.' },

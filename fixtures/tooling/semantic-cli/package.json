@@ -1,21 +1,24 @@
 {
   "name": "@moldea.ai/cli",
-  "version": "3.3.7",
+  "version": "4.0.0",
   "private": true,
   "bin": {
     "moldea": "bin/moldea.js"
   },
+  "moldeaRelease": {
+    "cliJsonSchemaVersion": 2
+  },
   "dependencies": {
-    "@moldea.ai/adapter-anthropic": "2.0.2",
-    "@moldea.ai/adapter-claude-agent-sdk": "1.0.1",
-    "@moldea.ai/adapter-cloudflare-agents": "1.0.1",
-    "@moldea.ai/adapter-eve": "1.0.1",
-    "@moldea.ai/adapter-google-genai": "1.0.4",
-    "@moldea.ai/adapter-langchain": "1.0.1",
-    "@moldea.ai/adapter-langgraph": "1.0.1",
-    "@moldea.ai/adapter-openai": "2.0.5",
-    "@moldea.ai/adapter-openai-agents-sdk": "1.0.3",
-    "@moldea.ai/adapter-vercel-ai-sdk": "1.0.1",
+    "@moldea.ai/adapter-anthropic": "2.0.3",
+    "@moldea.ai/adapter-claude-agent-sdk": "1.0.2",
+    "@moldea.ai/adapter-cloudflare-agents": "1.0.2",
+    "@moldea.ai/adapter-eve": "1.0.2",
+    "@moldea.ai/adapter-google-genai": "1.0.5",
+    "@moldea.ai/adapter-langchain": "1.0.2",
+    "@moldea.ai/adapter-langgraph": "1.0.2",
+    "@moldea.ai/adapter-openai": "2.0.6",
+    "@moldea.ai/adapter-openai-agents-sdk": "1.0.4",
+    "@moldea.ai/adapter-vercel-ai-sdk": "1.0.2",
     "@moldea.ai/core": "2.0.1",
     "@moldea.ai/repository": "1.0.2",
     "@moldea.ai/repository-fs": "1.0.3",

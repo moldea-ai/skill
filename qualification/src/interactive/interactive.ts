@@ -58,7 +58,7 @@ export const promptQualificationAction = async (): Promise<IInteractiveQualifica
     choices: implementations.map((implementation) => ({
       name: `${implementation.adapterId}/${implementation.implementationId ?? '<no-target>'}`,
       value: `${implementation.adapterId}:${implementation.implementationId ?? ''}`,
-      description: implementation.supportLevel ?? implementation.implementationStatus,
+      description: implementation.implementationStatus,
       disabled: implementation.disabledReason ?? false,
     })),
   });

@@ -3,10 +3,106 @@ import { mkdtempSync, readFileSync, renameSync, rmSync, statSync, writeFileSync 
 import { tmpdir } from 'node:os';
 import { basename, dirname, join } from 'node:path';
 
-import { CLI_PACKAGE_NAME, CLI_VERSION_TEXT_PATHS, RELEASE_PATHS } from './constants.mjs';
+import {
+  CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
+  CLI_PACKAGE_NAME,
+  CLI_VERSION_TEXT_PATHS,
+  RELEASE_PATHS,
+} from './constants.mjs';
 import { assertReleaseIdentity, parseStableVersion } from './identity.mjs';
 
 const NPM_EXECUTABLE = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+
+const createDifferentStableVersion = (version) => {
+  const [major] = version.split('.').map(Number);
+  return `${major + 1}.0.0`;
+};
+
+const updateConformanceCases = ({
+  content,
+  previousCliJsonSchemaVersion,
+  previousCliVersion,
+  publishedManifest,
+}) => {
+  const fixture = JSON.parse(content);
+  const nextCliVersion = publishedManifest.version;
+  const nextCliJsonSchemaVersion = publishedManifest.jsonSchemaVersion;
+  const replaceScenarioVersion = (scenario) =>
+    scenario.replaceAll(previousCliVersion, nextCliVersion);
+
+  for (const packageManagerCase of fixture.packageManagerCases ?? []) {
+    packageManagerCase.scenario = replaceScenarioVersion(packageManagerCase.scenario);
+    const cli = packageManagerCase.input?.cli;
+    if (cli?.declaration === previousCliVersion) cli.declaration = nextCliVersion;
+    if (cli?.declaration === `^${previousCliVersion}`) {
+      cli.declaration = `^${nextCliVersion}`;
+    }
+    if (cli?.installedVersion === previousCliVersion) cli.installedVersion = nextCliVersion;
+  }
+
+  for (const envelopeCase of fixture.cliEnvelopeCases ?? []) {
+    envelopeCase.scenario = replaceScenarioVersion(envelopeCase.scenario);
+    const input = envelopeCase.input;
+    if (input?.declaredCliVersion === previousCliVersion) {
+      input.declaredCliVersion = nextCliVersion;
+    }
+    if (input?.installedCliVersion === previousCliVersion) {
+      input.installedCliVersion = nextCliVersion;
+    }
+    if (input?.output && typeof input.output === 'object') {
+      if (input.output.cliVersion === previousCliVersion) {
+        input.output.cliVersion = nextCliVersion;
+      }
+      if (input.output.schemaVersion === previousCliJsonSchemaVersion) {
+        input.output.schemaVersion = nextCliJsonSchemaVersion;
+      }
+    }
+  }
+
+  const schemaMismatch = fixture.cliEnvelopeCases?.find(({ id }) => id === 'schema-mismatch');
+  if (!schemaMismatch?.input?.output) {
+    throw new Error('The conformance fixture is missing schema-mismatch.');
+  }
+  const incompatibleSchemaVersion = nextCliJsonSchemaVersion === 1 ? 2 : 1;
+  schemaMismatch.input.output.schemaVersion = incompatibleSchemaVersion;
+  schemaMismatch.scenario = `Inspect returns an otherwise plausible envelope using unsupported machine schema version ${incompatibleSchemaVersion}.`;
+
+  const versionMismatch = fixture.cliEnvelopeCases?.find(({ id }) => id === 'version-mismatch');
+  if (!versionMismatch?.input?.output) {
+    throw new Error('The conformance fixture is missing version-mismatch.');
+  }
+  const incompatibleCliVersion = createDifferentStableVersion(nextCliVersion);
+  versionMismatch.input.output.cliVersion = incompatibleCliVersion;
+  versionMismatch.scenario = `The machine envelope reports unsupported CLI ${incompatibleCliVersion} while the declared and installed root package is ${nextCliVersion}.`;
+
+  return `${JSON.stringify(fixture, null, 2)}\n`;
+};
+
+const parseCliJsonSchemaVersion = (stdout, requestedVersion) => {
+  let envelope;
+  try {
+    envelope = JSON.parse(stdout);
+  } catch (error) {
+    throw new Error(
+      `Unable to parse ${CLI_PACKAGE_NAME}@${requestedVersion} compatibility output.`,
+      { cause: error },
+    );
+  }
+
+  if (
+    envelope?.cliVersion !== requestedVersion ||
+    envelope?.command !== 'compatibility' ||
+    envelope?.status !== 'valid' ||
+    !Number.isInteger(envelope?.schemaVersion) ||
+    envelope.schemaVersion < 1
+  ) {
+    throw new Error(
+      `${CLI_PACKAGE_NAME}@${requestedVersion} returned an invalid compatibility envelope.`,
+    );
+  }
+
+  return envelope.schemaVersion;
+};
 
 const parsePublishedManifest = (stdout, requestedVersion) => {
   const manifest = JSON.parse(stdout);
@@ -32,7 +128,15 @@ export const resolvePublishedCliManifest = (version) => {
   parseStableVersion(version);
   const result = spawnSync(
     NPM_EXECUTABLE,
-    ['view', `${CLI_PACKAGE_NAME}@${version}`, 'version', 'dependencies', '--json'],
+    [
+      'view',
+      `${CLI_PACKAGE_NAME}@${version}`,
+      'version',
+      'dependencies',
+      'dist.integrity',
+      'dist.shasum',
+      '--json',
+    ],
     { encoding: 'utf8' },
   );
 
@@ -44,7 +148,52 @@ export const resolvePublishedCliManifest = (version) => {
     );
   }
 
-  return parsePublishedManifest(result.stdout, version);
+  const publishedManifest = parsePublishedManifest(result.stdout, version);
+  const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-release-cli-probe-'));
+
+  try {
+    const probe = spawnSync(
+      NPM_EXECUTABLE,
+      [
+        'exec',
+        '--yes',
+        `--package=${CLI_PACKAGE_NAME}@${version}`,
+        '--',
+        'moldea',
+        'compatibility',
+        '--json',
+        '--no-color',
+      ],
+      {
+        cwd: temporaryRoot,
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          npm_config_audit: 'false',
+          npm_config_fund: 'false',
+          npm_config_update_notifier: 'false',
+        },
+      },
+    );
+    if (probe.status !== 0) {
+      throw new Error(
+        [
+          `Unable to probe ${CLI_PACKAGE_NAME}@${version} compatibility output.`,
+          probe.stdout,
+          probe.stderr,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      );
+    }
+
+    return {
+      ...publishedManifest,
+      jsonSchemaVersion: parseCliJsonSchemaVersion(probe.stdout, version),
+    };
+  } finally {
+    rmSync(temporaryRoot, { force: true, recursive: true });
+  }
 };
 
 const createUpdatedRootManifests = ({ packageLock, packageManifest, version }) => {
@@ -104,6 +253,9 @@ export const createCliReleaseUpdate = ({
   updatedRootManifests,
 }) => {
   const version = parseStableVersion(publishedManifest.version);
+  if (!Number.isInteger(publishedManifest.jsonSchemaVersion)) {
+    throw new Error('The published CLI manifest is missing its JSON schema version.');
+  }
   const updatedFiles = new Map(currentFiles);
 
   for (const relativePath of CLI_VERSION_TEXT_PATHS) {
@@ -114,6 +266,54 @@ export const createCliReleaseUpdate = ({
     updatedFiles.set(relativePath, currentContent.replaceAll(previousCliVersion, version));
   }
 
+  const currentPackageManifest = JSON.parse(currentFiles.get(RELEASE_PATHS.packageManifest));
+  const previousCliJsonSchemaVersion = currentPackageManifest.moldeaRelease?.cliJsonSchemaVersion;
+  for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
+    const currentContent = currentFiles.get(relativePath);
+    if (typeof currentContent !== 'string') {
+      throw new Error(`Missing release identity source ${relativePath}.`);
+    }
+    updatedFiles.set(
+      relativePath,
+      updatedFiles
+        .get(relativePath)
+        .replaceAll(
+          `CLI JSON schema \`${previousCliJsonSchemaVersion}\``,
+          `CLI JSON schema \`${publishedManifest.jsonSchemaVersion}\``,
+        )
+        .replaceAll(
+          `CLI JSON schema: \`${previousCliJsonSchemaVersion}\``,
+          `CLI JSON schema: \`${publishedManifest.jsonSchemaVersion}\``,
+        )
+        .replaceAll(
+          `schemaVersion\` is integer \`${previousCliJsonSchemaVersion}\``,
+          `schemaVersion\` is integer \`${publishedManifest.jsonSchemaVersion}\``,
+        )
+        .replaceAll(
+          `schema \`${previousCliJsonSchemaVersion}\``,
+          `schema \`${publishedManifest.jsonSchemaVersion}\``,
+        )
+        .replaceAll(
+          `version \`${previousCliJsonSchemaVersion}\` envelope`,
+          `version \`${publishedManifest.jsonSchemaVersion}\` envelope`,
+        ),
+    );
+  }
+
+  const conformanceCases = currentFiles.get(RELEASE_PATHS.conformanceCases);
+  if (typeof conformanceCases !== 'string') {
+    throw new Error(`Missing release identity source ${RELEASE_PATHS.conformanceCases}.`);
+  }
+  updatedFiles.set(
+    RELEASE_PATHS.conformanceCases,
+    updateConformanceCases({
+      content: conformanceCases,
+      previousCliJsonSchemaVersion,
+      previousCliVersion,
+      publishedManifest,
+    }),
+  );
+
   const semanticCliManifest = JSON.parse(currentFiles.get(RELEASE_PATHS.semanticCliManifest));
   updatedFiles.set(RELEASE_PATHS.packageManifest, updatedRootManifests.packageManifest);
   updatedFiles.set(RELEASE_PATHS.packageLock, updatedRootManifests.packageLock);
@@ -123,6 +323,10 @@ export const createCliReleaseUpdate = ({
       {
         ...semanticCliManifest,
         version,
+        moldeaRelease: {
+          ...semanticCliManifest.moldeaRelease,
+          cliJsonSchemaVersion: publishedManifest.jsonSchemaVersion,
+        },
         dependencies: publishedManifest.dependencies,
       },
       null,
@@ -154,6 +358,8 @@ export const updateCliRelease = ({
   const managedPaths = [
     ...new Set([
       ...CLI_VERSION_TEXT_PATHS,
+      ...CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
+      RELEASE_PATHS.conformanceCases,
       RELEASE_PATHS.packageManifest,
       RELEASE_PATHS.packageLock,
       RELEASE_PATHS.semanticCliManifest,
@@ -171,6 +377,10 @@ export const updateCliRelease = ({
   );
   const nextPackageManifest = {
     ...packageManifest,
+    moldeaRelease: {
+      ...packageManifest.moldeaRelease,
+      cliJsonSchemaVersion: publishedManifest.jsonSchemaVersion,
+    },
     devDependencies: {
       ...packageManifest.devDependencies,
       [CLI_PACKAGE_NAME]: version,

@@ -8,6 +8,7 @@ import { FakeCodexHost } from '../codex-host/index.ts';
 import { DEFAULT_SKILL_REPOSITORY } from '../constants/index.ts';
 import {
   QualificationAttemptResultSchema,
+  QualificationJudgeSkippedSchema,
   QualificationSourceStateResultSchema,
 } from '../contracts/index.ts';
 import { copyDirectory, ensureDirectory, readJsonFile } from '../filesystem/index.ts';
@@ -172,7 +173,7 @@ describe('qualification execution', () => {
 
         return Promise.resolve({
           output: {
-            outcome: 'completed',
+            outcome: input.scenario.expectedActorOutcome,
             summary: `Completed ${input.caseId}.`,
             commands: [],
             changedFiles: input.scenario.workspace.mustChangePaths,
@@ -225,8 +226,9 @@ describe('qualification execution', () => {
       )?.status,
     ).toBe('passed');
     expect(
-      interruptedOutcome.result.stages.find(({ id }) => id === 'case:maintain-dirty-project:actor')
-        ?.status,
+      interruptedOutcome.result.stages.find(
+        ({ id }) => id === 'case:initialize-grounded-project:actor',
+      )?.status,
     ).toBe('pending');
 
     let resumedActorCalls = 0;
@@ -236,7 +238,7 @@ describe('qualification execution', () => {
         resumedActorCalls += 1;
         return Promise.resolve({
           output: {
-            outcome: 'completed',
+            outcome: input.scenario.expectedActorOutcome,
             summary: `Completed ${input.caseId}.`,
             commands: [],
             changedFiles: input.scenario.workspace.mustChangePaths,
@@ -275,8 +277,8 @@ describe('qualification execution', () => {
 
     expect(resumedOutcome.result.status).toBe('passed');
     expect(resumedOutcome.wasRecorded).toBe(false);
-    expect(resumedActorCalls).toBe(2);
-    expect(resumedJudgeCalls).toBe(2);
+    expect(resumedActorCalls).toBe(7);
+    expect(resumedJudgeCalls).toBe(7);
 
     await rm(interruptedOutcome.attemptDirectory, { force: true, recursive: true });
     await copyDirectory(attemptBackup, interruptedOutcome.attemptDirectory);
@@ -292,5 +294,92 @@ describe('qualification execution', () => {
     expect((await readAttemptCheckpoint(interruptedOutcome.attemptDirectory)).status).toBe(
       'incomplete',
     );
+  }, 120_000);
+
+  test('skips every judge call after deterministic or workspace failure', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-judge-skip-'));
+    const skillRepository = path.join(temporaryRoot, 'skill-repository');
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+    await executeProcess({
+      command: 'git',
+      args: ['init', '--initial-branch=main'],
+      cwd: skillRepository,
+    });
+    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+    await executeProcess({
+      command: 'git',
+      args: [
+        '-c',
+        'commit.gpgsign=false',
+        '-c',
+        'user.name=Moldea Qualification',
+        '-c',
+        'user.email=qualification@moldea.local',
+        'commit',
+        '-m',
+        'test: establish judge-skip skill fixture',
+      ],
+      cwd: skillRepository,
+    });
+
+    let actorCalls = 0;
+    let judgeCalls = 0;
+    const host = new FakeCodexHost({
+      actor: (input) => {
+        actorCalls += 1;
+        return Promise.resolve({
+          output: {
+            outcome: input.scenario.expectedActorOutcome,
+            summary: `Intentionally failed ${input.caseId}.`,
+            commands: [],
+            changedFiles: ['README.md'],
+            observations: [],
+            unresolved: [],
+          },
+          usage: null,
+          durationMs: 0,
+          events: '',
+        });
+      },
+      judge: () => {
+        judgeCalls += 1;
+        return Promise.reject(new Error('Judge must not run after deterministic failure.'));
+      },
+    });
+    const outcome = await runQualification({
+      host,
+      selection: { adapterId: 'custom', implementationId: 'custom' },
+      skillRepository,
+      isDryRun: true,
+      resultsRoot,
+    });
+    temporaryAttemptDirectory = outcome.attemptDirectory;
+
+    expect(outcome.result.status).toBe('failed');
+    expect(outcome.wasRecorded).toBe(false);
+    expect(actorCalls).toBe(8);
+    expect(judgeCalls).toBe(0);
+    expect(
+      outcome.result.stages
+        .filter(({ id }) => id.endsWith(':judge'))
+        .every(({ status }) => status === 'skipped'),
+    ).toBe(true);
+    expect(outcome.result.cases.every(({ judgeStatus }) => judgeStatus === 'skipped')).toBe(true);
+    expect(
+      await readJsonFile(
+        path.join(
+          outcome.attemptDirectory,
+          'public',
+          'cases',
+          'evaluate-aligned-project',
+          'judge-skipped.json',
+        ),
+        QualificationJudgeSkippedSchema,
+      ),
+    ).toMatchObject({
+      deterministicAfterPassed: true,
+      workspaceAssertionsPassed: false,
+    });
   }, 120_000);
 });

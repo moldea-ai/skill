@@ -10,7 +10,13 @@ import {
   QualificationLatestResultSchema,
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
-import { ensureDirectory, readJsonFile } from '../filesystem/index.ts';
+import {
+  calculateFileSha256,
+  ensureDirectory,
+  readJsonFile,
+  writeJsonFileAtomically,
+} from '../filesystem/index.ts';
+import { seedPassingQualificationEvidenceFixture } from '../../vitest/evidence-fixture.ts';
 import { recordQualificationResult, verifyQualificationResults } from './recorder.ts';
 
 const sanitizationContext = {
@@ -25,7 +31,7 @@ const createResult = (
   status: 'errored' | 'failed' | 'incomplete' | 'passed',
 ): IQualificationAttemptResult =>
   QualificationAttemptResultSchema.parse({
-    protocolVersion: 2,
+    protocolVersion: 3,
     attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -48,7 +54,6 @@ const createResult = (
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'a'.repeat(64),
       packagesRepositoryDirty: false,
-      targetSupportLevel: 'supported',
       qualificationRepositoryCommit: 'qualification-commit',
       qualificationRepositoryDirty: false,
       skillRepositoryCommit: 'skill-commit',
@@ -56,6 +61,8 @@ const createResult = (
       skillRepositoryDirty: false,
       profileDigest: 'c'.repeat(64),
       qualificationDigest: 'd'.repeat(64),
+      targetDigest: 'e'.repeat(64),
+      baselineAttemptId: null,
       packages: [],
     },
     stages: [],
@@ -77,12 +84,16 @@ describe('qualification result recording', () => {
     const resultsRoot = path.join(temporaryRoot, 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
     await ensureDirectory(artifactDirectory);
-    await writeFile(path.join(artifactDirectory, 'coverage.json'), '{"passed":true}\n', 'utf8');
+    const passingResult = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'attempt-passed',
+      resultsRoot,
+    });
 
     const passing = await recordQualificationResult(
       {
         artifactDirectory,
-        result: createResult('attempt-passed', '2026-08-20T10:00:00.000Z', 'passed'),
+        result: passingResult,
         sanitizationContext,
       },
       resultsRoot,
@@ -100,7 +111,8 @@ describe('qualification result recording', () => {
       QualificationLatestResultSchema,
     );
 
-    expect(Object.keys(passing.artifactDigests)).toStrictEqual(['coverage.json']);
+    expect(Object.keys(passing.artifactDigests)).toHaveLength(18);
+    expect(Object.keys(passing.artifactDigests)).toContain('cases/release-case/judge-output.json');
     expect(latest).toMatchObject({
       latestAttemptId: 'attempt-failed',
       latestStatus: 'failed',
@@ -114,7 +126,14 @@ describe('qualification result recording', () => {
 
     await writeFile(
       path.join(resultsRoot, 'custom', 'custom', 'attempts', 'attempt-failed', 'coverage.json'),
-      '{"passed":false}\n',
+      `${JSON.stringify({
+        passed: false,
+        requiredClaims: ['qualification.support-gate'],
+        declaredClaims: ['qualification.support-gate'],
+        missingClaims: [],
+        unknownClaims: [],
+        uncoveredCaseIds: [],
+      })}\n`,
       'utf8',
     );
 
@@ -135,7 +154,11 @@ describe('qualification result recording', () => {
     const resultsRoot = path.join(temporaryRoot, 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
     await ensureDirectory(artifactDirectory);
-    await writeFile(path.join(artifactDirectory, 'error.json'), '{}\n', 'utf8');
+    await writeFile(
+      path.join(artifactDirectory, 'error.json'),
+      '{"stageId":"candidate","message":"Candidate failed."}\n',
+      'utf8',
+    );
 
     await recordQualificationResult(
       {
@@ -144,6 +167,12 @@ describe('qualification result recording', () => {
         sanitizationContext,
       },
       resultsRoot,
+    );
+    await rm(path.join(artifactDirectory, 'error.json'));
+    await writeFile(
+      path.join(artifactDirectory, 'interruption.json'),
+      '{"stageId":"case:release-case:actor","message":"Execution interrupted."}\n',
+      'utf8',
     );
     await recordQualificationResult(
       {
@@ -175,10 +204,15 @@ describe('qualification result recording', () => {
     const resultsRoot = path.join(temporaryRoot, 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
     await ensureDirectory(artifactDirectory);
+    const passingResult = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'attempt-passed',
+      resultsRoot,
+    });
     await recordQualificationResult(
       {
         artifactDirectory,
-        result: createResult('attempt-passed', '2026-08-20T10:00:00.000Z', 'passed'),
+        result: passingResult,
         sanitizationContext,
       },
       resultsRoot,
@@ -203,6 +237,81 @@ describe('qualification result recording', () => {
     });
   });
 
+  test.each([
+    ['actor output', 'cases/release-case/actor-output.json'],
+    ['deterministic evidence', 'cases/release-case/deterministic-after.json'],
+    ['judge output', 'cases/release-case/judge-output.json'],
+    ['workspace assertions', 'cases/release-case/workspace-assertions.json'],
+  ])(
+    'rejects schema-invalid %s even when its digest is recomputed',
+    async (_label, relativePath) => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+      const resultsRoot = path.join(temporaryRoot, 'results');
+      const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+      await ensureDirectory(artifactDirectory);
+      const passingResult = await seedPassingQualificationEvidenceFixture({
+        artifactDirectory,
+        attemptId: 'attempt-passed',
+        resultsRoot,
+      });
+      const recorded = await recordQualificationResult(
+        { artifactDirectory, result: passingResult, sanitizationContext },
+        resultsRoot,
+      );
+      const attemptDirectory = path.join(
+        resultsRoot,
+        'custom',
+        'custom',
+        'attempts',
+        recorded.attemptId,
+      );
+      const artifactPath = path.join(attemptDirectory, relativePath);
+      await writeJsonFileAtomically(artifactPath, {});
+      await writeJsonFileAtomically(path.join(attemptDirectory, 'attempt.json'), {
+        ...recorded,
+        artifactDigests: {
+          ...recorded.artifactDigests,
+          [relativePath]: await calculateFileSha256(artifactPath),
+        },
+      });
+
+      const verification = await verifyQualificationResults(resultsRoot);
+
+      expect(verification.passed).toBe(false);
+      expect(verification.issues).toHaveLength(1);
+      expect(verification.issues[0]?.path).toBe('custom/custom/attempts/attempt-passed');
+      expect(verification.issues[0]?.message).toContain('Invalid input');
+    },
+  );
+
+  test('rejects invalid passing artifacts before publishing an attempt', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    await ensureDirectory(artifactDirectory);
+    const passingResult = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'invalid-passing-attempt',
+      resultsRoot,
+    });
+    await writeJsonFileAtomically(
+      path.join(artifactDirectory, 'cases', 'release-case', 'actor-output.json'),
+      {},
+    );
+
+    await expect(
+      recordQualificationResult(
+        { artifactDirectory, result: passingResult, sanitizationContext },
+        resultsRoot,
+      ),
+    ).rejects.toThrow('Invalid input');
+    await expect(verifyQualificationResults(resultsRoot)).resolves.toStrictEqual({
+      passed: true,
+      attempts: 0,
+      issues: [],
+    });
+  });
+
   test('rejects a latest pointer without recorded attempt history', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
@@ -212,7 +321,7 @@ describe('qualification result recording', () => {
       path.join(targetRoot, 'latest.json'),
       `${JSON.stringify(
         {
-          protocolVersion: 2,
+          protocolVersion: 3,
           adapterId: 'custom',
           implementationId: 'custom',
           latestAttemptId: 'missing-attempt',
@@ -242,14 +351,21 @@ describe('qualification result recording', () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
-    await ensureDirectory(artifactDirectory);
+    await ensureDirectory(path.join(artifactDirectory, 'cases', 'sanitization'));
     await writeFile(
-      path.join(artifactDirectory, 'actor-output.json'),
-      `${JSON.stringify({ apiKey: 'opaque-secret', path: '/attempt/workspace/file.ts' })}\n`,
+      path.join(artifactDirectory, 'cases', 'sanitization', 'actor-output.json'),
+      `${JSON.stringify({
+        outcome: 'blocked',
+        summary: 'Stopped without changing the workspace.',
+        commands: [],
+        changedFiles: [],
+        observations: [`Credential sk-${'c'.repeat(24)} at /attempt/workspace/file.ts.`],
+        unresolved: [],
+      })}\n`,
       'utf8',
     );
     await writeFile(
-      path.join(artifactDirectory, 'actor-events.jsonl'),
+      path.join(artifactDirectory, 'cases', 'sanitization', 'actor-events.jsonl'),
       `${JSON.stringify({ authorization: `Bearer ${'a'.repeat(24)}`, path: '/packages/project' })}\n`,
       'utf8',
     );
@@ -274,14 +390,31 @@ describe('qualification result recording', () => {
     );
 
     expect(recorded.summary).toBe('Failure at <skill-repository>/SKILL.md with <redacted-token>.');
-    expect(await readFile(path.join(recordedDirectory, 'actor-output.json'), 'utf8')).toBe(
+    expect(
+      await readFile(
+        path.join(recordedDirectory, 'cases', 'sanitization', 'actor-output.json'),
+        'utf8',
+      ),
+    ).toBe(
       `${JSON.stringify(
-        { apiKey: '<redacted-credential>', path: '<attempt>/workspace/file.ts' },
+        {
+          outcome: 'blocked',
+          summary: 'Stopped without changing the workspace.',
+          commands: [],
+          changedFiles: [],
+          observations: ['Credential <redacted-token> at <attempt>/workspace/file.ts.'],
+          unresolved: [],
+        },
         null,
         2,
       )}\n`,
     );
-    expect(await readFile(path.join(recordedDirectory, 'actor-events.jsonl'), 'utf8')).toBe(
+    expect(
+      await readFile(
+        path.join(recordedDirectory, 'cases', 'sanitization', 'actor-events.jsonl'),
+        'utf8',
+      ),
+    ).toBe(
       `${JSON.stringify({ authorization: '<redacted-credential>', path: '<packages-repository>/project' })}\n`,
     );
     expect(await verifyQualificationResults(resultsRoot)).toMatchObject({ passed: true });
@@ -384,7 +517,7 @@ describe('qualification result recording', () => {
       },
     };
     const latestResult = QualificationLatestResultSchema.parse({
-      protocolVersion: 2,
+      protocolVersion: 3,
       adapterId: 'custom',
       implementationId: 'custom',
       latestAttemptId: dirtyPassingResult.attemptId,

@@ -33,12 +33,28 @@ const scenario = {
   removePaths: [],
   expectedRemovePaths: [],
   inspection: { before: 'valid', after: 'valid' },
+  deterministicEvidence: {
+    before: {
+      requiredDiagnosticCodes: [],
+      forbiddenDiagnosticCodes: [],
+      requiredEvidenceKinds: [],
+      forbiddenEvidenceKinds: [],
+    },
+    after: {
+      requiredDiagnosticCodes: [],
+      forbiddenDiagnosticCodes: [],
+      requiredEvidenceKinds: [],
+      forbiddenEvidenceKinds: [],
+    },
+  },
+  expectedActorOutcome: 'completed',
   workspace: {
     expectation: 'unchanged',
     mustPreservePaths: [],
     mustChangePaths: [],
     mustExistPaths: [],
     mustNotExistPaths: [],
+    allowedChangePaths: [],
   },
   judgeRequirements: [
     { id: 'requirement-one', description: 'The first requirement passes.' },
@@ -319,12 +335,16 @@ describe('qualification source-state validation', () => {
 
 describe('qualification resume identity validation', () => {
   const candidate: ICandidateClosure = {
+    cliJsonSchemaVersion: 2,
+    cliVersion: '4.0.0',
     fingerprint: 'a'.repeat(64),
     packages: [
       {
         name: '@moldea.ai/cli',
         version: '1.0.0',
-        projectDirectory: 'projects/cli',
+        registryIntegrity: `sha512-${'a'.repeat(86)}`,
+        registryShasum: 'c'.repeat(40),
+        registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-1.0.0.tgz',
         tarballPath: '/cache/cli.tgz',
         tarballName: 'moldea-cli.tgz',
         sha256: 'b'.repeat(64),

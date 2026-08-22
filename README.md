@@ -106,13 +106,13 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 
 Release `3.1.0` supports:
 
-- `@moldea.ai/cli 3.3.7`
-- CLI JSON schema `1`
+- `@moldea.ai/cli 4.0.0`
+- CLI JSON schema `2`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
 - Yarn `>=4.0.0 <5.0.0`
 
-CLI `3.3.7` is part of this skill release's identity. Another CLI version belongs to another skill release and is not treated as interchangeable.
+CLI `4.0.0` is part of this skill release's identity. Another CLI version belongs to another skill release and is not treated as interchangeable.
 
 Write-capable workflows establish or reconcile the exact release-owned repository-local CLI dependency without executing lifecycle scripts or repository-supplied package-manager hooks and plugins. `evaluate` is strictly read-only and reports missing or mismatched tooling instead of installing it. Agent-system `plan` is also read-only and may run before adoption or local tooling exists. The skill never falls back to a global CLI or transient CLI download.
 
@@ -206,7 +206,7 @@ moldea/
 - `website/` is the isolated private Astro application that validates and renders `/docs/**`, qualification profiles and append-only evidence, local search, and generated `llms.txt` for [`skill.moldea.ai`](https://skill.moldea.ai). It consumes the public `@moldea.ai/website-ui` package for shared moldea website foundations while retaining its own content, assets, navigation, SEO identity, and theme storage.
 - `CNAME` declares `skill.moldea.ai` as the GitHub Pages custom domain.
 - `tests/` contains deterministic metadata, packaging, published-package, candidate-release, reference, and semantic-contract checks.
-- `tooling/` contains shared development-only Codex evaluation isolation, dynamic package-candidate construction, and exact release-identity management.
+- `tooling/` contains shared development-only Codex evaluation isolation, source and published package-candidate construction, and exact release-identity management.
 - `fixtures/` contains development-only conformance cases, a hostile lifecycle-script fixture, and a narrow synthetic compatibility fixture.
 - `qualification/` contains the isolated local adapter-support qualification runner, transparent mock projects, checkpoints, and committed result history.
 - `.github/workflows/conformance.yml` runs portable conformance across supported Node.js lines and representative minimum/latest package-manager versions.
@@ -239,6 +239,8 @@ npm run release:identity:check
 
 The updater verifies a stable public npm release, updates the exact root dependency and lockfile, synchronizes the portable compatibility contract and conformance fixtures, and records the CLI's complete internal dependency inventory in the synthetic semantic fixture. `npm run release:check` is the final local gate: it runs deterministic verification and additionally requires fresh passing semantic and qualification evidence. It is expected to fail while a release candidate deliberately has no model evidence.
 
+Release evidence must be generated from the committed source that will be tagged. First commit the completed skill, qualification suite, profile, and release identity. Then run and record the complete semantic evaluation, run the Custom qualification, and run each adapter profile only after the exact compatible Custom baseline exists. Inspect and commit every generated result, run `npm run release:check` on that final tree, and tag only after the gate passes. The gate rejects a stale semantic artifact, an incomplete qualification profile, missing or non-passing stages and cases, a package checkout commit or fingerprint mismatch, a behavior-bearing target mismatch, an incomplete or mismatched published package closure, dirty-source evidence, incomplete claim coverage, or an adapter attempt that does not reference the current passing Custom baseline.
+
 Adapter qualification is a separate local workflow and is not included in `npm test` or CI. Install its isolated dependency closure with `npm --prefix qualification ci --ignore-scripts`, then use:
 
 ```bash
@@ -252,7 +254,7 @@ npm run qualification:format:check
 npm run qualification:verify
 ```
 
-The runner reads the adjacent packages repository at `../packages` by default; explicit runs can select another checkout with `--packages-repository /absolute/path/to/packages`. It builds exact local package tarballs, installs the portable skill through `.agents/skills/moldea`, uses the candidate CLI from each project, and always uses a fixed balanced-tier model at `medium` reasoning effort (`gpt-5.6-terra`) for paid actor and judge stages. Both roles use the shared Bubblewrap host in separate workspaces, with the judge workspace mounted read-only. Official runs require clean package, complete qualification-engine, and portable-skill inputs plus the fixed model transport, TLS trust, and egress boundary; violations are recorded as a failed preflight before any paid stage. Paid confirmation occurs only after free preparation and cache lookup, immediately before the first uncached model call. See the [adapter qualification guide](qualification/README.md) for profiles, transparent projects, checkpoint recovery, caching, and public result artifacts.
+The runner reads the canonical compatibility matrix from the adjacent packages repository at `../packages` by default; explicit runs can select another checkout with `--packages-repository /absolute/path/to/packages`. It resolves the root release's exact published CLI and selected adapter closure from npm, verifies registry SHA-512 and SHA-1 identities plus downloaded SHA-256 digests, installs the portable skill through `.agents/skills/moldea`, and uses that project-local CLI in every project. Paid actor and judge stages always use the fixed balanced-tier model at `medium` reasoning effort (`gpt-5.6-terra`). Both roles use the shared Bubblewrap host in separate workspaces, with the judge workspace mounted read-only. Official runs require clean package, complete qualification-engine, and portable-skill inputs plus the fixed model transport, TLS trust, and egress boundary; violations are recorded as a failed preflight before any paid stage. Paid confirmation occurs only after free preparation and cache lookup, immediately before the first uncached model call. See the [adapter qualification guide](qualification/README.md) for profiles, transparent projects, checkpoint recovery, caching, and public result artifacts.
 
 The documentation website uses an isolated Node.js 24.15.0 dependency boundary and exact `@moldea.ai/website-ui` package release. Install its exact dependency closure with `npm --prefix website ci --ignore-scripts`, then use:
 
@@ -302,7 +304,7 @@ The runner uses the shared development host under `tooling/codex-evaluation-host
 
 The isolated network namespace has no direct host or internet route. A repository-external CONNECT relay permits only HTTPS port `443`, exact configured hostnames, and DNS results containing exclusively public addresses. The default allowlist is `api.openai.com`, `auth.openai.com`, and `chatgpt.com`; add an exact model endpoint with `MOLDEA_EVAL_ALLOWED_HOSTS` when required. Localhost, private, link-local, and undeclared destinations remain inaccessible. Each actor or judge process is killed after 120 seconds by default; set a positive `MOLDEA_EVAL_HOST_TIMEOUT_MS` only when a deliberate evaluation requires a different bound.
 
-The runner installs the exact portable tree into a fresh project for every actor case, withholds the evaluation criteria from that actor, captures hashes and bounded text content for repository-visible changes, and starts a separate judge process in another workspace. Skill-focused cases declare evaluator-only artifact roots and activation scenarios. The judge receives bounded post-execution source or copy directories, file contents, independent structural and resource-link evidence, and positive or adjacent non-activation requests, so content-level outcomes do not rely on the actor's report or leaked answer criteria. Ordinary adopted-project cases receive a copied, locked production closure from the root exact `@moldea.ai/cli` dependency without running a package manager. Only `dedicated-repository-runtime-selection` and `runtime-adapter-lifecycle` use the synthetic compatibility CLI because they require hypothetical adapter states that the published matrix cannot expose. Set `MOLDEA_EVAL_JUDGE_COMMAND_JSON` to use a different safely configured Codex judge command; otherwise the actor command is reused in a fresh process and workspace.
+The runner installs the exact portable tree into a fresh project for every actor case, withholds the evaluation criteria from that actor, captures hashes and bounded text content for repository-visible changes, and starts a separate judge process in another workspace. Skill-focused cases declare evaluator-only artifact roots and activation scenarios. The judge receives bounded post-execution source or copy directories, file contents, independent structural and resource-link evidence, and positive or adjacent non-activation requests, so content-level outcomes do not rely on the actor's report or leaked answer criteria. Ordinary adopted-project cases, including compatibility-sensitive runtime cases, receive a copied, locked production closure from the root exact published `@moldea.ai/cli` dependency without running a package manager. Set `MOLDEA_EVAL_JUDGE_COMMAND_JSON` to use a different safely configured Codex judge command; otherwise the actor command is reused in a fresh process and workspace.
 
 Use `--case <case-id>` without `--record` for a standalone diagnostic that must not update candidate or committed evidence. A targeted run with `--record` requires an existing compatible candidate and cannot promote it until the complete case suite passes.
 

@@ -12,8 +12,8 @@ The current skill release supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`
-- `@moldea.ai/cli 3.3.7`
-- CLI JSON schema `1`
+- `@moldea.ai/cli 4.0.0`
+- CLI JSON schema `2`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
 - Yarn `>=4.0.0 <5.0.0`
@@ -32,6 +32,6 @@ Before deterministic execution, the coding agent verifies:
 - CLI version and supported JSON schema
 - command, status, payload, and exit-code consistency
 
-The coding agent then uses `inspect --json` for complete deterministic evidence, `validate --json` for structural validation, or `compatibility --json` when runtime support can change the conclusion.
+The coding agent then uses `inspect --json` for complete deterministic evidence, `validate --json` for structural validation, or `compatibility --json` when installed package composition, available adapter IDs, repository-format versions, or Node.js and Git requirements can change the conclusion. The compatibility command does not publish target maturity or behavioral support claims.
 
 You should not need to perform these checks manually. They are the under-the-hood safety boundary that lets you continue requesting outcomes naturally.

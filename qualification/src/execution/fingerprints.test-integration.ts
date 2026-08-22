@@ -94,7 +94,7 @@ describe('qualification input fingerprint', () => {
     expect(await calculateQualificationDigest(digestRoots)).not.toBe(changedHostDigest);
   });
 
-  test('excludes maturity metadata while retaining compatibility behavior', async () => {
+  test('excludes publication metadata while retaining compatibility behavior', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-packages-fingerprint-'));
     const matrixPath = path.join(temporaryRoot, 'compatibility', 'runtimes.yaml');
     await ensureDirectory(path.dirname(matrixPath));
@@ -114,7 +114,7 @@ describe('qualification input fingerprint', () => {
     ];
     await writeFile(
       matrixPath,
-      'version: 1\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: any\n        supportLevel: experimental\n        lastVerifiedAt: 2026-08-20\n',
+      'version: 2\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: any\n        lastVerifiedAt: 2026-08-20\n        qualificationEvidence:\n          url: https://skill.moldea.ai/qualification/custom/custom/\n',
       'utf8',
     );
     const initialDigest = await calculatePackagesQualificationDigest(
@@ -124,7 +124,7 @@ describe('qualification input fingerprint', () => {
 
     await writeFile(
       matrixPath,
-      'version: 1\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: any\n        supportLevel: supported\n        lastVerifiedAt: 2026-08-21\n',
+      'version: 2\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: any\n        lastVerifiedAt: 2026-08-21\n        qualificationEvidence:\n          url: https://skill.moldea.ai/qualification/custom/custom/latest/\n',
       'utf8',
     );
     expect(await calculatePackagesQualificationDigest(temporaryRoot, repositoryEntries)).toBe(
@@ -139,7 +139,7 @@ describe('qualification input fingerprint', () => {
 
     await writeFile(
       matrixPath,
-      'version: 1\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: typescript\n        supportLevel: supported\n        lastVerifiedAt: 2026-08-21\n',
+      'version: 2\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: typescript\n        lastVerifiedAt: 2026-08-21\n',
       'utf8',
     );
     expect(await calculatePackagesQualificationDigest(temporaryRoot, repositoryEntries)).not.toBe(

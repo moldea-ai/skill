@@ -22,7 +22,6 @@ describe('deriveRequiredQualificationClaims', () => {
           id: 'custom',
           kind: 'custom',
           language: 'any',
-          supportLevel: 'supported',
           patterns: [
             {
               id: 'explicit-repository-relationships',

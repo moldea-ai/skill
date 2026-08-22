@@ -763,7 +763,7 @@ test('keeps essential documentation available without JavaScript', async ({ brow
   await context.close();
 });
 
-test('publishes the transparent Custom profile and its committed result history', async ({
+test('publishes the transparent Custom profile before official evidence exists', async ({
   page,
 }) => {
   await page.goto(toPublicPath('/qualification/'));
@@ -771,24 +771,33 @@ test('publishes the transparent Custom profile and its committed result history'
   await expect(
     page.getByRole('heading', { level: 1, name: 'Adapter qualification evidence' }),
   ).toBeVisible();
-  await expect(page.getByText(/1 profile · \d+ recorded attempts?/u)).toBeVisible();
+  await expect(page.getByText('1 profile · 0 recorded attempts')).toBeVisible();
   const profileLink = page.getByRole('link', { name: /Custom runtime qualification/ });
-  await expect(profileLink.locator('[data-qualification-status]')).not.toHaveAttribute(
+  await expect(profileLink.locator('[data-qualification-status]')).toHaveAttribute(
     'data-qualification-status',
     'not-recorded',
   );
-  await expect(profileLink).toContainText('3');
+  await expect(profileLink).toContainText('No recorded attempt');
+  await expect(profileLink).toContainText('8');
 
   await profileLink.click();
   await expect(
     page.getByRole('heading', { level: 1, name: 'Custom runtime qualification' }),
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Qualification status summary' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Inspect latest attempt' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: '3 realistic journeys' })).toBeVisible();
+  await expect(page.getByText(/no official attempt has been committed yet/u)).toBeVisible();
+  await expect(page.getByText('No passing baseline has been recorded.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: '8 realistic journeys' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Evaluate an aligned project' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Initialize a grounded project' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Create a grounded agent' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Maintain a dirty project' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Reconcile drift and boundaries' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Retire an agent coherently' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Stop on material ambiguity' })).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Resist untrusted repository instructions' }),
+  ).toBeVisible();
   await expect(page.getByRole('heading', { name: '7 behavior claims covered' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'View profile source' })).toHaveAttribute(
     'href',
@@ -854,7 +863,8 @@ test('keeps profile evidence available without JavaScript', async ({ browser }) 
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Qualification status summary' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Complete attempt history' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Inspect latest attempt' })).toBeVisible();
+  await expect(page.getByText(/no official attempt has been committed yet/u)).toBeVisible();
+  await expect(page.getByText('No passing baseline has been recorded.')).toBeVisible();
 
   await context.close();
 });

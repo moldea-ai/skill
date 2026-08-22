@@ -28,10 +28,10 @@ export class FakeCodexHost implements ICodexHost {
 
     return Promise.resolve({
       output: {
-        outcome: 'completed',
+        outcome: input.scenario.expectedActorOutcome,
         summary: `Applied the transparent expected dry-run state for ${input.caseId}.`,
         commands: [],
-        changedFiles: input.scenario.workspace.mustChangePaths,
+        changedFiles: input.scenario.workspace.allowedChangePaths,
         observations: ['No paid model execution occurred.'],
         unresolved: [],
       },

@@ -79,12 +79,28 @@ export const QualificationCaseScenarioSchema = z.strictObject({
     before: z.enum(['valid', 'invalid']),
     after: z.enum(['valid', 'invalid']),
   }),
+  deterministicEvidence: z.strictObject({
+    before: z.strictObject({
+      requiredDiagnosticCodes: z.array(z.string().trim().min(1)),
+      forbiddenDiagnosticCodes: z.array(z.string().trim().min(1)),
+      requiredEvidenceKinds: z.array(z.string().trim().min(1)),
+      forbiddenEvidenceKinds: z.array(z.string().trim().min(1)),
+    }),
+    after: z.strictObject({
+      requiredDiagnosticCodes: z.array(z.string().trim().min(1)),
+      forbiddenDiagnosticCodes: z.array(z.string().trim().min(1)),
+      requiredEvidenceKinds: z.array(z.string().trim().min(1)),
+      forbiddenEvidenceKinds: z.array(z.string().trim().min(1)),
+    }),
+  }),
+  expectedActorOutcome: z.enum(['blocked', 'completed']),
   workspace: z.strictObject({
     expectation: z.enum(['changed', 'unchanged']),
     mustPreservePaths: z.array(RelativePathSchema),
     mustChangePaths: z.array(RelativePathSchema),
     mustExistPaths: z.array(RelativePathSchema),
     mustNotExistPaths: z.array(RelativePathSchema),
+    allowedChangePaths: z.array(RelativePathSchema),
   }),
   judgeRequirements: z
     .array(
@@ -106,7 +122,7 @@ export const QualificationCaseCatalogSchema = z.strictObject({
       z.strictObject({
         id: StableIdSchema,
         title: z.string().trim().min(1),
-        layer: z.enum(['semantic-journey']),
+        layer: z.enum(['adapter-specific', 'universal-baseline']),
         description: z.string().trim().min(1),
         challenge: z.string().trim().min(1),
       }),
@@ -149,7 +165,9 @@ export type IQualificationProbes = z.infer<typeof QualificationProbesSchema>;
 export const CandidatePackageSchema = z.strictObject({
   name: z.string().trim().min(1),
   version: z.string().trim().min(1),
-  projectDirectory: RelativePathSchema,
+  registryIntegrity: z.string().startsWith('sha512-'),
+  registryShasum: z.string().regex(/^[a-f0-9]{40}$/u),
+  registryTarballUrl: z.url().startsWith('https://registry.npmjs.org/'),
   tarballPath: z.string().min(1),
   tarballName: z.string().trim().min(1),
   sha256: z.string().regex(/^[a-f0-9]{64}$/u),
@@ -157,6 +175,8 @@ export const CandidatePackageSchema = z.strictObject({
 
 export const CandidateClosureSchema = z.strictObject({
   fingerprint: z.string().regex(/^[a-f0-9]{64}$/u),
+  cliVersion: z.string().regex(/^\d+\.\d+\.\d+$/u),
+  cliJsonSchemaVersion: z.number().int().positive(),
   packages: z.array(CandidatePackageSchema).min(1),
   runtimeDirectory: z.string().min(1),
 });
@@ -172,6 +192,21 @@ export const ModelUsageSchema = z.strictObject({
 });
 
 export type IModelUsage = z.infer<typeof ModelUsageSchema>;
+
+// immutable model-stage provenance committed beside actor and judge output
+export const QualificationModelStageEvidenceSchema = z.strictObject({
+  role: z.enum(['actor', 'judge']),
+  createdAt: z.string().datetime(),
+  durationMs: z.number().int().nonnegative(),
+  usage: ModelUsageSchema.nullable(),
+  cacheKey: z.string().regex(/^[a-f0-9]{64}$/u),
+  sourceAttemptId: z.string().trim().min(1),
+  cacheSourceAttemptId: z.string().trim().min(1).nullable(),
+});
+
+export type IQualificationModelStageEvidence = z.infer<
+  typeof QualificationModelStageEvidenceSchema
+>;
 
 // exact local execution identity that must remain stable across resume boundaries
 export const QualificationExecutionEnvironmentSchema = z.strictObject({
@@ -259,6 +294,10 @@ export const DeterministicVerificationSchema = z.strictObject({
   memoryRepositoryEquivalent: z.boolean(),
   coreValid: z.boolean(),
   cliCompatibilityValid: z.boolean(),
+  cliIdentityValid: z.boolean(),
+  cliPackageInventoryValid: z.boolean(),
+  cliAdapterInventoryValid: z.boolean(),
+  cliEnvelopeValid: z.boolean(),
   cliValidateStatus: z.enum(['invalid', 'valid']),
   cliInspectStatus: z.enum(['invalid', 'valid']),
   typecheckPassed: z.boolean(),
@@ -268,6 +307,26 @@ export const DeterministicVerificationSchema = z.strictObject({
 });
 
 export type IDeterministicVerification = z.infer<typeof DeterministicVerificationSchema>;
+
+// deterministic summary plus the inspect and CLI details used to derive it
+export const DeterministicVerificationArtifactSchema = z.strictObject({
+  summary: DeterministicVerificationSchema,
+  details: z.strictObject({
+    direct: z.unknown(),
+    cliCompatibility: z.unknown(),
+    cliValidate: z.unknown(),
+    cliInspect: z.unknown(),
+    typecheck: z.strictObject({
+      exitCode: z.number().int(),
+      stdout: z.string(),
+      stderr: z.string(),
+    }),
+  }),
+});
+
+export type IDeterministicVerificationArtifact = z.infer<
+  typeof DeterministicVerificationArtifactSchema
+>;
 
 // one exact filesystem observation used for preservation and mutation assertions
 export const WorkspaceFileStateSchema = z.strictObject({
@@ -301,6 +360,23 @@ export const QualificationSourceStateResultSchema = z.strictObject({
 
 export type IQualificationSourceStateResult = z.infer<typeof QualificationSourceStateResultSchema>;
 
+// terminal or resumable execution failure persisted at the public evidence boundary
+export const QualificationExecutionErrorSchema = z.strictObject({
+  stageId: z.string().trim().min(1).nullable(),
+  message: z.string().trim().min(1),
+});
+
+export type IQualificationExecutionError = z.infer<typeof QualificationExecutionErrorSchema>;
+
+// public reason recorded when deterministic failure makes semantic judgment unnecessary
+export const QualificationJudgeSkippedSchema = z.strictObject({
+  reason: z.string().trim().min(1),
+  deterministicAfterPassed: z.boolean(),
+  workspaceAssertionsPassed: z.boolean(),
+});
+
+export type IQualificationJudgeSkipped = z.infer<typeof QualificationJudgeSkippedSchema>;
+
 // durable stage state written atomically after every execution boundary
 export const QualificationStageStatusSchema = z.enum([
   'cached',
@@ -309,6 +385,7 @@ export const QualificationStageStatusSchema = z.enum([
   'passed',
   'pending',
   'running',
+  'skipped',
 ]);
 
 export const QualificationStageCheckpointSchema = z.strictObject({
@@ -363,6 +440,7 @@ export const QualificationAttemptCheckpointSchema = z.strictObject({
     .nullable()
     .default(null),
   packagesDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+  targetDigest: z.string().regex(/^[a-f0-9]{64}$/u),
   executionEnvironment: QualificationExecutionEnvironmentSchema.nullable().default(null),
   candidate: CandidateClosureSchema.nullable(),
   stages: z.record(z.string(), QualificationStageCheckpointSchema),
@@ -380,13 +458,15 @@ export const QualificationCaseResultSchema = z.strictObject({
   deterministicBeforePath: RelativePathSchema,
   deterministicAfterPath: RelativePathSchema,
   actorOutputPath: RelativePathSchema,
-  judgeOutputPath: RelativePathSchema,
+  judgeStatus: z.enum(['completed', 'skipped']),
+  judgeOutputPath: RelativePathSchema.nullable(),
+  judgeSkippedPath: RelativePathSchema.nullable(),
   workspaceAssertionsPath: RelativePathSchema,
   patchPath: RelativePathSchema,
   actorUsage: ModelUsageSchema.nullable(),
   judgeUsage: ModelUsageSchema.nullable(),
   actorEvidenceCreatedAt: z.string().datetime(),
-  judgeEvidenceCreatedAt: z.string().datetime(),
+  judgeEvidenceCreatedAt: z.string().datetime().nullable(),
   actorCacheSourceAttemptId: z.string().nullable(),
   judgeCacheSourceAttemptId: z.string().nullable(),
   failures: z.array(z.string()),
@@ -400,7 +480,6 @@ export const QualificationProvenanceSchema = z.strictObject({
   packagesRepositoryCommit: z.string().trim().min(1),
   packagesRepositoryFingerprint: z.string().regex(/^[a-f0-9]{64}$/u),
   packagesRepositoryDirty: z.boolean(),
-  targetSupportLevel: z.string().trim().min(1),
   qualificationRepositoryCommit: z.string().trim().min(1),
   qualificationRepositoryDirty: z.boolean(),
   skillRepositoryCommit: z.string().trim().min(1),
@@ -408,6 +487,8 @@ export const QualificationProvenanceSchema = z.strictObject({
   skillRepositoryDirty: z.boolean(),
   profileDigest: z.string().regex(/^[a-f0-9]{64}$/u),
   qualificationDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+  targetDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+  baselineAttemptId: z.string().trim().min(1).nullable(),
   packages: z.array(
     CandidatePackageSchema.omit({
       tarballPath: true,
@@ -449,6 +530,18 @@ export const QualificationAttemptResultSchema = QualificationAttemptResultDraftS
         code: 'custom',
         message: 'Passing qualification evidence requires clean repository inputs.',
         path: ['provenance'],
+      });
+    }
+
+    if (
+      result.status === 'passed' &&
+      result.selection.adapterId !== 'custom' &&
+      result.provenance.baselineAttemptId === null
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Passing adapter qualification evidence requires a compatible Custom baseline.',
+        path: ['provenance', 'baselineAttemptId'],
       });
     }
 

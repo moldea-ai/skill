@@ -1,25 +1,20 @@
 #!/usr/bin/env node
 
 const { createHash } = require('node:crypto');
-const { existsSync, readFileSync } = require('node:fs');
+const { readFileSync } = require('node:fs');
 
 const command = process.argv[2];
 const FIXTURE_MANIFEST = require('../package.json');
 const CLI_VERSION = FIXTURE_MANIFEST.version;
+const CLI_JSON_SCHEMA_VERSION = FIXTURE_MANIFEST.moldeaRelease.cliJsonSchemaVersion;
 const CLI_DEPENDENCIES = FIXTURE_MANIFEST.dependencies;
-const OFFICIAL_ADAPTER_IDS = [
-  'anthropic',
-  'claude-agent-sdk',
-  'cloudflare-agents',
+const ADAPTER_PACKAGE_PREFIX = '@moldea.ai/adapter-';
+const AVAILABLE_ADAPTER_IDS = [
   'custom',
-  'eve',
-  'google-genai',
-  'langchain',
-  'langgraph',
-  'openai',
-  'openai-agents-sdk',
-  'vercel-ai-sdk',
-];
+  ...Object.keys(CLI_DEPENDENCIES)
+    .filter((name) => name.startsWith(ADAPTER_PACKAGE_PREFIX))
+    .map((name) => name.slice(ADAPTER_PACKAGE_PREFIX.length)),
+].sort((left, right) => left.localeCompare(right));
 const COMPATIBILITY_PACKAGES = Object.entries(CLI_DEPENDENCIES)
   .filter(([name]) => name.startsWith('@moldea.ai/'))
   .map(([name, version]) => ({ name, version }))
@@ -96,224 +91,9 @@ const readIndexedAgents = (manifestContent) => {
   });
 };
 
-/** Builds the active built-in custom compatibility contract. */
-const createCustomCompatibility = () => ({
-  id: 'custom',
-  active: true,
-  bundledVersion: CLI_DEPENDENCIES['@moldea.ai/core'],
-  matrix: {
-    implementation: {
-      kind: 'built-in',
-      package: '@moldea.ai/core',
-      distribution: 'public',
-    },
-    implementationStatus: 'available',
-    supportedRepositoryFormatVersions: [1],
-    compatibleCoreRange: '^2.0.0',
-    runtimeGuidance: {
-      expectation: 'required',
-      notes: 'Project-local guidance defines the custom runtime integration.',
-    },
-    targets: [
-      {
-        id: 'custom',
-        kind: 'custom',
-        supportLevel: 'supported',
-        language: 'any',
-        patterns: [
-          {
-            id: 'explicit-repository-relationships',
-            kind: 'runtime',
-            support: 'full',
-            description: 'Core validates explicit repository relationships.',
-          },
-        ],
-        lastVerifiedAt: '2026-08-15',
-      },
-    ],
-    lastVerifiedAt: '2026-08-15',
-  },
-});
-
-/** Builds the active experimental Anthropic adapter contract bundled by the fixture CLI. */
-const createAnthropicCompatibility = () => ({
-  id: 'anthropic',
-  active: true,
-  bundledVersion: CLI_DEPENDENCIES['@moldea.ai/adapter-anthropic'],
-  matrix: {
-    implementation: {
-      kind: 'package',
-      package: '@moldea.ai/adapter-anthropic',
-      versionRange: '^2.0.0',
-      distribution: 'public',
-    },
-    implementationStatus: 'available',
-    supportedRepositoryFormatVersions: [1],
-    compatibleCoreRange: '^2.0.0',
-    runtimeGuidance: {
-      expectation: 'optional',
-      notes:
-        'Project-local guidance is needed only for repository-specific wrappers or unsupported indirect integration patterns.',
-    },
-    targets: [
-      {
-        id: 'typescript-messages-api-0-117',
-        kind: 'package',
-        supportLevel: 'experimental',
-        language: 'typescript',
-        packages: [
-          {
-            ecosystem: 'npm',
-            name: '@anthropic-ai/sdk',
-            role: 'primary',
-            versionRange: '>=0.117.1 <0.118.0',
-          },
-        ],
-        evidenceKinds: [
-          'instruction-loader',
-          'language',
-          'runtime-package',
-          'runtime-pattern',
-          'schema',
-          'tool-registration',
-        ],
-        lastVerifiedAt: '2026-08-17',
-      },
-    ],
-    lastVerifiedAt: '2026-08-17',
-  },
-});
-
-/** Builds the active experimental Google Gen AI adapter contract bundled by the fixture CLI. */
-const createGoogleGenAiCompatibility = () => ({
-  id: 'google-genai',
-  active: true,
-  bundledVersion: CLI_DEPENDENCIES['@moldea.ai/adapter-google-genai'],
-  matrix: {
-    implementation: {
-      kind: 'package',
-      package: '@moldea.ai/adapter-google-genai',
-      versionRange: '^1.0.3',
-      distribution: 'public',
-    },
-    implementationStatus: 'available',
-    supportedRepositoryFormatVersions: [1],
-    compatibleCoreRange: '^2.0.0',
-    runtimeGuidance: {
-      expectation: 'optional',
-      notes:
-        'Project-local guidance is needed only for repository-specific wrappers or unsupported indirect integration patterns.',
-    },
-    targets: [
-      {
-        id: 'typescript-models-generate-content-2',
-        kind: 'package',
-        supportLevel: 'experimental',
-        language: 'typescript',
-        packages: [
-          {
-            ecosystem: 'npm',
-            name: '@google/genai',
-            role: 'primary',
-            versionRange: '>=2.17.1 <3.0.0',
-          },
-        ],
-        evidenceKinds: [
-          'instruction-loader',
-          'language',
-          'runtime-package',
-          'runtime-pattern',
-          'schema',
-          'tool-registration',
-        ],
-        lastVerifiedAt: '2026-08-19',
-      },
-    ],
-    lastVerifiedAt: '2026-08-19',
-  },
-});
-
-/** Builds the active experimental OpenAI adapter contract bundled by the fixture CLI. */
-const createOpenAiCompatibility = () => ({
-  id: 'openai',
-  active: true,
-  bundledVersion: CLI_DEPENDENCIES['@moldea.ai/adapter-openai'],
-  matrix: {
-    implementation: {
-      kind: 'package',
-      package: '@moldea.ai/adapter-openai',
-      versionRange: '^2.0.0',
-      distribution: 'public',
-    },
-    implementationStatus: 'available',
-    supportedRepositoryFormatVersions: [1],
-    compatibleCoreRange: '^2.0.0',
-    runtimeGuidance: {
-      expectation: 'recommended',
-      notes:
-        'Document project-specific model selection, tool execution, streaming, retry, and error behavior that static inspection cannot establish.',
-    },
-    targets: [
-      {
-        id: 'typescript-responses-api-7',
-        kind: 'package',
-        supportLevel: 'experimental',
-        language: 'typescript',
-        packages: [
-          {
-            ecosystem: 'npm',
-            name: 'openai',
-            role: 'primary',
-            versionRange: '>=7.4.0 <8.0.0',
-          },
-        ],
-        evidenceKinds: [
-          'instruction-loader',
-          'language',
-          'runtime-package',
-          'runtime-pattern',
-          'schema',
-          'tool-registration',
-        ],
-        lastVerifiedAt: '2026-08-15',
-      },
-    ],
-    lastVerifiedAt: '2026-08-17',
-  },
-});
-
-/** Builds one inactive planned package-backed adapter contract. */
-const createPlannedCompatibility = (id) => ({
-  id,
-  active: false,
-  bundledVersion: null,
-  matrix: {
-    implementation: {
-      kind: 'package',
-      package: `@moldea.ai/adapter-${id}`,
-      distribution: 'public',
-    },
-    implementationStatus: 'planned',
-  },
-});
-
-/** Reads case-specific overrides into one complete official adapter inventory. */
-const readCompatibilityAdapters = () => {
-  const fixturePath = './runtime-compatibility-fixture.json';
-  const overrides = existsSync(fixturePath)
-    ? JSON.parse(readFileSync(fixturePath, 'utf8')).adapters
-    : [];
-  const overridesById = new Map(overrides.map((adapter) => [adapter.id, adapter]));
-
-  return OFFICIAL_ADAPTER_IDS.map((id) => {
-    if (overridesById.has(id)) return overridesById.get(id);
-    if (id === 'anthropic') return createAnthropicCompatibility();
-    if (id === 'custom') return createCustomCompatibility();
-    if (id === 'google-genai') return createGoogleGenAiCompatibility();
-    if (id === 'openai') return createOpenAiCompatibility();
-    return createPlannedCompatibility(id);
-  });
-};
+/** Lists the active adapters represented by the synthetic CLI package closure. */
+const readCompatibilityAdapters = () =>
+  AVAILABLE_ADAPTER_IDS.map((id) => ({ id, repositoryFormatVersions: [1] }));
 
 /** Lists the complete package composition represented by the adapter inventory. */
 const readCompatibilityPackages = () => COMPATIBILITY_PACKAGES;
@@ -325,10 +105,9 @@ if (command === '--version') {
   const project = readTextAsset('/moldea/project.md');
   const agents = readIndexedAgents(manifest.content);
   const compatibilityAdapters = readCompatibilityAdapters();
+  const availableAdapterIds = new Set(compatibilityAdapters.map(({ id }) => id));
   const unavailableAgent = agents.find(({ declaration }) => {
-    if (declaration.runtime.id === 'custom') return false;
-    const adapter = compatibilityAdapters.find(({ id }) => id === declaration.runtime.id);
-    return adapter && !adapter.active;
+    return !availableAdapterIds.has(declaration.runtime.id);
   });
   const inspection = unavailableAgent
     ? {
@@ -387,7 +166,7 @@ if (command === '--version') {
         source: { kind: 'git-working-tree' },
         inspection,
       },
-      schemaVersion: 1,
+      schemaVersion: CLI_JSON_SCHEMA_VERSION,
       status: unavailableAgent ? 'invalid' : 'valid',
     })}\n`,
   );
@@ -400,15 +179,13 @@ if (command === '--version') {
       command: 'compatibility',
       error: null,
       result: {
-        matrixVersion: 1,
         minimumGitVersion: '2.30.0',
-        outputSchemaVersion: 1,
         supportedNodeRange: '^22.11.0 || ^24.11.0',
-        packages: readCompatibilityPackages(adapters),
+        packages: readCompatibilityPackages(),
         repositoryFormatVersions: [1],
         adapters,
       },
-      schemaVersion: 1,
+      schemaVersion: CLI_JSON_SCHEMA_VERSION,
       status: 'valid',
     })}\n`,
   );

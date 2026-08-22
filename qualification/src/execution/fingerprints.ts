@@ -14,7 +14,7 @@ import {
 } from '../filesystem/index.ts';
 
 const COMPATIBILITY_MATRIX_PATH = 'compatibility/runtimes.yaml';
-const NON_BEHAVIORAL_COMPATIBILITY_FIELDS = new Set(['lastVerifiedAt', 'supportLevel']);
+const NON_BEHAVIORAL_COMPATIBILITY_FIELDS = new Set(['lastVerifiedAt', 'qualificationEvidence']);
 
 // one namespaced source root included in the qualification engine identity
 export type IQualificationDigestRoot = {
@@ -37,7 +37,7 @@ const DEFAULT_QUALIFICATION_DIGEST_ROOTS: readonly IQualificationDigestRoot[] = 
   })),
 ];
 
-/** Removes maturity and verification metadata while retaining every behavioral matrix field. */
+/** Removes publication metadata while retaining every behavioral matrix field. */
 const normalizeCompatibilityInput = (input: unknown): unknown => {
   if (Array.isArray(input)) {
     return input.map(normalizeCompatibilityInput);
@@ -54,6 +54,10 @@ const normalizeCompatibilityInput = (input: unknown): unknown => {
       .map(([fieldName, fieldValue]) => [fieldName, normalizeCompatibilityInput(fieldValue)]),
   );
 };
+
+/** Calculates a stable digest for behavior-bearing compatibility data. */
+export const calculateCompatibilityBehaviorDigest = (input: unknown): string =>
+  calculateSha256(`${JSON.stringify(normalizeCompatibilityInput(input))}\n`);
 
 /**
  * Calculates the stable source-input fingerprint for the qualification suite.
@@ -88,7 +92,7 @@ export const calculateQualificationDigest = async (
 };
 
 /**
- * Calculates the packages input digest without treating maturity or verification dates as behavior.
+ * Calculates the packages input digest without treating verification metadata as behavior.
  * @param packagesRepository The selected packages repository root.
  * @param repositoryEntries The exact package repository fingerprint entries.
  * @returns A promise resolving to the behavior-sensitive package input digest.
@@ -112,7 +116,7 @@ export const calculatePackagesQualificationDigest = async (
   const normalizedMatrix = normalizeCompatibilityInput(parseYaml(matrixSource) as unknown);
   const normalizedEntries = repositoryEntries.map((entry) =>
     entry.path === COMPATIBILITY_MATRIX_PATH
-      ? { ...entry, sha256: calculateSha256(`${JSON.stringify(normalizedMatrix)}\n`) }
+      ? { ...entry, sha256: calculateCompatibilityBehaviorDigest(normalizedMatrix) }
       : entry,
   );
 

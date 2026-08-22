@@ -272,6 +272,10 @@ test('semantic actors execute the copied published CLI closure', async () => {
     assert.equal(versionResult.status, 0, versionResult.stderr);
     assert.equal(versionResult.stdout.trim(), RELEASE_CLI_VERSION);
     assert.equal(compatibilityResult.status, 0, compatibilityResult.stderr);
+    assert.equal(
+      compatibilityEnvelope.schemaVersion,
+      ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion,
+    );
     assert.deepEqual(
       compatibilityEnvelope.result.packages,
       Object.entries(cliManifest.dependencies)
@@ -280,22 +284,11 @@ test('semantic actors execute the copied published CLI closure', async () => {
         .sort(({ name: left }, { name: right }) => left.localeCompare(right)),
     );
     const openAiAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'openai');
-    assert.equal(openAiAdapter.active, true);
-    assert.equal(
-      openAiAdapter.bundledVersion,
-      cliManifest.dependencies['@moldea.ai/adapter-openai'],
-    );
+    assert.deepEqual(openAiAdapter.repositoryFormatVersions, [1]);
     const googleGenAiAdapter = compatibilityEnvelope.result.adapters.find(
       ({ id }) => id === 'google-genai',
     );
-    assert.equal(googleGenAiAdapter.active, true);
-    assert.equal(
-      googleGenAiAdapter.bundledVersion,
-      cliManifest.dependencies['@moldea.ai/adapter-google-genai'],
-    );
-    assert.equal(googleGenAiAdapter.matrix.implementation.versionRange, '^1.0.3');
-    assert.equal(googleGenAiAdapter.matrix.lastVerifiedAt, '2026-08-19');
-    assert.equal(googleGenAiAdapter.matrix.targets[0].packages[0].versionRange, '>=2.17.1 <3.0.0');
+    assert.deepEqual(googleGenAiAdapter.repositoryFormatVersions, [1]);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

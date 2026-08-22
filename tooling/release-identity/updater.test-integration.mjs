@@ -1,5 +1,6 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -10,6 +11,7 @@ import { inspectReleaseIdentity, readReleaseIdentity } from './identity.mjs';
 import { updateCliRelease } from './updater.mjs';
 
 const REPOSITORY_ROOT = resolve(import.meta.dirname, '..', '..');
+const SEMANTIC_CLI_EXECUTABLE_PATH = 'fixtures/tooling/semantic-cli/bin/moldea.js';
 const UPDATE_PATHS = [
   ...new Set([
     ...CLI_VERSION_TEXT_PATHS,
@@ -17,6 +19,7 @@ const UPDATE_PATHS = [
       (relativePath) => relativePath !== RELEASE_PATHS.semanticResult,
     ),
     'docs/compatibility-and-local-tooling.md',
+    SEMANTIC_CLI_EXECUTABLE_PATH,
   ]),
 ];
 
@@ -57,19 +60,26 @@ test('updateCliRelease synchronizes a complete copied release tree', () => {
   const temporaryRoot = createTemporaryReleaseRoot();
   const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
   const nextVersion = '3.3.8';
+  const nextCliJsonSchemaVersion = currentIdentity.cliJsonSchemaVersion + 1;
+  const nextCliDependencies = {
+    ...currentIdentity.cliDependencies,
+    '@moldea.ai/adapter-future': '1.0.0',
+  };
 
   try {
     const identity = updateCliRelease({
       repositoryRoot: temporaryRoot,
       version: nextVersion,
       resolveManifest: () => ({
-        dependencies: currentIdentity.cliDependencies,
+        dependencies: nextCliDependencies,
+        jsonSchemaVersion: nextCliJsonSchemaVersion,
         version: nextVersion,
       }),
-      updateRootManifests: createRootManifestUpdater(currentIdentity.cliDependencies),
+      updateRootManifests: createRootManifestUpdater(nextCliDependencies),
     });
 
     assert.equal(identity.cliVersion, nextVersion);
+    assert.equal(identity.cliJsonSchemaVersion, nextCliJsonSchemaVersion);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
     for (const relativePath of CLI_VERSION_TEXT_PATHS) {
       assert.equal(
@@ -79,6 +89,19 @@ test('updateCliRelease synchronizes a complete copied release tree', () => {
         false,
       );
     }
+
+    const compatibility = spawnSync(
+      process.execPath,
+      [join(temporaryRoot, SEMANTIC_CLI_EXECUTABLE_PATH), 'compatibility', '--json'],
+      { cwd: temporaryRoot, encoding: 'utf8' },
+    );
+    const compatibilityEnvelope = JSON.parse(compatibility.stdout);
+    assert.equal(compatibility.status, 0, compatibility.stderr);
+    assert.equal(compatibilityEnvelope.schemaVersion, nextCliJsonSchemaVersion);
+    assert.ok(
+      compatibilityEnvelope.result.adapters.some(({ id }) => id === 'future'),
+      'The synthetic CLI must derive newly published adapters from its dependency inventory.',
+    );
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });
   }
@@ -103,6 +126,7 @@ test('updateCliRelease restores every managed file after failed identity verific
           version: nextVersion,
           resolveManifest: () => ({
             dependencies: currentIdentity.cliDependencies,
+            jsonSchemaVersion: currentIdentity.cliJsonSchemaVersion,
             version: nextVersion,
           }),
           updateRootManifests: createRootManifestUpdater({

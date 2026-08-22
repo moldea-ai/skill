@@ -42,7 +42,7 @@ Report separate categories:
 - **Relevant unresolved requirements:** existing requirements that affect scope, preserving their declared effect.
 - **Material evidence limitations:** missing tooling, protected access, unavailable adapter evidence, operational failures, or insufficient repository evidence.
 
-When the active compatibility matrix marks runtime guidance as `required`, report missing appropriate guidance as a semantic-readiness problem rather than inventing a Core structural diagnostic. Preserve target maturity and adapter lifecycle state exactly, and never repair an inactive adapter by silently rewriting `runtime.id` to `custom`.
+When material repository-specific runtime behavior is not established by canonical guidance or another reliable source, report that semantic-readiness problem rather than inventing a Core structural diagnostic. Never repair an unavailable adapter by silently rewriting `runtime.id` to `custom`.
 
 Do not fabricate PR Assurance outcomes, Cloud acceptance, merge conclusions, billable semantics, confidence thresholds, or style-only findings. Recommend a correction only when intended direction is sufficiently established.
 

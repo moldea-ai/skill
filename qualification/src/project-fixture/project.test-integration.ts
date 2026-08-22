@@ -30,12 +30,16 @@ const createCandidateFixture = async (temporaryRoot: string): Promise<ICandidate
   );
 
   return {
+    cliJsonSchemaVersion: 2,
+    cliVersion: '3.1.3',
     fingerprint: 'a'.repeat(64),
     packages: [
       {
         name: '@moldea.ai/cli',
         version: '3.1.3',
-        projectDirectory: 'projects/cli',
+        registryIntegrity: `sha512-${'a'.repeat(86)}`,
+        registryShasum: 'c'.repeat(40),
+        registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-3.1.3.tgz',
         tarballPath: path.join(temporaryRoot, 'cli.tgz'),
         tarballName: 'cli.tgz',
         sha256: 'b'.repeat(64),

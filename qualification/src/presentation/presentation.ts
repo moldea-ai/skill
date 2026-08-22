@@ -26,7 +26,7 @@ export const formatImplementationList = (
     .map((implementation) => {
       const target = implementation.implementationId ?? '<no-target>';
       const availability = implementation.disabledReason ?? 'ready';
-      return `${implementation.adapterId}/${target}  ${implementation.supportLevel ?? implementation.implementationStatus}  ${availability}`;
+      return `${implementation.adapterId}/${target}  ${implementation.implementationStatus}  ${availability}`;
     })
     .join('\n');
 

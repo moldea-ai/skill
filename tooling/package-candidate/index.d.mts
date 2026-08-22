@@ -20,6 +20,40 @@ export type IValidatedPackageCandidate = {
   cliVersion: string;
 };
 
+export type IPublishedPackageManifest = IPackageCandidateManifest & {
+  dependencies: Record<string, string>;
+  optionalDependencies: Record<string, string>;
+  dist: {
+    integrity: string;
+    shasum: string;
+    tarball: string;
+  };
+};
+
+export type IPublishedCandidatePackage = {
+  name: string;
+  version: string;
+  registryIntegrity: string;
+  registryShasum: string;
+  registryTarballUrl: string;
+  sha256: string;
+  tarballName: string;
+  tarballPath: string;
+};
+
+export const resolvePublishedPackageClosure: (options: {
+  cliVersion: string;
+  fetchResource?: typeof fetch;
+  selectedPackageName: string;
+}) => Promise<IPublishedPackageManifest[]>;
+
+export const downloadPublishedPackageClosure: (options: {
+  artifactDirectory: string;
+  fetchResource?: typeof fetch;
+  manifests: IPublishedPackageManifest[];
+  selectedPackageName: string;
+}) => Promise<IPublishedCandidatePackage[]>;
+
 // source workspace contracts used for dependency-first build and packing
 export type ISourcePackageManifest = {
   dependencies: Record<string, string>;

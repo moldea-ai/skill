@@ -1,9 +1,12 @@
 import { randomUUID } from 'node:crypto';
 import { access, rm } from 'node:fs/promises';
 import path from 'node:path';
-import { z } from 'zod';
 
 import { prepareCandidateClosure } from '../candidate-closure/index.ts';
+import {
+  inspectQualificationBaseline,
+  QualificationBaselineCheckSchema,
+} from '../baseline/index.ts';
 import {
   createAttemptCheckpoint,
   normalizeInterruptedCheckpoint,
@@ -19,16 +22,20 @@ import {
   SKILL_REPOSITORY_ROOT,
 } from '../constants/index.ts';
 import {
-  DeterministicVerificationSchema,
+  DeterministicVerificationArtifactSchema,
   QualificationAttemptCheckpointSchema,
   QualificationCaseResultSchema,
+  QualificationJudgeSkippedSchema,
   QualificationSourceStateResultSchema,
   WorkspaceAssertionResultSchema,
   type IQualificationAttemptCheckpoint,
   type IQualificationAttemptResult,
   type IQualificationCaseResult,
 } from '../contracts/index.ts';
-import { inspectQualificationCoverage } from '../coverage/index.ts';
+import {
+  inspectQualificationCoverage,
+  QualificationCoverageResultSchema,
+} from '../coverage/index.ts';
 import { verifyDeterministicProject } from '../deterministic/index.ts';
 import {
   ensureDirectory,
@@ -86,20 +93,6 @@ import type {
 // internal control-flow signal for a declined or unavailable paid-execution approval
 class PaidExecutionApprovalError extends Error {}
 
-const CoverageResultSchema = z.strictObject({
-  passed: z.boolean(),
-  requiredClaims: z.array(z.string()),
-  declaredClaims: z.array(z.string()),
-  missingClaims: z.array(z.string()),
-  unknownClaims: z.array(z.string()),
-  uncoveredCaseIds: z.array(z.string()),
-});
-
-const DeterministicArtifactSchema = z.strictObject({
-  summary: DeterministicVerificationSchema,
-  details: z.unknown(),
-});
-
 const pathExists = async (candidatePath: string): Promise<boolean> => {
   try {
     await access(candidatePath);
@@ -145,6 +138,7 @@ const createStageIds = (caseIds: readonly string[]): string[] => [
   'source-state',
   'coverage',
   'candidate',
+  'baseline',
   ...caseIds.flatMap((caseId) => [
     `case:${caseId}:prepare`,
     `case:${caseId}:deterministic-before`,
@@ -248,6 +242,7 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
     skillDigest: inputState.skillState.fingerprint,
     packagesRepositoryFingerprint: inputState.packagesState.fingerprint,
     packagesDigest: inputState.packagesDigest,
+    targetDigest: target.targetDigest,
     executionEnvironment,
     stageIds: createStageIds(target.profile.cases.map(({ id }) => id)),
   });
@@ -292,6 +287,7 @@ export const runQualification = async (
 
   if (
     checkpoint.profileDigest !== target.profileDigest ||
+    checkpoint.targetDigest !== target.targetDigest ||
     haveQualificationInputsChanged(checkpoint, inputState)
   ) {
     throw new Error(
@@ -320,16 +316,17 @@ export const runQualification = async (
     }
   }
 
-  const provenance = createQualificationExecutionProvenance({
+  let provenance = createQualificationExecutionProvenance({
     executionEnvironment,
     packagesState,
     profileDigest: target.profileDigest,
     qualificationDigest,
     qualificationState,
     skillState,
-    targetSupportLevel: target.target.supportLevel,
+    targetDigest: target.targetDigest,
   });
   const caseResults: IQualificationCaseResult[] = [];
+  let baselineAttemptId: string | null = provenance.baselineAttemptId;
   let activeStageId: string | null = null;
   const verifyExecutionInputs = async (): Promise<void> => {
     if (checkpoint.isDryRun) {
@@ -353,6 +350,28 @@ export const runQualification = async (
       throw new Error(
         'Qualification inputs changed during execution. Start a retry so the recorded evidence uses committed source and host configuration with a new identity.',
       );
+    }
+
+    if (checkpoint.selection.adapterId !== 'custom') {
+      if (checkpoint.candidate === null) {
+        throw new Error('Qualification candidate identity is unavailable for baseline validation.');
+      }
+
+      const baseline = await inspectQualificationBaseline({
+        candidate: checkpoint.candidate,
+        executionEnvironment,
+        packagesState: currentInputState.packagesState,
+        qualificationDigest: currentInputState.qualificationDigest,
+        resultsRoot,
+        selection: checkpoint.selection,
+        skillState: currentInputState.skillState,
+      });
+
+      if (!baseline.passed || baseline.baselineAttemptId !== baselineAttemptId) {
+        throw new Error(
+          'The compatible Custom baseline changed during execution. Start a retry with stable committed evidence.',
+        );
+      }
     }
   };
   let hasApprovedPaidExecution = false;
@@ -449,7 +468,7 @@ export const runQualification = async (
     const coverageStageId = 'coverage';
     const coveragePath = path.join(publicDirectory, 'coverage.json');
     const coverage = isQualificationStageComplete(checkpoint, coverageStageId)
-      ? await readJsonFile(coveragePath, CoverageResultSchema)
+      ? await readJsonFile(coveragePath, QualificationCoverageResultSchema)
       : await (async () => {
           activeStageId = coverageStageId;
           checkpoint = await startQualificationStage(attemptDirectory, checkpoint, coverageStageId);
@@ -513,8 +532,6 @@ export const runQualification = async (
       const preparedCandidate = await prepareCandidateClosure({
         adapterPackage: target.adapter.implementation.package,
         attemptDirectory,
-        packagesDigest: checkpoint.packagesDigest,
-        packagesRepository: checkpoint.packagesRepository,
         signal: options.signal,
       });
 
@@ -545,6 +562,62 @@ export const runQualification = async (
       }
 
       activeStageId = null;
+    }
+
+    const baselineStageId = 'baseline';
+    const baselinePath = path.join(publicDirectory, 'baseline.json');
+    const baseline = isQualificationStageComplete(checkpoint, baselineStageId)
+      ? await readJsonFile(baselinePath, QualificationBaselineCheckSchema)
+      : await (async () => {
+          activeStageId = baselineStageId;
+          checkpoint = await startQualificationStage(attemptDirectory, checkpoint, baselineStageId);
+          const baselineResult = await inspectQualificationBaseline({
+            candidate,
+            executionEnvironment,
+            packagesState,
+            qualificationDigest,
+            resultsRoot,
+            selection: checkpoint.selection,
+            skillState,
+          });
+          await writeJsonFileAtomically(baselinePath, baselineResult);
+          checkpoint = await completeQualificationStage(
+            attemptDirectory,
+            checkpoint,
+            baselineStageId,
+            { status: baselineResult.passed ? 'passed' : 'failed' },
+          );
+          activeStageId = null;
+          return baselineResult;
+        })();
+    baselineAttemptId = baseline.baselineAttemptId;
+    provenance = { ...provenance, baselineAttemptId };
+
+    if (!baseline.passed) {
+      const finalState = await persistFinalState({
+        attemptDirectory,
+        caseResults,
+        checkpoint,
+        provenance,
+        stageIds,
+        status: 'failed',
+        summary: `Qualification stopped because its Custom baseline is unavailable or incompatible: ${baseline.failures.join(' ')}`,
+      });
+      const wasRecorded = !checkpoint.isDryRun;
+      let result = finalState.result;
+
+      if (wasRecorded) {
+        result = await recordQualificationResult(
+          {
+            artifactDirectory: publicDirectory,
+            result: finalState.result,
+            sanitizationContext: resultSanitizationContext,
+          },
+          resultsRoot,
+        );
+      }
+
+      return { attemptDirectory, result, wasRecorded };
     }
 
     for (const profileCase of target.profile.cases) {
@@ -605,7 +678,7 @@ export const runQualification = async (
         checkpoint,
         deterministicBeforeStageId,
       )
-        ? await readJsonFile(deterministicBeforePath, DeterministicArtifactSchema)
+        ? await readJsonFile(deterministicBeforePath, DeterministicVerificationArtifactSchema)
         : await (async () => {
             activeStageId = deterministicBeforeStageId;
             checkpoint = await startQualificationStage(
@@ -614,7 +687,9 @@ export const runQualification = async (
               deterministicBeforeStageId,
             );
             const result = await verifyDeterministicProject({
+              adapterId: target.selection.adapterId,
               candidate,
+              expectedEvidence: project.scenario.deterministicEvidence.before,
               expectedInspectionStatus: project.scenario.inspection.before,
               packagesRepository: checkpoint.packagesRepository,
               signal: options.signal,
@@ -677,6 +752,7 @@ export const runQualification = async (
               project,
               signal: options.signal,
               skillDigest: checkpoint.skillDigest,
+              targetDigest: checkpoint.targetDigest,
               skillRepository: checkpoint.skillRepository,
               snapshotDirectory,
               task,
@@ -700,7 +776,7 @@ export const runQualification = async (
       const deterministicAfterStageId = `case:${profileCase.id}:deterministic-after`;
       const deterministicAfterPath = path.join(caseArtifactDirectory, 'deterministic-after.json');
       const deterministicAfter = isQualificationStageComplete(checkpoint, deterministicAfterStageId)
-        ? await readJsonFile(deterministicAfterPath, DeterministicArtifactSchema)
+        ? await readJsonFile(deterministicAfterPath, DeterministicVerificationArtifactSchema)
         : await (async () => {
             activeStageId = deterministicAfterStageId;
             checkpoint = await startQualificationStage(
@@ -709,7 +785,9 @@ export const runQualification = async (
               deterministicAfterStageId,
             );
             const result = await verifyDeterministicProject({
+              adapterId: target.selection.adapterId,
               candidate,
+              expectedEvidence: project.scenario.deterministicEvidence.after,
               expectedInspectionStatus: project.scenario.inspection.after,
               packagesRepository: checkpoint.packagesRepository,
               signal: options.signal,
@@ -744,7 +822,7 @@ export const runQualification = async (
               checkpoint,
               assertionsStageId,
             );
-            const result = await inspectWorkspaceAssertions(project);
+            const result = await inspectWorkspaceAssertions(project, actorResult.output);
             await writeJsonFileAtomically(assertionsPath, result);
             checkpoint = await completeQualificationStage(
               attemptDirectory,
@@ -775,65 +853,98 @@ export const runQualification = async (
         profileCase.id,
         'judge-workspace',
       );
-      const judgeResult = isQualificationStageComplete(checkpoint, judgeStageId)
-        ? await restoreJudgeModelStage({
-            caseArtifactDirectory,
-            scenario: project.scenario,
-          })
-        : await (async () => {
-            activeStageId = judgeStageId;
-            checkpoint = await startQualificationStage(attemptDirectory, checkpoint, judgeStageId);
-            const result = await executeJudgeModelStage({
-              actorOutput: actorResult.output,
-              adapterId: target.selection.adapterId,
-              approvePaidExecution,
-              attemptDirectory,
-              attemptId: checkpoint.attemptId,
-              candidate,
+      const shouldSkipJudge = !deterministicAfter.summary.passed || !workspaceAssertions.passed;
+      const judgeSkippedPath = path.join(caseArtifactDirectory, 'judge-skipped.json');
+      const judgeResult = shouldSkipJudge
+        ? await (async () => {
+            if (checkpoint.stages[judgeStageId]?.status !== 'skipped') {
+              activeStageId = judgeStageId;
+              checkpoint = await startQualificationStage(
+                attemptDirectory,
+                checkpoint,
+                judgeStageId,
+              );
+              await writeJsonFileAtomically(
+                judgeSkippedPath,
+                QualificationJudgeSkippedSchema.parse({
+                  reason:
+                    'The judge was skipped because deterministic postchecks or workspace assertions already failed.',
+                  deterministicAfterPassed: deterministicAfter.summary.passed,
+                  workspaceAssertionsPassed: workspaceAssertions.passed,
+                }),
+              );
+              checkpoint = await completeQualificationStage(
+                attemptDirectory,
+                checkpoint,
+                judgeStageId,
+                { status: 'skipped' },
+              );
+              activeStageId = null;
+            }
+            return null;
+          })()
+        : isQualificationStageComplete(checkpoint, judgeStageId)
+          ? await restoreJudgeModelStage({
               caseArtifactDirectory,
-              executionEnvironment,
-              deterministicAfter: deterministicAfter.summary,
-              host: options.host,
-              implementationId: target.selection.implementationId,
-              isDryRun: checkpoint.isDryRun,
-              judgeWorkspaceDirectory,
-              packagesRepository: checkpoint.packagesRepository,
-              profileDigest: checkpoint.profileDigest,
-              qualificationDigest,
-              project,
-              signal: options.signal,
-              skillDigest: checkpoint.skillDigest,
-              skillRepository: checkpoint.skillRepository,
-              task,
-              useCache: checkpoint.useCache,
-              verifyExecutionInputs,
-              workspaceAssertions,
-            });
-            checkpoint = await completeQualificationStage(
-              attemptDirectory,
-              checkpoint,
-              judgeStageId,
-              {
-                status: result.evidence.cacheSourceAttemptId === null ? 'passed' : 'cached',
-                cacheKey: result.evidence.cacheKey,
-                cacheSourceAttemptId: result.evidence.cacheSourceAttemptId,
-              },
-            );
-            activeStageId = null;
-            return result;
-          })();
+              scenario: project.scenario,
+            })
+          : await (async () => {
+              activeStageId = judgeStageId;
+              checkpoint = await startQualificationStage(
+                attemptDirectory,
+                checkpoint,
+                judgeStageId,
+              );
+              const result = await executeJudgeModelStage({
+                actorOutput: actorResult.output,
+                adapterId: target.selection.adapterId,
+                approvePaidExecution,
+                attemptDirectory,
+                attemptId: checkpoint.attemptId,
+                candidate,
+                caseArtifactDirectory,
+                executionEnvironment,
+                deterministicAfter: deterministicAfter.summary,
+                host: options.host,
+                implementationId: target.selection.implementationId,
+                isDryRun: checkpoint.isDryRun,
+                judgeWorkspaceDirectory,
+                packagesRepository: checkpoint.packagesRepository,
+                profileDigest: checkpoint.profileDigest,
+                qualificationDigest,
+                project,
+                signal: options.signal,
+                skillDigest: checkpoint.skillDigest,
+                targetDigest: checkpoint.targetDigest,
+                skillRepository: checkpoint.skillRepository,
+                task,
+                useCache: checkpoint.useCache,
+                verifyExecutionInputs,
+                workspaceAssertions,
+              });
+              checkpoint = await completeQualificationStage(
+                attemptDirectory,
+                checkpoint,
+                judgeStageId,
+                {
+                  status: result.evidence.cacheSourceAttemptId === null ? 'passed' : 'cached',
+                  cacheKey: result.evidence.cacheKey,
+                  cacheSourceAttemptId: result.evidence.cacheSourceAttemptId,
+                },
+              );
+              activeStageId = null;
+              return result;
+            })();
 
-      const failedJudgeRequirements = judgeResult.output.requirements
-        .filter(({ verdict }) => verdict === 'fail')
-        .map(({ evidence, id }) => `Judge requirement ${id} failed: ${evidence}`);
+      const failedJudgeRequirements =
+        judgeResult?.output.requirements
+          .filter(({ verdict }) => verdict === 'fail')
+          .map(({ evidence, id }) => `Judge requirement ${id} failed: ${evidence}`) ?? [];
       const failures = [
         ...deterministicAfter.summary.failures,
         ...workspaceAssertions.failures,
-        ...(actorResult.output.outcome === 'blocked'
-          ? ['The actor reported a blocked outcome.']
-          : []),
         ...failedJudgeRequirements,
-        ...(judgeResult.output.verdict === 'fail' ? judgeResult.output.failures : []),
+        ...(judgeResult?.output.verdict === 'fail' ? judgeResult.output.failures : []),
       ];
       const caseResult = QualificationCaseResultSchema.parse(
         sanitizeEvidenceValue(
@@ -845,15 +956,19 @@ export const runQualification = async (
             deterministicBeforePath: `cases/${profileCase.id}/deterministic-before.json`,
             deterministicAfterPath: `cases/${profileCase.id}/deterministic-after.json`,
             actorOutputPath: `cases/${profileCase.id}/actor-output.json`,
-            judgeOutputPath: `cases/${profileCase.id}/judge-output.json`,
+            judgeStatus: judgeResult === null ? 'skipped' : 'completed',
+            judgeOutputPath:
+              judgeResult === null ? null : `cases/${profileCase.id}/judge-output.json`,
+            judgeSkippedPath:
+              judgeResult === null ? `cases/${profileCase.id}/judge-skipped.json` : null,
             workspaceAssertionsPath: `cases/${profileCase.id}/workspace-assertions.json`,
             patchPath: `cases/${profileCase.id}/workspace.patch`,
             actorUsage: actorResult.evidence.usage,
-            judgeUsage: judgeResult.evidence.usage,
+            judgeUsage: judgeResult?.evidence.usage ?? null,
             actorEvidenceCreatedAt: actorResult.evidence.createdAt,
-            judgeEvidenceCreatedAt: judgeResult.evidence.createdAt,
+            judgeEvidenceCreatedAt: judgeResult?.evidence.createdAt ?? null,
             actorCacheSourceAttemptId: actorResult.evidence.cacheSourceAttemptId,
-            judgeCacheSourceAttemptId: judgeResult.evidence.cacheSourceAttemptId,
+            judgeCacheSourceAttemptId: judgeResult?.evidence.cacheSourceAttemptId ?? null,
             failures,
           },
           {

@@ -463,54 +463,29 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
       .filter(([packageName]) => packageName.startsWith('@moldea.ai/'))
       .map(([name, version]) => ({ name, version }))
       .sort(({ name: left }, { name: right }) => left.localeCompare(right));
-    const customAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'custom');
-    const anthropicAdapter = compatibilityEnvelope.result.adapters.find(
-      ({ id }) => id === 'anthropic',
-    );
-    const googleGenAiAdapter = compatibilityEnvelope.result.adapters.find(
-      ({ id }) => id === 'google-genai',
-    );
-    const openAiAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'openai');
+    const adapterIds = compatibilityEnvelope.result.adapters.map(({ id }) => id);
 
     assert.equal(compatibilityEnvelope.cliVersion, cliVersion);
     assert.equal(compatibilityEnvelope.command, 'compatibility');
-    assert.equal(compatibilityEnvelope.schemaVersion, 1);
+    assert.equal(
+      compatibilityEnvelope.schemaVersion,
+      ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion,
+    );
     assert.equal(compatibilityEnvelope.status, 'valid');
     assert.deepEqual(compatibilityEnvelope.result.packages, expectedPackages);
-    assert.equal(customAdapter.active, true);
-    assert.equal(customAdapter.bundledVersion, cliPackage.manifest.dependencies['@moldea.ai/core']);
-    assert.equal(customAdapter.matrix.implementationStatus, 'available');
-    assert.equal(customAdapter.matrix.compatibleCoreRange, '^2.0.0');
-    assert.deepEqual(customAdapter.matrix.supportedRepositoryFormatVersions, [1]);
-    assert.equal(customAdapter.matrix.runtimeGuidance.expectation, 'required');
-    assert.equal(customAdapter.matrix.targets[0].id, 'custom');
-    assert.deepEqual(customAdapter.matrix.targets[0].patterns, [
-      {
-        description:
-          'Universal Core validation of explicit repository relationships without runtime-specific inference.',
-        id: 'explicit-repository-relationships',
-        kind: 'runtime',
-        support: 'full',
-      },
-    ]);
-    assert.equal(anthropicAdapter.active, true);
-    assert.equal(
-      anthropicAdapter.bundledVersion,
-      cliPackage.manifest.dependencies['@moldea.ai/adapter-anthropic'],
-    );
-    assert.equal(googleGenAiAdapter.active, true);
-    assert.equal(
-      googleGenAiAdapter.bundledVersion,
-      cliPackage.manifest.dependencies['@moldea.ai/adapter-google-genai'],
-    );
-    assert.equal(openAiAdapter.active, hasOpenAiAdapter);
-    assert.equal(
-      openAiAdapter.bundledVersion,
-      hasOpenAiAdapter ? cliPackage.manifest.dependencies['@moldea.ai/adapter-openai'] : null,
-    );
+    assert.ok(adapterIds.includes('custom'));
+    assert.ok(adapterIds.includes('anthropic'));
+    assert.ok(adapterIds.includes('google-genai'));
+    assert.equal(adapterIds.includes('openai'), hasOpenAiAdapter);
+    for (const adapter of compatibilityEnvelope.result.adapters) {
+      assert.deepEqual(adapter.repositoryFormatVersions, [1]);
+    }
     assert.equal(inspectionEnvelope.cliVersion, cliVersion);
     assert.equal(inspectionEnvelope.command, 'inspect');
-    assert.equal(inspectionEnvelope.schemaVersion, 1);
+    assert.equal(
+      inspectionEnvelope.schemaVersion,
+      ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion,
+    );
     assert.equal(inspectionEnvelope.status, 'valid');
     assert.equal(inspectionEnvelope.result.inspection.valid, true);
     assert.deepEqual(inspectionEnvelope.result.inspection.diagnostics, []);

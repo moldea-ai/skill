@@ -21,8 +21,10 @@ const REPRESENTATIVE_PATHS = [
   '/examples/',
   '/examples/create-a-support-agent/',
   '/examples/evaluate-and-reconcile/',
-  '/qualification/',
-  '/qualification/custom/custom/',
+  '/evidence/',
+  '/evidence/semantic/',
+  '/evidence/qualification/',
+  '/evidence/qualification/custom/custom/',
   '/search/',
 ] as const;
 const CODING_AGENT_MARKS = [
@@ -609,8 +611,8 @@ test('marks the most specific current desktop and mobile navigation destinations
     await page.goto(toPublicPath('/docs/coding-agent-compatibility/'));
     await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
 
-    await page.goto(toPublicPath('/qualification/custom/custom/'));
-    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Qualification');
+    await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Evidence');
 
     const navigationMarker = await page.evaluate(() => {
       const marker = crypto.randomUUID();
@@ -791,112 +793,6 @@ test('keeps essential documentation available without JavaScript', async ({ brow
   await page.goto(toPublicPath('/docs/getting-started/'));
   await expect(page.getByRole('heading', { level: 1, name: 'Getting started' })).toBeVisible();
   await expect(page.getByText(/The primary distribution page is/)).toBeVisible();
-
-  await context.close();
-});
-
-test('publishes the transparent Custom profile before official evidence exists', async ({
-  page,
-}) => {
-  await page.goto(toPublicPath('/qualification/'));
-
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Adapter qualification evidence' }),
-  ).toBeVisible();
-  await expect(page.getByText('1 profile · 0 recorded attempts')).toBeVisible();
-  const profileLink = page.getByRole('link', { name: /Custom runtime qualification/ });
-  await expect(profileLink.locator('[data-qualification-status]')).toHaveAttribute(
-    'data-qualification-status',
-    'not-recorded',
-  );
-  await expect(profileLink).toContainText('No recorded attempt');
-  await expect(profileLink).toContainText('8');
-
-  await profileLink.click();
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Custom runtime qualification' }),
-  ).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Qualification status summary' })).toBeVisible();
-  await expect(page.getByText(/no official attempt has been committed yet/u)).toBeVisible();
-  await expect(page.getByText('No passing baseline has been recorded.')).toBeVisible();
-  await expect(page.getByRole('heading', { name: '8 realistic journeys' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Evaluate an aligned project' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Initialize a grounded project' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Create a grounded agent' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Maintain a dirty project' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Reconcile drift and boundaries' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Retire an agent coherently' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Stop on material ambiguity' })).toBeVisible();
-  await expect(
-    page.getByRole('heading', { name: 'Resist untrusted repository instructions' }),
-  ).toBeVisible();
-  await expect(page.getByRole('heading', { name: '7 behavior claims covered' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'View profile source' })).toHaveAttribute(
-    'href',
-    'https://github.com/moldea-ai/skill/blob/main/qualification/profiles/custom/custom/profile.yaml',
-  );
-
-  await page.getByRole('link', { name: 'Methodology' }).click();
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Adapter qualification' }),
-  ).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Three evidence layers' })).toBeVisible();
-});
-
-test('describes the qualification model tier without requiring provider knowledge', async ({
-  page,
-}) => {
-  await page.goto(toPublicPath('/qualification/'));
-
-  await expect(page.locator('body')).toContainText('balanced-tier model');
-});
-
-test('keeps qualification evidence readable at 320px in both themes without page overflow', async ({
-  browser,
-}) => {
-  for (const colorScheme of ['light', 'dark'] as const) {
-    const context = await browser.newContext({
-      colorScheme,
-      viewport: { height: 740, width: 320 },
-    });
-    const page = await context.newPage();
-
-    for (const route of ['/qualification/', '/qualification/custom/custom/']) {
-      await page.goto(toPublicPath(route));
-      const widths = await page.evaluate(() => ({
-        client: document.documentElement.clientWidth,
-        scroll: document.documentElement.scrollWidth,
-      }));
-      expect(widths.scroll, `${route} overflows in ${colorScheme} mode`).toBeLessThanOrEqual(
-        widths.client,
-      );
-
-      const accessibilityResults = await new AxeBuilder({ page }).analyze();
-      const materialViolations = accessibilityResults.violations.filter(
-        ({ impact }) => impact === 'critical' || impact === 'serious',
-      );
-      expect(
-        materialViolations,
-        `${route} has material accessibility violations in ${colorScheme} mode`,
-      ).toStrictEqual([]);
-    }
-
-    await context.close();
-  }
-});
-
-test('keeps profile evidence available without JavaScript', async ({ browser }) => {
-  const context = await browser.newContext({ javaScriptEnabled: false });
-  const page = await context.newPage();
-
-  await page.goto(toPublicPath('/qualification/custom/custom/'));
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Custom runtime qualification' }),
-  ).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Qualification status summary' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Complete attempt history' })).toBeVisible();
-  await expect(page.getByText(/no official attempt has been committed yet/u)).toBeVisible();
-  await expect(page.getByText('No passing baseline has been recorded.')).toBeVisible();
 
   await context.close();
 });

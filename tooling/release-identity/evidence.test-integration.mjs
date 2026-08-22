@@ -13,7 +13,7 @@ import { createSemanticCliIdentity } from './identity.mjs';
 import {
   createPortableSkillDigest,
   createSemanticCaseSuiteDigest,
-} from '../../tests/semantic-evaluation-runner.mjs';
+} from '../semantic-evaluation/index.mjs';
 import {
   calculateCompatibilityBehaviorDigest,
   calculateQualificationDigest,
@@ -190,7 +190,9 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       temporaryRoot,
       'fixtures/semantic-evaluation-result.json',
       `${JSON.stringify({
+        artifact: { sha256: skillDigest },
         artifactDigest: skillDigest,
+        artifactSha256: skillDigest,
         skillDigest,
         caseSuiteDigest: createSemanticCaseSuiteDigest(semanticCases),
         cli: createSemanticCliIdentity(temporaryRoot),

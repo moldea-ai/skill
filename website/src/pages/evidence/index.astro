@@ -1,0 +1,83 @@
+---
+import { FlaskConical, PanelsTopLeft } from '@lucide/astro';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+
+import EvidenceOptionCard from '../../components/evidence-option-card/evidence-option-card.astro';
+import BaseLayout from '../../layouts/base-layout.astro';
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+
+const model = loadWebsiteModel();
+const { qualification, semanticEvaluation } = model;
+const basePath = import.meta.env.BASE_URL;
+const projectCount = qualification.profiles.reduce(
+  (total, profile) => total + profile.cases.length,
+  0,
+);
+const claimCount = qualification.profiles.reduce(
+  (total, profile) => total + profile.probes.length,
+  0,
+);
+const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
+---
+
+<BaseLayout
+  title="Evidence"
+  description="Choose between behavioral semantic evaluation and real-project adapter qualification evidence."
+  {breadcrumbs}
+>
+  <div class="page-shell pt-7">
+    <Breadcrumbs
+      basePath={basePath}
+      items={breadcrumbs}
+    />
+
+    <header class="mt-7 border-b border-border pb-10">
+      <p class="eyebrow mb-4">Tested before release</p>
+      <h1 class="display-title max-w-5xl font-semibold">Choose the evidence you need.</h1>
+      <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+        Semantic evaluation answers whether the skill behaves correctly across difficult situations.
+        Qualification answers whether the published packages, adapter, CLI, and skill work together
+        in realistic projects. Both results shown here passed the release gate.
+      </p>
+    </header>
+
+    <section
+      class="grid gap-5 py-12 lg:grid-cols-2"
+      aria-label="Evidence types"
+    >
+      <EvidenceOptionCard
+        title="Semantic evaluation"
+        description="Review the behavioral scenarios, the exact success and failure criteria, and the evidence-based rationale for each passing result."
+        href={semanticEvaluation.route}
+        metric={`${semanticEvaluation.caseCount} of ${semanticEvaluation.caseCount} scenarios passed`}
+        questions={[
+          'Does the skill make the right decision when context is incomplete or conflicting?',
+          'Does it respect repository truth, host constraints, and safety boundaries?',
+        ]}
+      >
+        <FlaskConical
+          slot="icon"
+          class="size-5"
+          aria-hidden="true"
+        />
+      </EvidenceOptionCard>
+
+      <EvidenceOptionCard
+        title="Adapter qualification"
+        description="Review realistic project journeys, compatibility claims, deterministic checks, independent judgment, and raw attempt artifacts."
+        href={qualification.route}
+        metric={`${projectCount} ${projectCount === 1 ? 'project' : 'projects'} covering ${claimCount} ${claimCount === 1 ? 'claim' : 'claims'}`}
+        questions={[
+          'Does this adapter implementation work with the exact published package artifacts?',
+          'Which project journeys and compatibility claims were exercised end to end?',
+        ]}
+      >
+        <PanelsTopLeft
+          slot="icon"
+          class="size-5"
+          aria-hidden="true"
+        />
+      </EvidenceOptionCard>
+    </section>
+  </div>
+</BaseLayout>

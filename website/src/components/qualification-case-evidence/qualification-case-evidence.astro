@@ -2,7 +2,7 @@
 import { ExternalLink } from '@lucide/astro';
 
 import type { IQualificationAttemptCaseModel } from '../../lib/qualification/index.ts';
-import QualificationStatus from '../qualification-status/qualification-status.astro';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import QualificationText from '../qualification-text/qualification-text.astro';
 
 interface Props {
@@ -37,7 +37,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
 <article class="surface-card min-w-0 overflow-hidden">
   <header class="border-b border-border p-5 sm:p-6">
     <div class="flex flex-wrap items-center gap-3">
-      <QualificationStatus status={result.status} />
+      <EvidenceStatus status={result.status} />
       <code class="text-xs text-muted-foreground">{result.caseId}</code>
       <span class="ms-auto text-sm text-muted-foreground">{result.durationMs} ms</span>
     </div>
@@ -72,7 +72,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
             <div class="rounded-xl border border-border bg-muted/40 p-4">
               <div class="flex flex-wrap items-center gap-2">
                 <p class="font-semibold">{label}</p>
-                <QualificationStatus status={verification.passed ? 'passed' : 'failed'} />
+                <EvidenceStatus status={verification.passed ? 'passed' : 'failed'} />
               </div>
               <dl class="mt-3 grid gap-1 text-sm text-muted-foreground">
                 <div class="flex justify-between gap-3">
@@ -130,7 +130,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
         <div class="rounded-xl border border-border bg-muted/40 p-4">
           <div class="flex flex-wrap items-center gap-2">
             <p class="font-semibold">Workspace assertions</p>
-            <QualificationStatus status={workspaceAssertions.passed ? 'passed' : 'failed'} />
+            <EvidenceStatus status={workspaceAssertions.passed ? 'passed' : 'failed'} />
           </div>
           <p class="mt-3 text-sm leading-6 text-muted-foreground">
             {
@@ -193,7 +193,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
           <div class="rounded-xl border border-border p-4 sm:p-5">
             <div class="flex flex-wrap items-center gap-2">
               <h4 class="font-semibold">Independent judge</h4>
-              <QualificationStatus status={judge.verdict === 'pass' ? 'passed' : 'failed'} />
+              <EvidenceStatus status={judge.verdict === 'pass' ? 'passed' : 'failed'} />
             </div>
             <p class="mt-3 text-sm leading-6 text-muted-foreground">
               <QualificationText text={judge.summary} />
@@ -223,7 +223,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
           <div class="rounded-xl border border-warning/40 bg-warning/10 p-4 sm:p-5">
             <div class="flex flex-wrap items-center gap-2">
               <h4 class="font-semibold">Independent judge</h4>
-              <QualificationStatus status="skipped" />
+              <EvidenceStatus status="skipped" />
             </div>
             <p class="mt-3 text-sm leading-6 text-muted-foreground">
               <QualificationText
@@ -265,7 +265,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
                       <code>{requirement.id}</code>
                     </td>
                     <td class="px-4 py-3 align-top">
-                      <QualificationStatus
+                      <EvidenceStatus
                         status={requirement.verdict === 'pass' ? 'passed' : 'failed'}
                       />
                     </td>

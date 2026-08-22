@@ -99,7 +99,9 @@ describe('Custom qualification profile', () => {
       {
         ...target.target,
         lastVerifiedAt: '2099-01-01',
-        qualificationEvidence: { url: 'https://skill.moldea.ai/qualification/custom/custom/' },
+        qualificationEvidence: {
+          url: 'https://skill.moldea.ai/evidence/qualification/custom/custom/',
+        },
       },
     );
 

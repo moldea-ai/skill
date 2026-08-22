@@ -1,4 +1,5 @@
 import type { IQualificationWebsiteModel } from '../qualification/index.ts';
+import type { ISemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
 
 import type { DOCUMENT_SECTION_LABELS } from './constants.ts';
 
@@ -49,5 +50,6 @@ export interface IWebsiteModel {
   qualification: IQualificationWebsiteModel;
   routes: string[];
   searchRecords: ISearchRecord[];
+  semanticEvaluation: ISemanticEvaluationWebsiteModel;
   skill: ISkillMetadata;
 }

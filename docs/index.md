@@ -34,7 +34,7 @@ The coding agent decides when the skill is relevant, reads the necessary guidanc
 - [What `moldea` can do](/docs/capabilities/): explore the complete capability surface.
 - [How it works](/docs/how-it-works/): see the optional technical layer beneath the coding agent.
 - [Repository format](/docs/repository-format/): see how a two-file foundation grows into focused, explicit project organization.
-- [Adapter qualification](/qualification/): inspect the support-gate projects, current status, complete attempt history, and raw committed evidence.
+- [Evidence](/evidence/): choose between passing behavioral semantic evaluation and real-project adapter qualification evidence.
 - [Examples](/examples/): follow complete developer, coding-agent, and skill interactions.
 
 ## What stays yours

@@ -41,7 +41,7 @@ import {
   assertQualificationCaseEvidence,
 } from './validations.ts';
 
-const QUALIFICATION_ROUTE = '/qualification/';
+const QUALIFICATION_ROUTE = '/evidence/qualification/';
 
 type ICaseCatalogEntry = ReturnType<typeof QualificationCaseCatalogSchema.parse>['cases'][number];
 type IProfile = ReturnType<typeof QualificationProfileSchema.parse>;
@@ -563,4 +563,29 @@ export const loadQualificationWebsiteModel = (
   verifyResultTargetsHaveProfiles(resultsRoot, profileKeys);
 
   return { profiles, route: QUALIFICATION_ROUTE };
+};
+
+/** Requires every published profile to point to its current complete passing attempt. */
+export const assertPublishableQualificationEvidence = (
+  qualification: IQualificationWebsiteModel,
+): void => {
+  if (qualification.profiles.length === 0) {
+    throw new Error('Qualification evidence must contain at least one public profile.');
+  }
+
+  for (const profile of qualification.profiles) {
+    const latestAttempt = profile.attempts.find(
+      ({ result }) => result.attemptId === profile.latest?.latestAttemptId,
+    );
+    if (
+      profile.latest === null ||
+      profile.latest.latestStatus !== 'passed' ||
+      profile.latest.lastPassingAttemptId !== profile.latest.latestAttemptId ||
+      latestAttempt?.result.status !== 'passed'
+    ) {
+      throw new Error(
+        `Qualification profile ${profile.adapterId}/${profile.implementationId} has no current passing evidence.`,
+      );
+    }
+  }
 };

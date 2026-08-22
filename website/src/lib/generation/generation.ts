@@ -7,11 +7,17 @@ import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
 import {
+  assertPublishableQualificationEvidence,
   loadQualificationWebsiteModel,
   type IQualificationWebsiteModel,
 } from '../qualification/index.ts';
 import {
+  loadSemanticEvaluationWebsiteModel,
+  type ISemanticEvaluationWebsiteModel,
+} from '../semantic-evaluation/index.ts';
+import {
   DOCUMENT_SECTION_LABELS,
+  EVIDENCE_ROUTE,
   INSTALL_COMMAND,
   REQUIRED_DOCUMENT_ROUTES,
   SKILLS_DIRECTORY_URL,
@@ -29,7 +35,7 @@ import { DEFAULT_SITE_URL } from '../site/constants.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const GENERATED_NOTICE =
-  'Generated from repository-owned documentation, qualification evidence, and moldea/SKILL.md metadata. Do not edit generated output.';
+  'Generated from repository-owned documentation, semantic evaluation, qualification evidence, and moldea/SKILL.md metadata. Do not edit generated output.';
 
 const DocumentFrontmatterSchema = z.strictObject({
   description: z.string().min(1),
@@ -260,11 +266,45 @@ export const createQualificationSearchRecords = (
   return [landingRecord, ...profileRecords];
 };
 
+/** Creates concise semantic evidence search records without indexing actor transcripts. */
+export const createSemanticEvaluationSearchRecords = (
+  semanticEvaluation: ISemanticEvaluationWebsiteModel,
+): ISearchRecord[] => {
+  const landingRecord: ISearchRecord = {
+    description: `Review ${semanticEvaluation.caseCount} passing behavioral scenarios and the criteria used to judge them.`,
+    route: semanticEvaluation.route,
+    searchText: normalizeSearchText(
+      'Semantic evaluation behavioral scenarios expected behavior forbidden behavior passing evidence',
+    ),
+    title: 'Semantic evaluation',
+  };
+  const groupRecords = semanticEvaluation.groups.map((group): ISearchRecord => ({
+    description: group.description,
+    route: `${semanticEvaluation.route}#${group.id}`,
+    searchText: normalizeSearchText(
+      [
+        group.title,
+        group.description,
+        ...group.cases.flatMap(({ expectedCriteria, forbiddenCriteria, scenario, title }) => [
+          title,
+          scenario,
+          ...expectedCriteria.map(({ criterion }) => criterion),
+          ...forbiddenCriteria.map(({ criterion }) => criterion),
+        ]),
+      ].join(' '),
+    ),
+    title: group.title,
+  }));
+
+  return [landingRecord, ...groupRecords];
+};
+
 /** Creates the concise machine-oriented skill map from canonical public sources. */
 export const createLlmsText = (
   documents: IWebsiteDocument[],
   skill: ISkillMetadata,
   qualification: IQualificationWebsiteModel,
+  semanticEvaluation: ISemanticEvaluationWebsiteModel,
 ): string => {
   const lines = [
     '# `moldea` Agent Skill',
@@ -298,9 +338,11 @@ export const createLlmsText = (
   }
 
   lines.push(
-    '## Adapter qualification',
+    '## Evidence',
     '',
-    '- [Qualification evidence](/qualification/): Inspect the support gate, transparent profiles, latest outcomes, last passing baselines, and immutable attempt history.',
+    `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
+    `- [Semantic evaluation](${semanticEvaluation.route}): Review ${semanticEvaluation.caseCount} passing scenarios and their judgment criteria.`,
+    `- [Adapter qualification](${qualification.route}): Inspect the support gate, transparent profiles, passing outcomes, and immutable attempt history.`,
   );
 
   for (const profile of qualification.profiles) {
@@ -326,6 +368,7 @@ export const createLlmsText = (
 export const createRouteManifest = (
   documents: IWebsiteDocument[],
   qualification: IQualificationWebsiteModel,
+  semanticEvaluation: ISemanticEvaluationWebsiteModel,
 ): string[] => {
   const routes = new Set([
     '/',
@@ -334,6 +377,8 @@ export const createRouteManifest = (
     '/robots.txt',
     '/search/',
     '/search-index.json',
+    EVIDENCE_ROUTE,
+    semanticEvaluation.route,
   ]);
 
   for (const document of documents) {
@@ -364,6 +409,8 @@ export const createWebsiteModel = (): IWebsiteModel => {
   const repositoryRoot = getRepositoryRoot();
   const documents = discoverDocuments(repositoryRoot);
   const qualification = loadQualificationWebsiteModel(repositoryRoot);
+  assertPublishableQualificationEvidence(qualification);
+  const semanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
   const skill = readSkillMetadata(repositoryRoot);
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
@@ -382,14 +429,25 @@ export const createWebsiteModel = (): IWebsiteModel => {
   return {
     documents,
     generatedNotice: GENERATED_NOTICE,
-    llmsText: createLlmsText(documents, skill, qualification),
+    llmsText: createLlmsText(documents, skill, qualification, semanticEvaluation),
     navigation: createNavigation(documents),
     qualification,
-    routes: createRouteManifest(documents, qualification),
+    routes: createRouteManifest(documents, qualification, semanticEvaluation),
     searchRecords: [
       ...createSearchRecords(documents),
+      {
+        description:
+          'Choose behavioral semantic evaluation or real-project adapter qualification evidence.',
+        route: EVIDENCE_ROUTE,
+        searchText: normalizeSearchText(
+          'Evidence testing evaluation semantic behavior qualification adapters projects proof',
+        ),
+        title: 'Evidence',
+      },
+      ...createSemanticEvaluationSearchRecords(semanticEvaluation),
       ...createQualificationSearchRecords(qualification),
     ],
+    semanticEvaluation,
     skill,
   };
 };

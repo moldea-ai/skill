@@ -1,5 +1,5 @@
 import type { IQualificationStatus } from '../../lib/qualification/index.ts';
 
-// result and stage states presented by qualification pages
-export type IQualificationDisplayStatus =
+// result and stage states presented by evidence pages
+export type IEvidenceDisplayStatus =
   IQualificationStatus | 'cached' | 'not-recorded' | 'pending' | 'running' | 'skipped';

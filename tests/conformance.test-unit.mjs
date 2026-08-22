@@ -11,7 +11,6 @@ import {
   createSemanticCliIdentity,
   SEMANTIC_EVALUATION_PROTOCOL_VERSION,
 } from '../tooling/release-identity/index.mjs';
-
 import {
   createPortableSkillDigest,
   createPortableSkillSemanticDigest,
@@ -19,8 +18,9 @@ import {
   createSemanticCaseSuiteDigest,
   getSemanticCriterionLabels,
   validateSemanticCaseDefinition,
-  validateSkillEvidenceConfiguration,
-} from './semantic-evaluation-runner.mjs';
+} from '../tooling/semantic-evaluation/index.mjs';
+
+import { validateSkillEvidenceConfiguration } from './semantic-evaluation-runner.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILL_DIRECTORY = join(REPOSITORY_ROOT, 'moldea');

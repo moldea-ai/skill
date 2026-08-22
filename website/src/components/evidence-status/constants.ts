@@ -1,8 +1,8 @@
-import type { IQualificationDisplayStatus } from './types.ts';
+import type { IEvidenceDisplayStatus } from './types.ts';
 
-// accessible labels and token-based visual treatment for qualification states
-export const QUALIFICATION_STATUS_PRESENTATION: Record<
-  IQualificationDisplayStatus,
+// accessible labels and token-based visual treatment for evidence states
+export const EVIDENCE_STATUS_PRESENTATION: Record<
+  IEvidenceDisplayStatus,
   { className: string; label: string }
 > = {
   cached: {

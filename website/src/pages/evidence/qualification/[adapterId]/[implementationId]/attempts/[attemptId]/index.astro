@@ -1,0 +1,273 @@
+---
+import { ExternalLink } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+
+import QualificationCaseEvidence from '../../../../../../../components/qualification-case-evidence/qualification-case-evidence.astro';
+import EvidenceStatus from '../../../../../../../components/evidence-status/evidence-status.astro';
+import QualificationText from '../../../../../../../components/qualification-text/qualification-text.astro';
+import BaseLayout from '../../../../../../../layouts/base-layout.astro';
+import { loadWebsiteModel } from '../../../../../../../lib/generation/generation.ts';
+import type {
+  IQualificationAttemptModel,
+  IQualificationProfileModel,
+} from '../../../../../../../lib/qualification/index.ts';
+
+interface Props {
+  attempt: IQualificationAttemptModel;
+  profile: IQualificationProfileModel;
+}
+
+export const getStaticPaths = () => {
+  return loadWebsiteModel().qualification.profiles.flatMap((profile) =>
+    profile.attempts.map((attempt) => ({
+      params: {
+        adapterId: profile.adapterId,
+        attemptId: attempt.result.attemptId,
+        implementationId: profile.implementationId,
+      },
+      props: { attempt, profile },
+    })),
+  );
+};
+
+const { attempt, profile } = Astro.props;
+const { result } = attempt;
+const basePath = import.meta.env.BASE_URL;
+const breadcrumbs = [
+  { href: '/', label: 'Home' },
+  { href: '/evidence/', label: 'Evidence' },
+  { href: '/evidence/qualification/', label: 'Qualification' },
+  { href: profile.route, label: profile.title },
+  { label: result.attemptId },
+];
+const passedCaseCount = result.cases.filter(({ status }) => status === 'passed').length;
+const totalDurationMs = result.stages.reduce(
+  (total, { durationMs }) => total + (durationMs ?? 0),
+  0,
+);
+---
+
+<BaseLayout
+  title={`${profile.title}: ${result.attemptId}`}
+  description={`Immutable passing qualification evidence for ${profile.adapterId}/${profile.implementationId}.`}
+  {breadcrumbs}
+>
+  <div class="page-shell pt-7">
+    <Breadcrumbs
+      basePath={basePath}
+      items={breadcrumbs}
+    />
+
+    <header class="mt-7 border-b border-border pb-10">
+      <div class="flex flex-wrap items-center gap-3">
+        <EvidenceStatus status={result.status} />
+        <span class="font-mono text-sm font-bold">
+          {passedCaseCount}/{result.cases.length} journeys
+        </span>
+      </div>
+      <p class="eyebrow mt-5">Immutable qualification attempt</p>
+      <h1
+        class="mt-3 max-w-5xl font-mono text-3xl leading-tight font-semibold break-all sm:text-4xl"
+      >
+        {result.attemptId}
+      </h1>
+      <p class="mt-5 max-w-4xl text-lg leading-8 text-muted-foreground">
+        <QualificationText text={result.summary} />
+      </p>
+      <ActionLink
+        class="mt-7 font-bold"
+        href={attempt.rawAttemptUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        variant="outline"
+      >
+        Inspect raw attempt
+        <ExternalLink
+          class="size-4"
+          aria-hidden="true"
+        />
+      </ActionLink>
+    </header>
+
+    <section
+      class="grid gap-3 border-b border-border py-10 sm:grid-cols-2 lg:grid-cols-4"
+      aria-label="Qualification result summary"
+    >
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Project journeys passed</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{passedCaseCount}/{result.cases.length}</p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Compatibility claims covered</p>
+        <p class="mt-2 font-mono text-2xl font-bold">
+          {attempt.coverage?.declaredClaims.length ?? 0}
+        </p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Source and host preflight</p>
+        <p class="mt-2 font-semibold">{attempt.sourceState?.passed ? 'Passed' : 'Unavailable'}</p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Recorded stage time</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{totalDurationMs} ms</p>
+      </div>
+    </section>
+
+    <section
+      class="border-b border-border py-10"
+      aria-labelledby="attempt-coverage-title"
+    >
+      <div class="max-w-3xl">
+        <p class="eyebrow mb-3">Coverage</p>
+        <h2
+          id="attempt-coverage-title"
+          class="section-title font-semibold"
+        >
+          Every declared behavior claim was exercised.
+        </h2>
+        <p class="mt-4 leading-7 text-muted-foreground">
+          The release gate matched adapter claims to realistic journeys before the actor and judge
+          stages ran.
+        </p>
+      </div>
+      <div class="mt-7 grid gap-3 sm:grid-cols-3">
+        <div class="surface-card p-5">
+          <p class="text-sm text-muted-foreground">Required claims</p>
+          <p class="mt-2 font-mono text-2xl font-bold">
+            {attempt.coverage?.requiredClaims.length ?? 0}
+          </p>
+        </div>
+        <div class="surface-card p-5">
+          <p class="text-sm text-muted-foreground">Missing claims</p>
+          <p class="mt-2 font-mono text-2xl font-bold">
+            {attempt.coverage?.missingClaims.length ?? 0}
+          </p>
+        </div>
+        <div class="surface-card p-5">
+          <p class="text-sm text-muted-foreground">Unknown claims</p>
+          <p class="mt-2 font-mono text-2xl font-bold">
+            {attempt.coverage?.unknownClaims.length ?? 0}
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section
+      class="border-b border-border py-10"
+      aria-labelledby="attempt-cases-title"
+    >
+      <div class="max-w-3xl">
+        <p class="eyebrow mb-3">Project evidence</p>
+        <h2
+          id="attempt-cases-title"
+          class="section-title font-semibold"
+        >
+          What happened in each journey
+        </h2>
+        <p class="mt-4 leading-7 text-muted-foreground">
+          Each journey combines deterministic checks, the actor outcome, workspace assertions, and
+          an independent semantic judgment.
+        </p>
+      </div>
+      <div class="mt-7 grid gap-5">
+        {attempt.cases.map((caseEvidence) => <QualificationCaseEvidence evidence={caseEvidence} />)}
+      </div>
+    </section>
+
+    <section class="py-10">
+      <details class="surface-card min-w-0 p-5 sm:p-6">
+        <summary
+          class="cursor-pointer font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        >
+          Technical provenance and raw artifacts
+        </summary>
+
+        <div class="mt-6 grid gap-7 border-t border-border pt-6">
+          <section aria-labelledby="attempt-provenance-title">
+            <h2
+              id="attempt-provenance-title"
+              class="text-xl font-semibold"
+            >
+              Repositories and evaluation host
+            </h2>
+            <dl class="mt-4 grid min-w-0 gap-4 text-sm sm:grid-cols-2">
+              <div>
+                <dt class="text-muted-foreground">Packages commit</dt>
+                <dd class="mt-1 font-mono break-all">
+                  {result.provenance.packagesRepositoryCommit}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-muted-foreground">Qualification commit</dt>
+                <dd class="mt-1 font-mono break-all">
+                  {result.provenance.qualificationRepositoryCommit}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-muted-foreground">Skill commit</dt>
+                <dd class="mt-1 font-mono break-all">
+                  {result.provenance.skillRepositoryCommit}
+                </dd>
+              </div>
+              <div>
+                <dt class="text-muted-foreground">Model configuration</dt>
+                <dd class="mt-1 font-mono break-all">
+                  {result.provenance.model} · {result.provenance.reasoningEffort}
+                </dd>
+              </div>
+            </dl>
+          </section>
+
+          <section aria-labelledby="attempt-stages-title">
+            <h2
+              id="attempt-stages-title"
+              class="text-xl font-semibold"
+            >
+              Recorded stages
+            </h2>
+            <ol class="mt-4 grid gap-2 md:grid-cols-2">
+              {
+                result.stages.map((stage) => (
+                  <li class="flex min-w-0 items-center gap-3 rounded-lg border border-border p-3">
+                    <EvidenceStatus status={stage.status} />
+                    <code class="min-w-0 text-xs break-all">{stage.id}</code>
+                  </li>
+                ))
+              }
+            </ol>
+          </section>
+
+          <section aria-labelledby="attempt-artifacts-title">
+            <h2
+              id="attempt-artifacts-title"
+              class="text-xl font-semibold"
+            >
+              Raw committed artifacts
+            </h2>
+            <ul class="mt-4 grid gap-2 sm:grid-cols-2">
+              {
+                attempt.artifacts.map((artifact) => (
+                  <li class="min-w-0 rounded-lg border border-border p-3">
+                    <a
+                      class="inline-flex min-w-0 items-center gap-2 font-mono text-xs font-semibold text-link hover:underline"
+                      href={artifact.rawUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <span class="break-all">{artifact.path}</span>
+                      <ExternalLink
+                        class="size-3.5 shrink-0"
+                        aria-hidden="true"
+                      />
+                    </a>
+                  </li>
+                ))
+              }
+            </ul>
+          </section>
+        </div>
+      </details>
+    </section>
+  </div>
+</BaseLayout>

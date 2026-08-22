@@ -4,6 +4,7 @@ export const SOURCE_REPOSITORY_URL = 'https://github.com/moldea-ai/skill';
 export const RAW_SOURCE_REPOSITORY_URL = 'https://raw.githubusercontent.com/moldea-ai/skill';
 export const PACKAGES_WEBSITE_URL = 'https://packages.moldea.ai/';
 export const INSTALL_COMMAND = 'npx skills add moldea-ai/skill';
+export const EVIDENCE_ROUTE = '/evidence/';
 
 // public documentation groups in navigation order
 export const DOCUMENT_SECTION_LABELS = {

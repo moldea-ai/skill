@@ -12,9 +12,17 @@ on:
       - 'assets/**'
       - 'CNAME'
       - 'docs/**'
-      - 'moldea/SKILL.md'
+      - 'fixtures/conformance-cases.json'
+      - 'fixtures/semantic-evaluation-result.json'
+      - 'moldea/**'
+      - 'package-lock.json'
       - 'package.json'
+      - 'qualification/**'
       - 'README.md'
+      - 'tooling/codex-evaluation-host/**'
+      - 'tooling/package-candidate/**'
+      - 'tooling/release-identity/**'
+      - 'tooling/semantic-evaluation/**'
       - 'website/**'
 
 permissions:

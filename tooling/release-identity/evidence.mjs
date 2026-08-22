@@ -23,7 +23,8 @@ import {
   createPortableSkillDigest,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
-} from '../../tests/semantic-evaluation-runner.mjs';
+  hasValidPortableSkillSemanticCarryForward,
+} from '../semantic-evaluation/index.mjs';
 import {
   downloadPublishedPackageClosure,
   resolvePublishedPackageClosure,
@@ -256,9 +257,20 @@ const inspectSemanticEvidence = (repositoryRoot) => {
   if (JSON.stringify(semanticResult.cli) !== JSON.stringify(expectedCli)) {
     issues.push(`${RELEASE_PATHS.semanticResult} does not match the exact release CLI identity.`);
   }
+  const hasConsistentRecordedArtifact =
+    semanticResult.artifact?.sha256 === semanticResult.skillDigest &&
+    semanticResult.artifactDigest === semanticResult.skillDigest &&
+    semanticResult.artifactSha256 === semanticResult.skillDigest;
+  const hasCurrentArtifact = semanticResult.skillDigest === expectedSkillDigest;
+  const hasValidCarryForward = hasValidPortableSkillSemanticCarryForward(
+    semanticResult.releaseEvidenceCarryForward,
+    semanticResult.skillDigest,
+    repositoryRoot,
+  );
   if (
-    semanticResult.artifactDigest !== expectedSkillDigest ||
-    semanticResult.skillDigest !== expectedSkillDigest
+    !hasConsistentRecordedArtifact ||
+    (!hasCurrentArtifact && !hasValidCarryForward) ||
+    (hasCurrentArtifact && semanticResult.releaseEvidenceCarryForward !== undefined)
   ) {
     issues.push(
       `${RELEASE_PATHS.semanticResult} does not match the exact portable skill artifact.`,

@@ -1,0 +1,92 @@
+---
+import { ChevronDown } from '@lucide/astro';
+
+import type { ISemanticEvaluationCaseModel } from '../../lib/semantic-evaluation/index.ts';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+
+interface Props {
+  evaluationCase: ISemanticEvaluationCaseModel;
+  number: number;
+}
+
+const { evaluationCase, number } = Astro.props;
+---
+
+<details class="group surface-card min-w-0 overflow-hidden">
+  <summary
+    class="flex cursor-pointer list-none items-start gap-3 p-5 marker:content-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:gap-4 sm:p-6"
+  >
+    <span class="mt-0.5 font-mono text-xs font-bold text-muted-foreground">
+      {String(number).padStart(2, '0')}
+    </span>
+    <span class="min-w-0 flex-1">
+      <span class="flex flex-wrap items-center gap-2">
+        <span class="text-lg font-semibold tracking-tight">{evaluationCase.title}</span>
+        <EvidenceStatus status="passed" />
+      </span>
+      <span class="mt-2 block text-sm leading-6 text-muted-foreground">
+        {evaluationCase.scenario}
+      </span>
+    </span>
+    <ChevronDown
+      class="mt-1 size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none"
+      aria-hidden="true"
+    />
+  </summary>
+
+  <div class="border-t border-border px-5 py-6 sm:px-6">
+    <div class="grid gap-6 lg:grid-cols-2">
+      <section aria-labelledby={`${evaluationCase.id}-expected`}>
+        <h3
+          id={`${evaluationCase.id}-expected`}
+          class="font-semibold"
+        >
+          What had to happen
+        </h3>
+        <ul class="mt-3 grid gap-3 text-sm leading-6">
+          {
+            evaluationCase.expectedCriteria.map(({ criterion }) => (
+              <li class="rounded-lg border border-border bg-muted/30 p-3 text-muted-foreground">
+                {criterion}
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <section aria-labelledby={`${evaluationCase.id}-forbidden`}>
+        <h3
+          id={`${evaluationCase.id}-forbidden`}
+          class="font-semibold"
+        >
+          What must not happen
+        </h3>
+        <ul class="mt-3 grid gap-3 text-sm leading-6">
+          {
+            evaluationCase.forbiddenCriteria.map(({ criterion }) => (
+              <li class="rounded-lg border border-border bg-muted/30 p-3 text-muted-foreground">
+                {criterion}
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+    </div>
+
+    <section
+      class="mt-6 rounded-xl border border-success/40 bg-success/10 p-4 sm:p-5"
+      aria-labelledby={`${evaluationCase.id}-result`}
+    >
+      <h3
+        id={`${evaluationCase.id}-result`}
+        class="font-semibold"
+      >
+        Why it passed
+      </h3>
+      <p class="mt-2 text-sm leading-6 text-muted-foreground">{evaluationCase.rationale}</p>
+      <p class="mt-3 font-mono text-xs text-muted-foreground">
+        Evaluated <time datetime={evaluationCase.evaluatedAt}>{evaluationCase.evaluatedAt}</time>
+      </p>
+    </section>
+  </div>
+</details>

@@ -4,9 +4,4 @@
   .maturity-badge {
     @apply inline-flex min-h-6 max-w-full items-center rounded-full border border-foreground/25 bg-secondary px-2.5 py-1 text-start align-middle text-[0.68rem] leading-none font-bold tracking-[0.08em] text-foreground uppercase;
   }
-
-  /* the wrapper owns table spacing so its border stays flush with the table */
-  .prose-moldea .table-scroll > table {
-    margin-block: 0;
-  }
 }

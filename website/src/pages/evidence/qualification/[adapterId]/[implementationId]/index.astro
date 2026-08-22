@@ -4,12 +4,12 @@ import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import { withBase } from '@moldea.ai/website-ui/site';
 
-import QualificationStatus from '../../../../components/qualification-status/qualification-status.astro';
-import QualificationText from '../../../../components/qualification-text/qualification-text.astro';
-import BaseLayout from '../../../../layouts/base-layout.astro';
-import { renderMarkdown } from '../../../../lib/content/markdown.ts';
-import { loadWebsiteModel } from '../../../../lib/generation/generation.ts';
-import type { IQualificationProfileModel } from '../../../../lib/qualification/index.ts';
+import EvidenceStatus from '../../../../../components/evidence-status/evidence-status.astro';
+import QualificationText from '../../../../../components/qualification-text/qualification-text.astro';
+import BaseLayout from '../../../../../layouts/base-layout.astro';
+import { renderMarkdown } from '../../../../../lib/content/markdown.ts';
+import { loadWebsiteModel } from '../../../../../lib/generation/generation.ts';
+import type { IQualificationProfileModel } from '../../../../../lib/qualification/index.ts';
 
 interface Props {
   profile: IQualificationProfileModel;
@@ -30,9 +30,11 @@ const basePath = import.meta.env.BASE_URL;
 const latestAttempt = profile.attempts.find(
   ({ result }) => result.attemptId === profile.latest?.latestAttemptId,
 );
-const lastPassingAttempt = profile.attempts.find(
-  ({ result }) => result.attemptId === profile.latest?.lastPassingAttemptId,
-);
+if (latestAttempt === undefined) {
+  throw new Error(
+    `Qualification profile ${profile.adapterId}/${profile.implementationId} has no current passing attempt.`,
+  );
+}
 const prepareQualificationMarkdown = (markdown: string): string =>
   markdown.replaceAll(/\bMoldea\b/gu, '`moldea`');
 const renderedCases = await Promise.all(
@@ -46,7 +48,8 @@ const renderedCases = await Promise.all(
 );
 const breadcrumbs = [
   { href: '/', label: 'Home' },
-  { href: '/qualification/', label: 'Qualification' },
+  { href: '/evidence/', label: 'Evidence' },
+  { href: '/evidence/qualification/', label: 'Qualification' },
   { label: profile.title },
 ];
 ---
@@ -64,7 +67,7 @@ const breadcrumbs = [
 
     <header class="mt-7 border-b border-border pb-10">
       <div class="flex flex-wrap items-center gap-3">
-        <QualificationStatus status={profile.latest?.latestStatus ?? 'not-recorded'} />
+        <EvidenceStatus status={profile.latest?.latestStatus ?? 'not-recorded'} />
         <code class="text-sm text-muted-foreground">
           {profile.adapterId}/{profile.implementationId}
         </code>
@@ -128,86 +131,34 @@ const breadcrumbs = [
       >
         Qualification status summary
       </h2>
-      <div class="grid gap-4 md:grid-cols-2">
-        <article class="surface-card p-5 sm:p-6">
-          <p class="eyebrow">Latest recorded attempt</p>
-          {
-            latestAttempt ? (
-              <>
-                <div class="mt-4 flex flex-wrap items-center gap-3">
-                  <QualificationStatus status={latestAttempt.result.status} />
-                  <time
-                    class="text-sm text-muted-foreground"
-                    datetime={latestAttempt.result.createdAt}
-                  >
-                    {latestAttempt.result.createdAt}
-                  </time>
-                </div>
-                <p class="mt-4 leading-7 text-muted-foreground">
-                  <QualificationText text={latestAttempt.result.summary} />
-                </p>
-                <a
-                  class="mt-5 inline-flex items-center gap-2 font-semibold text-link hover:underline"
-                  href={withBase(latestAttempt.route, basePath)}
-                >
-                  Inspect latest attempt
-                  <ArrowRight
-                    class="size-4"
-                    aria-hidden="true"
-                  />
-                </a>
-              </>
-            ) : (
-              <div class="mt-4 rounded-xl border border-dashed border-border bg-muted/30 p-5">
-                <QualificationStatus status="not-recorded" />
-                <p class="mt-3 text-sm leading-6 text-muted-foreground">
-                  This profile is transparent and complete, but no official attempt has been
-                  committed yet.
-                </p>
-              </div>
-            )
-          }
+      <div
+        class="surface-card grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
+      >
+        <article>
+          <p class="eyebrow">Current result</p>
+          <div class="mt-4 flex flex-wrap items-center gap-3">
+            <EvidenceStatus status={latestAttempt.result.status} />
+            <time
+              class="text-sm text-muted-foreground"
+              datetime={latestAttempt.result.createdAt}
+            >
+              {latestAttempt.result.createdAt}
+            </time>
+          </div>
+          <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
+            <QualificationText text={latestAttempt.result.summary} />
+          </p>
         </article>
-
-        <article class="surface-card p-5 sm:p-6">
-          <p class="eyebrow">Last passing baseline</p>
-          {
-            lastPassingAttempt ? (
-              <>
-                <div class="mt-4 flex flex-wrap items-center gap-3">
-                  <QualificationStatus status="passed" />
-                  <time
-                    class="text-sm text-muted-foreground"
-                    datetime={lastPassingAttempt.result.createdAt}
-                  >
-                    {lastPassingAttempt.result.createdAt}
-                  </time>
-                </div>
-                <p class="mt-4 leading-7 text-muted-foreground">
-                  <QualificationText text={lastPassingAttempt.result.summary} />
-                </p>
-                <a
-                  class="mt-5 inline-flex items-center gap-2 font-semibold text-link hover:underline"
-                  href={withBase(lastPassingAttempt.route, basePath)}
-                >
-                  Inspect passing evidence
-                  <ArrowRight
-                    class="size-4"
-                    aria-hidden="true"
-                  />
-                </a>
-              </>
-            ) : (
-              <div class="mt-4 rounded-xl border border-dashed border-border bg-muted/30 p-5">
-                <p class="font-semibold">No passing baseline has been recorded.</p>
-                <p class="mt-2 text-sm leading-6 text-muted-foreground">
-                  A future failure will remain visible here without being mistaken for a passing
-                  support baseline.
-                </p>
-              </div>
-            )
-          }
-        </article>
+        <a
+          class="inline-flex items-center gap-2 font-semibold text-link hover:underline"
+          href={withBase(latestAttempt.route, basePath)}
+        >
+          Inspect the passing attempt
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          />
+        </a>
       </div>
     </section>
 
@@ -456,7 +407,7 @@ const breadcrumbs = [
                       </a>
                     </td>
                     <td class="px-4 py-3 align-top">
-                      <QualificationStatus status={result.status} />
+                      <EvidenceStatus status={result.status} />
                     </td>
                     <td class="px-4 py-3 align-top">
                       <time datetime={result.createdAt}>{result.createdAt}</time>

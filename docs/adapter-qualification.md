@@ -10,7 +10,7 @@ order: 175
 
 Adapter qualification is the evidence gate for deciding whether one exact adapter implementation is ready for **Supported** maturity. It tests whether the current `moldea` skill and the exact published package release can understand and safely maintain realistic projects. It does not invoke the provider, run the agent, or replace provider integration tests.
 
-Every profile, project, requirement, attempt, failure, and artifact is stored in this repository. The [qualification evidence index](/qualification/) presents that committed state without requiring a hosted service.
+Every profile, project, requirement, attempt, failure, and artifact is stored in this repository. The [qualification evidence index](/evidence/qualification/) presents the current passing result and its inspectable committed evidence without requiring a hosted service.
 
 ## What the gate exercises
 
@@ -52,17 +52,11 @@ Eight is not a permanent limit. A profile must add a project when an adapter int
 
 Each project commits its scenario, natural task, baseline, optional dirty overlay, expected model-free outcome, workspace assertions, and judge requirements. Anyone can inspect those inputs before reading an outcome.
 
-## Attempts and status
+## Publication status
 
 Terminal paid attempts are recorded whether they pass, fail, or stop with an execution error. An interrupted attempt remains local and resumable unless the operator explicitly records it as incomplete.
 
-Each profile distinguishes:
-
-- Latest status, which always reports the newest recorded attempt.
-- Last passing attempt, which preserves the newest successful baseline even when a later attempt fails.
-- Complete history, which links every immutable attempt and raw committed artifact.
-
-Failures remain first-class evidence. Attempt pages show source cleanliness, host identity, exact package checksums, stage outcomes, deterministic results, workspace assertions, semantic judgment, cache provenance, token usage when available, and actionable failures.
+The website publishes a profile only when its newest recorded attempt is complete and passing. Attempt pages lead with the verdict, claim coverage, and realistic project journeys. Source cleanliness, host identity, exact package checksums, stage outcomes, deterministic results, workspace assertions, semantic judgment, cache provenance, token usage when available, and raw artifacts remain available as technical detail.
 
 ## Checkpoints and cache integrity
 
@@ -78,4 +72,4 @@ Qualification is necessary evidence for **Supported** maturity, not an automatic
 
 Maturity is an outcome considered after qualification. It is not an input, compatibility claim, or provenance field used to make the test pass.
 
-Review the [complete profile and attempt index](/qualification/) or inspect the [qualification source](https://github.com/moldea-ai/skill/tree/main/qualification) directly.
+Review the [current qualification evidence](/evidence/qualification/) or inspect the [qualification source](https://github.com/moldea-ai/skill/tree/main/qualification) directly.

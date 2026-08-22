@@ -4,9 +4,9 @@
 
 ## Source model
 
-The build reads strict documentation frontmatter, transparent qualification profiles, append-only qualification results, and the portable `moldea/SKILL.md` metadata. It generates an ignored deterministic model containing routes, navigation, bounded search records, and `llms.txt`. Do not edit `.generated/model.json`.
+The build reads strict documentation frontmatter, the current semantic evaluation, transparent qualification profiles, append-only qualification results, and the portable `moldea/SKILL.md` metadata. It generates an ignored deterministic model containing routes, navigation, bounded search records, and `llms.txt`. Do not edit `.generated/model.json`.
 
-Qualification result consumption is intentionally additive so a harmless producer field does not break an older website build. The loader still validates profile identity, catalog coverage, immutable attempt history, latest and last-passing pointers, every referenced case artifact, and all recorded SHA-256 digests. Full prompts and transcripts remain available through raw committed source links but are not indexed as documentation prose.
+The website is fail-closed for release evidence. Generation requires a current complete passing semantic result and a current complete passing qualification attempt for every public profile. The semantic loader binds every displayed scenario to the exact portable skill, release CLI, evaluation protocol, case definition, case suite, actor host, and judge host. The qualification loader validates profile identity, catalog coverage, immutable attempt history, current pointers, every referenced case artifact, and all recorded SHA-256 digests. Full actor transcripts and workspace contents remain available through raw committed source links but are not indexed as documentation prose.
 
 The public `https://skill.moldea.ai/llms.txt` file is generated from this model and is not maintained as a separate root source file.
 
@@ -26,7 +26,7 @@ Run these from the repository root:
 
 | Command                             | Purpose                                                                      |
 | ----------------------------------- | ---------------------------------------------------------------------------- |
-| `npm run website:dev`               | Generate content and run Astro locally.                                      |
+| `npm run website:dev`               | Generate current passing evidence content and run Astro locally.             |
 | `npm run docs:generate`             | Regenerate the ignored deterministic content model.                          |
 | `npm run docs:check`                | Validate documentation and public routes without writing source.             |
 | `npm run website:build`             | Build and validate the complete static artifact.                             |

@@ -114,7 +114,7 @@ describe('qualification input fingerprint', () => {
     ];
     await writeFile(
       matrixPath,
-      'version: 2\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: any\n        lastVerifiedAt: 2026-08-20\n        qualificationEvidence:\n          url: https://skill.moldea.ai/qualification/custom/custom/\n',
+      'version: 2\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: any\n        lastVerifiedAt: 2026-08-20\n        qualificationEvidence:\n          url: https://skill.moldea.ai/evidence/qualification/custom/custom/\n',
       'utf8',
     );
     const initialDigest = await calculatePackagesQualificationDigest(
@@ -124,7 +124,7 @@ describe('qualification input fingerprint', () => {
 
     await writeFile(
       matrixPath,
-      'version: 2\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: any\n        lastVerifiedAt: 2026-08-21\n        qualificationEvidence:\n          url: https://skill.moldea.ai/qualification/custom/custom/latest/\n',
+      'version: 2\nadapters:\n  custom:\n    targets:\n      - id: custom\n        language: any\n        lastVerifiedAt: 2026-08-21\n        qualificationEvidence:\n          url: https://skill.moldea.ai/evidence/qualification/custom/custom/latest/\n',
       'utf8',
     );
     expect(await calculatePackagesQualificationDigest(temporaryRoot, repositoryEntries)).toBe(

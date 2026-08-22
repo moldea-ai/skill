@@ -21,4 +21,4 @@ export type {
 } from './types.ts';
 
 // loader
-export { loadQualificationWebsiteModel } from './loader.ts';
+export { assertPublishableQualificationEvidence, loadQualificationWebsiteModel } from './loader.ts';

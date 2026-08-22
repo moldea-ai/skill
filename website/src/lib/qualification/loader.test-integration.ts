@@ -7,7 +7,7 @@ import { dirname, join, relative, sep } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { loadQualificationWebsiteModel } from './loader.ts';
+import { assertPublishableQualificationEvidence, loadQualificationWebsiteModel } from './loader.ts';
 
 const SHA_A = 'a'.repeat(64);
 const SHA_B = 'b'.repeat(64);
@@ -432,7 +432,7 @@ describe('loadQualificationWebsiteModel', () => {
 
     const model = loadQualificationWebsiteModel(root);
 
-    expect(model.route).toBe('/qualification/');
+    expect(model.route).toBe('/evidence/qualification/');
     expect(model.profiles).toHaveLength(1);
     expect(model.profiles[0]).toMatchObject({
       adapterId: 'custom',
@@ -459,7 +459,10 @@ describe('loadQualificationWebsiteModel', () => {
     });
     writeLatest(root, 'attempt-pass', 'passed', 'attempt-pass');
 
-    const profile = loadQualificationWebsiteModel(root).profiles[0];
+    const model = loadQualificationWebsiteModel(root);
+    const profile = model.profiles[0];
+
+    expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
 
     expect(profile?.latest).toMatchObject({
       latestAttemptId: 'attempt-pass',
@@ -467,7 +470,9 @@ describe('loadQualificationWebsiteModel', () => {
       lastPassingAttemptId: 'attempt-pass',
     });
     expect(profile?.attempts).toHaveLength(1);
-    expect(profile?.attempts[0]?.route).toBe('/qualification/custom/custom/attempts/attempt-pass/');
+    expect(profile?.attempts[0]?.route).toBe(
+      '/evidence/qualification/custom/custom/attempts/attempt-pass/',
+    );
     expect(profile?.attempts[0]?.cases[0]).toMatchObject({
       actor: { outcome: 'completed' },
       deterministicAfter: { passed: true },
@@ -492,7 +497,8 @@ describe('loadQualificationWebsiteModel', () => {
     });
     writeLatest(root, 'attempt-fail', 'failed', 'attempt-pass');
 
-    const profile = loadQualificationWebsiteModel(root).profiles[0];
+    const model = loadQualificationWebsiteModel(root);
+    const profile = model.profiles[0];
 
     expect(profile?.attempts.map(({ result }) => result.attemptId)).toStrictEqual([
       'attempt-pass',
@@ -503,6 +509,9 @@ describe('loadQualificationWebsiteModel', () => {
       latestStatus: 'failed',
       lastPassingAttemptId: 'attempt-pass',
     });
+    expect(() => assertPublishableQualificationEvidence(model)).toThrow(
+      /has no current passing evidence/,
+    );
   });
 
   test('loads an explicit skipped judge after deterministic failure', () => {

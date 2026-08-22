@@ -203,7 +203,7 @@ moldea/
 
 - `moldea/` is the complete distributed Agent Skill artifact.
 - `docs/` contains concise, durable public concepts, workflows, references, and paired interaction examples. It does not document APIs or HTTP endpoints.
-- `website/` is the isolated private Astro application that validates and renders `/docs/**`, qualification profiles and append-only evidence, local search, and generated `llms.txt` for [`skill.moldea.ai`](https://skill.moldea.ai). It consumes the public `@moldea.ai/website-ui` package for shared moldea website foundations while retaining its own content, assets, navigation, SEO identity, and theme storage.
+- `website/` is the isolated private Astro application that validates and renders `/docs/**`, passing semantic and qualification evidence under `/evidence/**`, local search, and generated `llms.txt` for [`skill.moldea.ai`](https://skill.moldea.ai). It consumes the public `@moldea.ai/website-ui` package for shared moldea website foundations while retaining its own content, assets, navigation, SEO identity, and theme storage.
 - `CNAME` declares `skill.moldea.ai` as the GitHub Pages custom domain.
 - `tests/` contains deterministic metadata, packaging, published-package, candidate-release, reference, and semantic-contract checks.
 - `tooling/` contains shared development-only Codex evaluation isolation, source and published package-candidate construction, and exact release-identity management.
@@ -270,7 +270,7 @@ Run the local website with:
 npm run website:dev
 ```
 
-The static build defaults to `SITE_URL=https://skill.moldea.ai` and `BASE_PATH=/`. The build derives documentation routes, qualification profile and attempt routes, navigation, local search, and public `llms.txt` from repository-owned sources. It validates committed qualification pointers and artifact digests before rendering; generated model output is ignored and must not be edited directly.
+The static build defaults to `SITE_URL=https://skill.moldea.ai` and `BASE_PATH=/`. The build derives documentation routes, the `/evidence/**` hierarchy, qualification profile and attempt routes, navigation, local search, and public `llms.txt` from repository-owned sources. It fails when semantic evidence is missing, stale, incomplete, or non-passing, or when any qualification profile lacks a current complete passing attempt. Generated model output is ignored and must not be edited directly.
 
 The Pages deployment reads the repository's configured origin and base path before building. Keep the GitHub Pages custom-domain setting and DNS record aligned with `CNAME`; the canonical production origin is [`https://skill.moldea.ai`](https://skill.moldea.ai).
 

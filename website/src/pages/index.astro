@@ -58,6 +58,10 @@ const skillConversation = [
 const exampleDocuments = model.documents
   .filter(({ section }) => section === 'examples')
   .slice(1, 7);
+const qualificationProjectCount = model.qualification.profiles.reduce(
+  (total, profile) => total + profile.cases.length,
+  0,
+);
 ---
 
 <BaseLayout
@@ -287,6 +291,46 @@ const exampleDocuments = model.documents
   <RepositoryFormat />
 
   <PackageFoundations />
+
+  <section class="page-shell py-section-gap">
+    <div class="surface-card overflow-hidden">
+      <div
+        class="grid gap-8 p-6 sm:p-9 lg:grid-cols-[minmax(0,1.2fr)_minmax(18rem,0.8fr)] lg:items-center lg:p-12"
+      >
+        <div>
+          <p class="eyebrow mb-4">Release evidence</p>
+          <h2 class="section-title max-w-4xl font-semibold">We do not ship on confidence alone.</h2>
+          <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+            Every published release must pass behavioral semantic evaluation and realistic adapter
+            qualification. The website is generated only when both evidence sets are complete,
+            current, and successful.
+          </p>
+          <ActionLink
+            class="mt-8 font-bold"
+            href={withBase('/evidence/', basePath)}
+          >
+            Review the evidence
+            <ArrowRight
+              class="size-4"
+              aria-hidden="true"
+            />
+          </ActionLink>
+        </div>
+        <dl class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+          <div class="rounded-xl border border-border bg-muted/30 p-5">
+            <dt class="text-sm text-muted-foreground">Semantic scenarios passed</dt>
+            <dd class="mt-2 font-mono text-3xl font-bold">
+              {model.semanticEvaluation.caseCount}/{model.semanticEvaluation.caseCount}
+            </dd>
+          </div>
+          <div class="rounded-xl border border-border bg-muted/30 p-5">
+            <dt class="text-sm text-muted-foreground">Qualified project journeys</dt>
+            <dd class="mt-2 font-mono text-3xl font-bold">{qualificationProjectCount}</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
 
   <section class="border-y border-border bg-primary py-section-gap text-primary-foreground">
     <div class="page-shell">

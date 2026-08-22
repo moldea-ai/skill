@@ -35,7 +35,7 @@
     "website:dev": "npm --prefix website run dev"
   },
   "devDependencies": {
-    "@moldea.ai/cli": "4.0.0",
+    "@moldea.ai/cli": "4.0.1",
     "semver": "7.8.5",
     "yaml": "2.9.0"
   }

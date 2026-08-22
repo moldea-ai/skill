@@ -12,10 +12,36 @@ import {
 import { assertReleaseIdentity, parseStableVersion } from './identity.mjs';
 
 const NPM_EXECUTABLE = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const CLI_VERSION_REFERENCE_TEMPLATES = [
+  '@moldea.ai/cli {version}',
+  '@moldea.ai/cli: {version}',
+  'CLI `{version}`',
+  'declared version is exactly `{version}`',
+  'existing exact `{version}` declaration',
+  'repository-local CLI is exactly `{version}`',
+  'pin `{version}` exactly',
+  'published registry metadata for `{version}`',
+  'exact version `{version}`',
+  '`cliVersion` is exactly `{version}`',
+];
 
 const createDifferentStableVersion = (version) => {
   const [major] = version.split('.').map(Number);
   return `${major + 1}.0.0`;
+};
+
+/** Replaces only text references owned by the exact CLI release identity. */
+const replaceCliVersionReferences = ({ content, nextVersion, previousVersion }) => {
+  let updatedContent = content;
+
+  for (const template of CLI_VERSION_REFERENCE_TEMPLATES) {
+    updatedContent = updatedContent.replaceAll(
+      template.replace('{version}', previousVersion),
+      template.replace('{version}', nextVersion),
+    );
+  }
+
+  return updatedContent;
 };
 
 const updateConformanceCases = ({
@@ -263,7 +289,14 @@ export const createCliReleaseUpdate = ({
     if (typeof currentContent !== 'string') {
       throw new Error(`Missing release identity source ${relativePath}.`);
     }
-    updatedFiles.set(relativePath, currentContent.replaceAll(previousCliVersion, version));
+    updatedFiles.set(
+      relativePath,
+      replaceCliVersionReferences({
+        content: currentContent,
+        nextVersion: version,
+        previousVersion: previousCliVersion,
+      }),
+    );
   }
 
   const currentPackageManifest = JSON.parse(currentFiles.get(RELEASE_PATHS.packageManifest));

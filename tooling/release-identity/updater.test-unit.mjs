@@ -11,7 +11,10 @@ import { createCliReleaseUpdate } from './updater.mjs';
 
 test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   const currentFiles = new Map(
-    CLI_VERSION_TEXT_PATHS.map((relativePath) => [relativePath, `${relativePath}: 3.3.7\n`]),
+    CLI_VERSION_TEXT_PATHS.map((relativePath) => [
+      relativePath,
+      `${relativePath}: @moldea.ai/cli 3.3.7\n${relativePath}: Yarn 3.3.7\n`,
+    ]),
   );
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
     currentFiles.set(
@@ -87,7 +90,11 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   });
 
   for (const relativePath of CLI_VERSION_TEXT_PATHS) {
-    assert.match(updatedFiles.get(relativePath), new RegExp(`${relativePath}: 3\\.3\\.8`));
+    assert.match(
+      updatedFiles.get(relativePath),
+      new RegExp(`${relativePath}: @moldea\\.ai/cli 3\\.3\\.8`),
+    );
+    assert.match(updatedFiles.get(relativePath), new RegExp(`${relativePath}: Yarn 3\\.3\\.7`));
   }
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
     assert.match(updatedFiles.get(relativePath), /CLI JSON schema `2`/u);

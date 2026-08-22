@@ -2,7 +2,7 @@
   "packageManagerCases": [
     {
       "id": "different-installed-cli",
-      "scenario": "A write-capable workflow finds exact CLI 3.3.6 instead of this skill release's exact CLI 4.0.0.",
+      "scenario": "A write-capable workflow finds exact CLI 3.3.6 instead of this skill release's exact CLI 4.0.1.",
       "operation": "initialize",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -30,7 +30,7 @@
     },
     {
       "id": "release-cli-missing-required-capability",
-      "scenario": "A synthetic write-capable workflow has this skill release's exact CLI 4.0.0, but that CLI does not expose a required official-adapter capability.",
+      "scenario": "A synthetic write-capable workflow has this skill release's exact CLI 4.0.1, but that CLI does not expose a required official-adapter capability.",
       "operation": "maintain-agent",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -42,8 +42,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "4.0.0",
-          "installedVersion": "4.0.0",
+          "declaration": "4.0.1",
+          "installedVersion": "4.0.1",
           "executableResolves": true,
           "installedCapabilities": [],
           "requiredCapability": "required-official-adapter-capability"
@@ -60,7 +60,7 @@
     },
     {
       "id": "evaluate-release-cli-missing-required-capability",
-      "scenario": "A synthetic read-only evaluation has this skill release's exact CLI 4.0.0, but that CLI does not expose a required official-adapter capability.",
+      "scenario": "A synthetic read-only evaluation has this skill release's exact CLI 4.0.1, but that CLI does not expose a required official-adapter capability.",
       "operation": "evaluate",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -72,8 +72,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "4.0.0",
-          "installedVersion": "4.0.0",
+          "declaration": "4.0.1",
+          "installedVersion": "4.0.1",
           "executableResolves": true,
           "installedCapabilities": [],
           "requiredCapability": "required-official-adapter-capability"
@@ -100,8 +100,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "4.0.0",
-          "installedVersion": "4.0.0",
+          "declaration": "4.0.1",
+          "installedVersion": "4.0.1",
           "executableResolves": true
         }
       },
@@ -128,8 +128,8 @@
           "version": "11.20.0"
         },
         "cli": {
-          "declaration": "4.0.0",
-          "installedVersion": "4.0.0",
+          "declaration": "4.0.1",
+          "installedVersion": "4.0.1",
           "executableResolves": true
         }
       },
@@ -156,8 +156,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "4.0.0",
-          "installedVersion": "4.0.0",
+          "declaration": "4.0.1",
+          "installedVersion": "4.0.1",
           "executableResolves": true
         }
       },
@@ -211,8 +211,8 @@
           "version": "4.18.0"
         },
         "cli": {
-          "declaration": "4.0.0",
-          "installedVersion": "4.0.0",
+          "declaration": "4.0.1",
+          "installedVersion": "4.0.1",
           "executableResolves": true
         }
       },
@@ -263,8 +263,8 @@
           "version": "5.0.0"
         },
         "cli": {
-          "declaration": "4.0.0",
-          "installedVersion": "4.0.0",
+          "declaration": "4.0.1",
+          "installedVersion": "4.0.1",
           "executableResolves": true
         }
       },
@@ -278,7 +278,7 @@
     },
     {
       "id": "floating-cli-with-release-install",
-      "scenario": "The root CLI declaration floats while the installed root CLI and executable resolve to this skill release's exact version 4.0.0.",
+      "scenario": "The root CLI declaration floats while the installed root CLI and executable resolve to this skill release's exact version 4.0.1.",
       "operation": "reconcile",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -290,8 +290,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "^4.0.0",
-          "installedVersion": "4.0.0",
+          "declaration": "^4.0.1",
+          "installedVersion": "4.0.1",
           "executableResolves": true
         }
       },
@@ -431,8 +431,8 @@
           "pnpmfile"
         ],
         "cli": {
-          "declaration": "4.0.0",
-          "installedVersion": "4.0.0",
+          "declaration": "4.0.1",
+          "installedVersion": "4.0.1",
           "executableResolves": true
         }
       },
@@ -513,12 +513,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "4.0.0",
-        "installedCliVersion": "4.0.0",
+        "declaredCliVersion": "4.0.1",
+        "installedCliVersion": "4.0.1",
         "exitCode": 0,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "4.0.0",
+          "cliVersion": "4.0.1",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -539,12 +539,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "4.0.0",
-        "installedCliVersion": "4.0.0",
+        "declaredCliVersion": "4.0.1",
+        "installedCliVersion": "4.0.1",
         "exitCode": 1,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "4.0.0",
+          "cliVersion": "4.0.1",
           "command": "inspect",
           "status": "invalid",
           "result": {
@@ -567,12 +567,12 @@
       "operation": "compatibility",
       "input": {
         "invokedCommand": "compatibility",
-        "declaredCliVersion": "4.0.0",
-        "installedCliVersion": "4.0.0",
+        "declaredCliVersion": "4.0.1",
+        "installedCliVersion": "4.0.1",
         "exitCode": 0,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "4.0.0",
+          "cliVersion": "4.0.1",
           "command": "compatibility",
           "status": "valid",
           "result": {},
@@ -593,12 +593,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "4.0.0",
-        "installedCliVersion": "4.0.0",
+        "declaredCliVersion": "4.0.1",
+        "installedCliVersion": "4.0.1",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "4.0.0",
+          "cliVersion": "4.0.1",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -615,12 +615,12 @@
     },
     {
       "id": "version-mismatch",
-      "scenario": "The machine envelope reports unsupported CLI 5.0.0 while the declared and installed root package is 4.0.0.",
+      "scenario": "The machine envelope reports unsupported CLI 5.0.0 while the declared and installed root package is 4.0.1.",
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "4.0.0",
-        "installedCliVersion": "4.0.0",
+        "declaredCliVersion": "4.0.1",
+        "installedCliVersion": "4.0.1",
         "exitCode": 0,
         "output": {
           "schemaVersion": 2,
@@ -641,7 +641,7 @@
     },
     {
       "id": "different-cli-version",
-      "scenario": "The declared, installed, and reported CLI are consistently 3.3.6 instead of this skill release's exact CLI 4.0.0.",
+      "scenario": "The declared, installed, and reported CLI are consistently 3.3.6 instead of this skill release's exact CLI 4.0.1.",
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
@@ -671,12 +671,12 @@
       "operation": "validate",
       "input": {
         "invokedCommand": "validate",
-        "declaredCliVersion": "4.0.0",
-        "installedCliVersion": "4.0.0",
+        "declaredCliVersion": "4.0.1",
+        "installedCliVersion": "4.0.1",
         "exitCode": 0,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "4.0.0",
+          "cliVersion": "4.0.1",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -697,12 +697,12 @@
       "operation": "compatibility",
       "input": {
         "invokedCommand": "compatibility",
-        "declaredCliVersion": "4.0.0",
-        "installedCliVersion": "4.0.0",
+        "declaredCliVersion": "4.0.1",
+        "installedCliVersion": "4.0.1",
         "exitCode": 1,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "4.0.0",
+          "cliVersion": "4.0.1",
           "command": "compatibility",
           "status": "invalid",
           "result": {},
@@ -723,12 +723,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "4.0.0",
-        "installedCliVersion": "4.0.0",
+        "declaredCliVersion": "4.0.1",
+        "installedCliVersion": "4.0.1",
         "exitCode": 2,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "4.0.0",
+          "cliVersion": "4.0.1",
           "command": "inspect",
           "status": "error",
           "result": null,
@@ -752,8 +752,8 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "4.0.0",
-        "installedCliVersion": "4.0.0",
+        "declaredCliVersion": "4.0.1",
+        "installedCliVersion": "4.0.1",
         "exitCode": 0,
         "output": "not-json"
       },

@@ -106,13 +106,13 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 
 Release `3.1.0` supports:
 
-- `@moldea.ai/cli 4.0.0`
+- `@moldea.ai/cli 4.0.1`
 - CLI JSON schema `2`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
 - Yarn `>=4.0.0 <5.0.0`
 
-CLI `4.0.0` is part of this skill release's identity. Another CLI version belongs to another skill release and is not treated as interchangeable.
+CLI `4.0.1` is part of this skill release's identity. Another CLI version belongs to another skill release and is not treated as interchangeable.
 
 Write-capable workflows establish or reconcile the exact release-owned repository-local CLI dependency without executing lifecycle scripts or repository-supplied package-manager hooks and plugins. `evaluate` is strictly read-only and reports missing or mismatched tooling instead of installing it. Agent-system `plan` is also read-only and may run before adoption or local tooling exists. The skill never falls back to a global CLI or transient CLI download.
 

@@ -28,7 +28,7 @@ Agent-system planning activates only when the developer clearly asks how an AI- 
 
 Skill release `3.1.0` supports exactly:
 
-- `@moldea.ai/cli: 4.0.0`
+- `@moldea.ai/cli: 4.0.1`
 - CLI JSON schema: `2`
 - Node.js: `^22.11.0 || ^24.11.0`
 - npm: `>=10.9.0 <12.0.0`

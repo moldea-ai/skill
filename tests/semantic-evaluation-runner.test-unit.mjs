@@ -15,30 +15,50 @@ import {
   createSemanticEvaluationCandidate,
   createSemanticEvaluationRecord,
   getPendingSemanticCaseDefinitions,
+  getSemanticCriterionLabels,
   getSemanticToolingSource,
   mergeSemanticCandidateResult,
   normalizePortableSkillSemanticEvidence,
   validateSemanticCandidateCompatibility,
+  validateSemanticCaseDefinition,
   validateSemanticResultRecording,
   validateSkillDocument,
   validateSkillEvidenceConfiguration,
 } from './semantic-evaluation-runner.mjs';
 
+const EXPECTED_CRITERION = {
+  criterion: 'The supplied evidence demonstrates the expected secret behavior.',
+  label: 'expected-secret-label',
+};
+const FORBIDDEN_CRITERION = {
+  criterion: 'The supplied evidence demonstrates the forbidden secret behavior.',
+  label: 'forbidden-secret-label',
+};
 const CASE_DEFINITION = {
-  expected: ['expected-secret-label'],
-  forbidden: ['forbidden-secret-label'],
+  expected: [EXPECTED_CRITERION],
+  forbidden: [FORBIDDEN_CRITERION],
   id: 'blind-evaluation',
   prompt: 'Evaluate this repository without changing it.',
 };
 const SECOND_CASE_DEFINITION = {
-  expected: ['second-expected-label'],
-  forbidden: ['second-forbidden-label'],
+  expected: [
+    {
+      criterion: 'The supplied evidence demonstrates the second expected behavior.',
+      label: 'second-expected-label',
+    },
+  ],
+  forbidden: [
+    {
+      criterion: 'The supplied evidence demonstrates the second forbidden behavior.',
+      label: 'second-forbidden-label',
+    },
+  ],
   id: 'second-evaluation',
   prompt: 'Evaluate a second repository scenario without changing it.',
 };
 const SKILL_CASE_DEFINITION = {
-  expected: ['expected-secret-label'],
-  forbidden: ['forbidden-secret-label'],
+  expected: [EXPECTED_CRITERION],
+  forbidden: [FORBIDDEN_CRITERION],
   id: 'skill-evaluation',
   input: { developerDirection: 'Create a release-review skill.' },
   operation: 'create-agent-skill',
@@ -92,7 +112,7 @@ const createCaseResult = (caseDefinition, passed) => ({
   caseId: caseDefinition.id,
   forbidden: [],
   id: caseDefinition.id,
-  observed: passed ? [...caseDefinition.expected] : [],
+  observed: passed ? getSemanticCriterionLabels(caseDefinition.expected) : [],
   passed,
   rationale: passed ? 'The expected behavior was demonstrated.' : 'Expected evidence was missing.',
   skillArtifactEvidence: [],
@@ -114,6 +134,7 @@ test('actor prompt contains only the user scenario', () => {
 
   assert.equal(actorPrompt, CASE_DEFINITION.prompt);
   assert.doesNotMatch(actorPrompt, /expected-secret-label|forbidden-secret-label/);
+  assert.doesNotMatch(actorPrompt, /expected secret behavior|forbidden secret behavior/);
 });
 
 test('structured actor prompt excludes evaluation criteria', () => {
@@ -122,6 +143,7 @@ test('structured actor prompt excludes evaluation criteria', () => {
   assert.match(actorPrompt, /Requested operation: create-agent-skill/);
   assert.match(actorPrompt, /Create a release-review skill/);
   assert.doesNotMatch(actorPrompt, /expected-secret-label|forbidden-secret-label/);
+  assert.doesNotMatch(actorPrompt, /expected secret behavior|forbidden secret behavior/);
   assert.doesNotMatch(actorPrompt, /Review this release|shouldActivate|authoritative-source/);
 });
 
@@ -157,12 +179,65 @@ test('judge prompt receives criteria after actor execution', () => {
 
   assert.match(judgePrompt, /expected-secret-label/);
   assert.match(judgePrompt, /forbidden-secret-label/);
+  assert.match(judgePrompt, /expected secret behavior/);
+  assert.match(judgePrompt, /forbidden secret behavior/);
+  assert.match(judgePrompt, /exact evidence rule/);
   assert.match(judgePrompt, /Actor response/);
   assert.match(judgePrompt, /Independent skill artifact evidence/);
   assert.match(judgePrompt, /"valid": true/);
   assert.match(judgePrompt, /untrusted artifact evidence/);
   assert.match(judgePrompt, /Evaluator-only activation scenarios/);
   assert.match(judgePrompt, /Review this release/);
+});
+
+test('semantic case definitions require strict unique evaluator criteria', () => {
+  assert.doesNotThrow(() => validateSemanticCaseDefinition(CASE_DEFINITION));
+  assert.throws(
+    () => validateSemanticCaseDefinition({ ...CASE_DEFINITION, expected: ['legacy-label'] }),
+    /invalid evaluator criteria/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticCaseDefinition({
+        ...CASE_DEFINITION,
+        expected: [{ ...EXPECTED_CRITERION, unsupported: true }],
+      }),
+    /invalid evaluator criteria/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticCaseDefinition({
+        ...CASE_DEFINITION,
+        forbidden: [
+          {
+            criterion: 'The expected label cannot also be forbidden.',
+            label: EXPECTED_CRITERION.label,
+          },
+        ],
+      }),
+    /duplicate evaluator labels/,
+  );
+});
+
+test('semantic case digests include evaluator criterion text', () => {
+  const changedCriterionCase = {
+    ...CASE_DEFINITION,
+    expected: [
+      {
+        ...EXPECTED_CRITERION,
+        criterion: 'A materially different expected evidence contract.',
+      },
+    ],
+  };
+
+  assert.notEqual(
+    createSemanticCaseDefinitionDigest(CASE_DEFINITION),
+    createSemanticCaseDefinitionDigest(changedCriterionCase),
+  );
+  assert.notEqual(
+    createSemanticCaseSuiteDigest([CASE_DEFINITION]),
+    createSemanticCaseSuiteDigest([changedCriterionCase]),
+  );
 });
 
 test('skill evidence configuration validates roles, paths, and activation scenarios', () => {
@@ -347,6 +422,20 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
   );
   assert.throws(
     () =>
+      validateSemanticCandidateCompatibility(
+        { ...candidate, evaluationProtocolVersion: 8 },
+        {
+          actorHost: ACTOR_HOST,
+          artifactDigest: ARTIFACT_DIGEST,
+          caseDefinitions,
+          cli: CLI_IDENTITY,
+          judgeHost: JUDGE_HOST,
+        },
+      ),
+    /unsupported shape/,
+  );
+  assert.throws(
+    () =>
       validateSemanticCandidateCompatibility(candidate, {
         actorHost: ACTOR_HOST,
         artifactDigest: 'b'.repeat(64),
@@ -382,7 +471,15 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
         actorHost: ACTOR_HOST,
         artifactDigest: ARTIFACT_DIGEST,
         caseDefinitions: [
-          { ...CASE_DEFINITION, expected: ['changed-expected-label'] },
+          {
+            ...CASE_DEFINITION,
+            expected: [
+              {
+                criterion: 'The supplied evidence demonstrates changed expected behavior.',
+                label: 'changed-expected-label',
+              },
+            ],
+          },
           SECOND_CASE_DEFINITION,
         ],
         cli: CLI_IDENTITY,
@@ -472,7 +569,7 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
     caseDefinitions,
     generatedAt: '2026-08-16T12:02:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 8);
+  assert.equal(record.evaluationProtocolVersion, 9);
   assert.deepEqual(record.cli, CLI_IDENTITY);
   assert.equal(record.caseSuiteDigest, createSemanticCaseSuiteDigest(caseDefinitions));
   assert.deepEqual(

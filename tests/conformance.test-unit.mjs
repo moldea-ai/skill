@@ -17,6 +17,8 @@ import {
   createPortableSkillSemanticDigest,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
+  getSemanticCriterionLabels,
+  validateSemanticCaseDefinition,
   validateSkillEvidenceConfiguration,
 } from './semantic-evaluation-runner.mjs';
 
@@ -521,7 +523,7 @@ describe('portable Agent Skill contract', () => {
       /cross-repository bindings/,
       /actual available official `runtime\.id`/,
       /evidence-location limitation/,
-      /application-only tools and skills/,
+      /application-only and provider-hosted model-visible capabilities/,
       /report completion for each side accurately/,
       /Do not use requirements as a roadmap or backlog/,
       /related file changed/,
@@ -581,6 +583,7 @@ describe('source repository conformance', () => {
         assert.ok(conformanceCase.expected.length > 0);
         assert.ok(conformanceCase.forbidden.length > 0);
         if (categoryName === 'semanticCases') {
+          assert.doesNotThrow(() => validateSemanticCaseDefinition(conformanceCase));
           assert.doesNotThrow(() => validateSkillEvidenceConfiguration(conformanceCase));
         }
       }
@@ -597,22 +600,24 @@ describe('source repository conformance', () => {
     const planningCase = semanticCasesById.get('plan-runtime-inventory-insufficient-evidence');
 
     assert.ok(evaluationCase);
-    assert.ok(evaluationCase.expected.includes('treat-inventory-as-availability-only'));
-    assert.ok(evaluationCase.expected.includes('report-behavioral-evidence-limitation'));
-    assert.ok(evaluationCase.expected.includes('preserve-existing-runtime-id'));
-    assert.ok(evaluationCase.forbidden.includes('rewrite-runtime-from-inventory'));
-    assert.ok(
-      evaluationCase.forbidden.includes('claim-provider-limits-patterns-or-maturity'),
-    );
-
     assert.ok(planningCase);
-    assert.ok(planningCase.expected.includes('treat-inventory-as-availability-only'));
-    assert.ok(planningCase.expected.includes('leave-runtime-selection-evidence-gated'));
-    assert.ok(planningCase.expected.includes('avoid-unsupported-target-claims'));
-    assert.ok(planningCase.forbidden.includes('select-runtime-from-inventory-alone'));
-    assert.ok(
-      planningCase.forbidden.includes('invent-provider-limits-patterns-or-maturity'),
-    );
+
+    const evaluationExpected = getSemanticCriterionLabels(evaluationCase.expected);
+    const evaluationForbidden = getSemanticCriterionLabels(evaluationCase.forbidden);
+    const planningExpected = getSemanticCriterionLabels(planningCase.expected);
+    const planningForbidden = getSemanticCriterionLabels(planningCase.forbidden);
+
+    assert.ok(evaluationExpected.includes('treat-inventory-as-availability-only'));
+    assert.ok(evaluationExpected.includes('report-behavioral-evidence-limitation'));
+    assert.ok(evaluationExpected.includes('preserve-existing-runtime-id'));
+    assert.ok(evaluationForbidden.includes('rewrite-runtime-from-inventory'));
+    assert.ok(evaluationForbidden.includes('claim-provider-limits-patterns-or-maturity'));
+
+    assert.ok(planningExpected.includes('treat-inventory-as-availability-only'));
+    assert.ok(planningExpected.includes('leave-runtime-selection-evidence-gated'));
+    assert.ok(planningExpected.includes('avoid-unsupported-target-claims'));
+    assert.ok(planningForbidden.includes('select-runtime-from-inventory-alone'));
+    assert.ok(planningForbidden.includes('invent-provider-limits-patterns-or-maturity'));
   });
 
   test('judges observable skill validation and permits deterministic orchestration', () => {
@@ -624,22 +629,56 @@ describe('source repository conformance', () => {
     const oneAgentPlanningCase = semanticCasesById.get('plan-existing-project-one-agent');
 
     assert.ok(skillCreationCase);
-    assert.ok(
-      skillCreationCase.expected.includes('pass-independent-skill-structural-validation'),
-    );
-    assert.equal(skillCreationCase.expected.includes('run-skill-structural-validation'), false);
-
     assert.ok(skillMaintenanceCase);
-    assert.ok(
-      skillMaintenanceCase.expected.includes('pass-independent-skill-structural-validation'),
-    );
-    assert.equal(skillMaintenanceCase.expected.includes('run-skill-structural-validation'), false);
-
     assert.ok(oneAgentPlanningCase);
-    assert.ok(
-      oneAgentPlanningCase.forbidden.includes('model-orchestrator-without-semantic-routing'),
+
+    const skillCreationExpected = getSemanticCriterionLabels(skillCreationCase.expected);
+    const skillMaintenanceExpected = getSemanticCriterionLabels(skillMaintenanceCase.expected);
+    const oneAgentPlanningForbidden = getSemanticCriterionLabels(
+      oneAgentPlanningCase.forbidden,
     );
-    assert.equal(oneAgentPlanningCase.forbidden.includes('automatic-orchestrator'), false);
+
+    assert.ok(skillCreationExpected.includes('pass-independent-skill-structural-validation'));
+    assert.equal(skillCreationExpected.includes('run-skill-structural-validation'), false);
+
+    assert.ok(skillMaintenanceExpected.includes('pass-independent-skill-structural-validation'));
+    assert.equal(skillMaintenanceExpected.includes('run-skill-structural-validation'), false);
+
+    assert.ok(oneAgentPlanningForbidden.includes('model-orchestrator-without-semantic-routing'));
+    assert.equal(oneAgentPlanningForbidden.includes('automatic-orchestrator'), false);
+  });
+
+  test('defines mirror provenance and external capabilities as observable judge contracts', () => {
+    const semanticCasesById = new Map(
+      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+    );
+    const adoptionCase = semanticCasesById.get('agent-adoption-inline-runtime-instruction');
+    const dedicatedRepositoryCase = semanticCasesById.get(
+      'dedicated-repository-runtime-selection',
+    );
+
+    assert.ok(adoptionCase);
+    assert.ok(dedicatedRepositoryCase);
+
+    const provenanceCriterion = adoptionCase.expected.find(
+      ({ label }) => label === 'establish-canonical-instruction-provenance',
+    );
+    const independentSourceCriterion = adoptionCase.forbidden.find(
+      ({ label }) => label === 'retain-independently-editable-instruction-sources',
+    );
+    const capabilityCriterion = dedicatedRepositoryCase.expected.find(
+      ({ label }) => label === 'represent-application-capabilities-semantically',
+    );
+
+    assert.ok(provenanceCriterion);
+    assert.ok(independentSourceCriterion);
+    assert.ok(capabilityCriterion);
+
+    assert.match(provenanceCriterion.criterion, /declared exact mirror/i);
+    assert.match(provenanceCriterion.criterion, /model invocation/i);
+    assert.match(independentSourceCriterion.criterion, /does not trigger/i);
+    assert.match(capabilityCriterion.criterion, /instruction or runtime guidance/i);
+    assert.match(capabilityCriterion.criterion, /without fabricating/i);
   });
 
   test(
@@ -713,7 +752,7 @@ describe('source repository conformance', () => {
         assert.match(evaluationCase.evaluatedAt, /^\d{4}-\d{2}-\d{2}T/);
         assert.deepEqual(
           [...evaluationCase.expectedSatisfied].sort(),
-          [...conformanceCase.expected].sort(),
+          getSemanticCriterionLabels(conformanceCase.expected).sort(),
         );
         assert.deepEqual(evaluationCase.forbiddenTriggered, []);
         assert.ok(evaluationCase.rationale.length > 20);
@@ -727,13 +766,10 @@ describe('source repository conformance', () => {
       }
 
       const skillCreationCase = semanticCases.get('skill-create-progressive-disclosure');
-      assert.ok(skillCreationCase.expected.includes('create-valid-skill-frontmatter'));
-      assert.ok(
-        skillCreationCase.expected.includes('pass-independent-skill-structural-validation'),
-      );
-      assert.ok(
-        skillCreationCase.expected.includes('support-positive-and-adjacent-non-activation'),
-      );
+      const skillCreationExpected = getSemanticCriterionLabels(skillCreationCase.expected);
+      assert.ok(skillCreationExpected.includes('create-valid-skill-frontmatter'));
+      assert.ok(skillCreationExpected.includes('pass-independent-skill-structural-validation'));
+      assert.ok(skillCreationExpected.includes('support-positive-and-adjacent-non-activation'));
       const skillCreationResult = result.cases.find(
         ({ id }) => id === 'skill-create-progressive-disclosure',
       );
@@ -753,10 +789,9 @@ describe('source repository conformance', () => {
       );
 
       const skillMaintenanceCase = semanticCases.get('skill-maintain-linked-resources');
-      assert.ok(skillMaintenanceCase.expected.includes('produce-structurally-valid-updated-skill'));
-      assert.ok(
-        skillMaintenanceCase.expected.includes('pass-independent-skill-structural-validation'),
-      );
+      const skillMaintenanceExpected = getSemanticCriterionLabels(skillMaintenanceCase.expected);
+      assert.ok(skillMaintenanceExpected.includes('produce-structurally-valid-updated-skill'));
+      assert.ok(skillMaintenanceExpected.includes('pass-independent-skill-structural-validation'));
       const skillMaintenanceResult = result.cases.find(
         ({ id }) => id === 'skill-maintain-linked-resources',
       );
@@ -1033,7 +1068,7 @@ describe('source repository conformance', () => {
       /hashes and bounded text content for repository-visible changes/,
       /bounded post-execution source or copy directories/,
       /independent structural and resource-link evidence/,
-      /do not rely on the actor's report or leaked answer criteria/,
+      /do not rely on opaque label interpretation, the actor's report alone, or leaked answer criteria/,
     ]);
     assert.match(gitignore, /fixtures\/\.semantic-evaluation-candidate\.json\*/);
   });

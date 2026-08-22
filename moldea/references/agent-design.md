@@ -61,6 +61,8 @@ Create project-local runtime guidance when repository-specific behavior, limitat
 
 Do not infer behavioral compatibility from package names, the compact CLI inventory, or general runtime knowledge, install adapters dynamically, or claim support without reliable adapter documentation and repository evidence.
 
+In dedicated-repository mode, continue from runtime selection into model-visible capability reconciliation. Reliable evidence from a developer-identified related application may establish provider-hosted or external capability semantics even when repository format version `1` cannot bind the implementation. Preserve that established behavior in the canonical instruction or project-local runtime guidance. The absence of a qualifying repository-local artifact prevents a manifest capability entry; it does not justify omitting established model-visible behavior or creating an unresolved requirement solely for the missing cross-repository binding.
+
 ## Register real relationships
 
 Use only manifest properties supported by repository format version `1` as verified by the active CLI/Core contract or installed authoritative documentation.
@@ -93,9 +95,7 @@ Before describing a capability, establish its runtime-facing name, purpose, use 
 
 Give each registered capability a stable agent-scoped ID, exact runtime-facing name, concise vendor-independent agent-specific description, implementation binding, registration/schema bindings when applicable, and complete instruction guidance. Distinguish overlapping capabilities by use condition.
 
-A provider-hosted or external model-visible capability without a qualifying repository-local artifact may be described in the instruction or runtime guidance when reliable evidence supports it. Do not fabricate a manifest tool or skill entry.
-
-In dedicated-repository mode, implementation evidence from a developer-identified related application repository may establish an agent's actual runtime and model-facing capability semantics. It never becomes adapter evidence or a cross-repository binding. Application-only tools and skills remain instruction or runtime-guidance behavior rather than fabricated canonical manifest capabilities, and the lack of a version `1` cross-repository binding does not by itself create an unresolved requirement.
+A provider-hosted or external model-visible capability without a qualifying repository-local artifact remains instruction or runtime-guidance behavior when reliable evidence supports it. Do not fabricate a manifest tool or skill entry. Related-application evidence never becomes adapter evidence or a cross-repository binding.
 
 ## Schemas
 

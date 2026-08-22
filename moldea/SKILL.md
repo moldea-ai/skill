@@ -72,7 +72,7 @@ Absence of evidence is not evidence that a consequential behavior is excluded. I
 - Read `references/agent-system-planning.md` before planning an AI- or agent-enabled system, decomposing agent responsibilities, or recommending orchestration.
 - Read `references/continuous-maintenance.md` before initialization, relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
 - Read `references/agent-design.md` before creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, runtime relationship, or unresolved requirement.
-- Read `references/skill-design.md` before creating or materially changing an Agent Skill, its `SKILL.md`, references, scripts, assets, activation contract, installation relationship, or runtime registration.
+- Read `references/skill-design.md` before creating, evaluating, or materially changing an Agent Skill, its `SKILL.md`, references, scripts, assets, activation contract, installation relationship, or runtime registration.
 - Read `references/evaluate-and-reconcile.md` before `evaluate`, `reconcile`, or a scoped semantic alignment assessment.
 
 Load only the references triggered by the current operation. These files operationalize this contract; they do not override governing specifications or deterministic CLI, Core, or runtime-adapter results.
@@ -102,12 +102,21 @@ Runtime-adapter evidence is deterministic evidence about detectable implementati
 
 ## Report truthfully
 
-Report the selected operation and activation path, scope and repositories inspected, files changed or intentionally unchanged, exact local CLI version, deterministic commands and results, dependency changes, Agent Skill source, metadata, copy, consumer, and activation decisions when relevant, semantic decisions, relevant unresolved requirements, ambiguities, protected-instruction conflicts, evidence limitations, project-native checks, and checks not run.
+Keep the report proportional while making these results explicit when relevant:
 
-When deterministic tooling runs after writes, name the exact repository-local command, its valid status, and material diagnostics or mirror findings. A bare statement that inspection succeeded is not sufficient evidence. Keep the report proportional and do not reproduce irrelevant JSON fields.
+- selected operation and activation path
+- authorized scope and repositories inspected
+- files changed or intentionally unchanged
+- exact local CLI version, deterministic commands, statuses, and material diagnostics
+- dependency changes and Agent Skill source, metadata, copy, consumer, and activation decisions
+- semantic decisions and the evidence chain that established any consequential misalignment and resulting state
+- relevant unresolved requirements, ambiguities, protected-instruction conflicts, and evidence limitations
+- project-native checks and checks not run
+
+When deterministic tooling runs after writes, name the exact repository-local command, its valid status, and material diagnostics or mirror findings. A bare statement that inspection succeeded is not sufficient evidence. Never imply that valid canonical inspection proves behavior it cannot observe. In dedicated-repository mode, distinguish behavior established by related-application evidence from facts canonical deterministic inspection cannot establish.
 
 For `initialize`, also report the evidence-backed project foundation and whether initialization completed or is awaiting developer context. If awaiting context, end with the focused clarification needed to continue. If completed, end the report with an explicit `Next actions` handoff that offers reviewing the foundation and continuing ordinary development; include agent-system planning or agent creation only as optional choices when relevant. Validation or test status does not replace this handoff. Do not treat file creation or structural validity alone as semantic completion.
 
-Never claim structural validity without a supported deterministic result, alignment while consequential ambiguity remains, or production readiness while a blocking unresolved requirement affects the claimed behavior. Every `evaluate` result must state that no repository files were changed.
+Never claim structural validity without a supported deterministic result, alignment while consequential ambiguity remains, or production readiness while a blocking unresolved requirement affects the claimed behavior. Every `evaluate` result must explicitly state that no repository files were changed.
 
-Every `plan` result must distinguish proposed architecture from current implemented or canonical state, recommend an implementation sequence without executing it, and state that planning changed no repository files.
+Every `plan` result must distinguish proposed architecture from current implemented or canonical state, recommend an implementation sequence without executing it, and explicitly state that planning changed no repository files.

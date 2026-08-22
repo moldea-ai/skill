@@ -394,6 +394,7 @@ describe('portable Agent Skill contract', () => {
   });
 
   test('uses explicit progressive-disclosure triggers and resolvable references', () => {
+    const skillDesign = readRepositoryFile('moldea/references/skill-design.md');
     const referencedPaths = [...skill.matchAll(/Read `references\/([^`]+\.md)` before/g)].map(
       (match) => match[1],
     );
@@ -403,6 +404,12 @@ describe('portable Agent Skill contract', () => {
     for (const fileName of REFERENCE_FILES) {
       assert.ok(existsSync(join(SKILL_DIRECTORY, 'references', fileName)));
     }
+
+    assertMatchesEvery(skillDesign, [
+      /Existing authoritative repository documents and scripts can provide focused progressive disclosure/i,
+      /skill-local reference only when the skill owns substantial conditional guidance/i,
+      /Do not add a reference that merely relays or duplicates an authoritative repository file/i,
+    ]);
   });
 
   test('preserves activation, authority, and continuous-maintenance semantics', () => {
@@ -456,9 +463,18 @@ describe('portable Agent Skill contract', () => {
       /implementation order/i,
       /no repository files were changed by `plan`/i,
     ]);
+    assert.match(
+      skill,
+      /Every `plan` result must .* explicitly state that planning changed no repository files/i,
+    );
   });
 
   test('treats Agent Skills as first-class portable artifacts', () => {
+    const evaluateAndReconcile = readRepositoryFile(
+      'moldea/references/evaluate-and-reconcile.md',
+    );
+    const skillDesign = readRepositoryFile('moldea/references/skill-design.md');
+
     assertMatchesEvery(portableContent, [
       /Choose a skill deliberately/,
       /primary activation contract/,
@@ -478,6 +494,16 @@ describe('portable Agent Skill contract', () => {
       /does not prove installation, activation, or runtime-agent registration/i,
       /Structural validity does not prove useful activation, complete workflow behavior/i,
     ]);
+    assert.match(skill, /Read `references\/skill-design\.md` before creating, evaluating/i);
+    assertMatchesEvery(skillDesign, [
+      /invalid identity or frontmatter, unsafe or unresolved links, missing required resources, and validator failures as structural problems/i,
+      /activation imprecision, incomplete workflow behavior, incorrect use conditions, and content drift as semantic problems/i,
+      /Do not call the complete artifact structurally valid when a required resource is missing/i,
+    ]);
+    assert.match(
+      evaluateAndReconcile,
+      /For every scoped Agent Skill, apply the structural and semantic classification in `skill-design\.md`/i,
+    );
   });
 
   test('preserves evaluate, reconcile, and deterministic responsibility boundaries', () => {
@@ -495,6 +521,10 @@ describe('portable Agent Skill contract', () => {
       /smallest coherent change/,
       /Do not recreate or heuristically reinterpret/,
     ]);
+    assert.match(
+      skill,
+      /Every `evaluate` result must explicitly state that no repository files were changed/i,
+    );
   });
 
   test('keeps deterministic evidence and adapter claims at their owning boundaries', () => {
@@ -509,6 +539,9 @@ describe('portable Agent Skill contract', () => {
       /exact repository-local command/i,
       /valid status/i,
       /bare statement that inspection succeeded is not sufficient evidence/i,
+      /semantic decisions and the evidence chain that established any consequential misalignment/i,
+      /Never imply that valid canonical inspection proves behavior it cannot observe/i,
+      /distinguish behavior established by related-application evidence/i,
     ]);
     assertMatchesEvery(skillDesign, [
       /established script already owns a check/i,
@@ -520,6 +553,8 @@ describe('portable Agent Skill contract', () => {
       /adapter documentation as available only when it is present in authorized evidence/i,
       /do not reconstruct target details, supported patterns, provider limitations, maturity, or wiring semantics/i,
       /preserve the existing runtime unless other reliable evidence establishes the replacement/i,
+      /report the reliable evidence that established whether each affected runtime property is routing-facing, general-only, or shared/i,
+      /previous canonical source and the resulting source/i,
     ]);
     assertMatchesEvery(continuousMaintenance, [
       /final report/i,
@@ -698,9 +733,21 @@ describe('source repository conformance', () => {
     const oneAgentPlanningForbidden = getSemanticCriterionLabels(
       oneAgentPlanningCase.forbidden,
     );
+    const progressiveDisclosureCriterion = skillCreationCase.expected.find(
+      ({ label }) => label === 'use-progressive-disclosure',
+    );
 
     assert.ok(skillCreationExpected.includes('pass-independent-skill-structural-validation'));
     assert.equal(skillCreationExpected.includes('run-skill-structural-validation'), false);
+    assert.ok(progressiveDisclosureCriterion);
+    assert.match(
+      progressiveDisclosureCriterion.criterion,
+      /existing authoritative repository resources/i,
+    );
+    assert.match(
+      progressiveDisclosureCriterion.criterion,
+      /does not require a skill-local resource/i,
+    );
 
     assert.ok(skillMaintenanceExpected.includes('pass-independent-skill-structural-validation'));
     assert.equal(skillMaintenanceExpected.includes('run-skill-structural-validation'), false);

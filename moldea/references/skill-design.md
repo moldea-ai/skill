@@ -72,6 +72,8 @@ skill-name/
 
 Create only directories the skill actually needs. Link every required resource directly from `SKILL.md` with an explicit condition for reading or executing it. Keep reference chains shallow, avoid duplicate guidance across files, and include a table of contents in a long reference when it materially improves navigation.
 
+Existing authoritative repository documents and scripts can provide focused progressive disclosure when `SKILL.md` routes to them only for the relevant workflow. Create a skill-local reference only when the skill owns substantial conditional guidance that has no more accurate existing owner. Do not add a reference that merely relays or duplicates an authoritative repository file.
+
 Do not add an internal README, changelog, setup guide, or other auxiliary file unless it is part of the skill's actual output or an established repository distribution contract. Keep developer-facing project documentation in the repository's normal documentation surface.
 
 ## Write operational guidance
@@ -136,7 +138,7 @@ Update only affected surfaces, but update all of them in the same coherent chang
 
 When a consumer or copy lives in another Git repository, preserve separate repository and authority boundaries. Coordinate changes only when authorized, verify each repository independently, report non-atomicity, and never invent cross-repository bindings.
 
-During read-only evaluation, assess authoritative source and ownership, identity and frontmatter, activation precision, workflow completeness, resource routing and consistency, scripts and tests, assets and consumers, host metadata, installation and distribution, generated or installed copies, coding-agent consumers, agent guidance, manifest declarations, runtime registration, documentation, and examples as applicable. Report structural problems, confirmed semantic drift, material ambiguity, unresolved requirements, and evidence limitations without repairing them.
+During read-only evaluation, assess authoritative source and ownership, identity and frontmatter, activation precision, workflow completeness, resource routing and consistency, scripts and tests, assets and consumers, host metadata, installation and distribution, generated or installed copies, coding-agent consumers, agent guidance, manifest declarations, runtime registration, documentation, and examples as applicable. Classify invalid identity or frontmatter, unsafe or unresolved links, missing required resources, and validator failures as structural problems. Classify activation imprecision, incomplete workflow behavior, incorrect use conditions, and content drift as semantic problems. Do not call the complete artifact structurally valid when a required resource is missing merely because its basic frontmatter validator passes. Report structural problems, confirmed semantic drift, material ambiguity, unresolved requirements, and evidence limitations without repairing them.
 
 During reconciliation, establish intended behavior before choosing whether the source, resource, host metadata, consumer, registration, test, documentation, generated artifact, or installed copy should change. Do not assume one artifact type always wins a contradiction.
 

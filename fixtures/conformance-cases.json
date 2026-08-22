@@ -1548,7 +1548,7 @@
         },
         {
           "label": "use-progressive-disclosure",
-          "criterion": "SKILL.md keeps the shared workflow concise and routes substantial conditional detail to focused resources that are loaded only when needed."
+          "criterion": "SKILL.md keeps the shared workflow concise and routes substantial conditional detail to existing authoritative repository resources or focused skill-owned resources that are loaded only when needed; it does not require a skill-local resource when authoritative repository files already own the detail."
         },
         {
           "label": "reuse-existing-deterministic-script",

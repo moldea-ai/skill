@@ -149,4 +149,6 @@ Do not use requirements as a roadmap or backlog. Do not create one to avoid an a
 
 After writes, run project-native checks for changed executable behavior when applicable, rerun deterministic `inspect --json`, and semantically review purpose, completeness, scope, contracts, canonical instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state.
 
+When routing metadata changes, report the reliable evidence that established whether each affected runtime property is routing-facing, general-only, or shared. Identify the previous canonical source and the resulting source instead of reporting only the completed edit and passing checks.
+
 Do not call an agent production-ready when behavior lacks reliable support, a material contract is hidden or contradictory, deterministic validation fails in the affected system, or a blocking unresolved requirement affects the claimed responsibility.

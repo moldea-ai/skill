@@ -391,17 +391,17 @@ export const validateSemanticCandidateCompatibility = (
   candidate,
   { actorHost, artifactDigest, caseDefinitions, cli, judgeHost },
 ) => {
+  const caseSuiteDigest = createSemanticCaseSuiteDigest(caseDefinitions);
+  if (candidate?.caseSuiteDigest !== caseSuiteDigest) {
+    throw new Error(
+      'The semantic evaluation candidate belongs to a different case suite. Use --restart to replace it.',
+    );
+  }
+
   validateSemanticCandidateEvidence(candidate, caseDefinitions);
   if (candidate.artifactDigest !== artifactDigest) {
     throw new Error(
       'The semantic evaluation candidate belongs to a different portable artifact. Use --restart to replace it.',
-    );
-  }
-
-  const caseSuiteDigest = createSemanticCaseSuiteDigest(caseDefinitions);
-  if (candidate.caseSuiteDigest !== caseSuiteDigest) {
-    throw new Error(
-      'The semantic evaluation candidate belongs to a different case suite. Use --restart to replace it.',
     );
   }
   if (JSON.stringify(candidate.cli) !== JSON.stringify(cli)) {

@@ -984,7 +984,7 @@
         "resolve-required-skill-resources",
         "preserve-script-authority-boundary",
         "support-positive-and-adjacent-non-activation",
-        "run-skill-structural-validation"
+        "pass-independent-skill-structural-validation"
       ],
       "forbidden": [
         "create-runtime-agent",
@@ -1032,7 +1032,7 @@
         "produce-structurally-valid-updated-skill",
         "resolve-required-skill-resources",
         "support-positive-and-adjacent-non-activation",
-        "run-skill-structural-validation"
+        "pass-independent-skill-structural-validation"
       ],
       "forbidden": [
         "rewrite-unrelated-project-state",
@@ -1370,7 +1370,11 @@
         "define-data-authority-and-contracts",
         "report-no-writes"
       ],
-      "forbidden": ["create-or-update-agent", "automatic-orchestrator", "repository-write"]
+      "forbidden": [
+        "create-or-update-agent",
+        "model-orchestrator-without-semantic-routing",
+        "repository-write"
+      ]
     },
     {
       "id": "plan-justified-multi-agent",

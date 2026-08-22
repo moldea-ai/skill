@@ -370,6 +370,26 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
       }),
     /different case suite/,
   );
+  const populatedCandidate = mergeSemanticCandidateResult(
+    candidate,
+    CASE_DEFINITION,
+    createCaseResult(CASE_DEFINITION, true),
+    EVALUATED_AT,
+  );
+  assert.throws(
+    () =>
+      validateSemanticCandidateCompatibility(populatedCandidate, {
+        actorHost: ACTOR_HOST,
+        artifactDigest: ARTIFACT_DIGEST,
+        caseDefinitions: [
+          { ...CASE_DEFINITION, expected: ['changed-expected-label'] },
+          SECOND_CASE_DEFINITION,
+        ],
+        cli: CLI_IDENTITY,
+        judgeHost: JUDGE_HOST,
+      }),
+    /different case suite/,
+  );
   assert.throws(
     () =>
       validateSemanticCandidateCompatibility(candidate, {

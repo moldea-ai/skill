@@ -615,6 +615,33 @@ describe('source repository conformance', () => {
     );
   });
 
+  test('judges observable skill validation and permits deterministic orchestration', () => {
+    const semanticCasesById = new Map(
+      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+    );
+    const skillCreationCase = semanticCasesById.get('skill-create-progressive-disclosure');
+    const skillMaintenanceCase = semanticCasesById.get('skill-maintain-linked-resources');
+    const oneAgentPlanningCase = semanticCasesById.get('plan-existing-project-one-agent');
+
+    assert.ok(skillCreationCase);
+    assert.ok(
+      skillCreationCase.expected.includes('pass-independent-skill-structural-validation'),
+    );
+    assert.equal(skillCreationCase.expected.includes('run-skill-structural-validation'), false);
+
+    assert.ok(skillMaintenanceCase);
+    assert.ok(
+      skillMaintenanceCase.expected.includes('pass-independent-skill-structural-validation'),
+    );
+    assert.equal(skillMaintenanceCase.expected.includes('run-skill-structural-validation'), false);
+
+    assert.ok(oneAgentPlanningCase);
+    assert.ok(
+      oneAgentPlanningCase.forbidden.includes('model-orchestrator-without-semantic-routing'),
+    );
+    assert.equal(oneAgentPlanningCase.forbidden.includes('automatic-orchestrator'), false);
+  });
+
   test(
     'binds available semantic evaluations to exact release inputs',
     { skip: !existsSync(join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-result.json')) },
@@ -701,7 +728,9 @@ describe('source repository conformance', () => {
 
       const skillCreationCase = semanticCases.get('skill-create-progressive-disclosure');
       assert.ok(skillCreationCase.expected.includes('create-valid-skill-frontmatter'));
-      assert.ok(skillCreationCase.expected.includes('run-skill-structural-validation'));
+      assert.ok(
+        skillCreationCase.expected.includes('pass-independent-skill-structural-validation'),
+      );
       assert.ok(
         skillCreationCase.expected.includes('support-positive-and-adjacent-non-activation'),
       );
@@ -725,7 +754,9 @@ describe('source repository conformance', () => {
 
       const skillMaintenanceCase = semanticCases.get('skill-maintain-linked-resources');
       assert.ok(skillMaintenanceCase.expected.includes('produce-structurally-valid-updated-skill'));
-      assert.ok(skillMaintenanceCase.expected.includes('run-skill-structural-validation'));
+      assert.ok(
+        skillMaintenanceCase.expected.includes('pass-independent-skill-structural-validation'),
+      );
       const skillMaintenanceResult = result.cases.find(
         ({ id }) => id === 'skill-maintain-linked-resources',
       );

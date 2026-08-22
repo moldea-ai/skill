@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 const DEFAULT_REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const STABLE_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SEMANTIC_CRITERION_KEYS = new Set(['criterion', 'label']);
+// maximum evaluator-authored host instruction context for one isolated case
+const MAX_HOST_INSTRUCTIONS_BYTES = 16_384;
 const PORTABLE_RELEASE_VERSION_PLACEHOLDER = '<portable-release-version>';
 const PORTABLE_RELEASE_VERSION_PATHS = new Set(['SKILL.md', 'references/local-tooling.md']);
 const PORTABLE_RELEASE_CARRY_FORWARD_REASON =
@@ -21,7 +23,16 @@ const createJsonDigest = (value) =>
 /** Returns the stable behavior labels declared by evaluator-only criteria. */
 export const getSemanticCriterionLabels = (criteria) => criteria.map(({ label }) => label);
 
-/** Validates one strict semantic case before it can be evaluated or published. */
+/**
+ * Validates one strict semantic case before it can be evaluated or published.
+ * @param caseDefinition The semantic case contract to validate.
+ * @returns The validated semantic case contract.
+ * @throws
+ * - If the case identity, scenario, or criteria collection is incomplete
+ * - If declared host instructions are empty, oversized, or contain a null byte
+ * - If an evaluator criterion has an unsupported shape
+ * - If evaluator labels are duplicated
+ */
 export const validateSemanticCaseDefinition = (caseDefinition) => {
   const hasStandalonePrompt =
     isPlainRecord(caseDefinition) &&
@@ -45,6 +56,16 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
     caseDefinition.forbidden.length === 0
   ) {
     throw new Error('Semantic evaluation cases require an ID and non-empty criteria.');
+  }
+
+  if (
+    'hostInstructions' in caseDefinition &&
+    (typeof caseDefinition.hostInstructions !== 'string' ||
+      caseDefinition.hostInstructions.trim().length === 0 ||
+      Buffer.byteLength(caseDefinition.hostInstructions, 'utf8') > MAX_HOST_INSTRUCTIONS_BYTES ||
+      caseDefinition.hostInstructions.includes('\0'))
+  ) {
+    throw new Error(`Semantic case ${caseDefinition.id} has invalid host instructions.`);
   }
 
   const criteria = [...caseDefinition.expected, ...caseDefinition.forbidden];

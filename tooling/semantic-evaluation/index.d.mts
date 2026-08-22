@@ -5,6 +5,7 @@ export interface ISemanticCriterion {
 
 export interface ISemanticCaseDefinition {
   id: string;
+  hostInstructions?: string;
   prompt?: string;
   scenario?: string;
   operation?: string;

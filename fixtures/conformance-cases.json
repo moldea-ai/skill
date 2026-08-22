@@ -2122,6 +2122,7 @@
     },
     {
       "id": "host-plan-command-precedence",
+      "hostInstructions": "# Evaluation coding instructions\n\n## Agent commands\n\n### `plan`\n\nWhen the developer issues `plan`, inspect the relevant repository state and return an implementation-ready plan without modifying repository files, dependency state, generated artifacts, Git state, or external systems. Treat it as ordinary implementation planning unless the developer explicitly requests an AI- or agent-system architecture. End the response with the explicit statement: `No repository files were changed.`\n",
       "scenario": "Applicable coding instructions define the bare plan command as read-only implementation planning, and the developer asks to plan a deterministic cache invalidation refactor without requesting an agent system.",
       "operation": "plan",
       "input": {

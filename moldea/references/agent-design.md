@@ -45,6 +45,14 @@ Use the target's effective routing description for runtime metadata that helps a
 
 Use the agent description for general-only runtime metadata. Establish the runtime property's semantic role from reliable runtime documentation, the active compatibility target, adapter evidence, project-local guidance, implementation behavior, and developer direction rather than its property name. A property named `description` may be routing-facing, and one property serving both general and routing purposes uses the effective routing description. Preserve that established shared-property contract; do not treat its shared purpose as misalignment or invent another runtime property solely to separate those purposes. Do not create `handoff-description.md` merely because a runtime exposes a description property; the agent-description fallback is valid when a dedicated routing hint is unnecessary.
 
+Before changing a runtime description mapping, establish this evidence chain:
+
+1. Name the exact runtime guidance, compatibility evidence, or implementation behavior that establishes whether the consumer is routing-facing, general-only, or shared.
+2. Identify the canonical description source the runtime currently consumes.
+3. Identify the effective canonical source the established consumer role requires.
+
+State the resulting semantic mismatch before editing, then preserve this evidence chain in the completion report together with the previous and resulting sources. Passing tests and deterministic inspection confirm the correction but do not replace the evidence that justified it.
+
 ## Select the runtime honestly
 
 Every registered agent declares exactly one `runtime.id`. Inspect repository runtime evidence and run `compatibility --json` when the installed adapter inventory matters.
@@ -148,7 +156,5 @@ Do not use requirements as a roadmap or backlog. Do not create one to avoid an a
 ## Verify agent readiness
 
 After writes, run project-native checks for changed executable behavior when applicable, rerun deterministic `inspect --json`, and semantically review purpose, completeness, scope, contracts, canonical instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state.
-
-When routing metadata changes, report the reliable evidence that established whether each affected runtime property is routing-facing, general-only, or shared. Identify the previous canonical source and the resulting source instead of reporting only the completed edit and passing checks.
 
 Do not call an agent production-ready when behavior lacks reliable support, a material contract is hidden or contradictory, deterministic validation fails in the affected system, or a blocking unresolved requirement affects the claimed responsibility.

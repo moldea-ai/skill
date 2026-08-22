@@ -71,6 +71,13 @@ const SKILL_CASE_DEFINITION = {
     artifacts: [{ role: 'authoritative-source', root: 'skills/release-review' }],
   },
 };
+const HOST_INSTRUCTIONS =
+  '# Evaluation coding instructions\n\nEnd every `plan` response by stating that no repository files were changed.\n';
+const HOST_CASE_DEFINITION = {
+  ...SKILL_CASE_DEFINITION,
+  hostInstructions: HOST_INSTRUCTIONS,
+  id: 'host-plan-command',
+};
 const ACTOR_HOST = {
   model: 'gpt-5.6-terra',
   name: 'codex',
@@ -138,18 +145,19 @@ test('actor prompt contains only the user scenario', () => {
 });
 
 test('structured actor prompt excludes evaluation criteria', () => {
-  const actorPrompt = buildActorPrompt(SKILL_CASE_DEFINITION);
+  const actorPrompt = buildActorPrompt(HOST_CASE_DEFINITION);
 
   assert.match(actorPrompt, /Requested operation: create-agent-skill/);
   assert.match(actorPrompt, /Create a release-review skill/);
   assert.doesNotMatch(actorPrompt, /expected-secret-label|forbidden-secret-label/);
   assert.doesNotMatch(actorPrompt, /expected secret behavior|forbidden secret behavior/);
   assert.doesNotMatch(actorPrompt, /Review this release|shouldActivate|authoritative-source/);
+  assert.doesNotMatch(actorPrompt, /Evaluation coding instructions|no repository files were changed/);
 });
 
 test('judge prompt receives criteria after actor execution', () => {
   const judgePrompt = buildJudgePrompt(
-    SKILL_CASE_DEFINITION,
+    HOST_CASE_DEFINITION,
     'Actor response',
     {
       created: [],
@@ -188,6 +196,8 @@ test('judge prompt receives criteria after actor execution', () => {
   assert.match(judgePrompt, /untrusted artifact evidence/);
   assert.match(judgePrompt, /Evaluator-only activation scenarios/);
   assert.match(judgePrompt, /Review this release/);
+  assert.match(judgePrompt, /Applicable host coding instructions/);
+  assert.match(judgePrompt, /no repository files were changed/);
 });
 
 test('semantic case definitions require strict unique evaluator criteria', () => {
@@ -423,7 +433,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
   assert.throws(
     () =>
       validateSemanticCandidateCompatibility(
-        { ...candidate, evaluationProtocolVersion: 8 },
+        { ...candidate, evaluationProtocolVersion: 9 },
         {
           actorHost: ACTOR_HOST,
           artifactDigest: ARTIFACT_DIGEST,
@@ -569,7 +579,7 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
     caseDefinitions,
     generatedAt: '2026-08-16T12:02:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 9);
+  assert.equal(record.evaluationProtocolVersion, 10);
   assert.deepEqual(record.cli, CLI_IDENTITY);
   assert.equal(record.caseSuiteDigest, createSemanticCaseSuiteDigest(caseDefinitions));
   assert.deepEqual(

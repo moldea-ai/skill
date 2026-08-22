@@ -409,6 +409,10 @@ describe('portable Agent Skill contract', () => {
       /Existing authoritative repository documents and scripts can provide focused progressive disclosure/i,
       /skill-local reference only when the skill owns substantial conditional guidance/i,
       /Do not add a reference that merely relays or duplicates an authoritative repository file/i,
+      /reference base is part of a resource link's contract/i,
+      /leading `\/` for a resource owned at the repository root/i,
+      /skill-relative path such as `references\/package-managers\.md`/i,
+      /Never add or remove the leading slash unless the authorized change intentionally relocates the resource or changes its owner/i,
     ]);
   });
 
@@ -465,8 +469,9 @@ describe('portable Agent Skill contract', () => {
     ]);
     assert.match(
       skill,
-      /Every `plan` result must .* explicitly state that planning changed no repository files/i,
+      /Every moldea agent-system `plan` result must .* explicitly state that planning changed no repository files/i,
     );
+    assert.doesNotMatch(skill, /Every `plan` result must/i);
   });
 
   test('treats Agent Skills as first-class portable artifacts', () => {
@@ -540,6 +545,7 @@ describe('portable Agent Skill contract', () => {
       /valid status/i,
       /bare statement that inspection succeeded is not sufficient evidence/i,
       /semantic decisions and the evidence chain that established any consequential misalignment/i,
+      /consumer-semantics evidence, current canonical source, and required resulting source/i,
       /Never imply that valid canonical inspection proves behavior it cannot observe/i,
       /distinguish behavior established by related-application evidence/i,
     ]);
@@ -553,8 +559,12 @@ describe('portable Agent Skill contract', () => {
       /adapter documentation as available only when it is present in authorized evidence/i,
       /do not reconstruct target details, supported patterns, provider limitations, maturity, or wiring semantics/i,
       /preserve the existing runtime unless other reliable evidence establishes the replacement/i,
-      /report the reliable evidence that established whether each affected runtime property is routing-facing, general-only, or shared/i,
-      /previous canonical source and the resulting source/i,
+      /Before changing a runtime description mapping, establish this evidence chain/i,
+      /exact runtime guidance, compatibility evidence, or implementation behavior that establishes whether the consumer is routing-facing, general-only, or shared/i,
+      /canonical description source the runtime currently consumes/i,
+      /effective canonical source the established consumer role requires/i,
+      /State the resulting semantic mismatch before editing/i,
+      /Passing tests and deterministic inspection confirm the correction but do not replace the evidence/i,
     ]);
     assertMatchesEvery(continuousMaintenance, [
       /final report/i,

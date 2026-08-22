@@ -16,6 +16,7 @@ import test from 'node:test';
 
 import {
   collectSkillArtifactEvidence,
+  createActorRepository,
   readSemanticEvaluationCandidate,
   seedSemanticTooling,
   writeSemanticEvaluationCandidate,
@@ -23,6 +24,40 @@ import {
 
 const ROOT_PACKAGE_MANIFEST = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'));
 const RELEASE_CLI_VERSION = ROOT_PACKAGE_MANIFEST.devDependencies['@moldea.ai/cli'];
+const HOST_PLAN_CASE_DEFINITION = JSON.parse(
+  readFileSync(join(process.cwd(), 'fixtures', 'conformance-cases.json'), 'utf8'),
+).semanticCases.find(({ id }) => id === 'host-plan-command-precedence');
+
+test('actor repository materializes host instructions before the clean baseline', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-instructions-test-'));
+  assert.ok(HOST_PLAN_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      HOST_PLAN_CASE_DEFINITION,
+    );
+    const status = spawnSync('git', ['status', '--porcelain'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    const committedInstructions = spawnSync('git', ['show', 'HEAD:AGENTS.md'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+
+    assert.equal(
+      readFileSync(join(repositoryPath, 'AGENTS.md'), 'utf8'),
+      HOST_PLAN_CASE_DEFINITION.hostInstructions,
+    );
+    assert.equal(status.status, 0, status.stderr);
+    assert.equal(status.stdout, '');
+    assert.equal(committedInstructions.status, 0, committedInstructions.stderr);
+    assert.equal(committedInstructions.stdout, HOST_PLAN_CASE_DEFINITION.hostInstructions);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
 
 test('skill artifact evidence exposes bounded content and independent validation', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-skill-evidence-test-'));
@@ -40,13 +75,18 @@ test('skill artifact evidence exposes bounded content and independent validation
       '',
       '# Release review',
       '',
-      'Read [the release policy](../../docs/release-policy.md).',
-      'Treat `docs/release-policy.md` as the policy source.',
+      'Read [the release policy](/docs/release-policy.md).',
       'Read `references/package-managers.md` before verification.',
+      'Run `/scripts/verify-release.mjs` after reviewing the policy.',
     ].join('\n'),
   );
   mkdirSync(join(evaluationRoot, 'docs'));
   writeFileSync(join(evaluationRoot, 'docs', 'release-policy.md'), '# Release policy\n');
+  mkdirSync(join(evaluationRoot, 'scripts'));
+  writeFileSync(
+    join(evaluationRoot, 'scripts', 'verify-release.mjs'),
+    'export const verifyRelease = () => true;\n',
+  );
   writeFileSync(
     join(skillRoot, 'references', 'package-managers.md'),
     '# Package managers\n\nVerify npm and pnpm.\n',
@@ -96,8 +136,14 @@ test('skill artifact evidence exposes bounded content and independent validation
     assert.deepEqual(evidence[0].resourceReferences, [
       {
         isSafe: true,
-        reference: '../../docs/release-policy.md',
+        reference: '/docs/release-policy.md',
         resolvedPath: 'docs/release-policy.md',
+        type: 'file',
+      },
+      {
+        isSafe: true,
+        reference: '/scripts/verify-release.mjs',
+        resolvedPath: 'scripts/verify-release.mjs',
         type: 'file',
       },
       {

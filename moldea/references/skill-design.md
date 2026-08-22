@@ -74,6 +74,8 @@ Create only directories the skill actually needs. Link every required resource d
 
 Existing authoritative repository documents and scripts can provide focused progressive disclosure when `SKILL.md` routes to them only for the relevant workflow. Create a skill-local reference only when the skill owns substantial conditional guidance that has no more accurate existing owner. Do not add a reference that merely relays or duplicates an authoritative repository file.
 
+The reference base is part of a resource link's contract. Use a leading `/` for a resource owned at the repository root, such as `/docs/release-policy.md` or `/scripts/verify-release.mjs`, and use a skill-relative path such as `references/package-managers.md` for a resource owned by the skill. Resolve every affected link from its declared base before and after maintenance. Never add or remove the leading slash unless the authorized change intentionally relocates the resource or changes its owner; a path that merely looks similar but resolves elsewhere is a broken link.
+
 Do not add an internal README, changelog, setup guide, or other auxiliary file unless it is part of the skill's actual output or an established repository distribution contract. Keep developer-facing project documentation in the repository's normal documentation surface.
 
 ## Write operational guidance

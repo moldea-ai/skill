@@ -50,6 +50,26 @@ describe('semantic evaluation evidence', () => {
     );
   });
 
+  test('validates and binds applicable host instructions', () => {
+    const caseDefinition = {
+      ...createCaseDefinition('case-one'),
+      hostInstructions: '# Repository instructions\n\nKeep planning read-only.\n',
+    };
+
+    assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
+    assert.notEqual(
+      createSemanticCaseDefinitionDigest(caseDefinition),
+      createSemanticCaseDefinitionDigest(createCaseDefinition('case-one')),
+    );
+
+    for (const hostInstructions of ['', 'invalid\0instructions', 'x'.repeat(16_385)]) {
+      assert.throws(
+        () => validateSemanticCaseDefinition({ ...caseDefinition, hostInstructions }),
+        /invalid host instructions/,
+      );
+    }
+  });
+
   test('validates release-only semantic evidence carry-forward', () => {
     const artifactDigest = 'a'.repeat(64);
     const semanticDigest = createPortableSkillSemanticDigest();

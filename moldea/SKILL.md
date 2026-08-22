@@ -87,7 +87,7 @@ Load only the references triggered by the current operation. These files operati
 6. Distinguish current truth, developer-confirmed truth, intended resulting state, planned work, accepted rationale, historical state, unresolved state, and inference used only for investigation.
 7. Identify affected surfaces through exact bindings, impact paths, Agent Skill authoritative sources, resources, host metadata, installed or distributed copies, consumers, unresolved relationships, runtime-adapter evidence, and additional semantic evidence.
 8. Investigate contradictions and ask one focused question when multiple plausible answers would materially change the result. Use unresolved requirements only for genuine incomplete state, not answerable ambiguity or backlog work.
-9. Map runtime metadata by its established semantic purpose. Routing-facing metadata uses the target's effective routing description: the handoff description when present, otherwise the agent description. General-only metadata uses the agent description, regardless of property names.
+9. Map runtime metadata by its established semantic purpose. Routing-facing metadata uses the target's effective routing description: the handoff description when present, otherwise the agent description. General-only metadata uses the agent description, regardless of property names. Before changing a runtime metadata mapping, establish and retain the consumer-semantics evidence, current canonical source, and required resulting source, then carry that evidence chain into the final report.
 10. For write-capable work, apply the smallest coherent authorized change and synchronize every affected representation. Make no canonical edit when the existing state remains correct.
 11. Run relevant project-native verification when executable behavior changed and authority permits it.
 12. After writes, rerun deterministic `inspect --json`, review semantic readiness, mirrors, and unresolved requirements, and distinguish scoped completion from unrelated invalidity.
@@ -119,4 +119,4 @@ For `initialize`, also report the evidence-backed project foundation and whether
 
 Never claim structural validity without a supported deterministic result, alignment while consequential ambiguity remains, or production readiness while a blocking unresolved requirement affects the claimed behavior. Every `evaluate` result must explicitly state that no repository files were changed.
 
-Every `plan` result must distinguish proposed architecture from current implemented or canonical state, recommend an implementation sequence without executing it, and explicitly state that planning changed no repository files.
+Every moldea agent-system `plan` result must distinguish proposed architecture from current implemented or canonical state, recommend an implementation sequence without executing it, and explicitly state that planning changed no repository files.

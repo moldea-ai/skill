@@ -61,6 +61,8 @@ Create project-local runtime guidance when repository-specific behavior, limitat
 
 Do not infer behavioral compatibility from package names, the compact CLI inventory, or general runtime knowledge, install adapters dynamically, or claim support without reliable adapter documentation and repository evidence.
 
+Treat adapter documentation as available only when it is present in authorized evidence. When it is absent, do not reconstruct target details, supported patterns, provider limitations, maturity, or wiring semantics from model knowledge, package names, or compatibility inventory. Identify the missing evidence and preserve the existing runtime unless other reliable evidence establishes the replacement.
+
 In dedicated-repository mode, continue from runtime selection into model-visible capability reconciliation. Reliable evidence from a developer-identified related application may establish provider-hosted or external capability semantics even when repository format version `1` cannot bind the implementation. Preserve that established behavior in the canonical instruction or project-local runtime guidance. The absence of a qualifying repository-local artifact prevents a manifest capability entry; it does not justify omitting established model-visible behavior or creating an unresolved requirement solely for the missing cross-repository binding.
 
 ## Register real relationships

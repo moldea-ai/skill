@@ -497,6 +497,37 @@ describe('portable Agent Skill contract', () => {
     ]);
   });
 
+  test('keeps deterministic evidence and adapter claims at their owning boundaries', () => {
+    const skillDesign = readRepositoryFile('moldea/references/skill-design.md');
+    const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
+    const continuousMaintenance = readRepositoryFile(
+      'moldea/references/continuous-maintenance.md',
+    );
+
+    assertMatchesEvery(skill, [
+      /deterministic tooling runs after writes/i,
+      /exact repository-local command/i,
+      /valid status/i,
+      /bare statement that inspection succeeded is not sufficient evidence/i,
+    ]);
+    assertMatchesEvery(skillDesign, [
+      /established script already owns a check/i,
+      /script's actual interface/i,
+      /Do not ask the model to reimplement the check/i,
+      /script-owned result as an input/i,
+    ]);
+    assertMatchesEvery(agentDesign, [
+      /adapter documentation as available only when it is present in authorized evidence/i,
+      /do not reconstruct target details, supported patterns, provider limitations, maturity, or wiring semantics/i,
+      /preserve the existing runtime unless other reliable evidence establishes the replacement/i,
+    ]);
+    assertMatchesEvery(continuousMaintenance, [
+      /final report/i,
+      /distinguish behavior established by related-application evidence/i,
+      /facts canonical deterministic inspection cannot observe/i,
+    ]);
+  });
+
   test('defines safe tooling, exact pinning, and machine-envelope handling', () => {
     assertMatchesEvery(portableContent, [
       /npm install --save-dev --save-exact --ignore-scripts/,
@@ -588,6 +619,36 @@ describe('source repository conformance', () => {
         }
       }
     }
+  });
+
+  test('judges read-only reporting and README ownership against portable contracts', () => {
+    const semanticCriteria = cases.semanticCases.flatMap(({ expected, forbidden }) => [
+      ...expected,
+      ...forbidden,
+    ]);
+    const noWriteCriteria = semanticCriteria.filter(
+      ({ label }) => label === 'report-no-writes',
+    );
+    const initializationCase = cases.semanticCases.find(
+      ({ id }) => id === 'initialize-sufficient-context',
+    );
+    const readmeAwarenessCriterion = initializationCase?.expected.find(
+      ({ label }) => label === 'add-owned-readme-awareness',
+    );
+
+    assert.ok(noWriteCriteria.length > 0);
+    for (const { criterion } of noWriteCriteria) {
+      assert.equal(
+        criterion,
+        'The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes.',
+      );
+      assert.doesNotMatch(criterion, /dependency|Git|external-state/);
+    }
+
+    assert.ok(readmeAwarenessCriterion);
+    assert.match(readmeAwarenessCriterion.criterion, /exactly one correctly marked owned README/i);
+    assert.match(readmeAwarenessCriterion.criterion, /preserving unrelated README content/i);
+    assert.doesNotMatch(readmeAwarenessCriterion.criterion, /manifest|affectedBy/i);
   });
 
   test('keeps runtime behavior evidence-gated when the CLI proves only availability', () => {

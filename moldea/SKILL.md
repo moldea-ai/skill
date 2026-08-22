@@ -104,6 +104,8 @@ Runtime-adapter evidence is deterministic evidence about detectable implementati
 
 Report the selected operation and activation path, scope and repositories inspected, files changed or intentionally unchanged, exact local CLI version, deterministic commands and results, dependency changes, Agent Skill source, metadata, copy, consumer, and activation decisions when relevant, semantic decisions, relevant unresolved requirements, ambiguities, protected-instruction conflicts, evidence limitations, project-native checks, and checks not run.
 
+When deterministic tooling runs after writes, name the exact repository-local command, its valid status, and material diagnostics or mirror findings. A bare statement that inspection succeeded is not sufficient evidence. Keep the report proportional and do not reproduce irrelevant JSON fields.
+
 For `initialize`, also report the evidence-backed project foundation and whether initialization completed or is awaiting developer context. If awaiting context, end with the focused clarification needed to continue. If completed, end the report with an explicit `Next actions` handoff that offers reviewing the foundation and continuing ordinary development; include agent-system planning or agent creation only as optional choices when relevant. Validation or test status does not replace this handoff. Do not treat file creation or structural validity alone as semantic completion.
 
 Never claim structural validity without a supported deterministic result, alignment while consequential ambiguity remains, or production readiness while a blocking unresolved requirement affects the claimed behavior. Every `evaluate` result must state that no repository files were changed.

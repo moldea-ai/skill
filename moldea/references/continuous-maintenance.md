@@ -86,6 +86,7 @@ When canonical `/moldea/**` and application implementation live in separate Git 
 - treat an established external provenance chain as valid semantic evidence without inventing a version `1` cross-repository relationship; when the implementation is unavailable, report the evidence limitation and do not claim readiness
 - use sufficiently established related-application evidence to select the actual available official `runtime.id`; do not select `custom` merely because implementation is external
 - treat absent or partial local adapter evidence for externally implemented agents as an evidence-location limitation, not proof that the runtime or implementation is missing
+- in the final report, distinguish behavior established by related-application evidence from facts canonical deterministic inspection cannot observe
 - preserve established application-only and provider-hosted model-visible capabilities in accurate instruction or runtime-guidance semantics; a missing repository-local artifact prevents a manifest binding, not semantic representation
 - do not create unresolved requirements solely because version `1` cannot bind an otherwise established cross-repository relationship
 - never imply cross-repository Git atomicity or cross-repository PR Assurance

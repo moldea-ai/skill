@@ -1034,7 +1034,7 @@
         },
         {
           "label": "add-owned-readme-awareness",
-          "criterion": "The resulting canonical state identifies the repository README as an owned awareness or affected-by source where the established project foundation requires future synchronization."
+          "criterion": "The workspace contains exactly one correctly marked owned README awareness block with the required moldea guidance, while preserving unrelated README content."
         },
         {
           "label": "report-evidence-backed-foundation",
@@ -1230,7 +1230,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -1263,7 +1263,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -1295,7 +1295,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -1483,7 +1483,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -1912,7 +1912,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -1970,7 +1970,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2143,7 +2143,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2195,7 +2195,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2250,7 +2250,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2304,7 +2304,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2353,7 +2353,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2407,7 +2407,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2465,7 +2465,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2576,7 +2576,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2618,7 +2618,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2660,7 +2660,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2750,7 +2750,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2792,7 +2792,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2833,7 +2833,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2875,7 +2875,7 @@
         },
         {
           "label": "report-no-writes",
-          "criterion": "The actor explicitly reports that the operation made no repository, dependency, Git, or external-state changes, and workspace evidence is consistent with that report."
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [

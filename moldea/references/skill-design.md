@@ -94,6 +94,8 @@ Avoid generic advice, repeated background, mandatory prose templates, chain-of-t
 
 Prefer a script when the same deterministic transformation, validation, or tool operation would otherwise be reimplemented repeatedly. Reuse repository utilities and dependencies before adding another implementation.
 
+When an established script already owns a check, route the skill workflow through that script's actual interface. Do not ask the model to reimplement the check or derive the script-owned result as an input unless the inspected script contract requires independently supplied evidence.
+
 For every script:
 
 - define explicit inputs, outputs, side effects, dependencies, supported environments, and exit behavior

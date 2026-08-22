@@ -40,6 +40,8 @@ Executable and model-facing schemas are one semantic contract. Requiredness, nul
 
 The agent declares the highest-level available official runtime adapter whose verified target covers the actual primary integration boundary. Planned support is not presented as available, experimental support is not presented as production-ready, and `custom` is used only when the real composition requires it.
 
+Adapter behavior is established from authorized adapter documentation and repository evidence. When that documentation is unavailable, package names, compatibility inventory, and model knowledge cannot supply target details, supported patterns, provider limitations, maturity, or wiring semantics. The coding agent identifies the missing evidence and preserves the existing runtime unless other reliable evidence establishes a replacement. In a dedicated repository, related-application evidence can establish external behavior, but the final report distinguishes those facts from what canonical deterministic inspection cannot observe.
+
 ## Prove instruction provenance
 
 The coding agent traces how canonical `instruction.md` content reaches each runtime invocation or provider-side configuration. Application loading, an adapter, build or provisioning logic, or a declared exact mirror can provide the chain. Independently maintained runtime instructions are removed when the authorized final design makes them obsolete.

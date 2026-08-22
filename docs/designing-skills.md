@@ -63,6 +63,8 @@ Only necessary directories are created. Resources are linked directly from `SKIL
 
 Skill scripts define their inputs, outputs, dependencies, supported environments, side effects, and exit behavior. They validate boundary input, fail clearly, avoid secrets, and require authority for destructive or external changes.
 
+When an established script already owns a deterministic check, the skill delegates through that script's real interface. It does not ask the model to recreate the check or supply a result the script owns unless the script contract genuinely requires independent evidence.
+
 Representative success, boundary, and failure cases are executed before readiness is claimed. Linking a script never grants authority to execute it during an unrelated task.
 
 ## Keep the complete artifact aligned

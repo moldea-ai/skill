@@ -8,7 +8,7 @@ order: 175
 
 # Adapter qualification
 
-Adapter qualification is the evidence gate for deciding whether one exact adapter implementation is ready for Supported maturity. It tests whether the current `moldea` skill and the exact published package release can understand and safely maintain realistic projects. It does not invoke the provider, run the agent, or replace provider integration tests.
+Adapter qualification is the evidence gate for deciding whether one exact adapter implementation is ready for **Supported** maturity. It tests whether the current `moldea` skill and the exact published package release can understand and safely maintain realistic projects. It does not invoke the provider, run the agent, or replace provider integration tests.
 
 Every profile, project, requirement, attempt, failure, and artifact is stored in this repository. The [qualification evidence index](/qualification/) presents that committed state without requiring a hosted service.
 
@@ -74,7 +74,7 @@ If post-actor deterministic checks or workspace assertions already prove that a 
 
 ## Supported maturity eligibility
 
-Qualification is necessary evidence for Supported maturity, not an automatic promotion. The Custom profile must pass first as the universal baseline, and the selected adapter implementation must then pass its complete current profile against the same package closure, skill, qualification suite, package source, model host, and tool identities. The profile must cover every applicable compatibility claim and every distinct adapter risk.
+Qualification is necessary evidence for **Supported** maturity, not an automatic promotion. The Custom profile must pass first as the universal baseline, and the selected adapter implementation must then pass its complete current profile against the same package closure, skill, qualification suite, package source, model host, and tool identities. The profile must cover every applicable compatibility claim and every distinct adapter risk.
 
 Maturity is an outcome considered after qualification. It is not an input, compatibility claim, or provenance field used to make the test pass.
 

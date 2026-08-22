@@ -12,6 +12,8 @@ The public `https://skill.moldea.ai/llms.txt` file is generated from this model 
 
 Reusable website foundations come from the exact public `@moldea.ai/website-ui` dependency. That package owns shared semantic design tokens, global interaction states, base-path and theme utilities, local-search behavior, and small Astro components. This application owns the `https://skill.moldea.ai` origin, `moldea-skill-theme` storage key, page composition, generated documentation, navigation copy, SEO identity, and public assets.
 
+In repository-owned Markdown, bold `Supported` labels render as target-maturity badges. Other bold text keeps its ordinary semantic emphasis.
+
 The complete favicon, social image, icon, logo, wordmark, and source artwork set under `public/` mirrors the official brand assets used by the sibling packages website. Keep those copies synchronized intentionally when the source assets change.
 
 The compatibility marks under `public/coding-agents/` use source-owned third-party artwork only to identify supported hosts. The Codex asset preserves the transparent Blossom path geometry from the [official OpenAI brand guidelines](https://openai.com/brand/); the remaining authoritative sources are the [Claude product](https://claude.ai/), [Cursor brand archive](https://cursor.com/brand), [OpenCode repository brand assets](https://github.com/anomalyco/opencode/tree/dev/packages/console/app/src/asset/brand), [GitHub brand archive](https://brand.github.com/foundations/logo), and [Cline repository assets](https://github.com/cline/cline/tree/main/apps/vscode/assets/icons). Keep the mark geometry unmodified and do not imply vendor endorsement.

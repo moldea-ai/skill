@@ -18,7 +18,7 @@ test('connects a root-level repository to its implementation and guide', async (
     name: 'Example project filesystem',
   });
   await expect(fileSystem).toBeVisible();
-  await expect(fileSystem.getByText('support-platform/', { exact: true })).toBeVisible();
+  await expect(fileSystem.getByText('my-platform/', { exact: true })).toBeVisible();
 
   const moldeaBranch = fileSystem.locator('[data-project-root-branch="moldea"]');
   const sourceBranch = fileSystem.locator('[data-project-root-branch="src"]');

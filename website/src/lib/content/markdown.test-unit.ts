@@ -37,6 +37,24 @@ describe('renderMarkdown', () => {
     expect(rendered.headings[0]?.html).toBe('Coding agent and <code>moldea</code>');
   });
 
+  test('renders bold Supported maturity labels as badges', async () => {
+    const rendered = await renderMarkdown(
+      '# Page\n\nUse **Supported** maturity.\n\n## **Supported** eligibility',
+    );
+
+    expect(rendered.html).toContain(
+      '<span class="maturity-badge" data-maturity="supported">Supported</span>',
+    );
+    expect(rendered.headings).toStrictEqual([
+      {
+        depth: 2,
+        html: '<span class="maturity-badge" data-maturity="supported">Supported</span> eligibility',
+        id: 'supported-eligibility',
+        text: 'Supported eligibility',
+      },
+    ]);
+  });
+
   test('wraps tables in a keyboard-accessible scrolling region', async () => {
     const rendered = await renderMarkdown(
       '# Page\n\n| Capability | Behavior |\n| --- | --- |\n| Evaluate | Read-only assessment |',

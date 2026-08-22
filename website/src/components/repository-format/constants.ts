@@ -8,5 +8,5 @@ export const REPOSITORY_FORMAT_EXAMPLE = {
     },
   ],
   contextFiles: ['support-policy.md', 'customer-data.md'],
-  projectDirectory: 'support-platform/',
+  projectDirectory: 'my-platform/',
 } as const;

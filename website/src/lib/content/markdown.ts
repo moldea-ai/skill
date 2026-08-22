@@ -42,6 +42,13 @@ const wrapTables = (html: string): string => {
   );
 };
 
+const renderMaturityBadges = (html: string): string => {
+  return html.replaceAll(
+    '<strong>Supported</strong>',
+    '<span class="maturity-badge" data-maturity="supported">Supported</span>',
+  );
+};
+
 const getHeadings = (html: string): IRenderedMarkdownHeading[] => {
   return [...html.matchAll(/<h([23]) id="([^"]+)">([\s\S]*?)<\/h\1>/g)].map(
     (match): IRenderedMarkdownHeading => ({
@@ -77,7 +84,9 @@ export const renderMarkdown = async (markdown: string): Promise<IRenderedMarkdow
     })
     .use(rehypeStringify)
     .process(source);
-  const html = wrapTables(markExternalLinks(prefixInternalLinks(String(file))));
+  const html = renderMaturityBadges(
+    wrapTables(markExternalLinks(prefixInternalLinks(String(file)))),
+  );
 
   return { headings: getHeadings(html), html };
 };

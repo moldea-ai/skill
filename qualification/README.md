@@ -10,7 +10,7 @@ Each profile combines three complementary layers:
 
 1. Matrix probes map every current behavior-affecting compatibility claim for the selected implementation to one or more concrete cases. Missing claims, unknown claims, and uncovered cases fail before candidate construction. Target maturity and verification dates are recorded as context, not treated as behavior the candidate must reproduce.
 2. Deterministic verification runs before and after the actor. It gives Repository FS the exact current Git-derived project inventory, compares that reader with an independently reconstructed Repository memory reader, exercises Core, runs the installed CLI `compatibility`, `validate`, and `inspect` commands, typechecks the fixture, and verifies that read-only inspection did not mutate the project. Runner-owned Agent Skill files, qualification inputs, and project dependencies remain outside the repository evidence inventory. The candidate dependency tree has its own integrity fingerprint and must remain exact before any post-actor command runs.
-3. Semantic journeys give the fixed Terra actor a real project task and give a separate read-only Terra judge the task, final workspace, Git diff, deterministic evidence, and explicit requirements.
+3. Semantic journeys give an actor using the fixed balanced-tier model configuration a real project task and give a separate read-only judge using the same configuration the task, final workspace, Git diff, deterministic evidence, and explicit requirements.
 
 A passing qualification requires every layer and every case to pass. A failed semantic judgment cannot be overridden by deterministic success, and a passing model judgment cannot override a deterministic or workspace assertion failure.
 
@@ -37,7 +37,7 @@ Keep the `skill` and `packages` repositories adjacent, install the packages repo
 npm run qualification
 ```
 
-The guided CLI prioritizes resumable attempts, disables adapter implementations without a committed profile, and asks for a default-deny confirmation only after free preflight, candidate preparation, and cache lookup have finished. The prompt appears immediately before the first uncached Terra call and derives its maximum call count from the selected profile. The three-case Custom profile therefore reports exactly six possible calls.
+The guided CLI prioritizes resumable attempts, disables adapter implementations without a committed profile, and asks for a default-deny confirmation only after free preflight, candidate preparation, and cache lookup have finished. The prompt appears immediately before the first uncached balanced-tier model call and derives its maximum call count from the selected profile. The three-case Custom profile therefore reports exactly six possible calls.
 
 The same operations are available explicitly:
 
@@ -79,9 +79,9 @@ Candidate construction discovers current immediate package projects from `projec
 
 The attempt creates a nested pnpm workspace that overrides every local package identity to its exact tarball, then installs the closure with offline resolution, lifecycle scripts disabled, and strict peer dependency checks. Every project records the exact CLI version in `devDependencies` and receives that packed runtime under its own `node_modules`, so actor commands and deterministic checks use the project-local candidate. The runner fingerprints that dependency tree after preparation, rejects actor mutations before caching evidence or running post-actor checks, and verifies it again with the workspace assertions. Public evidence records every tarball's package name, version, source project, filename, and SHA-256 digest. There is no hardcoded package list and no fallback to workspace linking or published package versions.
 
-## Terra execution contract
+## Balanced-tier model execution contract
 
-Paid semantic stages always use `gpt-5.6-terra` with `medium` reasoning effort. There is no frontier-model or alternate-model fallback. Actor and judge calls use the shared development host under `tooling/codex-evaluation-host/`. Codex delegates isolation to an outer Bubblewrap boundary that provides an empty filesystem root, a fresh process and network namespace, dropped capabilities, bounded execution, and a restricted HTTPS relay. User configuration, exec-policy rules, web search, and persistent sessions remain disabled. Official evidence rejects a custom model origin, custom TLS certificate file, or expanded egress allowlist before candidate construction or any paid call.
+Paid semantic stages always use the fixed balanced-tier model configuration: `gpt-5.6-terra` at `medium` reasoning effort. There is no frontier-model or alternate-model fallback. Actor and judge calls use the shared development host under `tooling/codex-evaluation-host/`. Codex delegates isolation to an outer Bubblewrap boundary that provides an empty filesystem root, a fresh process and network namespace, dropped capabilities, bounded execution, and a restricted HTTPS relay. User configuration, exec-policy rules, web search, and persistent sessions remain disabled. Official evidence rejects a custom model origin, custom TLS certificate file, or expanded egress allowlist before candidate construction or any paid call.
 
 The actor receives a writable isolated project and the project-local candidate `moldea` executable first on `PATH`. The judge receives a byte-identical copy in a different workspace and Bubblewrap mounts that copy read-only. Actor and judge are separate Codex processes with separate disposable homes. Only the authentication state required by Codex is copied into those homes; unrelated host environment and filesystem state are unavailable. Their prompts prohibit network calls beyond the Codex model transport, subagents, provider calls, agent execution, and runtime SDK calls. The actor receives only the natural project task rather than adapter identity or judge criteria.
 

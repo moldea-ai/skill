@@ -1,4 +1,4 @@
-// shared fixed-Terra evaluation host contracts consumed by TypeScript development tooling
+// shared fixed-model evaluation host contracts consumed by TypeScript development tooling
 export const CODEX_EVALUATION_MODEL: 'gpt-5.6-terra';
 export const CODEX_EVALUATION_NPM_VERSION: '11.12.1';
 export const CODEX_EVALUATION_REASONING_EFFORT: 'medium';

@@ -133,7 +133,7 @@ const writeModelArtifacts = async <TOutput>(options: {
   ]);
 };
 
-/** Executes or exactly restores the Terra actor stage and captures its post-actor workspace. */
+/** Executes or exactly restores the actor model stage and captures its post-actor workspace. */
 export const executeActorModelStage = async (
   options: ISharedModelStageOptions & { snapshotDirectory: string },
 ): Promise<IActorStageResult> => {
@@ -260,7 +260,7 @@ export const restoreActorModelStage = async (options: {
   return { output, evidence: { ...evidence, role: 'actor' } };
 };
 
-/** Executes or exactly restores the independent Terra judge stage. */
+/** Executes or exactly restores the independent judge model stage. */
 export const executeJudgeModelStage = async (
   options: ISharedModelStageOptions & {
     actorOutput: IActorOutput;

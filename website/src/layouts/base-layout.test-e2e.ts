@@ -802,6 +802,14 @@ test('publishes the transparent Custom profile and its committed result history'
   await expect(page.getByRole('heading', { name: 'Three evidence layers' })).toBeVisible();
 });
 
+test('describes the qualification model tier without requiring provider knowledge', async ({
+  page,
+}) => {
+  await page.goto(toPublicPath('/qualification/'));
+
+  await expect(page.locator('body')).toContainText('balanced-tier model');
+});
+
 test('keeps qualification evidence readable at 320px in both themes without page overflow', async ({
   browser,
 }) => {

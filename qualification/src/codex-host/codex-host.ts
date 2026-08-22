@@ -78,7 +78,7 @@ const extractLatestUsage = (events: string): IModelUsage | null => {
   return latestUsage;
 };
 
-/** Production Codex CLI host fixed to the Terra floor and structured-output protocol. */
+/** Production Codex CLI host fixed to the evaluation model and structured-output protocol. */
 export class CodexCliHost implements ICodexHost {
   /** Returns the exact local Codex CLI version used for checkpoint identity. */
   public async getVersion(): Promise<string> {

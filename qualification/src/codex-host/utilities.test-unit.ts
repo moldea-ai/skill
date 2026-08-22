@@ -4,7 +4,7 @@ import { describe, expect, test } from 'vitest';
 import { createCodexExecCommand } from './utilities.ts';
 
 describe('createCodexExecCommand', () => {
-  test('creates the shared externally sandboxed fixed-Terra contract', () => {
+  test('creates the shared externally sandboxed fixed-model contract', () => {
     const command = createCodexExecCommand({
       outputPath: '/home/evaluator/output.json',
       schemaPath: '/home/evaluator/schema.json',

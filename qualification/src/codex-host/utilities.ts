@@ -1,6 +1,6 @@
 import { buildCodexEvaluationHostCommand } from '../../../tooling/codex-evaluation-host/index.mjs';
 
-/** Builds the externally sandboxed, fixed-Terra command for one qualification role. */
+/** Builds the externally sandboxed, fixed-model command for one qualification role. */
 export const createCodexExecCommand = (options: {
   outputPath: string;
   schemaPath: string;

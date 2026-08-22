@@ -373,7 +373,7 @@ export const runQualification = async (
 
       if (!isApproved) {
         throw new PaidExecutionApprovalError(
-          'Paid qualification was not approved immediately before Terra execution.',
+          'Paid qualification was not approved immediately before model execution.',
         );
       }
     } catch (error) {

@@ -1,7 +1,7 @@
 import { confirm, select } from '@inquirer/prompts';
 
 import { listQualificationImplementations } from '../compatibility/index.ts';
-import { QUALIFICATION_MODEL } from '../constants/index.ts';
+import { QUALIFICATION_MODEL, QUALIFICATION_REASONING_EFFORT } from '../constants/index.ts';
 import { listLocalAttemptCheckpoints } from '../execution/index.ts';
 
 export type IInteractiveQualificationAction =
@@ -71,9 +71,9 @@ export const promptQualificationAction = async (): Promise<IInteractiveQualifica
   };
 };
 
-/** Requires a default-deny approval immediately before any paid Terra stages can run. */
+/** Requires a default-deny approval immediately before any paid model stages can run. */
 export const confirmPaidQualificationExecution = async (modelCallCount: number): Promise<boolean> =>
   confirm({
-    message: `This attempt can make up to ${modelCallCount} paid ${QUALIFICATION_MODEL} calls and can take a long time. Continue?`,
+    message: `This attempt can make up to ${modelCallCount} paid balanced-tier model calls (${QUALIFICATION_MODEL}, ${QUALIFICATION_REASONING_EFFORT} reasoning effort) and can take a long time. Continue?`,
     default: false,
   });

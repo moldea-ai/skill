@@ -5,7 +5,7 @@ import type {
   IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
 
-/** Builds the fixed Terra actor prompt around one transparent project task. */
+/** Builds the fixed actor prompt around one transparent project task. */
 export const buildActorPrompt = (options: {
   task: string;
 }): string => `Complete the project task below in the current Git working tree:
@@ -23,7 +23,7 @@ Execution rules:
 - Return only the structured result required by the output schema.
 `;
 
-/** Builds the independent read-only Terra judge prompt with deterministic evidence and requirements. */
+/** Builds the independent read-only judge prompt with deterministic evidence and requirements. */
 export const buildJudgePrompt = (options: {
   actorOutput: IActorOutput;
   adapterId: string;

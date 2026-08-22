@@ -977,10 +977,11 @@ describe('source repository conformance', () => {
     ]);
   });
 
-  test('pins semantic evaluation to Terra with fixed reasoning effort', () => {
+  test('pins semantic evaluation to the balanced-tier model with fixed reasoning effort', () => {
     const readme = readRepositoryFile('README.md');
 
     assertMatchesEvery(readme, [
+      /balanced-tier model/,
       /gpt-5\.6-terra/,
       /actor and judge/,
       /medium/,

@@ -31,7 +31,7 @@ Matrix probes map every behavior-affecting compatibility claim to one or more pr
 
 Deterministic verification runs before and after the actor. It checks package provenance, repository-reader equivalence, Core and CLI behavior, project validity, typechecking, dependency integrity, and workspace preservation.
 
-Semantic evaluation uses separate `gpt-5.6-terra` actor and judge processes at `medium` reasoning effort. The actor receives a natural project task, not the grading criteria. The judge receives a read-only copy of the final workspace and the explicit case requirements.
+Semantic evaluation uses separate actor and judge processes with a fixed balanced-tier model at `medium` reasoning effort (`gpt-5.6-terra`). The actor receives a natural project task, not the grading criteria. The judge receives a read-only copy of the final workspace and the explicit case requirements.
 
 A case passes only when its deterministic checks, workspace assertions, and semantic judgment all pass. No layer can override a failure in another layer.
 

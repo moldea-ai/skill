@@ -283,6 +283,9 @@ test('semantic actors execute the copied published CLI closure', async () => {
         .map(([name, version]) => ({ name, version }))
         .sort(({ name: left }, { name: right }) => left.localeCompare(right)),
     );
+    for (const adapter of compatibilityEnvelope.result.adapters) {
+      assert.deepEqual(Object.keys(adapter).sort(), ['id', 'repositoryFormatVersions']);
+    }
     const openAiAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'openai');
     assert.deepEqual(openAiAdapter.repositoryFormatVersions, [1]);
     const googleGenAiAdapter = compatibilityEnvelope.result.adapters.find(

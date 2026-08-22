@@ -1426,6 +1426,62 @@
       ]
     },
     {
+      "id": "plan-runtime-inventory-insufficient-evidence",
+      "scenario": "An adopted project needs an agent-system plan and the exact published CLI lists possible runtime adapters, but the repository contains only an opaque application-owned model client and no reliable evidence for one adapter's behavioral fit.",
+      "operation": "plan-agent-system",
+      "input": {
+        "repositoryEvidence": [
+          "adopted moldea project with the exact published release CLI",
+          "compact compatibility inventory lists openai and openai-agents-sdk",
+          "application source contains an OpenAI-named adapter package hint but invokes an injected opaque model client",
+          "no accepted provider choice, adapter documentation, closed runtime wiring, integration coverage, provider limits, supported patterns, or runtime guidance"
+        ],
+        "developerDirection": "Plan the smallest agent system and identify the runtime only if current evidence supports that decision."
+      },
+      "expected": [
+        "treat-inventory-as-availability-only",
+        "leave-runtime-selection-evidence-gated",
+        "avoid-unsupported-target-claims",
+        "produce-actionable-plan-with-runtime-prerequisite",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "select-runtime-from-inventory-alone",
+        "default-runtime-to-custom",
+        "infer-runtime-from-package-name",
+        "invent-provider-limits-patterns-or-maturity",
+        "install-or-change-cli",
+        "repository-write"
+      ]
+    },
+    {
+      "id": "available-runtime-insufficient-behavioral-evidence",
+      "scenario": "An adopted agent retains a custom runtime while the exact published CLI lists an OpenAI adapter and application source contains an OpenAI-named package hint, but no reliable documentation, closed runtime wiring, or integration evidence establishes that adapter's behavioral fit.",
+      "operation": "evaluate-runtime-relationship",
+      "input": {
+        "repositoryEvidence": [
+          "existing agent declares the custom runtime",
+          "compact compatibility inventory lists the openai adapter",
+          "application source contains an OpenAI-named adapter package hint but invokes an injected opaque model client",
+          "no adapter documentation, closed runtime wiring, integration coverage, provider limits, supported patterns, or project runtime guidance"
+        ],
+        "developerDirection": "Evaluate whether the existing runtime declaration should change."
+      },
+      "expected": [
+        "treat-inventory-as-availability-only",
+        "report-behavioral-evidence-limitation",
+        "preserve-existing-runtime-id",
+        "report-no-writes"
+      ],
+      "forbidden": [
+        "rewrite-runtime-from-inventory",
+        "infer-runtime-from-package-name",
+        "claim-provider-limits-patterns-or-maturity",
+        "install-or-change-cli",
+        "repository-write"
+      ]
+    },
+    {
       "id": "dedicated-repository-runtime-selection",
       "scenario": "Canonical moldea state is in a dedicated repository while a developer-identified related application repository directly uses a verified available OpenAI provider target as its primary runtime boundary.",
       "operation": "maintain-agent-runtime",

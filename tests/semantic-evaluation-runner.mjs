@@ -773,6 +773,27 @@ const seedRefundAgent = async (
   }
 };
 
+/** Seeds a provider-named hint without evidence that one official adapter fits the runtime. */
+const seedInventoryOnlyRuntimeEvidence = async (repositoryPath) => {
+  await writeScenarioFile(
+    repositoryPath,
+    'src/model-runtime.js',
+    [
+      "export const adapterPackageHint = '@moldea.ai/adapter-openai';",
+      '',
+      'export const createModelRuntime = (modelClient) => ({',
+      '  run: (input) => modelClient.invoke(input),',
+      '});',
+      '',
+    ].join('\n'),
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'docs/runtime-candidates.md',
+    '# Runtime candidates\n\nDeployment configuration names the OpenAI adapter package as a candidate. This repository does not establish an approved provider integration or adapter contract.\n',
+  );
+};
+
 /** Seeds one custom runtime whose description consumers have case-specific semantic roles. */
 const seedRoutingDescriptionAgent = async (repositoryPath, caseId) => {
   const agentDescriptionPath = '/moldea/agents/triage-agent/description.md';
@@ -1135,6 +1156,14 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
   await seedAdoptedProject(repositoryPath, caseDefinition);
 
   switch (caseDefinition.id) {
+    case 'available-runtime-insufficient-behavioral-evidence':
+      await seedRefundAgent(
+        repositoryPath,
+        'Use the configured model runtime to assess refund requests.',
+        { runtimeId: 'custom', withMirrors: false },
+      );
+      await seedInventoryOnlyRuntimeEvidence(repositoryPath);
+      break;
     case 'adopted-relevance-no-change':
       await writeScenarioFile(
         repositoryPath,
@@ -1216,6 +1245,9 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
         'runtime/provider.json',
         '{"providerHostedCapabilities":{"webSearch":true}}\n',
       );
+      break;
+    case 'plan-runtime-inventory-insufficient-evidence':
+      await seedInventoryOnlyRuntimeEvidence(repositoryPath);
       break;
     case 'skill-boundary-surface-selection':
       await writeScenarioFile(

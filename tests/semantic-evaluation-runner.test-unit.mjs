@@ -697,6 +697,10 @@ test('semantic evidence normalization permits only release-version declarations'
 
 test('uses the published CLI for compatibility-sensitive runtime states', () => {
   assert.equal(
+    getSemanticToolingSource('available-runtime-insufficient-behavioral-evidence'),
+    'published-package',
+  );
+  assert.equal(
     getSemanticToolingSource('dedicated-repository-runtime-selection'),
     'published-package',
   );
@@ -709,6 +713,10 @@ test('uses the published CLI for compatibility-sensitive runtime states', () => 
   assert.equal(getSemanticToolingSource('initialize-insufficient-context'), 'published-package');
   assert.equal(getSemanticToolingSource('initialize-partial-context'), 'published-package');
   assert.equal(getSemanticToolingSource('initialize-sufficient-context'), 'published-package');
+  assert.equal(
+    getSemanticToolingSource('plan-runtime-inventory-insufficient-evidence'),
+    'published-package',
+  );
   assert.equal(getSemanticToolingSource('pnpm-pnp-local-cli-provider'), 'scenario-specific');
 });
 

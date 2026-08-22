@@ -109,6 +109,7 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'adopted-relevance-changed-behavior',
     'adopted-relevance-no-change',
     'agent-adoption-inline-runtime-instruction',
+    'available-runtime-insufficient-behavioral-evidence',
     'canonical-instruction-changed',
     'dedicated-repository-runtime-selection',
     'dedicated-repository-single-side-change',
@@ -122,6 +123,7 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'plan-existing-project-one-agent',
     'plan-justified-multi-agent',
     'plan-material-ambiguity',
+    'plan-runtime-inventory-insufficient-evidence',
     'plan-uninitialized-zero-agent',
     'pnpm-hook-install-blocked',
     'pnpm-pnp-local-cli-provider',
@@ -585,6 +587,34 @@ describe('source repository conformance', () => {
     }
   });
 
+  test('keeps runtime behavior evidence-gated when the CLI proves only availability', () => {
+    const semanticCasesById = new Map(
+      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+    );
+    const evaluationCase = semanticCasesById.get(
+      'available-runtime-insufficient-behavioral-evidence',
+    );
+    const planningCase = semanticCasesById.get('plan-runtime-inventory-insufficient-evidence');
+
+    assert.ok(evaluationCase);
+    assert.ok(evaluationCase.expected.includes('treat-inventory-as-availability-only'));
+    assert.ok(evaluationCase.expected.includes('report-behavioral-evidence-limitation'));
+    assert.ok(evaluationCase.expected.includes('preserve-existing-runtime-id'));
+    assert.ok(evaluationCase.forbidden.includes('rewrite-runtime-from-inventory'));
+    assert.ok(
+      evaluationCase.forbidden.includes('claim-provider-limits-patterns-or-maturity'),
+    );
+
+    assert.ok(planningCase);
+    assert.ok(planningCase.expected.includes('treat-inventory-as-availability-only'));
+    assert.ok(planningCase.expected.includes('leave-runtime-selection-evidence-gated'));
+    assert.ok(planningCase.expected.includes('avoid-unsupported-target-claims'));
+    assert.ok(planningCase.forbidden.includes('select-runtime-from-inventory-alone'));
+    assert.ok(
+      planningCase.forbidden.includes('invent-provider-limits-patterns-or-maturity'),
+    );
+  });
+
   test(
     'binds available semantic evaluations to exact release inputs',
     { skip: !existsSync(join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-result.json')) },
@@ -930,6 +960,10 @@ describe('source repository conformance', () => {
 
     assertMatchesEvery(readme, [
       /Semantic evaluation is intentionally lengthy/,
+      /44 cases/,
+      /88 model calls/,
+      /adapter availability/,
+      /behavioral support/,
       /significant number of model tokens/,
       /full or targeted semantic evaluation/,
       /why fresh semantic evidence is important/,

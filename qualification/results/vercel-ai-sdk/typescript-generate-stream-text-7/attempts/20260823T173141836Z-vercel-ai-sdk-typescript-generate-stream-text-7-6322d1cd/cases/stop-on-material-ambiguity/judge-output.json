@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The repository is unchanged and establishes a material ambiguity between preview and submitted transfer behavior. The actor correctly stopped before Moldea initialization, requested the necessary policy decision, and reported the expected missing-project validation state.",
+  "requirements": [
+    {
+      "id": "identifies-material-choice",
+      "verdict": "pass",
+      "evidence": "README.md states that product policy for preview and execution modes is not documented, while src/transfer-operation.ts returns preview when execute is false and submitted when true. The actor identifies this as the unresolved transfer-operation policy."
+    },
+    {
+      "id": "requests-focused-decision",
+      "verdict": "pass",
+      "evidence": "The actor asks to define the transfer-operation policy—whether preview is non-side-effecting and what execution/submission is authorized to do—before continuing. This is the single material product decision governing initialization."
+    },
+    {
+      "id": "avoids-invention",
+      "verdict": "pass",
+      "evidence": "Git status and git diff HEAD are empty; workspace assertions show identical before/after hashes and no changed paths. No /moldea files were created and README.md remains unchanged."
+    },
+    {
+      "id": "reports-validation-state",
+      "verdict": "pass",
+      "evidence": "The actor reports repository-local Moldea inspect status invalid with MOLDEA_MANIFEST_MISSING and MOLDEA_PROJECT_FILE_MISSING. The deterministic post-actor summary independently confirms inspect and validate status invalid with no failures."
+    }
+  ],
+  "failures": []
+}

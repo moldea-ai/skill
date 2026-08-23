@@ -31,7 +31,7 @@ export class FakeCodexHost implements ICodexHost {
         outcome: input.scenario.expectedActorOutcome,
         summary: `Applied the transparent expected dry-run state for ${input.caseId}.`,
         commands: [],
-        changedFiles: input.scenario.workspace.allowedChangePaths,
+        changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
         observations: ['No paid model execution occurred.'],
         unresolved: [],
       },

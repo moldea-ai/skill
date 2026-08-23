@@ -24,6 +24,8 @@ export type ICodexRoleExecutionResult<TResult> = {
 
 export type IActorExecutionInput = ICodexRoleExecutionInput<IActorOutput> & {
   caseId: string;
+  // observed changes after applying the transparent dry-run fixture; omitted for real actors
+  dryRunChangedFiles?: string[] | undefined;
   scenario: IQualificationCaseScenario;
 };
 

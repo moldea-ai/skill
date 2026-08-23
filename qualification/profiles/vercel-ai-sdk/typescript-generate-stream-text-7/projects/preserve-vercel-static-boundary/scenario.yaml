@@ -32,17 +32,17 @@ workspace:
       moldea/agents/support/description.md,
       moldea/agents/support/instruction.md,
     ]
-  mustChangePaths: [moldea/moldea.yaml, moldea/runtimes/indirect-generation.md]
-  mustExistPaths: [src/support-agent.ts, moldea/moldea.yaml, moldea/runtimes/indirect-generation.md]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths: [src/support-agent.ts, moldea/moldea.yaml]
   mustNotExistPaths: []
-  allowedChangePaths: [moldea/moldea.yaml, moldea/runtimes/indirect-generation.md]
-  allowedChangePathPatterns: []
-  mustChangePathPatterns: []
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: [moldea/runtimes/**/*.md]
+  mustChangePathPatterns: [moldea/runtimes/**/*.md]
 judgeRequirements:
   - id: identifies-unsupported-form
     description: The actor explains that an indirect request object and prepareStep prevent direct runtime-pattern and instruction-loader proof.
   - id: records-focused-guidance
-    description: Runtime guidance describes the repository-specific wrapper and the supported direct object-literal alternative without claiming provider behavior.
+    description: The manifest references the sole new runtime-guidance file under /moldea/runtimes/**/*.md, which describes the repository-specific wrapper and the supported direct object-literal alternative without claiming provider behavior.
   - id: records-unresolved-boundary
     description: An unresolved warning names the static-analysis boundary, related source, and concrete direct-pattern resolution.
   - id: avoids-inference

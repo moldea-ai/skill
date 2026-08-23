@@ -33,6 +33,7 @@ import {
   applyExpectedDryRunState,
   assertQualificationProjectInputIntegrity,
   captureQualificationProjectSnapshot,
+  inspectWorkspaceAssertions,
   MOUNTED_SKILL_RELATIVE_PATH,
   QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,
   restoreQualificationProjectSnapshot,
@@ -169,14 +170,18 @@ export const executeActorModelStage = async (
     sourceAttemptId = cacheHit.metadata.sourceAttemptId;
     cacheSourceAttemptId = cacheHit.metadata.sourceAttemptId;
   } else {
+    let dryRunChangedFiles: string[] | undefined;
+
     if (options.isDryRun) {
       await applyExpectedDryRunState(options.project);
+      dryRunChangedFiles = (await inspectWorkspaceAssertions(options.project)).changedPaths;
     } else {
       await options.approvePaidExecution();
     }
 
     const execution = await options.host.runActor({
       caseId: options.project.scenario.id,
+      ...(dryRunChangedFiles === undefined ? {} : { dryRunChangedFiles }),
       prompt,
       scenario: options.project.scenario,
       schema: ActorOutputSchema,

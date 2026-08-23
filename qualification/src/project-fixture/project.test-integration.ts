@@ -7,13 +7,14 @@ import { afterEach, describe, expect, test } from 'vitest';
 import { createOrderTriageAgent } from '../../profiles/custom/custom/projects/create-grounded-agent/seed/src/order-triage-agent.ts';
 
 import { DEFAULT_SKILL_REPOSITORY, QUALIFICATION_PROFILES_ROOT } from '../constants/index.ts';
-import type { ICandidateClosure } from '../contracts/index.ts';
+import { QualificationCaseScenarioSchema, type ICandidateClosure } from '../contracts/index.ts';
 import {
   calculateDirectoryFingerprint,
   calculateFileSha256,
   calculateSha256,
   copyDirectory,
   ensureDirectory,
+  readYamlFile,
 } from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
 import { inspectGitRepositoryState, type IGitRepositoryState } from '../repository-state/index.ts';
@@ -157,6 +158,28 @@ describe('qualification project fixtures', () => {
     if (temporaryRoot !== null) {
       await rm(temporaryRoot, { force: true, recursive: true });
     }
+  });
+
+  test('keeps the Vercel static-boundary runtime-guidance filename actor-selected', async () => {
+    const scenario = await readYamlFile(
+      path.join(
+        QUALIFICATION_PROFILES_ROOT,
+        'vercel-ai-sdk',
+        'typescript-generate-stream-text-7',
+        'projects',
+        'preserve-vercel-static-boundary',
+        'scenario.yaml',
+      ),
+      QualificationCaseScenarioSchema,
+    );
+
+    expect(scenario.workspace).toMatchObject({
+      allowedChangePaths: ['moldea/moldea.yaml'],
+      allowedChangePathPatterns: ['moldea/runtimes/**/*.md'],
+      mustChangePaths: ['moldea/moldea.yaml'],
+      mustChangePathPatterns: ['moldea/runtimes/**/*.md'],
+      mustExistPaths: ['src/support-agent.ts', 'moldea/moldea.yaml'],
+    });
   });
 
   test('applies dirty state, expected changes, and preservation assertions independently', async () => {

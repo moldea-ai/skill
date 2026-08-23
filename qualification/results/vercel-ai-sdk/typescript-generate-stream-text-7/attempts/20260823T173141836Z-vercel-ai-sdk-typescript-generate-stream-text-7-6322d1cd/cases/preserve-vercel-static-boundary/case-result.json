@@ -1,0 +1,28 @@
+{
+  "caseId": "preserve-vercel-static-boundary",
+  "title": "Preserve the Vercel static boundary",
+  "status": "failed",
+  "durationMs": 205797,
+  "deterministicBeforePath": "cases/preserve-vercel-static-boundary/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-vercel-static-boundary/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-vercel-static-boundary/actor-output.json",
+  "judgeStatus": "skipped",
+  "judgeOutputPath": null,
+  "judgeSkippedPath": "cases/preserve-vercel-static-boundary/judge-skipped.json",
+  "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/workspace-assertions.json",
+  "patchPath": "cases/preserve-vercel-static-boundary/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 792812,
+    "cachedInputTokens": 706048,
+    "outputTokens": 7803
+  },
+  "judgeUsage": null,
+  "actorEvidenceCreatedAt": "2026-08-23T18:04:12.202Z",
+  "judgeEvidenceCreatedAt": null,
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "failures": [
+    "Changes escaped the declared allowlist: moldea/runtimes/vercel-ai-sdk.md.",
+    "Required path is missing: moldea/runtimes/indirect-generation.md."
+  ]
+}

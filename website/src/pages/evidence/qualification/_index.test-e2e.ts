@@ -76,7 +76,7 @@ test('describes the Custom profile and any current immutable attempt', async ({ 
   }
 });
 
-test('keeps a profile transparent before its first official attempt', async ({ page }) => {
+test('presents the current Vercel qualification attempt transparently', async ({ page }) => {
   await page.goto(
     toPublicPath('/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/'),
   );
@@ -84,11 +84,32 @@ test('keeps a profile transparent before its first official attempt', async ({ p
   await expect(
     page.getByRole('heading', { level: 1, name: 'Vercel AI SDK direct generation qualification' }),
   ).toBeVisible();
-  await expect(page.getByText('No recorded attempt').first()).toBeVisible();
-  await expect(page.getByText('No official attempt has been committed.').first()).toBeVisible();
   await expect(page.getByRole('heading', { name: '10 realistic journeys' })).toBeVisible();
   await expect(page.getByRole('heading', { name: '36 behavior claims covered' })).toBeVisible();
-  await expect(page.getByRole('link', { name: /^Inspect the .* attempt$/u })).toHaveCount(0);
+  const attemptLink = page.getByRole('link', { name: /^Inspect the .* attempt$/u });
+  const status = await page
+    .locator('[data-evidence-status]')
+    .first()
+    .getAttribute('data-evidence-status');
+  const expectedDescriptions = {
+    errored:
+      'Immutable qualification evidence from an execution-error attempt for vercel-ai-sdk/typescript-generate-stream-text-7.',
+    failed:
+      'Immutable failed qualification evidence for vercel-ai-sdk/typescript-generate-stream-text-7.',
+    passed:
+      'Immutable passing qualification evidence for vercel-ai-sdk/typescript-generate-stream-text-7.',
+  } as const;
+
+  if (status !== 'errored' && status !== 'failed' && status !== 'passed') {
+    throw new Error(`Unexpected qualification status: ${status ?? 'missing'}.`);
+  }
+
+  await expect(attemptLink).toBeVisible();
+  await attemptLink.click();
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
+    'content',
+    expectedDescriptions[status],
+  );
 });
 
 test('keeps qualification evidence accessible at 320px in both themes', async ({ browser }) => {
@@ -99,10 +120,10 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
     });
     const page = await context.newPage();
     const profileRoute = toPublicPath('/evidence/qualification/custom/custom/');
-    const emptyProfileRoute = toPublicPath(
+    const vercelProfileRoute = toPublicPath(
       '/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/',
     );
-    const routes = [toPublicPath('/evidence/qualification/'), profileRoute, emptyProfileRoute];
+    const routes = [toPublicPath('/evidence/qualification/'), profileRoute, vercelProfileRoute];
 
     await page.goto(profileRoute);
     const attemptLink = page.getByRole('link', { name: /^Inspect the .* attempt$/u });

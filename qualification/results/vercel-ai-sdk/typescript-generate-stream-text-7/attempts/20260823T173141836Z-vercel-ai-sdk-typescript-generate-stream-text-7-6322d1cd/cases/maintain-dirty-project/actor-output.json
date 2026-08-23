@@ -1,0 +1,26 @@
+{
+  "outcome": "completed",
+  "summary": "Added and registered durable billing context for support. The canonical instruction now directs refund and invoice questions to it; the direct Vercel AI SDK wrapper, loader, and structured output remain unchanged. Local validation passed and the complete tracked plus new-file diffs were reviewed.",
+  "commands": [
+    "node_modules/.bin/moldea inspect --json",
+    "node_modules/.bin/moldea validate --json",
+    "node_modules/.bin/tsc --noEmit",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null diff HEAD --no-ext-diff --no-textconv --check",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null diff HEAD --no-ext-diff --no-textconv",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null diff --no-index --no-ext-diff --no-textconv /dev/null moldea/context/billing.md",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null status --short && git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null ls-files --others --exclude-standard"
+  ],
+  "changedFiles": [
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "Moldea CLI 4.0.1 final inspect and validate both returned schemaVersion 2, status valid, and no diagnostics.",
+    "TypeScript validation passed.",
+    "Billing context is bound to /src/billing.ts#classifyBillingQuestion and assigned to support.",
+    "Pre-existing src/operator-notes.ts and notes/local-observation.md remain preserved.",
+    "Repository evidence establishes classification only; no unsupported refund or invoice policy/action was added."
+  ],
+  "unresolved": []
+}

@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The sole diff corrects the stale canonical tool name to the source’s closed Vercel tools-map key. Isolated local Moldea inspection and validation are valid with no diagnostics; TypeScript passes.",
+  "requirements": [
+    {
+      "id": "uses-exact-diagnostic",
+      "verdict": "pass",
+      "evidence": "HEAD declares `find_order`, while `/src/agent.ts` binds `tools: { lookup_order: lookupOrderTool }`. The reported `VERCEL_AI_SDK_TOOL_NAME_MISMATCH` is consistent with and specifically identifies this closed-map key mismatch; no source rename was made."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "The complete Git diff changes only `moldea/moldea.yaml` tool `lookup-order.name` from `find_order` to `lookup_order`. `/src/agent.ts`, `/src/tools.ts`, `/src/implementations.ts`, and `/src/contracts.ts` remain unchanged."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "`inspect --json` returned valid Vercel `tool-registration` evidence with runtime name `lookup_order` and references to `/src/agent.ts`, `lookupOrderTool`, `lookupOrder`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema`; it also reports the `loadSupportInstruction` instruction-loader evidence and `SupportOutputSchema` agent-output evidence."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Independent root-local `moldea inspect --json` completed with exit 0, schemaVersion 2, cliVersion 4.0.1, status `valid`, no diagnostics, and tool-registration evidence. Independent `moldea validate --json` and `tsc --noEmit` both exited 0. `git diff --check` is clean, and workspace assertions confirm only `moldea/moldea.yaml` changed with repository equivalence preserved."
+    }
+  ],
+  "failures": []
+}

@@ -14,12 +14,14 @@ import type {
 } from '../contracts/index.ts';
 import {
   calculateDirectoryFingerprint,
+  collectDirectoryFingerprintEntries,
   ensureDirectory,
   writeJsonFileAtomically,
 } from '../filesystem/index.ts';
 import {
   captureQualificationProjectSnapshot,
   MOUNTED_SKILL_RELATIVE_PATH,
+  QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,
   type IPreparedQualificationProject,
 } from '../project-fixture/index.ts';
 import {
@@ -108,6 +110,138 @@ describe('qualification model stages', () => {
     if (temporaryRoot !== null) {
       await rm(temporaryRoot, { force: true, recursive: true });
     }
+  });
+
+  test('reports the observed expected-fixture paths for pattern-based dry runs', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-model-stage-'));
+    const workspaceDirectory = path.join(temporaryRoot, 'workspace');
+    const scenarioDirectory = path.join(temporaryRoot, 'scenario');
+    const caseArtifactDirectory = path.join(temporaryRoot, 'artifacts');
+    const snapshotDirectory = path.join(temporaryRoot, 'snapshot');
+    const runtimeDirectory = path.join(temporaryRoot, 'runtime');
+    const candidateDirectory = path.join(workspaceDirectory, 'node_modules', 'candidate');
+    const internalDirectory = path.join(workspaceDirectory, '.moldea-qualification');
+    const skillDirectory = path.join(workspaceDirectory, MOUNTED_SKILL_RELATIVE_PATH);
+    const manifestPath = path.join(workspaceDirectory, 'moldea', 'moldea.yaml');
+    const expectedManifestPath = path.join(scenarioDirectory, 'expected', 'moldea', 'moldea.yaml');
+    const expectedGuidancePath = path.join(
+      scenarioDirectory,
+      'expected',
+      'moldea',
+      'runtimes',
+      'actor-selected.md',
+    );
+    await Promise.all([
+      ensureDirectory(candidateDirectory),
+      ensureDirectory(caseArtifactDirectory),
+      ensureDirectory(internalDirectory),
+      ensureDirectory(skillDirectory),
+      ensureDirectory(path.dirname(manifestPath)),
+      ensureDirectory(path.dirname(expectedGuidancePath)),
+      ensureDirectory(runtimeDirectory),
+    ]);
+    await Promise.all([
+      writeFile(path.join(candidateDirectory, 'index.js'), 'candidate runtime\n', 'utf8'),
+      writeFile(path.join(internalDirectory, 'task.md'), 'Runner-owned task\n', 'utf8'),
+      writeFile(path.join(skillDirectory, 'SKILL.md'), '# Mounted skill\n', 'utf8'),
+      writeFile(manifestPath, 'version: 1\nagents: {}\n', 'utf8'),
+      writeFile(
+        expectedManifestPath,
+        'version: 1\nagents:\n  support:\n    runtime:\n      guidance: /moldea/runtimes/actor-selected.md\n',
+        'utf8',
+      ),
+      writeFile(expectedGuidancePath, '# Actor-selected guidance\n', 'utf8'),
+    ]);
+    const patternedScenario = {
+      ...scenario,
+      expectedDirectory: 'expected',
+      workspace: {
+        ...scenario.workspace,
+        expectation: 'changed',
+        mustChangePaths: ['moldea/moldea.yaml'],
+        allowedChangePaths: ['moldea/moldea.yaml'],
+        allowedChangePathPatterns: ['moldea/runtimes/**/*.md'],
+        mustChangePathPatterns: ['moldea/runtimes/**/*.md'],
+      },
+    } satisfies IQualificationCaseScenario;
+    const project: IPreparedQualificationProject = {
+      profileCase: {
+        id: patternedScenario.id,
+        projectDirectory: 'projects/test-case',
+        scenarioFile: 'scenario.yaml',
+      },
+      scenario: patternedScenario,
+      scenarioDirectory,
+      workspaceDirectory,
+      taskPath: path.join(internalDirectory, 'task.md'),
+      baselineCommit: 'fixture',
+      beforeActorFiles: await collectDirectoryFingerprintEntries(workspaceDirectory, {
+        excludedDirectoryNames: new Set(QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES),
+        excludedRelativePathPrefixes: [MOUNTED_SKILL_RELATIVE_PATH],
+      }),
+      candidateRuntimeDigest: await calculateDirectoryFingerprint(
+        path.join(workspaceDirectory, 'node_modules'),
+      ),
+      internalDigest: await calculateDirectoryFingerprint(internalDirectory),
+      skillDigest: await calculateDirectoryFingerprint(skillDirectory),
+    };
+    const candidate: ICandidateClosure = {
+      cliJsonSchemaVersion: 2,
+      cliVersion: '4.0.0',
+      fingerprint: 'c'.repeat(64),
+      packages: [],
+      typeScriptPackage: {
+        name: 'typescript',
+        version: '6.0.3',
+        registryIntegrity: `sha512-${'d'.repeat(86)}`,
+        registryShasum: 'e'.repeat(40),
+        registryTarballUrl: 'https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz',
+        tarballPath: '/candidate/typescript.tgz',
+        tarballName: 'typescript-6.0.3.tgz',
+        sha256: 'f'.repeat(64),
+      },
+      runtimeDirectory,
+    };
+
+    const result = await executeActorModelStage({
+      adapterId: 'vercel-ai-sdk',
+      approvePaidExecution: () => Promise.reject(new Error('Dry runs must not request approval.')),
+      attemptDirectory: temporaryRoot,
+      attemptId: 'attempt',
+      candidate,
+      caseArtifactDirectory,
+      executionEnvironment: {
+        model: 'gpt-5.6-terra',
+        reasoningEffort: 'medium',
+        codexVersion: 'codex-cli fake',
+        nodeVersion: process.version,
+        pnpmVersion: '11.9.0',
+        gitVersion: 'git version test',
+        allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
+        hostTimeoutMs: 120_000,
+        modelEndpoint: null,
+        sslCertificateFileSha256: null,
+      },
+      host: new FakeCodexHost(),
+      implementationId: 'typescript-generate-stream-text-7',
+      isDryRun: true,
+      packagesRepository: '/packages',
+      profileDigest: 'd'.repeat(64),
+      qualificationDigest: 'e'.repeat(64),
+      project,
+      skillDigest: 'f'.repeat(64),
+      targetDigest: '1'.repeat(64),
+      skillRepository: '/skill',
+      snapshotDirectory,
+      task: 'Record the static-analysis boundary.',
+      useCache: false,
+      verifyExecutionInputs: () => Promise.resolve(),
+    });
+
+    expect(result.output.changedFiles).toStrictEqual([
+      'moldea/moldea.yaml',
+      'moldea/runtimes/actor-selected.md',
+    ]);
   });
 
   test('rejects incomplete judge requirements from fresh and restored evidence', async () => {

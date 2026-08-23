@@ -1,0 +1,22 @@
+{
+  "outcome": "completed",
+  "summary": "Added focused Vercel static-boundary guidance and an agent-owned warning with a supported direct-call resolution path. The support implementation was not changed. Moldea inspection is valid and TypeScript checks pass.",
+  "commands": [
+    "<workspace>/node_modules/.bin/moldea inspect --json",
+    "<workspace>/node_modules/.bin/tsc --noEmit",
+    "git -c core.fsmonitor=false -c core.pager=cat diff --no-ext-diff --check",
+    "git -c core.fsmonitor=false -c core.pager=cat diff --no-ext-diff -- moldea/moldea.yaml moldea/runtimes/vercel-ai-sdk.md src/support-agent.ts"
+  ],
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/vercel-ai-sdk.md"
+  ],
+  "observations": [
+    "The wrapper still calls generateText with an indirect request object; prepareStep may replace instructions.",
+    "Final local Moldea inspection returned schemaVersion 2, CLI 4.0.1, status valid, and no diagnostics.",
+    "TypeScript validation completed successfully."
+  ],
+  "unresolved": [
+    "support.vercel-static-direct-call-boundary remains a warning until a behavior-preserving supported direct pattern is intentionally adopted."
+  ]
+}

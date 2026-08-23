@@ -1,0 +1,13 @@
+{
+  "role": "actor",
+  "createdAt": "2026-08-23T17:33:42.203Z",
+  "durationMs": 104565,
+  "usage": {
+    "inputTokens": 309049,
+    "cachedInputTokens": 268544,
+    "outputTokens": 4388
+  },
+  "cacheKey": "3db89e4fc1f7ce5ff67b997180e037090e3c4727d3d61715226ab396c9091c83",
+  "sourceAttemptId": "20260823T173141836Z-vercel-ai-sdk-typescript-generate-stream-text-7-6322d1cd",
+  "cacheSourceAttemptId": null
+}

@@ -1,0 +1,383 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompatibilityValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 2740
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "language",
+          "runtime-package"
+        ],
+        "evidenceCount": 2,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "language",
+          "runtime-package"
+        ],
+        "evidenceCount": 2,
+        "agentCount": 1
+      }
+    },
+    "cliCompatibility": {
+      "schemaVersion": 2,
+      "cliVersion": "4.0.1",
+      "command": "compatibility",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "4.0.1",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "4.0.1",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "7.0.77",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "vercel-ai-sdk"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/support-agent.ts"
+                  ],
+                  "bindings": {
+                    "runtimeAgent": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "supportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/vercel-ai-sdk.md",
+                    "id": "vercel-ai-sdk"
+                  },
+                  "unresolved": {
+                    "vercel-static-direct-call-boundary": {
+                      "category": "static-runtime-evidence",
+                      "description": "The support integration passes an indirect request object to generateText, and its prepareStep callback can replace instructions. The adapter does not establish this dynamic form.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/moldea/runtimes/vercel-ai-sdk.md"
+                        },
+                        {
+                          "path": "/src/support-agent.ts"
+                        }
+                      ],
+                      "resolution": "If static evidence is required, use a directly exported function with a direct generateText({ ... }) call and wire the canonical instruction loader directly through instructions (or the closed direct-generation system fallback), after separately preserving or testing the intended step behavior."
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Produces support responses through a repository-specific request builder.\n",
+                    "digest": "sha256:ab6d3f651ca3971a36a0922b7ec353354febb630009c6ff5a3ca72d287c2bddc",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 74,
+                    "utf8ByteLength": 74
+                  },
+                  "scalarLength": 73,
+                  "value": "Produces support responses through a repository-specific request builder."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer only from verified project evidence.\n",
+                  "digest": "sha256:b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 90,
+                  "utf8ByteLength": 90
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: vercel-ai-sdk\n      guidance: /moldea/runtimes/vercel-ai-sdk.md\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.ts\n        symbol: supportAgent\n    affectedBy:\n      - /src/support-agent.ts\n    unresolved:\n      vercel-static-direct-call-boundary:\n        category: static-runtime-evidence\n        effect: warning\n        description: The support integration passes an indirect request object to generateText, and its prepareStep callback can replace instructions. The adapter does not establish this dynamic form.\n        resolution: If static evidence is required, use a directly exported function with a direct generateText({ ... }) call and wire the canonical instruction loader directly through instructions (or the closed direct-generation system fallback), after separately preserving or testing the intended step behavior.\n        related:\n          - path: /src/support-agent.ts\n          - path: /moldea/runtimes/vercel-ai-sdk.md\n",
+                "digest": "sha256:23212ec498e948d9c17f60bd657675cd6b12af3d975bd7e3df00ce31d677b0e3",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 1012,
+                "utf8ByteLength": 1012
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/src/support-agent.ts"
+                    ],
+                    "bindings": {
+                      "runtimeAgent": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "supportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/vercel-ai-sdk.md",
+                      "id": "vercel-ai-sdk"
+                    },
+                    "unresolved": {
+                      "vercel-static-direct-call-boundary": {
+                        "category": "static-runtime-evidence",
+                        "description": "The support integration passes an indirect request object to generateText, and its prepareStep callback can replace instructions. The adapter does not establish this dynamic form.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/moldea/runtimes/vercel-ai-sdk.md"
+                          },
+                          {
+                            "path": "/src/support-agent.ts"
+                          }
+                        ],
+                        "resolution": "If static evidence is required, use a directly exported function with a direct generateText({ ... }) call and wire the canonical instruction loader directly through instructions (or the closed direct-generation system fallback), after separately preserving or testing the intended step behavior."
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Indirect support generation\n\nThis project uses a repository-specific request builder around Vercel AI SDK generation.\n",
+              "digest": "sha256:efd792c1b346f816ff3267c4eeaa92c57831fcfeed2f009a250a30267724351c",
+              "path": "/moldea/project.md",
+              "scalarLength": 120,
+              "utf8ByteLength": 120
+            },
+            "runtimes": [
+              {
+                "asset": {
+                  "content": "# Vercel AI SDK static boundary\n\n`supportAgent` calls `generateText(buildRequest(prompt))`. The request is assembled indirectly, and `prepareStep` can load and replace instructions.\n\nThe project-local static adapter recognizes directly exported functions containing a direct `generateText({ ... })` or `streamText({ ... })` call. For direct instruction loading, it recognizes `instructions` and the closed direct-generation `system` fallback. It does not establish the indirect request-builder form used here.\n\nKeep the current integration as implemented. If deterministic static evidence becomes necessary, first preserve the intended step behavior, then move to the supported direct-call pattern recorded in the support agent's unresolved warning.\n",
+                  "digest": "sha256:84f051d5fb26dc833d4e64e28826926037c8643d5780c986e829482e7d5b1c09",
+                  "path": "/moldea/runtimes/vercel-ai-sdk.md",
+                  "scalarLength": 750,
+                  "utf8ByteLength": 750
+                }
+              }
+            ],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

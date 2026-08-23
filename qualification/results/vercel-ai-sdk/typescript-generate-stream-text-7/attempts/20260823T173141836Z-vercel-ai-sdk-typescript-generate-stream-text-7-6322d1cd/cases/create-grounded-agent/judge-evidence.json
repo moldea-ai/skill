@@ -1,0 +1,13 @@
+{
+  "role": "judge",
+  "createdAt": "2026-08-23T17:40:32.395Z",
+  "durationMs": 44530,
+  "usage": {
+    "inputTokens": 89183,
+    "cachedInputTokens": 65536,
+    "outputTokens": 1792
+  },
+  "cacheKey": "b82a0ac014b8e5155a70bdeb7066f6cde8ad8aa28b4d6ce71af6baf71a79c4af",
+  "sourceAttemptId": "20260823T173141836Z-vercel-ai-sdk-typescript-generate-stream-text-7-6322d1cd",
+  "cacheSourceAttemptId": null
+}

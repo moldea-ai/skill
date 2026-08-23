@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The manifest is reduced to `version: 1`; obsolete support assets are deleted, surviving context is unchanged, and supplied deterministic validation reports valid with no read-time mutation.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` contains only `version: 1`. The diff removes the `support` agent registration, `vercel-ai-sdk` runtime ID, and all runtimeAgent, instructionLoader, outputSchema, and affectedBy bindings."
+    },
+    {
+      "id": "removes-orphaned-assets",
+      "verdict": "pass",
+      "evidence": "Git diff and status show deletions of `moldea/agents/support/description.md` and `moldea/agents/support/instruction.md`; the final `moldea` tree contains only `moldea.yaml` and `project.md`."
+    },
+    {
+      "id": "preserves-surviving-context",
+      "verdict": "pass",
+      "evidence": "The supplied workspace assertions show byte-identical hashes for `moldea/project.md`, `package.json`, `src/project-state.ts`, and `tsconfig.json`. Independent Git diff confirms no changes to those paths; remaining project context accurately describes the wrapper as retired."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Deterministic post-actor evidence reports valid inspect and validate statuses, repository filesystem and memory equivalence, CLI compatibility/identity/inventory validity, successful typecheck, and `repositoryUnchanged: true`. Independent `git diff --check` also exits successfully."
+    }
+  ],
+  "failures": []
+}

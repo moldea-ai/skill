@@ -1,0 +1,25 @@
+{
+  "outcome": "completed",
+  "summary": "`support` is aligned. Canonical state binds `supportAgent`, `loadSupportInstruction`, and `SupportOutputSchema` to the Vercel AI SDK runtime. `src/support-agent.ts` directly reads canonical `moldea/agents/support/instruction.md` and passes it as `instructions` to `generateText`. No repository files were changed.",
+  "commands": [
+    "git rev-parse --show-toplevel && git status --short --untracked-files=all && sed -n '1,240p' package.json && find . -maxdepth 3 \\( -name AGENTS.md -o -name CLAUDE.md \\) -type f -print",
+    "node -e \"const fs=require('fs'); const p=JSON.parse(fs.readFileSync('node_modules/@moldea.ai/cli/package.json','utf8')); if(p.name!=='@moldea.ai/cli'||p.version!=='4.0.1'||typeof p.bin?.moldea!=='string') process.exitCode=1; console.log(JSON.stringify({name:p.name,version:p.version,bin:p.bin?.moldea}))\"",
+    "node -e \"const fs=require('fs'),path=require('path'); const pkg=fs.realpathSync('node_modules/@moldea.ai/cli'); const bin=fs.realpathSync('node_modules/.bin/moldea'); const target=fs.realpathSync(path.join(pkg,'dist/moldea.js')); if(bin!==target||!bin.startsWith(pkg+path.sep)) process.exitCode=1; console.log(JSON.stringify({package:pkg,bin,expected:target,providerMatches:bin===target}))\"",
+    "node_modules/.bin/moldea inspect --json",
+    "sed -n '1,260p' moldea/moldea.yaml && sed -n '1,220p' moldea/project.md && sed -n '1,200p' moldea/agents/support/description.md && sed -n '1,240p' moldea/agents/support/instruction.md && sed -n '1,360p' src/support-agent.ts && sed -n '1,200p' tsconfig.json",
+    "node_modules/.bin/moldea validate --json",
+    "node_modules/.bin/tsc --noEmit",
+    "git diff --no-ext-diff --no-textconv --no-renames --stat && git diff --cached --no-ext-diff --no-textconv --no-renames --stat && git status --short --untracked-files=all"
+  ],
+  "changedFiles": [],
+  "observations": [
+    "The root-local CLI provider was verified as `@moldea.ai/cli` 4.0.1; its binary resolves within that installed package.",
+    "`moldea inspect --json` exited 0 with schemaVersion 2, command `inspect`, status `valid`, and no diagnostics. Its Vercel AI SDK adapter detected `ai@7.0.77`, `generateText`, the instruction loader, and output schema.",
+    "`moldea validate --json` exited 0 with schemaVersion 2, command `validate`, status `valid`, and no diagnostics.",
+    "TypeScript validation (`tsc --noEmit`) exited 0.",
+    "Final Git status and staged/unstaged diffs were empty."
+  ],
+  "unresolved": [
+    "No provider or agent was invoked, as required; runtime behavior beyond the statically established instruction-loading path was therefore not exercised."
+  ]
+}

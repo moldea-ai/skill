@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, Git diff, and deterministic validation agree: Moldea initialization is minimal, grounded in the README/source invoice-review behavior, and structurally valid without mutation.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "`src/invoice-review.ts` calculates a total difference and flags `requiresOperatorReview`; README states it extracts anomalies for an operator and never approves payments or changes invoices. `moldea/project.md` accurately records that purpose and boundary."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The only added Moldea files are `moldea/moldea.yaml` (`version: 1`) and concise `moldea/project.md`; no agent, runtime, decision, context, or unresolved requirement exists. README contains the standard single awareness block."
+    },
+    {
+      "id": "preserves-existing-work",
+      "verdict": "pass",
+      "evidence": "Git diff shows the pre-existing README text unchanged with only the awareness block appended. Workspace hashes show `package.json`, `src/invoice-review.ts`, and `tsconfig.json` unchanged; changed paths are only README and the two new Moldea files."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Independent local `node_modules/.bin/moldea inspect --json` and `validate --json` each returned schemaVersion 2, CLI 4.0.1, matching command, status `valid`, and no diagnostics. The deterministic post-actor summary also reports all layers valid and repository unchanged; `git diff --check` passed."
+    }
+  ],
+  "failures": []
+}

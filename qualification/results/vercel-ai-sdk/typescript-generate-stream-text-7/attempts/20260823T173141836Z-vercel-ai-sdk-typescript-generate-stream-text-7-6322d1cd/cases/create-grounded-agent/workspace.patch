@@ -1,0 +1,54 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index b825518..c6896fb 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1 +1,31 @@
+ version: 1
++agents:
++  order-triage:
++    runtime:
++      id: vercel-ai-sdk
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: orderTriageAgent
++      outputSchema:
++        path: /src/order-triage-agent.ts
++        symbol: OrderTriageOutputSchema
++      instructionLoader:
++        path: /src/order-triage-agent.ts
++        symbol: loadOrderTriageInstruction
++    tools:
++      classify-order:
++        name: classify_order
++        description: Classifies an order as fulfillment or refund-review.
++        implementation:
++          path: /src/order-triage-agent.ts
++          symbol: classifyOrder
++        registration:
++          path: /src/order-triage-agent.ts
++          symbol: classifyOrderTool
++        inputSchema:
++          path: /src/order-triage-agent.ts
++          symbol: ClassifyOrderInputSchema
++        outputSchema:
++          path: /src/order-triage-agent.ts
++          symbol: ClassifyOrderOutputSchema
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..b33948c
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review. It cannot approve refunds or perform account changes.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..a5f1529
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,3 @@
++`order-triage`
++
++Classify orders as `fulfillment` or `refund-review` for human review. Use `classify_order` to classify an order by its order ID. Every classification requires human review. Do not approve refunds or perform account changes.

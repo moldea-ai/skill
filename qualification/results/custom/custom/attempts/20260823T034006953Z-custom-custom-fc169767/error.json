@@ -1,4 +1,0 @@
-{
-  "stageId": "case:retire-agent-coherently:actor",
-  "message": "Qualification inputs changed during execution. Start a retry so the recorded evidence uses committed source and host configuration with a new identity."
-}

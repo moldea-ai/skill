@@ -5,7 +5,7 @@ import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('leads from a profile to its current inspectable attempt', async ({ page }) => {
+test('represents the Custom profile current evidence state', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/qualification/'));
 
   await expect(
@@ -25,6 +25,13 @@ test('leads from a profile to its current inspectable attempt', async ({ page })
     passed: 'Inspect the passing attempt',
   } as const;
 
+  if (status === 'not-recorded') {
+    await expect(page.getByText('No recorded attempt').first()).toBeVisible();
+    await expect(page.getByText('No official attempt has been committed.').first()).toBeVisible();
+    await expect(page.getByRole('link', { name: /^Inspect the .* attempt$/u })).toHaveCount(0);
+    return;
+  }
+
   if (status !== 'errored' && status !== 'failed' && status !== 'passed') {
     throw new Error(`Unexpected qualification status: ${status ?? 'missing'}.`);
   }
@@ -32,9 +39,16 @@ test('leads from a profile to its current inspectable attempt', async ({ page })
   await expect(page.getByRole('link', { name: expectedLinkNames[status] })).toBeVisible();
 });
 
-test('describes the current immutable attempt according to its status', async ({ page }) => {
+test('describes the Custom profile and any current immutable attempt', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
   const attemptLink = page.getByRole('link', { name: /^Inspect the .* attempt$/u });
+
+  if ((await attemptLink.count()) === 0) {
+    await expect(page.getByText('No recorded attempt').first()).toBeVisible();
+    await expect(page.getByText('No official attempt has been committed.').first()).toBeVisible();
+    return;
+  }
+
   await attemptLink.click();
   const status = await page
     .locator('[data-evidence-status]')
@@ -88,22 +102,22 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
     const emptyProfileRoute = toPublicPath(
       '/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/',
     );
+    const routes = [toPublicPath('/evidence/qualification/'), profileRoute, emptyProfileRoute];
 
     await page.goto(profileRoute);
-    const currentAttemptRoute = await page
-      .getByRole('link', { name: /^Inspect the .* attempt$/u })
-      .getAttribute('href');
+    const attemptLink = page.getByRole('link', { name: /^Inspect the .* attempt$/u });
 
-    if (currentAttemptRoute === null) {
-      throw new Error('The qualification profile does not link to its current attempt.');
+    if ((await attemptLink.count()) > 0) {
+      const currentAttemptRoute = await attemptLink.getAttribute('href');
+
+      if (currentAttemptRoute === null) {
+        throw new Error('The qualification profile does not link to its current attempt.');
+      }
+
+      routes.push(currentAttemptRoute);
     }
 
-    for (const route of [
-      toPublicPath('/evidence/qualification/'),
-      profileRoute,
-      emptyProfileRoute,
-      currentAttemptRoute,
-    ]) {
+    for (const route of routes) {
       await page.goto(route);
       const widths = await page.evaluate(() => ({
         client: document.documentElement.clientWidth,

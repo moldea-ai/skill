@@ -1,5 +1,0 @@
-{
-  "reason": "The judge was skipped because deterministic postchecks or workspace assertions already failed.",
-  "deterministicAfterPassed": true,
-  "workspaceAssertionsPassed": false
-}

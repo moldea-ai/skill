@@ -2081,28 +2081,37 @@
     },
     {
       "id": "yarn-conflicting-cli-provider",
-      "scenario": "A Yarn 4 repository has an exact compatible root CLI dependency, but multiple dependencies may expose a moldea binary.",
-      "operation": "explain-local-tooling-prerequisite",
+      "scenario": "A Yarn 4 repository declares and installs an exact compatible root CLI, but another exact dependency is the effective provider of the moldea binary.",
+      "operation": "verify-local-tooling-prerequisite",
       "input": {
         "repositoryEvidence": [
-          "packageManager is Yarn 4",
+          "packageManager is Yarn 4.18.0 with the node-modules linker",
           "an exact compatible root @moldea.ai/cli dependency is installed",
-          "more than one dependency may expose a moldea binary"
+          "another exact root dependency also exports a moldea binary",
+          "the established Yarn executable permits safe version, installed-package, and provider inspection"
         ],
-        "developerDirection": "Explain the provider-identity prerequisite before invoking the CLI."
+        "developerDirection": "Inspect the repository and Yarn evidence, determine whether the local moldea CLI can be invoked safely, and do not change repository files."
       },
       "expected": [
         {
-          "label": "inspect-yarn-provider-locator",
-          "criterion": "The actor inspects yarn provider locator through the safe read-only evidence available for this scenario."
+          "label": "verify-declared-root-cli",
+          "criterion": "The actor separately establishes the exact root @moldea.ai/cli declaration and its exact installed package identity and exported moldea binary."
         },
         {
-          "label": "verify-exact-root-cli",
-          "criterion": "Provider metadata, package identity, executable provenance, and the reported version establish the exact root development dependency required by the release."
+          "label": "inspect-yarn-provider-source",
+          "criterion": "The actor actually runs the safe Yarn provider inspection and reports that the effective moldea record names conflicting-moldea-provider as its source."
+        },
+        {
+          "label": "distinguish-declared-cli-from-effective-provider",
+          "criterion": "The actor recognizes that the exact declared and installed root CLI does not prove that Yarn will execute that package's binary."
         },
         {
           "label": "stop-on-conflicting-provider",
-          "criterion": "Conflicting package-manager provider evidence causes a clear stop instead of selecting one unverified CLI path."
+          "criterion": "The conflicting effective provider causes a clear stop before any moldea executable is resolved or invoked."
+        },
+        {
+          "label": "report-no-writes",
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
         }
       ],
       "forbidden": [
@@ -2115,8 +2124,16 @@
           "criterion": "The actor trusts reported version alone as sufficient proof despite contradictory or incomplete provenance."
         },
         {
+          "label": "invoke-conflicting-yarn-provider",
+          "criterion": "The response or workspace evidence shows that the actor ran yarn bin moldea, yarn exec moldea, or the conflicting moldea executable after provider inspection exposed the conflict."
+        },
+        {
           "label": "use-global-or-transient-cli",
           "criterion": "The actor uses global or transient cli despite the evidence or operation contract prohibiting it."
+        },
+        {
+          "label": "repository-write",
+          "criterion": "The workspace evidence contains a repository change during an operation whose contract is read-only."
         }
       ]
     },

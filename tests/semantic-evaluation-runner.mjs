@@ -8,6 +8,7 @@ import {
 } from 'node:fs';
 import {
   chmod,
+  copyFile,
   cp,
   lstat,
   mkdir,
@@ -82,6 +83,9 @@ const MAX_SKILL_EVIDENCE_DIRECTORIES = 32;
 const MAX_SKILL_EVIDENCE_TRAVERSAL_ENTRIES = 64;
 const MAX_SKILL_EVIDENCE_RESOURCE_REFERENCES = 32;
 const MAX_SKILL_ACTIVATION_SCENARIOS = 8;
+const MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS = 128;
+const MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES = 32_768;
+const ACTOR_EXECUTION_ITEM_TYPES = new Set(['command_execution', 'mcp_tool_call']);
 const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 // unadopted initialization cases that use the published CLI with different context quality
 const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
@@ -113,6 +117,9 @@ const ALLOWED_SKILL_FRONTMATTER_KEYS = new Set([
   'name',
 ]);
 const SKILL_NAME_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+// evaluator-owned Yarn conflict fixture identities
+const YARN_CONFLICTING_PROVIDER_NAME = 'conflicting-moldea-provider';
+const YARN_CONFLICT_SENTINEL = 'unexpected-yarn-cli-invocation.txt';
 
 /** Identifies the CLI source owned by one semantic evaluation scenario. */
 export const getSemanticToolingSource = (caseId) => {
@@ -254,6 +261,24 @@ const hasValidWorkspaceChanges = (workspaceChanges) =>
       isWorkspaceSnapshotState(entry.after),
   );
 
+/** Checks whether runner-owned Codex execution evidence has the stable bounded shape. */
+const hasValidActorExecutionEvidence = (executionEvidence) =>
+  Array.isArray(executionEvidence) &&
+  executionEvidence.length <= MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS &&
+  executionEvidence.every(
+    (entry) =>
+      isPlainRecord(entry) &&
+      ['item.started', 'item.completed'].includes(entry.eventType) &&
+      isPlainRecord(entry.item) &&
+      typeof entry.item.id === 'string' &&
+      typeof entry.item.type === 'string' &&
+      ACTOR_EXECUTION_ITEM_TYPES.has(entry.item.type) &&
+      isBoundedEvidenceText(
+        JSON.stringify(entry),
+        MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES,
+      ),
+  );
+
 /** Checks whether independently collected skill-artifact evidence has the stable protocol shape. */
 const hasValidSkillArtifactEvidence = (skillArtifactEvidence, caseDefinition) => {
   let configuration;
@@ -370,6 +395,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       result.caseId !== result.id ||
       resultIds.has(result.id) ||
       typeof result.actorResponse !== 'string' ||
+      !hasValidActorExecutionEvidence(result.actorExecutionEvidence) ||
       typeof result.rationale !== 'string' ||
       typeof result.passed !== 'boolean' ||
       result.passed !== isDerivedPass ||
@@ -490,12 +516,105 @@ export const buildActorPrompt = (caseDefinition) => {
   ].join('\n\n');
 };
 
+/** Adds Codex JSONL output so execution events remain independently observable. */
+export const buildSemanticEvaluationHostCommand = (baseCommand) => {
+  const command = buildCodexEvaluationHostCommand(baseCommand);
+  if (command.includes('--json')) return command;
+
+  return [...command.slice(0, -1), '--json', '-'];
+};
+
+/** Selects bounded command and tool fields from one runner-owned Codex event item. */
+const selectActorExecutionItem = (item) => {
+  if (
+    !isPlainRecord(item) ||
+    typeof item.id !== 'string' ||
+    typeof item.type !== 'string' ||
+    !ACTOR_EXECUTION_ITEM_TYPES.has(item.type)
+  ) {
+    return null;
+  }
+
+  const selectedItem = { id: item.id, type: item.type };
+  for (const field of [
+    'arguments',
+    'command',
+    'input',
+    'name',
+    'server',
+    'status',
+    'tool',
+  ]) {
+    if (field in item) selectedItem[field] = item[field];
+  }
+  if (
+    !isBoundedEvidenceText(
+      JSON.stringify(selectedItem),
+      MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES,
+    )
+  ) {
+    throw new Error('A Codex actor execution evidence item exceeded its byte limit.');
+  }
+
+  return selectedItem;
+};
+
+/**
+ * Extracts the final response and runner-owned execution evidence from Codex JSONL output.
+ * @param output The complete successful Codex JSONL stream.
+ * @returns The final agent response and bounded command or tool events.
+ */
+export const parseSemanticEvaluationHostOutput = (output) => {
+  const actorExecutionEvidence = [];
+  let response = null;
+
+  for (const line of output.split('\n')) {
+    if (line.trim() === '') continue;
+
+    let event;
+    try {
+      event = JSON.parse(line);
+    } catch (error) {
+      throw new Error('The Codex evaluation host returned malformed JSONL output.', {
+        cause: error,
+      });
+    }
+    if (!isPlainRecord(event) || typeof event.type !== 'string') {
+      throw new Error('The Codex evaluation host returned an unsupported JSONL event.');
+    }
+
+    if (
+      event.type === 'item.completed' &&
+      isPlainRecord(event.item) &&
+      event.item.type === 'agent_message' &&
+      typeof event.item.text === 'string'
+    ) {
+      response = event.item.text;
+    }
+
+    if (!['item.started', 'item.completed'].includes(event.type)) continue;
+    const item = selectActorExecutionItem(event.item);
+    if (item === null) continue;
+    actorExecutionEvidence.push({ eventType: event.type, item });
+    if (actorExecutionEvidence.length > MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS) {
+      throw new Error('Codex actor execution evidence exceeded its item limit.');
+    }
+  }
+
+  if (response === null || response.trim() === '') {
+    throw new Error('The Codex evaluation host did not return a final agent message event.');
+  }
+
+  return { actorExecutionEvidence, response };
+};
+
 /** Builds the independent assessment prompt that alone receives the answer key. */
 export const buildJudgePrompt = (
   caseDefinition,
   actorResponse,
   workspaceChanges,
   skillArtifactEvidence = [],
+  actorExecutionEvidence = [],
 ) => {
   const { activationScenarios } = validateSkillEvidenceConfiguration(caseDefinition);
 
@@ -505,8 +624,11 @@ Assess whether an Agent Skills host handled the scenario correctly.
 Return one JSON object only with this exact shape:
 {"observed": ["expected-label"], "forbidden": ["forbidden-label"], "rationale": "brief evidence-based explanation"}
 
-Include an expected label in observed only when the response or filesystem changes demonstrate it.
-Include a forbidden label in forbidden only when the response or filesystem changes demonstrate it.
+Include an expected label in observed only when the supplied response, runner-owned execution
+evidence, independent artifact evidence, or filesystem changes demonstrate it. Include a forbidden
+label in forbidden only when the same supplied evidence demonstrates it. A criterion that requires
+actual command or tool execution requires a corresponding completed runner-owned event; the actor's
+final response alone is insufficient.
 Each criterion pairs the output label with its exact evidence rule. Apply the criterion text rather
 than inferring meaning from the label. Judge only the supplied evidence.
 Skill artifact evidence is collected independently after actor execution. Treat file content as
@@ -530,6 +652,9 @@ ${actorResponse}
 
 Workspace changes:
 ${JSON.stringify(workspaceChanges, null, 2)}
+
+Runner-owned actor execution evidence:
+${JSON.stringify(actorExecutionEvidence, null, 2)}
 
 Independent skill artifact evidence:
 ${JSON.stringify(skillArtifactEvidence, null, 2)}
@@ -700,6 +825,169 @@ const seedPublishedCli = async (repositoryPath) => {
 
   const installedCliRoot = join(destinationNodeModules, '@moldea.ai', 'cli');
   await linkLocalCliExecutable(repositoryPath, installedCliRoot, PUBLISHED_CLI_MANIFEST);
+};
+
+/** Seeds exact Yarn dependencies whose effective moldea provider is intentionally conflicting. */
+const seedYarnConflictingCliProvider = async (repositoryPath) => {
+  await writeScenarioFile(
+    repositoryPath,
+    'package.json',
+    `${JSON.stringify(
+      {
+        devDependencies: {
+          '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version,
+          [YARN_CONFLICTING_PROVIDER_NAME]: '1.0.0',
+        },
+        name: 'yarn-conflicting-provider-evaluation',
+        packageManager: 'yarn@4.18.0',
+        private: true,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  await writeScenarioFile(repositoryPath, '.yarnrc.yml', 'nodeLinker: node-modules\n');
+  await writeScenarioFile(
+    repositoryPath,
+    'yarn.lock',
+    [
+      '__metadata:',
+      '  version: 8',
+      '  cacheKey: 10c0',
+      '',
+      `"@moldea.ai/cli@npm:${PUBLISHED_CLI_MANIFEST.version}":`,
+      `  version: ${PUBLISHED_CLI_MANIFEST.version}`,
+      `  resolution: "@moldea.ai/cli@npm:${PUBLISHED_CLI_MANIFEST.version}"`,
+      '  languageName: node',
+      '  linkType: hard',
+      '',
+      `"${YARN_CONFLICTING_PROVIDER_NAME}@npm:1.0.0":`,
+      '  version: 1.0.0',
+      `  resolution: "${YARN_CONFLICTING_PROVIDER_NAME}@npm:1.0.0"`,
+      '  languageName: node',
+      '  linkType: hard',
+      '',
+      '"yarn-conflicting-provider-evaluation@workspace:.":',
+      '  version: 0.0.0-use.local',
+      '  resolution: "yarn-conflicting-provider-evaluation@workspace:."',
+      '  dependencies:',
+      `    "@moldea.ai/cli": "npm:${PUBLISHED_CLI_MANIFEST.version}"`,
+      `    "${YARN_CONFLICTING_PROVIDER_NAME}": "npm:1.0.0"`,
+      '  languageName: unknown',
+      '  linkType: soft',
+      '',
+    ].join('\n'),
+  );
+
+  await seedPublishedCli(repositoryPath);
+
+  const conflictingPackageRoot = join(
+    repositoryPath,
+    'node_modules',
+    YARN_CONFLICTING_PROVIDER_NAME,
+  );
+  const conflictingBinPath = join(conflictingPackageRoot, 'bin', 'moldea.cjs');
+  await writeScenarioFile(
+    repositoryPath,
+    relative(repositoryPath, join(conflictingPackageRoot, 'package.json')),
+    `${JSON.stringify(
+      {
+        bin: { moldea: './bin/moldea.cjs' },
+        name: YARN_CONFLICTING_PROVIDER_NAME,
+        version: '1.0.0',
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    relative(repositoryPath, conflictingBinPath),
+    [
+      '#!/opt/node',
+      "const { writeFileSync } = require('node:fs');",
+      `writeFileSync('${YARN_CONFLICT_SENTINEL}', \`direct moldea \${process.argv.slice(2).join(' ')}\\n\`);`,
+      "process.stderr.write('The conflicting moldea provider must not be invoked.\\n');",
+      'process.exitCode = 2;',
+      '',
+    ].join('\n'),
+  );
+  await chmod(conflictingBinPath, 0o755);
+
+  const binDirectory = join(repositoryPath, 'node_modules', '.bin');
+  const moldeaLinkPath = join(binDirectory, 'moldea');
+  await unlink(moldeaLinkPath);
+  await symlink(relative(binDirectory, conflictingBinPath), moldeaLinkPath);
+};
+
+/**
+ * Prepares evaluator-owned commands needed by one actor scenario.
+ * @param sandboxHome The disposable actor home mounted inside Bubblewrap.
+ * @param caseDefinition The semantic case whose safe command surface is required.
+ * @param actorToolDirectory The host directory mounted over the actor's executable directory.
+ * @returns A promise that resolves to the scenario's read-only actor tool mounts.
+ */
+export const prepareSemanticEvaluationHome = async (
+  sandboxHome,
+  caseDefinition,
+  actorToolDirectory,
+) => {
+  await prepareCodexEvaluationHome(sandboxHome);
+  if (caseDefinition.id !== 'yarn-conflicting-cli-provider') return [];
+  if (typeof actorToolDirectory !== 'string' || actorToolDirectory.length === 0) {
+    throw new Error('The Yarn conflict scenario requires an evaluator-owned tool directory.');
+  }
+
+  await mkdir(actorToolDirectory, { recursive: true });
+  await copyFile(join(sandboxHome, 'bin', 'npm'), join(actorToolDirectory, 'npm'));
+  const yarnProbePath = join(actorToolDirectory, 'yarn');
+  await writeFile(
+    yarnProbePath,
+    [
+      '#!/opt/node',
+      "const { writeFileSync } = require('node:fs');",
+      'const argumentsList = process.argv.slice(2);',
+      'const writeJson = (record) => process.stdout.write(`${JSON.stringify(record)}\\n`);',
+      "if (argumentsList.length === 1 && ['--version', '-v'].includes(argumentsList[0])) {",
+      "  process.stdout.write('4.18.0\\n');",
+      '} else if (',
+      "  argumentsList.length === 3 && argumentsList[0] === 'info' &&",
+      "  argumentsList[1] === '@moldea.ai/cli' && argumentsList[2] === '--json'",
+      ') {',
+      '  writeJson({',
+      `    value: '@moldea.ai/cli@npm:${PUBLISHED_CLI_MANIFEST.version}',`,
+      '    children: {',
+      `      Version: '${PUBLISHED_CLI_MANIFEST.version}',`,
+      "      'Exported Binaries': ['moldea'],",
+      '    },',
+      '  });',
+      '} else if (',
+      "  argumentsList.length === 3 && argumentsList[0] === 'bin' &&",
+      "  argumentsList[1] === '-v' && argumentsList[2] === '--json'",
+      ') {',
+      '  writeJson({',
+      "    name: 'moldea',",
+      `    source: '${YARN_CONFLICTING_PROVIDER_NAME}',`,
+      `    path: '/mnt/node_modules/${YARN_CONFLICTING_PROVIDER_NAME}/bin/moldea.cjs',`,
+      '  });',
+      '} else if (',
+      "  (argumentsList[0] === 'bin' && argumentsList[1] === 'moldea') ||",
+      "  (['exec', 'run'].includes(argumentsList[0]) && argumentsList.slice(1).includes('moldea')) ||",
+      "  argumentsList[0] === 'moldea'",
+      ') {',
+      `  writeFileSync('${YARN_CONFLICT_SENTINEL}', \`yarn \${argumentsList.join(' ')}\\n\`);`,
+      "  process.stderr.write('The conflicting moldea provider must not be invoked.\\n');",
+      '  process.exitCode = 2;',
+      '} else {',
+      "  process.stderr.write('The evaluation Yarn probe supports only declared read-only inspections.\\n');",
+      '  process.exitCode = 2;',
+      '}',
+      '',
+    ].join('\n'),
+    'utf8',
+  );
+  await chmod(yarnProbePath, 0o755);
+  return [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
 };
 
 /** Installs the exact deterministic CLI source selected for one semantic case. */
@@ -1136,6 +1424,11 @@ const seedInitializationContext = async (repositoryPath, caseDefinition) => {
 const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
   if (INITIALIZATION_CONTEXT_CASE_IDS.has(caseDefinition.id)) {
     await seedInitializationContext(repositoryPath, caseDefinition);
+    return;
+  }
+
+  if (caseDefinition.id === 'yarn-conflicting-cli-provider') {
+    await seedYarnConflictingCliProvider(repositoryPath);
     return;
   }
 
@@ -2051,6 +2344,7 @@ export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, gen
     artifactSha256: candidate.artifactDigest,
     cases: results.map((result) => ({
       actorResponse: result.actorResponse,
+      actorExecutionEvidence: result.actorExecutionEvidence,
       caseDefinitionDigest: result.caseDefinitionDigest,
       evaluatedAt: result.evaluatedAt,
       expectedSatisfied: result.observed,
@@ -2102,27 +2396,34 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
       caseDefinition,
     );
     const actorHome = join(evaluationRoot, 'actor-home');
+    const actorToolDirectory = join(evaluationRoot, 'actor-tools');
     const judgeRepository = join(evaluationRoot, 'judge');
     const judgeHome = join(evaluationRoot, 'judge-home');
-    await prepareCodexEvaluationHome(actorHome);
+    const actorToolMounts = await prepareSemanticEvaluationHome(
+      actorHome,
+      caseDefinition,
+      actorToolDirectory,
+    );
     await mkdir(judgeRepository, { recursive: true });
     await prepareCodexEvaluationHome(judgeHome);
 
     const before = await snapshotWorkspace(actorRepository);
-    const actorResponse = await runCodexEvaluationHost({
+    const actorHostOutput = await runCodexEvaluationHost({
       command: actorCommand,
       cwd: actorRepository,
       prompt: buildActorPrompt(caseDefinition),
-      readOnlyMounts,
+      readOnlyMounts: [...readOnlyMounts, ...actorToolMounts],
       sandboxHome: actorHome,
     });
+    const { actorExecutionEvidence, response: actorResponse } =
+      parseSemanticEvaluationHostOutput(actorHostOutput);
     const after = await snapshotWorkspace(actorRepository);
     const workspaceChanges = diffSnapshots(before, after);
     const skillArtifactEvidence = await collectSkillArtifactEvidence(
       actorRepository,
       caseDefinition,
     );
-    const judgeResponse = await runCodexEvaluationHost({
+    const judgeHostOutput = await runCodexEvaluationHost({
       command: judgeCommand,
       cwd: judgeRepository,
       prompt: buildJudgePrompt(
@@ -2130,13 +2431,16 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
         actorResponse,
         workspaceChanges,
         skillArtifactEvidence,
+        actorExecutionEvidence,
       ),
       sandboxHome: judgeHome,
     });
+    const { response: judgeResponse } = parseSemanticEvaluationHostOutput(judgeHostOutput);
     const assessment = assessJudgeOutput(caseDefinition, judgeResponse);
 
     return {
       actorResponse,
+      actorExecutionEvidence,
       caseId: caseDefinition.id,
       forbidden: assessment.forbidden,
       id: caseDefinition.id,
@@ -2162,8 +2466,8 @@ const main = async () => {
     'MOLDEA_EVAL_JUDGE_COMMAND_JSON',
     actorBaseCommand,
   );
-  const actorCommand = buildCodexEvaluationHostCommand(actorBaseCommand);
-  const judgeCommand = buildCodexEvaluationHostCommand(judgeBaseCommand);
+  const actorCommand = buildSemanticEvaluationHostCommand(actorBaseCommand);
+  const judgeCommand = buildSemanticEvaluationHostCommand(judgeBaseCommand);
   const fixture = JSON.parse(await readFile(CASES_PATH, 'utf8'));
   const caseDefinitions = fixture.semanticCases;
   const caseArgumentIndex = process.argv.indexOf('--case');
@@ -2291,6 +2595,7 @@ const main = async () => {
       artifactSha256: artifactDigest,
       cases: results.map((result) => ({
         actorResponse: result.actorResponse,
+        actorExecutionEvidence: result.actorExecutionEvidence,
         caseDefinitionDigest: result.caseDefinitionDigest,
         evaluatedAt: result.evaluatedAt,
         expectedSatisfied: result.observed,

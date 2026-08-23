@@ -2,10 +2,13 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
+  readlinkSync,
   readdirSync,
   readFileSync,
+  realpathSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -14,9 +17,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
+import { buildCodexEvaluationBwrapArguments } from '../tooling/codex-evaluation-host/index.mjs';
+
 import {
   collectSkillArtifactEvidence,
   createActorRepository,
+  prepareSemanticEvaluationHome,
   readSemanticEvaluationCandidate,
   seedSemanticTooling,
   writeSemanticEvaluationCandidate,
@@ -24,9 +30,15 @@ import {
 
 const ROOT_PACKAGE_MANIFEST = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'));
 const RELEASE_CLI_VERSION = ROOT_PACKAGE_MANIFEST.devDependencies['@moldea.ai/cli'];
-const HOST_PLAN_CASE_DEFINITION = JSON.parse(
+const SEMANTIC_CASES = JSON.parse(
   readFileSync(join(process.cwd(), 'fixtures', 'conformance-cases.json'), 'utf8'),
-).semanticCases.find(({ id }) => id === 'host-plan-command-precedence');
+).semanticCases;
+const HOST_PLAN_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'host-plan-command-precedence',
+);
+const YARN_CONFLICT_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'yarn-conflicting-cli-provider',
+);
 
 test('actor repository materializes host instructions before the clean baseline', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-instructions-test-'));
@@ -54,6 +66,166 @@ test('actor repository materializes host instructions before the clean baseline'
     assert.equal(status.stdout, '');
     assert.equal(committedInstructions.status, 0, committedInstructions.stderr);
     assert.equal(committedInstructions.stdout, HOST_PLAN_CASE_DEFINITION.hostInstructions);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('Yarn conflict scenario exposes read-only provider evidence and traps invocation', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-yarn-conflict-test-'));
+  assert.ok(YARN_CONFLICT_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      YARN_CONFLICT_CASE_DEFINITION,
+    );
+    const sandboxHome = join(evaluationRoot, 'actor-home');
+    const actorToolDirectory = join(evaluationRoot, 'actor-tools');
+    const actorToolMounts = await prepareSemanticEvaluationHome(
+      sandboxHome,
+      YARN_CONFLICT_CASE_DEFINITION,
+      actorToolDirectory,
+    );
+
+    const status = spawnSync('git', ['status', '--porcelain'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    const packageManifest = JSON.parse(
+      readFileSync(join(repositoryPath, 'package.json'), 'utf8'),
+    );
+    const cliManifest = JSON.parse(
+      readFileSync(
+        join(repositoryPath, 'node_modules', '@moldea.ai', 'cli', 'package.json'),
+        'utf8',
+      ),
+    );
+    const conflictingManifest = JSON.parse(
+      readFileSync(
+        join(repositoryPath, 'node_modules', 'conflicting-moldea-provider', 'package.json'),
+        'utf8',
+      ),
+    );
+    const binaryPath = join(repositoryPath, 'node_modules', '.bin', 'moldea');
+    const conflictingBinaryPath = join(
+      repositoryPath,
+      'node_modules',
+      'conflicting-moldea-provider',
+      'bin',
+      'moldea.cjs',
+    );
+    const yarnProbePath = join(actorToolDirectory, 'yarn');
+    const sentinelPath = join(repositoryPath, 'unexpected-yarn-cli-invocation.txt');
+    const runProbe = (argumentsList) =>
+      spawnSync(process.execPath, [yarnProbePath, ...argumentsList], {
+        cwd: repositoryPath,
+        encoding: 'utf8',
+      });
+
+    const versionResult = runProbe(['--version']);
+    const infoResult = runProbe(['info', '@moldea.ai/cli', '--json']);
+    const providerResult = runProbe(['bin', '-v', '--json']);
+
+    assert.equal(status.status, 0, status.stderr);
+    assert.equal(status.stdout, '');
+    assert.equal(packageManifest.packageManager, 'yarn@4.18.0');
+    assert.deepEqual(packageManifest.devDependencies, {
+      '@moldea.ai/cli': RELEASE_CLI_VERSION,
+      'conflicting-moldea-provider': '1.0.0',
+    });
+    assert.equal(cliManifest.name, '@moldea.ai/cli');
+    assert.equal(cliManifest.version, RELEASE_CLI_VERSION);
+    assert.deepEqual(cliManifest.bin, { moldea: './dist/moldea.js' });
+    assert.deepEqual(conflictingManifest, {
+      bin: { moldea: './bin/moldea.cjs' },
+      name: 'conflicting-moldea-provider',
+      version: '1.0.0',
+    });
+    assert.equal(readlinkSync(binaryPath), '../conflicting-moldea-provider/bin/moldea.cjs');
+    assert.equal(realpathSync(binaryPath), realpathSync(conflictingBinaryPath));
+    assert.equal(versionResult.status, 0, versionResult.stderr);
+    assert.equal(versionResult.stdout, '4.18.0\n');
+    assert.equal(infoResult.status, 0, infoResult.stderr);
+    assert.deepEqual(JSON.parse(infoResult.stdout), {
+      value: `@moldea.ai/cli@npm:${RELEASE_CLI_VERSION}`,
+      children: {
+        Version: RELEASE_CLI_VERSION,
+        'Exported Binaries': ['moldea'],
+      },
+    });
+    assert.equal(providerResult.status, 0, providerResult.stderr);
+    assert.deepEqual(JSON.parse(providerResult.stdout), {
+      name: 'moldea',
+      source: 'conflicting-moldea-provider',
+      path: '/mnt/node_modules/conflicting-moldea-provider/bin/moldea.cjs',
+    });
+    assert.equal(existsSync(sentinelPath), false);
+
+    assert.deepEqual(actorToolMounts, [
+      { source: actorToolDirectory, target: '/home/evaluator/bin' },
+    ]);
+    const isolatedProbeResult = spawnSync(
+      'bwrap',
+      buildCodexEvaluationBwrapArguments({
+        command: [
+          'codex',
+          '-c',
+          [
+            'test "$(command -v yarn)" = "/home/evaluator/bin/yarn"',
+            'test "$(yarn --version)" = "4.18.0"',
+            'if printf tampered > /home/evaluator/bin/yarn; then exit 10; fi',
+            'test "$(yarn --version)" = "4.18.0"',
+            'yarn bin -v --json',
+          ].join(' && '),
+        ],
+        cwd: repositoryPath,
+        hostExecutable: realpathSync('/bin/sh'),
+        nodeExecutable: process.execPath,
+        readOnlyMounts: actorToolMounts,
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 2_000 },
+    );
+
+    assert.equal(isolatedProbeResult.status, 0, isolatedProbeResult.stderr);
+    assert.deepEqual(JSON.parse(isolatedProbeResult.stdout), {
+      name: 'moldea',
+      source: 'conflicting-moldea-provider',
+      path: '/mnt/node_modules/conflicting-moldea-provider/bin/moldea.cjs',
+    });
+    assert.match(isolatedProbeResult.stderr, /Read-only file system|Permission denied/);
+    assert.equal(readFileSync(yarnProbePath, 'utf8').startsWith('#!/opt/node\n'), true);
+
+    const forbiddenResult = runProbe(['exec', 'moldea', 'validate', '--json']);
+
+    assert.equal(forbiddenResult.status, 2);
+    assert.match(forbiddenResult.stderr, /must not be invoked/);
+    assert.equal(
+      readFileSync(sentinelPath, 'utf8'),
+      'yarn exec moldea validate --json\n',
+    );
+
+    rmSync(sentinelPath);
+    const forbiddenResolutionResult = runProbe(['bin', 'moldea']);
+
+    assert.equal(forbiddenResolutionResult.status, 2);
+    assert.match(forbiddenResolutionResult.stderr, /must not be invoked/);
+    assert.equal(readFileSync(sentinelPath, 'utf8'), 'yarn bin moldea\n');
+
+    rmSync(sentinelPath);
+    const directInvocationResult = spawnSync(
+      process.execPath,
+      [conflictingBinaryPath, '--version'],
+      {
+        cwd: repositoryPath,
+        encoding: 'utf8',
+      },
+    );
+
+    assert.equal(directInvocationResult.status, 2);
+    assert.match(directInvocationResult.stderr, /must not be invoked/);
+    assert.equal(readFileSync(sentinelPath, 'utf8'), 'direct moldea --version\n');
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

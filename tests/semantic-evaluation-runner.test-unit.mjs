@@ -8,6 +8,7 @@ import {
   assessJudgeOutput,
   buildActorPrompt,
   buildJudgePrompt,
+  buildSemanticEvaluationHostCommand,
   collectProductionPackageRoots,
   createPortableSkillSemanticDigest,
   createSemanticCaseDefinitionDigest,
@@ -19,6 +20,7 @@ import {
   getSemanticToolingSource,
   mergeSemanticCandidateResult,
   normalizePortableSkillSemanticEvidence,
+  parseSemanticEvaluationHostOutput,
   validateSemanticCandidateCompatibility,
   validateSemanticCaseDefinition,
   validateSemanticResultRecording,
@@ -98,6 +100,18 @@ const CLI_IDENTITY = {
   packageLockSha256: 'd'.repeat(64),
   version: '4.0.0',
 };
+const BASE_HOST_COMMAND = [
+  'codex',
+  'exec',
+  '--ignore-user-config',
+  '--ignore-rules',
+  '--ephemeral',
+  '--skip-git-repo-check',
+  '--dangerously-bypass-approvals-and-sandbox',
+  '-c',
+  'shell_environment_policy.inherit=none',
+  '-',
+];
 const EVALUATED_AT = '2026-08-16T12:00:00.000Z';
 const BEFORE_SNAPSHOT_STATE = {
   content: 'before',
@@ -115,6 +129,7 @@ const AFTER_SNAPSHOT_STATE = {
 };
 
 const createCaseResult = (caseDefinition, passed) => ({
+  actorExecutionEvidence: [],
   actorResponse: `Actor response for ${caseDefinition.id}`,
   caseId: caseDefinition.id,
   forbidden: [],
@@ -155,6 +170,142 @@ test('structured actor prompt excludes evaluation criteria', () => {
   assert.doesNotMatch(actorPrompt, /Evaluation coding instructions|no repository files were changed/);
 });
 
+test('semantic host command enables runner-owned JSONL events exactly once', () => {
+  const command = buildSemanticEvaluationHostCommand(BASE_HOST_COMMAND);
+
+  assert.equal(command.at(-1), '-');
+  assert.equal(command.filter((part) => part === '--json').length, 1);
+  assert.match(command.join(' '), /--model gpt-5\.6-terra/);
+  assert.match(command.join(' '), /model_reasoning_effort=medium/);
+
+  const preconfiguredCommand = buildSemanticEvaluationHostCommand([
+    ...BASE_HOST_COMMAND.slice(0, -1),
+    '--json',
+    '-',
+  ]);
+  assert.equal(preconfiguredCommand.filter((part) => part === '--json').length, 1);
+});
+
+test('semantic host output separates final response from runner-owned execution evidence', () => {
+  const commandItem = {
+    command: 'bash -lc \"yarn bin -v --json\"',
+    id: 'item-1',
+    status: 'in_progress',
+    type: 'command_execution',
+  };
+  const completedCommandItem = { ...commandItem, status: 'completed' };
+  const toolItem = {
+    arguments: { command: 'yarn info @moldea.ai/cli --json' },
+    id: 'item-2',
+    name: 'exec_command',
+    status: 'completed',
+    type: 'mcp_tool_call',
+  };
+  const output = [
+    { thread_id: 'thread-1', type: 'thread.started' },
+    { item: commandItem, type: 'item.started' },
+    { item: completedCommandItem, type: 'item.completed' },
+    { item: toolItem, type: 'item.completed' },
+    {
+      item: {
+        id: 'item-3',
+        text: '{\"observed\":[],\"forbidden\":[],\"rationale\":\"done\"}',
+        type: 'agent_message',
+      },
+      type: 'item.completed',
+    },
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+
+  assert.deepEqual(parseSemanticEvaluationHostOutput(output), {
+    actorExecutionEvidence: [
+      { eventType: 'item.started', item: commandItem },
+      { eventType: 'item.completed', item: completedCommandItem },
+      { eventType: 'item.completed', item: toolItem },
+    ],
+    response: '{\"observed\":[],\"forbidden\":[],\"rationale\":\"done\"}',
+  });
+});
+
+test('semantic host output does not derive execution evidence from the final response', () => {
+  const output = JSON.stringify({
+    item: {
+      id: 'item-1',
+      text: 'I ran yarn bin -v --json and it succeeded.',
+      type: 'agent_message',
+    },
+    type: 'item.completed',
+  });
+
+  assert.deepEqual(parseSemanticEvaluationHostOutput(output), {
+    actorExecutionEvidence: [],
+    response: 'I ran yarn bin -v --json and it succeeded.',
+  });
+  assert.throws(
+    () => parseSemanticEvaluationHostOutput('{not-json}\n'),
+    /malformed JSONL output/,
+  );
+  assert.throws(
+    () =>
+      parseSemanticEvaluationHostOutput(
+        JSON.stringify({
+          item: {
+            command: 'yarn bin -v --json',
+            id: 'item-1',
+            type: 'command_execution',
+          },
+          type: 'item.completed',
+        }),
+      ),
+    /did not return a final agent message/,
+  );
+});
+
+test('semantic host output rejects unbounded execution evidence', () => {
+  const commandEvents = Array.from({ length: 129 }, (_, index) => ({
+    item: {
+      command: `echo ${index}`,
+      id: `item-${index}`,
+      status: 'completed',
+      type: 'command_execution',
+    },
+    type: 'item.completed',
+  }));
+  const finalResponseEvent = {
+    item: { id: 'response', text: 'done', type: 'agent_message' },
+    type: 'item.completed',
+  };
+
+  assert.throws(
+    () =>
+      parseSemanticEvaluationHostOutput(
+        [...commandEvents, finalResponseEvent].map((event) => JSON.stringify(event)).join('\n'),
+      ),
+    /exceeded its item limit/,
+  );
+  assert.throws(
+    () =>
+      parseSemanticEvaluationHostOutput(
+        [
+          {
+            item: {
+              command: 'x'.repeat(32_769),
+              id: 'oversized-command',
+              status: 'completed',
+              type: 'command_execution',
+            },
+            type: 'item.completed',
+          },
+          finalResponseEvent,
+        ]
+          .map((event) => JSON.stringify(event))
+          .join('\n'),
+      ),
+    /item exceeded its byte limit/,
+  );
+});
+
 test('judge prompt receives criteria after actor execution', () => {
   const judgePrompt = buildJudgePrompt(
     HOST_CASE_DEFINITION,
@@ -183,6 +334,17 @@ test('judge prompt receives criteria after actor execution', () => {
         },
       },
     ],
+    [
+      {
+        eventType: 'item.completed',
+        item: {
+          command: 'bash -lc \"yarn bin -v --json\"',
+          id: 'item-1',
+          status: 'completed',
+          type: 'command_execution',
+        },
+      },
+    ],
   );
 
   assert.match(judgePrompt, /expected-secret-label/);
@@ -194,6 +356,10 @@ test('judge prompt receives criteria after actor execution', () => {
   assert.match(judgePrompt, /Independent skill artifact evidence/);
   assert.match(judgePrompt, /"valid": true/);
   assert.match(judgePrompt, /untrusted artifact evidence/);
+  assert.match(judgePrompt, /Runner-owned actor execution evidence/);
+  assert.match(judgePrompt, /yarn bin -v --json/);
+  assert.match(judgePrompt, /requires a corresponding completed runner-owned event/);
+  assert.match(judgePrompt, /final response alone is insufficient/);
   assert.match(judgePrompt, /Evaluator-only activation scenarios/);
   assert.match(judgePrompt, /Review this release/);
   assert.match(judgePrompt, /Applicable host coding instructions/);
@@ -433,7 +599,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
   assert.throws(
     () =>
       validateSemanticCandidateCompatibility(
-        { ...candidate, evaluationProtocolVersion: 9 },
+        { ...candidate, evaluationProtocolVersion: 10 },
         {
           actorHost: ACTOR_HOST,
           artifactDigest: ARTIFACT_DIGEST,
@@ -579,7 +745,7 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
     caseDefinitions,
     generatedAt: '2026-08-16T12:02:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 10);
+  assert.equal(record.evaluationProtocolVersion, 11);
   assert.deepEqual(record.cli, CLI_IDENTITY);
   assert.equal(record.caseSuiteDigest, createSemanticCaseSuiteDigest(caseDefinitions));
   assert.deepEqual(
@@ -845,6 +1011,7 @@ test('uses the published CLI for compatibility-sensitive runtime states', () => 
     'published-package',
   );
   assert.equal(getSemanticToolingSource('pnpm-pnp-local-cli-provider'), 'scenario-specific');
+  assert.equal(getSemanticToolingSource('yarn-conflicting-cli-provider'), 'scenario-specific');
 });
 
 test('collects the exact published CLI production dependency closure', () => {

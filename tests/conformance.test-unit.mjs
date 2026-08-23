@@ -500,6 +500,11 @@ describe('portable Agent Skill contract', () => {
       /Structural validity does not prove useful activation, complete workflow behavior/i,
     ]);
     assert.match(skill, /Read `references\/skill-design\.md` before creating, evaluating/i);
+    assertMatchesEvery(skill, [
+      /each deterministic validator result as evidence only for the boundary it actually validates/i,
+      /Never generalize a component validator's success into whole-artifact or whole-system structural validity/i,
+      /relevant resources, relationships, and consumer evidence/i,
+    ]);
     assertMatchesEvery(skillDesign, [
       /invalid identity or frontmatter, unsafe or unresolved links, missing required resources, and validator failures as structural problems/i,
       /activation imprecision, incomplete workflow behavior, incorrect use conditions, and content drift as semantic problems/i,
@@ -582,8 +587,14 @@ describe('portable Agent Skill contract', () => {
       /repository-supplied executable package-manager extensions, hooks, or plugins/,
       /pnpmfiles, hook-bearing pnpm configuration/,
       /repository-declared third-party Yarn plugins/,
+      /yarn info @moldea\.ai\/cli --json/,
+      /newline-delimited JSON records/,
+      /`source` is exactly `@moldea\.ai\/cli`/,
+      /`source` field identifies the provider package, not its version/,
       /yarn bin moldea/,
       /yarn exec moldea/,
+      /canonical path to equal the recorded provider path/,
+      /missing, malformed, duplicate, conflicting, or non-CLI providers/,
       /never use a bare global command/i,
       new RegExp('`schemaVersion` is integer `' + RELEASE_CLI_JSON_SCHEMA_VERSION + '`'),
       /`command` equals the command invoked/,
@@ -874,6 +885,7 @@ describe('source repository conformance', () => {
         );
         assert.deepEqual(evaluationCase.forbiddenTriggered, []);
         assert.ok(evaluationCase.rationale.length > 20);
+        assert.ok(Array.isArray(evaluationCase.actorExecutionEvidence));
 
         const configuredArtifacts = conformanceCase.skillEvidence?.artifacts ?? [];
         assert.equal(evaluationCase.skillArtifactEvidence.length, configuredArtifacts.length);
@@ -1187,6 +1199,11 @@ describe('source repository conformance', () => {
       /bounded post-execution source or copy directories/,
       /independent structural and resource-link evidence/,
       /do not rely on opaque label interpretation, the actor's report alone, or leaked answer criteria/,
+      /Codex JSONL events/,
+      /bounded command and tool-call events/,
+      /final response cannot create or replace that evidence/,
+      /mounted read-only over the isolated actor executable directory/,
+      /actor cannot replace those probes/,
     ]);
     assert.match(gitignore, /fixtures\/\.semantic-evaluation-candidate\.json\*/);
   });

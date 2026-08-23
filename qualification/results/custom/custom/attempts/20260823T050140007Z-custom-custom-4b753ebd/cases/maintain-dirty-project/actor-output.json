@@ -1,0 +1,26 @@
+{
+  "outcome": "completed",
+  "summary": "Added and assigned durable billing context, linked it to the billing implementation, and updated the support instruction. Custom runtime integration remains unchanged. Moldea inspection and validation are valid.",
+  "commands": [
+    "<workspace>/node_modules/.bin/moldea inspect --json",
+    "<workspace>/node_modules/.bin/moldea validate --json",
+    "git -c core.hooksPath=/dev/null -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null diff --no-ext-diff --no-textconv -- src/operator-notes.ts moldea/moldea.yaml moldea/agents/support/instruction.md",
+    "git -c core.hooksPath=/dev/null -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null diff --no-index --no-ext-diff --no-textconv -- /dev/null moldea/context/billing.md",
+    "git -c core.hooksPath=/dev/null -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null diff --no-index --no-ext-diff --no-textconv -- /dev/null notes/local-observation.md",
+    "git -c core.hooksPath=/dev/null -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null status --short"
+  ],
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md"
+  ],
+  "observations": [
+    "Moldea CLI 4.0.1 validated with schemaVersion 2; both post-change inspect and validate returned status valid with no diagnostics.",
+    "`/moldea/context/billing.md` is bound to `/src/billing.ts#refundWindowDays` and assigned to the `support` agent.",
+    "The Custom runtime id, its guidance, and `/src/support-agent.ts#supportAgent` binding were preserved.",
+    "Pre-existing unrelated changes remain: `src/operator-notes.ts` and `notes/local-observation.md`."
+  ],
+  "unresolved": [
+    "The repository establishes a 30-day refund window but no invoice-specific policy. The billing context explicitly directs evidence-based escalation rather than inventing invoice or dispute rules."
+  ]
+}

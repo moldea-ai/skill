@@ -691,7 +691,6 @@ export const runQualification = async (
               candidate,
               expectedEvidence: project.scenario.deterministicEvidence.before,
               expectedInspectionStatus: project.scenario.inspection.before,
-              packagesRepository: checkpoint.packagesRepository,
               signal: options.signal,
               workspaceDirectory: project.workspaceDirectory,
             });
@@ -789,7 +788,6 @@ export const runQualification = async (
               candidate,
               expectedEvidence: project.scenario.deterministicEvidence.after,
               expectedInspectionStatus: project.scenario.inspection.after,
-              packagesRepository: checkpoint.packagesRepository,
               signal: options.signal,
               workspaceDirectory: project.workspaceDirectory,
             });

@@ -284,6 +284,81 @@ describe('qualification result recording', () => {
     },
   );
 
+  test('rejects passing evidence whose observed changes escape a path-pattern allowlist', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    await ensureDirectory(artifactDirectory);
+    const passingResult = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'attempt-passed',
+      resultsRoot,
+    });
+    const recorded = await recordQualificationResult(
+      { artifactDirectory, result: passingResult, sanitizationContext },
+      resultsRoot,
+    );
+    const attemptDirectory = path.join(
+      resultsRoot,
+      'custom',
+      'custom',
+      'attempts',
+      recorded.attemptId,
+    );
+    const actorOutputPath = path.join(
+      attemptDirectory,
+      'cases',
+      'release-case',
+      'actor-output.json',
+    );
+    const workspaceAssertionsPath = path.join(
+      attemptDirectory,
+      'cases',
+      'release-case',
+      'workspace-assertions.json',
+    );
+    const unrelatedEntry = {
+      path: 'src/unrelated.ts',
+      kind: 'file',
+      mode: 0o100644,
+      sha256: 'f'.repeat(64),
+    };
+    await Promise.all([
+      writeJsonFileAtomically(actorOutputPath, {
+        outcome: 'completed',
+        summary: 'Changed an unrelated source file.',
+        commands: [],
+        changedFiles: [unrelatedEntry.path],
+        observations: [],
+        unresolved: [],
+      }),
+      writeJsonFileAtomically(workspaceAssertionsPath, {
+        passed: true,
+        failures: [],
+        before: [],
+        after: [unrelatedEntry],
+        changedPaths: [unrelatedEntry.path],
+      }),
+    ]);
+    await writeJsonFileAtomically(path.join(attemptDirectory, 'attempt.json'), {
+      ...recorded,
+      artifactDigests: {
+        ...recorded.artifactDigests,
+        'cases/release-case/actor-output.json': await calculateFileSha256(actorOutputPath),
+        'cases/release-case/workspace-assertions.json':
+          await calculateFileSha256(workspaceAssertionsPath),
+      },
+    });
+
+    const verification = await verifyQualificationResults(resultsRoot);
+
+    expect(verification.passed).toBe(false);
+    expect(verification.issues).toHaveLength(1);
+    expect(verification.issues[0]?.message).toContain(
+      'changed paths contradict its workspace contract',
+    );
+  });
+
   test('rejects invalid passing artifacts before publishing an attempt', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');

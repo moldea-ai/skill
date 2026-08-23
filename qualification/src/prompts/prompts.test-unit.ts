@@ -43,6 +43,8 @@ const scenario: IQualificationCaseScenario = {
     mustExistPaths: ['moldea/moldea.yaml'],
     mustNotExistPaths: [],
     allowedChangePaths: ['moldea/moldea.yaml'],
+    allowedChangePathPatterns: [],
+    mustChangePathPatterns: [],
   },
   judgeRequirements: [
     {

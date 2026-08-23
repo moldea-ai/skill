@@ -37,6 +37,8 @@ workspace:
   mustNotExistPaths:
     - moldea
   allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
 judgeRequirements:
   - id: identifies-material-choice
     description: The actor explains that the repository does not establish whether transfers are previews or value-moving executions.

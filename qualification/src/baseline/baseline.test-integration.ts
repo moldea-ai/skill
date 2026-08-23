@@ -44,6 +44,16 @@ const candidate: ICandidateClosure = {
       sha256: 'c'.repeat(64),
     },
   ],
+  typeScriptPackage: {
+    name: 'typescript',
+    version: '6.0.3',
+    registryIntegrity: `sha512-${'f'.repeat(86)}`,
+    registryShasum: 'a'.repeat(40),
+    registryTarballUrl: 'https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz',
+    tarballPath: '/candidate/typescript.tgz',
+    tarballName: 'typescript-6.0.3.tgz',
+    sha256: 'f'.repeat(64),
+  },
   runtimeDirectory: '/candidate',
 };
 
@@ -99,7 +109,9 @@ describe('Custom qualification baseline', () => {
     const passingBaseline = await seedPassingQualificationEvidenceFixture({
       artifactDirectory,
       attemptId: 'custom-baseline',
-      packages: candidate.packages.map(createPublicCandidatePackage),
+      packages: [...candidate.packages, candidate.typeScriptPackage].map(
+        createPublicCandidatePackage,
+      ),
       packagesRepositoryCommit: packagesState.commit,
       packagesRepositoryFingerprint: packagesState.fingerprint,
       qualificationDigest: '1'.repeat(64),

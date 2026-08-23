@@ -1,0 +1,29 @@
+{
+  "caseId": "stop-on-material-ambiguity",
+  "title": "Stop on material ambiguity",
+  "status": "passed",
+  "durationMs": 121814,
+  "deterministicBeforePath": "cases/stop-on-material-ambiguity/deterministic-before.json",
+  "deterministicAfterPath": "cases/stop-on-material-ambiguity/deterministic-after.json",
+  "actorOutputPath": "cases/stop-on-material-ambiguity/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/stop-on-material-ambiguity/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/stop-on-material-ambiguity/workspace-assertions.json",
+  "patchPath": "cases/stop-on-material-ambiguity/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 383389,
+    "cachedInputTokens": 347136,
+    "outputTokens": 4089
+  },
+  "judgeUsage": {
+    "inputTokens": 55111,
+    "cachedInputTokens": 40192,
+    "outputTokens": 1084
+  },
+  "actorEvidenceCreatedAt": "2026-08-23T05:21:50.622Z",
+  "judgeEvidenceCreatedAt": "2026-08-23T05:22:21.377Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "failures": []
+}

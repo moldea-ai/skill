@@ -47,6 +47,18 @@ export const resolvePublishedPackageClosure: (options: {
   selectedPackageName: string;
 }) => Promise<IPublishedPackageManifest[]>;
 
+export const resolvePublishedPackageManifest: (options: {
+  fetchResource?: typeof fetch;
+  packageName: string;
+  version: string;
+}) => Promise<IPublishedPackageManifest>;
+
+export const downloadPublishedPackageArtifact: (options: {
+  artifactDirectory: string;
+  fetchResource?: typeof fetch;
+  manifest: IPublishedPackageManifest;
+}) => Promise<IPublishedCandidatePackage>;
+
 export const downloadPublishedPackageClosure: (options: {
   artifactDirectory: string;
   fetchResource?: typeof fetch;

@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "All required billing-context changes are present and coherent; the complete diff and workspace assertions confirm unrelated dirty work was preserved. Deterministic post-actor validation reports valid filesystem, memory, Core, CLI, and typechecking results without mutation.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` is present as canonical billing guidance. `moldea/moldea.yaml` globally registers `/moldea/context/billing.md`, binds it to `/src/billing.ts#refundWindowDays`, declares `affectedBy: /src/billing.ts`, and assigns it under `agents.support.context`."
+    },
+    {
+      "id": "updates-instruction",
+      "verdict": "pass",
+      "evidence": "`moldea/agents/support/instruction.md` retains the required opening identity, `You are the \\`support\\` agent.`, and explicitly directs use of billing context for refund and invoice questions."
+    },
+    {
+      "id": "preserves-dirty-state",
+      "verdict": "pass",
+      "evidence": "Workspace assertions show identical before/after SHA-256 values for `.agents/project-policy.md`, tracked `src/operator-notes.ts`, and untracked `notes/local-observation.md`; the complete Git diff shows the latter two remain the pre-existing unrelated changes."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Deterministic post-actor summary reports `inspectionStatus: valid`, repository filesystem and memory equivalence, Core and CLI checks, `cliValidateStatus: valid`, `cliInspectStatus: valid`, successful typechecking, and `repositoryUnchanged: true`."
+    }
+  ],
+  "failures": []
+}

@@ -41,7 +41,7 @@ const getPublicPackageIdentity = (
   tarballName: string;
   version: string;
 }> =>
-  candidate.packages
+  [...candidate.packages, candidate.typeScriptPackage]
     .map(createPublicCandidatePackage)
     .sort(({ name: left }, { name: right }) => left.localeCompare(right, 'en'));
 

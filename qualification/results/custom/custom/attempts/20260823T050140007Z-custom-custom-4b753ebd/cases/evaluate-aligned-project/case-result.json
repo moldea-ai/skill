@@ -1,0 +1,32 @@
+{
+  "caseId": "evaluate-aligned-project",
+  "title": "Evaluate an aligned project",
+  "status": "failed",
+  "durationMs": 160499,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/evaluate-aligned-project/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 456610,
+    "cachedInputTokens": 411904,
+    "outputTokens": 3960
+  },
+  "judgeUsage": {
+    "inputTokens": 287949,
+    "cachedInputTokens": 254208,
+    "outputTokens": 2345
+  },
+  "actorEvidenceCreatedAt": "2026-08-23T05:03:21.731Z",
+  "judgeEvidenceCreatedAt": "2026-08-23T05:04:24.549Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "failures": [
+    "Judge requirement validates-project failed: Repository/Core/CLI evidence is valid: isolated `inspect --json` and `validate --json` returned schema 2, CLI 4.0.1, `status: valid`, no diagnostics; `compatibility --json` lists custom for format 1. However, the actor reports `<workspace>/node_modules/.bin/tsc` was absent, and direct `tsc --noEmit` now fails with `tsc: command not found`; `package.json` declares no typecheck script or TypeScript dependency. Thus project typechecking did not confirm validity, despite the contradictory deterministic `typecheckPassed: true` field.",
+    "Provide an executable, repository-defined TypeScript typecheck (for example, a declared local TypeScript dependency and script), then run it successfully. The current report and actual environment do not support the claimed typecheck pass."
+  ]
+}

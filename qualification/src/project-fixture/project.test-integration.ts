@@ -28,6 +28,9 @@ const createCandidateFixture = async (temporaryRoot: string): Promise<ICandidate
   const packageSourceDirectory = path.join(temporaryRoot, 'cli-package');
   const cliExecutablePath = path.join(packageSourceDirectory, 'dist', 'moldea.js');
   const tarballPath = path.join(temporaryRoot, 'moldea.ai-cli-3.1.3.tgz');
+  const typeScriptSourceDirectory = path.join(temporaryRoot, 'typescript-package');
+  const typeScriptExecutablePath = path.join(typeScriptSourceDirectory, 'bin', 'tsc');
+  const typeScriptTarballPath = path.join(temporaryRoot, 'typescript-6.0.3.tgz');
   await ensureDirectory(path.dirname(cliExecutablePath));
   await ensureDirectory(runtimeDirectory);
   await writeFile(
@@ -55,6 +58,31 @@ const createCandidateFixture = async (temporaryRoot: string): Promise<ICandidate
     args: ['pack', '--ignore-scripts', '--pack-destination', temporaryRoot],
     cwd: packageSourceDirectory,
   });
+  await ensureDirectory(path.dirname(typeScriptExecutablePath));
+  await writeFile(
+    path.join(typeScriptSourceDirectory, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: 'typescript',
+        version: '6.0.3',
+        bin: { tsc: 'bin/tsc' },
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+  await writeFile(
+    typeScriptExecutablePath,
+    "#!/usr/bin/env node\nprocess.stdout.write('Version 6.0.3\\n');\n",
+    'utf8',
+  );
+  await chmod(typeScriptExecutablePath, 0o755);
+  await executeProcess({
+    command: 'npm',
+    args: ['pack', '--ignore-scripts', '--pack-destination', temporaryRoot],
+    cwd: typeScriptSourceDirectory,
+  });
 
   return {
     cliJsonSchemaVersion: 2,
@@ -72,6 +100,16 @@ const createCandidateFixture = async (temporaryRoot: string): Promise<ICandidate
         sha256: await calculateFileSha256(tarballPath),
       },
     ],
+    typeScriptPackage: {
+      name: 'typescript',
+      version: '6.0.3',
+      registryIntegrity: `sha512-${'d'.repeat(86)}`,
+      registryShasum: 'e'.repeat(40),
+      registryTarballUrl: 'https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz',
+      tarballPath: typeScriptTarballPath,
+      tarballName: path.basename(typeScriptTarballPath),
+      sha256: await calculateFileSha256(typeScriptTarballPath),
+    },
     runtimeDirectory,
   };
 };
@@ -149,6 +187,9 @@ describe('qualification project fixtures', () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-project-'));
     const attemptDirectory = path.join(temporaryRoot, 'attempt');
     const candidate = await createCandidateFixture(temporaryRoot);
+    await expect(access(path.join(attemptDirectory, 'pnpm-store'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    });
     const skillState = await inspectGitRepositoryState(DEFAULT_SKILL_REPOSITORY);
     const project = await prepareQualificationProject({
       attemptDirectory,
@@ -164,6 +205,8 @@ describe('qualification project fixtures', () => {
     });
     const mountedSkillRoot = path.join(project.workspaceDirectory, '.agents', 'skills', 'moldea');
 
+    await expect(access(path.join(attemptDirectory, 'pnpm-store'))).resolves.toBeUndefined();
+
     expect(await readFile(path.join(mountedSkillRoot, 'SKILL.md'), 'utf8')).toContain(
       'name: moldea',
     );
@@ -173,7 +216,9 @@ describe('qualification project fixtures', () => {
     const projectManifest = JSON.parse(
       await readFile(path.join(project.workspaceDirectory, 'package.json'), 'utf8'),
     ) as unknown;
-    expect(projectManifest).toMatchObject({ devDependencies: { '@moldea.ai/cli': '3.1.3' } });
+    expect(projectManifest).toMatchObject({
+      devDependencies: { '@moldea.ai/cli': '3.1.3', typescript: '6.0.3' },
+    });
     expect(projectManifest).not.toHaveProperty('pnpm');
     expect(
       JSON.parse(
@@ -193,8 +238,11 @@ describe('qualification project fixtures', () => {
       await calculateDirectoryFingerprint(path.join(project.workspaceDirectory, 'node_modules')),
     );
     const cliShimPath = path.join(project.workspaceDirectory, 'node_modules', '.bin', 'moldea');
+    const typeScriptShimPath = path.join(project.workspaceDirectory, 'node_modules', '.bin', 'tsc');
     expect((await lstat(cliShimPath)).isSymbolicLink()).toBe(true);
     expect(path.isAbsolute(await readlink(cliShimPath))).toBe(false);
+    expect((await lstat(typeScriptShimPath)).isSymbolicLink()).toBe(true);
+    expect(path.isAbsolute(await readlink(typeScriptShimPath))).toBe(false);
     expect(
       (
         await executeProcess({
@@ -204,6 +252,15 @@ describe('qualification project fixtures', () => {
         })
       ).stdout,
     ).toBe('fixture-cli\n');
+    expect(
+      (
+        await executeProcess({
+          command: typeScriptShimPath,
+          args: ['--version'],
+          cwd: project.workspaceDirectory,
+        })
+      ).stdout,
+    ).toBe('Version 6.0.3\n');
     const copiedWorkspaceDirectory = path.join(temporaryRoot, 'copied-workspace');
     await copyDirectory(project.workspaceDirectory, copiedWorkspaceDirectory);
     expect(
@@ -215,6 +272,15 @@ describe('qualification project fixtures', () => {
         })
       ).stdout,
     ).toBe('fixture-cli\n');
+    expect(
+      (
+        await executeProcess({
+          command: path.join(copiedWorkspaceDirectory, 'node_modules', '.bin', 'tsc'),
+          args: ['--version'],
+          cwd: copiedWorkspaceDirectory,
+        })
+      ).stdout,
+    ).toBe('Version 6.0.3\n');
     await expect(
       access(path.join(project.workspaceDirectory, 'pnpm-lock.yaml')),
     ).rejects.toMatchObject({ code: 'ENOENT' });

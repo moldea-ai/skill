@@ -113,12 +113,16 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
         '    forbiddenEvidenceKinds: []',
         'expectedActorOutcome: completed',
         'workspace:',
-        '  expectation: unchanged',
+        '  expectation: changed',
         '  mustPreservePaths: []',
         '  mustChangePaths: []',
         '  mustExistPaths: []',
         '  mustNotExistPaths: []',
         '  allowedChangePaths: []',
+        '  allowedChangePathPatterns:',
+        '    - moldea/runtimes/**/*.md',
+        '  mustChangePathPatterns:',
+        '    - moldea/runtimes/**/*.md',
         'judgeRequirements:',
         '  - id: complete-evidence',
         '    description: Every fixture contract passed.',
@@ -130,10 +134,10 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
   const profileDigest = await calculateDirectoryFingerprint(profileDirectory);
   const actorOutput = {
     outcome: 'completed' as const,
-    summary: 'Completed the fixture without changing the workspace.',
+    summary: 'Created grounded runtime guidance for the fixture.',
     commands: [],
-    changedFiles: [],
-    observations: ['The fixture was already aligned.'],
+    changedFiles: ['moldea/runtimes/release-case.md'],
+    observations: ['The runtime guidance is referenced by the fixture manifest.'],
     unresolved: [],
   };
   const judgeOutput = {
@@ -179,12 +183,18 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
       },
     },
   };
+  const runtimeGuidanceEntry = {
+    path: 'moldea/runtimes/release-case.md',
+    kind: 'file' as const,
+    mode: 0o100644,
+    sha256: 'f'.repeat(64),
+  };
   const workspaceAssertions = {
     passed: true,
     failures: [],
     before: [],
-    after: [],
-    changedPaths: [],
+    after: [runtimeGuidanceEntry],
+    changedPaths: [runtimeGuidanceEntry.path],
   };
   const actorCacheKey = '1'.repeat(64);
   const judgeCacheKey = '2'.repeat(64);
@@ -363,7 +373,10 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
       path.join(options.artifactDirectory, caseRoot, 'workspace-assertions.json'),
       workspaceAssertions,
     ),
-    writeTextFileAtomically(path.join(options.artifactDirectory, caseRoot, 'workspace.patch'), ''),
+    writeTextFileAtomically(
+      path.join(options.artifactDirectory, caseRoot, 'workspace.patch'),
+      'Added moldea/runtimes/release-case.md.\n',
+    ),
   ]);
 
   return result;

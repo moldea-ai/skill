@@ -46,6 +46,8 @@ workspace:
     - README.md
     - moldea/moldea.yaml
     - moldea/project.md
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
 judgeRequirements:
   - id: grounds-project
     description: The project description states the invoice-review purpose and deterministic non-authorizing result from repository evidence.

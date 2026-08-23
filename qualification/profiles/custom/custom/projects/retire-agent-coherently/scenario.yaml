@@ -50,6 +50,8 @@ workspace:
     - moldea/agents/support/instruction.md
     - moldea/moldea.yaml
     - moldea/runtimes/custom.md
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
 judgeRequirements:
   - id: removes-obsolete-declaration
     description: The final manifest no longer declares the removed support agent, its binding, or its custom runtime guidance.

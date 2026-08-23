@@ -41,6 +41,8 @@ workspace:
     - src/support-agent.ts
   allowedChangePaths:
     - moldea/moldea.yaml
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
 judgeRequirements:
   - id: repairs-binding
     description: The stale runtime-agent reference is updated to the existing supportAssistant export and no obsolete source is recreated.

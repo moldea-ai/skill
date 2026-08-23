@@ -1,0 +1,13 @@
+{
+  "role": "judge",
+  "createdAt": "2026-08-23T05:15:08.218Z",
+  "durationMs": 40478,
+  "usage": {
+    "inputTokens": 75365,
+    "cachedInputTokens": 61440,
+    "outputTokens": 1674
+  },
+  "cacheKey": "50a378936edb66f7e359efd09d16aa294a22a8ed4549c027be4c28dfcce4d80f",
+  "sourceAttemptId": "20260823T050140007Z-custom-custom-4b753ebd",
+  "cacheSourceAttemptId": null
+}

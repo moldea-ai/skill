@@ -37,6 +37,8 @@ workspace:
     - src/support-agent.ts
   mustNotExistPaths: []
   allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
 judgeRequirements:
   - id: explains-alignment
     description: The actor identifies the registered agent, custom runtime guidance, and explicit runtime binding using repository evidence.

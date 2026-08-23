@@ -55,6 +55,8 @@ const scenario = {
     mustExistPaths: [],
     mustNotExistPaths: [],
     allowedChangePaths: [],
+    allowedChangePathPatterns: [],
+    mustChangePathPatterns: [],
   },
   judgeRequirements: [
     { id: 'requirement-one', description: 'The first requirement passes.' },
@@ -350,6 +352,16 @@ describe('qualification resume identity validation', () => {
         sha256: 'b'.repeat(64),
       },
     ],
+    typeScriptPackage: {
+      name: 'typescript',
+      version: '6.0.3',
+      registryIntegrity: `sha512-${'d'.repeat(86)}`,
+      registryShasum: 'e'.repeat(40),
+      registryTarballUrl: 'https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz',
+      tarballPath: '/cache/typescript.tgz',
+      tarballName: 'typescript-6.0.3.tgz',
+      sha256: 'f'.repeat(64),
+    },
     runtimeDirectory: '/attempt/runtime',
   };
 

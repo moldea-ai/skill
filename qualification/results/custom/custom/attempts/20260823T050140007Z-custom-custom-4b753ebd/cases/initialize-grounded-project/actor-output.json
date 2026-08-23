@@ -1,0 +1,34 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized Moldea from local repository evidence. Added canonical manifest and project context plus the standard README awareness block. Local Moldea inspection and validation both returned valid with no diagnostics.",
+  "commands": [
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.process= -c filter.lfs.required=false status --short",
+    "sed -n '1,260p' README.md",
+    "sed -n '1,260p' package.json",
+    "sed -n '1,320p' src/invoice-review.ts",
+    "node --version",
+    "node -e \"const p=require('./node_modules/@moldea.ai/cli/package.json'); if (p.name !== '@moldea.ai/cli' || p.version !== '4.0.1' || !p.bin || typeof p.bin.moldea !== 'string') process.exitCode=1; console.log(JSON.stringify({name:p.name,version:p.version,bin:p.bin.moldea}))\"",
+    "node -e \"const fs=require('fs'),path=require('path'); const pkg=fs.realpathSync('node_modules/@moldea.ai/cli'); const bin=fs.realpathSync('node_modules/.bin/moldea'); const expected=fs.realpathSync(path.join(pkg,'dist/moldea.js')); if (!bin.startsWith(pkg+path.sep) || bin!==expected) process.exitCode=1; console.log(JSON.stringify({package:pkg,binary:bin}))\"",
+    "node ./node_modules/.bin/moldea inspect --json",
+    "node ./node_modules/.bin/moldea validate --json",
+    "git -c core.fsmonitor=false -c core.pager=cat diff --no-ext-diff --check",
+    "git -c core.fsmonitor=false -c core.pager=cat diff --no-ext-diff -- README.md",
+    "git -c core.fsmonitor=false -c core.pager=cat status --short"
+  ],
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "README evidence establishes an invoice-review service for human finance operators, reviewing duplicate references and arithmetic mismatches, with no authority to authorize or send payments.",
+    "The root declares and installs @moldea.ai/cli 4.0.1; its resolved local executable was used. Node v24.15.0 is supported.",
+    "Initial isolated inspect returned expected invalid status with only missing manifest and project-file diagnostics.",
+    "Post-write isolated inspect returned valid status, formatVersion 1, no diagnostics, no runtime evidence, and no agents, decisions, runtimes, focused context, or unresolved requirements.",
+    "Post-write isolated validate returned valid status with no diagnostics.",
+    "Final diff whitespace check passed."
+  ],
+  "unresolved": [
+    "The inspected source currently implements duplicate-reference detection only; the README also describes arithmetic-mismatch review. The project context preserves the supported service scope without claiming that the inspected source fully implements every stated review type."
+  ]
+}

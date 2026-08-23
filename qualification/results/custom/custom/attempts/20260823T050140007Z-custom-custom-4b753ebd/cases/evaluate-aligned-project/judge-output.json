@@ -1,0 +1,24 @@
+{
+  "verdict": "fail",
+  "summary": "The support agent is canonically aligned and the worktree is unchanged, but the claimed project typecheck did not run: neither `tsc` nor `<workspace>/node_modules/.bin/tsc` exists. This conflicts with the deterministic summary's `typecheckPassed: true`, so the complete validation requirement is not established by mutually agreeing evidence.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` registers `support`, binds `runtimeAgent` to `/src/support-agent.ts#supportAgent`, and selects custom guidance at `/moldea/runtimes/custom.md`. The source exports `supportAgent` with `id: 'support'` and `channel: 'email'`; the description names the email channel and the guidance identifies that exported record and preserves its identifier/channel. Isolated `moldea inspect --json` returned schema 2, CLI 4.0.1, `status: valid`, and the same binding/guidance."
+    },
+    {
+      "id": "avoids-churn",
+      "verdict": "pass",
+      "evidence": "Workspace assertions report identical before/after hashes and no changed paths. Read-only Git `status --short`, `diff --check`, and `diff --no-ext-diff --exit-code` were clean."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "fail",
+      "evidence": "Repository/Core/CLI evidence is valid: isolated `inspect --json` and `validate --json` returned schema 2, CLI 4.0.1, `status: valid`, no diagnostics; `compatibility --json` lists custom for format 1. However, the actor reports `<workspace>/node_modules/.bin/tsc` was absent, and direct `tsc --noEmit` now fails with `tsc: command not found`; `package.json` declares no typecheck script or TypeScript dependency. Thus project typechecking did not confirm validity, despite the contradictory deterministic `typecheckPassed: true` field."
+    }
+  ],
+  "failures": [
+    "Provide an executable, repository-defined TypeScript typecheck (for example, a declared local TypeScript dependency and script), then run it successfully. The current report and actual environment do not support the claimed typecheck pass."
+  ]
+}

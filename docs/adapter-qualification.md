@@ -21,15 +21,15 @@ Every case uses the same production composition developers rely on:
 3. Core validates and inspects Repository format state.
 4. The exact packed CLI runs `compatibility`, `validate`, and `inspect` from the project-local dependency.
 5. The selected adapter contributes its normal static evidence.
-6. The project typechecks, and read-only inspection must leave it unchanged.
+6. The project typechecks with the exact compiler declared and installed by that mock project, and read-only inspection must leave it unchanged.
 
-The portable skill is installed at `.agents/skills/moldea`, its real discovery location. Candidate packages are downloaded from npm using the exact CLI-owned release closure, verified against registry SHA-512 and SHA-1 identities, recorded with downloaded SHA-256 digests, and installed with lifecycle scripts disabled.
+The portable skill is installed at `.agents/skills/moldea`, its real discovery location. Candidate packages are downloaded from npm using the exact CLI-owned release closure, verified against registry SHA-512 and SHA-1 identities, and recorded with downloaded SHA-256 digests. The runner applies the same registry and digest checks to the exact TypeScript version owned by the qualification package. Candidate preparation fetches external dependencies once into an attempt-local package-manager store with lifecycle scripts disabled, then every committed project installs offline from that store and the verified Moldea and compiler tarballs. Each project owns a relative local executable link. The deterministic verifier does not borrow a compiler from the packages checkout or a machine-level package-manager store.
 
 ## Three evidence layers
 
 Matrix probes map every behavior-affecting compatibility claim to one or more project cases. A missing claim, an unknown claim, or an uncovered case fails before model execution.
 
-Deterministic verification runs before and after the actor. It checks package provenance, repository-reader equivalence, Core and CLI behavior, project validity, typechecking, dependency integrity, and workspace preservation.
+Deterministic verification runs before and after the actor. It checks package provenance, repository-reader equivalence, Core and CLI behavior, project validity, project-local typechecking, dependency integrity, and workspace preservation.
 
 Semantic evaluation uses separate actor and judge processes with a fixed balanced-tier model at `medium` reasoning effort (`gpt-5.6-terra`). The actor receives a natural project task, not the grading criteria. The judge receives a read-only copy of the final workspace and the explicit case requirements.
 
@@ -50,7 +50,7 @@ The universal catalog currently includes eight distinct journeys:
 
 Eight is not a permanent limit. A profile must add a project when an adapter introduces a materially different binding, package, provider, limitation, or source-analysis risk that the universal journeys do not cover.
 
-Each project commits its scenario, natural task, baseline, optional dirty overlay, expected model-free outcome, workspace assertions, and judge requirements. Anyone can inspect those inputs before reading an outcome.
+Each project commits its scenario, natural task, baseline, optional dirty overlay, expected model-free outcome, workspace assertions, and judge requirements. Anyone can inspect those inputs before reading an outcome. Workspace assertions may use exact paths or bounded repository-relative `*` and `**` patterns. The same path contract is reapplied when committed passing evidence is verified, so permitting a descriptive runtime filename does not permit unrelated changes.
 
 ## Publication status
 

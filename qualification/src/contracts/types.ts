@@ -35,6 +35,31 @@ const RelativePathSchema = z
     }
   });
 
+const RelativePathPatternSchema = z
+  .string()
+  .min(1)
+  .superRefine((candidatePattern, context) => {
+    const normalizedPattern = path.posix.normalize(candidatePattern);
+    const unsupportedGlobTokens = ['?', '[', ']', '{', '}', '(', ')', '!', '+'];
+    const hasUnsupportedStarRun = /\*{3,}/u.test(candidatePattern);
+
+    if (
+      path.posix.isAbsolute(candidatePattern) ||
+      candidatePattern.includes('\\') ||
+      normalizedPattern === '..' ||
+      normalizedPattern.startsWith('../') ||
+      normalizedPattern !== candidatePattern ||
+      !candidatePattern.includes('*') ||
+      hasUnsupportedStarRun ||
+      unsupportedGlobTokens.some((token) => candidatePattern.includes(token))
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Expected a normalized repository-relative POSIX pattern using only * or **.',
+      });
+    }
+  });
+
 // selected matrix target evaluated by one qualification attempt
 export const QualificationSelectionSchema = z.strictObject({
   adapterId: StableIdSchema,
@@ -101,6 +126,8 @@ export const QualificationCaseScenarioSchema = z.strictObject({
     mustExistPaths: z.array(RelativePathSchema),
     mustNotExistPaths: z.array(RelativePathSchema),
     allowedChangePaths: z.array(RelativePathSchema),
+    allowedChangePathPatterns: z.array(RelativePathPatternSchema),
+    mustChangePathPatterns: z.array(RelativePathPatternSchema),
   }),
   judgeRequirements: z
     .array(
@@ -178,6 +205,9 @@ export const CandidateClosureSchema = z.strictObject({
   cliVersion: z.string().regex(/^\d+\.\d+\.\d+$/u),
   cliJsonSchemaVersion: z.number().int().positive(),
   packages: z.array(CandidatePackageSchema).min(1),
+  typeScriptPackage: CandidatePackageSchema.extend({
+    name: z.literal('typescript'),
+  }),
   runtimeDirectory: z.string().min(1),
 });
 

@@ -31,12 +31,10 @@ workspace:
     - moldea/moldea.yaml
     - moldea/agents/order-triage/description.md
     - moldea/agents/order-triage/instruction.md
-    - moldea/runtimes/custom.md
   mustExistPaths:
     - moldea/moldea.yaml
     - moldea/agents/order-triage/description.md
     - moldea/agents/order-triage/instruction.md
-    - moldea/runtimes/custom.md
     - src/order-triage-agent.ts
   mustNotExistPaths: []
   allowedChangePaths:
@@ -44,12 +42,16 @@ workspace:
     - moldea/agents/order-triage/instruction.md
     - moldea/moldea.yaml
     - moldea/runtimes/custom.md
+  allowedChangePathPatterns:
+    - moldea/runtimes/**/*.md
+  mustChangePathPatterns:
+    - moldea/runtimes/**/*.md
 judgeRequirements:
   - id: grounds-behavior
     description: The canonical description and instruction reflect order classification, human review, and the explicit lack of refund authority.
   - id: binds-implementation
     description: The manifest binds the order-triage agent to the existing createOrderTriageAgent export and affected source.
   - id: defines-runtime-guidance
-    description: Custom runtime guidance explains that the runtime-owned loader supplies the canonical instruction path and content to the factory without inventing provider behavior.
+    description: The manifest references the sole new runtime-guidance file under /moldea/runtimes/**/*.md, which explains that the runtime-owned loader supplies the canonical instruction path and content to the factory without inventing provider behavior.
   - id: validates-project
     description: Repository FS, Repository memory, Core, CLI, and project typechecking accept the completed agent without read-time mutation.

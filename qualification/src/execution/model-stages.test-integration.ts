@@ -61,6 +61,8 @@ const scenario = {
     mustExistPaths: [],
     mustNotExistPaths: [],
     allowedChangePaths: [],
+    allowedChangePathPatterns: [],
+    mustChangePathPatterns: [],
   },
   judgeRequirements: [{ id: 'required-check', description: 'The required check passes.' }],
 } satisfies IQualificationCaseScenario;
@@ -140,6 +142,16 @@ describe('qualification model stages', () => {
       cliVersion: '4.0.0',
       fingerprint: 'c'.repeat(64),
       packages: [],
+      typeScriptPackage: {
+        name: 'typescript',
+        version: '6.0.3',
+        registryIntegrity: `sha512-${'d'.repeat(86)}`,
+        registryShasum: 'e'.repeat(40),
+        registryTarballUrl: 'https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz',
+        tarballPath: '/candidate/typescript.tgz',
+        tarballName: 'typescript-6.0.3.tgz',
+        sha256: 'f'.repeat(64),
+      },
       runtimeDirectory,
     };
     const callOrder: string[] = [];
@@ -270,6 +282,16 @@ describe('qualification model stages', () => {
       cliVersion: '4.0.0',
       fingerprint: 'c'.repeat(64),
       packages: [],
+      typeScriptPackage: {
+        name: 'typescript',
+        version: '6.0.3',
+        registryIntegrity: `sha512-${'d'.repeat(86)}`,
+        registryShasum: 'e'.repeat(40),
+        registryTarballUrl: 'https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz',
+        tarballPath: '/candidate/typescript.tgz',
+        tarballName: 'typescript-6.0.3.tgz',
+        sha256: 'f'.repeat(64),
+      },
       runtimeDirectory,
     };
     const callOrder: string[] = [];

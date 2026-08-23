@@ -45,6 +45,8 @@ workspace:
     - moldea/agents/support/instruction.md
     - moldea/context/billing.md
     - moldea/moldea.yaml
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
 judgeRequirements:
   - id: adds-context
     description: The billing context is canonical, registered globally, and assigned to the support agent with an explicit affected path.

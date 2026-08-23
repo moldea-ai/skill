@@ -1,5 +1,5 @@
 // types
-export type { IPreparedQualificationProject } from './types.ts';
+export type { IPreparedQualificationProject, IProjectTypeScriptInstallation } from './types.ts';
 
 // constants
 export {
@@ -25,3 +25,9 @@ export {
   inspectWorkspaceAssertions,
 } from './assertions.ts';
 export { captureWorkspacePatch } from './patch.ts';
+
+// project-owned compiler
+export { inspectProjectTypeScriptInstallation } from './typescript.ts';
+
+// workspace contract validation
+export { matchesWorkspacePathContract } from './validations.ts';

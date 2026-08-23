@@ -17,4 +17,9 @@ export {
 } from './workspace.mjs';
 
 // published registry closure
-export { downloadPublishedPackageClosure, resolvePublishedPackageClosure } from './published.mjs';
+export {
+  downloadPublishedPackageArtifact,
+  downloadPublishedPackageClosure,
+  resolvePublishedPackageClosure,
+  resolvePublishedPackageManifest,
+} from './published.mjs';

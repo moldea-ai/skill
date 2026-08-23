@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The diff coherently retires the support agent. The final manifest retains only project context; the support description, instruction, and custom runtime guidance are deleted. Workspace assertions confirm only the intended canonical files changed from the actor baseline, and deterministic validation reports valid repository FS, memory, Core, CLI, and TypeScript state without read-time mutation.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml contains only version and the /moldea/project.md context mapping. Its HEAD diff removes support, runtime id custom, guidance /moldea/runtimes/custom.md, and the runtimeAgent binding to /src/support-agent.ts#supportAgent."
+    },
+    {
+      "id": "removes-orphaned-assets",
+      "verdict": "pass",
+      "evidence": "Git diff deletes moldea/agents/support/description.md, moldea/agents/support/instruction.md, and moldea/runtimes/custom.md together. The current moldea directory contains no agent or runtime assets."
+    },
+    {
+      "id": "preserves-surviving-context",
+      "verdict": "pass",
+      "evidence": "moldea/project.md, package.json, src/project-state.ts, and tsconfig.json are byte-identical to their recorded pre-actor hashes; direct HEAD comparisons also show project.md, package.json, and project-state.ts unchanged. The pre-existing deletion of src/support-agent.ts is not among the workspace assertion's actor changes."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Deterministic post-actor summary reports valid inspection and validation, repository filesystem and memory equivalence, Core and CLI compatibility/identity/package/adapter inventories, no read-time mutation, and a passing TypeScript check. It reports no failures."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The manifest repair, boundary warning, preserved assets, and deterministic validation evidence agree with the current working tree and final diff.",
+  "requirements": [
+    {
+      "id": "repairs-binding",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now binds `runtimeAgent` to `/src/support-assistant.ts#supportAssistant`; the file exports that symbol. Git status shows the obsolete `src/support-agent.ts` remains deleted and was not recreated. Isolated `moldea inspect --json` returned schemaVersion 2, CLI 4.0.1, and valid."
+    },
+    {
+      "id": "records-boundary",
+      "verdict": "pass",
+      "evidence": "The support agent has unresolved warning `dynamic-tool-registration` with category `runtime-integration`, a concrete resolution to inspect `createToolRegistry`, and related path `/src/dynamic-tools.ts`. No tool binding was added."
+    },
+    {
+      "id": "preserves-source",
+      "verdict": "pass",
+      "evidence": "Workspace assertions and current SHA-256 checks show unchanged hashes for both implementation files and canonical agent assets; only `moldea/moldea.yaml` changed among asserted paths."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Current isolated local CLI `inspect --json` and `validate --json` both returned valid with schemaVersion 2 and CLI version 4.0.1. The deterministic post-actor summary additionally records Repository FS, memory, Core, CLI compatibility, and project typecheck as passed without read-time mutation."
+    }
+  ],
+  "failures": []
+}

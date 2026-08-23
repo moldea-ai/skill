@@ -21,6 +21,7 @@ import {
   MOUNTED_SKILL_RELATIVE_PATH,
   QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,
 } from './constants.ts';
+import { inspectProjectTypeScriptInstallation } from './typescript.ts';
 import type { IPreparedQualificationProject } from './types.ts';
 
 const PROJECT_STATE_EXCLUDED_DIRECTORIES = new Set<string>(
@@ -51,6 +52,7 @@ const InstalledCliManifestSchema = z.object({
 /** Installs the packed CLI composition as one exact project-local development dependency. */
 const installCandidateProjectRuntime = async (
   workspaceDirectory: string,
+  attemptDirectory: string,
   candidate: ICandidateClosure,
   signal: AbortSignal | undefined,
 ): Promise<string> => {
@@ -72,7 +74,7 @@ const installCandidateProjectRuntime = async (
     },
   };
   const localPackageOverrides = Object.fromEntries(
-    candidate.packages.map((candidatePackage) => [
+    [...candidate.packages, candidate.typeScriptPackage].map((candidatePackage) => [
       candidatePackage.name,
       `file:${candidatePackage.tarballPath}`,
     ]),
@@ -117,6 +119,8 @@ const installCandidateProjectRuntime = async (
         '--ignore-scripts',
         '--lockfile=false',
         '--config.strict-peer-dependencies=true',
+        '--store-dir',
+        path.join(attemptDirectory, 'pnpm-store'),
       ],
       cwd: workspaceDirectory,
       environment: { ...process.env, CI: 'true' },
@@ -139,6 +143,8 @@ const installCandidateProjectRuntime = async (
   if (installedManifest.version !== cliPackage.version) {
     throw new Error('Project-local CLI version does not match the packed candidate.');
   }
+
+  await inspectProjectTypeScriptInstallation(workspaceDirectory);
 
   return calculateDirectoryFingerprint(projectNodeModules);
 };
@@ -238,6 +244,7 @@ export const prepareQualificationProject = async (options: {
   );
   const candidateRuntimeDigest = await installCandidateProjectRuntime(
     workspaceDirectory,
+    options.attemptDirectory,
     options.candidate,
     options.signal,
   );

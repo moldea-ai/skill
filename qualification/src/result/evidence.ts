@@ -34,6 +34,7 @@ import {
   resolveContainedPath,
   type IBoundarySchema,
 } from '../filesystem/index.ts';
+import { matchesWorkspacePathContract } from '../project-fixture/index.ts';
 
 const JsonObjectSchema = z.record(z.string(), z.unknown());
 
@@ -279,10 +280,21 @@ const assertPassingWorkspaceEvidence = (
 
   if (
     assertions.changedPaths.some(
-      (changedPath) => !scenario.workspace.allowedChangePaths.includes(changedPath),
+      (changedPath) =>
+        !matchesWorkspacePathContract(
+          changedPath,
+          scenario.workspace.allowedChangePaths,
+          scenario.workspace.allowedChangePathPatterns,
+        ),
     ) ||
     scenario.workspace.mustChangePaths.some(
       (requiredPath) => !assertions.changedPaths.includes(requiredPath),
+    ) ||
+    scenario.workspace.mustChangePathPatterns.some(
+      (requiredPattern) =>
+        !assertions.changedPaths.some((changedPath) =>
+          matchesWorkspacePathContract(changedPath, [], [requiredPattern]),
+        ),
     ) ||
     (scenario.workspace.expectation === 'unchanged' && assertions.changedPaths.length > 0) ||
     (scenario.workspace.expectation === 'changed' && assertions.changedPaths.length === 0)

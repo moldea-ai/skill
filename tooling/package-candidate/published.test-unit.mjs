@@ -1,8 +1,16 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import test from 'node:test';
 
-import { resolvePublishedPackageClosure } from './published.mjs';
+import {
+  downloadPublishedPackageArtifact,
+  resolvePublishedPackageClosure,
+  resolvePublishedPackageManifest,
+} from './published.mjs';
 
 const createMetadata = (name, version, dependencies = {}) => ({
   dependencies,
@@ -56,6 +64,59 @@ test('resolves the exact dependency-first published closure from the CLI', async
   assert.deepEqual(
     closure.map(({ name, version }) => `${name}@${version}`),
     ['@moldea.ai/core@2.0.0', '@moldea.ai/adapter-example@1.0.0', '@moldea.ai/cli@4.0.0'],
+  );
+});
+
+test('resolves one exact external tool package from the canonical registry', async () => {
+  const metadata = new Map([['typescript/6.0.3', createMetadata('typescript', '6.0.3')]]);
+
+  const manifest = await resolvePublishedPackageManifest({
+    fetchResource: createRegistryFetch(metadata),
+    packageName: 'typescript',
+    version: '6.0.3',
+  });
+
+  assert.equal(manifest.name, 'typescript');
+  assert.equal(manifest.version, '6.0.3');
+  assert.equal(
+    manifest.dist.tarball,
+    'https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz',
+  );
+});
+
+test('downloads one exact artifact only when both registry digests match', async (context) => {
+  const artifactDirectory = await mkdtemp(join(tmpdir(), 'moldea-published-artifact-'));
+  context.after(async () => rm(artifactDirectory, { force: true, recursive: true }));
+  const archive = Buffer.from('fixture archive');
+  const manifest = createMetadata('typescript', '6.0.3');
+  manifest.dist.integrity = `sha512-${createHash('sha512').update(archive).digest('base64')}`;
+  manifest.dist.shasum = createHash('sha1').update(archive).digest('hex');
+  const fetchResource = async () => ({
+    arrayBuffer: async () => archive,
+    ok: true,
+    status: 200,
+  });
+
+  const artifact = await downloadPublishedPackageArtifact({
+    artifactDirectory,
+    fetchResource,
+    manifest,
+  });
+
+  assert.equal(artifact.name, 'typescript');
+  assert.equal(artifact.sha256, createHash('sha256').update(archive).digest('hex'));
+  assert.deepEqual(await readFile(artifact.tarballPath), archive);
+
+  await assert.rejects(
+    downloadPublishedPackageArtifact({
+      artifactDirectory: join(artifactDirectory, 'invalid'),
+      fetchResource,
+      manifest: {
+        ...manifest,
+        dist: { ...manifest.dist, shasum: '0'.repeat(40) },
+      },
+    }),
+    /Registry integrity mismatch/u,
   );
 });
 

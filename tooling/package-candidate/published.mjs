@@ -77,6 +77,24 @@ const getInternalDependencies = (manifest) =>
     .filter(([packageName]) => isMoldeaPackageName(packageName))
     .sort(([left], [right]) => left.localeCompare(right, 'en'));
 
+/**
+ * Resolves one exact published package manifest from the canonical npm registry.
+ * @returns A promise resolving to the validated package manifest.
+ * @throws If the identity or registry response is invalid.
+ */
+export const resolvePublishedPackageManifest = async ({
+  fetchResource = fetch,
+  packageName,
+  version,
+}) => {
+  assert.equal(typeof packageName, 'string');
+  assert.ok(packageName.length > 0);
+  assert.match(version, STABLE_VERSION_PATTERN);
+  const metadataUrl = `${NPM_REGISTRY_ORIGIN}/${encodeURIComponent(packageName)}/${version}`;
+  const response = await fetchRegistryResource(metadataUrl, fetchResource);
+  return parsePublishedPackage(await response.json(), packageName, version);
+};
+
 /** Resolves the exact published Moldea runtime closure rooted at one CLI release. */
 export const resolvePublishedPackageClosure = async ({
   cliVersion,
@@ -122,9 +140,11 @@ export const resolvePublishedPackageClosure = async ({
     }
 
     visiting.add(identity);
-    const metadataUrl = `${NPM_REGISTRY_ORIGIN}/${encodeURIComponent(packageName)}/${version}`;
-    const response = await fetchRegistryResource(metadataUrl, fetchResource);
-    const manifest = parsePublishedPackage(await response.json(), packageName, version);
+    const manifest = await resolvePublishedPackageManifest({
+      fetchResource,
+      packageName,
+      version,
+    });
     manifests.set(packageName, manifest);
 
     if (packageName === CLI_PACKAGE_NAME) {
@@ -163,6 +183,36 @@ const validateArchiveIntegrity = (archive, manifest) => {
   }
 };
 
+/**
+ * Downloads and verifies one exact published package artifact.
+ * @returns A promise resolving to the verified local artifact identity.
+ * @throws If the registry request, integrity, or destination is invalid.
+ */
+export const downloadPublishedPackageArtifact = async ({
+  artifactDirectory,
+  fetchResource = fetch,
+  manifest,
+}) => {
+  mkdirSync(artifactDirectory, { recursive: true });
+  const response = await fetchRegistryResource(manifest.dist.tarball, fetchResource);
+  const archive = Buffer.from(await response.arrayBuffer());
+  validateArchiveIntegrity(archive, manifest);
+  const tarballName = basename(new URL(manifest.dist.tarball).pathname);
+  assert.ok(tarballName.endsWith('.tgz'));
+  const tarballPath = join(artifactDirectory, tarballName);
+  writeFileSync(tarballPath, archive, { flag: 'wx' });
+  return {
+    name: manifest.name,
+    registryIntegrity: manifest.dist.integrity,
+    registryShasum: manifest.dist.shasum,
+    registryTarballUrl: manifest.dist.tarball,
+    sha256: createHash('sha256').update(archive).digest('hex'),
+    tarballName,
+    tarballPath,
+    version: manifest.version,
+  };
+};
+
 /** Downloads, verifies, and writes one exact published closure as reusable tarballs. */
 export const downloadPublishedPackageClosure = async ({
   artifactDirectory,
@@ -174,23 +224,13 @@ export const downloadPublishedPackageClosure = async ({
   const packages = [];
 
   for (const manifest of manifests) {
-    const response = await fetchRegistryResource(manifest.dist.tarball, fetchResource);
-    const archive = Buffer.from(await response.arrayBuffer());
-    validateArchiveIntegrity(archive, manifest);
-    const tarballName = basename(new URL(manifest.dist.tarball).pathname);
-    assert.ok(tarballName.endsWith('.tgz'));
-    const tarballPath = join(artifactDirectory, tarballName);
-    writeFileSync(tarballPath, archive, { flag: 'wx' });
-    packages.push({
-      name: manifest.name,
-      registryIntegrity: manifest.dist.integrity,
-      registryShasum: manifest.dist.shasum,
-      registryTarballUrl: manifest.dist.tarball,
-      sha256: createHash('sha256').update(archive).digest('hex'),
-      tarballName,
-      tarballPath,
-      version: manifest.version,
-    });
+    packages.push(
+      await downloadPublishedPackageArtifact({
+        artifactDirectory,
+        fetchResource,
+        manifest,
+      }),
+    );
   }
 
   loadCandidateArtifacts(artifactDirectory, [selectedPackageName]);

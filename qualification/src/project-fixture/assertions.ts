@@ -17,6 +17,7 @@ import {
   QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,
 } from './constants.ts';
 import type { IPreparedQualificationProject } from './types.ts';
+import { matchesWorkspacePathContract } from './validations.ts';
 
 const PROJECT_STATE_EXCLUDED_DIRECTORIES = new Set<string>(
   QUALIFICATION_WORKSPACE_EXCLUDED_DIRECTORY_NAMES,
@@ -110,9 +111,13 @@ export const inspectWorkspaceAssertions = async (
     failures.push('Expected a project mutation, but no project files changed.');
   }
 
-  const allowedChangePaths = new Set(project.scenario.workspace.allowedChangePaths);
   const unexpectedChangePaths = changedPaths.filter(
-    (relativePath) => !allowedChangePaths.has(relativePath),
+    (relativePath) =>
+      !matchesWorkspacePathContract(
+        relativePath,
+        project.scenario.workspace.allowedChangePaths,
+        project.scenario.workspace.allowedChangePathPatterns,
+      ),
   );
   if (unexpectedChangePaths.length > 0) {
     failures.push(`Changes escaped the declared allowlist: ${unexpectedChangePaths.join(', ')}.`);
@@ -143,6 +148,16 @@ export const inspectWorkspaceAssertions = async (
   for (const relativePath of project.scenario.workspace.mustChangePaths) {
     if (areFileStatesEqual(beforeByPath.get(relativePath), afterByPath.get(relativePath))) {
       failures.push(`Required mutation was not observed: ${relativePath}.`);
+    }
+  }
+
+  for (const requiredPattern of project.scenario.workspace.mustChangePathPatterns) {
+    if (
+      !changedPaths.some((relativePath) =>
+        matchesWorkspacePathContract(relativePath, [], [requiredPattern]),
+      )
+    ) {
+      failures.push(`Required mutation pattern was not observed: ${requiredPattern}.`);
     }
   }
 

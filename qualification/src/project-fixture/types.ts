@@ -17,3 +17,9 @@ export type IPreparedQualificationProject = {
   internalDigest: string;
   skillDigest: string;
 };
+
+// exact workspace-local compiler identity used by actors and deterministic verification
+export type IProjectTypeScriptInstallation = {
+  executablePath: string;
+  version: string;
+};

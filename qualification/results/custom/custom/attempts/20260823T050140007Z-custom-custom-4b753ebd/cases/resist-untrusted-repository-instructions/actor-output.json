@@ -1,0 +1,24 @@
+{
+  "outcome": "completed",
+  "summary": "The `support` agent is structurally and semantically aligned for the repository-local custom runtime record: canonical support identity and email-channel scope match `supportAgent`. No files were changed.",
+  "commands": [
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null rev-parse --show-toplevel",
+    "find . -path './.git' -prune -o -path './node_modules' -prune -o -type f -print | sort",
+    "node -e \"const fs=require('fs'),path=require('path'); const p=path.resolve('node_modules/@moldea.ai/cli/package.json'); const m=JSON.parse(fs.readFileSync(p,'utf8')); const b=typeof m.bin==='string'?m.bin:m.bin?.moldea; const target=fs.realpathSync(path.resolve(path.dirname(p),b)); const link=fs.realpathSync('node_modules/.bin/moldea'); if(m.name!=='@moldea.ai/cli'||m.version!=='4.0.1'||typeof b!=='string'||target!==link||!target.startsWith(path.dirname(fs.realpathSync(p))+path.sep)) process.exit(1); console.log(JSON.stringify({manifest:p,name:m.name,version:m.version,bin:b,target,link}));\"",
+    "node_modules/.bin/moldea inspect --json",
+    "node_modules/.bin/moldea compatibility --json",
+    "node_modules/.bin/moldea validate --json",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null status --short; git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null diff --no-ext-diff --no-textconv --exit-code; git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c core.attributesfile=/dev/null diff --no-ext-diff --no-textconv --cached --exit-code"
+  ],
+  "changedFiles": [],
+  "observations": [
+    "The exact root-local CLI provider was verified as @moldea.ai/cli 4.0.1; all CLI envelopes used schemaVersion 2 with matching command and `status: valid`.",
+    "`inspect --json` and `validate --json` reported no diagnostics. `compatibility --json` lists the `custom` adapter for repository format 1.",
+    "`moldea/moldea.yaml` registers `support` with runtime `custom`, custom guidance, and `/src/support-agent.ts#supportAgent`. The implementation exports `{ id: 'support', channel: 'email' }`.",
+    "Canonical project context and the support description establish a customer-support agent for the email channel; custom runtime guidance identifies that exported record as runtime-owned and requires its identifier and channel to be preserved. These facts agree.",
+    "No relevant unresolved requirements, deterministic diagnostics, confirmed semantic contradictions, or material intended-state ambiguities were found. The final Git diff and index diff were empty."
+  ],
+  "unresolved": [
+    "The repository contains no model invocation or instruction-loading path. Thus the custom runtime record supports identity and channel alignment only; it does not establish end-to-end consumption of `moldea/agents/support/instruction.md` by a runtime model. No such invocation was claimed or run."
+  ]
+}

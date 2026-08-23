@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { DeterministicVerificationSchema, type ICandidateClosure } from '../contracts/index.ts';
 import { collectDirectoryFingerprintEntries, copyFileWithParents } from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
+import { inspectProjectTypeScriptInstallation } from '../project-fixture/index.ts';
 import type { IDeterministicVerificationArtifact } from './types.ts';
 
 const DirectVerificationSchema = z.strictObject({
@@ -97,7 +98,6 @@ export const verifyDeterministicProject = async (options: {
     forbiddenEvidenceKinds: readonly string[];
   };
   expectedInspectionStatus: 'invalid' | 'valid';
-  packagesRepository: string;
   signal?: AbortSignal | undefined;
   workspaceDirectory: string;
 }): Promise<IDeterministicVerificationArtifact> => {
@@ -128,6 +128,9 @@ export const verifyDeterministicProject = async (options: {
     'cli',
     'dist',
     'moldea.js',
+  );
+  const typeScriptInstallation = await inspectProjectTypeScriptInstallation(
+    options.workspaceDirectory,
   );
   const [compatibilityResult, validateResult, inspectResult, typecheckResult] = await Promise.all([
     executeProcess({
@@ -167,7 +170,7 @@ export const verifyDeterministicProject = async (options: {
     executeProcess({
       command: process.execPath,
       args: [
-        path.join(options.packagesRepository, 'node_modules', 'typescript', 'bin', 'tsc'),
+        typeScriptInstallation.executablePath,
         '--project',
         path.join(options.workspaceDirectory, 'tsconfig.json'),
         '--noEmit',

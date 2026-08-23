@@ -30,6 +30,8 @@ Actual runtime-variable values remain private and transient. The skill does not 
 
 ## Safe deterministic execution
 
-The coding agent verifies the exact repository-local CLI provider before execution and never falls back to a global command or a transient package download. When installation or pinning is authorized, lifecycle scripts and repository-supplied package-manager hooks or plugins are suppressed. If those execution surfaces cannot be disabled safely, the workflow stops and reports the prerequisite.
+The coding agent inspects package-manager configuration as file data before invoking the manager. A repository-supplied executable hook, pnpmfile, Yarn plugin, or equivalent extension blocks package-manager execution. The tooling-dependent workflow stops when dependency state must change or exact CLI provider proof or invocation requires the manager. An existing exact local CLI may continue only when its provider and canonical executable can be independently verified and invoked directly without the package manager. When installation or pinning is authorized in a safe repository, dependency lifecycle scripts remain disabled.
+
+The exact repository-local CLI provider is verified before execution, and the skill never falls back to a global command or transient package download. Every result-dependent provider check runs separately and must be accepted before the next command begins.
 
 Read-only Git inspection disables repository-configured helpers that could execute code or transform evidence.

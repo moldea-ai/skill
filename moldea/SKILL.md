@@ -81,22 +81,22 @@ Load only the references triggered by the current operation. These files operati
 
 1. Establish the requested outcome, activation path, write authority, repository mode, and applicable coding instructions.
 2. Determine whether the repository has adopted `moldea`. Do not infer adoption from an unrelated repository or create canonical state without explicit adoption intent.
-3. Establish or use supported local tooling according to the operation. `plan` never establishes tooling merely to plan; `evaluate` and `validate` report missing or incompatible tooling without writes.
-4. When the operation uses deterministic tooling, invoke the exact repository-local CLI and verify its machine envelope before interpreting command-specific fields.
+3. Establish or use supported local tooling according to the operation. Inspect executable package-manager configuration as file data before any package-manager process. `plan` never establishes tooling merely to plan; `evaluate` and `validate` report missing or incompatible tooling without writes.
+4. When the operation uses deterministic tooling, invoke the exact repository-local CLI in its own process and verify that completed process's exit code and machine envelope before interpreting command-specific fields.
 5. Gather the minimum sufficient repository context, beginning with high-information evidence and following material relationships until more investigation is unlikely to change a material conclusion.
 6. Distinguish current truth, developer-confirmed truth, intended resulting state, planned work, accepted rationale, historical state, unresolved state, and inference used only for investigation.
 7. Identify affected surfaces through exact bindings, impact paths, Agent Skill authoritative sources, resources, host metadata, installed or distributed copies, consumers, unresolved relationships, runtime-adapter evidence, and additional semantic evidence.
 8. Investigate contradictions and ask one focused question when multiple plausible answers would materially change the result. Use unresolved requirements only for genuine incomplete state, not answerable ambiguity or backlog work.
 9. Map runtime metadata by its established semantic purpose. Routing-facing metadata uses the target's effective routing description: the handoff description when present, otherwise the agent description. General-only metadata uses the agent description, regardless of property names. Before changing a runtime metadata mapping, establish and retain the consumer-semantics evidence, current canonical source, and required resulting source, then carry that evidence chain into the final report.
 10. For write-capable work, apply the smallest coherent authorized change and synchronize every affected representation. Make no canonical edit when the existing state remains correct.
-11. Run relevant project-native verification when executable behavior changed and authority permits it.
-12. After writes, rerun deterministic `inspect --json`, review semantic readiness, mirrors, and unresolved requirements, and distinguish scoped completion from unrelated invalidity.
+11. Run relevant project-native verification when executable behavior changed and authority permits it, keeping each result independently attributable.
+12. After writes, rerun deterministic `inspect --json` as a separate process, review semantic readiness, mirrors, and unresolved requirements, and distinguish scoped completion from unrelated invalidity.
 
 ## Deterministic boundary
 
 Use the repository-local CLI as mechanical authority for Git inventory, snapshots, repository-format parsing and validation, path and placeholder rules, mirror comparison, Core diagnostics, runtime-adapter invocation, and compatibility reporting. Do not recreate or heuristically reinterpret those mechanics.
 
-Before using a JSON result, require supported `schemaVersion`, the exact release `cliVersion`, the expected `command`, and a valid `status`/payload combination. Structural `invalid` results from `inspect` or `validate` are valid deterministic evidence; `error` is an operational failure. Unsupported or contradictory envelopes stop interpretation.
+Before using a JSON result, require an independently completed CLI process, its expected exit code, supported `schemaVersion`, the exact release `cliVersion`, the expected `command`, and a valid `status`/payload combination. Do not chain deterministic CLI invocations with other checks when their results will support a completion claim. Structural `invalid` results from `inspect` or `validate` are completed deterministic evidence, not successful validation; `error` is an operational failure. Failed or incomplete processes and unsupported or contradictory envelopes stop interpretation.
 
 Runtime-adapter evidence is deterministic evidence about detectable implementation, not authority for developer intent. Universal Core invalidity prevents adapters from running, so empty evidence in that state means unavailable evidence, not absence of runtime behavior. In dedicated-repository mode, implementation outside the canonical snapshot may also make evidence empty or partial without proving the runtime is absent.
 
@@ -113,7 +113,7 @@ Keep the report proportional while making these results explicit when relevant:
 - relevant unresolved requirements, ambiguities, protected-instruction conflicts, and evidence limitations
 - project-native checks and checks not run
 
-When deterministic tooling runs after writes, name the exact repository-local command, its valid status, and material diagnostics or mirror findings. A bare statement that inspection succeeded is not sufficient evidence. Never imply that valid canonical inspection proves behavior it cannot observe. In dedicated-repository mode, distinguish behavior established by related-application evidence from facts canonical deterministic inspection cannot establish.
+When deterministic tooling runs after writes, name the exact repository-local command, its status, and material diagnostics or mirror findings established by that command's completed isolated process. A bare statement that inspection succeeded is not sufficient evidence. Neither is a failed aggregate command or an unverified response. Never claim a `valid` result when the exact process or machine envelope failed, remained incomplete, or reported another status. Never imply that valid canonical inspection proves behavior it cannot observe. In dedicated-repository mode, distinguish behavior established by related-application evidence from facts canonical deterministic inspection cannot establish.
 
 For `initialize`, also report the evidence-backed project foundation and whether initialization completed or is awaiting developer context. If awaiting context, end with the focused clarification needed to continue. If completed, end the report with an explicit `Next actions` handoff that offers reviewing the foundation and continuing ordinary development; include agent-system planning or agent creation only as optional choices when relevant. Validation or test status does not replace this handoff. Do not treat file creation or structural validity alone as semantic completion.
 

@@ -44,6 +44,6 @@ Relevance-triggered activation does not initialize `moldea` in an unrelated repo
 
 If the developer prohibits corresponding `moldea` changes, the coding agent respects that scope, completes the authorized implementation, reports likely drift, and does not claim alignment.
 
-After synchronized writes, the completion report names the exact repository-local deterministic command, its valid status, and material diagnostics or mirror findings. A generic claim that inspection succeeded is not sufficient evidence.
+After synchronized writes, each deterministic CLI invocation runs as a separate process from project checks, mirror comparisons, and Git inspection. The completion report names the exact repository-local command, its status, and material diagnostics or mirror findings established by that completed process. A generic success claim, failed aggregate command, or unverified response is not sufficient evidence.
 
 When an Agent Skill copy or consumer belongs to another Git repository, each repository keeps its own authority and verification boundary. Coordinated changes are reported as non-atomic, and a change on one side never proves the other side is complete.

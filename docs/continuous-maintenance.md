@@ -52,7 +52,7 @@ Depending on the change, maintenance can reconsider:
 
 ## Adoption remains explicit
 
-Knowledge- and relevance-triggered activation do not initialize `moldea` in an unrelated repository. Adoption is established by explicit developer intent or current authorized work introducing canonical state.
+The skill may load to determine whether adoption exists. Loading does not adopt `moldea` or authorize persistence. Adoption is established by explicit developer intent or current authorized work introducing canonical state.
 
 If the developer prohibits corresponding `moldea` changes, the coding agent respects that scope, completes the authorized implementation, reports likely drift, and does not claim alignment.
 

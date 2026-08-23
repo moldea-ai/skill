@@ -4,7 +4,7 @@ Read this reference before initialization, knowledge- or relevance-triggered mai
 
 ## Recognize adoption without inventing it
 
-Explicit developer intent is required to adopt `moldea`. Knowledge- and relevance-triggered activation never initialize an unrelated repository automatically.
+Skill loading is not adoption. When a knowledge handoff triggers discovery before adoption is known, inspect only enough to determine it. Without explicit adoption intent or existing adoption, do not initialize or persist.
 
 Evidence that adoption exists or is underway includes canonical `/moldea/**` assets, current changes introducing them, prior developer direction, or the owned README awareness section. The README block alone is a signal to investigate, not authority to recreate missing canonical state; distinguish incomplete initialization, decommissioning, and stale guidance.
 

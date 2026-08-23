@@ -652,6 +652,70 @@
   ],
   "semanticCases": [
     {
+      "id": "unadopted-direct-context-handoff",
+      "scenario": "A repository that has not adopted moldea receives potentially durable project knowledge and one transient detail without an explicit moldea, documentation, or adoption request.",
+      "operation": "inspect-unadopted-knowledge-handoff",
+      "input": {
+        "developerDirection": "Customer Operations owns the escalation policy. Legal approves retention exceptions. This week the team is auditing the oldest cases.",
+        "repositoryEvidence": [
+          {
+            "claim": "The repository contains application source but no adoption direction.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/http-client.js",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "No canonical moldea state exists.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea",
+              "expectedType": "missing"
+            }
+          },
+          {
+            "claim": "The README has no adoption marker.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "README.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The developer supplies durable responsibilities and a transient activity through natural prose.",
+            "source": {
+              "kind": "developer-direction"
+            }
+          }
+        ]
+      },
+      "expected": [
+        {
+          "label": "recognize-unadopted-context-boundary",
+          "criterion": "The actor response explains that the supplied knowledge was not persisted because the repository has not adopted moldea, demonstrating discovery without claiming maintenance authority."
+        },
+        {
+          "label": "report-no-writes",
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "initialize-from-knowledge-discovery",
+          "criterion": "The workspace changes create canonical moldea state, README adoption markers, dependency state, or another adoption surface without explicit adoption intent."
+        },
+        {
+          "label": "persist-unadopted-context",
+          "criterion": "The workspace changes persist the supplied responsibilities or transient activity even though the repository has not adopted moldea."
+        },
+        {
+          "label": "claim-knowledge-triggered-adoption",
+          "criterion": "The actor response claims that the knowledge handoff adopted, initialized, or completed moldea maintenance for the repository."
+        }
+      ]
+    },
+    {
       "id": "unadopted-relevance-no-initialization",
       "scenario": "An ordinary implementation request occurs in a repository with no canonical state, marker block, or adoption direction.",
       "operation": "implement-unrelated-change",

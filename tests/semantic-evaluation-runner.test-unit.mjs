@@ -1114,6 +1114,7 @@ test('uses the published CLI for compatibility-sensitive runtime states', () => 
     'published-package',
   );
   assert.equal(getSemanticToolingSource('pnpm-pnp-local-cli-provider'), 'scenario-specific');
+  assert.equal(getSemanticToolingSource('unadopted-direct-context-handoff'), 'scenario-specific');
   assert.equal(getSemanticToolingSource('yarn-conflicting-cli-provider'), 'scenario-specific');
 });
 

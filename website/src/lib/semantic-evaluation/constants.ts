@@ -33,6 +33,10 @@ export const SEMANTIC_EVALUATION_GROUPS = {
 
 // presentation metadata must explicitly cover every semantic case before publication
 export const SEMANTIC_CASE_PRESENTATION = {
+  'unadopted-direct-context-handoff': {
+    groupId: 'adoption',
+    title: 'Checks adoption before retaining context',
+  },
   'unadopted-relevance-no-initialization': {
     groupId: 'adoption',
     title: 'Avoids irrelevant adoption',

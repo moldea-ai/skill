@@ -40,6 +40,9 @@ const HOST_PLAN_CASE_DEFINITION = SEMANTIC_CASES.find(
 const YARN_CONFLICT_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'yarn-conflicting-cli-provider',
 );
+const UNADOPTED_CONTEXT_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'unadopted-direct-context-handoff',
+);
 const AMBIGUOUS_CONTEXT_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'adopted-ambiguous-context-handoff',
 );
@@ -87,6 +90,31 @@ test('actor repository materializes host instructions before the clean baseline'
     assert.equal(status.stdout, '');
     assert.equal(committedInstructions.status, 0, committedInstructions.stderr);
     assert.equal(committedInstructions.stdout, HOST_PLAN_CASE_DEFINITION.hostInstructions);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('unadopted context handoff exposes no adoption state or marker', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-unadopted-context-test-'));
+  assert.ok(UNADOPTED_CONTEXT_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      UNADOPTED_CONTEXT_CASE_DEFINITION,
+    );
+    const status = spawnSync('git', ['status', '--porcelain'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
+
+    assert.equal(status.status, 0, status.stderr);
+    assert.equal(status.stdout, '');
+    assert.equal(existsSync(join(repositoryPath, 'moldea')), false);
+    assert.doesNotMatch(readme, /<!-- moldea:(?:start|end) -->/u);
+    assert.equal(existsSync(join(repositoryPath, 'src', 'http-client.js')), true);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

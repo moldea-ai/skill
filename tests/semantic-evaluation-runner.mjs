@@ -101,6 +101,7 @@ const CUSTOM_SETUP_CASE_IDS = new Set([
   'plan-uninitialized-zero-agent',
   'pnpm-hook-install-blocked',
   'pnpm-pnp-local-cli-provider',
+  'unadopted-direct-context-handoff',
   'unadopted-relevance-no-initialization',
   'yarn-conflicting-cli-provider',
   'yarn-plugin-install-blocked',

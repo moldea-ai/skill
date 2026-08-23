@@ -58,6 +58,7 @@ test('coverage binds every semantic case to an explicit portable-skill claim', (
     /knowledge- and relevance-triggered maintenance/i,
   );
   for (const caseId of [
+    'unadopted-direct-context-handoff',
     'adopted-direct-context-handoff',
     'adopted-explicit-context-correction',
     'adopted-ambiguous-context-handoff',

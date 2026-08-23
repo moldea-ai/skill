@@ -24,7 +24,7 @@ The coding agent can activate the skill in three ways:
 - **Knowledge-triggered activation:** in an adopted repository, you supply, confirm, or correct potentially durable project knowledge through ordinary prose, structured data, an answer, or an accessible source.
 - **Relevance-triggered activation:** an ordinary authorized change may affect declared project or agent behavior in a repository that already uses or is adopting `moldea`.
 
-Knowledge- and relevance-triggered activation never adopt `moldea` in an unrelated repository. Activation also does not mean canonical files must change. The coding agent first determines whether the information is current, durable, material, sufficiently established, and authorized for persistence.
+A knowledge handoff can load the skill before adoption is known so it can inspect that boundary. Loading never establishes adoption or authorizes persistence. In an unadopted repository, it creates no canonical state. In an adopted repository, the coding agent determines whether the information is current, durable, material, sufficiently established, and authorized for persistence.
 
 ## Operation selection
 

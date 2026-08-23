@@ -1,7 +1,7 @@
 ---
 name: moldea
 description: >-
-  Automatically use after moldea adoption whenever the developer supplies, confirms, or corrects potentially durable project knowledge through prose, structured data, a table, an answer, or an accessible source, even without asking for moldea or documentation. Also use for initialization and operations; agent-system planning; agent or Agent Skill design and maintenance; behavioral instructions, capabilities, schemas, routing, bindings, and runtime integration; evaluation, reconciliation, or validation; and authorized behavior changes that may stale canonical project or agent state. Initial adoption requires explicit developer intent.
+  Use whenever the developer supplies, confirms, or corrects potentially durable project knowledge through prose, structured data, a table, an answer, or an accessible source, even without asking for moldea or documentation; load first to check adoption before maintenance. Also use for initialization and operations; agent-system planning; agent or Agent Skill design and maintenance; behavioral instructions, capabilities, schemas, routing, bindings, and runtime integration; evaluation, reconciliation, or validation; and authorized behavior changes that may stale canonical project or agent state. Initial adoption requires explicit developer intent.
 license: MIT
 metadata:
   version: '3.1.0'
@@ -19,9 +19,9 @@ Activate this skill in any of these cases:
 - **Knowledge-triggered activation:** in an adopted repository, the developer supplies, confirms, or corrects potentially material and durable project knowledge through any format or accessible source.
 - **Relevance-triggered activation:** an authorized change may materially affect project truth or declared agent behavior in an adopted repository.
 
-Before acknowledging a message in an adopted repository, route potentially durable current knowledge through Maintain. Classify mixed handoffs claim by claim: persist, clarify, or omit each independently; never copy or merely restate the source. Reconsideration need not edit canonical state when truth and behavior remain correct.
+In an adopted repository, route potentially durable current knowledge through Maintain. Classify mixed handoffs claim by claim: persist, clarify, or omit each; never copy or merely restate the source. Reconsideration need not edit canonical state when truth and behavior remain correct.
 
-Never initialize `moldea` solely because supplied knowledge or a repository change could benefit from it. Adoption requires explicit intent. After adoption begins, continuous maintenance needs no “and update moldea” request.
+Loading for a knowledge handoff does not establish adoption. Check adoption before maintenance; without explicit adoption intent, never initialize or persist. Once adopted, maintenance needs no “and update moldea” request.
 
 Agent-system planning activates only when the developer asks how an AI- or agent-enabled objective should be divided among agents and non-agent components. Generic implementation planning and host-defined `plan` commands remain outside unless the developer explicitly selects this operation.
 

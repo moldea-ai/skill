@@ -153,6 +153,7 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'skill-provider-registration-boundary',
     'skill-reconcile-distributed-copy',
     'skill-reuse-existing-cohesive',
+    'unadopted-direct-context-handoff',
     'unadopted-relevance-no-initialization',
     'unavailable-runtime-selection',
     'unresolved-related-file-changed',
@@ -362,11 +363,12 @@ describe('portable Agent Skill contract', () => {
     assert.equal(dirname(SKILL_PATH), SKILL_DIRECTORY);
     assert.equal(dirname(SKILL_PATH).split('/').at(-1), frontmatter.name);
     assert.ok(frontmatter.description.length >= 1 && frontmatter.description.length <= 1024);
-    assert.match(frontmatter.description, /^Automatically use after moldea adoption/u);
+    assert.match(frontmatter.description, /^Use whenever the developer/u);
     assertMatchesEvery(frontmatter.description, [
       /supplies, confirms, or corrects potentially durable project knowledge/u,
       /prose, structured data, a table, an answer, or an accessible source/u,
       /without asking for moldea or documentation/u,
+      /load first to check adoption before maintenance/u,
       /Initial adoption requires explicit developer intent/u,
     ]);
     assert.ok(skill.split('\n').length < 500);
@@ -434,13 +436,15 @@ describe('portable Agent Skill contract', () => {
       /Explicit activation/,
       /Knowledge-triggered activation/,
       /Relevance-triggered activation/,
-      /Never initialize `moldea` solely/,
-      /Before acknowledging a message in an adopted repository/i,
-      /route potentially durable current knowledge through Maintain/i,
+      /Skill loading is not adoption/i,
+      /In an adopted repository, route potentially durable current knowledge through Maintain/i,
       /Classify mixed handoffs claim by claim/i,
-      /persist, clarify, or omit each independently/i,
+      /persist, clarify, or omit each/i,
       /never copy or merely restate the source/i,
       /Reconsideration need not edit canonical state/i,
+      /Loading for a knowledge handoff does not establish adoption/i,
+      /Check adoption before maintenance/i,
+      /without explicit adoption intent, never initialize or persist/i,
       /unambiguous handoff of current project knowledge authorizes necessary context maintenance/i,
       /Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only/i,
       /semantic role/,
@@ -770,17 +774,28 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(readmeAwarenessCriterion.criterion, /manifest|affectedBy/i);
   });
 
-  test('covers direct, corrective, and ambiguous project-knowledge handoffs', () => {
+  test('covers unadopted, direct, corrective, and ambiguous project-knowledge handoffs', () => {
     const semanticCasesById = new Map(
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
     );
+    const unadoptedHandoffCase = semanticCasesById.get('unadopted-direct-context-handoff');
     const directHandoffCase = semanticCasesById.get('adopted-direct-context-handoff');
     const explicitCorrectionCase = semanticCasesById.get('adopted-explicit-context-correction');
     const ambiguousHandoffCase = semanticCasesById.get('adopted-ambiguous-context-handoff');
 
+    assert.ok(unadoptedHandoffCase);
     assert.ok(directHandoffCase);
     assert.ok(explicitCorrectionCase);
     assert.ok(ambiguousHandoffCase);
+    assert.deepEqual(getSemanticCriterionLabels(unadoptedHandoffCase.expected), [
+      'recognize-unadopted-context-boundary',
+      'report-no-writes',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(unadoptedHandoffCase.forbidden), [
+      'initialize-from-knowledge-discovery',
+      'persist-unadopted-context',
+      'claim-knowledge-triggered-adoption',
+    ]);
     assert.deepEqual(getSemanticCriterionLabels(directHandoffCase.expected), [
       'maintain-durable-project-knowledge',
       'filter-transient-project-detail',
@@ -1328,8 +1343,8 @@ describe('source repository conformance', () => {
 
     assertMatchesEvery(readme, [
       /Semantic evaluation is intentionally lengthy/,
-      /47 cases/,
-      /94 model calls/,
+      /48 cases/,
+      /96 model calls/,
       /adapter availability/,
       /behavioral support/,
       /significant number of model tokens/,

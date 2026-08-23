@@ -178,6 +178,8 @@ Once a repository has adopted `moldea`, sharing potentially durable project know
 
 Activation does not mean automatic persistence or documentation churn. A legitimate result is no `/moldea/**` edit when supplied knowledge is transient or unclear, or when established state remains accurate. The coding agent reports which canonical state it reconsidered and why no edit was required. Knowledge- and relevance-triggered activation never initialize an unrelated repository without explicit developer intent, and an explicitly read-only request remains read-only.
 
+A knowledge handoff may load the skill before adoption is known so it can inspect that boundary. Loading alone never establishes adoption or authorizes persistence.
+
 ## Portable skill
 
 The released runtime artifact is:
@@ -282,7 +284,7 @@ When `MOLDEA_CLI_ARTIFACT_DIRECTORY` identifies a packed candidate closure roote
 
 `fixtures/conformance-cases.json` contains package-manager, CLI-envelope, README-marker, planning, Agent Skill, runtime, security, and semantic forward-evaluation scenarios. Deterministic tests execute the mechanical decisions and validate every semantic case's evidence, requested operation, expected outcomes, and forbidden outcomes. CI also installs the portable artifact into an isolated Agent Skills home and compares the installed tree byte-for-byte with `moldea/`.
 
-Semantic evaluation is intentionally lengthy and can consume a significant number of model tokens because every case runs separate actor and judge processes. The current full suite contains 47 cases and can make up to 94 model calls. Its runtime-selection cases treat the compact CLI inventory only as adapter availability and require separate reliable evidence for behavioral support. Do not start a full or targeted semantic evaluation without first explaining to the developer why fresh semantic evidence is important for the current change, why existing evidence or deterministic verification is insufficient, and the expected time and token cost when known. Obtain the developer's explicit approval before running it.
+Semantic evaluation is intentionally lengthy and can consume a significant number of model tokens because every case runs separate actor and judge processes. The current full suite contains 48 cases and can make up to 96 model calls. Its runtime-selection cases treat the compact CLI inventory only as adapter availability and require separate reliable evidence for behavioral support. Do not start a full or targeted semantic evaluation without first explaining to the developer why fresh semantic evidence is important for the current change, why existing evidence or deterministic verification is insufficient, and the expected time and token cost when known. Obtain the developer's explicit approval before running it.
 
 Semantic behavior is evaluated through an Agent Skills-capable host and recorded against the exact portable artifact digest. Before any model execution, validate the complete coverage and scenario boundary for free:
 
@@ -290,7 +292,7 @@ Semantic behavior is evaluated through an Agent Skills-capable host and recorded
 npm run eval:semantic:preflight
 ```
 
-The preflight materializes all 47 repositories, verifies every sourced evidence declaration, confirms each actor prompt is exactly the natural developer direction, and proves that evidence collection preserves protected repository controls. The runner always pins both the actor and judge to a balanced-tier model at `medium` reasoning effort (`gpt-5.6-terra`); caller-provided host commands must not select their own model or reasoning effort. This fixed configuration avoids per-run model and effort decisions. To refresh the paid evidence after preflight, provide a non-interactive host command that accepts the evaluation prompt on standard input and returns Codex JSONL events, then run:
+The preflight materializes all 48 repositories, verifies every sourced evidence declaration, confirms each actor prompt is exactly the natural developer direction, and proves that evidence collection preserves protected repository controls. The runner always pins both the actor and judge to a balanced-tier model at `medium` reasoning effort (`gpt-5.6-terra`); caller-provided host commands must not select their own model or reasoning effort. This fixed configuration avoids per-run model and effort decisions. To refresh the paid evidence after preflight, provide a non-interactive host command that accepts the evaluation prompt on standard input and returns Codex JSONL events, then run:
 
 ```bash
 MOLDEA_EVAL_ACTOR_COMMAND_JSON='["codex","exec","--ignore-user-config","--ignore-rules","--ephemeral","--skip-git-repo-check","--dangerously-bypass-approvals-and-sandbox","-c","shell_environment_policy.inherit=none","-"]' npm run eval:semantic -- --record

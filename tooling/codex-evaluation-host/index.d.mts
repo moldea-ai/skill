@@ -15,6 +15,11 @@ export type ICodexEvaluationHostConfiguration = {
   sslCertificateFileSha256: string | null;
 };
 
+// workflow defaults used when the host environment does not provide an override
+export type ICodexEvaluationHostConfigurationOptions = {
+  defaultHostTimeoutMs?: number;
+};
+
 export type ICodexEvaluationHostIdentity = {
   model: string;
   name: string;
@@ -46,7 +51,9 @@ export const buildCodexEvaluationHostCommand: (command: readonly string[]) => st
 export const identifyCodexEvaluationHost: (
   command: readonly string[],
 ) => ICodexEvaluationHostIdentity;
-export const identifyCodexEvaluationHostConfiguration: () => ICodexEvaluationHostConfiguration;
+export const identifyCodexEvaluationHostConfiguration: (
+  options?: ICodexEvaluationHostConfigurationOptions,
+) => ICodexEvaluationHostConfiguration;
 export const identifyConfiguredModel: (command: readonly string[]) => string;
 export const identifyConfiguredReasoningEffort: (command: readonly string[]) => string;
 export const parseCodexEvaluationHostCommand: (
@@ -58,6 +65,7 @@ export const resolveCodeModeHostPath: (hostExecutable: string) => string;
 export const runCodexEvaluationHost: (options: {
   command: readonly string[];
   cwd: string;
+  defaultHostTimeoutMs?: number;
   includeWorkspaceBinaryDirectory?: boolean;
   prompt: string;
   readOnlyMounts?: readonly ICodexEvaluationReadOnlyMount[];

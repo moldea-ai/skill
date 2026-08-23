@@ -8,6 +8,7 @@ import test from 'node:test';
 import {
   buildCodexEvaluationBwrapArguments,
   buildCodexEvaluationHostCommand,
+  CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
   identifyCodexEvaluationHostConfiguration,
   identifyConfiguredModel,
   identifyConfiguredReasoningEffort,
@@ -44,7 +45,7 @@ test('host configuration resolves every non-secret execution setting', () => {
     process.env.SSL_CERT_FILE = certificateFile;
     process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS = '240000';
 
-    assert.deepEqual(identifyCodexEvaluationHostConfiguration(), {
+    assert.deepEqual(identifyCodexEvaluationHostConfiguration({ defaultHostTimeoutMs: 300_000 }), {
       allowedEgressHosts: [
         'api.openai.com',
         'auth.openai.com',
@@ -69,6 +70,30 @@ test('host configuration resolves every non-secret execution setting', () => {
     if (originalTimeout === undefined) delete process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
     else process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS = originalTimeout;
     rmSync(temporaryDirectory, { force: true, recursive: true });
+  }
+});
+
+test('host configuration accepts a workflow-owned default timeout', () => {
+  const originalTimeout = process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
+
+  try {
+    delete process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
+
+    assert.equal(
+      identifyCodexEvaluationHostConfiguration().hostTimeoutMs,
+      CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
+    );
+    assert.equal(
+      identifyCodexEvaluationHostConfiguration({ defaultHostTimeoutMs: 300_000 }).hostTimeoutMs,
+      300_000,
+    );
+    assert.throws(
+      () => identifyCodexEvaluationHostConfiguration({ defaultHostTimeoutMs: 0 }),
+      /defaultHostTimeoutMs must be a positive integer/,
+    );
+  } finally {
+    if (originalTimeout === undefined) delete process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
+    else process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS = originalTimeout;
   }
 });
 

@@ -274,3 +274,50 @@ test('shared host cancellation stops the outer Bubblewrap execution', async () =
     rmSync(evaluationRoot, { force: true, recursive: true });
   }
 });
+
+test('shared host enforces a workflow-owned default timeout', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-timeout-test-'));
+  const executableDirectory = join(evaluationRoot, 'bin');
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  const codexPath = join(executableDirectory, 'codex');
+  const companionPath = join(executableDirectory, 'codex-code-mode-host');
+  mkdirSync(executableDirectory);
+  mkdirSync(repositoryPath);
+  mkdirSync(sandboxHome);
+  writeFileSync(codexPath, '#!/bin/sh\nsleep 10\n');
+  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+  chmodSync(codexPath, 0o755);
+  chmodSync(companionPath, 0o755);
+  await prepareCodexEvaluationHome(sandboxHome);
+  const originalPath = process.env.PATH;
+  process.env.PATH = `${executableDirectory}:${originalPath ?? ''}`;
+
+  try {
+    await assert.rejects(
+      runCodexEvaluationHost({
+        command: buildCodexEvaluationHostCommand([
+          'codex',
+          'exec',
+          '--ignore-user-config',
+          '--ignore-rules',
+          '--ephemeral',
+          '--skip-git-repo-check',
+          '--dangerously-bypass-approvals-and-sandbox',
+          '-c',
+          'shell_environment_policy.inherit=none',
+          '-',
+        ]),
+        cwd: repositoryPath,
+        defaultHostTimeoutMs: 50,
+        prompt: 'test timeout',
+        sandboxHome,
+      }),
+      /Evaluation host exceeded 50 milliseconds/,
+    );
+  } finally {
+    if (originalPath === undefined) delete process.env.PATH;
+    else process.env.PATH = originalPath;
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});

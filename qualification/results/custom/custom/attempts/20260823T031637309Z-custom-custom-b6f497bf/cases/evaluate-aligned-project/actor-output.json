@@ -1,0 +1,32 @@
+{
+  "outcome": "completed",
+  "summary": "Read-only Moldea evaluation completed; no repository files were changed. The support agent’s canonical description agrees with the bound runtime record: both identify `support` and the email channel. Custom runtime guidance names the same exported `supportAgent` record, and deterministic structural validation is valid.",
+  "commands": [
+    "pwd && rg --files -g 'AGENTS.md' -g 'SKILL.md' -g '*moldea*' -g 'package.json' -g 'pyproject.toml' -g 'Cargo.toml' -g 'Makefile' -g 'README*' -g '.git'",
+    "sed -n '1,240p' <workspace>/.agents/skills/moldea/SKILL.md && find <workspace> -name AGENTS.md -o -name package.json -o -name pyproject.toml -o -name Cargo.toml -o -name Makefile -o -iname '*moldea*' -o -iname 'README*' | head -300",
+    "for f in <workspace>/.agents/skills/moldea/references/local-tooling.md <workspace>/.agents/skills/moldea/references/context-gathering.md <workspace>/.agents/skills/moldea/references/agent-design.md <workspace>/.agents/skills/moldea/references/skill-design.md <workspace>/.agents/skills/moldea/references/evaluate-and-reconcile.md; do sed -n '1,260p' \"$f\"; done",
+    "sed -n '1,280p' <workspace>/.agents/skills/moldea/references/context-gathering.md && sed -n '1,320p' <workspace>/.agents/skills/moldea/references/agent-design.md",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.required=false rev-parse --show-toplevel",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.required=false status --short --untracked-files=all && git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.required=false diff --no-ext-diff --no-textconv && git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.required=false diff --cached --no-ext-diff --no-textconv",
+    "sed -n '1,240p' package.json; find . -maxdepth 2 \\( -name '.npmrc' -o -name '.pnpmfile.cjs' -o -name '.pnpmfile.js' -o -name '.yarnrc.yml' -o -name '.yarnrc' -o -name 'pnpm-workspace.yaml' -o -name 'pnpm-lock.yaml' -o -name 'package-lock.json' -o -name 'yarn.lock' \\) -type f -print",
+    "sed -n '1,160p' node_modules/@moldea.ai/cli/package.json && readlink -f node_modules/@moldea.ai/cli && readlink -f node_modules/.bin/moldea",
+    "ls -l node_modules/.bin/moldea && sed -n '1,80p' node_modules/.bin/moldea && readlink -f node_modules/@moldea.ai/cli/dist/moldea.js",
+    "node --version",
+    "node node_modules/@moldea.ai/cli/dist/moldea.js inspect --json",
+    "find moldea src -maxdepth 4 -type f -print | sort && sed -n '1,220p' moldea/moldea.yaml && sed -n '1,220p' moldea/project.md && sed -n '1,220p' moldea/runtimes/custom.md && sed -n '1,220p' moldea/agents/support/description.md && sed -n '1,220p' moldea/agents/support/instruction.md && sed -n '1,260p' src/support-agent.ts",
+    "node node_modules/@moldea.ai/cli/dist/moldea.js validate --json",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.required=false status --short --untracked-files=all",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.required=false diff --no-ext-diff --no-textconv && git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.required=false diff --cached --no-ext-diff --no-textconv"
+  ],
+  "changedFiles": [],
+  "observations": [
+    "Repository root is <workspace> and the final Git status and both staged/unstaged diffs were empty.",
+    "The root declaration and installed local package are @moldea.ai/cli 4.0.1; Node is v24.15.0.",
+    "Local `inspect --json` returned exit 0 with schemaVersion 2, cliVersion 4.0.1, command `inspect`, status `valid`, formatVersion 1, and no diagnostics.",
+    "Local `validate --json` returned exit 0 with schemaVersion 2, cliVersion 4.0.1, command `validate`, status `valid`, formatVersion 1, and no diagnostics.",
+    "`moldea/moldea.yaml` binds support’s custom runtime guidance to `/moldea/runtimes/custom.md` and runtime agent to `/src/support-agent.ts` symbol `supportAgent`. The guidance identifies that same export as the runtime-owned definition. The source exports `{ id: 'support', channel: 'email' }`, agreeing with the canonical support description’s email channel."
+  ],
+  "unresolved": [
+    "The inspected repository contains no runtime invocation or instruction-loading path. Therefore the canonical instruction’s consumption by a runtime model cannot be established; this is an evidence limitation, not proof that the binding or description is incorrect."
+  ]
+}

@@ -310,9 +310,14 @@ export const prepareCodexEvaluationHome = async (sandboxHome) => {
 };
 
 /** Returns the configured bounded host timeout. */
-const getHostTimeoutMs = () => {
+const getHostTimeoutMs = (defaultHostTimeoutMs) => {
   const configuredTimeout = process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
-  if (!configuredTimeout) return CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS;
+  if (!configuredTimeout) {
+    if (!Number.isSafeInteger(defaultHostTimeoutMs) || defaultHostTimeoutMs <= 0) {
+      throw new Error('defaultHostTimeoutMs must be a positive integer.');
+    }
+    return defaultHostTimeoutMs;
+  }
 
   const timeoutMs = Number(configuredTimeout);
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0) {
@@ -335,10 +340,19 @@ const getAllowedEgressHosts = () => {
   return [...hosts].sort();
 };
 
-/** Returns the resolved non-secret configuration that affects host execution. */
-export const identifyCodexEvaluationHostConfiguration = () => ({
+/**
+ * Returns the resolved non-secret configuration that affects host execution.
+ * @param options Workflow-specific defaults used when no environment override is present.
+ * @returns The resolved host configuration.
+ * @throws
+ * - If defaultHostTimeoutMs is not a positive integer and no environment override is present
+ * - If MOLDEA_EVAL_HOST_TIMEOUT_MS is not a positive integer
+ */
+export const identifyCodexEvaluationHostConfiguration = ({
+  defaultHostTimeoutMs = CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
+} = {}) => ({
   allowedEgressHosts: getAllowedEgressHosts(),
-  hostTimeoutMs: getHostTimeoutMs(),
+  hostTimeoutMs: getHostTimeoutMs(defaultHostTimeoutMs),
   modelEndpoint: process.env.OPENAI_BASE_URL
     ? {
         origin: new URL(process.env.OPENAI_BASE_URL).origin,
@@ -647,10 +661,14 @@ const waitForProxyReady = (proxyProcess) =>
  * Runs one Codex process with disposable paths and restricted public egress.
  * @param options The command, prompt, workspace, home, and optional read-only mounts.
  * @returns A promise resolving to trimmed host output.
+ * @throws
+ * - If defaultHostTimeoutMs is not a positive integer and no environment override is present
+ * - If MOLDEA_EVAL_HOST_TIMEOUT_MS is not a positive integer
  */
 export const runCodexEvaluationHost = async ({
   command,
   cwd,
+  defaultHostTimeoutMs = CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
   includeWorkspaceBinaryDirectory = false,
   prompt,
   readOnlyMounts = [],
@@ -664,7 +682,7 @@ export const runCodexEvaluationHost = async ({
   }
   const hostExecutable = resolveExecutablePath(command[0]);
   const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);
-  const hostConfiguration = identifyCodexEvaluationHostConfiguration();
+  const hostConfiguration = identifyCodexEvaluationHostConfiguration({ defaultHostTimeoutMs });
   const proxyProcess = spawn(process.execPath, [EGRESS_PROXY_PATH], {
     env: {
       MOLDEA_EVAL_ALLOWED_HOSTS: hostConfiguration.allowedEgressHosts.join(','),

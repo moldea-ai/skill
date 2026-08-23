@@ -1,6 +1,10 @@
 import { identifyCodexEvaluationHostConfiguration } from '../../../tooling/codex-evaluation-host/index.mjs';
 
-import { QUALIFICATION_MODEL, QUALIFICATION_REASONING_EFFORT } from '../constants/index.ts';
+import {
+  QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS,
+  QUALIFICATION_MODEL,
+  QUALIFICATION_REASONING_EFFORT,
+} from '../constants/index.ts';
 import type { ICodexHost } from '../codex-host/index.ts';
 import type { IQualificationExecutionEnvironment } from '../contracts/index.ts';
 import { executeProcess } from '../process/index.ts';
@@ -23,7 +27,9 @@ const readVersion = async (toolName: string, read: () => Promise<string>): Promi
 export const inspectQualificationExecutionEnvironment = async (
   host: ICodexHost,
 ): Promise<IQualificationExecutionEnvironment> => {
-  const hostConfiguration = identifyCodexEvaluationHostConfiguration();
+  const hostConfiguration = identifyCodexEvaluationHostConfiguration({
+    defaultHostTimeoutMs: QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS,
+  });
   const [codexVersion, pnpmVersion, gitVersion] = await Promise.all([
     readVersion('Codex', () => host.getVersion()),
     readVersion('pnpm', () =>

@@ -29,6 +29,27 @@ const createRepositoryState = (commit: string, fingerprint: string): IGitReposit
 });
 
 describe('qualification execution provenance', () => {
+  test('uses the qualification-owned five-minute host timeout by default', async () => {
+    const originalTimeout = process.env['MOLDEA_EVAL_HOST_TIMEOUT_MS'];
+
+    try {
+      delete process.env['MOLDEA_EVAL_HOST_TIMEOUT_MS'];
+      const inspectedEnvironment = await inspectQualificationExecutionEnvironment({
+        getVersion: () => Promise.resolve('codex-cli test'),
+        runActor: () => Promise.reject(new Error('Actor must not run during identity inspection.')),
+        runJudge: () => Promise.reject(new Error('Judge must not run during identity inspection.')),
+      });
+
+      expect(inspectedEnvironment.hostTimeoutMs).toBe(300_000);
+    } finally {
+      if (originalTimeout === undefined) {
+        delete process.env['MOLDEA_EVAL_HOST_TIMEOUT_MS'];
+      } else {
+        process.env['MOLDEA_EVAL_HOST_TIMEOUT_MS'] = originalTimeout;
+      }
+    }
+  });
+
   test('preserves the checkpointed host identity and exact source fingerprints', () => {
     expect(
       createQualificationExecutionProvenance({

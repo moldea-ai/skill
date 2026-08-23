@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository is aligned and unchanged. Canonical files register `support`, identify custom runtime guidance, and bind `supportAgent` in `src/support-agent.ts`; the exported record matches the email-channel description. Deterministic inspection and validation are valid, and the supplied post-actor checks confirm filesystem, memory, Core, CLI, and typechecking validity.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` registers `support`, sets runtime guidance to `/moldea/runtimes/custom.md`, and explicitly binds `/src/support-agent.ts#supportAgent`. The guidance names that exported record; its source exports `{ id: 'support', channel: 'email' }`, matching `moldea/agents/support/description.md`."
+    },
+    {
+      "id": "avoids-churn",
+      "verdict": "pass",
+      "evidence": "Actor reported no changed files; workspace before/after hashes are identical with `changedPaths: []`, and the Git diff/status evidence is empty."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Independent local `inspect --json` and `validate --json` both returned schema 2, CLI 4.0.1, and `status: valid` with no diagnostics. Deterministic post-actor evidence reports valid repository filesystem, memory equivalence, Core, CLI identity/compatibility/envelope, and `typecheckPassed: true`."
+    }
+  ],
+  "failures": []
+}

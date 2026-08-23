@@ -10,6 +10,7 @@ import {
   type ICodexEvaluationWorkspaceAccess,
 } from '../../../tooling/codex-evaluation-host/index.mjs';
 
+import { QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS } from '../constants/index.ts';
 import {
   ModelUsageSchema,
   type IActorOutput,
@@ -129,6 +130,7 @@ export class CodexCliHost implements ICodexHost {
       const events = await runCodexEvaluationHost({
         command,
         cwd: input.workspaceDirectory,
+        defaultHostTimeoutMs: QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS,
         includeWorkspaceBinaryDirectory: role === 'actor',
         prompt: input.prompt,
         sandboxHome,

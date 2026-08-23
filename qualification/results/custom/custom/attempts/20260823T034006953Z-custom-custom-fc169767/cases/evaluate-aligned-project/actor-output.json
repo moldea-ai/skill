@@ -1,0 +1,32 @@
+{
+  "outcome": "blocked",
+  "summary": "Canonical configuration is internally aligned: `support` binds to `/src/support-agent.ts#supportAgent`; custom guidance identifies that record as runtime-owned; and the source exports `id: 'support'` with `channel: 'email'`, matching the canonical email-channel description. No files were changed. Full Moldea validation could not be completed because the repository-local CLI shim has stale absolute paths and fails the required local-provider proof; runtime consumption of `instruction.md` is also not established by the configuration-only source present here.",
+  "commands": [
+    "pwd && rg --files -g 'AGENTS.md' -g 'SKILL.md' -g 'moldea*' -g 'package.json' -g 'pyproject.toml' -g 'Cargo.toml' -g 'go.mod' -g '.git' <workspace> 2>/dev/null",
+    "sed -n '1,240p' <workspace>/.agents/skills/moldea/SKILL.md && rg --files -uu <workspace> | sed -n '1,240p'",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.process= -c filter.lfs.required=false status --short --untracked-files=all && git -c core.fsmonitor=false -c core.pager=cat rev-parse --show-toplevel && find <workspace> -type f \\( -name AGENTS.md -o -name CLAUDE.md \\) -not -path '<workspace>/.agents/*' -not -path '<workspace>/node_modules/*' -print",
+    "sed -n '1,240p' package.json\n[ -f pnpm-lock.yaml ] && sed -n '1,100p' pnpm-lock.yaml\nfind . -maxdepth 2 -type f \\( -name '.npmrc' -o -name '.pnpmfile.cjs' -o -name '.pnpmfile.js' -o -name '.yarnrc.yml' \\) -print",
+    "node -e \"const fs=require('fs'),path=require('path'); const root=process.cwd(); const manifest=JSON.parse(fs.readFileSync(path.join(root,'node_modules/@moldea.ai/cli/package.json'),'utf8')); const bin=manifest.bin&&manifest.bin.moldea; const pkg=fs.realpathSync(path.join(root,'node_modules/@moldea.ai/cli')); const executable=fs.realpathSync(path.join(root,'node_modules/.bin/moldea')); const expected=fs.realpathSync(path.join(pkg,bin)); console.log(JSON.stringify({name:manifest.name,version:manifest.version,bin,pkg,executable,expected,insidePackage:executable===expected&&executable.startsWith(pkg+path.sep)},null,2));\"",
+    "ls -l node_modules/.bin/moldea node_modules/@moldea.ai/cli\nreadlink node_modules/.bin/moldea || true\nsed -n '1,80p' node_modules/.bin/moldea\nreadlink -f node_modules/.bin/moldea\nreadlink -f node_modules/@moldea.ai/cli",
+    "find . -path './.git' -prune -o -path './node_modules' -prune -o -path './.agents' -prune -o -path './.moldea-qualification' -prune -o -type f -print | sort\nfind moldea -type f -print | sort\nfind src -type f -print | sort",
+    "sed -n '1,260p' moldea/moldea.yaml\nsed -n '1,260p' moldea/agents/support/description.md\nsed -n '1,320p' moldea/agents/support/instruction.md\nsed -n '1,300p' moldea/runtimes/custom.md\nsed -n '1,320p' src/support-agent.ts\nsed -n '1,200p' moldea/project.md\nsed -n '1,200p' tsconfig.json",
+    "node node_modules/typescript/bin/tsc --noEmit",
+    "find node_modules -maxdepth 2 -type l -printf '%p -> %l\\n' | sort\nfind node_modules/.pnpm/typescript@6.0.3/node_modules/typescript -maxdepth 2 -type f -name 'tsc*' -print\nnode -e \"const fs=require('fs'); const p='node_modules/.pnpm/typescript@6.0.3/node_modules/typescript/package.json'; console.log(JSON.stringify(JSON.parse(fs.readFileSync(p,'utf8')).bin));\"",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.process= -c filter.lfs.required=false diff --no-ext-diff --check",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.process= -c filter.lfs.required=false diff --no-ext-diff -- && git -c core.fsmonitor=false -c core.pager=cat status --short --untracked-files=all"
+  ],
+  "changedFiles": [],
+  "observations": [
+    "The worktree was clean before and after evaluation; final diff and `diff --check` were empty.",
+    "`package.json` declares `@moldea.ai/cli` exactly at 4.0.1, and the installed CLI package manifest reports the same version.",
+    "The root `.bin/moldea` file is a generated shell shim, not the CLI package binary. Its content preserves stale absolute paths under `<home>/...`; canonicalization therefore did not prove the executable is inside the installed CLI package.",
+    "`moldea/moldea.yaml` registers the support runtime as `custom`, links `/moldea/runtimes/custom.md`, and binds `/src/support-agent.ts` symbol `supportAgent`.",
+    "Custom runtime guidance says `supportAgent` is runtime-owned and its identifier and channel must be preserved. The bound source exports exactly `id: 'support'` and `channel: 'email'`.",
+    "The canonical description says the agent uses the project email channel, agreeing with the bound source.",
+    "The attempted TypeScript check failed because `typescript` is not linked at the repository root or declared in `package.json`; only an internal pnpm-store copy exists."
+  ],
+  "unresolved": [
+    "The Moldea CLI `inspect --json` and `validate --json` commands were not run: the skill requires a provider-integrity proof that the stale root shim cannot satisfy. Reprovisioning the existing exact CLI dependency with a correct local executable is a write-capable follow-up.",
+    "The source contains no runtime invocation or instruction-loader path. Therefore, delivery of canonical `moldea/agents/support/instruction.md` to a material runtime invocation remains unestablished; absence of that source is not evidence of non-consumption."
+  ]
+}

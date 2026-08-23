@@ -5,7 +5,22 @@ import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('presents both successful evidence types as clear choices', async ({ page }) => {
+test('presents both evidence types with their current status', async ({ page }) => {
+  await page.goto(toPublicPath('/evidence/qualification/'));
+  const qualificationStatuses = await page
+    .getByRole('link', { name: /qualification/iu })
+    .locator('[data-evidence-status]')
+    .evaluateAll((elements) =>
+      elements.map((element) => element.getAttribute('data-evidence-status') ?? 'not-recorded'),
+    );
+  const qualificationStatus = qualificationStatuses.includes('errored')
+    ? 'errored'
+    : qualificationStatuses.includes('failed')
+      ? 'failed'
+      : qualificationStatuses.includes('not-recorded')
+        ? 'not-recorded'
+        : 'passed';
+
   await page.goto(toPublicPath('/evidence/'));
 
   await expect(
@@ -15,7 +30,10 @@ test('presents both successful evidence types as clear choices', async ({ page }
   const qualificationLink = page.getByRole('link', { name: /Adapter qualification/ });
   await expect(semanticLink).toContainText('Passed');
   await expect(semanticLink).toContainText('44 of 44 scenarios passed');
-  await expect(qualificationLink).toContainText('Passed');
+  await expect(qualificationLink.locator('[data-evidence-status]')).toHaveAttribute(
+    'data-evidence-status',
+    qualificationStatus,
+  );
 });
 
 test('keeps the evidence overview accessible at 320px in both themes', async ({ browser }) => {

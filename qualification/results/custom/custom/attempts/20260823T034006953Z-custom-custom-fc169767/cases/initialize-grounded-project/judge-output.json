@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The final repository state and diff agree with the deterministic post-actor evidence. Moldea initialization is minimal, grounded in the README and source, and structurally valid.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "README.md establishes invoice-line-item review for duplicate references and arithmetic mismatches, findings for human finance operators, and no payment authorization or sending. moldea/project.md preserves those supported purpose and review-only boundaries without adding implementation claims; src/invoice-review.ts independently confirms duplicate-reference review."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The only Moldea assets are moldea/moldea.yaml containing `version: 1` and moldea/project.md. No agents, decisions, runtime guidance, context, or unresolved-requirement assets exist. README.md contains the standard single owned awareness block."
+    },
+    {
+      "id": "preserves-existing-work",
+      "verdict": "pass",
+      "evidence": "Git diff shows README.md's original three lines unchanged, followed only by the awareness block. Workspace assertions show package.json, src/invoice-review.ts, and tsconfig.json retain their original hashes."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Deterministic post-actor summary reports inspectionStatus and cliValidateStatus as `valid`, with Core, CLI compatibility/identity/inventory/envelope checks passing, no failures, typecheckPassed true, and repositoryUnchanged true. Current diff is clean under `git diff --check` and matches the asserted three changed paths."
+    }
+  ],
+  "failures": []
+}

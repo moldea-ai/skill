@@ -565,7 +565,7 @@ export const loadQualificationWebsiteModel = (
   return { profiles, route: QUALIFICATION_ROUTE };
 };
 
-/** Requires every published profile to point to its current complete passing attempt. */
+/** Requires every published profile to point to its current validated terminal attempt. */
 export const assertPublishableQualificationEvidence = (
   qualification: IQualificationWebsiteModel,
 ): void => {
@@ -574,17 +574,20 @@ export const assertPublishableQualificationEvidence = (
   }
 
   for (const profile of qualification.profiles) {
-    const latestAttempt = profile.attempts.find(
-      ({ result }) => result.attemptId === profile.latest?.latestAttemptId,
-    );
+    const expectedLatest = profile.attempts.at(-1)?.result;
+    const expectedPassing = profile.attempts
+      .filter(({ result }) => result.status === 'passed')
+      .at(-1)?.result;
+
     if (
       profile.latest === null ||
-      profile.latest.latestStatus !== 'passed' ||
-      profile.latest.lastPassingAttemptId !== profile.latest.latestAttemptId ||
-      latestAttempt?.result.status !== 'passed'
+      expectedLatest === undefined ||
+      profile.latest.latestAttemptId !== expectedLatest.attemptId ||
+      profile.latest.latestStatus !== expectedLatest.status ||
+      profile.latest.lastPassingAttemptId !== (expectedPassing?.attemptId ?? null)
     ) {
       throw new Error(
-        `Qualification profile ${profile.adapterId}/${profile.implementationId} has no current passing evidence.`,
+        `Qualification profile ${profile.adapterId}/${profile.implementationId} has no current validated evidence.`,
       );
     }
   }

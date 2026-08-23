@@ -149,7 +149,7 @@ const createAttempt = (
     attemptId: string;
     createdAt: string;
     judgeSkipped?: boolean;
-    status: 'failed' | 'passed';
+    status: 'errored' | 'failed' | 'passed';
   },
 ): void => {
   const attemptDirectory = join(
@@ -256,6 +256,13 @@ const createAttempt = (
     };
   }
 
+  if (options.status === 'errored') {
+    artifactValues['error.json'] = {
+      stageId: 'case:evaluate-project:actor',
+      message: 'The execution inputs changed.',
+    };
+  }
+
   for (const [artifactPath, value] of Object.entries(artifactValues)) {
     writeJson(attemptDirectory, artifactPath, value);
   }
@@ -276,7 +283,12 @@ const createAttempt = (
     createdAt: options.createdAt,
     completedAt: options.createdAt,
     evidenceGeneratedAt: options.createdAt,
-    summary: options.status === 'passed' ? 'Qualification passed.' : 'Qualification failed.',
+    summary:
+      options.status === 'passed'
+        ? 'Qualification passed.'
+        : options.status === 'failed'
+          ? 'Qualification failed.'
+          : 'Qualification stopped with an execution error.',
     provenance: {
       model: 'gpt-5.6-terra',
       reasoningEffort: 'medium',
@@ -406,7 +418,7 @@ const replaceAttemptArtifact = (
 const writeLatest = (
   root: string,
   latestAttemptId: string,
-  latestStatus: 'failed' | 'passed',
+  latestStatus: 'errored' | 'failed' | 'passed',
   lastPassingAttemptId: string | null,
 ): void => {
   writeJson(root, 'qualification/results/custom/custom/latest.json', {
@@ -509,9 +521,27 @@ describe('loadQualificationWebsiteModel', () => {
       latestStatus: 'failed',
       lastPassingAttemptId: 'attempt-pass',
     });
-    expect(() => assertPublishableQualificationEvidence(model)).toThrow(
-      /has no current passing evidence/,
-    );
+    expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
+  });
+
+  test('publishes an errored latest attempt without inventing a passing baseline', () => {
+    const root = createTemporaryRoot();
+    seedProfile(root);
+    createAttempt(root, {
+      attemptId: 'attempt-error',
+      createdAt: '2026-08-20T10:00:00.000Z',
+      status: 'errored',
+    });
+    writeLatest(root, 'attempt-error', 'errored', null);
+
+    const model = loadQualificationWebsiteModel(root);
+
+    expect(model.profiles[0]?.latest).toMatchObject({
+      latestAttemptId: 'attempt-error',
+      latestStatus: 'errored',
+      lastPassingAttemptId: null,
+    });
+    expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
   });
 
   test('loads an explicit skipped judge after deterministic failure', () => {

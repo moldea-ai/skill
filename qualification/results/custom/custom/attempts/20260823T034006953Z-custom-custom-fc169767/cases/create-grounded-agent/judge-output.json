@@ -1,0 +1,29 @@
+{
+  "verdict": "fail",
+  "summary": "The agent behavior and implementation binding are grounded, and deterministic validation/typechecking passed without mutation. However, the repository explicitly lacks a canonical-instruction consumption path; the custom runtime guidance records this as a blocking unresolved requirement, so it cannot establish how the instruction reaches the factory/runtime.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "`moldea/agents/order-triage/description.md` and `instruction.md` state that `order-triage` classifies orders for human review and cannot approve refunds. This matches `src/order-triage-agent.ts`, whose factory returns `action: 'classify-for-human-review'` and `canApproveRefunds: false`."
+    },
+    {
+      "id": "binds-implementation",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` binds `order-triage` to `/src/order-triage-agent.ts#createOrderTriageAgent` and lists `/src/order-triage-agent.ts` in `affectedBy`; both exactly match the existing export and source path."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "verdict": "fail",
+      "evidence": "`moldea/runtimes/custom.md` expressly says the repository does not establish an instruction-loading or model-invocation path. The manifest correspondingly declares blocking unresolved requirement `canonical-instruction-consumption`. Thus the guidance truthfully avoids invented provider behavior, but does not explain an established path by which canonical instruction content reaches the factory/runtime."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "The supplied deterministic post-actor summary reports valid Repository FS, Repository memory, Core, CLI compatibility/identity/inventory/envelope, `validate` and `inspect` statuses, and successful TypeScript typechecking, with `repositoryUnchanged: true`. Independent worktree inspection agrees with the stated four changed paths and shows a clean diff check."
+    }
+  ],
+  "failures": [
+    "Establish and bind a repository-local instruction-loading or runtime configuration path that consumes `moldea/agents/order-triage/instruction.md`; the current blocking unresolved requirement confirms this provenance is absent."
+  ]
+}

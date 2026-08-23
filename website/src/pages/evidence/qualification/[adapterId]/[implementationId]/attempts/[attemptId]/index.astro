@@ -5,7 +5,7 @@ import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 
 import QualificationCaseEvidence from '../../../../../../../components/qualification-case-evidence/qualification-case-evidence.astro';
 import EvidenceStatus from '../../../../../../../components/evidence-status/evidence-status.astro';
-import QualificationText from '../../../../../../../components/qualification-text/qualification-text.astro';
+import EvidenceText from '../../../../../../../components/evidence-text/evidence-text.astro';
 import BaseLayout from '../../../../../../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../../../../../../lib/generation/generation.ts';
 import type {
@@ -46,11 +46,17 @@ const totalDurationMs = result.stages.reduce(
   (total, { durationMs }) => total + (durationMs ?? 0),
   0,
 );
+const pageDescription =
+  result.status === 'passed'
+    ? `Immutable passing qualification evidence for ${profile.adapterId}/${profile.implementationId}.`
+    : result.status === 'failed'
+      ? `Immutable failed qualification evidence for ${profile.adapterId}/${profile.implementationId}.`
+      : `Immutable qualification evidence from an execution-error attempt for ${profile.adapterId}/${profile.implementationId}.`;
 ---
 
 <BaseLayout
   title={`${profile.title}: ${result.attemptId}`}
-  description={`Immutable passing qualification evidence for ${profile.adapterId}/${profile.implementationId}.`}
+  description={pageDescription}
   {breadcrumbs}
 >
   <div class="page-shell pt-7">
@@ -73,7 +79,7 @@ const totalDurationMs = result.stages.reduce(
         {result.attemptId}
       </h1>
       <p class="mt-5 max-w-4xl text-lg leading-8 text-muted-foreground">
-        <QualificationText text={result.summary} />
+        <EvidenceText text={result.summary} />
       </p>
       <ActionLink
         class="mt-7 font-bold"

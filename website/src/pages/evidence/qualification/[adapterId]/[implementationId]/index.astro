@@ -5,7 +5,7 @@ import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import EvidenceStatus from '../../../../../components/evidence-status/evidence-status.astro';
-import QualificationText from '../../../../../components/qualification-text/qualification-text.astro';
+import EvidenceText from '../../../../../components/evidence-text/evidence-text.astro';
 import BaseLayout from '../../../../../layouts/base-layout.astro';
 import { renderMarkdown } from '../../../../../lib/content/markdown.ts';
 import { loadWebsiteModel } from '../../../../../lib/generation/generation.ts';
@@ -32,9 +32,15 @@ const latestAttempt = profile.attempts.find(
 );
 if (latestAttempt === undefined) {
   throw new Error(
-    `Qualification profile ${profile.adapterId}/${profile.implementationId} has no current passing attempt.`,
+    `Qualification profile ${profile.adapterId}/${profile.implementationId} has no current attempt.`,
   );
 }
+const latestAttemptLinkLabel =
+  latestAttempt.result.status === 'passed'
+    ? 'Inspect the passing attempt'
+    : latestAttempt.result.status === 'failed'
+      ? 'Inspect the failed attempt'
+      : 'Inspect the execution-error attempt';
 const prepareQualificationMarkdown = (markdown: string): string =>
   markdown.replaceAll(/\bMoldea\b/gu, '`moldea`');
 const renderedCases = await Promise.all(
@@ -78,7 +84,7 @@ const breadcrumbs = [
         {profile.title}
       </h1>
       <p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
-        <QualificationText text={profile.description} />
+        <EvidenceText text={profile.description} />
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
@@ -146,14 +152,14 @@ const breadcrumbs = [
             </time>
           </div>
           <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
-            <QualificationText text={latestAttempt.result.summary} />
+            <EvidenceText text={latestAttempt.result.summary} />
           </p>
         </article>
         <a
           class="inline-flex items-center gap-2 font-semibold text-link hover:underline"
           href={withBase(latestAttempt.route, basePath)}
         >
-          Inspect the passing attempt
+          {latestAttemptLinkLabel}
           <ArrowRight
             class="size-4"
             aria-hidden="true"
@@ -192,17 +198,17 @@ const breadcrumbs = [
               </div>
               <h3 class="mt-4 text-2xl font-semibold tracking-tight">{profileCase.title}</h3>
               <p class="mt-3 max-w-4xl leading-7 text-muted-foreground">
-                <QualificationText text={profileCase.catalogDescription} />
+                <EvidenceText text={profileCase.catalogDescription} />
               </p>
 
               <div class="mt-6 grid gap-4 lg:grid-cols-2">
                 <div class="rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
                   <h4 class="font-semibold">Why this is difficult</h4>
                   <p class="mt-2 text-sm leading-6 text-muted-foreground">
-                    <QualificationText text={profileCase.catalogChallenge} />
+                    <EvidenceText text={profileCase.catalogChallenge} />
                   </p>
                   <p class="mt-3 text-sm leading-6 text-muted-foreground">
-                    <QualificationText text={profileCase.purpose} />
+                    <EvidenceText text={profileCase.purpose} />
                   </p>
                 </div>
                 <div class="rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
@@ -243,7 +249,7 @@ const breadcrumbs = [
                       <li class="rounded-lg border border-border p-3">
                         <code class="text-xs font-bold">{requirement.id}</code>
                         <p class="mt-2 text-sm leading-6 text-muted-foreground">
-                          <QualificationText text={requirement.description} />
+                          <EvidenceText text={requirement.description} />
                         </p>
                       </li>
                     ))}
@@ -349,7 +355,7 @@ const breadcrumbs = [
                     </ul>
                   </td>
                   <td class="px-4 py-3 leading-6 text-muted-foreground">
-                    <QualificationText text={probe.description} />
+                    <EvidenceText text={probe.description} />
                   </td>
                 </tr>
               ))
@@ -413,7 +419,7 @@ const breadcrumbs = [
                       <time datetime={result.createdAt}>{result.createdAt}</time>
                     </td>
                     <td class="max-w-xl px-4 py-3 leading-6 text-muted-foreground">
-                      <QualificationText text={result.summary} />
+                      <EvidenceText text={result.summary} />
                     </td>
                   </tr>
                 ))}

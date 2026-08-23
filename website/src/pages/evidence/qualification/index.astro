@@ -5,7 +5,7 @@ import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import EvidenceStatus from '../../../components/evidence-status/evidence-status.astro';
-import QualificationText from '../../../components/qualification-text/qualification-text.astro';
+import EvidenceText from '../../../components/evidence-text/evidence-text.astro';
 import BaseLayout from '../../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
 import { SOURCE_REPOSITORY_URL } from '../../../lib/model/constants.ts';
@@ -129,7 +129,7 @@ const evidenceLayers = [
               </div>
               <h3 class="mt-5 text-2xl font-semibold tracking-tight">{profile.title}</h3>
               <p class="mt-3 flex-1 text-sm leading-6 text-muted-foreground">
-                <QualificationText text={profile.description} />
+                <EvidenceText text={profile.description} />
               </p>
               <dl class="mt-6 grid grid-cols-3 gap-3 border-t border-border pt-4 text-sm">
                 <div>
@@ -199,16 +199,16 @@ const evidenceLayers = [
         class="surface-card grid gap-5 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
       >
         <div>
-          <h2 class="text-2xl font-semibold tracking-tight">Everything shown here passed.</h2>
+          <h2 class="text-2xl font-semibold tracking-tight">Every outcome remains inspectable.</h2>
           <p class="mt-3 max-w-3xl leading-7 text-muted-foreground">
-            Website generation requires every current profile to point to a complete passing
-            attempt. Each result still links to its raw committed artifacts so you can inspect the
-            conclusion instead of taking it on trust.
+            Website generation validates each profile's newest terminal attempt and its independent
+            last-passing pointer. Every result links to its raw committed artifacts so you can
+            inspect failures and execution errors instead of losing them behind a release gate.
           </p>
         </div>
         <ActionLink
           class="font-bold"
-          href={withBase('/docs/adapter-qualification/#attempts-and-status', basePath)}
+          href={withBase('/docs/adapter-qualification/#publication-status', basePath)}
           variant="outline"
         >
           Read the methodology

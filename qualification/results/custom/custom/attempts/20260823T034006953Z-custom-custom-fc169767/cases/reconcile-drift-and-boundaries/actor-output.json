@@ -1,0 +1,22 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired `support` runtime binding to the renamed implementation and added the required agent-level dynamic-tool-registration warning. Local Moldea inspection and validation both returned valid with no diagnostics.",
+  "commands": [
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.clean= -c filter.lfs.smudge= status --short --untracked-files=all",
+    "node node_modules/@moldea.ai/cli/dist/moldea.js inspect --json",
+    "node node_modules/@moldea.ai/cli/dist/moldea.js validate --json",
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.clean= -c filter.lfs.smudge= diff --no-ext-diff --check && git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.clean= -c filter.lfs.smudge= diff --no-ext-diff -- moldea/moldea.yaml && git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.clean= -c filter.lfs.smudge= status --short --untracked-files=all"
+  ],
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The binding now points to `/src/support-assistant.ts#supportAssistant`.",
+    "Post-repair `inspect --json` and `validate --json` used local CLI 4.0.1, schema 2, and returned `status: valid` with no diagnostics.",
+    "No implementation files were modified; pre-existing deletion and untracked files were preserved.",
+    "Final diff check reported no whitespace errors."
+  ],
+  "unresolved": [
+    "Agent warning `dynamic-tool-registration`: static inspection cannot prove the final tool relationship. Verify `createToolRegistry` registers the tools declared for `support`, then record each supported binding. Related path: `/src/dynamic-tools.ts`."
+  ]
+}

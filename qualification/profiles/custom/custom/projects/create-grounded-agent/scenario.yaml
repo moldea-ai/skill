@@ -50,6 +50,6 @@ judgeRequirements:
   - id: binds-implementation
     description: The manifest binds the order-triage agent to the existing createOrderTriageAgent export and affected source.
   - id: defines-runtime-guidance
-    description: Custom runtime guidance explains how canonical instruction content reaches the factory without inventing provider behavior.
+    description: Custom runtime guidance explains that the runtime-owned loader supplies the canonical instruction path and content to the factory without inventing provider behavior.
   - id: validates-project
     description: Repository FS, Repository memory, Core, CLI, and project typechecking accept the completed agent without read-time mutation.

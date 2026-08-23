@@ -1,5 +1,6 @@
 import { lstat, readFile, readdir, readlink, rm, symlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 import { z } from 'zod';
 
 import type { ICandidateClosure, IQualificationProfileCase } from '../contracts/index.ts';
@@ -37,6 +38,11 @@ const ProjectManifestSchema = z.looseObject({
   devDependencies: z.record(z.string(), z.string()).optional(),
 });
 
+const PnpmWorkspaceSchema = z.looseObject({
+  overrides: z.record(z.string(), z.string()).optional(),
+  preferSymlinkedExecutables: z.boolean().optional(),
+});
+
 const InstalledCliManifestSchema = z.object({
   name: z.literal('@moldea.ai/cli'),
   version: z.string().min(1),
@@ -46,6 +52,7 @@ const InstalledCliManifestSchema = z.object({
 const installCandidateProjectRuntime = async (
   workspaceDirectory: string,
   candidate: ICandidateClosure,
+  signal: AbortSignal | undefined,
 ): Promise<string> => {
   const cliPackage = candidate.packages.find(({ name }) => name === '@moldea.ai/cli');
 
@@ -57,25 +64,72 @@ const installCandidateProjectRuntime = async (
   const manifest = ProjectManifestSchema.parse(
     JSON.parse(await readFile(manifestPath, 'utf8')) as unknown,
   );
-  await writeFile(
-    manifestPath,
-    `${JSON.stringify(
-      {
-        ...manifest,
-        devDependencies: {
-          ...manifest.devDependencies,
-          '@moldea.ai/cli': cliPackage.version,
-        },
-      },
-      null,
-      2,
-    )}\n`,
-    'utf8',
+  const projectManifest = {
+    ...manifest,
+    devDependencies: {
+      ...manifest.devDependencies,
+      '@moldea.ai/cli': cliPackage.version,
+    },
+  };
+  const localPackageOverrides = Object.fromEntries(
+    candidate.packages.map((candidatePackage) => [
+      candidatePackage.name,
+      `file:${candidatePackage.tarballPath}`,
+    ]),
   );
+  const serializeManifest = (manifestValue: Record<string, unknown>): string =>
+    `${JSON.stringify(manifestValue, null, 2)}\n`;
+  const pnpmWorkspacePath = path.join(workspaceDirectory, 'pnpm-workspace.yaml');
+  let originalPnpmWorkspace: string | null = null;
+
+  try {
+    originalPnpmWorkspace = await readFile(pnpmWorkspacePath, 'utf8');
+  } catch (error) {
+    if (!(error instanceof Error && 'code' in error && error.code === 'ENOENT')) {
+      throw error;
+    }
+  }
+
+  const pnpmWorkspace =
+    originalPnpmWorkspace === null
+      ? {}
+      : PnpmWorkspaceSchema.parse(parseYaml(originalPnpmWorkspace) as unknown);
+  const installationPnpmWorkspace = {
+    ...pnpmWorkspace,
+    preferSymlinkedExecutables: true,
+    overrides: {
+      ...pnpmWorkspace.overrides,
+      ...localPackageOverrides,
+    },
+  };
 
   const projectNodeModules = path.join(workspaceDirectory, 'node_modules');
   await rm(projectNodeModules, { force: true, recursive: true });
-  await copyDirectory(path.join(candidate.runtimeDirectory, 'node_modules'), projectNodeModules);
+  await writeFile(manifestPath, serializeManifest(projectManifest), 'utf8');
+  await writeFile(pnpmWorkspacePath, stringifyYaml(installationPnpmWorkspace), 'utf8');
+
+  try {
+    await executeProcess({
+      command: 'pnpm',
+      args: [
+        'install',
+        '--offline',
+        '--ignore-scripts',
+        '--lockfile=false',
+        '--config.strict-peer-dependencies=true',
+      ],
+      cwd: workspaceDirectory,
+      environment: { ...process.env, CI: 'true' },
+      signal,
+    });
+  } finally {
+    if (originalPnpmWorkspace === null) {
+      await rm(pnpmWorkspacePath, { force: true });
+    } else {
+      await writeFile(pnpmWorkspacePath, originalPnpmWorkspace, 'utf8');
+    }
+  }
+
   const installedManifest = InstalledCliManifestSchema.parse(
     JSON.parse(
       await readFile(path.join(projectNodeModules, '@moldea.ai', 'cli', 'package.json'), 'utf8'),
@@ -185,6 +239,7 @@ export const prepareQualificationProject = async (options: {
   const candidateRuntimeDigest = await installCandidateProjectRuntime(
     workspaceDirectory,
     options.candidate,
+    options.signal,
   );
   await executeProcess({
     command: 'git',

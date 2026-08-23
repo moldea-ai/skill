@@ -1,0 +1,32 @@
+{
+  "caseId": "create-grounded-agent",
+  "title": "Create a grounded agent",
+  "status": "failed",
+  "durationMs": 202806,
+  "deterministicBeforePath": "cases/create-grounded-agent/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 871991,
+    "cachedInputTokens": 817152,
+    "outputTokens": 5278
+  },
+  "judgeUsage": {
+    "inputTokens": 204622,
+    "cachedInputTokens": 169216,
+    "outputTokens": 2760
+  },
+  "actorEvidenceCreatedAt": "2026-08-23T03:48:20.854Z",
+  "judgeEvidenceCreatedAt": "2026-08-23T03:49:28.392Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "failures": [
+    "Judge requirement defines-runtime-guidance failed: `moldea/runtimes/custom.md` expressly says the repository does not establish an instruction-loading or model-invocation path. The manifest correspondingly declares blocking unresolved requirement `canonical-instruction-consumption`. Thus the guidance truthfully avoids invented provider behavior, but does not explain an established path by which canonical instruction content reaches the factory/runtime.",
+    "Establish and bind a repository-local instruction-loading or runtime configuration path that consumes `moldea/agents/order-triage/instruction.md`; the current blocking unresolved requirement confirms this provenance is absent."
+  ]
+}

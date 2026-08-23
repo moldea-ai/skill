@@ -18,7 +18,7 @@ export const EVIDENCE_STATUS_PRESENTATION: Record<
     label: 'Failed',
   },
   incomplete: {
-    className: 'border-warning/40 bg-warning/20 text-warning-foreground',
+    className: 'border-warning bg-warning text-warning-foreground',
     label: 'Incomplete',
   },
   'not-recorded': {
@@ -38,7 +38,7 @@ export const EVIDENCE_STATUS_PRESENTATION: Record<
     label: 'Running',
   },
   skipped: {
-    className: 'border-warning/40 bg-warning/20 text-warning-foreground',
+    className: 'border-warning bg-warning text-warning-foreground',
     label: 'Skipped',
   },
 };

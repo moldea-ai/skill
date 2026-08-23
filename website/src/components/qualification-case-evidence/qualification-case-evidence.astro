@@ -2,8 +2,8 @@
 import { ExternalLink } from '@lucide/astro';
 
 import type { IQualificationAttemptCaseModel } from '../../lib/qualification/index.ts';
+import EvidenceText from '../evidence-text/evidence-text.astro';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
-import QualificationText from '../qualification-text/qualification-text.astro';
 
 interface Props {
   evidence: IQualificationAttemptCaseModel;
@@ -49,7 +49,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
           <ul class="mt-2 list-disc space-y-1 ps-5 text-sm leading-6 text-foreground">
             {result.failures.map((failure) => (
               <li>
-                <QualificationText text={failure} />
+                <EvidenceText text={failure} />
               </li>
             ))}
           </ul>
@@ -166,7 +166,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
           </span>
         </div>
         <p class="mt-3 text-sm leading-6 text-muted-foreground">
-          <QualificationText text={actor.summary} />
+          <EvidenceText text={actor.summary} />
         </p>
         <dl class="mt-4 grid gap-2 text-sm">
           <div class="flex flex-wrap justify-between gap-2">
@@ -196,7 +196,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
               <EvidenceStatus status={judge.verdict === 'pass' ? 'passed' : 'failed'} />
             </div>
             <p class="mt-3 text-sm leading-6 text-muted-foreground">
-              <QualificationText text={judge.summary} />
+              <EvidenceText text={judge.summary} />
             </p>
             <dl class="mt-4 grid gap-2 text-sm">
               <div class="flex flex-wrap justify-between gap-2">
@@ -226,9 +226,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
               <EvidenceStatus status="skipped" />
             </div>
             <p class="mt-3 text-sm leading-6 text-muted-foreground">
-              <QualificationText
-                text={judgeSkipped?.reason ?? 'The judge did not run for this case.'}
-              />
+              <EvidenceText text={judgeSkipped?.reason ?? 'The judge did not run for this case.'} />
             </p>
           </div>
         )
@@ -270,7 +268,7 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
                       />
                     </td>
                     <td class="px-4 py-3 leading-6 text-muted-foreground">
-                      <QualificationText text={requirement.evidence} />
+                      <EvidenceText text={requirement.evidence} />
                     </td>
                   </tr>
                 ))}

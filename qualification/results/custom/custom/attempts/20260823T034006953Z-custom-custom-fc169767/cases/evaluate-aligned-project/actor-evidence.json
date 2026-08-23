@@ -1,0 +1,13 @@
+{
+  "role": "actor",
+  "createdAt": "2026-08-23T03:42:32.523Z",
+  "durationMs": 139301,
+  "usage": {
+    "inputTokens": 349040,
+    "cachedInputTokens": 307968,
+    "outputTokens": 6492
+  },
+  "cacheKey": "20946ae78bbf895a9196e1252475474d47e919130bfef62a63172d808ba2237e",
+  "sourceAttemptId": "20260823T034006953Z-custom-custom-fc169767",
+  "cacheSourceAttemptId": null
+}

@@ -23,29 +23,37 @@ test('explains every passing semantic scenario through keyboard-accessible discl
 
 test('keeps semantic evidence accessible without JavaScript and at 320px', async ({ browser }) => {
   for (const colorScheme of ['light', 'dark'] as const) {
-    const context = await browser.newContext({
+    const noJavaScriptContext = await browser.newContext({
       colorScheme,
       javaScriptEnabled: false,
       viewport: { height: 740, width: 320 },
     });
-    const page = await context.newPage();
-    await page.goto(toPublicPath('/evidence/semantic/'));
+    const noJavaScriptPage = await noJavaScriptContext.newPage();
+    await noJavaScriptPage.goto(toPublicPath('/evidence/semantic/'));
 
-    const firstScenario = page.locator('main details').first();
+    const firstScenario = noJavaScriptPage.locator('main details').first();
     await firstScenario.locator('summary').click();
     await expect(firstScenario.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
-    const widths = await page.evaluate(() => ({
+    const widths = await noJavaScriptPage.evaluate(() => ({
       client: document.documentElement.clientWidth,
       scroll: document.documentElement.scrollWidth,
     }));
     expect(widths.scroll).toBeLessThanOrEqual(widths.client);
-    const accessibilityResults = await new AxeBuilder({ page }).analyze();
+    await noJavaScriptContext.close();
+
+    const accessibilityContext = await browser.newContext({
+      colorScheme,
+      viewport: { height: 740, width: 320 },
+    });
+    const accessibilityPage = await accessibilityContext.newPage();
+    await accessibilityPage.goto(toPublicPath('/evidence/semantic/'));
+    const accessibilityResults = await new AxeBuilder({ page: accessibilityPage }).analyze();
     expect(
       accessibilityResults.violations.filter(
         ({ impact }) => impact === 'critical' || impact === 'serious',
       ),
     ).toStrictEqual([]);
 
-    await context.close();
+    await accessibilityContext.close();
   }
 });

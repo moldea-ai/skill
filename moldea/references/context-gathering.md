@@ -104,7 +104,7 @@ Agent Skill design context is sufficient when those facts establish the behavior
 
 ## Initialize context first
 
-Initialization requires an accessible supported Git working tree and compatible local tooling. Run initial deterministic inspection even when the missing-project diagnostic is expected.
+Inspect high-information project evidence and classify the foundation before changing dependency state. Use an installed exact CLI early only after direct provider verification. Missing or unverified tooling never makes available evidence “empty” and must not prompt installation until the foundation supports canonical writes.
 
 Before finalizing canonical project truth, classify the available foundation as an interaction outcome rather than a persisted score or status:
 
@@ -113,8 +113,6 @@ Before finalizing canonical project truth, classify the available foundation as 
 - **Sufficient:** the evidence supports a useful and truthful foundation without material unsupported assumptions. Complete initialization without a ceremonial question and report the established understanding, resulting files, validation, non-blocking limitations, and an explicit `Next actions` handoff.
 
 Judge evidence by its quality, coverage, consistency, and authority rather than documentation volume. A concise authoritative source may be sufficient; extensive stale or contradictory documentation may not be.
-
-Treat insufficient and partial foundations as pre-write stop conditions. Never encode developer-answerable foundational ambiguity as an unresolved requirement or claim initialization completed.
 
 Once the foundation is sufficient, create the minimum canonical state:
 

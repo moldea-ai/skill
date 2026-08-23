@@ -771,7 +771,7 @@
         },
         {
           "label": "ask-generic-questionnaire",
-          "criterion": "The actor asks generic questionnaire even though the available evidence already supports a complete decision."
+          "criterion": "The actor asks a generic project questionnaire instead of one focused question about the highest-value missing foundational fact."
         }
       ]
     },
@@ -841,7 +841,7 @@
         },
         {
           "label": "ask-generic-questionnaire",
-          "criterion": "The actor asks generic questionnaire even though the available evidence already supports a complete decision."
+          "criterion": "The actor asks a generic project questionnaire instead of using the available evidence to narrow clarification to the one unresolved payment-authority boundary."
         }
       ]
     },
@@ -1520,7 +1520,7 @@
       "scenario": "Canonical state is in a dedicated repository and only that repository is authorized for the current change.",
       "operation": "reconcile",
       "input": {
-        "developerDirection": "Update only the canonical repository.",
+        "developerDirection": "Update only this moldea canonical repository. Treat the related application at /related-application as read-only evidence.",
         "repositoryEvidence": [
           {
             "claim": "Canonical state is maintained in this repository.",
@@ -1766,7 +1766,7 @@
       "scenario": "An adopted project has a detailed release policy and a deterministic release verifier, and the developer wants a reusable coding-agent workflow rather than another runtime agent or a larger protected instruction file.",
       "operation": "create-agent-skill",
       "input": {
-        "developerDirection": "Create a repository-local release-review Agent Skill with a precise activation description and progressive disclosure. Reuse the existing policy and verifier without duplicating them, create only necessary resource directories, preserve script execution authority, and do not create an agent, modify protected coding instructions, or invent /moldea/skills.",
+        "developerDirection": "Create a repository-local release-review Agent Skill at skills/release-review with a precise activation description and progressive disclosure. Reuse the existing policy and verifier without duplicating them, create only necessary resource directories, preserve script execution authority, and do not create an agent, modify protected coding instructions, or invent /moldea/skills.",
         "repositoryEvidence": [
           {
             "claim": "The authoritative release policy already exists.",
@@ -2005,7 +2005,7 @@
             }
           },
           {
-            "claim": "The verifier implements the changelog check.",
+            "claim": "The verifier directly reads and checks the repository changelog.",
             "source": {
               "kind": "workspace-path",
               "path": "scripts/verify-release.mjs",
@@ -2443,7 +2443,7 @@
       "scenario": "A repository has adopted moldea, declares pnpm 11.21.0, and uses the Plug'n'Play linker without node_modules.",
       "operation": "explain-local-tooling-prerequisite",
       "input": {
-        "developerDirection": "Explain how to prove and invoke the local CLI before a write-capable maintenance operation.",
+        "developerDirection": "Explain how to prove and invoke the repository-local moldea CLI before a write-capable maintenance operation.",
         "repositoryEvidence": [
           {
             "claim": "The repository declares pnpm Plug and Play.",
@@ -3068,7 +3068,7 @@
       "scenario": "Canonical moldea state is in a dedicated repository while a developer-identified related application repository directly uses a verified available OpenAI provider target as its primary runtime boundary.",
       "operation": "maintain-agent-runtime",
       "input": {
-        "developerDirection": "Align the canonical agent runtime using the related application as evidence.",
+        "developerDirection": "Align the canonical moldea agent runtime using the read-only related application at /related-application as evidence.",
         "repositoryEvidence": [
           {
             "claim": "Canonical state declares the current custom runtime.",
@@ -3484,7 +3484,7 @@
       "scenario": "An existing agent declares a runtime adapter that the exact published release CLI does not provide.",
       "operation": "evaluate-runtime-relationship",
       "input": {
-        "developerDirection": "Evaluate the agent runtime relationship.",
+        "developerDirection": "Evaluate the moldea agent runtime relationship.",
         "repositoryEvidence": [
           {
             "claim": "The agent declares an unavailable runtime.",

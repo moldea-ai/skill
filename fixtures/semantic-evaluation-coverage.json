@@ -3,7 +3,7 @@
   "claims": [
     {
       "id": "activation-and-adoption",
-      "description": "The skill distinguishes explicit adoption from relevance-triggered work and handles initialization according to available project context.",
+      "description": "The skill distinguishes explicit adoption from knowledge- and relevance-triggered maintenance and handles initialization according to available project context.",
       "sourcePaths": [
         "moldea/SKILL.md#purpose-and-activation",
         "moldea/SKILL.md#select-the-operation",
@@ -14,6 +14,9 @@
         { "kind": "semantic-case", "id": "initialize-insufficient-context" },
         { "kind": "semantic-case", "id": "initialize-partial-context" },
         { "kind": "semantic-case", "id": "initialize-sufficient-context" },
+        { "kind": "semantic-case", "id": "adopted-direct-context-handoff" },
+        { "kind": "semantic-case", "id": "adopted-explicit-context-correction" },
+        { "kind": "semantic-case", "id": "adopted-ambiguous-context-handoff" },
         { "kind": "semantic-case", "id": "adopted-relevance-no-change" },
         { "kind": "semantic-case", "id": "adopted-relevance-changed-behavior" },
         { "kind": "semantic-case", "id": "agent-adoption-inline-runtime-instruction" },
@@ -21,7 +24,7 @@
         { "kind": "semantic-case", "id": "evaluate-clean-working-tree" },
         { "kind": "semantic-case", "id": "evaluate-unborn-repository" }
       ],
-      "rationale": "These scenarios exercise the adoption boundary, context sufficiency, no-change decisions, ordinary maintenance, and evaluation across material Git states."
+      "rationale": "These scenarios exercise the adoption boundary, context sufficiency, direct and conflicting knowledge, no-change decisions, ordinary maintenance, and evaluation across material Git states."
     },
     {
       "id": "knowledge-quality-and-reconciliation",

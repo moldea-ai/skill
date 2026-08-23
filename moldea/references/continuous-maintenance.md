@@ -25,7 +25,7 @@ For every relevant developer-authorized change:
 5. Make no canonical edit when established project truth and declared behavior remain correct.
 6. Re-evaluate related unresolved requirements against their explicit resolution criteria; a related file change alone never resolves one.
 7. After writes, rerun deterministic inspection and relevant project-native checks.
-8. Report the reconsidered surfaces, changes or no-change result, verification, and remaining limitations.
+8. Report surfaces reconsidered, result, verification, limitations, and why unchanged canonical state remains correct.
 
 An `affectedBy` or other relevance match means “reconsider this surface,” not “edit this file.” Stop relevance expansion when more investigation is unlikely to change a material conclusion.
 

@@ -47,4 +47,4 @@ The recommendation may contain no agents. It avoids fashionable supervisors, cri
 
 The plan identifies authoritative data, allowed readers and writers, deterministic enforcement, recommendation versus execution authority, human approvals, least-privilege access, state ownership, contracts, and failure boundaries.
 
-It produces one preferred architecture and an implementation sequence that validates risky services, schemas, capabilities, agent boundaries, routing, tests, and runtime integration early.
+It produces one preferred architecture and an implementation sequence that validates risky services, schemas, capabilities, agent boundaries, routing, tests, and runtime integration early. This build order is distinct from the system's runtime control flow and remains part of a zero-agent recommendation.

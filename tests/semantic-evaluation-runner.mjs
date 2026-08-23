@@ -1761,7 +1761,21 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
       await writeScenarioFile(
         repositoryPath,
         'scripts/verify-release.mjs',
-        "export const verifyRelease = ({ hasChangelog, manager }) => hasChangelog && ['npm', 'pnpm'].includes(manager);\n",
+        [
+          "import { existsSync, readFileSync } from 'node:fs';",
+          "import { join } from 'node:path';",
+          '',
+          '/** Checks package-manager support and whether the repository has a non-empty changelog. */',
+          'export const verifyRelease = ({ manager, repositoryRoot }) => {',
+          "  const changelogPath = join(repositoryRoot, 'CHANGELOG.md');",
+          '  return (',
+          "    ['npm', 'pnpm'].includes(manager) &&",
+          '    existsSync(changelogPath) &&',
+          "    readFileSync(changelogPath, 'utf8').trim().length > 0",
+          '  );',
+          '};',
+          '',
+        ].join('\n'),
       );
       await writeScenarioFile(
         repositoryPath,

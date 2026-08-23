@@ -134,7 +134,7 @@ To establish project context without creating an agent, ask:
 Initialize moldea for this repository.
 ```
 
-Standalone initialization first understands the project, then creates the minimum valid foundation:
+Standalone initialization first understands the project, then establishes required local tooling and creates the minimum valid foundation:
 
 ```text
 /moldea/moldea.yaml
@@ -143,7 +143,7 @@ Standalone initialization first understands the project, then creates the minimu
 
 It does not create an agent automatically. Additional context, decisions, runtime guidance, agents, or unresolved requirements are created only when project evidence justifies them.
 
-Initialization may become a short clarification conversation. When repository evidence does not establish meaningful project context, the coding agent says so and asks a focused foundational question instead of inventing project truth. When some context is supported but a material gap remains, it summarizes what it learned and clarifies that gap. Both outcomes pause before canonical project state or the owned README awareness block is created, and developer-answerable ambiguity is not stored as an unresolved requirement. A sufficiently grounded repository completes without ceremonial questions.
+Initialization may become a short clarification conversation. The coding agent classifies high-information project evidence before changing dependency state. When repository evidence does not establish meaningful project context, it says so and asks a focused foundational question instead of inventing project truth. When some context is supported but a material gap remains, it summarizes what it learned and clarifies that gap. Both outcomes pause before tooling installation, canonical project state, or the owned README awareness block, and developer-answerable ambiguity is not stored as an unresolved requirement. A sufficiently grounded repository completes without ceremonial questions.
 
 After completion, the coding agent summarizes the established foundation, files, and validation, then offers practical options such as reviewing the context, continuing ordinary development, planning an agent system, or creating a specific agent.
 
@@ -176,7 +176,7 @@ Planning starts from the objective and may recommend zero, one, or multiple agen
 
 Once a repository has adopted `moldea`, sharing potentially durable project knowledge or requesting behavior-affecting development work may activate the skill even when the request does not mention `moldea`. The coding agent reconsiders relevant canonical state and persists only material, durable, sufficiently established truth. A material unexplained conflict produces one focused clarification before any canonical change.
 
-Activation does not mean automatic persistence or documentation churn. A legitimate result is no `/moldea/**` edit when supplied knowledge is transient or unclear, or when established state remains accurate. Knowledge- and relevance-triggered activation never initialize an unrelated repository without explicit developer intent, and an explicitly read-only request remains read-only.
+Activation does not mean automatic persistence or documentation churn. A legitimate result is no `/moldea/**` edit when supplied knowledge is transient or unclear, or when established state remains accurate. The coding agent reports which canonical state it reconsidered and why no edit was required. Knowledge- and relevance-triggered activation never initialize an unrelated repository without explicit developer intent, and an explicitly read-only request remains read-only.
 
 ## Portable skill
 
@@ -310,7 +310,7 @@ The runner uses the shared development host under `tooling/codex-evaluation-host
 
 The isolated network namespace has no direct host or internet route. A repository-external CONNECT relay permits only HTTPS port `443`, exact configured hostnames, and DNS results containing exclusively public addresses. The default allowlist is `api.openai.com`, `auth.openai.com`, and `chatgpt.com`; add an exact model endpoint with `MOLDEA_EVAL_ALLOWED_HOSTS` when required. Localhost, private, link-local, and undeclared destinations remain inaccessible. Each actor or judge process is killed after five minutes by default; set a positive `MOLDEA_EVAL_HOST_TIMEOUT_MS` only when a deliberate evaluation requires a different bound.
 
-The runner installs the exact portable tree into a fresh project for every actor case. The actor receives only `input.developerDirection`, exactly as a developer could naturally write it. The evaluator-only scenario, requested operation, sourced repository evidence, labels, and criterion descriptions are withheld. Before actor execution, the runner materializes and records each declared developer-direction, host-instruction, Git-state, workspace-path, or related-repository source. It captures hashes and bounded text content for repository-visible changes and starts a separate judge process in another read-only workspace.
+The runner installs the exact portable tree into a fresh project for every actor case. The actor receives only `input.developerDirection`, exactly as a developer could naturally write it. That direction identifies any required related repository, requested artifact location, or product-specific surface instead of relying on evaluator-only knowledge. The evaluator-only scenario, requested operation, sourced repository evidence, labels, and criterion descriptions are withheld. Before actor execution, the runner materializes and records each declared developer-direction, host-instruction, Git-state, workspace-path, or related-repository source. It captures hashes and bounded text content for repository-visible changes and starts a separate judge process in another read-only workspace.
 
 Bubblewrap keeps the ordinary actor working tree writable while overlaying `.git` and `.agents/skills/moldea` read-only. The runner records Git metadata, HEAD, refs, staged state, local configuration, and the installed skill before and after execution. Any repository-control violation forces the case to fail regardless of the judge assessment. Every committed semantic expectation and prohibition pairs a stable evidence label with an explicit evaluator-only criterion. Skill-focused cases also declare evaluator-only artifact roots and activation scenarios. The judge receives the criteria, pre-actor sourced evidence, repository-control evidence, bounded workspace changes, independent structural and resource-link evidence, and positive or adjacent non-activation requests. Content-level outcomes therefore do not rely on opaque labels, the actor's report alone, or leaked answer criteria. The runner consumes Codex JSONL events and supplies bounded command and tool-call events to the judge and persisted result as runner-owned execution evidence. An actor's final response cannot create or replace that evidence.
 

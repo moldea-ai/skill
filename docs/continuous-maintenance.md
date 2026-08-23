@@ -32,7 +32,7 @@ When a new claim materially conflicts with established context and does not clea
 
 An impact path, knowledge handoff, or semantic relationship means “inspect this surface,” not “edit this file.” If supplied information is not suitable for persistence or existing project context and declared behavior remain accurate, the right result is no `/moldea/**` change.
 
-This avoids noisy documentation churn while still preventing silent drift.
+The completion report identifies the canonical state that was reconsidered and why it remains correct. This avoids noisy documentation churn while still preventing silent drift.
 
 ## What can be synchronized
 

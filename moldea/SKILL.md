@@ -1,7 +1,7 @@
 ---
 name: moldea
 description: >-
-  Use for moldea initialization and operations; agent-system planning; agent or reusable Agent Skill design and maintenance; behavioral instructions, capabilities, schemas, routing, bindings, and runtime integration; and evaluation, reconciliation, or validation. In an adopted moldea repository, also activate automatically when any source supplies or corrects potentially durable project knowledge, or an authorized behavior change may make canonical project or agent state stale, even without a moldea or documentation request. Initial adoption requires explicit developer intent.
+  Automatically use after moldea adoption whenever the developer supplies, confirms, or corrects potentially durable project knowledge through prose, structured data, a table, an answer, or an accessible source, even without asking for moldea or documentation. Also use for initialization and operations; agent-system planning; agent or Agent Skill design and maintenance; behavioral instructions, capabilities, schemas, routing, bindings, and runtime integration; evaluation, reconciliation, or validation; and authorized behavior changes that may stale canonical project or agent state. Initial adoption requires explicit developer intent.
 license: MIT
 metadata:
   version: '3.1.0'
@@ -11,7 +11,7 @@ metadata:
 
 ## Purpose and activation
 
-Use `moldea` as the local semantic layer for Git-owned project truth, agent-system planning, agent behavior, and reusable Agent Skills. Understand the project, prefer deterministic software unless model reasoning earns an agent boundary, use required local evidence, and keep affected canonical, skill, and implementation surfaces coherent without inventing behavior.
+Use `moldea` for Git-owned project truth, agent-system planning, agent behavior, and reusable Agent Skills. Understand the project, prefer deterministic software unless model reasoning earns an agent boundary, and keep affected surfaces coherent without inventing behavior.
 
 Activate this skill in any of these cases:
 
@@ -19,7 +19,7 @@ Activate this skill in any of these cases:
 - **Knowledge-triggered activation:** in an adopted repository, the developer supplies, confirms, or corrects potentially material and durable project knowledge through any format or accessible source.
 - **Relevance-triggered activation:** an authorized change may materially affect project truth or declared agent behavior in an adopted repository.
 
-Before treating a message as acknowledgment-only, check adoption. In an adopted repository, material ownership, responsibility, approval, escalation, policy, project-boundary, supported-behavior, or runtime information enters Maintain before deciding whether to persist, clarify, or omit it; do not merely restate the handoff. Reconsideration need not edit canonical state when truth and behavior remain correct.
+Before acknowledging a message in an adopted repository, route potentially durable current knowledge through Maintain to persist, clarify, or omit it; never merely restate it. Reconsideration need not edit canonical state when truth and behavior remain correct.
 
 Never initialize `moldea` solely because supplied knowledge or a repository change could benefit from it. Adoption requires explicit intent. After adoption begins, continuous maintenance needs no “and update moldea” request.
 
@@ -66,6 +66,8 @@ During `initialize`, an insufficient or partial project foundation is a pre-writ
 
 Absence of evidence is not evidence that a consequential behavior is excluded. If the repository does not establish whether the project performs a materially different action, such as extracting payment data versus authorizing payments, classify the foundation as partial and clarify before writing.
 
+For every write-capable operation, materially conflicting plausible states are a pre-write stop. No source wins by asset type. Continue only after reliable evidence or an explicit correction resolves the conflict; otherwise ask one focused question, wait, and make no partial semantic correction.
+
 ## Load focused guidance
 
 - Read `references/local-tooling.md` before any deterministic CLI operation or any write-capable workflow that may establish or reconcile local tooling.
@@ -82,12 +84,12 @@ Load only the references triggered by the current operation. These files operati
 
 1. Establish the requested outcome, activation path, write authority, repository mode, and applicable coding instructions.
 2. Determine whether the repository has adopted `moldea`. Do not infer adoption from an unrelated repository or create canonical state without explicit adoption intent.
-3. Establish or use supported local tooling according to the operation. Inspect executable package-manager configuration as file data before any package-manager process. `plan` never establishes tooling merely to plan; `evaluate` and `validate` report missing or incompatible tooling without writes.
-4. When the operation uses deterministic tooling, invoke the exact repository-local CLI in its own process and verify that completed process's exit code and machine envelope before interpreting command-specific fields.
-5. Gather the minimum sufficient repository context, beginning with high-information evidence and following material relationships until more investigation is unlikely to change a material conclusion.
+3. Gather the minimum sufficient repository context from high-information evidence and material relationships. For `initialize`, classify the foundation before changing dependency state; an already verified exact CLI may provide read-only evidence earlier.
+4. Establish or use supported local tooling according to the operation. Inspect executable package-manager configuration as file data before any package-manager process. `plan` never establishes tooling merely to plan; `evaluate` and `validate` report missing or incompatible tooling without writes.
+5. When the operation uses deterministic tooling, invoke the exact repository-local CLI in its own process and verify that completed process's exit code and machine envelope before interpreting command-specific fields.
 6. Distinguish current truth, developer-confirmed truth, intended resulting state, planned work, accepted rationale, historical state, unresolved state, and inference used only for investigation.
 7. Identify affected surfaces through exact bindings, impact paths, Agent Skill authoritative sources, resources, host metadata, installed or distributed copies, consumers, unresolved relationships, runtime-adapter evidence, and additional semantic evidence.
-8. Investigate contradictions and ask one focused question when multiple plausible answers would materially change the result. Use unresolved requirements only for genuine incomplete state, not answerable ambiguity or backlog work.
+8. Enforce the material-conflict pre-write stop. Use unresolved requirements only for genuine incomplete state, not answerable ambiguity or backlog work.
 9. Map runtime metadata by its established semantic purpose. Routing-facing metadata uses the target's effective routing description: the handoff description when present, otherwise the agent description. General-only metadata uses the agent description, regardless of property names. Before changing a runtime metadata mapping, establish and retain the consumer-semantics evidence, current canonical source, and required resulting source, then carry that evidence chain into the final report.
 10. For write-capable work, apply the smallest coherent authorized change and synchronize every affected representation. Make no canonical edit when the existing state remains correct.
 11. Run relevant project-native verification when executable behavior changed and authority permits it, keeping each result independently attributable.
@@ -107,14 +109,14 @@ Keep the report proportional while making these results explicit when relevant:
 
 - selected operation and activation path
 - authorized scope and repositories inspected
-- canonical surfaces changed, intentionally unchanged with reason, or blocked by material ambiguity and its focused question
+- canonical surfaces changed, intentionally unchanged after reconsideration with reason, or blocked by material ambiguity and its focused question
 - exact local CLI version, deterministic commands, statuses, and material diagnostics
 - dependency changes and Agent Skill source, metadata, copy, consumer, and activation decisions
 - semantic decisions and the evidence chain that established any consequential misalignment and resulting state
 - relevant unresolved requirements, ambiguities, protected-instruction conflicts, and evidence limitations
 - project-native checks and checks not run
 
-When deterministic tooling runs after writes, name the exact repository-local command, its status, and material diagnostics or mirror findings established by that command's completed isolated process. A bare statement that inspection succeeded is not sufficient evidence. Neither is a failed aggregate command or an unverified response. Never claim a `valid` result when the exact process or machine envelope failed, remained incomplete, or reported another status. Never imply that valid canonical inspection proves behavior it cannot observe. In dedicated-repository mode, distinguish behavior established by related-application evidence from facts canonical deterministic inspection cannot establish.
+When deterministic tooling runs after writes, copy the literal repository-local deterministic invocation into the report with its status and material diagnostics or mirror findings. Naming only the version or subcommand is insufficient. Failed, incomplete, aggregate, or unverified execution cannot support completion. Never imply that valid canonical inspection proves behavior it cannot observe. In dedicated-repository mode, distinguish related-application evidence from facts canonical inspection cannot establish.
 
 For `initialize`, also report the evidence-backed project foundation and whether initialization completed or is awaiting developer context. If awaiting context, end with the focused clarification needed to continue. If completed, end the report with an explicit `Next actions` handoff that offers reviewing the foundation and continuing ordinary development; include agent-system planning or agent creation only as optional choices when relevant. Validation or test status does not replace this handoff. Do not treat file creation or structural validity alone as semantic completion.
 

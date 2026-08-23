@@ -36,8 +36,8 @@ This request explicitly authorizes adoption. The coding agent handles the initia
 
 1. Inspect the Git working tree, repository structure, code, configuration, documentation, and other high-information evidence.
 2. Select the `initialize` operation and confirm that the repository and developer authority permit the required writes.
-3. Establish this skill release's exact repository-local `@moldea.ai/cli` development dependency through the repository's package manager when needed. It never relies on a global CLI fallback.
-4. Determine whether the evidence establishes a sufficient project foundation, requires focused clarification, or provides no meaningful project context yet.
+3. Determine whether the evidence establishes a sufficient project foundation, requires focused clarification, or provides no meaningful project context yet.
+4. Once the foundation is sufficient, establish this skill release's exact repository-local `@moldea.ai/cli` development dependency through the repository's package manager when needed. An already installed exact CLI may provide earlier read-only evidence after direct verification. It never relies on a global CLI fallback.
 5. Once the foundation is sufficient, create the minimum canonical state and the owned README awareness block.
 6. Run deterministic inspection and relevant project-native checks, then report the established understanding, files, decisions, verification, and practical next actions.
 
@@ -62,7 +62,7 @@ Initialization is conversational when the evidence is not yet sufficient:
 
 You can also supply context before the coding agent asks. Include it directly in the request or point to an accessible file where you already maintain the relevant users, goals, boundaries, or other project knowledge. The coding agent evaluates that input alongside repository evidence and carries only durable, relevant truth into the project foundation.
 
-Insufficient and partial foundations pause initialization before canonical project state or the owned README awareness block is created. The coding agent asks instead of storing developer-answerable foundational ambiguity as an unresolved requirement.
+Insufficient and partial foundations pause initialization before dependency changes, canonical project state, or the owned README awareness block. Missing or unverified tooling does not erase available project evidence. The coding agent asks instead of storing developer-answerable foundational ambiguity as an unresolved requirement.
 
 The amount of documentation is not the deciding factor. A concise authoritative README may be sufficient, while extensive contradictory or stale documentation may require clarification. After any required answers, the coding agent resumes initialization and provides a completed handoff with optional next actions.
 

@@ -362,6 +362,13 @@ describe('portable Agent Skill contract', () => {
     assert.equal(dirname(SKILL_PATH), SKILL_DIRECTORY);
     assert.equal(dirname(SKILL_PATH).split('/').at(-1), frontmatter.name);
     assert.ok(frontmatter.description.length >= 1 && frontmatter.description.length <= 1024);
+    assert.match(frontmatter.description, /^Automatically use after moldea adoption/u);
+    assertMatchesEvery(frontmatter.description, [
+      /supplies, confirms, or corrects potentially durable project knowledge/u,
+      /prose, structured data, a table, an answer, or an accessible source/u,
+      /without asking for moldea or documentation/u,
+      /Initial adoption requires explicit developer intent/u,
+    ]);
     assert.ok(skill.split('\n').length < 500);
   });
 
@@ -428,9 +435,9 @@ describe('portable Agent Skill contract', () => {
       /Knowledge-triggered activation/,
       /Relevance-triggered activation/,
       /Never initialize `moldea` solely/,
-      /Before treating a message as acknowledgment-only/i,
-      /enters Maintain before deciding whether to persist, clarify, or omit it/i,
-      /do not merely restate the handoff/i,
+      /Before acknowledging a message in an adopted repository/i,
+      /route potentially durable current knowledge through Maintain to persist, clarify, or omit it/i,
+      /never merely restate it/i,
       /Reconsideration need not edit canonical state/i,
       /unambiguous handoff of current project knowledge authorizes necessary context maintenance/i,
       /Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only/i,
@@ -444,6 +451,9 @@ describe('portable Agent Skill contract', () => {
       /property named `description` may be routing-facing/,
       /do not report that shared contract as misaligned or recommend a duplicate property/,
       /dynamic or unsupported wiring as unestablished/,
+      /materially conflicting plausible states are a pre-write stop/i,
+      /No source wins by asset type/i,
+      /make no partial semantic correction/i,
     ]);
   });
 
@@ -486,6 +496,8 @@ describe('portable Agent Skill contract', () => {
       /end the report with an explicit `Next actions` handoff/i,
       /validation or test status does not replace this handoff/i,
       /file creation or structural validity alone/i,
+      /classify the foundation before changing dependency state/i,
+      /Missing or unverified tooling never makes available evidence .*empty/i,
     ]);
   });
 
@@ -499,6 +511,8 @@ describe('portable Agent Skill contract', () => {
       /why model reasoning earns an agent boundary/i,
       /least-privilege constraints/i,
       /implementation order/i,
+      /distinct from runtime control flow/i,
+      /required with zero agents/i,
       /no repository files were changed by `plan`/i,
     ]);
     assert.match(
@@ -559,6 +573,7 @@ describe('portable Agent Skill contract', () => {
       /Material ambiguities/,
       /Relevant unresolved requirements/,
       /Material evidence limitations/,
+      /smallest reliable resolving evidence/i,
       /no repository files were changed/i,
       /smallest coherent change/,
       /Do not recreate or heuristically reinterpret/,
@@ -576,16 +591,14 @@ describe('portable Agent Skill contract', () => {
 
     assertMatchesEvery(skill, [
       /deterministic tooling runs after writes/i,
-      /exact repository-local command/i,
-      /completed isolated process/i,
-      /failed aggregate command/i,
-      /Never claim a `valid` result/i,
-      /bare statement that inspection succeeded is not sufficient evidence/i,
-      /canonical surfaces changed, intentionally unchanged with reason, or blocked by material ambiguity/i,
+      /literal repository-local deterministic invocation/i,
+      /Naming only the version or subcommand is insufficient/i,
+      /Failed, incomplete, aggregate, or unverified execution cannot support completion/i,
+      /canonical surfaces changed, intentionally unchanged after reconsideration with reason, or blocked by material ambiguity/i,
       /semantic decisions and the evidence chain that established any consequential misalignment/i,
       /consumer-semantics evidence, current canonical source, and required resulting source/i,
       /Never imply that valid canonical inspection proves behavior it cannot observe/i,
-      /distinguish behavior established by related-application evidence/i,
+      /distinguish related-application evidence from facts canonical inspection cannot establish/i,
     ]);
     assertMatchesEvery(skillDesign, [
       /established script already owns a check/i,
@@ -637,10 +650,11 @@ describe('portable Agent Skill contract', () => {
       /yarn exec moldea/,
       /canonical path to equal the recorded provider path/,
       /missing, malformed, duplicate, conflicting, or non-CLI providers/,
-      /never use a bare global command/i,
+      /Never invoke a bare `moldea`/i,
       /each `inspect --json`, `validate --json`, or `compatibility --json` invocation as an independent process execution/,
       /Do not shell-chain deterministic CLI invocations/,
       /failed aggregate shell command/,
+      /ignored-tree omission from Git or `rg` does not prove absence/i,
       new RegExp('`schemaVersion` is integer `' + RELEASE_CLI_JSON_SCHEMA_VERSION + '`'),
       /`command` equals the command invoked/,
       /`compatibility` never uses `invalid`/,
@@ -796,6 +810,57 @@ describe('source repository conformance', () => {
       'ask-generic-context-questionnaire',
       'claim-context-aligned',
     ]);
+  });
+
+  test('keeps semantic directions self-contained for the behavior under evaluation', () => {
+    const semanticCasesById = new Map(
+      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+    );
+    const getDirection = (caseId) => semanticCasesById.get(caseId)?.input.developerDirection ?? '';
+
+    for (const caseId of [
+      'dedicated-repository-runtime-selection',
+      'dedicated-repository-single-side-change',
+    ]) {
+      assert.match(getDirection(caseId), /moldea/i);
+      assert.match(getDirection(caseId), /related application at \/related-application/i);
+      assert.match(getDirection(caseId), /read-only/i);
+    }
+
+    assert.match(
+      getDirection('skill-create-progressive-disclosure'),
+      /Agent Skill at skills\/release-review/i,
+    );
+    assert.match(getDirection('pnpm-pnp-local-cli-provider'), /repository-local moldea CLI/i);
+    assert.match(
+      getDirection('unavailable-runtime-selection'),
+      /moldea agent runtime relationship/i,
+    );
+
+    const partialInitializationCase = semanticCasesById.get('initialize-partial-context');
+    const insufficientInitializationCase = semanticCasesById.get('initialize-insufficient-context');
+    const genericQuestionnaireCriterion = partialInitializationCase?.forbidden.find(
+      ({ label }) => label === 'ask-generic-questionnaire',
+    );
+    const insufficientQuestionnaireCriterion = insufficientInitializationCase?.forbidden.find(
+      ({ label }) => label === 'ask-generic-questionnaire',
+    );
+    const releaseVerifierEvidence = semanticCasesById
+      .get('skill-reuse-existing-cohesive')
+      ?.input.repositoryEvidence.find(
+        ({ source }) =>
+          source.kind === 'workspace-path' && source.path === 'scripts/verify-release.mjs',
+      );
+
+    assert.match(
+      genericQuestionnaireCriterion?.criterion ?? '',
+      /one unresolved payment-authority boundary/i,
+    );
+    assert.match(
+      insufficientQuestionnaireCriterion?.criterion ?? '',
+      /one focused question about the highest-value missing foundational fact/i,
+    );
+    assert.match(releaseVerifierEvidence?.claim ?? '', /directly reads and checks/i);
   });
 
   test('keeps runtime behavior evidence-gated when the CLI proves only availability', () => {

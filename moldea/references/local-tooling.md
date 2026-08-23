@@ -47,6 +47,8 @@ Release tooling state requires all of the following:
 
 Preserve an existing exact `4.0.1` declaration and executable. A different installed version belongs to a different skill release and must not be treated as interchangeable. If this release's exact CLI lacks a required official adapter or machine-contract capability, stop and report the release defect instead of selecting another CLI version.
 
+Inspect the manager-specific manifest and executable directly; ignored-tree omission from Git or `rg` does not prove absence.
+
 During a write-capable workflow:
 
 - if the installed repository-local CLI is exactly `4.0.1` but the declaration floats, pin `4.0.1` exactly and update the ordinary lockfile
@@ -94,8 +96,6 @@ Treat the declaration, installed package, and executable provider as separate ch
 - For Yarn 4, after the file-only safety gate passes, validate the root manifest's exact `@moldea.ai/cli` declaration. Run `yarn info @moldea.ai/cli --json` as its own process and require that installed-dependency evidence to establish the exact CLI version and exported `moldea` binary. Then run `yarn bin -v --json` as a separate process, parse its newline-delimited JSON records, and require exactly one `moldea` entry whose `source` is exactly `@moldea.ai/cli`; Yarn's `source` field identifies the provider package, not its version. Stop immediately on missing, malformed, duplicate, conflicting, or non-CLI providers: do not run `yarn bin moldea`, `yarn exec moldea`, or any resolved executable. Only after accepting the provider record may the next process resolve the executable with `yarn bin moldea`; require its canonical path to equal the recorded provider path before a later process invokes `yarn exec moldea`.
 
 After provider verification, require the executable's machine envelope to report the same CLI version as the exact root dependency. Never infer provider identity from the reported version alone.
-
-Never use a bare global command, `npx`, `pnpm dlx`, `yarn dlx`, or another form that may download an undeclared CLI.
 
 Use `inspect --json` as the primary deterministic integration. Use `compatibility --json` only when the installed package composition, available adapter IDs, repository-format versions, or Node.js and Git requirements can affect the task. Its compact result does not establish target maturity, provider limits, supported patterns, or other behavioral compatibility claims. Use `validate --json` when narrower structural validation is sufficient.
 

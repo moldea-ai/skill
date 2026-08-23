@@ -64,7 +64,7 @@ Provide one preferred architecture when evidence supports it. Present alternativ
 
 Cover the materially applicable objective, established context, constraints, responsibility allocation, agents and their justification, deterministic components, services or tools, human control, data and state ownership, permissions, control flow, contracts, failures, runtime considerations, tradeoffs, and implementation sequence.
 
-Recommend an implementation order that reduces uncertainty and validates important deterministic services, schemas, capabilities, agent boundaries, routing, tests, and runtime integration early. Do not execute that sequence during `plan`.
+Recommend an implementation order that reduces uncertainty and tests important boundaries early. It is distinct from runtime control flow and remains required with zero agents. Do not execute it during `plan`.
 
 When an unresolved material decision could change responsibility ownership or topology, investigate further or ask a focused question. Return reliable partial conclusions when useful, but do not invent the missing semantics, create an unresolved requirement merely because planning is read-only, or claim the plan is complete.
 

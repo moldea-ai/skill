@@ -47,6 +47,23 @@ test('coverage binds every semantic case to an explicit portable-skill claim', (
       assert.equal(headingIds.includes(headingId), true, sourcePath);
     }
   }
+
+  const activationClaim = coverage.claims.find(({ id }) => id === 'activation-and-adoption');
+  const activationCaseIds = new Set(
+    activationClaim?.evidence.filter(({ kind }) => kind === 'semantic-case').map(({ id }) => id),
+  );
+
+  assert.match(
+    activationClaim?.description ?? '',
+    /knowledge- and relevance-triggered maintenance/i,
+  );
+  for (const caseId of [
+    'adopted-direct-context-handoff',
+    'adopted-explicit-context-correction',
+    'adopted-ambiguous-context-handoff',
+  ]) {
+    assert.equal(activationCaseIds.has(caseId), true);
+  }
 });
 
 test('coverage rejects unknown and uncovered semantic cases', () => {

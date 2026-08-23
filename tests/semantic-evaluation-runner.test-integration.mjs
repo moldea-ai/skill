@@ -15,6 +15,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 import test from 'node:test';
 
 import { buildCodexEvaluationBwrapArguments } from '../tooling/codex-evaluation-host/index.mjs';
@@ -47,6 +48,14 @@ const EXPLICIT_CONTEXT_CORRECTION_CASE_DEFINITION = SEMANTIC_CASES.find(
 );
 const PNPM_PNP_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'pnpm-pnp-local-cli-provider',
+);
+const SKILL_REUSE_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'skill-reuse-existing-cohesive',
+);
+const DEDICATED_REPOSITORY_CASE_DEFINITIONS = SEMANTIC_CASES.filter(({ id }) =>
+  ['dedicated-repository-runtime-selection', 'dedicated-repository-single-side-change'].includes(
+    id,
+  ),
 );
 
 test('actor repository materializes host instructions before the clean baseline', async () => {
@@ -129,6 +138,48 @@ test('explicit correction scenario commits the stale product boundary baseline',
     assert.equal(status.stdout, '');
     assert.equal(committedProject.status, 0, committedProject.stderr);
     assert.match(committedProject.stdout, /authorizes payment decisions/);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('dedicated repository scenarios expose the declared related application mount', async () => {
+  assert.equal(DEDICATED_REPOSITORY_CASE_DEFINITIONS.length, 2);
+
+  for (const caseDefinition of DEDICATED_REPOSITORY_CASE_DEFINITIONS) {
+    const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-related-application-test-'));
+
+    try {
+      const { readOnlyMounts } = await createActorRepository(evaluationRoot, caseDefinition);
+
+      assert.equal(readOnlyMounts.length, 1);
+      assert.equal(readOnlyMounts[0].target, '/related-application');
+      assert.equal(existsSync(join(readOnlyMounts[0].source, 'package.json')), true);
+      assert.equal(existsSync(join(readOnlyMounts[0].source, 'src', 'refund-agent.js')), true);
+    } finally {
+      rmSync(evaluationRoot, { force: true, recursive: true });
+    }
+  }
+});
+
+test('release-review fixture delegates changelog discovery to its verifier', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-release-verifier-test-'));
+  assert.ok(SKILL_REUSE_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      SKILL_REUSE_CASE_DEFINITION,
+    );
+    const verifierPath = join(repositoryPath, 'scripts', 'verify-release.mjs');
+    const { verifyRelease } = await import(pathToFileURL(verifierPath).href);
+
+    assert.equal(verifyRelease({ manager: 'npm', repositoryRoot: repositoryPath }), false);
+
+    writeFileSync(join(repositoryPath, 'CHANGELOG.md'), '# Changelog\n\n## Current\n', 'utf8');
+
+    assert.equal(verifyRelease({ manager: 'npm', repositoryRoot: repositoryPath }), true);
+    assert.equal(verifyRelease({ manager: 'unknown', repositoryRoot: repositoryPath }), false);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

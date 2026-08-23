@@ -18,7 +18,7 @@ Evaluate the refund agent and do not change repository files.
 
 The coding agent runs deterministic inspection first, verifies the machine envelope, then compares relevant canonical state, Agent Skill authoritative source, activation, resources, scripts, host metadata, installed or distributed copies, consumers, implementation, contracts, tests, runtime wiring, adapter evidence, developer intent, and unresolved state.
 
-The report separates deterministic diagnostics, confirmed semantic problems, material ambiguities, relevant unresolved requirements, and evidence limitations. It explicitly states that no repository files changed.
+The report separates deterministic diagnostics, confirmed semantic problems, material ambiguities, relevant unresolved requirements, and evidence limitations. Each material limitation names the unestablished fact and, when knowable, the smallest reliable evidence that would resolve it. The report explicitly states that no repository files changed.
 
 ## Reconcile
 
@@ -28,7 +28,7 @@ Use reconciliation when you want confirmed drift corrected:
 Reconcile the refund agent with the current implementation.
 ```
 
-Reconciliation begins with the same evidence model, then establishes intended state. If multiple plausible directions would materially change behavior, the coding agent asks one focused question before writing.
+Reconciliation begins with the same evidence model, then establishes intended state. A material conflict is a pre-write stop: no asset type wins automatically, and the coding agent asks one focused question before any correction when reliable evidence has not resolved the alternatives.
 
 The resulting correction is the smallest coherent change across all genuinely affected canonical, Agent Skill source, resource, metadata, copy, consumer, runtime, implementation, schema, test, mirror, and documentation surfaces.
 

@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The clean repository is structurally valid and the support agent’s canonical description, custom guidance, and explicit runtime binding agree with its source declaration. A genuine limitation remains: no runtime invocation or instruction-loading path exists to prove that instruction.md is delivered at runtime.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "moldea/agents/support/description.md identifies support as the email-channel agent; moldea/runtimes/custom.md identifies exported supportAgent as runtime-owned and says to preserve its identifier and channel; moldea/moldea.yaml explicitly binds support to /src/support-agent.ts#supportAgent; src/support-agent.ts exports supportAgent with id 'support' and channel 'email'."
+    },
+    {
+      "id": "avoids-churn",
+      "verdict": "pass",
+      "evidence": "Workspace before/after assertions have identical hashes and no changed paths. Final git status, diff --check, and scoped diff were empty."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Deterministic post-actor checks confirm repository filesystem, repository memory, Core, CLI identity/compatibility/inventory/envelope, and typechecking. Independently verified local CLI 4.0.1 returned schemaVersion 2, status valid, and no diagnostics for both inspect --json and validate --json; TypeScript tsc --noEmit completed successfully."
+    }
+  ],
+  "failures": []
+}

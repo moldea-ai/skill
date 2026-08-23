@@ -2,6 +2,7 @@
 import { ExternalLink } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import { prettifyTime } from 'web-utils-kit';
 
 import QualificationCaseEvidence from '../../../../../../../components/qualification-case-evidence/qualification-case-evidence.astro';
 import EvidenceStatus from '../../../../../../../components/evidence-status/evidence-status.astro';
@@ -116,7 +117,9 @@ const pageDescription =
       </div>
       <div class="surface-card p-4">
         <p class="text-sm text-muted-foreground">Recorded stage time</p>
-        <p class="mt-2 font-mono text-2xl font-bold">{totalDurationMs} ms</p>
+        <p class="mt-2 font-mono text-2xl font-bold">
+          <time datetime={`PT${totalDurationMs / 1_000}S`}>{prettifyTime(totalDurationMs)}</time>
+        </p>
       </div>
     </section>
 

@@ -54,6 +54,12 @@ test('describes the current immutable attempt according to its status', async ({
     'content',
     expectedDescriptions[status],
   );
+
+  const durationTexts = await page.locator('time[datetime^="PT"]').allTextContents();
+  expect(durationTexts.length).toBeGreaterThan(1);
+  for (const durationText of durationTexts) {
+    expect(durationText.trim()).toMatch(/^\d+(?:d|h|m|s)(?: \d+(?:d|h|m|s))*$/u);
+  }
 });
 
 test('keeps qualification evidence accessible at 320px in both themes', async ({ browser }) => {

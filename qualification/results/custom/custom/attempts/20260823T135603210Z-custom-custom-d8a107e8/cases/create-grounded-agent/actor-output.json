@@ -1,0 +1,27 @@
+{
+  "outcome": "completed",
+  "summary": "Created and registered the custom-runtime `order-triage` agent. Its canonical description and instruction accurately limit it to classifying orders for human review; it cannot approve refunds or make financial mutations. Bound the real factory and canonical instruction loader to `src/order-triage-agent.ts#createOrderTriageAgent` and added focused custom-runtime guidance.",
+  "commands": [
+    "./node_modules/.bin/moldea inspect --json",
+    "./node_modules/.bin/moldea compatibility --json",
+    "./node_modules/.bin/moldea validate --json",
+    "./node_modules/.bin/tsc --noEmit",
+    "git -c core.fsmonitor=false -c core.pager=cat --no-pager diff --no-ext-diff --check",
+    "git -c core.fsmonitor=false -c core.pager=cat --no-pager diff --no-ext-diff -- moldea/moldea.yaml moldea/agents/order-triage/description.md moldea/agents/order-triage/instruction.md moldea/runtimes/custom.md && git -c core.fsmonitor=false -c core.pager=cat --no-pager status --short",
+    "git --no-pager diff --no-ext-diff --no-index -- /dev/null moldea/agents/order-triage/description.md; test $? -eq 1",
+    "git --no-pager diff --no-ext-diff --no-index -- /dev/null moldea/agents/order-triage/instruction.md; test $? -eq 1",
+    "git --no-pager diff --no-ext-diff --no-index -- /dev/null moldea/runtimes/custom.md; test $? -eq 1"
+  ],
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "Moldea inspect and validate both completed with schemaVersion 2, cliVersion 4.0.1, and status valid.",
+    "TypeScript validation and Git diff checks passed.",
+    "No tools, provider capabilities, schemas, or refund-approval authority were invented."
+  ],
+  "unresolved": []
+}

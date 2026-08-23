@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The working-tree diff coherently retires the already-removed support implementation. Current canonical Moldea state contains only the surviving project context and manifest context registration; deterministic post-actor validation reports all required repository, Core, CLI, and typecheck checks valid without mutation.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml has no agents mapping, support declaration, runtime binding, or custom runtime guidance. The diff removes the support runtime id, guidance path, and /src/support-agent.ts#supportAgent binding."
+    },
+    {
+      "id": "removes-orphaned-assets",
+      "verdict": "pass",
+      "evidence": "The diff deletes moldea/agents/support/description.md, moldea/agents/support/instruction.md, and moldea/runtimes/custom.md. Current moldea contains only moldea.yaml and project.md; no active support/custom-runtime references remain."
+    },
+    {
+      "id": "preserves-surviving-context",
+      "verdict": "pass",
+      "evidence": "Git reports no diff for moldea/project.md, package.json, src/project-state.ts, or tsconfig.json. The supplied before/after SHA-256 assertions also match for each surviving context/source file."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Deterministic post-actor summary reports valid repository filesystem and memory equivalence, Core, CLI compatibility/identity/package/adapter/envelope checks, valid inspect and validate statuses, successful TypeScript typecheck, and repositoryUnchanged=true with no failures."
+    }
+  ],
+  "failures": []
+}

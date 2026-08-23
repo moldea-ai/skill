@@ -1,0 +1,29 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "passed",
+  "durationMs": 196725,
+  "deterministicBeforePath": "cases/maintain-dirty-project/deterministic-before.json",
+  "deterministicAfterPath": "cases/maintain-dirty-project/deterministic-after.json",
+  "actorOutputPath": "cases/maintain-dirty-project/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/maintain-dirty-project/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/maintain-dirty-project/workspace-assertions.json",
+  "patchPath": "cases/maintain-dirty-project/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 964794,
+    "cachedInputTokens": 888320,
+    "outputTokens": 5049
+  },
+  "judgeUsage": {
+    "inputTokens": 253181,
+    "cachedInputTokens": 228608,
+    "outputTokens": 2590
+  },
+  "actorEvidenceCreatedAt": "2026-08-23T14:08:13.006Z",
+  "judgeEvidenceCreatedAt": "2026-08-23T14:09:23.727Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "failures": []
+}

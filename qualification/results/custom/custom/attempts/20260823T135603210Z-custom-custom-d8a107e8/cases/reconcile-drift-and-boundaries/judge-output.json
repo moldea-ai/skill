@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The final diff repairs only the canonical runtime binding and records the dynamic-registration boundary. Current sources, workspace assertions, and deterministic post-actor validation agree that the repository is valid and protected assets were preserved.",
+  "requirements": [
+    {
+      "id": "repairs-binding",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now binds `runtimeAgent` to `/src/support-assistant.ts` with symbol `supportAssistant`, which exists and exports that symbol. The obsolete `/src/support-agent.ts` remains deleted in the Git diff; it was not recreated."
+    },
+    {
+      "id": "records-boundary",
+      "verdict": "pass",
+      "evidence": "The support agent has `unresolved.dynamic-tool-registration` with `effect: warning`, a concrete runtime-verification resolution, and related path `/src/dynamic-tools.ts`. That source dynamically constructs the registry with `Object.fromEntries`; no tool binding was added."
+    },
+    {
+      "id": "preserves-source",
+      "verdict": "pass",
+      "evidence": "Workspace assertions show identical before/after hashes for both implementation files and canonical agent assets. The only asserted changed path is `moldea/moldea.yaml`; the final diff contains no implementation or agent-asset modification."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Deterministic post-actor evidence reports Repository FS, repository-memory equivalence, Core, CLI compatibility/identity/inventories/envelope, `validate`, `inspect`, and TypeScript typechecking all passed, with both CLI statuses `valid` and no failures. The final working-tree diff agrees with that validated repaired state."
+    }
+  ],
+  "failures": []
+}

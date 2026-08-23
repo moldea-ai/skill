@@ -1,0 +1,29 @@
+{
+  "caseId": "evaluate-aligned-project",
+  "title": "Evaluate an aligned project",
+  "status": "passed",
+  "durationMs": 174576,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/evaluate-aligned-project/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 223845,
+    "cachedInputTokens": 192256,
+    "outputTokens": 3135
+  },
+  "judgeUsage": {
+    "inputTokens": 260987,
+    "cachedInputTokens": 210688,
+    "outputTokens": 2047
+  },
+  "actorEvidenceCreatedAt": "2026-08-23T13:58:01.063Z",
+  "judgeEvidenceCreatedAt": "2026-08-23T13:59:02.238Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "failures": []
+}

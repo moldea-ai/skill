@@ -1,0 +1,29 @@
+{
+  "caseId": "reconcile-drift-and-boundaries",
+  "title": "Reconcile drift and boundaries",
+  "status": "passed",
+  "durationMs": 162670,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 730980,
+    "cachedInputTokens": 648704,
+    "outputTokens": 4455
+  },
+  "judgeUsage": {
+    "inputTokens": 100487,
+    "cachedInputTokens": 62720,
+    "outputTokens": 1483
+  },
+  "actorEvidenceCreatedAt": "2026-08-23T14:11:27.477Z",
+  "judgeEvidenceCreatedAt": "2026-08-23T14:12:06.401Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "failures": []
+}

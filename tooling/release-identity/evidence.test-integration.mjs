@@ -23,7 +23,7 @@ import { inspectGitRepositoryState } from '../../qualification/src/repository-st
 import { recordQualificationResult } from '../../qualification/src/result/index.ts';
 import { seedPassingQualificationEvidenceFixture } from '../../qualification/vitest/evidence-fixture.ts';
 
-const PUBLISHED_MANIFESTS = [
+const PUBLISHED_MOLDEA_MANIFESTS = [
   {
     name: '@moldea.ai/core',
     version: '2.0.1',
@@ -44,6 +44,16 @@ const PUBLISHED_MANIFESTS = [
   },
 ];
 
+const TYPESCRIPT_MANIFEST = {
+  name: 'typescript',
+  version: '6.0.3',
+  dist: {
+    integrity: 'sha512-typescript-release-integrity',
+    shasum: '3'.repeat(40),
+    tarball: 'https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz',
+  },
+};
+
 const writeFile = (root, relativePath, content) => {
   const path = join(root, relativePath);
   mkdirSync(dirname(path), { recursive: true });
@@ -51,15 +61,18 @@ const writeFile = (root, relativePath, content) => {
 };
 
 const createRecordedPackages = (manifests) =>
-  manifests.map((manifest, index) => ({
+  manifests.map((manifest) => ({
     name: manifest.name,
     version: manifest.version,
     registryIntegrity: manifest.dist.integrity,
     registryShasum: manifest.dist.shasum,
     registryTarballUrl: manifest.dist.tarball,
     tarballName: new URL(manifest.dist.tarball).pathname.split('/').at(-1),
-    sha256: String(index + 1).repeat(64),
+    sha256: createHash('sha256').update(`${manifest.name}@${manifest.version}`).digest('hex'),
   }));
+
+const createRecordedQualificationPackages = (publishedManifests) =>
+  createRecordedPackages([...publishedManifests, TYPESCRIPT_MANIFEST]);
 
 /** Creates one committed packages checkout for release-input freshness assertions. */
 const seedPackagesRepository = (root) => {
@@ -127,6 +140,11 @@ const seedReleaseManifests = (root) => {
   );
   writeFile(
     root,
+    'qualification/package.json',
+    `${JSON.stringify({ devDependencies: { typescript: TYPESCRIPT_MANIFEST.version } })}\n`,
+  );
+  writeFile(
+    root,
     'qualification/profiles/custom/custom/profile.yaml',
     [
       'version: 1',
@@ -169,14 +187,23 @@ test('release evidence inspection requires fresh passing semantic and qualificat
   try {
     seedReleaseManifests(temporaryRoot);
     const { matrix, packagesRepository } = seedPackagesRepository(temporaryRoot);
-    let publishedManifests = PUBLISHED_MANIFESTS;
+    let publishedManifests = PUBLISHED_MOLDEA_MANIFESTS;
     const inspectionOptions = {
+      downloadPublishedArtifact: async ({ manifest }) => ({
+        ...createRecordedPackages([manifest])[0],
+        tarballPath: `/temporary/${new URL(manifest.dist.tarball).pathname.split('/').at(-1)}`,
+      }),
       downloadPublishedClosure: async ({ manifests }) =>
         createRecordedPackages(manifests).map((candidatePackage) => ({
           ...candidatePackage,
           tarballPath: `/temporary/${candidatePackage.tarballName}`,
         })),
       packagesRepository,
+      resolvePublishedManifest: async ({ packageName, version }) => {
+        assert.equal(packageName, TYPESCRIPT_MANIFEST.name);
+        assert.equal(version, TYPESCRIPT_MANIFEST.version);
+        return TYPESCRIPT_MANIFEST;
+      },
       resolvePublishedClosure: async () => publishedManifests,
     };
     assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), [
@@ -208,7 +235,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     const passingFixture = await seedPassingQualificationEvidenceFixture({
       artifactDirectory: qualificationArtifacts,
       attemptId,
-      packages: createRecordedPackages(PUBLISHED_MANIFESTS),
+      packages: createRecordedQualificationPackages(PUBLISHED_MOLDEA_MANIFESTS),
       packagesRepositoryCommit: packagesState.commit,
       packagesRepositoryFingerprint: packagesState.fingerprint,
       resultsRoot: join(temporaryRoot, 'qualification', 'results'),
@@ -307,6 +334,19 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       ),
     );
 
+    const mismatchedCompilerAttempt = structuredClone(exactAttempt);
+    const compilerPackage = mismatchedCompilerAttempt.provenance.packages.find(
+      ({ name }) => name === 'typescript',
+    );
+    assert.ok(compilerPackage);
+    compilerPackage.sha256 = 'f'.repeat(64);
+    writeFileSync(attemptPath, `${JSON.stringify(mismatchedCompilerAttempt)}\n`, 'utf8');
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
+        'qualification/results/custom/custom/latest.json does not match the current release inputs.',
+      ),
+    );
+
     writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
     const matrixPath = join(packagesRepository, 'compatibility', 'runtimes.yaml');
     const matrixContent = readFileSync(matrixPath, 'utf8');
@@ -385,7 +425,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       cwd: packagesRepository,
     });
     publishedManifests = [
-      ...PUBLISHED_MANIFESTS,
+      ...PUBLISHED_MOLDEA_MANIFESTS,
       {
         name: '@moldea.ai/adapter-external',
         version: '1.0.0',
@@ -419,7 +459,8 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     updatedCustomAttempt.provenance.packagesRepositoryCommit = updatedPackagesState.commit;
     updatedCustomAttempt.provenance.packagesRepositoryFingerprint =
       updatedPackagesState.fingerprint;
-    updatedCustomAttempt.provenance.packages = createRecordedPackages(publishedManifests);
+    updatedCustomAttempt.provenance.packages =
+      createRecordedQualificationPackages(publishedManifests);
     writeFileSync(attemptPath, `${JSON.stringify(updatedCustomAttempt)}\n`, 'utf8');
 
     const externalAttemptId = 'external-release-attempt';

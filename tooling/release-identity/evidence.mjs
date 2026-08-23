@@ -26,15 +26,17 @@ import {
   hasValidPortableSkillSemanticCarryForward,
 } from '../semantic-evaluation/index.mjs';
 import {
+  downloadPublishedPackageArtifact,
   downloadPublishedPackageClosure,
   resolvePublishedPackageClosure,
+  resolvePublishedPackageManifest,
 } from '../package-candidate/index.mjs';
 import {
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
   RELEASE_PATHS,
   SEMANTIC_EVALUATION_PROTOCOL_VERSION,
 } from './constants.mjs';
-import { createSemanticCliIdentity } from './identity.mjs';
+import { createSemanticCliIdentity, parseStableVersion } from './identity.mjs';
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
@@ -197,19 +199,31 @@ const createRecordedPackageIdentity = (candidatePackage) => ({
 const sortPackageIdentities = (packages) =>
   [...packages].sort(({ name: left }, { name: right }) => left.localeCompare(right, 'en'));
 
+const readQualificationTypeScriptVersion = (repositoryRoot) => {
+  const qualificationManifest = readJson(join(repositoryRoot, 'qualification', 'package.json'));
+  return parseStableVersion(qualificationManifest.devDependencies?.typescript);
+};
+
 /** Resolves the current package source and independently verifies every published archive. */
 const resolveCurrentQualificationInputs = async ({
+  downloadPublishedArtifact,
   downloadPublishedClosure,
   packagesRepository,
+  repositoryRoot,
   releaseCli,
+  resolvePublishedManifest,
   resolvePublishedClosure,
 }) => {
-  const [matrix, packagesState, publishedManifests] = await Promise.all([
+  const [matrix, packagesState, publishedManifests, typeScriptManifest] = await Promise.all([
     loadRuntimeCompatibilityMatrix(packagesRepository),
     inspectGitRepositoryState(packagesRepository),
     resolvePublishedClosure({
       cliVersion: releaseCli.version,
       selectedPackageName: '@moldea.ai/cli',
+    }),
+    resolvePublishedManifest({
+      packageName: 'typescript',
+      version: readQualificationTypeScriptVersion(repositoryRoot),
     }),
   ]);
 
@@ -221,12 +235,16 @@ const resolveCurrentQualificationInputs = async ({
       manifests: publishedManifests,
       selectedPackageName: '@moldea.ai/cli',
     });
+    const typeScriptPackage = await downloadPublishedArtifact({
+      artifactDirectory: join(artifactDirectory, 'fixture-tools'),
+      manifest: typeScriptManifest,
+    });
 
     return {
       matrix,
       packagesState,
       publishedPackages: sortPackageIdentities(
-        publishedPackages.map(createRecordedPackageIdentity),
+        [...publishedPackages, typeScriptPackage].map(createRecordedPackageIdentity),
       ),
     };
   } finally {
@@ -325,8 +343,10 @@ const createQualificationDigestRoots = (repositoryRoot) => [
 export const inspectReleaseEvidence = async (
   repositoryRoot,
   {
+    downloadPublishedArtifact = downloadPublishedPackageArtifact,
     downloadPublishedClosure = downloadPublishedPackageClosure,
     packagesRepository = resolve(repositoryRoot, '..', 'packages'),
+    resolvePublishedManifest = resolvePublishedPackageManifest,
     resolvePublishedClosure = resolvePublishedPackageClosure,
   } = {},
 ) => {
@@ -349,9 +369,12 @@ export const inspectReleaseEvidence = async (
 
   try {
     currentInputs = await resolveCurrentQualificationInputs({
+      downloadPublishedArtifact,
       downloadPublishedClosure,
       packagesRepository,
+      repositoryRoot,
       releaseCli,
+      resolvePublishedManifest,
       resolvePublishedClosure,
     });
     const publishedCli = currentInputs.publishedPackages.find(

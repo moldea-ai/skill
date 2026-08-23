@@ -1,5 +1,6 @@
 ---
 import { ExternalLink } from '@lucide/astro';
+import { prettifyTime } from 'web-utils-kit';
 
 import type { IQualificationAttemptCaseModel } from '../../lib/qualification/index.ts';
 import EvidenceText from '../evidence-text/evidence-text.astro';
@@ -39,7 +40,12 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
     <div class="flex flex-wrap items-center gap-3">
       <EvidenceStatus status={result.status} />
       <code class="text-xs text-muted-foreground">{result.caseId}</code>
-      <span class="ms-auto text-sm text-muted-foreground">{result.durationMs} ms</span>
+      <time
+        class="ms-auto text-sm text-muted-foreground"
+        datetime={`PT${result.durationMs / 1_000}S`}
+      >
+        {prettifyTime(result.durationMs)}
+      </time>
     </div>
     <h3 class="mt-4 text-2xl font-semibold tracking-tight">{result.title}</h3>
     {

@@ -9,6 +9,17 @@ import {
 import type { IQualificationExecutionProvenance } from './types.ts';
 import { createQualificationAttemptResult } from './transformers.ts';
 
+const createCandidatePackage = (name: string, version: string, marker: string) => ({
+  name,
+  version,
+  registryIntegrity: `sha512-${marker.repeat(86)}`,
+  registryShasum: marker.repeat(40),
+  registryTarballUrl: `https://registry.npmjs.org/${name}/-/${name}-${version}.tgz`,
+  tarballPath: `/candidate/${name}.tgz`,
+  tarballName: `${name}-${version}.tgz`,
+  sha256: marker.repeat(64),
+});
+
 describe('qualification result transformation', () => {
   test('permits a dirty passing dry-run draft without making it publishable', () => {
     const checkpoint = QualificationAttemptCheckpointSchema.parse({
@@ -29,7 +40,18 @@ describe('qualification result transformation', () => {
       packagesRepositoryFingerprint: 'e'.repeat(64),
       packagesDigest: 'd'.repeat(64),
       targetDigest: 'f'.repeat(64),
-      candidate: null,
+      candidate: {
+        fingerprint: '0'.repeat(64),
+        cliVersion: '4.0.1',
+        cliJsonSchemaVersion: 2,
+        packages: [createCandidatePackage('@moldea.ai/cli', '4.0.1', '1')],
+        runtimePackages: [createCandidatePackage('ai', '7.0.77', '2')],
+        typeScriptPackage: {
+          ...createCandidatePackage('typescript', '6.0.3', '3'),
+          name: 'typescript',
+        },
+        runtimeDirectory: '/candidate/runtime',
+      },
       stages: {
         'source-state': {
           id: 'source-state',
@@ -86,6 +108,11 @@ describe('qualification result transformation', () => {
         skillRepositoryDirty: true,
       },
     });
+    expect(result.provenance.packages.map(({ name }) => name)).toStrictEqual([
+      '@moldea.ai/cli',
+      'ai',
+      'typescript',
+    ]);
     expect(QualificationAttemptResultDraftSchema.safeParse(result).success).toBe(true);
     expect(QualificationAttemptResultSchema.safeParse(result).success).toBe(false);
   });

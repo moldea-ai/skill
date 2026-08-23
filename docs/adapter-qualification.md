@@ -23,7 +23,7 @@ Every case uses the same production composition developers rely on:
 5. The selected adapter contributes its normal static evidence.
 6. The project typechecks with the exact compiler declared and installed by that mock project, and read-only inspection must leave it unchanged.
 
-The portable skill is installed at `.agents/skills/moldea`, its real discovery location. Candidate packages are downloaded from npm using the exact CLI-owned release closure, verified against registry SHA-512 and SHA-1 identities, and recorded with downloaded SHA-256 digests. The runner applies the same registry and digest checks to the exact TypeScript version owned by the qualification package. Candidate preparation fetches external dependencies once into an attempt-local package-manager store with lifecycle scripts disabled, then every committed project installs offline from that store and the verified Moldea and compiler tarballs. Each project owns a relative local executable link. The deterministic verifier does not borrow a compiler from the packages checkout or a machine-level package-manager store.
+The portable skill is installed at `.agents/skills/moldea`, its real discovery location. Candidate packages are downloaded from npm using the exact CLI-owned release closure, verified against registry SHA-512 and SHA-1 identities, and recorded with downloaded SHA-256 digests. The runner applies the same registry and digest checks to the exact TypeScript version owned by the qualification package and the exact runtime and type packages owned by the selected profile. Candidate preparation fetches external dependencies once into an attempt-local package-manager store with lifecycle scripts disabled, then every committed project installs offline from that store and the verified tarballs. Each project owns relative local executable links. The deterministic verifier does not borrow packages from the packages checkout or a machine-level package-manager store.
 
 ## Three evidence layers
 
@@ -50,11 +50,15 @@ The universal catalog currently includes eight distinct journeys:
 
 Eight is not a permanent limit. A profile must add a project when an adapter introduces a materially different binding, package, provider, limitation, or source-analysis risk that the universal journeys do not cover.
 
+The Vercel AI SDK 7 direct-generation profile currently contains ten journeys. Its two adapter-specific projects verify an exact closed-tools-map repair and conservative handling of indirect generation settings and `prepareStep`. All ten projects install and typecheck against exact published `ai`, `zod`, and type packages without executing an agent, provider, or tool.
+
 Each project commits its scenario, natural task, baseline, optional dirty overlay, expected model-free outcome, workspace assertions, and judge requirements. Anyone can inspect those inputs before reading an outcome. Workspace assertions may use exact paths or bounded repository-relative `*` and `**` patterns. The same path contract is reapplied when committed passing evidence is verified, so permitting a descriptive runtime filename does not permit unrelated changes.
 
 ## Publication status
 
 Terminal paid attempts are recorded whether they pass, fail, or stop with an execution error. An interrupted attempt remains local and resumable unless the operator explicitly records it as incomplete.
+
+A committed profile remains visible with an explicit no-attempt state until its first official run. This lets anyone inspect the projects and requirements before evidence exists. The release gate still requires current passing evidence.
 
 The website publishes every valid terminal attempt, including failures and execution errors, while maintaining independent latest and last-passing pointers. Attempt pages lead with the verdict, claim coverage, and realistic project journeys. Source cleanliness, host identity, exact package checksums, stage outcomes, deterministic results, workspace assertions, semantic judgment, cache provenance, token usage when available, and raw artifacts remain available as technical detail. Release eligibility still requires fresh passing evidence through the separate release gate.
 

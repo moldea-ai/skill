@@ -44,6 +44,18 @@ const candidate: ICandidateClosure = {
       sha256: 'c'.repeat(64),
     },
   ],
+  runtimePackages: [
+    {
+      name: 'ai',
+      version: '7.0.77',
+      registryIntegrity: `sha512-${'d'.repeat(86)}`,
+      registryShasum: 'e'.repeat(40),
+      registryTarballUrl: 'https://registry.npmjs.org/ai/-/ai-7.0.77.tgz',
+      tarballPath: '/candidate/ai.tgz',
+      tarballName: 'ai-7.0.77.tgz',
+      sha256: '6'.repeat(64),
+    },
+  ],
   typeScriptPackage: {
     name: 'typescript',
     version: '6.0.3',
@@ -81,6 +93,7 @@ describe('Custom qualification baseline', () => {
     const commonOptions = {
       candidate,
       executionEnvironment,
+      isDryRun: false,
       packagesState,
       qualificationDigest: '1'.repeat(64),
       resultsRoot: path.join(temporaryRoot, 'results'),
@@ -99,6 +112,13 @@ describe('Custom qualification baseline', () => {
         selection: { adapterId: 'vercel-ai-sdk', implementationId: 'typescript-agent' },
       }),
     ).resolves.toMatchObject({ passed: false, status: 'missing' });
+    await expect(
+      inspectQualificationBaseline({
+        ...commonOptions,
+        isDryRun: true,
+        selection: { adapterId: 'vercel-ai-sdk', implementationId: 'typescript-agent' },
+      }),
+    ).resolves.toMatchObject({ passed: true, status: 'not-required' });
   });
 
   test('accepts only an integrity-verified baseline with identical universal inputs', async () => {
@@ -134,6 +154,7 @@ describe('Custom qualification baseline', () => {
     const commonOptions = {
       candidate,
       executionEnvironment,
+      isDryRun: false,
       packagesState,
       qualificationDigest: '1'.repeat(64),
       resultsRoot,

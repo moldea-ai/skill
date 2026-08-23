@@ -1,0 +1,52 @@
+version: 1
+id: repair-vercel-tool-registration
+title: Repair Vercel tool registration
+purpose: Verify precise diagnostic-driven repair of closed tools-map identity.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: [VERCEL_AI_SDK_TOOL_NAME_MISMATCH]
+    forbiddenDiagnosticCodes: [VERCEL_AI_SDK_TOOL_REGISTRATION_NOT_WIRED]
+    requiredEvidenceKinds: [instruction-loader, language, runtime-package, runtime-pattern, schema]
+    forbiddenEvidenceKinds: [tool-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes:
+      [VERCEL_AI_SDK_TOOL_NAME_MISMATCH, VERCEL_AI_SDK_TOOL_REGISTRATION_NOT_WIRED]
+    requiredEvidenceKinds:
+      [instruction-loader, language, runtime-package, runtime-pattern, schema, tool-registration]
+    forbiddenEvidenceKinds: [agent-definition]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      src/agent.ts,
+      src/contracts.ts,
+      src/implementations.ts,
+      src/tools.ts,
+      moldea/agents/support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    [moldea/moldea.yaml, src/agent.ts, src/contracts.ts, src/implementations.ts, src/tools.ts]
+  mustNotExistPaths: [moldea/runtimes]
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: uses-exact-diagnostic
+    description: The actor explains that TOOL_NAME_MISMATCH proves the bound registration exists under a different closed map key.
+  - id: repairs-canonical-name
+    description: The manifest tool name becomes lookup_order, matching source without changing the valid runtime implementation.
+  - id: preserves-binding-closure
+    description: Implementation, registration, input-schema, output-schema, instruction-loader, and output-schema bindings remain exact and evidenced.
+  - id: validates-project
+    description: The mismatch disappears, tool-registration evidence appears, and every deterministic layer passes without read-time mutation.

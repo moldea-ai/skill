@@ -62,6 +62,21 @@ test('describes the current immutable attempt according to its status', async ({
   }
 });
 
+test('keeps a profile transparent before its first official attempt', async ({ page }) => {
+  await page.goto(
+    toPublicPath('/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/'),
+  );
+
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Vercel AI SDK direct generation qualification' }),
+  ).toBeVisible();
+  await expect(page.getByText('No recorded attempt').first()).toBeVisible();
+  await expect(page.getByText('No official attempt has been committed.').first()).toBeVisible();
+  await expect(page.getByRole('heading', { name: '10 realistic journeys' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '36 behavior claims covered' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Inspect the .* attempt$/u })).toHaveCount(0);
+});
+
 test('keeps qualification evidence accessible at 320px in both themes', async ({ browser }) => {
   for (const colorScheme of ['light', 'dark'] as const) {
     const context = await browser.newContext({
@@ -70,6 +85,9 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
     });
     const page = await context.newPage();
     const profileRoute = toPublicPath('/evidence/qualification/custom/custom/');
+    const emptyProfileRoute = toPublicPath(
+      '/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/',
+    );
 
     await page.goto(profileRoute);
     const currentAttemptRoute = await page
@@ -83,6 +101,7 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
     for (const route of [
       toPublicPath('/evidence/qualification/'),
       profileRoute,
+      emptyProfileRoute,
       currentAttemptRoute,
     ]) {
       await page.goto(route);

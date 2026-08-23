@@ -360,6 +360,7 @@ export const runQualification = async (
       const baseline = await inspectQualificationBaseline({
         candidate: checkpoint.candidate,
         executionEnvironment,
+        isDryRun: checkpoint.isDryRun,
         packagesState: currentInputState.packagesState,
         qualificationDigest: currentInputState.qualificationDigest,
         resultsRoot,
@@ -532,6 +533,9 @@ export const runQualification = async (
       const preparedCandidate = await prepareCandidateClosure({
         adapterPackage: target.adapter.implementation.package,
         attemptDirectory,
+        ...(target.profile.runtimePackages === undefined
+          ? {}
+          : { runtimePackages: target.profile.runtimePackages }),
         signal: options.signal,
       });
 
@@ -574,6 +578,7 @@ export const runQualification = async (
           const baselineResult = await inspectQualificationBaseline({
             candidate,
             executionEnvironment,
+            isDryRun: checkpoint.isDryRun,
             packagesState,
             qualificationDigest,
             resultsRoot,
@@ -688,6 +693,7 @@ export const runQualification = async (
             );
             const result = await verifyDeterministicProject({
               adapterId: target.selection.adapterId,
+              adapterPackage: target.adapter.implementation.package,
               candidate,
               expectedEvidence: project.scenario.deterministicEvidence.before,
               expectedInspectionStatus: project.scenario.inspection.before,
@@ -785,6 +791,7 @@ export const runQualification = async (
             );
             const result = await verifyDeterministicProject({
               adapterId: target.selection.adapterId,
+              adapterPackage: target.adapter.implementation.package,
               candidate,
               expectedEvidence: project.scenario.deterministicEvidence.after,
               expectedInspectionStatus: project.scenario.inspection.after,

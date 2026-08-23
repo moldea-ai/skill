@@ -1,0 +1,20 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: vercel-ai-sdk
+      guidance: /moldea/runtimes/indirect-generation.md
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.ts
+        symbol: supportAgent
+    affectedBy:
+      - /src/support-agent.ts
+    unresolved:
+      indirect-generation-wrapper:
+        category: runtime-binding
+        effect: warning
+        description: The indirect request builder and prepareStep body prevent Moldea from proving the direct generation and instruction-loader relationships.
+        resolution: Move generation settings into a direct object-literal generateText call with lexically visible instructions.
+        related:
+          - path: /src/support-agent.ts

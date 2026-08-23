@@ -1,0 +1,11 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: vercel-ai-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.ts
+        symbol: supportAgent
+    affectedBy:
+      - /src/support-agent.ts

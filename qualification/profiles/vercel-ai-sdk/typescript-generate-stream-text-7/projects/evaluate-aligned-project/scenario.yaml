@@ -1,0 +1,58 @@
+version: 1
+id: evaluate-aligned-project
+title: Evaluate an aligned project
+purpose: Verify that the skill recognizes complete direct-generation evidence and avoids unnecessary edits.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [instruction-loader, language, runtime-package, runtime-pattern, schema, tool-registration]
+    forbiddenEvidenceKinds: [agent-definition]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [instruction-loader, language, runtime-package, runtime-pattern, schema, tool-registration]
+    forbiddenEvidenceKinds: [agent-definition]
+expectedActorOutcome: completed
+workspace:
+  expectation: unchanged
+  mustPreservePaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/instruction.md
+    - moldea/agents/summary/instruction.md
+    - src/agents.ts
+    - src/tools.ts
+  mustChangePaths: []
+  mustExistPaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/agents/summary/description.md
+    - moldea/agents/summary/instruction.md
+    - src/agents.ts
+    - src/contracts.ts
+    - src/instructions.ts
+    - src/tools.ts
+  mustNotExistPaths:
+    - moldea/runtimes
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-direct-patterns
+    description: The actor distinguishes the direct generateText instructions relationship from the direct streamText system fallback using emitted evidence.
+  - id: explains-closed-bindings
+    description: The actor identifies Output.object and the exact closed function-tool implementation, registration, and schema relationships.
+  - id: respects-static-boundary
+    description: The actor does not infer provider, model, routing, handoff, subagent, agent-definition, or agent input-schema relationships.
+  - id: validates-without-churn
+    description: Repository FS, Repository memory, Core, CLI, and project typechecking accept the project without mutation.

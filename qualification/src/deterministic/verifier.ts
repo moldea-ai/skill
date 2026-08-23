@@ -90,6 +90,7 @@ const inspectDeclaredEvidence = (options: {
 /** Exercises Repository FS, Repository memory, Core, installed CLI commands, and project typecheck. */
 export const verifyDeterministicProject = async (options: {
   adapterId: string;
+  adapterPackage: string;
   candidate: ICandidateClosure;
   expectedEvidence: {
     requiredDiagnosticCodes: readonly string[];
@@ -116,7 +117,12 @@ export const verifyDeterministicProject = async (options: {
   await copyFileWithParents(directVerifierSourcePath, directVerifierPath);
   const directResult = await executeProcess({
     command: process.execPath,
-    args: [directVerifierPath, options.workspaceDirectory],
+    args: [
+      directVerifierPath,
+      options.workspaceDirectory,
+      options.adapterId,
+      options.adapterPackage,
+    ],
     cwd: options.candidate.runtimeDirectory,
     signal: options.signal,
   });

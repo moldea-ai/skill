@@ -23,7 +23,6 @@ import {
   type ICandidatePackage,
 } from '../contracts/index.ts';
 import {
-  calculateFileSha256,
   calculateSha256,
   ensureDirectory,
   readJsonFile,
@@ -31,6 +30,7 @@ import {
   writeTextFileAtomically,
 } from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
+import { loadVerifiedCachedPackage } from './cache.ts';
 import { createPublicCandidatePackage } from './transformers.ts';
 import type { ICandidatePreparationOptions } from './types.ts';
 
@@ -56,6 +56,7 @@ const CachedCandidatePackageSchema = z.strictObject({
 const CachedCandidateManifestSchema = z.strictObject({
   fingerprint: z.string().regex(/^[a-f0-9]{64}$/u),
   packages: z.array(CachedCandidatePackageSchema),
+  runtimePackages: z.array(CachedCandidatePackageSchema).optional(),
   typeScriptPackage: CachedCandidatePackageSchema.extend({ name: z.literal('typescript') }),
 });
 
@@ -63,6 +64,7 @@ const createCandidateFingerprint = (
   adapterPackage: string,
   cliJsonSchemaVersion: number,
   manifests: readonly IPublishedPackageManifest[],
+  runtimePackageManifests: readonly IPublishedPackageManifest[],
   typeScriptManifest: IPublishedPackageManifest,
 ): string =>
   calculateSha256(
@@ -76,6 +78,17 @@ const createCandidateFingerprint = (
         tarball: dist.tarball,
         version,
       })),
+      ...(runtimePackageManifests.length === 0
+        ? {}
+        : {
+            runtimePackages: runtimePackageManifests.map(({ dist, name, version }) => ({
+              integrity: dist.integrity,
+              name,
+              shasum: dist.shasum,
+              tarball: dist.tarball,
+              version,
+            })),
+          }),
       typeScriptPackage: {
         integrity: typeScriptManifest.dist.integrity,
         name: typeScriptManifest.name,
@@ -88,24 +101,16 @@ const createCandidateFingerprint = (
 
 type IValidatedCachedCandidate = {
   packages: ICandidatePackage[];
+  runtimePackages: ICandidatePackage[];
   typeScriptPackage: ICandidatePackage;
 };
-
-const hasExpectedPackageIdentity = (
-  candidatePackage: Omit<ICandidatePackage, 'tarballPath'>,
-  manifest: IPublishedPackageManifest,
-): boolean =>
-  candidatePackage.name === manifest.name &&
-  candidatePackage.version === manifest.version &&
-  candidatePackage.registryIntegrity === manifest.dist.integrity &&
-  candidatePackage.registryShasum === manifest.dist.shasum &&
-  candidatePackage.registryTarballUrl === manifest.dist.tarball;
 
 const validateCachedCandidate = async (options: {
   adapterPackage: string;
   cacheDirectory: string;
   expectedFingerprint: string;
   manifests: readonly IPublishedPackageManifest[];
+  runtimePackageManifests: readonly IPublishedPackageManifest[];
   typeScriptManifest: IPublishedPackageManifest;
 }): Promise<IValidatedCachedCandidate | null> => {
   try {
@@ -132,41 +137,74 @@ const validateCachedCandidate = async (options: {
       }),
     );
     if (JSON.stringify(cachedPackages) !== JSON.stringify(expectedPackages)) return null;
-    if (!hasExpectedPackageIdentity(cachedManifest.typeScriptPackage, options.typeScriptManifest)) {
+    const cachedRuntimePackages = cachedManifest.runtimePackages ?? [];
+
+    if (
+      cachedRuntimePackages.length !== options.runtimePackageManifests.length ||
+      cachedRuntimePackages.some(
+        (runtimePackage, index) =>
+          runtimePackage.name !== options.runtimePackageManifests[index]?.name,
+      )
+    ) {
       return null;
     }
 
     const candidate = loadCandidateArtifacts(options.cacheDirectory, [options.adapterPackage]);
     const packages: ICandidatePackage[] = [];
-    for (const cachedPackage of cachedManifest.packages) {
+    for (const [index, cachedPackage] of cachedManifest.packages.entries()) {
+      const manifest = options.manifests[index];
+
+      if (manifest === undefined) return null;
+
       const artifact = candidate.artifacts.get(cachedPackage.name);
-      const tarballPath = path.join(options.cacheDirectory, cachedPackage.tarballName);
+      const verifiedPackage = await loadVerifiedCachedPackage({
+        cacheDirectory: options.cacheDirectory,
+        cachedPackage,
+        manifest,
+      });
       if (
         artifact === undefined ||
-        artifact.archiveName !== cachedPackage.tarballName ||
+        verifiedPackage === null ||
+        artifact.archiveName !== verifiedPackage.tarballName ||
         artifact.manifest.version !== cachedPackage.version ||
-        (await calculateFileSha256(tarballPath)) !== cachedPackage.sha256
+        calculateSha256(artifact.archive) !== verifiedPackage.sha256
       ) {
         return null;
       }
-      packages.push({ ...cachedPackage, tarballPath });
+      packages.push(verifiedPackage);
     }
-    const typeScriptTarballPath = path.join(
-      options.cacheDirectory,
-      'fixture-tools',
-      cachedManifest.typeScriptPackage.tarballName,
-    );
-    if (
-      (await calculateFileSha256(typeScriptTarballPath)) !== cachedManifest.typeScriptPackage.sha256
-    ) {
-      return null;
+    const typeScriptPackage = await loadVerifiedCachedPackage({
+      cacheDirectory: options.cacheDirectory,
+      cachedPackage: cachedManifest.typeScriptPackage,
+      manifest: options.typeScriptManifest,
+      relativeDirectory: 'fixture-tools',
+    });
+
+    if (typeScriptPackage === null) return null;
+
+    const runtimePackages: ICandidatePackage[] = [];
+
+    for (const [index, cachedRuntimePackage] of cachedRuntimePackages.entries()) {
+      const manifest = options.runtimePackageManifests[index];
+
+      if (manifest === undefined) return null;
+
+      const runtimePackage = await loadVerifiedCachedPackage({
+        cacheDirectory: options.cacheDirectory,
+        cachedPackage: cachedRuntimePackage,
+        manifest,
+        relativeDirectory: 'fixture-runtime',
+      });
+
+      if (runtimePackage === null) return null;
+
+      runtimePackages.push(runtimePackage);
     }
+
     return {
       packages,
-      typeScriptPackage: {
-        ...cachedManifest.typeScriptPackage,
-        tarballPath: typeScriptTarballPath,
-      },
+      runtimePackages,
+      typeScriptPackage,
     };
   } catch {
     return null;
@@ -175,6 +213,7 @@ const validateCachedCandidate = async (options: {
 
 const installCandidateRuntime = async (
   packages: readonly ICandidatePackage[],
+  runtimePackages: readonly ICandidatePackage[],
   typeScriptPackage: ICandidatePackage,
   runtimeDirectory: string,
   storeDirectory: string,
@@ -183,7 +222,7 @@ const installCandidateRuntime = async (
   await rm(runtimeDirectory, { force: true, recursive: true });
   await ensureDirectory(runtimeDirectory);
   const localDependencies = Object.fromEntries(
-    [...packages, typeScriptPackage].map((candidatePackage) => [
+    [...packages, ...runtimePackages, typeScriptPackage].map((candidatePackage) => [
       candidatePackage.name,
       `file:${candidatePackage.tarballPath}`,
     ]),
@@ -234,6 +273,21 @@ export const prepareCandidateClosure = async (
     cliVersion,
     selectedPackageName: options.adapterPackage,
   });
+  const runtimePackageManifests = await Promise.all(
+    (options.runtimePackages ?? []).map(({ name, version }) =>
+      resolvePublishedPackageManifest({ packageName: name, version }),
+    ),
+  );
+  const candidateOwnedPackageNames = new Set([...manifests.map(({ name }) => name), 'typescript']);
+  const conflictingRuntimePackageNames = runtimePackageManifests
+    .map(({ name }) => name)
+    .filter((packageName) => candidateOwnedPackageNames.has(packageName));
+
+  if (conflictingRuntimePackageNames.length > 0) {
+    throw new Error(
+      `Qualification runtime packages conflict with candidate-owned packages: ${conflictingRuntimePackageNames.join(', ')}.`,
+    );
+  }
   const typeScriptManifest = await resolvePublishedPackageManifest({
     packageName: 'typescript',
     version: qualificationManifest.devDependencies.typescript,
@@ -242,6 +296,7 @@ export const prepareCandidateClosure = async (
     options.adapterPackage,
     cliJsonSchemaVersion,
     manifests,
+    runtimePackageManifests,
     typeScriptManifest,
   );
   const cacheDirectory = path.join(LOCAL_QUALIFICATION_ROOT, 'candidates', fingerprint);
@@ -252,6 +307,7 @@ export const prepareCandidateClosure = async (
     cacheDirectory,
     expectedFingerprint: fingerprint,
     manifests,
+    runtimePackageManifests,
     typeScriptManifest,
   });
 
@@ -266,16 +322,29 @@ export const prepareCandidateClosure = async (
       artifactDirectory: path.join(cacheDirectory, 'fixture-tools'),
       manifest: typeScriptManifest,
     });
+    const runtimePackages = [];
+
+    for (const runtimePackageManifest of runtimePackageManifests) {
+      runtimePackages.push(
+        await downloadPublishedPackageArtifact({
+          artifactDirectory: path.join(cacheDirectory, 'fixture-runtime'),
+          manifest: runtimePackageManifest,
+        }),
+      );
+    }
+
     await writeJsonFileAtomically(path.join(cacheDirectory, 'candidate.json'), {
       fingerprint,
       packages: packages.map(createPublicCandidatePackage),
+      runtimePackages: runtimePackages.map(createPublicCandidatePackage),
       typeScriptPackage: createPublicCandidatePackage(typeScriptPackage),
     });
-    candidate = { packages, typeScriptPackage };
+    candidate = { packages, runtimePackages, typeScriptPackage };
   }
 
   await installCandidateRuntime(
     candidate.packages,
+    candidate.runtimePackages,
     candidate.typeScriptPackage,
     runtimeDirectory,
     storeDirectory,
@@ -286,6 +355,7 @@ export const prepareCandidateClosure = async (
     cliVersion,
     fingerprint,
     packages: candidate.packages,
+    runtimePackages: candidate.runtimePackages,
     typeScriptPackage: candidate.typeScriptPackage,
     runtimeDirectory,
   });

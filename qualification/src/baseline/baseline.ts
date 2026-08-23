@@ -52,6 +52,7 @@ const getPublicPackageIdentity = (
 export const inspectQualificationBaseline = async (options: {
   candidate: ICandidateClosure;
   executionEnvironment: IQualificationExecutionEnvironment;
+  isDryRun: boolean;
   packagesState: IGitRepositoryState;
   qualificationDigest: string;
   resultsRoot: string;
@@ -59,8 +60,9 @@ export const inspectQualificationBaseline = async (options: {
   skillState: IGitRepositoryState;
 }): Promise<IQualificationBaselineCheck> => {
   if (
-    options.selection.adapterId === CUSTOM_SELECTION.adapterId &&
-    options.selection.implementationId === CUSTOM_SELECTION.implementationId
+    options.isDryRun ||
+    (options.selection.adapterId === CUSTOM_SELECTION.adapterId &&
+      options.selection.implementationId === CUSTOM_SELECTION.implementationId)
   ) {
     return QualificationBaselineCheckSchema.parse({
       required: false,

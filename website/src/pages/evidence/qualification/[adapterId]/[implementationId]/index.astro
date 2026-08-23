@@ -30,17 +30,14 @@ const basePath = import.meta.env.BASE_URL;
 const latestAttempt = profile.attempts.find(
   ({ result }) => result.attemptId === profile.latest?.latestAttemptId,
 );
-if (latestAttempt === undefined) {
-  throw new Error(
-    `Qualification profile ${profile.adapterId}/${profile.implementationId} has no current attempt.`,
-  );
-}
 const latestAttemptLinkLabel =
-  latestAttempt.result.status === 'passed'
-    ? 'Inspect the passing attempt'
-    : latestAttempt.result.status === 'failed'
-      ? 'Inspect the failed attempt'
-      : 'Inspect the execution-error attempt';
+  latestAttempt === undefined
+    ? null
+    : latestAttempt.result.status === 'passed'
+      ? 'Inspect the passing attempt'
+      : latestAttempt.result.status === 'failed'
+        ? 'Inspect the failed attempt'
+        : 'Inspect the execution-error attempt';
 const prepareQualificationMarkdown = (markdown: string): string =>
   markdown.replaceAll(/\bMoldea\b/gu, '`moldea`');
 const renderedCases = await Promise.all(
@@ -140,31 +137,48 @@ const breadcrumbs = [
       <div
         class="surface-card grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
       >
-        <article>
-          <p class="eyebrow">Current result</p>
-          <div class="mt-4 flex flex-wrap items-center gap-3">
-            <EvidenceStatus status={latestAttempt.result.status} />
-            <time
-              class="text-sm text-muted-foreground"
-              datetime={latestAttempt.result.createdAt}
-            >
-              {latestAttempt.result.createdAt}
-            </time>
-          </div>
-          <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
-            <EvidenceText text={latestAttempt.result.summary} />
-          </p>
-        </article>
-        <a
-          class="inline-flex items-center gap-2 font-semibold text-link hover:underline"
-          href={withBase(latestAttempt.route, basePath)}
-        >
-          {latestAttemptLinkLabel}
-          <ArrowRight
-            class="size-4"
-            aria-hidden="true"
-          />
-        </a>
+        {
+          latestAttempt === undefined ? (
+            <article>
+              <p class="eyebrow">Current result</p>
+              <div class="mt-4">
+                <EvidenceStatus status="not-recorded" />
+              </div>
+              <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
+                No official attempt has been committed. The complete projects, requirements, and
+                matrix coverage remain inspectable below.
+              </p>
+            </article>
+          ) : (
+            <>
+              <article>
+                <p class="eyebrow">Current result</p>
+                <div class="mt-4 flex flex-wrap items-center gap-3">
+                  <EvidenceStatus status={latestAttempt.result.status} />
+                  <time
+                    class="text-sm text-muted-foreground"
+                    datetime={latestAttempt.result.createdAt}
+                  >
+                    {latestAttempt.result.createdAt}
+                  </time>
+                </div>
+                <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
+                  <EvidenceText text={latestAttempt.result.summary} />
+                </p>
+              </article>
+              <a
+                class="inline-flex items-center gap-2 font-semibold text-link hover:underline"
+                href={withBase(latestAttempt.route, basePath)}
+              >
+                {latestAttemptLinkLabel}
+                <ArrowRight
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </a>
+            </>
+          )
+        }
       </div>
     </section>
 

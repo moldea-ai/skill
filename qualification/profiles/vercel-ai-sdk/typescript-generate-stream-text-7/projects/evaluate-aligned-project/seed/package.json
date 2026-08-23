@@ -1,0 +1,15 @@
+{
+  "name": "moldea-qualification-vercel-aligned",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "ai": "7.0.77",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/json-schema": "7.0.15",
+    "@types/node": "22.20.1",
+    "typescript": "6.0.3"
+  }
+}

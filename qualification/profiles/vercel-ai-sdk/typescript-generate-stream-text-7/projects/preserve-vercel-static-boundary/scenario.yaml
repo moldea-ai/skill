@@ -1,0 +1,51 @@
+version: 1
+id: preserve-vercel-static-boundary
+title: Preserve the Vercel static boundary
+purpose: Verify conservative canonical state for unsupported request indirection and prepareStep behavior.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds:
+      [runtime-pattern, instruction-loader, schema, tool-registration, agent-definition]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds:
+      [runtime-pattern, instruction-loader, schema, tool-registration, agent-definition]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      src/support-agent.ts,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml, moldea/runtimes/indirect-generation.md]
+  mustExistPaths: [src/support-agent.ts, moldea/moldea.yaml, moldea/runtimes/indirect-generation.md]
+  mustNotExistPaths: []
+  allowedChangePaths: [moldea/moldea.yaml, moldea/runtimes/indirect-generation.md]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: identifies-unsupported-form
+    description: The actor explains that an indirect request object and prepareStep prevent direct runtime-pattern and instruction-loader proof.
+  - id: records-focused-guidance
+    description: Runtime guidance describes the repository-specific wrapper and the supported direct object-literal alternative without claiming provider behavior.
+  - id: records-unresolved-boundary
+    description: An unresolved warning names the static-analysis boundary, related source, and concrete direct-pattern resolution.
+  - id: avoids-inference
+    description: The actor adds no instruction-loader, input-schema, output-schema, tool, provider, model, routing, handoff, or subagent relationship.
+  - id: validates-project
+    description: Every deterministic layer accepts the project, runtime-pattern evidence remains absent, and source remains unchanged.

@@ -23,7 +23,10 @@ import {
   prepareQualificationProject,
 } from './index.ts';
 
-const createCandidateFixture = async (temporaryRoot: string): Promise<ICandidateClosure> => {
+const createCandidateFixture = async (
+  temporaryRoot: string,
+  options: { includeRuntimePackage?: boolean } = {},
+): Promise<ICandidateClosure> => {
   const runtimeDirectory = path.join(temporaryRoot, 'runtime');
   const packageSourceDirectory = path.join(temporaryRoot, 'cli-package');
   const cliExecutablePath = path.join(packageSourceDirectory, 'dist', 'moldea.js');
@@ -31,6 +34,8 @@ const createCandidateFixture = async (temporaryRoot: string): Promise<ICandidate
   const typeScriptSourceDirectory = path.join(temporaryRoot, 'typescript-package');
   const typeScriptExecutablePath = path.join(typeScriptSourceDirectory, 'bin', 'tsc');
   const typeScriptTarballPath = path.join(temporaryRoot, 'typescript-6.0.3.tgz');
+  const runtimePackageSourceDirectory = path.join(temporaryRoot, 'runtime-package');
+  const runtimePackageTarballPath = path.join(temporaryRoot, 'fixture-runtime-1.0.0.tgz');
   await ensureDirectory(path.dirname(cliExecutablePath));
   await ensureDirectory(runtimeDirectory);
   await writeFile(
@@ -84,6 +89,20 @@ const createCandidateFixture = async (temporaryRoot: string): Promise<ICandidate
     cwd: typeScriptSourceDirectory,
   });
 
+  if (options.includeRuntimePackage === true) {
+    await ensureDirectory(runtimePackageSourceDirectory);
+    await writeFile(
+      path.join(runtimePackageSourceDirectory, 'package.json'),
+      `${JSON.stringify({ name: 'fixture-runtime', version: '1.0.0' }, null, 2)}\n`,
+      'utf8',
+    );
+    await executeProcess({
+      command: 'npm',
+      args: ['pack', '--ignore-scripts', '--pack-destination', temporaryRoot],
+      cwd: runtimePackageSourceDirectory,
+    });
+  }
+
   return {
     cliJsonSchemaVersion: 2,
     cliVersion: '3.1.3',
@@ -100,6 +119,23 @@ const createCandidateFixture = async (temporaryRoot: string): Promise<ICandidate
         sha256: await calculateFileSha256(tarballPath),
       },
     ],
+    ...(options.includeRuntimePackage === true
+      ? {
+          runtimePackages: [
+            {
+              name: 'fixture-runtime',
+              version: '1.0.0',
+              registryIntegrity: `sha512-${'f'.repeat(86)}`,
+              registryShasum: '1'.repeat(40),
+              registryTarballUrl:
+                'https://registry.npmjs.org/fixture-runtime/-/fixture-runtime-1.0.0.tgz',
+              tarballPath: runtimePackageTarballPath,
+              tarballName: path.basename(runtimePackageTarballPath),
+              sha256: await calculateFileSha256(runtimePackageTarballPath),
+            },
+          ],
+        }
+      : {}),
     typeScriptPackage: {
       name: 'typescript',
       version: '6.0.3',
@@ -377,5 +413,90 @@ describe('qualification project fixtures', () => {
     expect(
       await readFile(path.join(project.workspaceDirectory, 'pnpm-workspace.yaml'), 'utf8'),
     ).toBe(originalPnpmWorkspace);
+  });
+
+  test('requires and installs exact profile runtime packages from candidate tarballs', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-project-'));
+    const profileDirectory = path.join(temporaryRoot, 'profile');
+    const skillRepository = path.join(temporaryRoot, 'skill');
+    const candidate = await createCandidateFixture(temporaryRoot, { includeRuntimePackage: true });
+    await copyDirectory(
+      path.join(QUALIFICATION_PROFILES_ROOT, 'custom', 'custom'),
+      profileDirectory,
+    );
+    const projectManifestPath = path.join(
+      profileDirectory,
+      'projects',
+      'evaluate-aligned-project',
+      'seed',
+      'package.json',
+    );
+    const writeProjectManifest = async (runtimeVersion: string): Promise<void> => {
+      await writeFile(
+        projectManifestPath,
+        `${JSON.stringify(
+          {
+            name: 'moldea-qualification-aligned-project',
+            version: '1.0.0',
+            private: true,
+            type: 'module',
+            dependencies: { 'fixture-runtime': runtimeVersion },
+            devDependencies: { typescript: '6.0.3' },
+          },
+          null,
+          2,
+        )}\n`,
+        'utf8',
+      );
+    };
+    await ensureDirectory(skillRepository);
+    const skillContent = '# Moldea test skill\n';
+    await writeFile(path.join(skillRepository, 'SKILL.md'), skillContent, 'utf8');
+    const skillState: IGitRepositoryState = {
+      commit: 'fixture',
+      fingerprint: calculateSha256(skillContent),
+      isDirty: false,
+      entries: [
+        {
+          path: 'SKILL.md',
+          kind: 'file',
+          mode: 0o100644,
+          sha256: calculateSha256(skillContent),
+        },
+      ],
+    };
+    const commonOptions = {
+      candidate,
+      profileCase: {
+        id: 'evaluate-aligned-project',
+        projectDirectory: 'projects/evaluate-aligned-project',
+        scenarioFile: 'scenario.yaml',
+      },
+      profileDirectory,
+      skillRepository,
+      skillState,
+    };
+
+    await writeProjectManifest('^1.0.0');
+    await expect(
+      prepareQualificationProject({
+        ...commonOptions,
+        attemptDirectory: path.join(temporaryRoot, 'mismatched-attempt'),
+      }),
+    ).rejects.toThrow('Qualification fixture must declare fixture-runtime@1.0.0 exactly.');
+
+    await writeProjectManifest('1.0.0');
+    const project = await prepareQualificationProject({
+      ...commonOptions,
+      attemptDirectory: path.join(temporaryRoot, 'exact-attempt'),
+    });
+    const installedManifest = JSON.parse(
+      await readFile(
+        path.join(project.workspaceDirectory, 'node_modules', 'fixture-runtime', 'package.json'),
+        'utf8',
+      ),
+    ) as unknown;
+
+    expect(installedManifest).toMatchObject({ name: 'fixture-runtime', version: '1.0.0' });
   });
 });

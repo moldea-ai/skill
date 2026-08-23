@@ -1,5 +1,6 @@
 import { access } from 'node:fs/promises';
 import path from 'node:path';
+import semver from 'semver';
 
 import {
   DEFAULT_PACKAGES_REPOSITORY,
@@ -131,6 +132,47 @@ export const resolveQualificationTarget = async (
 
   if (new Set(caseIds).size !== caseIds.length) {
     throw new Error('Qualification profile case ids must be unique.');
+  }
+
+  const requiredRuntimePackageNames = (target.packages ?? [])
+    .filter(({ ecosystem }) => ecosystem === 'npm')
+    .map(({ name }) => name)
+    .sort((left, right) => left.localeCompare(right, 'en'));
+  const declaredRuntimePackageNames = (profile.runtimePackages ?? [])
+    .map(({ name }) => name)
+    .sort((left, right) => left.localeCompare(right, 'en'));
+  const declaredRuntimePackages = new Map(
+    (profile.runtimePackages ?? []).map((runtimePackage) => [runtimePackage.name, runtimePackage]),
+  );
+
+  if (new Set(declaredRuntimePackageNames).size !== declaredRuntimePackageNames.length) {
+    throw new Error('Qualification profile runtime package names must be unique.');
+  }
+
+  const missingRuntimePackageNames = requiredRuntimePackageNames.filter(
+    (packageName) => !declaredRuntimePackageNames.includes(packageName),
+  );
+
+  if (missingRuntimePackageNames.length > 0) {
+    throw new Error(
+      `Qualification profile is missing exact target runtime packages: ${missingRuntimePackageNames.join(', ')}.`,
+    );
+  }
+
+  const incompatibleRuntimePackages = (target.packages ?? [])
+    .filter(({ ecosystem }) => ecosystem === 'npm')
+    .flatMap(({ name, versionRange }) => {
+      const runtimePackage = declaredRuntimePackages.get(name);
+
+      return runtimePackage !== undefined && !semver.satisfies(runtimePackage.version, versionRange)
+        ? [`${name}@${runtimePackage.version} does not satisfy ${versionRange}`]
+        : [];
+    });
+
+  if (incompatibleRuntimePackages.length > 0) {
+    throw new Error(
+      `Qualification profile has incompatible target runtime packages: ${incompatibleRuntimePackages.join(', ')}.`,
+    );
   }
 
   const caseCatalog = await readYamlFile(QUALIFICATION_CASES_PATH, QualificationCaseCatalogSchema);

@@ -36,6 +36,7 @@ const collectProjectFiles = async (workspaceDirectory: string) =>
   });
 
 const ProjectManifestSchema = z.looseObject({
+  dependencies: z.record(z.string(), z.string()).optional(),
   devDependencies: z.record(z.string(), z.string()).optional(),
 });
 
@@ -73,11 +74,21 @@ const installCandidateProjectRuntime = async (
       '@moldea.ai/cli': cliPackage.version,
     },
   };
+  for (const runtimePackage of candidate.runtimePackages ?? []) {
+    const declaredVersion =
+      manifest.dependencies?.[runtimePackage.name] ??
+      manifest.devDependencies?.[runtimePackage.name];
+
+    if (declaredVersion !== runtimePackage.version) {
+      throw new Error(
+        `Qualification fixture must declare ${runtimePackage.name}@${runtimePackage.version} exactly.`,
+      );
+    }
+  }
   const localPackageOverrides = Object.fromEntries(
-    [...candidate.packages, candidate.typeScriptPackage].map((candidatePackage) => [
-      candidatePackage.name,
-      `file:${candidatePackage.tarballPath}`,
-    ]),
+    [...candidate.packages, ...(candidate.runtimePackages ?? []), candidate.typeScriptPackage].map(
+      (candidatePackage) => [candidatePackage.name, `file:${candidatePackage.tarballPath}`],
+    ),
   );
   const serializeManifest = (manifestValue: Record<string, unknown>): string =>
     `${JSON.stringify(manifestValue, null, 2)}\n`;

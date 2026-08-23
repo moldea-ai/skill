@@ -7,10 +7,10 @@ import { createMemoryRepositoryReader } from '@moldea.ai/repository/memory';
 import { createFilesystemRepositoryReader } from '@moldea.ai/repository-fs';
 import { createCore } from '@moldea.ai/core';
 
-const [projectDirectory] = process.argv.slice(2);
+const [projectDirectory, adapterId, adapterPackage] = process.argv.slice(2);
 
-if (projectDirectory === undefined) {
-  throw new TypeError('The direct verifier requires one project directory.');
+if (projectDirectory === undefined || adapterId === undefined || adapterPackage === undefined) {
+  throw new TypeError('The direct verifier requires a project, adapter id, and adapter package.');
 }
 
 const gitPaths = execFileSync(
@@ -58,7 +58,26 @@ for await (const entry of filesystemRepository.listEntries()) {
 }
 
 const memoryRepository = createMemoryRepositoryReader(memoryEntries);
-const core = createCore();
+const adapters = [];
+
+if (adapterId !== 'custom') {
+  const adapterModule = await import(adapterPackage);
+  const adapter = Object.values(adapterModule).find(
+    (candidate) =>
+      candidate !== null &&
+      typeof candidate === 'object' &&
+      'id' in candidate &&
+      candidate.id === adapterId,
+  );
+
+  if (adapter === undefined) {
+    throw new TypeError(`Adapter package ${adapterPackage} does not export ${adapterId}.`);
+  }
+
+  adapters.push(adapter);
+}
+
+const core = createCore({ adapters });
 const filesystemResult = await core.inspectProject({ repository: filesystemRepository });
 const memoryResult = await core.inspectProject({ repository: memoryRepository });
 const equivalent = JSON.stringify(filesystemResult) === JSON.stringify(memoryResult);

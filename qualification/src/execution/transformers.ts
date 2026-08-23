@@ -12,7 +12,11 @@ import type { IQualificationExecutionProvenance } from './types.ts';
 const createPublicPackages = (candidate: ICandidateClosure | null) =>
   candidate === null
     ? []
-    : [...candidate.packages, candidate.typeScriptPackage].map(createPublicCandidatePackage);
+    : [
+        ...candidate.packages,
+        ...(candidate.runtimePackages ?? []),
+        candidate.typeScriptPackage,
+      ].map(createPublicCandidatePackage);
 
 const calculateEvidenceGeneratedAt = (
   caseResults: readonly IQualificationCaseResult[],

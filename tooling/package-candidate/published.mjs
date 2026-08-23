@@ -175,12 +175,26 @@ export const resolvePublishedPackageClosure = async ({
   return ordered;
 };
 
-const validateArchiveIntegrity = (archive, manifest) => {
+/**
+ * Verifies one archive against its canonical registry identity.
+ * @returns The derived local filename and SHA-256 digest.
+ * @throws
+ * - If the archive bytes or registry tarball filename are invalid
+ */
+export const verifyPublishedPackageArchive = ({ archive, manifest }) => {
   const integrity = `sha512-${createHash('sha512').update(archive).digest('base64')}`;
   const shasum = createHash('sha1').update(archive).digest('hex');
   if (integrity !== manifest.dist.integrity || shasum !== manifest.dist.shasum) {
     throw new Error(`Registry integrity mismatch for ${manifest.name}@${manifest.version}.`);
   }
+
+  const tarballName = basename(new URL(manifest.dist.tarball).pathname);
+  assert.ok(tarballName.endsWith('.tgz'));
+
+  return {
+    sha256: createHash('sha256').update(archive).digest('hex'),
+    tarballName,
+  };
 };
 
 /**
@@ -196,9 +210,7 @@ export const downloadPublishedPackageArtifact = async ({
   mkdirSync(artifactDirectory, { recursive: true });
   const response = await fetchRegistryResource(manifest.dist.tarball, fetchResource);
   const archive = Buffer.from(await response.arrayBuffer());
-  validateArchiveIntegrity(archive, manifest);
-  const tarballName = basename(new URL(manifest.dist.tarball).pathname);
-  assert.ok(tarballName.endsWith('.tgz'));
+  const { sha256, tarballName } = verifyPublishedPackageArchive({ archive, manifest });
   const tarballPath = join(artifactDirectory, tarballName);
   writeFileSync(tarballPath, archive, { flag: 'wx' });
   return {
@@ -206,7 +218,7 @@ export const downloadPublishedPackageArtifact = async ({
     registryIntegrity: manifest.dist.integrity,
     registryShasum: manifest.dist.shasum,
     registryTarballUrl: manifest.dist.tarball,
-    sha256: createHash('sha256').update(archive).digest('hex'),
+    sha256,
     tarballName,
     tarballPath,
     version: manifest.version,

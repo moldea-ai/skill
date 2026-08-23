@@ -459,6 +459,7 @@ describe('loadQualificationWebsiteModel', () => {
       projectExplanation: 'This project catches unnecessary edits.',
       task: 'Inspect the project and leave it unchanged.',
     });
+    expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
   });
 
   test('accepts additive producer fields and loads a complete passing history', () => {

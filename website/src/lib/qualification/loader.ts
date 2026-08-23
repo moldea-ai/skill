@@ -565,7 +565,7 @@ export const loadQualificationWebsiteModel = (
   return { profiles, route: QUALIFICATION_ROUTE };
 };
 
-/** Requires every published profile to point to its current validated terminal attempt. */
+/** Requires every recorded profile history to point to its current validated terminal attempt. */
 export const assertPublishableQualificationEvidence = (
   qualification: IQualificationWebsiteModel,
 ): void => {
@@ -574,6 +574,10 @@ export const assertPublishableQualificationEvidence = (
   }
 
   for (const profile of qualification.profiles) {
+    if (profile.attempts.length === 0 && profile.latest === null) {
+      continue;
+    }
+
     const expectedLatest = profile.attempts.at(-1)?.result;
     const expectedPassing = profile.attempts
       .filter(({ result }) => result.status === 'passed')

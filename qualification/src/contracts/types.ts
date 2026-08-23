@@ -81,6 +81,14 @@ export const QualificationProfileSchema = z.strictObject({
   implementationId: StableIdSchema,
   title: z.string().trim().min(1),
   description: z.string().trim().min(1),
+  runtimePackages: z
+    .array(
+      z.strictObject({
+        name: z.string().trim().min(1),
+        version: z.string().regex(/^\d+\.\d+\.\d+$/u),
+      }),
+    )
+    .optional(),
   probesFile: RelativePathSchema,
   cases: z.array(QualificationProfileCaseSchema).min(1),
 });
@@ -205,6 +213,7 @@ export const CandidateClosureSchema = z.strictObject({
   cliVersion: z.string().regex(/^\d+\.\d+\.\d+$/u),
   cliJsonSchemaVersion: z.number().int().positive(),
   packages: z.array(CandidatePackageSchema).min(1),
+  runtimePackages: z.array(CandidatePackageSchema).optional(),
   typeScriptPackage: CandidatePackageSchema.extend({
     name: z.literal('typescript'),
   }),

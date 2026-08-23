@@ -66,6 +66,14 @@ export const downloadPublishedPackageClosure: (options: {
   selectedPackageName: string;
 }) => Promise<IPublishedCandidatePackage[]>;
 
+export const verifyPublishedPackageArchive: (options: {
+  archive: Buffer;
+  manifest: IPublishedPackageManifest;
+}) => {
+  sha256: string;
+  tarballName: string;
+};
+
 // source workspace contracts used for dependency-first build and packing
 export type ISourcePackageManifest = {
   dependencies: Record<string, string>;

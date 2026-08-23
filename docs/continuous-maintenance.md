@@ -1,14 +1,14 @@
 ---
 title: Continuous maintenance
 navigationTitle: Continuous maintenance
-description: Let ordinary behavior changes trigger precise reconsideration of adopted project state without documentation churn.
+description: Let new project knowledge and behavior changes trigger precise maintenance of adopted project state without documentation churn.
 section: workflows
 order: 70
 ---
 
 # Keep behavior aligned while you ship
 
-After a repository adopts `moldea`, you should not need to append “and update `moldea`” to every relevant request.
+After a repository adopts `moldea`, you should not need to append “and update `moldea`” to relevant knowledge or implementation requests.
 
 ```text
 Add manager approval to refunds over $500.
@@ -16,9 +16,21 @@ Add manager approval to refunds over $500.
 
 The coding agent recognizes that the change may affect the support agent, a repository-local Agent Skill, refund context, authorization rules, capability semantics, schemas, or tests. It traces those relationships and updates only the surfaces whose established truth changed.
 
+## Share project knowledge naturally
+
+You can also provide current project knowledge directly:
+
+```text
+Platform owns the application runtime and delivery pipeline. Security approves production access.
+```
+
+The same handoff can arrive as YAML or JSON, an answer to a focused question, a table, or an accessible project file. Format does not determine whether it becomes canonical. The coding agent separates clear current truth and explicit corrections from proposals, transient details, speculation, secrets, and unnecessary personal information.
+
+When a new claim materially conflicts with established context and does not clearly replace it, the coding agent asks one focused question before writing. An explicitly read-only request remains read-only, and incidental knowledge never initializes an unrelated repository.
+
 ## Reconsider does not mean rewrite
 
-An impact path or semantic relationship means “inspect this surface,” not “edit this file.” If the existing project context and declared agent behavior remain accurate, the right result is no `/moldea/**` change.
+An impact path, knowledge handoff, or semantic relationship means “inspect this surface,” not “edit this file.” If supplied information is not suitable for persistence or existing project context and declared behavior remain accurate, the right result is no `/moldea/**` change.
 
 This avoids noisy documentation churn while still preventing silent drift.
 
@@ -40,7 +52,7 @@ Depending on the change, maintenance can reconsider:
 
 ## Adoption remains explicit
 
-Relevance-triggered activation does not initialize `moldea` in an unrelated repository. Adoption is established by explicit developer intent or current authorized work introducing canonical state.
+Knowledge- and relevance-triggered activation do not initialize `moldea` in an unrelated repository. Adoption is established by explicit developer intent or current authorized work introducing canonical state.
 
 If the developer prohibits corresponding `moldea` changes, the coding agent respects that scope, completes the authorized implementation, reports likely drift, and does not claim alignment.
 

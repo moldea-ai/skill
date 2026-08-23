@@ -1,6 +1,6 @@
 # Context gathering
 
-Read this reference before initialization, agent-system planning, consequential project-context work, Agent Skill creation or material maintenance, agent creation, semantic evaluation, or reconciliation.
+Read this reference before initialization, agent-system planning, consequential project-context work, knowledge-triggered maintenance, Agent Skill creation or material maintenance, agent creation, semantic evaluation, or reconciliation.
 
 ## Establish the purpose
 
@@ -41,6 +41,12 @@ Assess evidence according to the fact it can establish:
 
 When evidence conflicts, determine whether the claims concern the same scope and time, inspect nearby contracts and history when useful, and ask only if a consequential ambiguity remains.
 
+## Handle project-knowledge handoffs
+
+Treat developer-supplied prose, structured data, answers, tables, and accessible sources by meaning rather than format. Activation means reconsider the information; it does not make every claim canonical. Establish whether the handoff expresses current truth, an explicit correction, intended future state, a proposal, transient detail, or unresolved uncertainty.
+
+Persist clear current truth or an explicit correction when it is material, durable, and authorized. Preserve future or proposed state without presenting it as current only when an appropriate planned or decision surface is justified. Omit transient, speculative, secret, unnecessarily personal, generic, redundant, or easily rediscovered information. If a new claim materially conflicts with established evidence and the developer did not clearly establish it as a correction, ask one focused question before changing canonical state. Do not require repository corroboration for organizational truth that only the developer can establish.
+
 ## Investigate progressively
 
 1. Inspect the root README and other high-information project surfaces first.
@@ -60,7 +66,7 @@ Persist a fact only when it is material and durable enough to improve project un
 Route durable information by meaning:
 
 - `/moldea/project.md`: concise foundational identity, purpose, users, goals, values, boundaries, and universally important facts
-- `/moldea/context/**/*.md`: focused current domain, product, architecture, security, integration, terminology, or operational truth
+- `/moldea/context/**/*.md`: focused current domain, product, architecture, security, integration, terminology, team responsibility or ownership, or operational truth
 - `/moldea/decisions/*.md`: materially useful rationale for choices with meaningful alternatives or consequences
 - `/moldea/runtimes/**/*.md`: project-specific runtime interpretation not reliably established by adapter and repository evidence alone
 - `/moldea/moldea.yaml`: supported semantic relationships, bindings, impact paths, runtime variables, capabilities, mirrors, and unresolved state

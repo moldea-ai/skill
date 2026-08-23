@@ -1,7 +1,7 @@
 ---
 name: moldea
 description: >-
-  Use when a developer asks their coding agent to initialize or work with moldea; plan an AI- or agent-enabled system and decide what should be agents versus deterministic software, services, tools, skills, or human control; create or refine an AI agent, a reusable Agent Skill, or a behavioral system, including instructions, descriptions, handoff descriptions, capabilities, schemas, variables and providers, routing or handoffs, bindings, or runtime integration; evaluate, reconcile, or validate an existing moldea system; or make ordinary behavior-affecting repository changes that may require maintaining an adopted moldea system. Loading the skill does not adopt moldea: initial adoption still requires explicit developer intent, while relevance-triggered maintenance applies once a repository uses or is adopting moldea.
+  Use when a developer asks their coding agent to initialize or work with moldea; plan an AI- or agent-enabled system and decide what should be agents versus deterministic software, services, tools, skills, or human control; create or refine an AI agent, reusable Agent Skill, or behavioral system, including instructions, descriptions, capabilities, schemas, variables, routing, bindings, or runtime integration; evaluate, reconcile, or validate an existing moldea system; provide potentially durable project knowledge to an adopted moldea repository; or make ordinary behavior-affecting changes that may require maintaining it. Loading the skill does not adopt moldea: initial adoption requires explicit developer intent, while knowledge- and relevance-triggered maintenance apply only once adoption exists or is underway.
 license: MIT
 metadata:
   version: '3.1.0'
@@ -11,18 +11,19 @@ metadata:
 
 ## Purpose and activation
 
-Use `moldea` as the semantic local operating layer for Git-owned project truth, agent-system planning, agent behavior, and reusable Agent Skills. Establish sufficient project understanding, prefer deterministic software when model reasoning does not earn an agent boundary, use deterministic local evidence when available and required, and keep affected canonical, skill, and implementation surfaces coherent without inventing behavior.
+Use `moldea` as the local semantic layer for Git-owned project truth, agent-system planning, agent behavior, and reusable Agent Skills. Understand the project, prefer deterministic software unless model reasoning earns an agent boundary, use required local evidence, and keep affected canonical, skill, and implementation surfaces coherent without inventing behavior.
 
-Activate this skill in either case:
+Activate this skill in any of these cases:
 
-- **Explicit activation:** the developer requests initialization, agent-system planning, project, agent, or Agent Skill design or maintenance, `evaluate`, `reconcile`, `validate`, or another `moldea` outcome.
-- **Relevance-triggered activation:** an ordinary developer-authorized change may materially affect current project truth or declared agent behavior in a repository that already uses or is adopting `moldea`.
+- **Explicit activation:** the developer requests initialization, agent-system planning, project, agent, or Agent Skill work, `evaluate`, `reconcile`, `validate`, or another `moldea` outcome.
+- **Knowledge-triggered activation:** in an adopted repository, the developer supplies, confirms, or corrects potentially material and durable project knowledge through any format or accessible source.
+- **Relevance-triggered activation:** an authorized change may materially affect project truth or declared agent behavior in an adopted repository.
 
-Relevance means reconsider the affected `moldea` state. It does not mean always edit `/moldea/**`. Preserve the legitimate no-change result when established truth and behavior remain correct.
+Knowledge and relevance mean reconsider affected `moldea` state, not automatically persist every claim or edit `/moldea/**`. Preserve no-change when established truth and behavior remain correct.
 
-Never initialize `moldea` solely because an ordinary repository change could benefit from it. Adoption requires explicit developer intent. Once adoption has begun or canonical `moldea` state exists, continuous maintenance applies without requiring the developer to say “and update moldea.”
+Never initialize `moldea` solely because supplied knowledge or a repository change could benefit from it. Adoption requires explicit intent. After adoption begins, continuous maintenance needs no “and update moldea” request.
 
-Agent-system planning activates only when the developer clearly asks how an AI- or agent-enabled objective should be divided among agents and non-agent components. Generic implementation planning and host-defined `plan` commands remain outside this operation unless the developer explicitly selects `moldea` agent-system planning.
+Agent-system planning activates only when the developer asks how an AI- or agent-enabled objective should be divided among agents and non-agent components. Generic implementation planning and host-defined `plan` commands remain outside unless the developer explicitly selects this operation.
 
 ## Release compatibility
 
@@ -59,7 +60,7 @@ The CLI version is an exact release dependency. A client repository stores that 
 - **Reconcile:** begin from the same evidence model as `evaluate`, establish intended state, and apply the smallest authorized coherent correction.
 - **Validate:** run deterministic repository-local validation only. Treat it as read-only.
 
-Initialize, create, update, maintain, refine, fix, and reconcile requests are write-capable only within the developer-authorized scope. Relevant ordinary implementation work also authorizes necessary same-change `moldea` synchronization unless the developer explicitly excludes it. Plan, evaluate, inspect, check, review, explain, report, and validate requests remain read-only unless writes are separately authorized through a later workflow.
+Initialize, create, update, maintain, refine, fix, and reconcile are write-capable only within authorized scope. Relevant implementation work authorizes necessary same-change `moldea` synchronization unless excluded. In an adopted repository, an unambiguous handoff of current project knowledge authorizes necessary context maintenance. Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only unless writes are later authorized.
 
 During `initialize`, an insufficient or partial project foundation is a pre-write stop condition. Before creating `/moldea/**` or the owned README awareness block, ask the focused clarification and wait for the developer's answer. Never convert developer-answerable foundational ambiguity into an unresolved requirement or claim initialization completed.
 
@@ -70,7 +71,7 @@ Absence of evidence is not evidence that a consequential behavior is excluded. I
 - Read `references/local-tooling.md` before any deterministic CLI operation or any write-capable workflow that may establish or reconcile local tooling.
 - Read `references/context-gathering.md` before initialization, consequential project-context work, Agent Skill creation or material maintenance, agent creation, semantic evaluation, or reconciliation.
 - Read `references/agent-system-planning.md` before planning an AI- or agent-enabled system, decomposing agent responsibilities, or recommending orchestration.
-- Read `references/continuous-maintenance.md` before initialization, relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
+- Read `references/continuous-maintenance.md` before initialization, knowledge- or relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
 - Read `references/agent-design.md` before creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, runtime relationship, or unresolved requirement.
 - Read `references/skill-design.md` before creating, evaluating, or materially changing an Agent Skill, its `SKILL.md`, references, scripts, assets, activation contract, installation relationship, or runtime registration.
 - Read `references/evaluate-and-reconcile.md` before `evaluate`, `reconcile`, or a scoped semantic alignment assessment.

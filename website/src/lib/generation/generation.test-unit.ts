@@ -37,7 +37,7 @@ vi.mock('../semantic-evaluation/index.ts', () => {
   return {
     loadSemanticEvaluationWebsiteModel: vi.fn(() => ({
       artifactDigest: 'a'.repeat(64),
-      caseCount: 44,
+      caseCount: 47,
       caseSuiteDigest: 'b'.repeat(64),
       cli: {
         integrity: 'sha512-test',

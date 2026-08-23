@@ -109,8 +109,8 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     const model = loadSemanticEvaluationWebsiteModel(root);
 
     expect(model.route).toBe('/evidence/semantic/');
-    expect(model.caseCount).toBe(44);
-    expect(model.groups.flatMap(({ cases }) => cases)).toHaveLength(44);
+    expect(model.caseCount).toBe(47);
+    expect(model.groups.flatMap(({ cases }) => cases)).toHaveLength(47);
     expect(model.groups.every(({ cases }) => cases.length > 0)).toBe(true);
   });
 

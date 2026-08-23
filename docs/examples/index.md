@@ -23,4 +23,4 @@ The “under the hood” section then shows how the coding agent uses `moldea` g
 - [Validate structure](/examples/validate-structure/)
 - [Work across dedicated repositories](/examples/dedicated-repositories/)
 
-Together they demonstrate read-only planning, initial adoption, agent design, ongoing context growth, ordinary relevance-triggered maintenance, semantic evaluation, write-capable reconciliation, deterministic validation, and external implementation evidence.
+Together they demonstrate read-only planning, initial adoption, agent design, knowledge- and relevance-triggered maintenance, semantic evaluation, write-capable reconciliation, deterministic validation, and external implementation evidence.

@@ -18,12 +18,13 @@ There is no separate `moldea` chat surface to operate.
 
 ## Activation
 
-The coding agent can activate the skill in two ways:
+The coding agent can activate the skill in three ways:
 
 - **Explicit activation:** you request initialization, agent-system planning, agent creation or refinement, evaluation, reconciliation, validation, or another `moldea` outcome.
+- **Knowledge-triggered activation:** in an adopted repository, you supply, confirm, or correct potentially durable project knowledge through ordinary prose, structured data, an answer, or an accessible source.
 - **Relevance-triggered activation:** an ordinary authorized change may affect declared project or agent behavior in a repository that already uses or is adopting `moldea`.
 
-Relevance-triggered activation never adopts `moldea` in an unrelated repository. It also does not mean canonical files must change; it means the coding agent must reconsider the affected state.
+Knowledge- and relevance-triggered activation never adopt `moldea` in an unrelated repository. Activation also does not mean canonical files must change. The coding agent first determines whether the information is current, durable, material, sufficiently established, and authorized for persistence.
 
 ## Operation selection
 

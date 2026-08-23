@@ -24,7 +24,7 @@ Update the refund flow and keep the support agent aligned.
 Evaluate the current project context without changing files.
 ```
 
-The coding agent decides when the skill is relevant, reads the necessary guidance, inspects the repository, uses deterministic local tooling when required, and reports what changed or why no change was necessary.
+The coding agent decides when the skill is relevant, including when you share durable project knowledge without naming `moldea`. It reads the necessary guidance, inspects the repository, uses deterministic local tooling when required, and reports what changed or why no change was necessary.
 
 ## Start here
 

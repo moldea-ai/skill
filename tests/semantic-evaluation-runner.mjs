@@ -1020,7 +1020,7 @@ const seedAdoptedProject = async (repositoryPath, caseDefinition) => {
   await writeScenarioFile(
     repositoryPath,
     'README.md',
-    '# Evaluation repository\n\n<!-- moldea:start -->\n## `moldea`\n\nThis repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.\n\nWhen making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.\n\nA relevant change requires reconsideration of the affected `moldea` state; it does not require editing `/moldea/**` when established project truth and declared agent behavior remain unchanged.\n<!-- moldea:end -->\n',
+    '# Evaluation repository\n\n<!-- moldea:start -->\n## `moldea`\n\nThis repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.\n\nWhen sharing potentially durable project knowledge or making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.\n\nA relevant change requires reconsideration of the affected `moldea` state; it does not require editing `/moldea/**` when established project truth and declared agent behavior remain unchanged.\n<!-- moldea:end -->\n',
   );
   await writeScenarioFile(
     repositoryPath,
@@ -1469,6 +1469,20 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
         repositoryPath,
         'src/internal-helper.js',
         'export const normalizeRefundId = (refundId) => refundId.trim();\n',
+      );
+      break;
+    case 'adopted-ambiguous-context-handoff':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Evaluation project\n\nThis synthetic project exercises local `moldea` maintenance behavior. Finance currently owns refund approval.\n',
+      );
+      break;
+    case 'adopted-explicit-context-correction':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Evaluation project\n\nThis invoice-processing service extracts invoice data for accounting systems and authorizes payment decisions.\n',
       );
       break;
     case 'adopted-relevance-changed-behavior':

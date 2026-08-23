@@ -26,7 +26,7 @@ This Agent Skill is the portable semantic operating layer used by a compatible c
 
 - initialize a context-first `moldea` project
 - plan the smallest appropriate system of agents, Agent Skills, deterministic software, services or tools, data contracts, and human control for an AI-enabled objective
-- continuously maintain affected project, Agent Skill, and agent state during ordinary development
+- continuously maintain affected project, Agent Skill, and agent state as knowledge and implementation evolve
 - create and refine grounded agent behavior
 - create and refine reusable Agent Skills with focused references, scripts, and assets when they are the right boundary
 - evaluate structural and semantic alignment without writing
@@ -174,9 +174,9 @@ Planning starts from the objective and may recommend zero, one, or multiple agen
 
 ## Continuous maintenance
 
-Once a repository has adopted `moldea`, ordinary behavior-affecting development work may activate the skill even when the request does not mention `moldea`. The coding agent reconsiders the relevant canonical state through explicit and semantic relationships and updates affected representations only when project truth or declared behavior actually changed.
+Once a repository has adopted `moldea`, sharing potentially durable project knowledge or requesting behavior-affecting development work may activate the skill even when the request does not mention `moldea`. The coding agent reconsiders relevant canonical state and persists only material, durable, sufficiently established truth. A material unexplained conflict produces one focused clarification before any canonical change.
 
-Relevance does not mean automatic documentation churn. A legitimate result is no `/moldea/**` edit when the established state remains accurate. Relevance-triggered activation also never initializes `moldea` in an unrelated repository without explicit developer intent.
+Activation does not mean automatic persistence or documentation churn. A legitimate result is no `/moldea/**` edit when supplied knowledge is transient or unclear, or when established state remains accurate. Knowledge- and relevance-triggered activation never initialize an unrelated repository without explicit developer intent, and an explicitly read-only request remains read-only.
 
 ## Portable skill
 
@@ -282,7 +282,7 @@ When `MOLDEA_CLI_ARTIFACT_DIRECTORY` identifies a packed candidate closure roote
 
 `fixtures/conformance-cases.json` contains package-manager, CLI-envelope, README-marker, planning, Agent Skill, runtime, security, and semantic forward-evaluation scenarios. Deterministic tests execute the mechanical decisions and validate every semantic case's evidence, requested operation, expected outcomes, and forbidden outcomes. CI also installs the portable artifact into an isolated Agent Skills home and compares the installed tree byte-for-byte with `moldea/`.
 
-Semantic evaluation is intentionally lengthy and can consume a significant number of model tokens because every case runs separate actor and judge processes. The current full suite contains 44 cases and can make up to 88 model calls. Its runtime-selection cases treat the compact CLI inventory only as adapter availability and require separate reliable evidence for behavioral support. Do not start a full or targeted semantic evaluation without first explaining to the developer why fresh semantic evidence is important for the current change, why existing evidence or deterministic verification is insufficient, and the expected time and token cost when known. Obtain the developer's explicit approval before running it.
+Semantic evaluation is intentionally lengthy and can consume a significant number of model tokens because every case runs separate actor and judge processes. The current full suite contains 47 cases and can make up to 94 model calls. Its runtime-selection cases treat the compact CLI inventory only as adapter availability and require separate reliable evidence for behavioral support. Do not start a full or targeted semantic evaluation without first explaining to the developer why fresh semantic evidence is important for the current change, why existing evidence or deterministic verification is insufficient, and the expected time and token cost when known. Obtain the developer's explicit approval before running it.
 
 Semantic behavior is evaluated through an Agent Skills-capable host and recorded against the exact portable artifact digest. The runner always pins both the actor and judge to a balanced-tier model at `medium` reasoning effort (`gpt-5.6-terra`); caller-provided host commands must not select their own model or reasoning effort. This fixed configuration avoids per-run model and effort decisions. To refresh that evidence, provide a non-interactive host command that accepts the evaluation prompt on standard input and returns the requested JSON object, then run:
 

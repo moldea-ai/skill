@@ -11,7 +11,7 @@ test('explains every passing semantic scenario through keyboard-accessible discl
   await page.goto(toPublicPath('/evidence/semantic/'));
 
   await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
-  await expect(page.getByText('44/44 scenarios')).toBeVisible();
+  await expect(page.getByText('47/47 scenarios')).toBeVisible();
   const firstScenario = page.locator('main details').first();
   const summary = firstScenario.locator('summary');
   await summary.focus();

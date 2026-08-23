@@ -39,6 +39,12 @@ const HOST_PLAN_CASE_DEFINITION = SEMANTIC_CASES.find(
 const YARN_CONFLICT_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'yarn-conflicting-cli-provider',
 );
+const AMBIGUOUS_CONTEXT_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'adopted-ambiguous-context-handoff',
+);
+const EXPLICIT_CONTEXT_CORRECTION_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'adopted-explicit-context-correction',
+);
 
 test('actor repository materializes host instructions before the clean baseline', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-instructions-test-'));
@@ -66,6 +72,60 @@ test('actor repository materializes host instructions before the clean baseline'
     assert.equal(status.stdout, '');
     assert.equal(committedInstructions.status, 0, committedInstructions.stderr);
     assert.equal(committedInstructions.stdout, HOST_PLAN_CASE_DEFINITION.hostInstructions);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('ambiguous context scenario commits the established ownership baseline', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-ambiguous-context-test-'));
+  assert.ok(AMBIGUOUS_CONTEXT_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      AMBIGUOUS_CONTEXT_CASE_DEFINITION,
+    );
+    const status = spawnSync('git', ['status', '--porcelain'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    const committedProject = spawnSync('git', ['show', 'HEAD:moldea/project.md'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+
+    assert.equal(status.status, 0, status.stderr);
+    assert.equal(status.stdout, '');
+    assert.equal(committedProject.status, 0, committedProject.stderr);
+    assert.match(committedProject.stdout, /Finance currently owns refund approval/);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('explicit correction scenario commits the stale product boundary baseline', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-explicit-correction-test-'));
+  assert.ok(EXPLICIT_CONTEXT_CORRECTION_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      EXPLICIT_CONTEXT_CORRECTION_CASE_DEFINITION,
+    );
+    const status = spawnSync('git', ['status', '--porcelain'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    const committedProject = spawnSync('git', ['show', 'HEAD:moldea/project.md'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+
+    assert.equal(status.status, 0, status.stderr);
+    assert.equal(status.stdout, '');
+    assert.equal(committedProject.status, 0, committedProject.stderr);
+    assert.match(committedProject.stdout, /authorizes payment decisions/);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

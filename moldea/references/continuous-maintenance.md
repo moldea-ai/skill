@@ -1,12 +1,16 @@
 # Continuous maintenance
 
-Read this reference before initialization, relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
+Read this reference before initialization, knowledge- or relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
 
 ## Recognize adoption without inventing it
 
-Explicit developer intent is required to adopt `moldea`. Relevance-triggered activation never initializes an unrelated repository automatically.
+Explicit developer intent is required to adopt `moldea`. Knowledge- and relevance-triggered activation never initialize an unrelated repository automatically.
 
 Evidence that adoption exists or is underway includes canonical `/moldea/**` assets, current changes introducing them, prior developer direction, or the owned README awareness section. The README block alone is a signal to investigate, not authority to recreate missing canonical state; distinguish incomplete initialization, decommissioning, and stale guidance.
+
+## Maintain newly learned truth
+
+In an adopted repository, treat an unambiguous direct handoff of current project knowledge as Maintain authority unless the surrounding request is read-only or excludes writes. Use context-gathering guidance to classify, verify, route, and filter it. The source format does not determine authority or truth. When an unexplained conflict could materially change persisted meaning, ask one focused question and make no premature canonical edit.
 
 ## Maintain affected behavior
 
@@ -29,7 +33,7 @@ If the developer prohibits corresponding `moldea` writes, respect the constraint
 
 ## Maintain project state
 
-Update `project.md` or focused context because durable project truth changed, not because code moved. Create or supersede decisions only when active rationale changed. Update runtime guidance when project-specific integration interpretation changed. Maintain relationships when they materially improve future relevance or deterministic evidence.
+Update `project.md` or focused context because durable project truth changed or was newly established, not because code moved or information was merely supplied. Create or supersede decisions only when active rationale changed. Update runtime guidance when project-specific integration interpretation changed. Maintain relationships when they materially improve future relevance or deterministic evidence.
 
 Preserve still-valid content and controlled duplication. Do not broadly rewrite mature context or instructions for style. Do not fix unrelated problems unless they are necessary for the authorized change.
 
@@ -54,7 +58,7 @@ Handle them as follows:
 
 Initialization creates `/README.md` when absent, containing only the owned block rather than an invented general README. Never create a second block.
 
-The block must state that the repository uses `moldea`, canonical state lives under `/moldea/**`, behavior-affecting changes should use this skill to reconsider and when necessary synchronize affected state, and relevance does not require an edit when truth remains correct.
+The block must state that the repository uses `moldea`, canonical state lives under `/moldea/**`, relevant new knowledge and behavior-affecting changes should use this skill to reconsider and when necessary synchronize affected state, and relevance does not require an edit when truth remains correct.
 
 Recommended content:
 
@@ -65,7 +69,7 @@ Recommended content:
 
 This repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.
 
-When making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.
+When sharing potentially durable project knowledge or making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.
 
 A relevant change requires reconsideration of the affected `moldea` state; it does not require editing `/moldea/**` when established project truth and declared agent behavior remain unchanged.
 <!-- moldea:end -->

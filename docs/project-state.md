@@ -26,7 +26,7 @@ moldea/
 
 ## Focused context
 
-Durable domain, architecture, security, integration, terminology, or operational truth can live under `/moldea/context/**`. Focused context is created only when it improves understanding or future change analysis; it is not an exhaustive repository inventory.
+Durable domain, architecture, security, integration, terminology, team responsibility or ownership, and operational truth can live under `/moldea/context/**`. Focused context is created only when it improves understanding or future change analysis; it is not an exhaustive repository inventory.
 
 ## Decisions and runtime guidance
 

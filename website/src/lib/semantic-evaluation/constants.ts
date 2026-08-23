@@ -48,6 +48,18 @@ export const SEMANTIC_CASE_PRESENTATION = {
     groupId: 'adoption',
     title: 'Initializes from sufficient evidence',
   },
+  'adopted-direct-context-handoff': {
+    groupId: 'truth',
+    title: 'Preserves a direct context handoff',
+  },
+  'adopted-explicit-context-correction': {
+    groupId: 'truth',
+    title: 'Applies an explicit context correction',
+  },
+  'adopted-ambiguous-context-handoff': {
+    groupId: 'truth',
+    title: 'Clarifies an ambiguous context handoff',
+  },
   'adopted-relevance-no-change': {
     groupId: 'adoption',
     title: 'Leaves aligned project context unchanged',

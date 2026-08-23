@@ -56,11 +56,11 @@ The skill checks that declared behavior is supported by implementation and does 
 
 The coding agent first decides whether the behavior belongs in a skill, protected coding instructions, an agent instruction, a tool, deterministic software, or ordinary documentation. It does not create a parallel `/moldea/skills` store or treat a skill directory as proof that a runtime agent receives the skill.
 
-## Maintain context during ordinary development
+## Maintain context as understanding evolves
 
-Once a repository adopts `moldea`, an ordinary behavior-affecting change can activate continuous maintenance even when your request does not mention `moldea`.
+Once a repository adopts `moldea`, sharing potentially durable project knowledge or requesting a behavior-affecting change can activate continuous maintenance even when your request does not mention `moldea`.
 
-The coding agent traces the affected implementation, contracts, context, decisions, agents, Agent Skills, schemas, capabilities, variables, runtime guidance, mirrors, and unresolved requirements. It updates only representations whose truth actually changed. A correct outcome can be no `/moldea/**` edit.
+The coding agent classifies supplied knowledge by meaning rather than format, traces affected context and behavior, and updates only representations whose truth actually changed. Clear current truth and explicit corrections can be maintained. Proposed, transient, speculative, secret, or materially ambiguous information is omitted or clarified first. A correct outcome can be no `/moldea/**` edit.
 
 ## Evaluate alignment
 

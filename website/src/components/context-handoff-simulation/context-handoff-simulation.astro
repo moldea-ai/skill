@@ -28,19 +28,13 @@ const requestedHandoffConversation = [
 const proactiveHandoffConversation = [
   {
     role: 'developer',
-    message: [
-      { kind: 'text', text: 'Here’s some context for future work: ' },
-      { kind: 'code', text: 'product-brief.md' },
-      {
-        kind: 'text',
-        text: ' contains the current users, goals, and operating boundaries for this project. Please keep the durable parts with the project.',
-      },
-    ],
+    message:
+      'Platform owns the application runtime and delivery pipeline. Product owns workflow definitions. Security approves production access.',
   },
   {
     role: 'agent',
     message:
-      'I reviewed the brief alongside the repository. The supported audience, invoice-processing purpose, and no-payment-authorization boundary are now part of project context for future work. I left launch timing, draft messaging, and other temporary product notes out so the durable context stays focused.',
+      'I checked those responsibilities against the existing project context. They establish durable ownership and approval boundaries, so I kept them with the project without inventing new runtime or agent behavior.',
   },
 ] satisfies IConversationTurn[];
 ---
@@ -60,8 +54,8 @@ const proactiveHandoffConversation = [
       </h2>
     </div>
     <p class="text-lg leading-8 text-muted-foreground lg:justify-self-end">
-      Answer a focused question or provide context up front. Paste it or point to an accessible
-      file; the agent checks it against repository evidence before preserving durable project truth.
+      Answer a focused question or share what you know. The agent checks it against repository
+      evidence before deciding what belongs in durable project context.
     </p>
   </header>
 
@@ -75,8 +69,8 @@ const proactiveHandoffConversation = [
 
     <Conversation
       eyebrow="When you already have context"
-      title="Bring the context you already maintain."
-      description="Point to an accessible source and say what should remain useful for future work."
+      title="Share what is true."
+      description="No special command is needed after adoption."
       turns={proactiveHandoffConversation}
     />
   </div>

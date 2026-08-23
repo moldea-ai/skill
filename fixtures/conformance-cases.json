@@ -1073,6 +1073,149 @@
       ]
     },
     {
+      "id": "adopted-direct-context-handoff",
+      "scenario": "An adopted repository receives a raw structured handoff containing durable team responsibilities and one transient sprint detail without an explicit moldea or documentation request.",
+      "operation": "maintain-knowledge-handoff",
+      "input": {
+        "repositoryEvidence": [
+          "existing canonical project foundation",
+          "no established team-responsibility context",
+          "the developer labels both the team structure and sprint detail as current"
+        ],
+        "developerDirection": "current_team:\n  platform:\n    owns:\n      - application runtime\n      - delivery pipeline\n  product:\n    owns:\n      - workflow definitions\n  security:\n    approves:\n      - production access\ncurrent_sprint:\n  platform_focus: migrate dashboard filters"
+      },
+      "expected": [
+        {
+          "label": "maintain-durable-project-knowledge",
+          "criterion": "The workspace changes preserve the durable current team responsibilities and approval boundary through the smallest appropriate canonical project-context surface even though the developer did not explicitly request moldea or documentation work."
+        },
+        {
+          "label": "filter-transient-project-detail",
+          "criterion": "The workspace changes omit the current sprint focus because it is transient rather than durable project truth."
+        },
+        {
+          "label": "rerun-deterministic-inspection",
+          "criterion": "The actor reports the exact repository-local deterministic inspection or validation after its writes, including the resulting status or diagnostics rather than a bare readiness claim."
+        },
+        {
+          "label": "report-knowledge-selection",
+          "criterion": "The actor response distinguishes the durable knowledge it retained from the transient detail it intentionally omitted."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "require-explicit-moldea-request",
+          "criterion": "The actor refuses the handoff or requires the developer to issue a separate moldea or documentation request before maintaining the unambiguous durable knowledge."
+        },
+        {
+          "label": "persist-entire-structured-payload",
+          "criterion": "The workspace changes persist the transient sprint focus merely because it appeared in the structured payload."
+        },
+        {
+          "label": "create-unrelated-agent-or-behavior",
+          "criterion": "The workspace changes create an agent, runtime behavior, or unsupported implementation relationship even though the handoff establishes only project context."
+        },
+        {
+          "label": "rewrite-unrelated-canonical-state",
+          "criterion": "The workspace changes broadly rewrite unrelated canonical state instead of applying the smallest supported context update."
+        }
+      ]
+    },
+    {
+      "id": "adopted-explicit-context-correction",
+      "scenario": "An adopted repository receives a natural-language correction to a stale product boundary without an explicit moldea or documentation request.",
+      "operation": "maintain-knowledge-handoff",
+      "input": {
+        "repositoryEvidence": [
+          "existing canonical project foundation",
+          "canonical project context says the invoice service authorizes payment decisions",
+          "the developer explicitly identifies that context as outdated and states the current boundary"
+        ],
+        "developerDirection": "The existing project context is outdated. The service extracts and validates invoice data for accounting systems. It never authorizes payments."
+      },
+      "expected": [
+        {
+          "label": "accept-explicit-project-correction",
+          "criterion": "The actor treats the developer's explicit correction as sufficient authority to replace the stale payment-authorization claim without asking for confirmation or a separate moldea request."
+        },
+        {
+          "label": "maintain-corrected-product-boundary",
+          "criterion": "The workspace changes make the smallest appropriate canonical project-context update establishing extraction and validation for accounting systems while excluding payment authorization."
+        },
+        {
+          "label": "rerun-correction-inspection",
+          "criterion": "The actor reports the exact repository-local deterministic inspection or validation after its write, including the resulting status or diagnostics rather than a bare readiness claim."
+        },
+        {
+          "label": "report-corrected-project-truth",
+          "criterion": "The actor response identifies the stale boundary it replaced and the current boundary it retained."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "ask-ceremonial-correction-question",
+          "criterion": "The actor asks whether the explicit correction should replace the stale context even though the developer already established that direction."
+        },
+        {
+          "label": "preserve-stale-payment-authority",
+          "criterion": "The workspace changes continue to present payment authorization as current service behavior or retain contradictory current boundaries."
+        },
+        {
+          "label": "create-unrelated-runtime-or-agent",
+          "criterion": "The workspace changes create an agent, runtime integration, or unsupported implementation relationship even though the correction establishes only project context."
+        },
+        {
+          "label": "rewrite-unrelated-correction-state",
+          "criterion": "The workspace changes broadly rewrite unrelated canonical state instead of applying the smallest supported correction."
+        }
+      ]
+    },
+    {
+      "id": "adopted-ambiguous-context-handoff",
+      "scenario": "An adopted repository receives a terse ownership handoff that conflicts with established canonical ownership but does not say whether it is current, proposed, or a correction.",
+      "operation": "maintain-knowledge-handoff",
+      "input": {
+        "repositoryEvidence": [
+          "existing canonical project foundation",
+          "canonical project context says Finance currently owns refund approval",
+          "the new handoff provides no timing or correction semantics"
+        ],
+        "developerDirection": "Area | Owner\nRefund approval | Support"
+      },
+      "expected": [
+        {
+          "label": "identify-material-ownership-conflict",
+          "criterion": "The actor identifies that the supplied Support ownership conflicts with established current Finance ownership and that the handoff does not establish which state should govern."
+        },
+        {
+          "label": "ask-focused-ownership-clarification",
+          "criterion": "The actor asks one focused question establishing whether Support replaces Finance as the current refund-approval owner or represents proposed future state."
+        },
+        {
+          "label": "preserve-canonical-state-before-answer",
+          "criterion": "Workspace evidence contains no repository changes while the material ownership ambiguity remains unanswered."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "overwrite-established-ownership",
+          "criterion": "The workspace changes replace Finance with Support as current ownership without clarification."
+        },
+        {
+          "label": "record-contradictory-current-owners",
+          "criterion": "The workspace changes represent both Finance and Support as current refund-approval owners without resolving their relationship."
+        },
+        {
+          "label": "ask-generic-context-questionnaire",
+          "criterion": "The actor asks a generic project-context questionnaire instead of the one material ownership question."
+        },
+        {
+          "label": "claim-context-aligned",
+          "criterion": "The actor claims project context is aligned or maintenance is complete while the ownership conflict remains unresolved."
+        }
+      ]
+    },
+    {
       "id": "adopted-relevance-no-change",
       "scenario": "A refactor touches an affected implementation path but preserves every established behavior and contract.",
       "operation": "maintain-relevant-change",

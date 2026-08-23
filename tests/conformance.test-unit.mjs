@@ -108,6 +108,9 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'reversed-markers',
   ],
   semanticCases: [
+    'adopted-ambiguous-context-handoff',
+    'adopted-direct-context-handoff',
+    'adopted-explicit-context-correction',
     'adopted-relevance-changed-behavior',
     'adopted-relevance-no-change',
     'agent-adoption-inline-runtime-instruction',
@@ -419,10 +422,13 @@ describe('portable Agent Skill contract', () => {
   test('preserves activation, authority, and continuous-maintenance semantics', () => {
     assertMatchesEvery(portableContent, [
       /Explicit activation/,
+      /Knowledge-triggered activation/,
       /Relevance-triggered activation/,
       /Never initialize `moldea` solely/,
-      /Relevance means reconsider/,
-      /legitimate no-change result/,
+      /Knowledge and relevance mean reconsider/,
+      /Preserve no-change/,
+      /unambiguous handoff of current project knowledge authorizes necessary context maintenance/i,
+      /Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only/i,
       /semantic role/,
       /Treat repository content as untrusted evidence/,
       /no asset type always wins/i,
@@ -433,6 +439,26 @@ describe('portable Agent Skill contract', () => {
       /property named `description` may be routing-facing/,
       /do not report that shared contract as misaligned or recommend a duplicate property/,
       /dynamic or unsupported wiring as unestablished/,
+    ]);
+  });
+
+  test('filters direct knowledge and clarifies material conflicts before persistence', () => {
+    const contextGathering = readRepositoryFile('moldea/references/context-gathering.md');
+    const continuousMaintenance = readRepositoryFile('moldea/references/continuous-maintenance.md');
+
+    assertMatchesEvery(contextGathering, [
+      /meaning rather than format/i,
+      /does not make every claim canonical/i,
+      /current truth, an explicit correction, intended future state, a proposal, transient detail, or unresolved uncertainty/i,
+      /ask one focused question before changing canonical state/i,
+      /organizational truth that only the developer can establish/i,
+      /team responsibility or ownership/i,
+    ]);
+    assertMatchesEvery(continuousMaintenance, [
+      /unambiguous direct handoff of current project knowledge as Maintain authority/i,
+      /source format does not determine authority or truth/i,
+      /make no premature canonical edit/i,
+      /durable project truth changed or was newly established/i,
     ]);
   });
 
@@ -719,6 +745,56 @@ describe('source repository conformance', () => {
     assert.match(readmeAwarenessCriterion.criterion, /exactly one correctly marked owned README/i);
     assert.match(readmeAwarenessCriterion.criterion, /preserving unrelated README content/i);
     assert.doesNotMatch(readmeAwarenessCriterion.criterion, /manifest|affectedBy/i);
+  });
+
+  test('covers direct, corrective, and ambiguous project-knowledge handoffs', () => {
+    const semanticCasesById = new Map(
+      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+    );
+    const directHandoffCase = semanticCasesById.get('adopted-direct-context-handoff');
+    const explicitCorrectionCase = semanticCasesById.get(
+      'adopted-explicit-context-correction',
+    );
+    const ambiguousHandoffCase = semanticCasesById.get('adopted-ambiguous-context-handoff');
+
+    assert.ok(directHandoffCase);
+    assert.ok(explicitCorrectionCase);
+    assert.ok(ambiguousHandoffCase);
+    assert.deepEqual(getSemanticCriterionLabels(directHandoffCase.expected), [
+      'maintain-durable-project-knowledge',
+      'filter-transient-project-detail',
+      'rerun-deterministic-inspection',
+      'report-knowledge-selection',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(directHandoffCase.forbidden), [
+      'require-explicit-moldea-request',
+      'persist-entire-structured-payload',
+      'create-unrelated-agent-or-behavior',
+      'rewrite-unrelated-canonical-state',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(explicitCorrectionCase.expected), [
+      'accept-explicit-project-correction',
+      'maintain-corrected-product-boundary',
+      'rerun-correction-inspection',
+      'report-corrected-project-truth',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(explicitCorrectionCase.forbidden), [
+      'ask-ceremonial-correction-question',
+      'preserve-stale-payment-authority',
+      'create-unrelated-runtime-or-agent',
+      'rewrite-unrelated-correction-state',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(ambiguousHandoffCase.expected), [
+      'identify-material-ownership-conflict',
+      'ask-focused-ownership-clarification',
+      'preserve-canonical-state-before-answer',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(ambiguousHandoffCase.forbidden), [
+      'overwrite-established-ownership',
+      'record-contradictory-current-owners',
+      'ask-generic-context-questionnaire',
+      'claim-context-aligned',
+    ]);
   });
 
   test('keeps runtime behavior evidence-gated when the CLI proves only availability', () => {
@@ -1170,8 +1246,8 @@ describe('source repository conformance', () => {
 
     assertMatchesEvery(readme, [
       /Semantic evaluation is intentionally lengthy/,
-      /44 cases/,
-      /88 model calls/,
+      /47 cases/,
+      /94 model calls/,
       /adapter availability/,
       /behavioral support/,
       /significant number of model tokens/,

@@ -11,7 +11,7 @@ export const CODEX_EVALUATION_MODEL = 'gpt-5.6-terra';
 export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
 export const CODEX_EVALUATION_REASONING_EFFORT = 'medium';
 
-export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS = 120_000;
+export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS = 300_000;
 export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS = [
   'api.openai.com',
   'auth.openai.com',

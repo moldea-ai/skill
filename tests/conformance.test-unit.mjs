@@ -428,8 +428,10 @@ describe('portable Agent Skill contract', () => {
       /Knowledge-triggered activation/,
       /Relevance-triggered activation/,
       /Never initialize `moldea` solely/,
-      /Knowledge and relevance mean reconsider/,
-      /Preserve no-change/,
+      /Before treating a message as acknowledgment-only/i,
+      /enters Maintain before deciding whether to persist, clarify, or omit it/i,
+      /do not merely restate the handoff/i,
+      /Reconsideration need not edit canonical state/i,
       /unambiguous handoff of current project knowledge authorizes necessary context maintenance/i,
       /Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only/i,
       /semantic role/,
@@ -455,12 +457,15 @@ describe('portable Agent Skill contract', () => {
       /current truth, an explicit correction, intended future state, a proposal, transient detail, or unresolved uncertainty/i,
       /ask one focused question before changing canonical state/i,
       /organizational truth that only the developer can establish/i,
+      /broad verbs such as .*process.*handle.*manage/i,
       /team responsibility or ownership/i,
     ]);
     assertMatchesEvery(continuousMaintenance, [
       /unambiguous direct handoff of current project knowledge as Maintain authority/i,
       /source format does not determine authority or truth/i,
       /make no premature canonical edit/i,
+      /Do not stop at acknowledging or summarizing a handoff/i,
+      /distinguish retained or corrected truth from transient or otherwise omitted detail/i,
       /durable project truth changed or was newly established/i,
     ]);
   });
@@ -576,6 +581,7 @@ describe('portable Agent Skill contract', () => {
       /failed aggregate command/i,
       /Never claim a `valid` result/i,
       /bare statement that inspection succeeded is not sufficient evidence/i,
+      /canonical surfaces changed, intentionally unchanged with reason, or blocked by material ambiguity/i,
       /semantic decisions and the evidence chain that established any consequential misalignment/i,
       /consumer-semantics evidence, current canonical source, and required resulting source/i,
       /Never imply that valid canonical inspection proves behavior it cannot observe/i,

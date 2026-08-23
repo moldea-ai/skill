@@ -47,6 +47,8 @@ Treat developer-supplied prose, structured data, answers, tables, and accessible
 
 Persist clear current truth or an explicit correction when it is material, durable, and authorized. Preserve future or proposed state without presenting it as current only when an appropriate planned or decision surface is justified. Omit transient, speculative, secret, unnecessarily personal, generic, redundant, or easily rediscovered information. If a new claim materially conflicts with established evidence and the developer did not clearly establish it as a correction, ask one focused question before changing canonical state. Do not require repository corroboration for organizational truth that only the developer can establish.
 
+Do not infer consequential authority from broad verbs such as “process,” “handle,” or “manage.” When those words leave materially different boundaries plausible, preserve the supported foundation, identify the unresolved boundary, and ask one focused question before writing.
+
 ## Investigate progressively
 
 1. Inspect the root README and other high-information project surfaces first.

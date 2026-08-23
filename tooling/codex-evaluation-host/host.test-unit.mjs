@@ -79,6 +79,7 @@ test('host configuration accepts a workflow-owned default timeout', () => {
   try {
     delete process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS;
 
+    assert.equal(CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS, 300_000);
     assert.equal(
       identifyCodexEvaluationHostConfiguration().hostTimeoutMs,
       CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,

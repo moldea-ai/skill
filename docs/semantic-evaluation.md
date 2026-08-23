@@ -10,7 +10,7 @@ order: 172
 
 Semantic evaluation tests whether the portable `moldea` skill behaves correctly in difficult repository situations. It complements deterministic conformance and adapter qualification. It does not replace either one.
 
-The current suite contains 47 scenarios. Each scenario uses one actor call and one independent judge call, for up to 94 model calls in a complete run. Both processes use `gpt-5.6-terra` at `medium` reasoning effort.
+The current suite contains 47 scenarios. Each scenario uses one actor call and one independent judge call, for up to 94 model calls in a complete run. Both processes use `gpt-5.6-terra` at `medium` reasoning effort and have a five-minute per-call timeout by default.
 
 ## What each scenario proves
 

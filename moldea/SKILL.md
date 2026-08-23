@@ -1,7 +1,7 @@
 ---
 name: moldea
 description: >-
-  Use when a developer asks their coding agent to initialize or work with moldea; plan an AI- or agent-enabled system and decide what should be agents versus deterministic software, services, tools, skills, or human control; create or refine an AI agent, reusable Agent Skill, or behavioral system, including instructions, descriptions, capabilities, schemas, variables, routing, bindings, or runtime integration; evaluate, reconcile, or validate an existing moldea system; provide potentially durable project knowledge to an adopted moldea repository; or make ordinary behavior-affecting changes that may require maintaining it. Loading the skill does not adopt moldea: initial adoption requires explicit developer intent, while knowledge- and relevance-triggered maintenance apply only once adoption exists or is underway.
+  Use for moldea initialization and operations; agent-system planning; agent or reusable Agent Skill design and maintenance; behavioral instructions, capabilities, schemas, routing, bindings, and runtime integration; and evaluation, reconciliation, or validation. In an adopted moldea repository, also activate automatically when any source supplies or corrects potentially durable project knowledge, or an authorized behavior change may make canonical project or agent state stale, even without a moldea or documentation request. Initial adoption requires explicit developer intent.
 license: MIT
 metadata:
   version: '3.1.0'
@@ -19,7 +19,7 @@ Activate this skill in any of these cases:
 - **Knowledge-triggered activation:** in an adopted repository, the developer supplies, confirms, or corrects potentially material and durable project knowledge through any format or accessible source.
 - **Relevance-triggered activation:** an authorized change may materially affect project truth or declared agent behavior in an adopted repository.
 
-Knowledge and relevance mean reconsider affected `moldea` state, not automatically persist every claim or edit `/moldea/**`. Preserve no-change when established truth and behavior remain correct.
+Before treating a message as acknowledgment-only, check adoption. In an adopted repository, material ownership, responsibility, approval, escalation, policy, project-boundary, supported-behavior, or runtime information enters Maintain before deciding whether to persist, clarify, or omit it; do not merely restate the handoff. Reconsideration need not edit canonical state when truth and behavior remain correct.
 
 Never initialize `moldea` solely because supplied knowledge or a repository change could benefit from it. Adoption requires explicit intent. After adoption begins, continuous maintenance needs no “and update moldea” request.
 
@@ -107,7 +107,7 @@ Keep the report proportional while making these results explicit when relevant:
 
 - selected operation and activation path
 - authorized scope and repositories inspected
-- files changed or intentionally unchanged
+- canonical surfaces changed, intentionally unchanged with reason, or blocked by material ambiguity and its focused question
 - exact local CLI version, deterministic commands, statuses, and material diagnostics
 - dependency changes and Agent Skill source, metadata, copy, consumer, and activation decisions
 - semantic decisions and the evidence chain that established any consequential misalignment and resulting state

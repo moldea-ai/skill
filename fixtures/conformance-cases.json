@@ -783,7 +783,7 @@
         "developerDirection": "Initialize moldea for this repository.",
         "repositoryEvidence": [
           {
-            "claim": "The README identifies invoice processing without a payment-authority boundary.",
+            "claim": "The README identifies invoice processing and payment handling without defining payment authority.",
             "source": {
               "kind": "workspace-path",
               "path": "README.md",

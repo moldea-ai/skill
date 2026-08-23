@@ -46,6 +46,9 @@ const AMBIGUOUS_CONTEXT_CASE_DEFINITION = SEMANTIC_CASES.find(
 const EXPLICIT_CONTEXT_CORRECTION_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'adopted-explicit-context-correction',
 );
+const PARTIAL_INITIALIZATION_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'initialize-partial-context',
+);
 const PNPM_PNP_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'pnpm-pnp-local-cli-provider',
 );
@@ -138,6 +141,27 @@ test('explicit correction scenario commits the stale product boundary baseline',
     assert.equal(status.stdout, '');
     assert.equal(committedProject.status, 0, committedProject.stderr);
     assert.match(committedProject.stdout, /authorizes payment decisions/);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('partial initialization exposes payment involvement without deciding authority', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-partial-initialization-test-'));
+  assert.ok(PARTIAL_INITIALIZATION_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      PARTIAL_INITIALIZATION_CASE_DEFINITION,
+    );
+    const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
+    const implementation = readFileSync(join(repositoryPath, 'src', 'invoice.js'), 'utf8');
+
+    assert.match(readme, /payment handling/i);
+    assert.doesNotMatch(readme, /authoriz|initiat|extract/i);
+    assert.match(implementation, /processInvoice/);
+    assert.doesNotMatch(implementation, /authoriz|initiat|payment|extract/i);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

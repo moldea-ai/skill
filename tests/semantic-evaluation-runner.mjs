@@ -1468,7 +1468,7 @@ const seedInitializationContext = async (repositoryPath, caseDefinition) => {
     await writeScenarioFile(
       repositoryPath,
       'README.md',
-      '# Invoice processor\n\nProcesses invoices for accounting systems.\n',
+      '# Invoice processor\n\nProcesses invoices for accounting systems, including payment handling.\n',
     );
     await writeScenarioFile(
       repositoryPath,

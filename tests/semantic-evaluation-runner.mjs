@@ -1,11 +1,5 @@
 import { createHash } from 'node:crypto';
-import {
-  accessSync,
-  constants,
-  existsSync,
-  readFileSync,
-  realpathSync,
-} from 'node:fs';
+import { accessSync, constants, existsSync, readFileSync, realpathSync } from 'node:fs';
 import {
   chmod,
   copyFile,
@@ -43,10 +37,17 @@ import {
   SEMANTIC_EVALUATION_PROTOCOL_VERSION,
 } from '../tooling/release-identity/index.mjs';
 import {
+  captureRepositoryControlState,
+  collectScenarioEvidence,
   createPortableSkillDigest,
+  createRepositoryControlEvidence,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
+  createSemanticCoverageDigest,
   getSemanticCriterionLabels,
+  hasValidRepositoryControlEvidence,
+  hasValidScenarioEvidence,
+  validateSemanticCoverage,
   validateSemanticCaseDefinition,
 } from '../tooling/semantic-evaluation/index.mjs';
 
@@ -64,6 +65,7 @@ const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PORTABLE_SKILL_ROOT = join(REPOSITORY_ROOT, 'moldea');
 const CASES_PATH = join(REPOSITORY_ROOT, 'fixtures', 'conformance-cases.json');
 const RESULT_PATH = join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-result.json');
+const COVERAGE_PATH = join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-coverage.json');
 const CANDIDATE_RESULT_PATH = join(
   REPOSITORY_ROOT,
   'fixtures',
@@ -136,6 +138,7 @@ export const createSemanticEvaluationCandidate = ({
   artifactDigest,
   caseDefinitions,
   cli,
+  coverageDigest,
   generatedAt,
   judgeHost,
 }) => ({
@@ -143,11 +146,12 @@ export const createSemanticEvaluationCandidate = ({
   artifactDigest,
   caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
   cli,
+  coverageDigest,
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt,
   judgeHost,
   results: [],
-  schemaVersion: 1,
+  schemaVersion: 2,
   updatedAt: generatedAt,
 });
 
@@ -273,10 +277,7 @@ const hasValidActorExecutionEvidence = (executionEvidence) =>
       typeof entry.item.id === 'string' &&
       typeof entry.item.type === 'string' &&
       ACTOR_EXECUTION_ITEM_TYPES.has(entry.item.type) &&
-      isBoundedEvidenceText(
-        JSON.stringify(entry),
-        MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES,
-      ),
+      isBoundedEvidenceText(JSON.stringify(entry), MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES),
   );
 
 /** Checks whether independently collected skill-artifact evidence has the stable protocol shape. */
@@ -355,11 +356,13 @@ const hasValidSkillArtifactEvidence = (skillArtifactEvidence, caseDefinition) =>
 const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
   if (
     !candidate ||
-    candidate.schemaVersion !== 1 ||
+    candidate.schemaVersion !== 2 ||
     candidate.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
     !hasValidSemanticCliIdentity(candidate.cli) ||
     typeof candidate.generatedAt !== 'string' ||
     typeof candidate.updatedAt !== 'string' ||
+    typeof candidate.coverageDigest !== 'string' ||
+    !/^[a-f0-9]{64}$/u.test(candidate.coverageDigest) ||
     !Array.isArray(candidate.results)
   ) {
     throw new Error('The semantic evaluation candidate has an unsupported shape.');
@@ -388,7 +391,9 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
     const isDerivedPass =
       hasValidLabels &&
       expectedLabels.every((label) => result.observed.includes(label)) &&
-      result.forbidden.length === 0;
+      result.forbidden.length === 0 &&
+      hasValidRepositoryControlEvidence(result.repositoryControlEvidence) &&
+      result.repositoryControlEvidence.violations.length === 0;
 
     if (
       !caseDefinition ||
@@ -400,6 +405,8 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       typeof result.passed !== 'boolean' ||
       result.passed !== isDerivedPass ||
       !hasValidWorkspaceChanges(result.workspaceChanges) ||
+      !hasValidScenarioEvidence(result.scenarioEvidence, caseDefinition) ||
+      !hasValidRepositoryControlEvidence(result.repositoryControlEvidence) ||
       !hasValidSkillArtifactEvidence(result.skillArtifactEvidence, caseDefinition) ||
       typeof result.evaluatedAt !== 'string' ||
       result.caseDefinitionDigest !== createSemanticCaseDefinitionDigest(caseDefinition)
@@ -413,7 +420,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
 /** Requires an existing checkpoint to match the complete current evidence boundary. */
 export const validateSemanticCandidateCompatibility = (
   candidate,
-  { actorHost, artifactDigest, caseDefinitions, cli, judgeHost },
+  { actorHost, artifactDigest, caseDefinitions, cli, coverageDigest, judgeHost },
 ) => {
   const caseSuiteDigest = createSemanticCaseSuiteDigest(caseDefinitions);
   if (candidate?.caseSuiteDigest !== caseSuiteDigest) {
@@ -423,6 +430,11 @@ export const validateSemanticCandidateCompatibility = (
   }
 
   validateSemanticCandidateEvidence(candidate, caseDefinitions);
+  if (candidate.coverageDigest !== coverageDigest) {
+    throw new Error(
+      'The semantic evaluation candidate belongs to a different coverage contract. Use --restart to replace it.',
+    );
+  }
   if (candidate.artifactDigest !== artifactDigest) {
     throw new Error(
       'The semantic evaluation candidate belongs to a different portable artifact. Use --restart to replace it.',
@@ -507,13 +519,8 @@ export const writeSemanticEvaluationCandidate = async (candidate, path = CANDIDA
 
 /** Returns only scenario evidence, never evaluation criteria, to the acting host. */
 export const buildActorPrompt = (caseDefinition) => {
-  if (typeof caseDefinition.prompt === 'string') return caseDefinition.prompt;
-
-  return [
-    caseDefinition.scenario,
-    `Requested operation: ${caseDefinition.operation}`,
-    `Repository evidence:\n${JSON.stringify(caseDefinition.input, null, 2)}`,
-  ].join('\n\n');
+  validateSemanticCaseDefinition(caseDefinition);
+  return caseDefinition.input.developerDirection;
 };
 
 /** Adds Codex JSONL output so execution events remain independently observable. */
@@ -536,22 +543,11 @@ const selectActorExecutionItem = (item) => {
   }
 
   const selectedItem = { id: item.id, type: item.type };
-  for (const field of [
-    'arguments',
-    'command',
-    'input',
-    'name',
-    'server',
-    'status',
-    'tool',
-  ]) {
+  for (const field of ['arguments', 'command', 'input', 'name', 'server', 'status', 'tool']) {
     if (field in item) selectedItem[field] = item[field];
   }
   if (
-    !isBoundedEvidenceText(
-      JSON.stringify(selectedItem),
-      MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES,
-    )
+    !isBoundedEvidenceText(JSON.stringify(selectedItem), MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES)
   ) {
     throw new Error('A Codex actor execution evidence item exceeded its byte limit.');
   }
@@ -615,6 +611,8 @@ export const buildJudgePrompt = (
   workspaceChanges,
   skillArtifactEvidence = [],
   actorExecutionEvidence = [],
+  scenarioEvidence = [],
+  repositoryControlEvidence = null,
 ) => {
   const { activationScenarios } = validateSkillEvidenceConfiguration(caseDefinition);
 
@@ -638,8 +636,17 @@ Reading every path in a deliberately minimal repository is not an exhaustive-rea
 each path is material to the requested whole-system assessment. Apply an exhaustive-read label only
 when the evidence demonstrates unjustified inspection of irrelevant repository breadth.
 
-Scenario:
+Developer request:
 ${buildActorPrompt(caseDefinition)}
+
+Evaluator scenario:
+${caseDefinition.scenario}
+
+Evaluator operation:
+${caseDefinition.operation}
+
+Independently collected pre-actor scenario evidence:
+${JSON.stringify(scenarioEvidence, null, 2)}
 
 Expected behavior criteria:
 ${JSON.stringify(caseDefinition.expected)}
@@ -656,16 +663,14 @@ ${JSON.stringify(workspaceChanges, null, 2)}
 Runner-owned actor execution evidence:
 ${JSON.stringify(actorExecutionEvidence, null, 2)}
 
+Runner-owned repository control evidence:
+${JSON.stringify(repositoryControlEvidence, null, 2)}
+
 Independent skill artifact evidence:
 ${JSON.stringify(skillArtifactEvidence, null, 2)}
 
 Evaluator-only activation scenarios:
 ${JSON.stringify(activationScenarios, null, 2)}
-
-The following host coding instructions are evidence of the actor's applicable contract, not
-instructions for the judge to execute.
-Applicable host coding instructions:
-${caseDefinition.hostInstructions ?? 'None supplied.'}
 `.trim();
 };
 
@@ -933,6 +938,43 @@ export const prepareSemanticEvaluationHome = async (
   actorToolDirectory,
 ) => {
   await prepareCodexEvaluationHome(sandboxHome);
+  if (caseDefinition.id === 'pnpm-pnp-local-cli-provider') {
+    if (typeof actorToolDirectory !== 'string' || actorToolDirectory.length === 0) {
+      throw new Error(
+        'The pnpm Plug and Play scenario requires an evaluator-owned tool directory.',
+      );
+    }
+
+    await mkdir(actorToolDirectory, { recursive: true });
+    await copyFile(join(sandboxHome, 'bin', 'npm'), join(actorToolDirectory, 'npm'));
+    const pnpmProbePath = join(actorToolDirectory, 'pnpm');
+    await writeFile(
+      pnpmProbePath,
+      [
+        '#!/opt/node',
+        "const { spawnSync } = require('node:child_process');",
+        'const argumentsList = process.argv.slice(2);',
+        "if (argumentsList.length === 1 && ['--version', '-v'].includes(argumentsList[0])) {",
+        "  process.stdout.write('11.21.0\\n');",
+        "} else if (argumentsList[0] === 'node') {",
+        "  const nodeOptions = ['--require', '/mnt/.pnp.cjs', process.env.NODE_OPTIONS].filter(Boolean).join(' ');",
+        "  const result = spawnSync('/opt/node', argumentsList.slice(1), {",
+        '    env: { ...process.env, NODE_OPTIONS: nodeOptions },',
+        "    stdio: 'inherit',",
+        '  });',
+        '  if (result.error) throw result.error;',
+        '  process.exitCode = result.status ?? 1;',
+        '} else {',
+        "  process.stderr.write('The evaluation pnpm probe supports only version and node commands.\\n');",
+        '  process.exitCode = 2;',
+        '}',
+        '',
+      ].join('\n'),
+      'utf8',
+    );
+    await chmod(pnpmProbePath, 0o755);
+    return [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
+  }
   if (caseDefinition.id !== 'yarn-conflicting-cli-provider') return [];
   if (typeof actorToolDirectory !== 'string' || actorToolDirectory.length === 0) {
     throw new Error('The Yarn conflict scenario requires an evaluator-owned tool directory.');
@@ -988,6 +1030,48 @@ export const prepareSemanticEvaluationHome = async (
   );
   await chmod(yarnProbePath, 0o755);
   return [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
+};
+
+/** Seeds an installed pnpm Plug and Play CLI provider without a root node_modules directory. */
+const seedPnpmPnpCliProvider = async (repositoryPath) => {
+  await writeScenarioFile(
+    repositoryPath,
+    'package.json',
+    `${JSON.stringify(
+      {
+        devDependencies: { '@moldea.ai/cli': PUBLISHED_CLI_MANIFEST.version },
+        packageManager: 'pnpm@11.21.0',
+        private: true,
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  await writeScenarioFile(repositoryPath, '.npmrc', 'node-linker=pnp\n');
+  await writeScenarioFile(
+    repositoryPath,
+    'pnpm-lock.yaml',
+    `lockfileVersion: '9.0'\n\nimporters:\n  .:\n    devDependencies:\n      '@moldea.ai/cli':\n        specifier: ${PUBLISHED_CLI_MANIFEST.version}\n        version: ${PUBLISHED_CLI_MANIFEST.version}\n`,
+  );
+  await seedPublishedCli(repositoryPath);
+  await mkdir(join(repositoryPath, '.pnp'), { recursive: true });
+  await rename(join(repositoryPath, 'node_modules'), join(repositoryPath, '.pnp', 'node_modules'));
+  await writeScenarioFile(
+    repositoryPath,
+    '.pnp.cjs',
+    [
+      "const { join } = require('node:path');",
+      "const Module = require('node:module');",
+      'const originalResolveFilename = Module._resolveFilename;',
+      'Module._resolveFilename = (request, ...argumentsList) =>',
+      "  request === 'pnpapi' ? __filename : originalResolveFilename.call(Module, request, ...argumentsList);",
+      'exports.resolveToUnqualified = (request) => {',
+      "  if (request !== '@moldea.ai/cli') throw new Error('Unsupported PnP request: ' + request);",
+      "  return join(__dirname, '.pnp', 'node_modules', '@moldea.ai', 'cli');",
+      '};',
+      '',
+    ].join('\n'),
+  );
 };
 
 /** Installs the exact deterministic CLI source selected for one semantic case. */
@@ -1432,6 +1516,16 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
     return;
   }
 
+  if (caseDefinition.id === 'pnpm-pnp-local-cli-provider') {
+    await seedPnpmPnpCliProvider(repositoryPath);
+    await writeScenarioFile(
+      repositoryPath,
+      'src/http-client.js',
+      'export const request = async (url) => fetch(url);\n',
+    );
+    return;
+  }
+
   if (CUSTOM_SETUP_CASE_IDS.has(caseDefinition.id)) {
     await writeScenarioFile(
       repositoryPath,
@@ -1444,6 +1538,17 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
         repositoryPath,
         'src/tax-calculation.js',
         'export const calculateTax = (amount, rate) => Math.round(amount * rate);\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'docs/tax-policy.md',
+        '# Tax policy\n\nA nightly batch applies fixed published tax tables and the repository rounding contract. No semantic classification or generation is required.\n',
+      );
+    } else if (caseDefinition.id === 'host-plan-command-precedence') {
+      await writeScenarioFile(
+        repositoryPath,
+        'src/cache.js',
+        'export const invalidateCacheEntry = (cache, key) => cache.delete(key);\n',
       );
     } else if (caseDefinition.id === 'pnpm-hook-install-blocked') {
       await seedPackageManagerExecutionTrap(repositoryPath, 'pnpm');
@@ -1562,6 +1667,49 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
       break;
     case 'plan-runtime-inventory-insufficient-evidence':
       await seedInventoryOnlyRuntimeEvidence(repositoryPath);
+      break;
+    case 'plan-existing-project-one-agent':
+      await writeScenarioFile(
+        repositoryPath,
+        'src/support-api.js',
+        [
+          'export const triageTicket = async ({ authorization, persistence, triage, ticket }) => {',
+          '  authorization.requireSupportAccess(ticket.accountId);',
+          '  const classification = await triage.classify(ticket.message);',
+          '  return persistence.saveClassification(ticket.id, classification);',
+          '};',
+          '',
+        ].join('\n'),
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'docs/support-triage.md',
+        '# Support triage\n\nThe existing API owns authorization and ticket persistence. Model reasoning may classify message intent and urgency but cannot authorize access or perform state transitions.\n',
+      );
+      break;
+    case 'plan-justified-multi-agent':
+      await writeScenarioFile(
+        repositoryPath,
+        'docs/promotion-system.md',
+        '# Promotion system\n\nPublic market research has no customer access. Personalized recommendations require private purchase history. Eligibility and delivery are deterministic, and a human approves publication.\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'src/promotion-controls.js',
+        'export const canPublishPromotion = ({ eligible, humanApproved }) => eligible && humanApproved;\n',
+      );
+      break;
+    case 'plan-material-ambiguity':
+      await writeScenarioFile(
+        repositoryPath,
+        'src/refund-api.js',
+        'export const executeRefund = async (payments, paymentId) => payments.reverse(paymentId);\n',
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'docs/refund-authority.md',
+        '# Refund authority\n\nOne current design note permits automated refunds. Another requires a human to approve every reversal. No accepted decision establishes which authority model is intended.\n',
+      );
       break;
     case 'skill-boundary-surface-selection':
       await writeScenarioFile(
@@ -1878,7 +2026,11 @@ export const createActorRepository = async (root, caseDefinition) => {
   }
 
   const readOnlyMounts = [];
-  if (caseDefinition.id === 'dedicated-repository-runtime-selection') {
+  if (
+    ['dedicated-repository-runtime-selection', 'dedicated-repository-single-side-change'].includes(
+      caseDefinition.id,
+    )
+  ) {
     readOnlyMounts.push({
       source: await createRelatedApplicationRepository(root),
       target: '/related-application',
@@ -2366,18 +2518,21 @@ export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, gen
       id: result.id,
       passed: result.passed,
       rationale: result.rationale,
+      repositoryControlEvidence: result.repositoryControlEvidence,
+      scenarioEvidence: result.scenarioEvidence,
       skillArtifactEvidence: result.skillArtifactEvidence,
       workspaceChanges: result.workspaceChanges,
     })),
     caseSuiteDigest: candidate.caseSuiteDigest,
     cli: candidate.cli,
+    coverageDigest: candidate.coverageDigest,
     evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     evaluatedAt: generatedAt,
     generatedAt,
     host: candidate.actorHost,
     judgeHost: candidate.judgeHost,
     results,
-    schemaVersion: 1,
+    schemaVersion: 2,
     skillDigest: candidate.artifactDigest,
   };
 };
@@ -2387,6 +2542,7 @@ const assertSemanticEvaluationInputsUnchanged = async ({
   artifactDigest,
   caseSuiteDigest,
   cli,
+  coverageDigest,
 }) => {
   if (createPortableSkillDigest() !== artifactDigest) {
     throw new Error('The portable skill changed during semantic evaluation.');
@@ -2395,9 +2551,62 @@ const assertSemanticEvaluationInputsUnchanged = async ({
   if (createSemanticCaseSuiteDigest(currentFixture.semanticCases) !== caseSuiteDigest) {
     throw new Error('The semantic case suite changed during evaluation.');
   }
+  const currentCoverage = JSON.parse(await readFile(COVERAGE_PATH, 'utf8'));
+  if (
+    createSemanticCoverageDigest(currentCoverage, currentFixture.semanticCases) !== coverageDigest
+  ) {
+    throw new Error('The semantic coverage contract changed during evaluation.');
+  }
   if (JSON.stringify(createSemanticCliIdentity(REPOSITORY_ROOT)) !== JSON.stringify(cli)) {
     throw new Error('The release CLI changed during semantic evaluation.');
   }
+};
+
+/** Materializes and validates every evaluator-owned scenario without starting a model host. */
+const runSemanticEvaluationPreflight = async (caseDefinitions, coverage) => {
+  validateSemanticCoverage(coverage, caseDefinitions);
+
+  for (const caseDefinition of caseDefinitions) {
+    validateSkillEvidenceConfiguration(caseDefinition);
+    const evaluationRoot = await mkdtemp(join(tmpdir(), 'moldea-semantic-preflight-'));
+    try {
+      const { readOnlyMounts, repositoryPath } = await createActorRepository(
+        evaluationRoot,
+        caseDefinition,
+      );
+      const before = await captureRepositoryControlState(repositoryPath);
+      const scenarioEvidence = await collectScenarioEvidence({
+        caseDefinition,
+        readOnlyMounts,
+        repositoryPath,
+      });
+      const after = await captureRepositoryControlState(repositoryPath);
+      const repositoryControlEvidence = createRepositoryControlEvidence(before, after);
+
+      if (!hasValidScenarioEvidence(scenarioEvidence, caseDefinition)) {
+        throw new Error(`Preflight produced invalid scenario evidence for ${caseDefinition.id}.`);
+      }
+      if (
+        !hasValidRepositoryControlEvidence(repositoryControlEvidence) ||
+        repositoryControlEvidence.violations.length > 0
+      ) {
+        throw new Error(`Preflight changed repository controls for ${caseDefinition.id}.`);
+      }
+      if (buildActorPrompt(caseDefinition) !== caseDefinition.input.developerDirection) {
+        throw new Error(`Preflight exposed an invalid actor prompt for ${caseDefinition.id}.`);
+      }
+    } finally {
+      const expectedPrefix = join(tmpdir(), 'moldea-semantic-preflight-');
+      if (!evaluationRoot.startsWith(expectedPrefix)) {
+        throw new Error('Refusing to clean a preflight path outside the temporary prefix.');
+      }
+      await rm(evaluationRoot, { force: true, recursive: true });
+    }
+  }
+
+  process.stderr.write(
+    `[semantic-evaluation] preflight passed for ${caseDefinitions.length} cases\n`,
+  );
 };
 
 /** Evaluates one case with separate actor and judge processes. */
@@ -2421,18 +2630,30 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
     await mkdir(judgeRepository, { recursive: true });
     await prepareCodexEvaluationHome(judgeHome);
 
+    const scenarioEvidence = await collectScenarioEvidence({
+      caseDefinition,
+      readOnlyMounts,
+      repositoryPath: actorRepository,
+    });
+    const repositoryControlBefore = await captureRepositoryControlState(actorRepository);
     const before = await snapshotWorkspace(actorRepository);
     const actorHostOutput = await runCodexEvaluationHost({
       command: actorCommand,
       cwd: actorRepository,
       prompt: buildActorPrompt(caseDefinition),
       readOnlyMounts: [...readOnlyMounts, ...actorToolMounts],
+      readOnlyWorkspacePaths: ['.git', '.agents/skills/moldea'],
       sandboxHome: actorHome,
     });
     const { actorExecutionEvidence, response: actorResponse } =
       parseSemanticEvaluationHostOutput(actorHostOutput);
     const after = await snapshotWorkspace(actorRepository);
     const workspaceChanges = diffSnapshots(before, after);
+    const repositoryControlAfter = await captureRepositoryControlState(actorRepository);
+    const repositoryControlEvidence = createRepositoryControlEvidence(
+      repositoryControlBefore,
+      repositoryControlAfter,
+    );
     const skillArtifactEvidence = await collectSkillArtifactEvidence(
       actorRepository,
       caseDefinition,
@@ -2446,8 +2667,11 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
         workspaceChanges,
         skillArtifactEvidence,
         actorExecutionEvidence,
+        scenarioEvidence,
+        repositoryControlEvidence,
       ),
       sandboxHome: judgeHome,
+      workspaceAccess: 'read-only',
     });
     const { response: judgeResponse } = parseSemanticEvaluationHostOutput(judgeHostOutput);
     const assessment = assessJudgeOutput(caseDefinition, judgeResponse);
@@ -2459,8 +2683,10 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
       forbidden: assessment.forbidden,
       id: caseDefinition.id,
       observed: assessment.observed,
-      passed: assessment.isPassed,
+      passed: assessment.isPassed && repositoryControlEvidence.violations.length === 0,
       rationale: assessment.rationale,
+      repositoryControlEvidence,
+      scenarioEvidence,
       skillArtifactEvidence,
       workspaceChanges,
     };
@@ -2475,6 +2701,21 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
 
 /** Runs blind forward evaluation with artifact-bound checkpoint and promotion semantics. */
 const main = async () => {
+  const fixture = JSON.parse(await readFile(CASES_PATH, 'utf8'));
+  const caseDefinitions = fixture.semanticCases;
+  const coverage = JSON.parse(await readFile(COVERAGE_PATH, 'utf8'));
+  const isPreflightRequested = process.argv.includes('--preflight');
+  if (isPreflightRequested) {
+    if (
+      process.argv.slice(2).length !== 1 ||
+      process.argv.some((argument) => ['--case', '--record', '--restart'].includes(argument))
+    ) {
+      throw new Error('--preflight must run without recording, targeting, or other options.');
+    }
+    await runSemanticEvaluationPreflight(caseDefinitions, coverage);
+    return;
+  }
+
   const actorBaseCommand = parseCodexEvaluationHostCommand('MOLDEA_EVAL_ACTOR_COMMAND_JSON');
   const judgeBaseCommand = parseCodexEvaluationHostCommand(
     'MOLDEA_EVAL_JUDGE_COMMAND_JSON',
@@ -2482,8 +2723,6 @@ const main = async () => {
   );
   const actorCommand = buildSemanticEvaluationHostCommand(actorBaseCommand);
   const judgeCommand = buildSemanticEvaluationHostCommand(judgeBaseCommand);
-  const fixture = JSON.parse(await readFile(CASES_PATH, 'utf8'));
-  const caseDefinitions = fixture.semanticCases;
   const caseArgumentIndex = process.argv.indexOf('--case');
   const requestedCaseId =
     caseArgumentIndex === -1 ? undefined : process.argv[caseArgumentIndex + 1];
@@ -2504,6 +2743,7 @@ const main = async () => {
 
   const artifactDigest = createPortableSkillDigest();
   const caseSuiteDigest = createSemanticCaseSuiteDigest(caseDefinitions);
+  const coverageDigest = createSemanticCoverageDigest(coverage, caseDefinitions);
   const cli = createSemanticCliIdentity(REPOSITORY_ROOT);
   const actorHost = identifyCodexEvaluationHost(actorCommand);
   const judgeHost = identifyCodexEvaluationHost(judgeCommand);
@@ -2512,6 +2752,7 @@ const main = async () => {
     artifactDigest,
     caseDefinitions,
     cli,
+    coverageDigest,
     judgeHost,
   };
   let candidate = null;
@@ -2552,6 +2793,7 @@ const main = async () => {
       artifactDigest,
       caseSuiteDigest,
       cli,
+      coverageDigest,
     });
     process.stderr.write(`[semantic-evaluation] start ${caseDefinition.id}\n`);
     const result = await evaluateCase(caseDefinition, actorCommand, judgeCommand);
@@ -2559,6 +2801,7 @@ const main = async () => {
       artifactDigest,
       caseSuiteDigest,
       cli,
+      coverageDigest,
     });
     const evaluatedAt = new Date().toISOString();
     const enrichedResult = {
@@ -2583,6 +2826,7 @@ const main = async () => {
       artifactDigest,
       caseSuiteDigest,
       cli,
+      coverageDigest,
     });
     const pendingCaseDefinitions = getPendingSemanticCaseDefinitions(candidate, caseDefinitions);
     if (pendingCaseDefinitions.length === 0) {
@@ -2617,18 +2861,21 @@ const main = async () => {
         id: result.id,
         passed: result.passed,
         rationale: result.rationale,
+        repositoryControlEvidence: result.repositoryControlEvidence,
+        scenarioEvidence: result.scenarioEvidence,
         skillArtifactEvidence: result.skillArtifactEvidence,
         workspaceChanges: result.workspaceChanges,
       })),
       caseSuiteDigest,
       cli,
+      coverageDigest,
       evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
       evaluatedAt,
       generatedAt: evaluatedAt,
       host: actorHost,
       judgeHost,
       results,
-      schemaVersion: 1,
+      schemaVersion: 2,
       skillDigest: artifactDigest,
     };
     process.stdout.write(`${JSON.stringify(standaloneRecord, null, 2)}\n`);

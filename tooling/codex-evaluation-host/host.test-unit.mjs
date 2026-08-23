@@ -230,6 +230,40 @@ test('sandbox mounts related repositories read-only', () => {
   );
 });
 
+test('sandbox overlays selected workspace paths read-only and rejects unsafe paths', () => {
+  const argumentsList = buildCodexEvaluationBwrapArguments({
+    command: SAFE_HOST_COMMAND,
+    cwd: '/tmp/evaluation',
+    hostExecutable: '/usr/bin/codex',
+    readOnlyWorkspacePaths: ['.git', '.agents/skills/moldea'],
+    sandboxHome: '/tmp/evaluation-home',
+  });
+
+  for (const path of ['.git', '.agents/skills/moldea']) {
+    assert.ok(
+      argumentsList.some(
+        (part, index) =>
+          part === '--ro-bind' &&
+          argumentsList[index + 1] === `/tmp/evaluation/${path}` &&
+          argumentsList[index + 2] === `/mnt/${path}`,
+      ),
+    );
+  }
+  for (const path of ['../outside', '/absolute', '_backup/evidence', 'nested//path']) {
+    assert.throws(
+      () =>
+        buildCodexEvaluationBwrapArguments({
+          command: SAFE_HOST_COMMAND,
+          cwd: '/tmp/evaluation',
+          hostExecutable: '/usr/bin/codex',
+          readOnlyWorkspacePaths: [path],
+          sandboxHome: '/tmp/evaluation-home',
+        }),
+      /Invalid read-only workspace path/,
+    );
+  }
+});
+
 test('sandbox can expose the project-local binary directory and mount the workspace read-only', () => {
   const argumentsList = buildCodexEvaluationBwrapArguments({
     command: SAFE_HOST_COMMAND,

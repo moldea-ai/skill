@@ -16,7 +16,10 @@ import {
   createPortableSkillSemanticDigest,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
+  createSemanticCoverageDigest,
   getSemanticCriterionLabels,
+  hasValidRepositoryControlEvidence,
+  hasValidScenarioEvidence,
   validateSemanticCaseDefinition,
 } from '../tooling/semantic-evaluation/index.mjs';
 
@@ -501,9 +504,7 @@ describe('portable Agent Skill contract', () => {
   });
 
   test('treats Agent Skills as first-class portable artifacts', () => {
-    const evaluateAndReconcile = readRepositoryFile(
-      'moldea/references/evaluate-and-reconcile.md',
-    );
+    const evaluateAndReconcile = readRepositoryFile('moldea/references/evaluate-and-reconcile.md');
     const skillDesign = readRepositoryFile('moldea/references/skill-design.md');
 
     assertMatchesEvery(portableContent, [
@@ -566,9 +567,7 @@ describe('portable Agent Skill contract', () => {
   test('keeps deterministic evidence and adapter claims at their owning boundaries', () => {
     const skillDesign = readRepositoryFile('moldea/references/skill-design.md');
     const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
-    const continuousMaintenance = readRepositoryFile(
-      'moldea/references/continuous-maintenance.md',
-    );
+    const continuousMaintenance = readRepositoryFile('moldea/references/continuous-maintenance.md');
 
     assertMatchesEvery(skill, [
       /deterministic tooling runs after writes/i,
@@ -722,9 +721,7 @@ describe('source repository conformance', () => {
       ...expected,
       ...forbidden,
     ]);
-    const noWriteCriteria = semanticCriteria.filter(
-      ({ label }) => label === 'report-no-writes',
-    );
+    const noWriteCriteria = semanticCriteria.filter(({ label }) => label === 'report-no-writes');
     const initializationCase = cases.semanticCases.find(
       ({ id }) => id === 'initialize-sufficient-context',
     );
@@ -752,9 +749,7 @@ describe('source repository conformance', () => {
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
     );
     const directHandoffCase = semanticCasesById.get('adopted-direct-context-handoff');
-    const explicitCorrectionCase = semanticCasesById.get(
-      'adopted-explicit-context-correction',
-    );
+    const explicitCorrectionCase = semanticCasesById.get('adopted-explicit-context-correction');
     const ambiguousHandoffCase = semanticCasesById.get('adopted-ambiguous-context-handoff');
 
     assert.ok(directHandoffCase);
@@ -841,9 +836,7 @@ describe('source repository conformance', () => {
 
     const skillCreationExpected = getSemanticCriterionLabels(skillCreationCase.expected);
     const skillMaintenanceExpected = getSemanticCriterionLabels(skillMaintenanceCase.expected);
-    const oneAgentPlanningForbidden = getSemanticCriterionLabels(
-      oneAgentPlanningCase.forbidden,
-    );
+    const oneAgentPlanningForbidden = getSemanticCriterionLabels(oneAgentPlanningCase.forbidden);
     const progressiveDisclosureCriterion = skillCreationCase.expected.find(
       ({ label }) => label === 'use-progressive-disclosure',
     );
@@ -872,9 +865,7 @@ describe('source repository conformance', () => {
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
     );
     const adoptionCase = semanticCasesById.get('agent-adoption-inline-runtime-instruction');
-    const dedicatedRepositoryCase = semanticCasesById.get(
-      'dedicated-repository-runtime-selection',
-    );
+    const dedicatedRepositoryCase = semanticCasesById.get('dedicated-repository-runtime-selection');
 
     assert.ok(adoptionCase);
     assert.ok(dedicatedRepositoryCase);
@@ -910,10 +901,15 @@ describe('source repository conformance', () => {
       );
 
       const portableSkillDigest = createPortableSkillDigest();
-      assert.equal(result.schemaVersion, 1);
+      const coverage = JSON.parse(readRepositoryFile('fixtures/semantic-evaluation-coverage.json'));
+      assert.equal(result.schemaVersion, 2);
       assert.equal(result.evaluationProtocolVersion, SEMANTIC_EVALUATION_PROTOCOL_VERSION);
       assert.deepEqual(result.cli, createSemanticCliIdentity(REPOSITORY_ROOT));
       assert.equal(result.caseSuiteDigest, createSemanticCaseSuiteDigest(cases.semanticCases));
+      assert.equal(
+        result.coverageDigest,
+        createSemanticCoverageDigest(coverage, cases.semanticCases),
+      );
       assert.equal(result.artifact.sha256, result.skillDigest);
       assert.equal(result.artifactDigest, result.skillDigest);
       assert.equal(result.artifactSha256, result.skillDigest);
@@ -976,6 +972,15 @@ describe('source repository conformance', () => {
         assert.deepEqual(evaluationCase.forbiddenTriggered, []);
         assert.ok(evaluationCase.rationale.length > 20);
         assert.ok(Array.isArray(evaluationCase.actorExecutionEvidence));
+        assert.equal(
+          hasValidScenarioEvidence(evaluationCase.scenarioEvidence, conformanceCase),
+          true,
+        );
+        assert.equal(
+          hasValidRepositoryControlEvidence(evaluationCase.repositoryControlEvidence),
+          true,
+        );
+        assert.deepEqual(evaluationCase.repositoryControlEvidence.violations, []);
 
         const configuredArtifacts = conformanceCase.skillEvidence?.artifacts ?? [];
         assert.equal(evaluationCase.skillArtifactEvidence.length, configuredArtifacts.length);
@@ -1286,9 +1291,10 @@ describe('source repository conformance', () => {
       /only after every required case passes/,
       /Missing or failing evidence never replaces the committed result/,
       /hashes and bounded text content for repository-visible changes/,
-      /bounded post-execution source or copy directories/,
+      /pre-actor sourced evidence/,
+      /bounded workspace changes/,
       /independent structural and resource-link evidence/,
-      /do not rely on opaque label interpretation, the actor's report alone, or leaked answer criteria/,
+      /do not rely on opaque labels, the actor's report alone, or leaked answer criteria/,
       /Codex JSONL events/,
       /bounded command and tool-call events/,
       /final response cannot create or replace that evidence/,

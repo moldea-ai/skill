@@ -45,6 +45,9 @@ const AMBIGUOUS_CONTEXT_CASE_DEFINITION = SEMANTIC_CASES.find(
 const EXPLICIT_CONTEXT_CORRECTION_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'adopted-explicit-context-correction',
 );
+const PNPM_PNP_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'pnpm-pnp-local-cli-provider',
+);
 
 test('actor repository materializes host instructions before the clean baseline', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-instructions-test-'));
@@ -152,9 +155,7 @@ test('Yarn conflict scenario exposes read-only provider evidence and traps invoc
       cwd: repositoryPath,
       encoding: 'utf8',
     });
-    const packageManifest = JSON.parse(
-      readFileSync(join(repositoryPath, 'package.json'), 'utf8'),
-    );
+    const packageManifest = JSON.parse(readFileSync(join(repositoryPath, 'package.json'), 'utf8'));
     const cliManifest = JSON.parse(
       readFileSync(
         join(repositoryPath, 'node_modules', '@moldea.ai', 'cli', 'package.json'),
@@ -261,10 +262,7 @@ test('Yarn conflict scenario exposes read-only provider evidence and traps invoc
 
     assert.equal(forbiddenResult.status, 2);
     assert.match(forbiddenResult.stderr, /must not be invoked/);
-    assert.equal(
-      readFileSync(sentinelPath, 'utf8'),
-      'yarn exec moldea validate --json\n',
-    );
+    assert.equal(readFileSync(sentinelPath, 'utf8'), 'yarn exec moldea validate --json\n');
 
     rmSync(sentinelPath);
     const forbiddenResolutionResult = runProbe(['bin', 'moldea']);
@@ -286,6 +284,65 @@ test('Yarn conflict scenario exposes read-only provider evidence and traps invoc
     assert.equal(directInvocationResult.status, 2);
     assert.match(directInvocationResult.stderr, /must not be invoked/);
     assert.equal(readFileSync(sentinelPath, 'utf8'), 'direct moldea --version\n');
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('pnpm PnP scenario resolves and executes the exact local CLI provider', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-pnpm-pnp-test-'));
+  assert.ok(PNPM_PNP_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      PNPM_PNP_CASE_DEFINITION,
+    );
+    const sandboxHome = join(evaluationRoot, 'actor-home');
+    const actorToolDirectory = join(evaluationRoot, 'actor-tools');
+    const actorToolMounts = await prepareSemanticEvaluationHome(
+      sandboxHome,
+      PNPM_PNP_CASE_DEFINITION,
+      actorToolDirectory,
+    );
+    const packageManifest = JSON.parse(readFileSync(join(repositoryPath, 'package.json'), 'utf8'));
+    const pnpCliManifest = JSON.parse(
+      readFileSync(
+        join(repositoryPath, '.pnp', 'node_modules', '@moldea.ai', 'cli', 'package.json'),
+        'utf8',
+      ),
+    );
+    const pnpResolutionProbe = [
+      'const pnpapi = require("pnpapi");',
+      'const root = pnpapi.resolveToUnqualified("@moldea.ai/cli", "/mnt/package.json");',
+      'const manifest = require(root + "/package.json");',
+      `if (manifest.version !== ${JSON.stringify(RELEASE_CLI_VERSION)}) process.exit(10);`,
+    ].join(' ');
+    const result = spawnSync(
+      'bwrap',
+      buildCodexEvaluationBwrapArguments({
+        command: [
+          'codex',
+          '-c',
+          [
+            `pnpm node --eval ${JSON.stringify(pnpResolutionProbe)}`,
+            'pnpm node .pnp/node_modules/@moldea.ai/cli/dist/moldea.js --version',
+          ].join(' && '),
+        ],
+        cwd: repositoryPath,
+        hostExecutable: realpathSync('/bin/sh'),
+        nodeExecutable: process.execPath,
+        readOnlyMounts: actorToolMounts,
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 2_000 },
+    );
+
+    assert.equal(packageManifest.packageManager, 'pnpm@11.21.0');
+    assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': RELEASE_CLI_VERSION });
+    assert.equal(pnpCliManifest.version, RELEASE_CLI_VERSION);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), RELEASE_CLI_VERSION);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }
@@ -501,7 +558,7 @@ test('semantic candidate checkpoints are atomically replaceable', async () => {
   const initialCandidate = {
     artifactDigest: 'a'.repeat(64),
     results: [],
-    schemaVersion: 1,
+    schemaVersion: 2,
   };
   const updatedCandidate = {
     ...initialCandidate,

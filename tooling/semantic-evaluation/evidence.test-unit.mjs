@@ -15,7 +15,17 @@ const createCaseDefinition = (id) => ({
   expected: [{ criterion: 'The response performs the expected behavior.', label: 'expected' }],
   forbidden: [{ criterion: 'The response performs forbidden behavior.', label: 'forbidden' }],
   id,
-  prompt: 'Perform the requested operation.',
+  input: {
+    developerDirection: 'Perform the requested operation.',
+    repositoryEvidence: [
+      {
+        claim: 'The developer requested the operation.',
+        source: { kind: 'developer-direction' },
+      },
+    ],
+  },
+  operation: 'perform-operation',
+  scenario: 'An adopted repository needs one operation.',
 });
 
 describe('semantic evaluation evidence', () => {
@@ -54,6 +64,19 @@ describe('semantic evaluation evidence', () => {
     const caseDefinition = {
       ...createCaseDefinition('case-one'),
       hostInstructions: '# Repository instructions\n\nKeep planning read-only.\n',
+      input: {
+        developerDirection: 'Perform the requested operation.',
+        repositoryEvidence: [
+          {
+            claim: 'The developer requested the operation.',
+            source: { kind: 'developer-direction' },
+          },
+          {
+            claim: 'Repository instructions require read-only planning.',
+            source: { kind: 'host-instructions' },
+          },
+        ],
+      },
     };
 
     assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
@@ -68,6 +91,58 @@ describe('semantic evaluation evidence', () => {
         /invalid host instructions/,
       );
     }
+  });
+
+  test('rejects legacy prompts and unsourced or unsafe evidence', () => {
+    const caseDefinition = createCaseDefinition('case-one');
+
+    assert.throws(
+      () => validateSemanticCaseDefinition({ ...caseDefinition, prompt: 'Legacy prompt.' }),
+      /structured scenario/,
+    );
+    assert.throws(
+      () => validateSemanticCaseDefinition({ ...caseDefinition, unexpected: true }),
+      /structured scenario/,
+    );
+    assert.throws(
+      () =>
+        validateSemanticCaseDefinition({
+          ...caseDefinition,
+          hostInstructions: '# Repository instructions',
+        }),
+      /source every applicable host instruction/,
+    );
+    assert.throws(
+      () =>
+        validateSemanticCaseDefinition({
+          ...caseDefinition,
+          input: {
+            ...caseDefinition.input,
+            repositoryEvidence: ['Unsourced claim.'],
+          },
+        }),
+      /structured scenario/,
+    );
+    assert.throws(
+      () =>
+        validateSemanticCaseDefinition({
+          ...caseDefinition,
+          input: {
+            ...caseDefinition.input,
+            repositoryEvidence: [
+              {
+                claim: 'An unsafe path exists.',
+                source: {
+                  expectedType: 'file',
+                  kind: 'workspace-path',
+                  path: '../outside',
+                },
+              },
+            ],
+          },
+        }),
+      /structured scenario/,
+    );
   });
 
   test('validates release-only semantic evidence carry-forward', () => {

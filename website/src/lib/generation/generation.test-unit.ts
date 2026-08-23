@@ -46,6 +46,8 @@ vi.mock('../semantic-evaluation/index.ts', () => {
         packageLockSha256: 'c'.repeat(64),
         version: '4.0.0',
       },
+      coverageDigest: 'd'.repeat(64),
+      coverageUrl: 'https://example.com/semantic-coverage.json',
       evaluatedAt: '2026-08-22T12:00:00.000Z',
       groups: [
         {
@@ -55,6 +57,7 @@ vi.mock('../semantic-evaluation/index.ts', () => {
           title: 'Adoption and initialization',
         },
       ],
+      methodologyUrl: '/docs/semantic-evaluation/',
       rawResultUrl: 'https://example.com/semantic-result.json',
       route: '/evidence/semantic/',
     })),

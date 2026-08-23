@@ -23,6 +23,9 @@ import {
   createPortableSkillDigest,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
+  createSemanticCoverageDigest,
+  hasValidRepositoryControlEvidence,
+  hasValidScenarioEvidence,
   hasValidPortableSkillSemanticCarryForward,
 } from '../semantic-evaluation/index.mjs';
 import {
@@ -266,7 +269,26 @@ const inspectSemanticEvidence = (repositoryRoot) => {
   const semanticCases = conformanceCases.semanticCases ?? [];
   const expectedCaseSuiteDigest = createSemanticCaseSuiteDigest(semanticCases);
   const expectedSkillDigest = createPortableSkillDigest(repositoryRoot);
+  const semanticCoveragePath = join(repositoryRoot, RELEASE_PATHS.semanticCoverage);
+  let expectedCoverageDigest = null;
+  if (!existsSync(semanticCoveragePath)) {
+    issues.push(`${RELEASE_PATHS.semanticCoverage} is missing.`);
+  } else {
+    try {
+      expectedCoverageDigest = createSemanticCoverageDigest(
+        readJson(semanticCoveragePath),
+        semanticCases,
+      );
+    } catch (error) {
+      issues.push(
+        `${RELEASE_PATHS.semanticCoverage} is invalid: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
 
+  if (semanticResult.schemaVersion !== 2) {
+    issues.push(`${RELEASE_PATHS.semanticResult} does not use semantic result schema 2.`);
+  }
   if (semanticResult.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION) {
     issues.push(
       `${RELEASE_PATHS.semanticResult} does not use semantic protocol ${SEMANTIC_EVALUATION_PROTOCOL_VERSION}.`,
@@ -297,16 +319,31 @@ const inspectSemanticEvidence = (repositoryRoot) => {
   if (semanticResult.caseSuiteDigest !== expectedCaseSuiteDigest) {
     issues.push(`${RELEASE_PATHS.semanticResult} does not match the current semantic case suite.`);
   }
+  if (expectedCoverageDigest === null || semanticResult.coverageDigest !== expectedCoverageDigest) {
+    issues.push(`${RELEASE_PATHS.semanticResult} does not match the semantic coverage contract.`);
+  }
 
   const results = Array.isArray(semanticResult.results) ? semanticResult.results : [];
   const resultsById = new Map(results.map((result) => [result.id, result]));
+  const publicCases = Array.isArray(semanticResult.cases) ? semanticResult.cases : [];
+  const publicCasesById = new Map(publicCases.map((result) => [result.id, result]));
   const hasCompletePassingCases =
     results.length === semanticCases.length &&
+    publicCases.length === semanticCases.length &&
     semanticCases.every((caseDefinition) => {
       const result = resultsById.get(caseDefinition.id);
+      const publicCase = publicCasesById.get(caseDefinition.id);
       return (
         result?.passed === true &&
-        result.caseDefinitionDigest === createSemanticCaseDefinitionDigest(caseDefinition)
+        result.caseDefinitionDigest === createSemanticCaseDefinitionDigest(caseDefinition) &&
+        hasValidScenarioEvidence(result.scenarioEvidence, caseDefinition) &&
+        hasValidRepositoryControlEvidence(result.repositoryControlEvidence) &&
+        result.repositoryControlEvidence.violations.length === 0 &&
+        publicCase?.passed === true &&
+        publicCase.caseDefinitionDigest === result.caseDefinitionDigest &&
+        JSON.stringify(publicCase.scenarioEvidence) === JSON.stringify(result.scenarioEvidence) &&
+        JSON.stringify(publicCase.repositoryControlEvidence) ===
+          JSON.stringify(result.repositoryControlEvidence)
       );
     });
 

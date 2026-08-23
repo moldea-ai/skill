@@ -14,6 +14,7 @@
     "docs:check": "npm --prefix website run docs:check",
     "docs:generate": "npm --prefix website run docs:generate",
     "eval:semantic": "node tests/semantic-evaluation-runner.mjs",
+    "eval:semantic:preflight": "node tests/semantic-evaluation-runner.mjs --preflight",
     "qualification": "npm --prefix qualification run qualification --",
     "qualification:dry-run": "npm --prefix qualification run qualification -- run --adapter custom --implementation custom --dry-run --json",
     "qualification:format:check": "npm --prefix qualification run format:check",

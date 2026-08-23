@@ -1,5 +1,6 @@
 // canonical public route for semantic evidence
 export const SEMANTIC_EVALUATION_ROUTE = '/evidence/semantic/';
+export const SEMANTIC_EVALUATION_METHODOLOGY_ROUTE = '/docs/semantic-evaluation/';
 
 // readable group labels shown before individual case evidence
 export const SEMANTIC_EVALUATION_GROUPS = {

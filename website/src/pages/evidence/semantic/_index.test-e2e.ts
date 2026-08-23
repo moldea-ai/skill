@@ -12,6 +12,14 @@ test('explains every passing semantic scenario through keyboard-accessible discl
 
   await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
   await expect(page.getByText('47/47 scenarios')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Read the methodology' })).toHaveAttribute(
+    'href',
+    toPublicPath('/docs/semantic-evaluation/'),
+  );
+  await expect(page.getByRole('link', { name: 'Inspect coverage map' })).toHaveAttribute(
+    'href',
+    /semantic-evaluation-coverage\.json$/u,
+  );
   const firstScenario = page.locator('main details').first();
   const summary = firstScenario.locator('summary');
   await summary.focus();

@@ -1,6 +1,6 @@
 // package and protocol identities owned by the current release workflow
 export const CLI_PACKAGE_NAME = '@moldea.ai/cli';
-export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 11;
+export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 12;
 export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 3;
 
 // release files that must carry the exact CLI version
@@ -24,6 +24,7 @@ export const CLI_JSON_SCHEMA_VERSION_TEXT_PATHS = [
 export const RELEASE_PATHS = Object.freeze({
   conformanceWorkflow: '.github/workflows/conformance.yml',
   conformanceCases: 'fixtures/conformance-cases.json',
+  semanticCoverage: 'fixtures/semantic-evaluation-coverage.json',
   gettingStarted: 'docs/getting-started.md',
   packageLock: 'package-lock.json',
   packageManifest: 'package.json',

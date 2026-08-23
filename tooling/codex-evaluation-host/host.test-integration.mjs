@@ -191,6 +191,43 @@ test('Bubblewrap exposes related repositories without write authority', () => {
   }
 });
 
+test('Bubblewrap keeps the workspace writable except for evaluator-owned control paths', () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-control-overlay-test-'));
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  mkdirSync(join(repositoryPath, '.git'), { recursive: true });
+  mkdirSync(join(repositoryPath, '.agents', 'skills', 'moldea'), { recursive: true });
+  mkdirSync(sandboxHome);
+  writeFileSync(join(repositoryPath, '.git', 'config'), 'protected');
+  writeFileSync(join(repositoryPath, '.agents', 'skills', 'moldea', 'SKILL.md'), 'protected');
+  writeFileSync(join(repositoryPath, 'editable.txt'), 'before');
+
+  const probe = `
+    printf 'after' > editable.txt
+    if printf 'unexpected' > .git/config 2>/dev/null; then exit 10; fi
+    if printf 'unexpected' > .agents/skills/moldea/SKILL.md 2>/dev/null; then exit 11; fi
+    test "$(cat editable.txt)" = "after"
+  `;
+
+  try {
+    const result = spawnSync(
+      'bwrap',
+      buildCodexEvaluationBwrapArguments({
+        command: ['codex', '-c', probe],
+        cwd: repositoryPath,
+        hostExecutable: realpathSync('/bin/sh'),
+        nodeExecutable: process.execPath,
+        readOnlyWorkspacePaths: ['.git', '.agents/skills/moldea'],
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 2_000 },
+    );
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
 test('Bubblewrap can mount the primary evaluation workspace read-only for judges', () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-read-only-judge-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');

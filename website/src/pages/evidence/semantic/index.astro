@@ -1,5 +1,5 @@
 ---
-import { ExternalLink } from '@lucide/astro';
+import { BookOpen, ExternalLink } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 
@@ -47,12 +47,36 @@ let caseNumber = 0;
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
           class="font-bold"
+          href={semanticEvaluation.methodologyUrl}
+          variant="primary"
+        >
+          Read the methodology
+          <BookOpen
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+        <ActionLink
+          class="font-bold"
           href={semanticEvaluation.rawResultUrl}
           target="_blank"
           rel="noopener noreferrer"
           variant="outline"
         >
           Inspect raw result
+          <ExternalLink
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+        <ActionLink
+          class="font-bold"
+          href={semanticEvaluation.coverageUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="outline"
+        >
+          Inspect coverage map
           <ExternalLink
             class="size-4"
             aria-hidden="true"
@@ -147,6 +171,12 @@ let caseNumber = 0;
             <dt class="text-muted-foreground">Case suite digest</dt>
             <dd class="mt-1 font-mono text-xs break-all">
               {semanticEvaluation.caseSuiteDigest}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Coverage digest</dt>
+            <dd class="mt-1 font-mono text-xs break-all">
+              {semanticEvaluation.coverageDigest}
             </dd>
           </div>
         </dl>

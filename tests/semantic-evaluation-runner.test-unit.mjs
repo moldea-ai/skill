@@ -40,7 +40,17 @@ const CASE_DEFINITION = {
   expected: [EXPECTED_CRITERION],
   forbidden: [FORBIDDEN_CRITERION],
   id: 'blind-evaluation',
-  prompt: 'Evaluate this repository without changing it.',
+  input: {
+    developerDirection: 'Evaluate this repository without changing it.',
+    repositoryEvidence: [
+      {
+        claim: 'The developer requested a read-only repository evaluation.',
+        source: { kind: 'developer-direction' },
+      },
+    ],
+  },
+  operation: 'evaluate-repository',
+  scenario: 'An adopted repository needs a read-only evaluation.',
 };
 const SECOND_CASE_DEFINITION = {
   expected: [
@@ -56,13 +66,31 @@ const SECOND_CASE_DEFINITION = {
     },
   ],
   id: 'second-evaluation',
-  prompt: 'Evaluate a second repository scenario without changing it.',
+  input: {
+    developerDirection: 'Evaluate a second repository scenario without changing it.',
+    repositoryEvidence: [
+      {
+        claim: 'The developer requested a second read-only evaluation.',
+        source: { kind: 'developer-direction' },
+      },
+    ],
+  },
+  operation: 'evaluate-repository',
+  scenario: 'A second adopted repository needs a read-only evaluation.',
 };
 const SKILL_CASE_DEFINITION = {
   expected: [EXPECTED_CRITERION],
   forbidden: [FORBIDDEN_CRITERION],
   id: 'skill-evaluation',
-  input: { developerDirection: 'Create a release-review skill.' },
+  input: {
+    developerDirection: 'Create a release-review skill.',
+    repositoryEvidence: [
+      {
+        claim: 'The developer requested a release-review skill.',
+        source: { kind: 'developer-direction' },
+      },
+    ],
+  },
   operation: 'create-agent-skill',
   scenario: 'A repository needs a reusable release-review workflow.',
   skillEvidence: {
@@ -79,6 +107,16 @@ const HOST_CASE_DEFINITION = {
   ...SKILL_CASE_DEFINITION,
   hostInstructions: HOST_INSTRUCTIONS,
   id: 'host-plan-command',
+  input: {
+    developerDirection: SKILL_CASE_DEFINITION.input.developerDirection,
+    repositoryEvidence: [
+      ...SKILL_CASE_DEFINITION.input.repositoryEvidence,
+      {
+        claim: 'Repository coding instructions require a read-only planning response.',
+        source: { kind: 'host-instructions' },
+      },
+    ],
+  },
 };
 const ACTOR_HOST = {
   model: 'gpt-5.6-terra',
@@ -93,6 +131,7 @@ const JUDGE_HOST = {
   version: '1.2.3',
 };
 const ARTIFACT_DIGEST = 'a'.repeat(64);
+const COVERAGE_DIGEST = 'e'.repeat(64);
 const CLI_IDENTITY = {
   integrity: `sha512-${'a'.repeat(86)}`,
   jsonSchemaVersion: 2,
@@ -127,6 +166,39 @@ const AFTER_SNAPSHOT_STATE = {
   sha256: 'c'.repeat(64),
   type: 'file',
 };
+const REPOSITORY_CONTROL_STATE = {
+  gitDigest: '1'.repeat(64),
+  head: { commit: '2'.repeat(40), symbolicRef: 'refs/heads/main' },
+  indexDigest: '3'.repeat(64),
+  installedSkillDigest: '4'.repeat(64),
+  localConfigDigest: '5'.repeat(64),
+  refs: [],
+};
+
+const createScenarioEvidence = (caseDefinition) =>
+  caseDefinition.input.repositoryEvidence.map(({ claim, source }) => {
+    if (source.kind === 'developer-direction') {
+      return {
+        claim,
+        observation: {
+          content: caseDefinition.input.developerDirection,
+          type: 'developer-direction',
+        },
+        source,
+      };
+    }
+    if (source.kind === 'host-instructions') {
+      return {
+        claim,
+        observation: {
+          content: caseDefinition.hostInstructions,
+          type: 'host-instructions',
+        },
+        source,
+      };
+    }
+    throw new Error(`Unsupported test scenario evidence source: ${source.kind}`);
+  });
 
 const createCaseResult = (caseDefinition, passed) => ({
   actorExecutionEvidence: [],
@@ -137,6 +209,12 @@ const createCaseResult = (caseDefinition, passed) => ({
   observed: passed ? getSemanticCriterionLabels(caseDefinition.expected) : [],
   passed,
   rationale: passed ? 'The expected behavior was demonstrated.' : 'Expected evidence was missing.',
+  repositoryControlEvidence: {
+    after: REPOSITORY_CONTROL_STATE,
+    before: REPOSITORY_CONTROL_STATE,
+    violations: [],
+  },
+  scenarioEvidence: createScenarioEvidence(caseDefinition),
   skillArtifactEvidence: [],
   workspaceChanges: {
     created: [],
@@ -154,7 +232,7 @@ const createCaseResult = (caseDefinition, passed) => ({
 test('actor prompt contains only the user scenario', () => {
   const actorPrompt = buildActorPrompt(CASE_DEFINITION);
 
-  assert.equal(actorPrompt, CASE_DEFINITION.prompt);
+  assert.equal(actorPrompt, CASE_DEFINITION.input.developerDirection);
   assert.doesNotMatch(actorPrompt, /expected-secret-label|forbidden-secret-label/);
   assert.doesNotMatch(actorPrompt, /expected secret behavior|forbidden secret behavior/);
 });
@@ -162,12 +240,14 @@ test('actor prompt contains only the user scenario', () => {
 test('structured actor prompt excludes evaluation criteria', () => {
   const actorPrompt = buildActorPrompt(HOST_CASE_DEFINITION);
 
-  assert.match(actorPrompt, /Requested operation: create-agent-skill/);
-  assert.match(actorPrompt, /Create a release-review skill/);
+  assert.equal(actorPrompt, HOST_CASE_DEFINITION.input.developerDirection);
   assert.doesNotMatch(actorPrompt, /expected-secret-label|forbidden-secret-label/);
   assert.doesNotMatch(actorPrompt, /expected secret behavior|forbidden secret behavior/);
   assert.doesNotMatch(actorPrompt, /Review this release|shouldActivate|authoritative-source/);
-  assert.doesNotMatch(actorPrompt, /Evaluation coding instructions|no repository files were changed/);
+  assert.doesNotMatch(
+    actorPrompt,
+    /Evaluation coding instructions|no repository files were changed/,
+  );
 });
 
 test('semantic host command enables runner-owned JSONL events exactly once', () => {
@@ -242,10 +322,7 @@ test('semantic host output does not derive execution evidence from the final res
     actorExecutionEvidence: [],
     response: 'I ran yarn bin -v --json and it succeeded.',
   });
-  assert.throws(
-    () => parseSemanticEvaluationHostOutput('{not-json}\n'),
-    /malformed JSONL output/,
-  );
+  assert.throws(() => parseSemanticEvaluationHostOutput('{not-json}\n'), /malformed JSONL output/);
   assert.throws(
     () =>
       parseSemanticEvaluationHostOutput(
@@ -345,6 +422,12 @@ test('judge prompt receives criteria after actor execution', () => {
         },
       },
     ],
+    createScenarioEvidence(HOST_CASE_DEFINITION),
+    {
+      after: REPOSITORY_CONTROL_STATE,
+      before: REPOSITORY_CONTROL_STATE,
+      violations: [],
+    },
   );
 
   assert.match(judgePrompt, /expected-secret-label/);
@@ -362,7 +445,7 @@ test('judge prompt receives criteria after actor execution', () => {
   assert.match(judgePrompt, /final response alone is insufficient/);
   assert.match(judgePrompt, /Evaluator-only activation scenarios/);
   assert.match(judgePrompt, /Review this release/);
-  assert.match(judgePrompt, /Applicable host coding instructions/);
+  assert.match(judgePrompt, /Independently collected pre-actor scenario evidence/);
   assert.match(judgePrompt, /no repository files were changed/);
 });
 
@@ -575,6 +658,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
     artifactDigest: ARTIFACT_DIGEST,
     caseDefinitions,
     cli: CLI_IDENTITY,
+    coverageDigest: COVERAGE_DIGEST,
     generatedAt: EVALUATED_AT,
     judgeHost: JUDGE_HOST,
   });
@@ -593,6 +677,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
       artifactDigest: ARTIFACT_DIGEST,
       caseDefinitions,
       cli: CLI_IDENTITY,
+      coverageDigest: COVERAGE_DIGEST,
       judgeHost: JUDGE_HOST,
     }),
   );
@@ -605,6 +690,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
           artifactDigest: ARTIFACT_DIGEST,
           caseDefinitions,
           cli: CLI_IDENTITY,
+          coverageDigest: COVERAGE_DIGEST,
           judgeHost: JUDGE_HOST,
         },
       ),
@@ -617,6 +703,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
         artifactDigest: 'b'.repeat(64),
         caseDefinitions,
         cli: CLI_IDENTITY,
+        coverageDigest: COVERAGE_DIGEST,
         judgeHost: JUDGE_HOST,
       }),
     /different portable artifact/,
@@ -627,10 +714,17 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
         actorHost: ACTOR_HOST,
         artifactDigest: ARTIFACT_DIGEST,
         caseDefinitions: [
-          { ...CASE_DEFINITION, prompt: 'Changed evaluation prompt.' },
+          {
+            ...CASE_DEFINITION,
+            input: {
+              ...CASE_DEFINITION.input,
+              developerDirection: 'Evaluate the changed repository without modifying it.',
+            },
+          },
           SECOND_CASE_DEFINITION,
         ],
         cli: CLI_IDENTITY,
+        coverageDigest: COVERAGE_DIGEST,
         judgeHost: JUDGE_HOST,
       }),
     /different case suite/,
@@ -659,6 +753,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
           SECOND_CASE_DEFINITION,
         ],
         cli: CLI_IDENTITY,
+        coverageDigest: COVERAGE_DIGEST,
         judgeHost: JUDGE_HOST,
       }),
     /different case suite/,
@@ -670,6 +765,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
         artifactDigest: ARTIFACT_DIGEST,
         caseDefinitions,
         cli: { ...CLI_IDENTITY, version: '3.3.8' },
+        coverageDigest: COVERAGE_DIGEST,
         judgeHost: JUDGE_HOST,
       }),
     /different release CLI/,
@@ -681,6 +777,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
         artifactDigest: ARTIFACT_DIGEST,
         caseDefinitions,
         cli: CLI_IDENTITY,
+        coverageDigest: COVERAGE_DIGEST,
         judgeHost: JUDGE_HOST,
       }),
     /different actor or judge hosts/,
@@ -692,6 +789,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
         artifactDigest: ARTIFACT_DIGEST,
         caseDefinitions,
         cli: CLI_IDENTITY,
+        coverageDigest: COVERAGE_DIGEST,
         judgeHost: { ...JUDGE_HOST, reasoningEffort: 'high' },
       }),
     /different actor or judge hosts/,
@@ -705,6 +803,7 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
     artifactDigest: ARTIFACT_DIGEST,
     caseDefinitions,
     cli: CLI_IDENTITY,
+    coverageDigest: COVERAGE_DIGEST,
     generatedAt: EVALUATED_AT,
     judgeHost: JUDGE_HOST,
   });
@@ -745,7 +844,9 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
     caseDefinitions,
     generatedAt: '2026-08-16T12:02:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 11);
+  assert.equal(record.evaluationProtocolVersion, 12);
+  assert.equal(record.schemaVersion, 2);
+  assert.equal(record.coverageDigest, COVERAGE_DIGEST);
   assert.deepEqual(record.cli, CLI_IDENTITY);
   assert.equal(record.caseSuiteDigest, createSemanticCaseSuiteDigest(caseDefinitions));
   assert.deepEqual(
@@ -796,6 +897,7 @@ test('semantic candidates accept explicitly truncated skill artifact evidence', 
       artifactDigest: ARTIFACT_DIGEST,
       caseDefinitions,
       cli: CLI_IDENTITY,
+      coverageDigest: COVERAGE_DIGEST,
       generatedAt: EVALUATED_AT,
       judgeHost: JUDGE_HOST,
     }),
@@ -841,6 +943,7 @@ test('semantic candidate validation rejects internally inconsistent evidence', (
       artifactDigest: ARTIFACT_DIGEST,
       caseDefinitions,
       cli: CLI_IDENTITY,
+      coverageDigest: COVERAGE_DIGEST,
       generatedAt: EVALUATED_AT,
       judgeHost: JUDGE_HOST,
     }),

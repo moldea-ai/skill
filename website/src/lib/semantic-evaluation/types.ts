@@ -1,27 +1,17 @@
 import type { ISemanticCliIdentity } from '../../../../tooling/release-identity/identity.mjs';
+import type {
+  ISemanticCaseDefinition as ISemanticCaseContract,
+  ISemanticCriterion as ISemanticCriterionContract,
+} from '../../../../tooling/semantic-evaluation/index.mjs';
 
 import type { SEMANTIC_CASE_PRESENTATION, SEMANTIC_EVALUATION_GROUPS } from './constants.ts';
 
 export type ISemanticEvaluationGroupId = keyof typeof SEMANTIC_EVALUATION_GROUPS;
 export type ISemanticEvaluationCaseId = keyof typeof SEMANTIC_CASE_PRESENTATION;
 
-// one criterion declared in the repository-owned semantic case suite
-export interface ISemanticCriterion {
-  criterion: string;
-  label: string;
-}
-
-// public case definition fields used to explain the evaluated scenario
-export interface ISemanticCaseDefinition {
-  expected: ISemanticCriterion[];
-  forbidden: ISemanticCriterion[];
-  id: string;
-  input?: Record<string, unknown>;
-  operation?: string;
-  prompt?: string;
-  scenario?: string;
-  [key: string]: unknown;
-}
+// semantic contracts consumed directly from the repository-owned evaluator
+export type ISemanticCriterion = ISemanticCriterionContract;
+export type ISemanticCaseDefinition = ISemanticCaseContract;
 
 // validated result fields safe to expose without actor transcripts or workspace contents
 export interface ISemanticEvaluationCaseModel {
@@ -49,8 +39,11 @@ export interface ISemanticEvaluationWebsiteModel {
   caseCount: number;
   caseSuiteDigest: string;
   cli: ISemanticCliIdentity;
+  coverageDigest: string;
+  coverageUrl: string;
   evaluatedAt: string;
   groups: ISemanticEvaluationGroupModel[];
+  methodologyUrl: string;
   rawResultUrl: string;
   route: string;
 }

@@ -5,7 +5,10 @@ import {
   createPortableSkillDigest,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
+  createSemanticCoverageDigest,
   getSemanticCriterionLabels,
+  hasValidRepositoryControlEvidence,
+  hasValidScenarioEvidence,
   hasValidPortableSkillSemanticCarryForward,
   validateSemanticCaseDefinition,
 } from '../../../../tooling/semantic-evaluation/index.mjs';
@@ -17,6 +20,7 @@ import { RAW_SOURCE_REPOSITORY_URL } from '../model/constants.ts';
 import {
   SEMANTIC_CASE_PRESENTATION,
   SEMANTIC_EVALUATION_GROUPS,
+  SEMANTIC_EVALUATION_METHODOLOGY_ROUTE,
   SEMANTIC_EVALUATION_ROUTE,
 } from './constants.ts';
 import type {
@@ -30,6 +34,7 @@ import { SemanticEvaluationResultSchema, type ISemanticEvaluationResult } from '
 
 const SEMANTIC_RESULT_PATH = 'fixtures/semantic-evaluation-result.json';
 const CONFORMANCE_CASES_PATH = 'fixtures/conformance-cases.json';
+const SEMANTIC_COVERAGE_PATH = 'fixtures/semantic-evaluation-coverage.json';
 
 const readJson = (path: string): unknown => {
   try {
@@ -60,6 +65,7 @@ const loadCaseDefinitions = (repositoryRoot: string): ISemanticCaseDefinition[] 
 const assertExactIdentity = (
   result: ISemanticEvaluationResult,
   caseDefinitions: ISemanticCaseDefinition[],
+  coverage: unknown,
   repositoryRoot: string,
 ): void => {
   const artifactDigest = createPortableSkillDigest(repositoryRoot);
@@ -86,6 +92,9 @@ const assertExactIdentity = (
   }
   if (result.caseSuiteDigest !== createSemanticCaseSuiteDigest(caseDefinitions)) {
     throw new Error('Semantic evidence does not match the current case suite.');
+  }
+  if (result.coverageDigest !== createSemanticCoverageDigest(coverage, caseDefinitions)) {
+    throw new Error('Semantic evidence does not match the current coverage contract.');
   }
   if (
     result.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
@@ -147,6 +156,12 @@ const assertCompletePassingCases = (
         JSON.stringify([...expectedLabels].sort()) ||
       caseResult.forbiddenTriggered.length > 0 ||
       rawResult.forbidden.length > 0 ||
+      !hasValidScenarioEvidence(rawResult.scenarioEvidence, caseDefinition) ||
+      !hasValidRepositoryControlEvidence(rawResult.repositoryControlEvidence) ||
+      rawResult.repositoryControlEvidence.violations.length > 0 ||
+      JSON.stringify(caseResult.scenarioEvidence) !== JSON.stringify(rawResult.scenarioEvidence) ||
+      JSON.stringify(caseResult.repositoryControlEvidence) !==
+        JSON.stringify(rawResult.repositoryControlEvidence) ||
       caseResult.evaluatedAt !== rawResult.evaluatedAt ||
       caseResult.rationale !== rawResult.rationale
     ) {
@@ -167,9 +182,8 @@ const createCaseModel = (
     throw new Error(`Semantic case ${id} has no public presentation model.`);
   }
 
-  const operation = caseDefinition.operation?.trim();
-  const scenario = caseDefinition.scenario ?? caseDefinition.prompt;
-  if (scenario === undefined) throw new Error(`Semantic case ${id} has no readable scenario.`);
+  const operation = caseDefinition.operation.trim();
+  const scenario = caseDefinition.scenario;
 
   return {
     evaluatedAt: caseResult.evaluatedAt,
@@ -194,7 +208,8 @@ export const loadSemanticEvaluationWebsiteModel = (
 
   const result = SemanticEvaluationResultSchema.parse(readJson(resultPath));
   const caseDefinitions = loadCaseDefinitions(repositoryRoot);
-  assertExactIdentity(result, caseDefinitions, repositoryRoot);
+  const coverage = readJson(join(repositoryRoot, SEMANTIC_COVERAGE_PATH));
+  assertExactIdentity(result, caseDefinitions, coverage, repositoryRoot);
   assertCompletePassingCases(result, caseDefinitions);
   const cases = caseDefinitions.map((caseDefinition) => createCaseModel(caseDefinition, result));
   const groups = (
@@ -217,8 +232,11 @@ export const loadSemanticEvaluationWebsiteModel = (
     caseCount: cases.length,
     caseSuiteDigest: result.caseSuiteDigest,
     cli: result.cli,
+    coverageDigest: result.coverageDigest,
+    coverageUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${SEMANTIC_COVERAGE_PATH}`,
     evaluatedAt: result.evaluatedAt,
     groups,
+    methodologyUrl: SEMANTIC_EVALUATION_METHODOLOGY_ROUTE,
     rawResultUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${SEMANTIC_RESULT_PATH}`,
     route: SEMANTIC_EVALUATION_ROUTE,
   };

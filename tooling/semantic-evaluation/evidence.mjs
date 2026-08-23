@@ -4,6 +4,18 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const DEFAULT_REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
+const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+const GIT_STATE_FACTS = new Set([
+  'head-exists',
+  'head-missing',
+  'working-tree-clean',
+  'working-tree-dirty',
+  'has-staged-changes',
+  'has-unstaged-changes',
+  'has-untracked-paths',
+  'has-renamed-paths',
+  'has-deleted-paths',
+]);
 const STABLE_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SEMANTIC_CRITERION_KEYS = new Set(['criterion', 'label']);
 // maximum evaluator-authored host instruction context for one isolated case
@@ -12,9 +24,83 @@ const PORTABLE_RELEASE_VERSION_PLACEHOLDER = '<portable-release-version>';
 const PORTABLE_RELEASE_VERSION_PATHS = new Set(['SKILL.md', 'references/local-tooling.md']);
 const PORTABLE_RELEASE_CARRY_FORWARD_REASON =
   'Release-version declarations changed without changing semantic skill content.';
+const SEMANTIC_CASE_KEYS = new Set([
+  'expected',
+  'forbidden',
+  'hostInstructions',
+  'id',
+  'input',
+  'operation',
+  'scenario',
+  'skillEvidence',
+]);
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
+
+/** Returns whether one declared evidence path is safe and repository-relative. */
+const isSafeEvidencePath = (path) => {
+  if (
+    typeof path !== 'string' ||
+    path.length === 0 ||
+    path.startsWith('/') ||
+    path.includes('\\')
+  ) {
+    return false;
+  }
+
+  const segments = path.split('/');
+  return !segments.some(
+    (segment) =>
+      segment.length === 0 ||
+      segment === '.' ||
+      segment === '..' ||
+      EXCLUDED_CONTEXT_DIRECTORY_NAMES.has(segment),
+  );
+};
+
+/** Returns whether one evaluator-only repository-evidence declaration is valid. */
+const isValidRepositoryEvidence = (entry) => {
+  if (
+    !isPlainRecord(entry) ||
+    Object.keys(entry).some((key) => !['claim', 'source'].includes(key)) ||
+    typeof entry.claim !== 'string' ||
+    entry.claim.trim().length === 0 ||
+    entry.claim !== entry.claim.trim() ||
+    !isPlainRecord(entry.source) ||
+    typeof entry.source.kind !== 'string'
+  ) {
+    return false;
+  }
+
+  if (entry.source.kind === 'developer-direction') {
+    return Object.keys(entry.source).length === 1;
+  }
+  if (entry.source.kind === 'host-instructions') {
+    return Object.keys(entry.source).length === 1;
+  }
+  if (entry.source.kind === 'git-state') {
+    return Object.keys(entry.source).length === 2 && GIT_STATE_FACTS.has(entry.source.fact);
+  }
+  if (entry.source.kind === 'workspace-path') {
+    return (
+      Object.keys(entry.source).length === 3 &&
+      isSafeEvidencePath(entry.source.path) &&
+      ['directory', 'file', 'missing', 'symlink'].includes(entry.source.expectedType)
+    );
+  }
+  if (entry.source.kind === 'related-path') {
+    return (
+      Object.keys(entry.source).length === 4 &&
+      typeof entry.source.mount === 'string' &&
+      /^\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(entry.source.mount) &&
+      isSafeEvidencePath(entry.source.path) &&
+      ['directory', 'file', 'missing', 'symlink'].includes(entry.source.expectedType)
+    );
+  }
+
+  return false;
+};
 
 /** Hashes one JSON-compatible semantic-evaluation contract exactly. */
 const createJsonDigest = (value) =>
@@ -34,28 +120,50 @@ export const getSemanticCriterionLabels = (criteria) => criteria.map(({ label })
  * - If evaluator labels are duplicated
  */
 export const validateSemanticCaseDefinition = (caseDefinition) => {
-  const hasStandalonePrompt =
-    isPlainRecord(caseDefinition) &&
-    typeof caseDefinition.prompt === 'string' &&
-    caseDefinition.prompt.trim().length > 0;
   const hasStructuredScenario =
     isPlainRecord(caseDefinition) &&
+    Object.keys(caseDefinition).every((key) => SEMANTIC_CASE_KEYS.has(key)) &&
     typeof caseDefinition.scenario === 'string' &&
     caseDefinition.scenario.trim().length > 0 &&
+    caseDefinition.scenario === caseDefinition.scenario.trim() &&
     typeof caseDefinition.operation === 'string' &&
-    caseDefinition.operation.trim().length > 0 &&
-    isPlainRecord(caseDefinition.input);
+    STABLE_ID_PATTERN.test(caseDefinition.operation) &&
+    isPlainRecord(caseDefinition.input) &&
+    Object.keys(caseDefinition.input).length === 2 &&
+    typeof caseDefinition.input.developerDirection === 'string' &&
+    caseDefinition.input.developerDirection.trim().length > 0 &&
+    caseDefinition.input.developerDirection === caseDefinition.input.developerDirection.trim() &&
+    Array.isArray(caseDefinition.input.repositoryEvidence) &&
+    caseDefinition.input.repositoryEvidence.length > 0 &&
+    caseDefinition.input.repositoryEvidence.every(isValidRepositoryEvidence);
   if (
     !isPlainRecord(caseDefinition) ||
+    'prompt' in caseDefinition ||
     typeof caseDefinition.id !== 'string' ||
     !STABLE_ID_PATTERN.test(caseDefinition.id) ||
-    (!hasStandalonePrompt && !hasStructuredScenario) ||
+    !hasStructuredScenario ||
     !Array.isArray(caseDefinition.expected) ||
     caseDefinition.expected.length === 0 ||
     !Array.isArray(caseDefinition.forbidden) ||
     caseDefinition.forbidden.length === 0
   ) {
-    throw new Error('Semantic evaluation cases require an ID and non-empty criteria.');
+    throw new Error(
+      'Semantic evaluation cases require a structured scenario, natural direction, sourced evidence, and non-empty criteria.',
+    );
+  }
+
+  const evidenceClaims = caseDefinition.input.repositoryEvidence.map(({ claim }) => claim);
+  if (new Set(evidenceClaims).size !== evidenceClaims.length) {
+    throw new Error(`Semantic case ${caseDefinition.id} has duplicate evidence claims.`);
+  }
+  const hasDeclaredHostInstructions = caseDefinition.input.repositoryEvidence.some(
+    ({ source }) => source.kind === 'host-instructions',
+  );
+  const hasHostInstructions = 'hostInstructions' in caseDefinition;
+  if (hasDeclaredHostInstructions !== hasHostInstructions) {
+    throw new Error(
+      `Semantic case ${caseDefinition.id} must source every applicable host instruction.`,
+    );
   }
 
   if (

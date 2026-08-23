@@ -19,6 +19,40 @@ export const SemanticCliIdentitySchema = z.object({
   version: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
 });
 
+const SemanticScenarioEvidenceSchema = z.array(
+  z.object({
+    claim: z.string().trim().min(1),
+    observation: z.looseObject({ type: z.string().trim().min(1) }),
+    source: z.looseObject({ kind: z.string().trim().min(1) }),
+  }),
+);
+
+const SemanticRepositoryControlStateSchema = z.object({
+  gitDigest: Sha256Schema,
+  head: z.object({
+    commit: z
+      .string()
+      .regex(/^[a-f0-9]{40,64}$/u)
+      .nullable(),
+    symbolicRef: z.string().nullable(),
+  }),
+  indexDigest: Sha256Schema,
+  installedSkillDigest: Sha256Schema,
+  localConfigDigest: Sha256Schema,
+  refs: z.array(
+    z.object({
+      name: z.string().trim().min(1),
+      oid: z.string().regex(/^[a-f0-9]{40,64}$/u),
+    }),
+  ),
+});
+
+const SemanticRepositoryControlEvidenceSchema = z.object({
+  after: SemanticRepositoryControlStateSchema,
+  before: SemanticRepositoryControlStateSchema,
+  violations: z.array(z.string()),
+});
+
 const SemanticCaseResultSchema = z.object({
   caseDefinitionDigest: Sha256Schema,
   evaluatedAt: z.iso.datetime(),
@@ -27,6 +61,8 @@ const SemanticCaseResultSchema = z.object({
   id: StableIdSchema,
   passed: z.boolean(),
   rationale: z.string().trim().min(20),
+  repositoryControlEvidence: SemanticRepositoryControlEvidenceSchema,
+  scenarioEvidence: SemanticScenarioEvidenceSchema,
   skillArtifactEvidence: z.array(z.unknown()),
 });
 
@@ -38,6 +74,8 @@ const SemanticRawResultSchema = z.object({
   observed: z.array(StableIdSchema),
   passed: z.boolean(),
   rationale: z.string().trim().min(20),
+  repositoryControlEvidence: SemanticRepositoryControlEvidenceSchema,
+  scenarioEvidence: SemanticScenarioEvidenceSchema,
 });
 
 export const SemanticEvaluationResultSchema = z.object({
@@ -48,6 +86,7 @@ export const SemanticEvaluationResultSchema = z.object({
   cases: z.array(SemanticCaseResultSchema).min(1),
   caseSuiteDigest: Sha256Schema,
   cli: SemanticCliIdentitySchema,
+  coverageDigest: Sha256Schema,
   evaluatedAt: z.iso.datetime(),
   evaluationProtocolVersion: z.number().int().positive(),
   generatedAt: z.iso.datetime(),
@@ -65,7 +104,7 @@ export const SemanticEvaluationResultSchema = z.object({
     })
     .optional(),
   results: z.array(SemanticRawResultSchema).min(1),
-  schemaVersion: z.literal(1),
+  schemaVersion: z.literal(2),
   skillDigest: Sha256Schema,
 });
 

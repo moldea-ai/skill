@@ -42,6 +42,7 @@ export const buildCodexEvaluationBwrapArguments: (options: {
   includeWorkspaceBinaryDirectory?: boolean;
   nodeExecutable?: string;
   readOnlyMounts?: readonly ICodexEvaluationReadOnlyMount[];
+  readOnlyWorkspacePaths?: readonly string[];
   sandboxHome: string;
   statusFileDescriptor?: number;
   workspaceAccess?: ICodexEvaluationWorkspaceAccess;
@@ -69,6 +70,7 @@ export const runCodexEvaluationHost: (options: {
   includeWorkspaceBinaryDirectory?: boolean;
   prompt: string;
   readOnlyMounts?: readonly ICodexEvaluationReadOnlyMount[];
+  readOnlyWorkspacePaths?: readonly string[];
   sandboxHome: string;
   signal?: AbortSignal;
   workspaceAccess?: ICodexEvaluationWorkspaceAccess;

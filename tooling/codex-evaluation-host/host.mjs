@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 import { accessSync, constants, readFileSync, realpathSync } from 'node:fs';
 import { chmod, copyFile, mkdir, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
-import { basename, delimiter, dirname, join } from 'node:path';
+import { basename, delimiter, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // fixed model contract shared by local evaluation workflows
@@ -29,6 +29,35 @@ const REQUIRED_CODEX_FLAGS = [
 ];
 const REQUIRED_CODEX_CONFIG = ['shell_environment_policy.inherit=none'];
 const SAFE_HOST_ENVIRONMENT_NAMES = ['OPENAI_API_KEY', 'OPENAI_BASE_URL', 'SSL_CERT_FILE'];
+const EXCLUDED_WORKSPACE_PATH_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+
+/** Resolves safe workspace-relative paths for read-only sandbox overlays. */
+const resolveReadOnlyWorkspacePaths = (cwd, paths) =>
+  paths.map((path) => {
+    if (
+      typeof path !== 'string' ||
+      path.length === 0 ||
+      isAbsolute(path) ||
+      path.includes('\\') ||
+      path
+        .split('/')
+        .some(
+          (segment) =>
+            segment.length === 0 ||
+            segment === '.' ||
+            segment === '..' ||
+            EXCLUDED_WORKSPACE_PATH_NAMES.has(segment),
+        )
+    ) {
+      throw new Error(`Invalid read-only workspace path: ${path}.`);
+    }
+    const source = resolve(cwd, path);
+    const relativeSource = relative(cwd, source);
+    if (relativeSource.startsWith('..') || isAbsolute(relativeSource)) {
+      throw new Error(`Read-only workspace path escapes the workspace: ${path}.`);
+    }
+    return { source, target: `/mnt/${path}` };
+  });
 
 /**
  * Parses one non-interactive Codex command from an environment variable.
@@ -377,146 +406,160 @@ export const buildCodexEvaluationBwrapArguments = ({
   includeWorkspaceBinaryDirectory = false,
   nodeExecutable = NODE_EXECUTABLE_PATH,
   readOnlyMounts = [],
+  readOnlyWorkspacePaths = [],
   sandboxHome,
   statusFileDescriptor,
   workspaceAccess = 'read-write',
-}) => [
-  '--die-with-parent',
-  '--new-session',
-  ...(statusFileDescriptor === undefined ? [] : ['--json-status-fd', String(statusFileDescriptor)]),
-  '--unshare-pid',
-  '--unshare-ipc',
-  '--unshare-uts',
-  '--unshare-net',
-  '--unshare-cgroup-try',
-  '--cap-drop',
-  'ALL',
-  '--tmpfs',
-  '/',
-  '--ro-bind',
-  '/usr',
-  '/usr',
-  '--ro-bind-try',
-  '/bin',
-  '/bin',
-  '--ro-bind-try',
-  '/lib',
-  '/lib',
-  '--ro-bind-try',
-  '/lib64',
-  '/lib64',
-  '--dir',
-  '/etc',
-  '--ro-bind-try',
-  '/etc/ssl',
-  '/etc/ssl',
-  '--ro-bind-try',
-  '/etc/pki',
-  '/etc/pki',
-  '--ro-bind-try',
-  '/etc/ca-certificates',
-  '/etc/ca-certificates',
-  '--ro-bind-try',
-  '/etc/resolv.conf',
-  '/etc/resolv.conf',
-  '--ro-bind-try',
-  '/etc/nsswitch.conf',
-  '/etc/nsswitch.conf',
-  '--ro-bind-try',
-  '/etc/hosts',
-  '/etc/hosts',
-  '--ro-bind-try',
-  '/etc/passwd',
-  '/etc/passwd',
-  '--ro-bind-try',
-  '/etc/group',
-  '/etc/group',
-  '--dir',
-  '/opt',
-  '--ro-bind',
-  hostExecutable,
-  '/opt/codex',
-  ...(hostCompanionExecutable
-    ? ['--ro-bind', hostCompanionExecutable, '/opt/codex-code-mode-host']
-    : []),
-  '--ro-bind',
-  nodeExecutable,
-  '/opt/node',
-  '--dir',
-  '/home',
-  '--dir',
-  '/home/evaluator',
-  '--bind',
-  sandboxHome,
-  '/home/evaluator',
-  workspaceAccess === 'read-only' ? '--ro-bind' : '--bind',
-  cwd,
-  '/mnt',
-  ...readOnlyMounts.flatMap(({ source, target }) => ['--dir', target, '--ro-bind', source, target]),
-  '--tmpfs',
-  '/tmp',
-  '--proc',
-  '/proc',
-  '--dev',
-  '/dev',
-  '--chdir',
-  '/mnt',
-  '--clearenv',
-  '--setenv',
-  'CODEX_HOME',
-  '/home/evaluator/.codex',
-  '--setenv',
-  'HOME',
-  '/home/evaluator',
-  '--setenv',
-  'LANG',
-  'C.UTF-8',
-  '--setenv',
-  'PATH',
-  includeWorkspaceBinaryDirectory
-    ? '/mnt/node_modules/.bin:/home/evaluator/bin:/opt:/usr/bin:/bin'
-    : '/home/evaluator/bin:/opt:/usr/bin:/bin',
-  '--setenv',
-  'TMPDIR',
-  '/tmp',
-  '--setenv',
-  'HTTPS_PROXY',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'HTTP_PROXY',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'ALL_PROXY',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'NO_PROXY',
-  '',
-  '--setenv',
-  'https_proxy',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'http_proxy',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'all_proxy',
-  `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
-  '--setenv',
-  'no_proxy',
-  '',
-  ...SAFE_HOST_ENVIRONMENT_NAMES.flatMap((environmentName) => {
-    const environmentValue = process.env[environmentName];
-    return environmentValue ? ['--setenv', environmentName, environmentValue] : [];
-  }),
-  '--',
-  '/bin/sh',
-  '-eu',
-  '-c',
-  `socat TCP-LISTEN:${EGRESS_PROXY_PORT},bind=127.0.0.1,reuseaddr,fork ` +
-    'UNIX-CONNECT:/home/evaluator/egress-proxy.sock & exec "$@"',
-  'moldea-evaluation-sandbox',
-  '/opt/codex',
-  ...command.slice(1),
-];
+}) => {
+  const workspaceOverlays = resolveReadOnlyWorkspacePaths(cwd, readOnlyWorkspacePaths);
+
+  return [
+    '--die-with-parent',
+    '--new-session',
+    ...(statusFileDescriptor === undefined
+      ? []
+      : ['--json-status-fd', String(statusFileDescriptor)]),
+    '--unshare-pid',
+    '--unshare-ipc',
+    '--unshare-uts',
+    '--unshare-net',
+    '--unshare-cgroup-try',
+    '--cap-drop',
+    'ALL',
+    '--tmpfs',
+    '/',
+    '--ro-bind',
+    '/usr',
+    '/usr',
+    '--ro-bind-try',
+    '/bin',
+    '/bin',
+    '--ro-bind-try',
+    '/lib',
+    '/lib',
+    '--ro-bind-try',
+    '/lib64',
+    '/lib64',
+    '--dir',
+    '/etc',
+    '--ro-bind-try',
+    '/etc/ssl',
+    '/etc/ssl',
+    '--ro-bind-try',
+    '/etc/pki',
+    '/etc/pki',
+    '--ro-bind-try',
+    '/etc/ca-certificates',
+    '/etc/ca-certificates',
+    '--ro-bind-try',
+    '/etc/resolv.conf',
+    '/etc/resolv.conf',
+    '--ro-bind-try',
+    '/etc/nsswitch.conf',
+    '/etc/nsswitch.conf',
+    '--ro-bind-try',
+    '/etc/hosts',
+    '/etc/hosts',
+    '--ro-bind-try',
+    '/etc/passwd',
+    '/etc/passwd',
+    '--ro-bind-try',
+    '/etc/group',
+    '/etc/group',
+    '--dir',
+    '/opt',
+    '--ro-bind',
+    hostExecutable,
+    '/opt/codex',
+    ...(hostCompanionExecutable
+      ? ['--ro-bind', hostCompanionExecutable, '/opt/codex-code-mode-host']
+      : []),
+    '--ro-bind',
+    nodeExecutable,
+    '/opt/node',
+    '--dir',
+    '/home',
+    '--dir',
+    '/home/evaluator',
+    '--bind',
+    sandboxHome,
+    '/home/evaluator',
+    workspaceAccess === 'read-only' ? '--ro-bind' : '--bind',
+    cwd,
+    '/mnt',
+    ...workspaceOverlays.flatMap(({ source, target }) => ['--ro-bind', source, target]),
+    ...readOnlyMounts.flatMap(({ source, target }) => [
+      '--dir',
+      target,
+      '--ro-bind',
+      source,
+      target,
+    ]),
+    '--tmpfs',
+    '/tmp',
+    '--proc',
+    '/proc',
+    '--dev',
+    '/dev',
+    '--chdir',
+    '/mnt',
+    '--clearenv',
+    '--setenv',
+    'CODEX_HOME',
+    '/home/evaluator/.codex',
+    '--setenv',
+    'HOME',
+    '/home/evaluator',
+    '--setenv',
+    'LANG',
+    'C.UTF-8',
+    '--setenv',
+    'PATH',
+    includeWorkspaceBinaryDirectory
+      ? '/mnt/node_modules/.bin:/home/evaluator/bin:/opt:/usr/bin:/bin'
+      : '/home/evaluator/bin:/opt:/usr/bin:/bin',
+    '--setenv',
+    'TMPDIR',
+    '/tmp',
+    '--setenv',
+    'HTTPS_PROXY',
+    `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
+    '--setenv',
+    'HTTP_PROXY',
+    `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
+    '--setenv',
+    'ALL_PROXY',
+    `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
+    '--setenv',
+    'NO_PROXY',
+    '',
+    '--setenv',
+    'https_proxy',
+    `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
+    '--setenv',
+    'http_proxy',
+    `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
+    '--setenv',
+    'all_proxy',
+    `http://127.0.0.1:${EGRESS_PROXY_PORT}`,
+    '--setenv',
+    'no_proxy',
+    '',
+    ...SAFE_HOST_ENVIRONMENT_NAMES.flatMap((environmentName) => {
+      const environmentValue = process.env[environmentName];
+      return environmentValue ? ['--setenv', environmentName, environmentValue] : [];
+    }),
+    '--',
+    '/bin/sh',
+    '-eu',
+    '-c',
+    `socat TCP-LISTEN:${EGRESS_PROXY_PORT},bind=127.0.0.1,reuseaddr,fork ` +
+      'UNIX-CONNECT:/home/evaluator/egress-proxy.sock & exec "$@"',
+    'moldea-evaluation-sandbox',
+    '/opt/codex',
+    ...command.slice(1),
+  ];
+};
 
 /** Runs Bubblewrap with cancellation, bounded output, and timeout enforcement. */
 const runBubblewrapProcess = ({ argumentsList, prompt, signal, timeoutMs }) =>
@@ -672,6 +715,7 @@ export const runCodexEvaluationHost = async ({
   includeWorkspaceBinaryDirectory = false,
   prompt,
   readOnlyMounts = [],
+  readOnlyWorkspacePaths = [],
   sandboxHome,
   signal,
   workspaceAccess = 'read-write',
@@ -702,6 +746,7 @@ export const runCodexEvaluationHost = async ({
         includeWorkspaceBinaryDirectory,
         nodeExecutable: NODE_EXECUTABLE_PATH,
         readOnlyMounts,
+        readOnlyWorkspacePaths,
         sandboxHome,
         statusFileDescriptor: 3,
         workspaceAccess,

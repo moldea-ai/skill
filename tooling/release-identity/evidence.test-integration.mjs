@@ -13,6 +13,7 @@ import { createSemanticCliIdentity } from './identity.mjs';
 import {
   createPortableSkillDigest,
   createSemanticCaseSuiteDigest,
+  createSemanticCoverageDigest,
 } from '../semantic-evaluation/index.mjs';
 import {
   calculateCompatibilityBehaviorDigest,
@@ -179,6 +180,11 @@ const seedReleaseManifests = (root) => {
   writeFile(root, 'tooling/package-candidate/fixture.mjs', 'export const fixture = true;\n');
   writeFile(root, 'moldea/SKILL.md', '# Moldea fixture\n');
   writeFile(root, 'fixtures/conformance-cases.json', '{"semanticCases":[]}\n');
+  writeFile(
+    root,
+    'fixtures/semantic-evaluation-coverage.json',
+    '{"schemaVersion":1,"claims":[]}\n',
+  );
 };
 
 test('release evidence inspection requires fresh passing semantic and qualification results', async () => {
@@ -212,6 +218,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     ]);
 
     const semanticCases = [];
+    const semanticCoverage = { schemaVersion: 1, claims: [] };
     const skillDigest = createPortableSkillDigest(temporaryRoot);
     writeFile(
       temporaryRoot,
@@ -220,11 +227,14 @@ test('release evidence inspection requires fresh passing semantic and qualificat
         artifact: { sha256: skillDigest },
         artifactDigest: skillDigest,
         artifactSha256: skillDigest,
+        cases: [],
         skillDigest,
         caseSuiteDigest: createSemanticCaseSuiteDigest(semanticCases),
         cli: createSemanticCliIdentity(temporaryRoot),
+        coverageDigest: createSemanticCoverageDigest(semanticCoverage, semanticCases),
         evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
         results: [],
+        schemaVersion: 2,
       })}\n`,
     );
     const packagesState = await inspectGitRepositoryState(packagesRepository);

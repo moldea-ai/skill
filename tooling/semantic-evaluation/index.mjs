@@ -8,3 +8,17 @@ export {
   normalizePortableSkillSemanticEvidence,
   validateSemanticCaseDefinition,
 } from './evidence.mjs';
+
+// coverage
+export { createSemanticCoverageDigest, validateSemanticCoverage } from './coverage.mjs';
+
+// scenario evidence
+export { collectScenarioEvidence, hasValidScenarioEvidence } from './scenario-evidence.mjs';
+
+// repository control
+export {
+  captureRepositoryControlState,
+  createEvaluationTreeDigest,
+  createRepositoryControlEvidence,
+  hasValidRepositoryControlEvidence,
+} from './repository-control.mjs';

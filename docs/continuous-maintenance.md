@@ -24,7 +24,7 @@ You can also provide current project knowledge directly:
 Platform owns the application runtime and delivery pipeline. Security approves production access.
 ```
 
-The same handoff can arrive as YAML or JSON, an answer to a focused question, a table, or an accessible project file. Format does not determine whether it becomes canonical. The coding agent separates clear current truth and explicit corrections from proposals, transient details, speculation, secrets, and unnecessary personal information.
+The same handoff can arrive as YAML or JSON, an answer to a focused question, a table, or an accessible project file. Format does not determine whether it becomes canonical. The coding agent evaluates the handoff claim by claim, separating durable current truth and explicit corrections from proposals, transient details, speculation, secrets, and unnecessary personal information. Current does not automatically mean durable: short-lived work status or focus remains transient unless it establishes a lasting operating constraint.
 
 When a new claim materially conflicts with established context and does not clearly replace it, the coding agent asks one focused question before writing. An explicitly read-only request remains read-only, and incidental knowledge never initializes an unrelated repository.
 

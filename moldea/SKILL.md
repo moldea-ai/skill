@@ -19,7 +19,7 @@ Activate this skill in any of these cases:
 - **Knowledge-triggered activation:** in an adopted repository, the developer supplies, confirms, or corrects potentially material and durable project knowledge through any format or accessible source.
 - **Relevance-triggered activation:** an authorized change may materially affect project truth or declared agent behavior in an adopted repository.
 
-Before acknowledging a message in an adopted repository, route potentially durable current knowledge through Maintain to persist, clarify, or omit it; never merely restate it. Reconsideration need not edit canonical state when truth and behavior remain correct.
+Before acknowledging a message in an adopted repository, route potentially durable current knowledge through Maintain. Classify mixed handoffs claim by claim: persist, clarify, or omit each independently; never copy or merely restate the source. Reconsideration need not edit canonical state when truth and behavior remain correct.
 
 Never initialize `moldea` solely because supplied knowledge or a repository change could benefit from it. Adoption requires explicit intent. After adoption begins, continuous maintenance needs no “and update moldea” request.
 

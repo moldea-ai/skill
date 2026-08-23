@@ -10,9 +10,9 @@ Evidence that adoption exists or is underway includes canonical `/moldea/**` ass
 
 ## Maintain newly learned truth
 
-In an adopted repository, treat an unambiguous direct handoff of current project knowledge as Maintain authority unless the surrounding request is read-only or excludes writes. Use context-gathering guidance to classify, verify, route, and filter it. The source format does not determine authority or truth. When an unexplained conflict could materially change persisted meaning, ask one focused question and make no premature canonical edit.
+In an adopted repository, treat an unambiguous direct handoff of current project knowledge as Maintain authority unless the surrounding request is read-only or excludes writes. Use context-gathering guidance to classify, verify, route, and filter it. Classify mixed handoffs claim by claim before writing; source format and a shared container do not determine authority, truth, or durability. When an unexplained conflict could materially change persisted meaning, ask one focused question and make no premature canonical edit.
 
-Do not stop at acknowledging or summarizing a handoff. Compare its material durable claims with current canonical state: persist newly established truth through the smallest appropriate surface, replace an explicitly corrected stale claim, or name an unexplained conflict and ask the focused question. In the final response, distinguish retained or corrected truth from transient or otherwise omitted detail.
+Do not stop at acknowledging or summarizing a handoff. Compare its material durable claims with current canonical state: persist newly established truth through the smallest appropriate surface, replace an explicitly corrected stale claim, or name an unexplained conflict and ask the focused question. After writing, copy the literal repository-local deterministic invocation into the final response with its status and material diagnostics, then distinguish retained or corrected truth from transient or otherwise omitted detail.
 
 ## Maintain affected behavior
 

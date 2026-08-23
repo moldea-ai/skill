@@ -70,12 +70,12 @@ Clear corrections do not require ceremonial questions. If a new statement confli
 
 1. The adopted repository and direct handoff activate project-context maintenance.
 2. The coding agent loads context-gathering and continuous-maintenance guidance.
-3. It distinguishes current truth, corrections, future state, proposals, transient details, uncertainty, and inference.
+3. It classifies each claim independently. Current does not automatically mean durable, and a shared payload does not make transient detail canonical.
 4. It checks only the evidence needed to route the information and resolve material conflicts.
 5. It asks one focused question when an unanswered conflict could change persisted meaning.
 6. It updates the smallest appropriate foundational or focused context surface when writes are authorized.
 7. It omits secrets, unnecessary personal information, transient notes, speculation, generic material, and unsupported relationships.
-8. After writes, it reruns deterministic inspection and reports what changed, what was omitted, and why.
+8. After writes, it reruns deterministic inspection and reports the literal command, status, retained knowledge, omitted details, and reasons.
 
 ## Resulting context
 

@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "All declared requirements are satisfied by the current repository state, diff, and deterministic post-actor evidence. The registered custom-runtime agent accurately reflects the implementation and validation/typecheck evidence is valid without repository mutation.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "`moldea/agents/order-triage/description.md` says it classifies orders for human review and cannot approve refunds; `instruction.md` repeats those boundaries and prohibits financial mutations. `src/order-triage-agent.ts` returns `action: 'classify-for-human-review'` and `canApproveRefunds: false`."
+    },
+    {
+      "id": "binds-implementation",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` registers `order-triage` with runtime `custom`, binding `runtimeAgent.path` to `/src/order-triage-agent.ts` and `symbol` to `createOrderTriageAgent`; its `affectedBy` contains that exact source path. The export exists in the source."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "verdict": "pass",
+      "evidence": "The manifest references `/moldea/runtimes/custom-runtime.md`, the sole new runtime-guidance file. It states that the factory receives a runtime-owned loader for the canonical instruction path, while explicitly declining to infer a concrete loader, provider, schemas, or tools; this matches the factory's loader parameter and canonical path constant."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Deterministic post-actor evidence reports valid Repository FS, memory equivalence, Core, CLI compatibility/identity/inventory/envelope, `inspect --json`, and `validate --json`; TypeScript typechecking passed and repository remained unchanged. Current `git diff --check` is clean."
+    }
+  ],
+  "failures": []
+}

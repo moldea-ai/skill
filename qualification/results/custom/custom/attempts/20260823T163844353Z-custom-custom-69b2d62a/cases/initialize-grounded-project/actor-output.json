@@ -1,0 +1,22 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized Moldea with evidence-backed project context and preserved the README. No agent, decision, runtime guide, or unresolved requirement was created. Moldea validation and TypeScript validation pass.",
+  "commands": [
+    "<workspace>/node_modules/.pnpm/@moldea.ai+cli@file+..+..+..+..+candidates+cec33cf7c7c0f02a797e8ea3eb83f221acc6d7232a4c_5d97d9f54190ef580c69b9544e258ed9/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json",
+    "<workspace>/node_modules/.pnpm/@moldea.ai+cli@file+..+..+..+..+candidates+cec33cf7c7c0f02a797e8ea3eb83f221acc6d7232a4c_5d97d9f54190ef580c69b9544e258ed9/node_modules/@moldea.ai/cli/dist/moldea.js validate --json",
+    "./node_modules/.bin/tsc --noEmit",
+    "git -c core.fsmonitor=false -c core.pager=cat -c filter.lfs.required=false --no-pager diff --no-ext-diff -- README.md moldea/moldea.yaml moldea/project.md && git -c core.fsmonitor=false -c core.pager=cat -c filter.lfs.required=false status --short --untracked-files=all"
+  ],
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "The repository-local @moldea.ai/cli is declared and installed at 4.0.1; its resolved executable was verified as belonging to that package.",
+    "Initial inspect was structurally invalid only because /moldea/moldea.yaml and /moldea/project.md were absent.",
+    "Final inspect and validate returned schemaVersion 2, cliVersion 4.0.1, status valid, formatVersion 1, and no diagnostics.",
+    "README establishes invoice review for human finance operators and a no-payment boundary. Source implements duplicate-reference detection only; the project context explicitly records that arithmetic-mismatch implementation is not evidenced."
+  ],
+  "unresolved": []
+}

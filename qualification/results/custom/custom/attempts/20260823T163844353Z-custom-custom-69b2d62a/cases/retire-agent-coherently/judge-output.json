@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The final worktree coherently retires the support agent. The diff removes its manifest declaration, canonical assets, and sole runtime guidance while preserving all surviving tracked context; deterministic post-actor validation reports every required repository and typecheck boundary valid without mutation.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Final moldea/moldea.yaml contains only the project context declaration. Its diff removes agents.support, runtime id custom, guidance /moldea/runtimes/custom.md, and the runtimeAgent binding to /src/support-agent.ts#supportAgent."
+    },
+    {
+      "id": "removes-orphaned-assets",
+      "verdict": "pass",
+      "evidence": "The diff deletes moldea/agents/support/description.md, moldea/agents/support/instruction.md, and moldea/runtimes/custom.md. A final-tree search excluding tooling found none of the support identity, description, instruction, or runtime-guidance identifiers."
+    },
+    {
+      "id": "preserves-surviving-context",
+      "verdict": "pass",
+      "evidence": "moldea/project.md, package.json, src/project-state.ts, and tsconfig.json have no diff; workspace assertions show their before/after SHA-256 values are identical. project.md correctly retains the factual note that the former email support agent was removed."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Deterministic post-actor evidence reports valid Repository FS, repository-memory equivalence, Core, CLI compatibility/identity/package/adapter/envelope checks, inspect, validate, and TypeScript typechecking; it also reports repositoryUnchanged: true and no failures. Current Git diff --check is clean."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree and diff support a minimal, evidence-grounded Moldea initialization. README and source remain intact; only the standard awareness block and the two required canonical Moldea files were added. Supplied deterministic post-actor checks report valid inspection/validation with no diagnostics or read-time mutation.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "README states invoice-line review, findings for human finance operators, and no payment authorization/sending. moldea/project.md preserves those facts and accurately notes that src/invoice-review.ts implements duplicate-reference detection while arithmetic-mismatch implementation is not present."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains only `version: 1`; moldea/project.md is the sole context file. No agents, decisions, runtime guides, bindings, or unresolved requirements exist. README contains the standard single Moldea awareness block."
+    },
+    {
+      "id": "preserves-existing-work",
+      "verdict": "pass",
+      "evidence": "Git diff shows README's original three lines unchanged with only the awareness block appended. src/invoice-review.ts, package.json, and tsconfig.json match HEAD; workspace assertions also show unchanged hashes for implementation and existing configuration."
+    },
+    {
+      "id": "validates-project",
+      "verdict": "pass",
+      "evidence": "Deterministic post-actor summary reports inspectionStatus and cliValidateStatus `valid`, repositoryFilesystemValid, memoryRepositoryEquivalent, Core and CLI compatibility/identity/inventory/envelope checks all true, typecheckPassed true, repositoryUnchanged true, and no failures."
+    }
+  ],
+  "failures": []
+}

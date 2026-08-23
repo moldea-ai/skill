@@ -1,0 +1,29 @@
+{
+  "caseId": "initialize-grounded-project",
+  "title": "Initialize a grounded project",
+  "status": "passed",
+  "durationMs": 188618,
+  "deterministicBeforePath": "cases/initialize-grounded-project/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 617715,
+    "cachedInputTokens": 503808,
+    "outputTokens": 5337
+  },
+  "judgeUsage": {
+    "inputTokens": 164692,
+    "cachedInputTokens": 136192,
+    "outputTokens": 2356
+  },
+  "actorEvidenceCreatedAt": "2026-08-23T16:43:54.860Z",
+  "judgeEvidenceCreatedAt": "2026-08-23T16:44:54.319Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "failures": []
+}

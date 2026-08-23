@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "Repository evidence establishes a transfer-request service but expressly leaves preview-only simulation versus value-moving execution unresolved. The working tree and Git diff are clean; deterministic evidence consistently reports the expected missing Moldea foundation as invalid, not valid.",
+  "requirements": [
+    {
+      "id": "identifies-material-choice",
+      "verdict": "pass",
+      "evidence": "README.md explicitly says product notes describe both a preview-only simulator and an execution service that moves value, with no approved decision selecting either. src/transfer-operation.ts likewise says semantics remain unresolved until preview or execution is selected."
+    },
+    {
+      "id": "requests-focused-decision",
+      "verdict": "pass",
+      "evidence": "The actor report requests exactly the required product decision: whether the repository owns preview-only transfer simulation or execution that moves value."
+    },
+    {
+      "id": "avoids-invention",
+      "verdict": "pass",
+      "evidence": "Workspace assertions show identical before/after hashes and no changed paths; Git status and staged/unstaged diff checks are empty. No /moldea files were created and README.md is unchanged."
+    },
+    {
+      "id": "reports-validation-state",
+      "verdict": "pass",
+      "evidence": "The actor reports isolated inspect --json status invalid with only missing-manifest/project diagnostics. The deterministic post-actor summary independently confirms cliInspectStatus and cliValidateStatus are invalid while repositoryUnchanged is true."
+    }
+  ],
+  "failures": []
+}

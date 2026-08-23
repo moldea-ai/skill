@@ -1,0 +1,29 @@
+{
+  "caseId": "create-grounded-agent",
+  "title": "Create a grounded agent",
+  "status": "passed",
+  "durationMs": 274661,
+  "deterministicBeforePath": "cases/create-grounded-agent/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1780384,
+    "cachedInputTokens": 1673472,
+    "outputTokens": 10295
+  },
+  "judgeUsage": {
+    "inputTokens": 104549,
+    "cachedInputTokens": 76800,
+    "outputTokens": 1456
+  },
+  "actorEvidenceCreatedAt": "2026-08-23T16:48:46.431Z",
+  "judgeEvidenceCreatedAt": "2026-08-23T16:49:28.989Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "failures": []
+}

@@ -1,0 +1,29 @@
+{
+  "outcome": "completed",
+  "summary": "Removed the obsolete support-agent registration, canonical instruction/description, and its sole custom-runtime guidance. The pre-existing deletion of `src/support-agent.ts` was preserved. Final Moldea inspection and validation are valid; TypeScript checking passes.",
+  "commands": [
+    "git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.required=false status --short --untracked-files=all; git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.required=false diff --name-status; git -c core.fsmonitor=false -c core.pager=cat -c diff.external= -c filter.lfs.required=false diff --cached --name-status",
+    "node node_modules/@moldea.ai/cli/dist/moldea.js inspect --json",
+    "git -c core.fsmonitor=false -c core.pager=cat show HEAD:src/support-agent.ts; git -c core.fsmonitor=false -c core.pager=cat log -1 --format='%H %s' -- src/support-agent.ts moldea/agents/support moldea/runtimes/custom.md",
+    "node node_modules/@moldea.ai/cli/dist/moldea.js inspect --json",
+    "node node_modules/@moldea.ai/cli/dist/moldea.js validate --json",
+    "node node_modules/typescript/bin/tsc --noEmit",
+    "git -c core.fsmonitor=false -c core.pager=cat diff --no-ext-diff --check; git -c core.fsmonitor=false -c core.pager=cat diff --no-ext-diff -- moldea/moldea.yaml moldea/agents/support/description.md moldea/agents/support/instruction.md moldea/runtimes/custom.md; git -c core.fsmonitor=false -c core.pager=cat status --short --untracked-files=all; find . \\( -path './.git' -o -path './node_modules' -o -path './.agents' -o -path './.moldea-qualification' \\) -prune -o -type f -print0 | xargs -0 grep -nHiE 'supportAgent|custom runtime guidance|Answers customer support requests|# Support agent' || true"
+  ],
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "Initial local Moldea inspect (CLI 4.0.1, schema 2) was invalid solely for `support`: a missing instruction identity and a runtime binding to deleted `/src/support-agent.ts`.",
+    "`HEAD:src/support-agent.ts` defined the `supportAgent` record; the current worktree already deleted it. The canonical support files and custom runtime guidance exclusively described that record.",
+    "Final inspect and validate both returned `status: valid` with zero diagnostics. TypeScript `--noEmit` exited successfully.",
+    "`moldea/project.md` was preserved because it accurately states that the former email support agent was removed.",
+    "No provider, agent, model, subagent, or network operation was invoked."
+  ],
+  "unresolved": [
+    "No runtime behavior beyond the removed `supportAgent` record was established from repository evidence; no remaining canonical runtime integration is claimed."
+  ]
+}

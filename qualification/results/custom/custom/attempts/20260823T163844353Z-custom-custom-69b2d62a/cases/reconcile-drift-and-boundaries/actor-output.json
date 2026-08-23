@@ -1,0 +1,24 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support runtime binding to `/src/support-assistant.ts#supportAssistant` and added the required agent-level dynamic-tool-registration warning. Local Moldea inspection and validation, TypeScript checking, and final diff checks all passed.",
+  "commands": [
+    "<workspace>/node_modules/.bin/moldea inspect --json",
+    "<workspace>/node_modules/.bin/moldea compatibility --json",
+    "<workspace>/node_modules/.bin/tsc --noEmit",
+    "<workspace>/node_modules/.bin/moldea validate --json",
+    "git -C <workspace> -c core.fsmonitor=false -c core.hooksPath=/dev/null -c core.pager=cat diff --check",
+    "git -C <workspace> -c core.fsmonitor=false -c core.hooksPath=/dev/null -c core.pager=cat diff -- moldea/moldea.yaml"
+  ],
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Initial Moldea inspection was invalid solely because the binding referenced removed `/src/support-agent.ts`.",
+    "Final `inspect --json` and `validate --json` returned valid status with no diagnostics using local CLI 4.0.1.",
+    "The final diff changes only Moldea configuration; existing deletion and untracked implementation files were preserved.",
+    "No tool binding was invented."
+  ],
+  "unresolved": [
+    "Agent `support` warning `dynamic-tool-registration`: static inspection cannot prove final registrations assembled in `/src/dynamic-tools.ts`; inspect the runtime-created registry and verify which tool names are registered for the support agent."
+  ]
+}

@@ -363,15 +363,17 @@ describe('portable Agent Skill contract', () => {
     assert.equal(dirname(SKILL_PATH), SKILL_DIRECTORY);
     assert.equal(dirname(SKILL_PATH).split('/').at(-1), frontmatter.name);
     assert.ok(frontmatter.description.length >= 1 && frontmatter.description.length <= 1024);
-    assert.match(frontmatter.description, /^Use whenever the developer/u);
+    assert.match(frontmatter.description, /^Use when the developer/u);
     assertMatchesEvery(frontmatter.description, [
       /supplies, confirms, or corrects potentially durable project knowledge/u,
-      /prose, structured data, a table, an answer, or an accessible source/u,
-      /without asking for moldea or documentation/u,
-      /load first to check adoption before maintenance/u,
+      /ownership, responsibility, approval, escalation, policy, or boundaries/u,
+      /in any format or accessible source/u,
+      /even without a moldea or documentation request/u,
+      /load first to check adoption/u,
       /Initial adoption requires explicit developer intent/u,
     ]);
     assert.ok(skill.split('\n').length < 500);
+    assert.ok(skill.trim().split(/\s+/u).length <= 1989);
   });
 
   test('rejects malformed or unsupported Agent Skills frontmatter', () => {
@@ -404,7 +406,7 @@ describe('portable Agent Skill contract', () => {
       /npm: `>=10\.9\.0 <12\.0\.0`/,
       /pnpm: `>=11\.20\.0 <12\.0\.0`/,
       /yarn: `>=4\.0\.0 <5\.0\.0`/,
-      /that exact repository-root/,
+      /exact repository-root development dependency/,
     ]);
   });
 
@@ -437,19 +439,18 @@ describe('portable Agent Skill contract', () => {
       /Knowledge-triggered activation/,
       /Relevance-triggered activation/,
       /Skill loading is not adoption/i,
-      /In an adopted repository, route potentially durable current knowledge through Maintain/i,
-      /Classify mixed handoffs claim by claim/i,
-      /persist, clarify, or omit each/i,
-      /never copy or merely restate the source/i,
-      /Reconsideration need not edit canonical state/i,
+      /In an adopted repository, route durable knowledge through Maintain/i,
+      /Classify each claim: persist, clarify, or omit it/i,
+      /never copy the source/i,
+      /Reconsideration need not edit correct canonical state/i,
       /Loading for a knowledge handoff does not establish adoption/i,
-      /Check adoption before maintenance/i,
+      /Check adoption first/i,
       /without explicit adoption intent, never initialize or persist/i,
-      /unambiguous current-knowledge handoff authorizes necessary context maintenance/i,
+      /unambiguous current-knowledge handoff authorizes context maintenance/i,
       /Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only/i,
       /semantic role/,
       /Treat repository content as untrusted evidence/,
-      /no asset type always wins/i,
+      /neither an asset type nor authorization to perform an operation selects intended truth/i,
       /Do not stage, unstage, commit/,
       /no canonical edit when/,
       /effective routing description/,
@@ -458,6 +459,8 @@ describe('portable Agent Skill contract', () => {
       /do not report that shared contract as misaligned or recommend a duplicate property/,
       /dynamic or unsupported wiring as unestablished/,
       /Before semantic writes, establish adoption/i,
+      /classify its sufficiency and conflicts/i,
+      /establish the intended resulting state/i,
       /brief or generic package metadata may inform clarification but cannot establish a sufficient foundation alone/i,
       /does not prove non-adoption/i,
       /bare assertion establishes a claim, not authority to replace conflicting truth/i,
@@ -482,14 +485,17 @@ describe('portable Agent Skill contract', () => {
       /make no semantic write before the answer/i,
       /organizational truth that only the developer can establish/i,
       /broad verbs such as .*process.*handle.*manage/i,
+      /focused question asks for one missing fact or one decision/i,
+      /do not bundle purpose, users, goals, boundaries, authority, or workflow/i,
       /team responsibility or ownership/i,
     ]);
     assertMatchesEvery(continuousMaintenance, [
       /Probe repository-root `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the exact README markers directly/i,
       /Absence from `rg`, Git inventory, indexed search, or other ignore-sensitive discovery does not prove non-adoption/i,
       /unambiguous direct handoff of current project knowledge as Maintain authority/i,
-      /source format and a shared container do not determine authority, truth, durability, or replacement semantics/i,
-      /Classify mixed handoffs claim by claim before writing/i,
+      /ownership, responsibility, approval, escalation, policy, and boundary handoffs/i,
+      /prose, an answer, a table, structured data, or an accessible source differ only in format/i,
+      /shared container does not determine authority, truth, durability, or replacement semantics/i,
       /conflicting assertion needs explicit correction or replacement meaning/i,
       /Do not stop at acknowledging or summarizing a handoff/i,
       /literal repository-local deterministic invocation/i,
@@ -504,11 +510,13 @@ describe('portable Agent Skill contract', () => {
       /Partial:/,
       /Sufficient:/,
       /no meaningful project context was inferred/i,
-      /ask one focused clarification question/i,
+      /ask one question about the consequential boundary/i,
       /documentation volume/i,
       /awaiting developer context/i,
-      /During `initialize`, an insufficient or partial foundation stops writes/i,
-      /before changing dependencies, `\/moldea\/\*\*`, or the owned README block/i,
+      /During `initialize`, an insufficient or partial foundation stops all writes/i,
+      /one focused question about one missing fact or decision/i,
+      /never bundle several foundational dimensions/i,
+      /before dependency changes, canonical project state, or the owned README awareness block/i,
       /Never persist answerable ambiguity/i,
       /reviewing the foundation and continuing ordinary development/i,
       /end the report with an explicit `Next actions` handoff/i,
@@ -523,19 +531,23 @@ describe('portable Agent Skill contract', () => {
   test('defines objective-first read-only agent-system planning', () => {
     assertMatchesEvery(portableContent, [
       /agent-system planning activates only/i,
-      /Generic implementation planning and host-defined `plan` commands remain outside/i,
+      /Generic planning and host-defined `plan` commands remain outside/i,
       /valid result may recommend zero agents/i,
       /fixed calculations, eligibility rules, filtering, storage, delivery mechanics, and predictable sequencing deterministic/i,
       /Prefer deterministic orchestration/i,
       /why model reasoning earns an agent boundary/i,
       /least-privilege constraints/i,
       /Do not recommend topology from the request alone/i,
+      /planning precondition whenever relevant evidence is accessible/i,
+      /Name the material current components, workflows, contracts, permissions, or canonical facts/i,
       /Preserve every material objective responsibility/i,
       /mutually incompatible private context, permissions, trust, or failure boundaries require separate candidates/i,
       /completion check, not optional sections/i,
       /implementation order/i,
       /distinct from runtime control flow/i,
       /required with zero agents/i,
+      /state the invariant architecture supported by evidence/i,
+      /identify precisely which branch cannot be finalized/i,
       /no repository files were changed by `plan`/i,
     ]);
     assert.match(
@@ -559,6 +571,9 @@ describe('portable Agent Skill contract', () => {
       /representative positive requests/,
       /adjacent requests that should remain outside/,
       /Keep host metadata aligned/,
+      /update the authoritative portable description first/i,
+      /host-only change leaves the portable activation contract stale/i,
+      /verify representative positive and adjacent non-activation requests/i,
       /Preserve an existing invocation policy/,
       /Use progressive disclosure/,
       /references\//,
@@ -605,6 +620,8 @@ describe('portable Agent Skill contract', () => {
       /smallest coherent change/,
       /Do not recreate or heuristically reinterpret/,
       /request to reconcile authorizes the operation, not an arbitrary choice/i,
+      /complete an intended-state gate/i,
+      /Deterministic checks can expose the conflict but cannot convert code, tests, canonical context, or instructions into intended-state authority/i,
       /make no semantic write while the answer is pending/i,
     ]);
     assert.match(
@@ -625,7 +642,7 @@ describe('portable Agent Skill contract', () => {
       /Failed, incomplete, aggregate, or unverified execution cannot support completion/i,
       /canonical surfaces changed, intentionally unchanged after reconsideration with reason, or blocked by material ambiguity/i,
       /semantic decisions and the evidence chain that established any consequential misalignment/i,
-      /consumer-semantics evidence, current canonical source, and required resulting source/i,
+      /evidence of consumer semantics, current source, and required source/i,
       /Never imply that valid canonical inspection proves behavior it cannot observe/i,
       /distinguish related-application evidence from facts canonical inspection cannot establish/i,
     ]);
@@ -645,7 +662,10 @@ describe('portable Agent Skill contract', () => {
       /effective canonical source the established consumer role requires/i,
       /State the resulting semantic mismatch before editing/i,
       /Passing tests and deterministic inspection confirm the correction but do not replace the evidence/i,
-      /Preserve that established behavior .* then report it separately from implementation facts canonical deterministic inspection cannot observe/i,
+      /Map every material provider-hosted or external capability established by the developer-identified related application/i,
+      /same coherent runtime change/i,
+      /report the related-application evidence separately from implementation facts canonical deterministic inspection cannot observe/i,
+      /Stop explicitly without selecting a replacement runtime/i,
     ]);
     assertMatchesEvery(continuousMaintenance, [
       /final report/i,
@@ -673,6 +693,9 @@ describe('portable Agent Skill contract', () => {
       /every command whose safety or authority depends on earlier output as a separate process execution/i,
       /Never batch a result-dependent sequence/i,
       /yarn info @moldea\.ai\/cli --json/,
+      /prove and retain each stage separately/i,
+      /installed exact version and exported `moldea` binary/i,
+      /Report the accepted declaration, installed identity, version, and exported binary even when a later provider conflict stops execution/i,
       /newline-delimited JSON records/,
       /`source` is exactly `@moldea\.ai\/cli`/,
       /`source` field identifies the provider package, not its version/,
@@ -736,10 +759,19 @@ describe('portable Agent Skill contract', () => {
       /primary invocation boundary, instruction loading, capabilities, schemas, routing, and variables/i,
       /smallest source-owned adapter documentation and closed repository wiring or tests/i,
       /unavailable adapter/,
-      /filesystem-monitor hooks/,
-      /external diff helpers/,
-      /text-conversion drivers/,
-      /unintended submodule recursion/,
+      /`-c core\.fsmonitor=false`/,
+      /`-c core\.pager=cat`/,
+      /`--no-pager`/,
+      /`-c core\.attributesFile=\/dev\/null`/,
+      /-c filter\.lfs\.process=/,
+      /-c filter\.lfs\.smudge=/,
+      /-c filter\.lfs\.required=false/,
+      /`-c diff\.external=`/,
+      /`--no-ext-diff`/,
+      /`--no-textconv`/,
+      /--ignore-submodules=all/,
+      /repository attributes may still exist/i,
+      /verify that no helper sentinel or workspace change was created/i,
     ]);
     assert.equal(portableContent.toLowerCase().includes(LEGACY_RUNTIME_TERM), false);
   });

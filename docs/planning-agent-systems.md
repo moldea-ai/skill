@@ -20,7 +20,7 @@ The operation is read-only. It does not initialize `moldea`, install tooling, cr
 
 The coding agent identifies the recipient, trigger or cadence, deliverables, success criteria, constraints, side effects, permissions, privacy, failure expectations, and prohibited outcomes that shape the system.
 
-It inspects existing workflows, services, rules, data ownership, schemas, APIs, integrations, jobs, queues, approvals, and AI usage before asking the developer to repeat discoverable facts. It does not recommend a topology from the request alone when repository evidence is available.
+It inspects existing workflows, services, rules, data ownership, schemas, APIs, integrations, jobs, queues, approvals, and AI usage before asking the developer to repeat discoverable facts. When relevant repository evidence is accessible, that inspection is required before a repository-specific topology can be presented as grounded. The recommendation names the material current components and contracts it relied on.
 
 ## Classify responsibilities
 
@@ -50,3 +50,5 @@ The recommendation may contain no agents. It avoids fashionable supervisors, cri
 The plan identifies authoritative data, allowed readers and writers, deterministic enforcement, recommendation versus execution authority, human approvals, least-privilege access, state ownership, contracts, and failure boundaries.
 
 It produces one preferred architecture and an implementation sequence that validates risky services, schemas, capabilities, agent boundaries, routing, tests, and runtime integration early. This build order is distinct from the system's runtime control flow and remains part of a zero-agent recommendation.
+
+When one material authority or ownership decision remains unresolved, the coding agent still returns the invariant architecture supported by evidence. It identifies the exact branch that cannot be finalized, asks one focused question, and does not present the partial recommendation as a complete plan.

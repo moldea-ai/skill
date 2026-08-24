@@ -37,7 +37,13 @@ The default production inputs are `SITE_URL=https://skill.moldea.ai` and `BASE_P
 
 Set `PREVIEW_PORT` when the default Playwright preview port `4322` is already in use.
 
-The repository-root `CNAME` declares `skill.moldea.ai` as the production custom domain. GitHub Pages configuration and DNS must remain aligned with it; the deployment workflow builds from the origin and base path returned by GitHub Pages.
+The repository-root `CNAME` declares `skill.moldea.ai` as the production custom domain. GitHub Pages configuration and DNS must remain aligned with it; the deployment workflow builds from the host and base path returned by GitHub Pages.
+
+## Deployment
+
+Relevant pushes to `main` rebuild from the exact pushed commit, read the configured host and base path from GitHub Pages, build the canonical HTTPS origin from that host, upload `website/dist` with GitHub's official Pages artifact action, and deploy through the `github-pages` environment. After deployment, the workflow submits `https://skill.moldea.ai/sitemap-index.xml` to the `sc-domain:moldea.ai` Google Search Console property.
+
+Search Console submission authenticates with the `GOOGLE_SEARCH_CONSOLE_CREDENTIALS` organization-level Actions secret, with this repository included in its selected-repository policy. The secret contains the JSON key for `moldea-sitemap-submitter@moldea-prod.iam.gserviceaccount.com`, which must remain an owner of the Search Console property and retain `Service Account Token Creator` on itself. Manual workflow dispatches do not submit the sitemap. A submission failure leaves the deployed Pages artifact live and fails only the post-deployment submission job.
 
 ## Boundaries
 

@@ -42,7 +42,9 @@ The agent declares the highest-level available official runtime adapter whose ve
 
 Adapter behavior is established from authorized adapter documentation and repository evidence. Compatibility inventory proves availability only. When behavioral evidence is unavailable, the coding agent names the unestablished invocation, instruction, capability, schema, routing, or variable facts that matter and identifies the smallest source-owned documentation and closed repository wiring or tests that could resolve them. Package names, inventory, and model knowledge cannot supply target details, supported patterns, provider limitations, maturity, or wiring semantics, so the existing runtime remains unless other reliable evidence establishes a replacement.
 
-In a dedicated repository, related-application evidence can establish the primary runtime and provider-hosted capabilities. The canonical instruction or runtime guidance preserves that model-visible behavior without fabricating a cross-repository manifest binding. The final report distinguishes those externally established facts from implementation details canonical deterministic inspection cannot observe.
+When the declared runtime is unavailable in the exact installed CLI, evaluation stops without selecting a replacement or changing dependencies. Other available adapter IDs establish inventory only, not this project's integration boundary.
+
+In a dedicated repository, related-application evidence can establish the primary runtime and provider-hosted capabilities. The coding agent maps those capabilities before editing and preserves the model-visible behavior in the canonical instruction or runtime guidance as part of the same coherent runtime change, without fabricating a cross-repository manifest binding. The final report distinguishes those externally established facts from implementation details canonical deterministic inspection cannot observe.
 
 ## Prove instruction provenance
 

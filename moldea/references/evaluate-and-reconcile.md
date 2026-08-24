@@ -54,6 +54,8 @@ Every evaluation reports scope, deterministic state, all five categories, toolin
 
 `reconcile` begins with the evaluate evidence model but may write within developer-authorized scope.
 
+Before any semantic edit, complete an intended-state gate. Reconciliation authority permits resolving established drift; it does not select which plausible policy, permission, or behavior should govern. Deterministic checks can expose the conflict but cannot convert code, tests, canonical context, or instructions into intended-state authority.
+
 1. Establish intended state from question-specific repository evidence and developer direction. A request to reconcile authorizes the operation, not an arbitrary choice among unresolved policies.
 2. Do not assume code, tests, schemas, context, decisions, instructions, or adapter evidence always wins.
 3. Ask the developer before choosing among materially different plausible intended states, and make no semantic write while the answer is pending.

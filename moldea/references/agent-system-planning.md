@@ -17,7 +17,7 @@ Use an already available compatible repository-local CLI read-only when its dete
 ## Plan from the objective
 
 1. Establish the outcome, recipient, trigger or cadence, deliverables, success criteria, constraints, and prohibited outcomes that materially shape the system.
-2. Apply `context-gathering.md` and gather planning context from high-information repository evidence before asking the developer to repeat discoverable facts. Inspect current workflows, services, rules, data sources and ownership, schemas, APIs, jobs, queues, integrations, AI usage, permissions, side effects, approvals, scale, latency, privacy, security, compliance, audit, and failure expectations as relevant. Do not recommend topology from the request alone when repository evidence is available.
+2. Apply `context-gathering.md` and inspect high-information repository evidence before asking the developer to repeat discoverable facts. This is a planning precondition whenever relevant evidence is accessible. Inspect current workflows, services, rules, data sources and ownership, schemas, APIs, jobs, queues, integrations, AI usage, permissions, side effects, approvals, scale, latency, privacy, security, compliance, audit, and failure expectations as relevant. Do not recommend topology from the request alone.
 3. Decompose the objective into the smallest cohesive system responsibilities before naming agents or components. Describe outcome or decision boundaries rather than arbitrary technical steps.
 4. Classify each responsibility as deterministic application logic, deterministic data or transformation logic, an existing or proposed service or runtime-native tool, a reusable Agent Skill, an AI agent, human control, or a deliberate combination with explicit boundaries.
 5. Keep fixed calculations, eligibility rules, filtering, storage, delivery mechanics, and predictable sequencing deterministic unless evidence establishes a real need for model reasoning.
@@ -66,8 +66,10 @@ Provide one preferred architecture when evidence supports it. Present alternativ
 
 Cover the materially applicable objective, established context, constraints, responsibility allocation, agents and their justification, deterministic components, services or tools, human control, data and state ownership, permissions, control flow, contracts, failures, runtime considerations, tradeoffs, and implementation sequence. Treat these as a completion check, not optional sections; omit only categories that are genuinely immaterial.
 
+Name the material current components, workflows, contracts, permissions, or canonical facts that grounded the recommendation. If accessible repository evidence was not inspected, do not present a repository-specific topology as grounded.
+
 Recommend an implementation order that reduces uncertainty and tests important boundaries early. It is distinct from runtime control flow and remains required with zero agents. Do not execute it during `plan`.
 
-When an unresolved material decision could change responsibility ownership or topology, investigate further or ask a focused question. Return reliable partial conclusions when useful, but do not invent the missing semantics, create an unresolved requirement merely because planning is read-only, or claim the plan is complete.
+When an unresolved material decision could change responsibility ownership or topology, investigate further or ask one focused question. Still state the invariant architecture supported by evidence, identify precisely which branch cannot be finalized, and distinguish that partial recommendation from a complete plan. Do not invent the missing semantics or create an unresolved requirement merely because planning is read-only.
 
 Finish by distinguishing the recommendation from current implemented and canonical state and stating that no repository files were changed by `plan`.

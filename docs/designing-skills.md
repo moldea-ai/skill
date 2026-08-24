@@ -37,9 +37,9 @@ A useful description includes natural adjacent terminology without claiming unre
 
 ## Keep host metadata supplemental
 
-Host-specific metadata may add presentation, a default prompt, invocation policy, dependencies, installation, or discovery information. It remains aligned with the portable skill instead of redefining activation, authority, or limitations.
+Host-specific metadata may add presentation, a default prompt, invocation policy, dependencies, installation, or discovery information. The portable `SKILL.md` description remains authoritative for activation. When activation wording or a default prompt changes, the coding agent updates the portable description first and then synchronizes affected host fields. A host-only change does not update the portable behavior.
 
-An existing invocation policy is preserved unless you explicitly request a change or reliable host and repository evidence establishes that change as intended. Discoverability never grants authority for destructive or external actions.
+An existing invocation policy and unrelated supported host fields are preserved unless you explicitly request a change or reliable host and repository evidence establishes that change as intended. The resulting description is checked against representative requests that should activate the skill and adjacent requests that should not. Discoverability never grants authority for destructive or external actions.
 
 ## Disclose only what the workflow needs
 

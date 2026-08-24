@@ -55,6 +55,24 @@ const EXPLICIT_CONTEXT_CORRECTION_CASE_DEFINITION = SEMANTIC_CASES.find(
 const PARTIAL_INITIALIZATION_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'initialize-partial-context',
 );
+const INSUFFICIENT_INITIALIZATION_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'initialize-insufficient-context',
+);
+const RECONCILE_AMBIGUITY_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'reconcile-material-ambiguity',
+);
+const SKILL_HOST_METADATA_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'skill-maintain-host-invocation-policy',
+);
+const EXISTING_PROJECT_PLAN_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'plan-existing-project-one-agent',
+);
+const AMBIGUOUS_PLAN_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'plan-material-ambiguity',
+);
+const GIT_HELPER_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'read-only-git-helper-suppression',
+);
 const PNPM_PNP_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'pnpm-pnp-local-cli-provider',
 );
@@ -226,6 +244,114 @@ test('partial initialization exposes payment involvement without deciding author
   }
 });
 
+test('insufficient initialization exposes only generic metadata and placeholder code', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-insufficient-initialization-test-'));
+  assert.ok(INSUFFICIENT_INITIALIZATION_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      INSUFFICIENT_INITIALIZATION_CASE_DEFINITION,
+    );
+    const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
+    const implementation = readFileSync(join(repositoryPath, 'src', 'index.js'), 'utf8');
+
+    assert.equal(readme, '# Evaluation repository\n');
+    assert.equal(implementation, 'export const project = {};\n');
+    assert.equal(existsSync(join(repositoryPath, 'moldea')), false);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('reconciliation ambiguity exposes conflicting policy authorities', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-reconcile-ambiguity-test-'));
+  assert.ok(RECONCILE_AMBIGUITY_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      RECONCILE_AMBIGUITY_CASE_DEFINITION,
+    );
+    const instruction = readFileSync(
+      join(repositoryPath, 'moldea', 'agents', 'refund-agent', 'instruction.md'),
+      'utf8',
+    );
+    const implementation = readFileSync(join(repositoryPath, 'src', 'refund-policy.js'), 'utf8');
+
+    assert.match(instruction, /administrator may approve a refund/u);
+    assert.match(implementation, /requiredApproverRole = "manager"/u);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('skill host metadata scenario begins with stale portable activation', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-skill-host-metadata-test-'));
+  assert.ok(SKILL_HOST_METADATA_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      SKILL_HOST_METADATA_CASE_DEFINITION,
+    );
+    const portableSkill = readFileSync(
+      join(repositoryPath, 'skills', 'deployment-review', 'SKILL.md'),
+      'utf8',
+    );
+    const hostMetadata = readFileSync(
+      join(repositoryPath, 'skills', 'deployment-review', 'agents', 'openai.yaml'),
+      'utf8',
+    );
+
+    assert.match(portableSkill, /description: Review deployments\./u);
+    assert.match(
+      hostMetadata,
+      /default_prompt: "Use \$deployment-review to review a deployment\."/u,
+    );
+    assert.match(hostMetadata, /allow_implicit_invocation: false/u);
+    assert.match(hostMetadata, /brand_color: "#336699"/u);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('planning scenarios expose grounded evidence and a material authority conflict', async () => {
+  const groundedRoot = mkdtempSync(join(tmpdir(), 'moldea-grounded-plan-test-'));
+  const ambiguousRoot = mkdtempSync(join(tmpdir(), 'moldea-ambiguous-plan-test-'));
+  assert.ok(EXISTING_PROJECT_PLAN_CASE_DEFINITION);
+  assert.ok(AMBIGUOUS_PLAN_CASE_DEFINITION);
+
+  try {
+    const grounded = await createActorRepository(
+      groundedRoot,
+      EXISTING_PROJECT_PLAN_CASE_DEFINITION,
+    );
+    const ambiguous = await createActorRepository(ambiguousRoot, AMBIGUOUS_PLAN_CASE_DEFINITION);
+    const supportApi = readFileSync(join(grounded.repositoryPath, 'src', 'support-api.js'), 'utf8');
+    const supportContract = readFileSync(
+      join(grounded.repositoryPath, 'docs', 'support-triage.md'),
+      'utf8',
+    );
+    const refundApi = readFileSync(join(ambiguous.repositoryPath, 'src', 'refund-api.js'), 'utf8');
+    const authorityContract = readFileSync(
+      join(ambiguous.repositoryPath, 'docs', 'refund-authority.md'),
+      'utf8',
+    );
+
+    assert.match(supportApi, /authorization\.requireSupportAccess/u);
+    assert.match(supportApi, /persistence\.saveClassification/u);
+    assert.match(supportContract, /cannot authorize access or perform state transitions/u);
+    assert.match(refundApi, /payments\.reverse/u);
+    assert.match(authorityContract, /automated refunds/u);
+    assert.match(authorityContract, /human to approve every reversal/u);
+    assert.match(authorityContract, /No accepted decision/u);
+  } finally {
+    rmSync(groundedRoot, { force: true, recursive: true });
+    rmSync(ambiguousRoot, { force: true, recursive: true });
+  }
+});
+
 test('partial requirement scenario leaves integration coverage unresolved at baseline', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-partial-requirement-test-'));
   assert.ok(UNRESOLVED_REQUIREMENT_CASE_DEFINITION);
@@ -262,9 +388,85 @@ test('dedicated repository scenarios expose the declared related application mou
       assert.equal(readOnlyMounts[0].target, '/related-application');
       assert.equal(existsSync(join(readOnlyMounts[0].source, 'package.json')), true);
       assert.equal(existsSync(join(readOnlyMounts[0].source, 'src', 'refund-agent.js')), true);
+      assert.match(
+        readFileSync(join(readOnlyMounts[0].source, 'src', 'refund-agent.js'), 'utf8'),
+        /web_search_preview/u,
+      );
     } finally {
       rmSync(evaluationRoot, { force: true, recursive: true });
     }
+  }
+});
+
+test('safe Git diff suppresses configured execution helpers', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-git-helper-test-'));
+  assert.ok(GIT_HELPER_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      GIT_HELPER_CASE_DEFINITION,
+    );
+    const sentinelPath = join(repositoryPath, 'git-helper-ran.txt');
+    const unsafeResult = spawnSync('git', ['diff', '--', 'src/project-state.js'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+
+    assert.equal(unsafeResult.status, 0, unsafeResult.stderr);
+    assert.equal(existsSync(sentinelPath), true);
+    rmSync(sentinelPath);
+
+    const safeResult = spawnSync(
+      'git',
+      [
+        '-c',
+        'core.fsmonitor=false',
+        '-c',
+        'core.pager=cat',
+        '-c',
+        'core.attributesFile=/dev/null',
+        '-c',
+        'filter.lfs.process=',
+        '-c',
+        'filter.lfs.smudge=',
+        '-c',
+        'filter.lfs.required=false',
+        '-c',
+        'diff.external=',
+        '--no-pager',
+        'diff',
+        '--no-ext-diff',
+        '--no-textconv',
+        '--ignore-submodules=all',
+        '--',
+        'src/project-state.js',
+      ],
+      { cwd: repositoryPath, encoding: 'utf8' },
+    );
+
+    assert.equal(safeResult.status, 0, safeResult.stderr);
+    assert.match(safeResult.stdout, /projectState = "changed"/u);
+    assert.equal(existsSync(sentinelPath), false);
+    const status = spawnSync(
+      'git',
+      [
+        '-c',
+        'core.fsmonitor=false',
+        '-c',
+        'core.pager=cat',
+        '--no-pager',
+        'status',
+        '--porcelain',
+        '--ignore-submodules=all',
+      ],
+      { cwd: repositoryPath, encoding: 'utf8' },
+    );
+    assert.equal(status.status, 0, status.stderr);
+    assert.equal(status.stdout, ' M src/project-state.js\n');
+    assert.equal(existsSync(sentinelPath), false);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
   }
 });
 

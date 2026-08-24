@@ -56,13 +56,13 @@ Initialization does not create an agent automatically. It also does not create c
 
 Initialization is conversational when the evidence is not yet sufficient:
 
-- When no meaningful project context can be established, the coding agent says what it inspected and asks the highest-value foundational question needed to continue. Brief or generic package metadata can inform that question, but it cannot finalize the foundation by itself. Neither can a repository name, generic label, placeholder file, or empty export.
-- When part of the project is clear but a material purpose, user, goal, or boundary remains uncertain, it summarizes the supported conclusions and asks a focused clarification before finalizing affected claims.
+- When no meaningful project context can be established, the coding agent says what it inspected and asks about one highest-value missing fact, normally the project's purpose or who it serves. It does not bundle purpose, users, goals, and boundaries into a questionnaire. Brief or generic package metadata can inform that question, but it cannot finalize the foundation by itself. Neither can a repository name, generic label, placeholder file, or empty export.
+- When part of the project is clear but a material purpose, user, goal, authority, or boundary remains uncertain, it summarizes the supported conclusions and asks one question about that consequential boundary before finalizing affected claims.
 - When the foundation is sufficiently clear, it completes initialization without asking a question merely for ceremony.
 
 You can also supply context before the coding agent asks. Include it directly in the request or point to an accessible file where you already maintain the relevant users, goals, boundaries, or other project knowledge. The coding agent evaluates that input alongside repository evidence and carries only durable, relevant truth into the project foundation.
 
-Insufficient and partial foundations pause initialization before dependency changes, canonical project state, or the owned README awareness block. Missing or unverified tooling does not erase available project evidence. The coding agent asks instead of storing developer-answerable foundational ambiguity as an unresolved requirement.
+Insufficient and partial foundations pause initialization with no dependency, canonical-state, or owned README writes. Missing or unverified tooling does not erase available project evidence. The coding agent asks instead of storing developer-answerable foundational ambiguity as an unresolved requirement.
 
 The amount of documentation is not the deciding factor. A concise authoritative README may be sufficient, while extensive contradictory or stale documentation may require clarification. After any required answers, the coding agent resumes initialization and provides a completed handoff with optional next actions.
 

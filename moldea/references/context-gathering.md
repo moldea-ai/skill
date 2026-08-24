@@ -51,6 +51,8 @@ A non-conflicting current claim can establish truth regardless of whether it arr
 
 Do not infer consequential authority from broad verbs such as “process,” “handle,” or “manage.” When those words leave materially different boundaries plausible, preserve the supported foundation, identify the unresolved boundary, and ask one focused question before writing.
 
+A focused question asks for one missing fact or one decision whose answer changes the result. Choose the highest-information uncertainty first, normally purpose or recipient for an otherwise empty foundation, and do not bundle purpose, users, goals, boundaries, authority, or workflow into one prompt. When one consequential boundary is already visible, ask only about that boundary.
+
 ## Investigate progressively
 
 1. Inspect the root README and other high-information project surfaces first.
@@ -58,7 +60,7 @@ Do not infer consequential authority from broad verbs such as “process,” “
 3. Follow material imports, bindings, impact paths, schemas, capability registrations, Agent Skill resources and consumers, runtime-agent construction, instruction loaders, variable providers, tests, runtime guidance, decisions, unresolved references, and adapter evidence.
 4. Test consequential conclusions against a second reliable surface when practical.
 5. Identify contradictions, temporal differences, and material unknowns.
-6. Ask one focused question only when different reasonable answers would materially change persisted truth, behavior, policy, permission, schema semantics, capability use, routing, failure handling, or implementation direction.
+6. Ask one focused question about one missing fact or decision only when different reasonable answers would materially change persisted truth, behavior, policy, permission, schema semantics, capability use, routing, failure handling, or implementation direction.
 7. Stop when more evidence is unlikely to change a material conclusion for the current purpose.
 
 Do not ask the developer for facts reliable repository or deterministic evidence can establish. Do not read the entire repository by default.
@@ -110,8 +112,8 @@ Inspect high-information project evidence and classify the foundation before cha
 
 Before finalizing canonical project truth, classify the available foundation as an interaction outcome rather than a persisted score or status. Project and directory names, generic labels, placeholder files, empty exports, and brief or generic package metadata may inform clarification but cannot establish a sufficient foundation alone:
 
-- **Insufficient:** meaningful purpose, users or systems served, principal goals, and relevant boundaries cannot be established. State that no meaningful project context was inferred, identify the high-information evidence inspected, stop before creating canonical project state or the owned README awareness block, ask the highest-value focused question needed to continue, and do not claim completion.
-- **Partial:** some foundational conclusions are supported, but a material gap or consequential alternative remains. Do not turn missing evidence into a negative claim that the project excludes the unestablished behavior. Summarize the supported conclusions, label the uncertainty, stop before creating canonical project state or the owned README awareness block, ask one focused clarification question, and resume initialization after the developer answers.
+- **Insufficient:** meaningful purpose, users or systems served, principal goals, and relevant boundaries cannot be established. State that no meaningful project context was inferred, identify the high-information evidence inspected, stop before dependency changes, canonical project state, or the owned README awareness block, ask one question about the highest-value missing fact, and do not claim completion.
+- **Partial:** some foundational conclusions are supported, but a material gap or consequential alternative remains. Do not turn missing evidence into a negative claim that the project excludes the unestablished behavior. Summarize the supported conclusions, label the uncertainty, stop before dependency changes, canonical project state, or the owned README awareness block, ask one question about the consequential boundary, and resume only after the developer answers.
 - **Sufficient:** the evidence supports a useful and truthful foundation without material unsupported assumptions. Complete initialization without a ceremonial question and report the established understanding, resulting files, validation, non-blocking limitations, and an explicit `Next actions` handoff.
 
 Judge evidence by its quality, coverage, consistency, and authority rather than documentation volume. A concise authoritative source may be sufficient; extensive stale or contradictory documentation may not be.

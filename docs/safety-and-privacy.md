@@ -34,4 +34,4 @@ The coding agent inspects package-manager configuration as file data before invo
 
 The exact repository-local CLI provider is verified before execution, and the skill never falls back to a global command or transient package download. Every result-dependent provider check runs separately and must be accepted before the next command begins.
 
-Read-only Git inspection disables repository-configured helpers that could execute code or transform evidence.
+Read-only Git inspection uses command-specific controls instead of a bare Git command. Filesystem monitors and pagers are disabled for every supplemental inspection. Patch-producing commands also disable external diff programs and text-conversion drivers, and the coding agent suppresses relevant filters, LFS processing, and unintended submodule recursion. It verifies that inspection created no helper sentinel or workspace change. When these controls cannot make the required inspection safe, it reports the evidence limitation instead of executing repository code.

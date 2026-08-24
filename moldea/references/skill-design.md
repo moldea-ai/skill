@@ -48,7 +48,7 @@ Review representative positive requests, adjacent requests that should remain ou
 
 Portable activation remains owned by the directory identity and `SKILL.md` frontmatter. Host metadata may add presentation, default-prompt, invocation-policy, dependency, installation, or discovery information when the target host establishes those fields.
 
-Keep host metadata consistent with the portable name, description, workflow, authority, and limitations. Preserve unrelated supported metadata when one field changes, and do not claim installation, discovery, activation, consumption, or runtime registration without separate evidence.
+When activation wording or a default prompt changes, update the authoritative portable description first, then synchronize affected host descriptions or prompts. A host-only change leaves the portable activation contract stale. Keep host metadata consistent with the portable name, description, workflow, authority, and limitations. Preserve unrelated supported metadata when one field changes, and verify representative positive and adjacent non-activation requests. Do not claim installation, discovery, activation, consumption, or runtime registration without separate evidence.
 
 Preserve an existing invocation policy unless the developer explicitly requests a change or reliable host and repository evidence establishes that change as intended. Sensitive or externally mutating operations still require task-specific authority when executed; they do not require making the entire skill undiscoverable by default.
 

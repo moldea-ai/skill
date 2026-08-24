@@ -74,7 +74,7 @@ An unexplained same-scope conflict over policy, permission, approval, ownership,
 - Read `references/context-gathering.md` before initialization, agent-system planning, consequential project-context work, Agent Skill creation or material maintenance, agent creation, semantic evaluation, or reconciliation.
 - Read `references/agent-system-planning.md` before planning an AI- or agent-enabled system, decomposing agent responsibilities, or recommending orchestration.
 - Read `references/continuous-maintenance.md` before initialization, knowledge- or relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
-- Read `references/agent-design.md` before creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, runtime relationship, or unresolved requirement.
+- Read `references/agent-design.md` before agent or runtime evaluation, creation, or material maintenance, including instructions, descriptions, schemas, capabilities, variables, mirrors, relationships, and requirements.
 - Read `references/skill-design.md` before creating, evaluating, or materially changing an Agent Skill, its `SKILL.md`, references, scripts, assets, activation contract, installation relationship, or runtime registration.
 - Read `references/evaluate-and-reconcile.md` before `evaluate`, `reconcile`, or a scoped semantic alignment assessment.
 
@@ -113,7 +113,7 @@ Keep reports proportional; make these results explicit when relevant:
 - exact local CLI version, every accepted tooling proof stage, and deterministic commands, statuses, and material diagnostics
 - dependency changes and Agent Skill source, metadata, copy, consumer, and activation decisions
 - semantic decisions and the evidence chain that established any consequential misalignment and resulting state
-- relevant requirements, ambiguities, protected-instruction conflicts, and evidence limitations pairing each unknown with reliable resolving documentation, closed wiring, configuration, or tests; otherwise evaluation is incomplete
+- relevant requirements, ambiguities, protected-instruction conflicts, and each material evidence limitation's unknown fact, smallest reliable resolving artifact and owner, and required proof; otherwise evaluation is incomplete
 - every tooling block: executable configuration path, blocked operation and evidence, and safe prerequisite
 - an explicit stop and reason when continuing would require invented authority, policy, behavior, or replacement
 - project-native checks and checks not run

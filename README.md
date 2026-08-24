@@ -170,7 +170,7 @@ Planning starts from the objective and bounded repository discovery across high-
 | Reconcile         | `Reconcile the billing agent with the implementation.`                      |
 | Validate          | `Validate the moldea project.`                                              |
 
-`evaluate` reports deterministic diagnostics, confirmed semantic problems, material ambiguities, relevant unresolved requirements, and evidence limitations without modifying any repository file. Every material runtime unknown names a reliable resolver such as source-owned target documentation, closed wiring, provider configuration, or an integration test; otherwise the evaluation is incomplete. `reconcile` begins from the same evidence model. It corrects established drift but does not let implementation, instructions, validation, or synchronized mirrors choose among unresolved policies.
+`evaluate` reports deterministic diagnostics, confirmed semantic problems, material ambiguities, relevant unresolved requirements, and evidence limitations without modifying repository files. Every material runtime limitation names the unknown fact, the smallest reliable resolving artifact and established owner, and what the artifact must prove; unknown ownership stays explicit. `reconcile` begins from the same evidence model. It corrects established drift but does not let implementation, instructions, validation, or synchronized mirrors choose among unresolved policies.
 
 ## Continuous maintenance
 

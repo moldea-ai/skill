@@ -40,9 +40,9 @@ Report separate categories:
 - **Confirmed semantic problems:** evidence-backed contradictions, drift, stale relationships, or material instruction-quality concerns.
 - **Material ambiguities:** consequential questions with multiple plausible intended resolutions.
 - **Relevant unresolved requirements:** existing requirements that affect scope, preserving their declared effect.
-- **Material evidence limitations:** missing tooling, protected access, unavailable adapter evidence, operational failures, or insufficient repository evidence.
+- **Material evidence limitations:** each material unknown, its smallest reliable resolving artifact and owner, and what that artifact must establish.
 
-Pair each runtime unknown with its smallest reliable resolver: source-owned target docs, closed wiring, provider configuration, or an integration test. Name its artifact type and owner without inventing a path. Generic statements are insufficient; evaluation is incomplete while a material unknown lacks a resolver.
+Resolvers include source-owned target docs, closed wiring, provider configuration, or integration tests. Name only an established owner without inventing a path or identity; report ownership unestablished when necessary. A missing-evidence list without an unknown-to-resolver mapping is insufficient; evaluation remains incomplete.
 
 When material repository-specific runtime behavior is not established by canonical guidance or another reliable source, report that semantic-readiness problem rather than inventing a Core structural diagnostic. Never repair an unavailable adapter by silently rewriting `runtime.id` to `custom`.
 

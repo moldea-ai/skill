@@ -418,6 +418,10 @@ describe('portable Agent Skill contract', () => {
     );
 
     assert.deepEqual([...referencedPaths].sort(), REFERENCE_FILES);
+    assert.match(
+      skill,
+      /Read `references\/agent-design\.md` before agent or runtime evaluation/i,
+    );
 
     for (const fileName of REFERENCE_FILES) {
       assert.ok(existsSync(join(SKILL_DIRECTORY, 'references', fileName)));
@@ -647,13 +651,14 @@ describe('portable Agent Skill contract', () => {
       /Material ambiguities/,
       /Relevant unresolved requirements/,
       /Material evidence limitations/,
-      /Pair each runtime unknown with its smallest reliable resolver/i,
-      /source-owned target docs, closed wiring, provider configuration, or an integration test/i,
-      /Name its artifact type and owner without inventing a path/i,
+      /each material unknown, its smallest reliable resolving artifact and owner/i,
+      /what that artifact must establish/i,
+      /source-owned target docs, closed wiring, provider configuration, or integration tests/i,
+      /report ownership unestablished when necessary/i,
+      /missing-evidence list without an unknown-to-resolver mapping is insufficient/i,
       /absent handoff with a consumer of `description\.md` is aligned fallback/i,
       /label it unknown and use only `if\.\.\.then` outcomes/i,
       /Call the canonical path required, never correct, incorrect, current, effective, absent, or wrong/i,
-      /generic statements are insufficient/i,
       /no repository files were changed/i,
       /smallest coherent change/,
       /Do not recreate those mechanics/,
@@ -695,12 +700,14 @@ describe('portable Agent Skill contract', () => {
       /script-owned result as an input/i,
     ]);
     assertMatchesEvery(agentDesign, [
-      /Adapter documentation exists only in authorized evidence/i,
+      /Only authorized evidence supplies adapter documentation/i,
       /Never reconstruct target behavior from model knowledge, package names, or inventory/i,
       /Without behavioral evidence, preserve the runtime/i,
-      /pair each unknown invocation, instruction-loading, capability, schema, routing, or variable fact with its smallest reliable resolver/i,
-      /Name the artifact type and owner without inventing its path/i,
-      /Evaluation is incomplete while a material unknown lacks a resolver/i,
+      /Report every unknown invocation, instruction-loading, capability, schema, routing, or variable fact/i,
+      /smallest reliable resolving artifact, established owner, and required proof/i,
+      /Never invent a path, identity, or owner/i,
+      /report unestablished ownership/i,
+      /Evaluation is incomplete without a resolver/i,
       /If `handoff-description\.md` is absent, read `description\.md`, runtime guidance, and the consumer before judging fallback/i,
       /Never request an accessible description/i,
       /Before changing a runtime description mapping, keep these facts separate/i,
@@ -831,7 +838,8 @@ describe('portable Agent Skill contract', () => {
       /primary runtime integration boundary/,
       /compact CLI inventory/,
       /inventory proves availability only/i,
-      /pair each unknown invocation, instruction-loading, capability, schema, routing, or variable fact with its smallest reliable resolver/i,
+      /Report every unknown invocation, instruction-loading, capability, schema, routing, or variable fact/i,
+      /smallest reliable resolving artifact, established owner, and required proof/i,
       /source-owned target documentation, closed wiring, provider configuration, or an integration test/i,
       /unavailable adapter/,
       /`-c core\.fsmonitor=false`/,

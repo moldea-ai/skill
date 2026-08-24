@@ -84,7 +84,7 @@ Load only references triggered by the operation. They operationalize this contra
 
 1. Establish the requested outcome, activation path, write authority, repository mode, and applicable coding instructions.
 2. Determine whether the repository has adopted `moldea`. Do not infer adoption from an unrelated repository or create canonical state without explicit adoption intent.
-3. Gather sufficient high-information evidence and relationships. For `initialize`, classify the foundation before changing dependencies; a verified exact CLI may provide earlier read-only evidence.
+3. Gather sufficient high-information evidence. Directly read material accessible files before concluding, claiming absence, or asking the developer for them. For `initialize`, classify the foundation before dependencies change.
 4. Use supported local tooling for the operation. Inspect executable manager configuration as file data before any package-manager process. `plan` never establishes tooling; `evaluate` and `validate` report incompatible tooling without writes.
 5. When the operation uses deterministic tooling, invoke the exact repository-local CLI in its own process and verify that completed process's exit code and machine envelope before interpreting command-specific fields.
 6. Distinguish current truth, developer-confirmed truth, intended resulting state, planned work, accepted rationale, historical state, unresolved state, and inference used only for investigation.
@@ -109,19 +109,19 @@ Keep reports proportional; make these results explicit when relevant:
 
 - selected operation and activation path
 - authorized scope and every repository's state, including unchanged or uninspected related repositories
-- canonical surfaces changed, intentionally unchanged after reconsideration with reason, or blocked by material ambiguity and its focused question
+- canonical surfaces changed, explicitly unchanged with why no canonical change was required, or blocked by material ambiguity and its focused question
 - exact local CLI version, deterministic commands, statuses, and material diagnostics
 - dependency changes and Agent Skill source, metadata, copy, consumer, and activation decisions
 - semantic decisions and the evidence chain that established any consequential misalignment and resulting state
-- relevant unresolved requirements, ambiguities, protected-instruction conflicts, and evidence limitations naming each material unknown and the concrete documentation, closed wiring, or test that could resolve it
-- blocked tooling's executable configuration path, blocked operation, and safe developer-controlled prerequisite
+- relevant requirements, ambiguities, protected-instruction conflicts, and evidence limitations pairing each unknown with resolving documentation, closed wiring, or tests
+- every tooling block: executable configuration path, blocked operation and evidence, and safe prerequisite
 - an explicit stop and reason when continuing would require invented authority, policy, behavior, or replacement
 - project-native checks and checks not run
 
-When deterministic tooling runs after writes, report the literal repository-local invocation, status, and material diagnostics or mirror findings. Naming only the version or subcommand is insufficient. Failed, incomplete, aggregate, or unverified execution cannot support completion. Never imply that canonical inspection proves behavior it cannot observe. In dedicated-repository mode, state what canonical inspection cannot observe, then name the related evidence establishing external facts.
+After writes, report the literal repository-local deterministic invocation, status, and material diagnostics or mirror findings. Version or subcommand alone and failed, incomplete, aggregate, or unverified execution cannot support completion. Report only workspace-proven changes. In dedicated-repository mode, state what canonical inspection cannot observe, the related evidence, and remaining unknowns.
 
 For `initialize`, report which material sources established each foundation conclusion and whether initialization completed or awaits context. If awaiting, end with the focused clarification. If completed, end with `Next actions` offering foundation review and ordinary development; mention planning or agent creation only when relevant. Validation does not replace this handoff or make file creation semantic completion.
 
 Treat each deterministic validator result as evidence only for the boundary it actually validates. Never generalize a component validator's success into whole-artifact or whole-system structural validity; establish all relevant resources, relationships, and consumer evidence before making the broader claim. Never claim alignment while consequential ambiguity remains or production readiness while a blocking unresolved requirement affects the claimed behavior. Every `evaluate` result must explicitly state that no repository files were changed.
 
-Every moldea agent-system `plan` result must name the material repository paths read and what they establish, distinguish proposed architecture from current implemented or canonical state, recommend an implementation sequence without executing it, and explicitly state that planning changed no repository files. If one material decision remains unresolved, return the reliable invariant architecture, identify only what cannot be finalized, ask one focused question, and do not claim completion.
+Every moldea agent-system `plan` result maps material paths read to established facts, preserves every responsibility, distinguishes proposed from current state, gives an unexecuted implementation sequence, and states that planning changed no repository files. If a material decision remains unresolved, return the invariant architecture, identify what cannot be finalized, ask the highest-impact question, and do not claim completion.

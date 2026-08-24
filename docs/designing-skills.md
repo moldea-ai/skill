@@ -29,6 +29,8 @@ Different surfaces own different behavior:
 
 A skill is not an independently executing agent, hidden authority, or substitute for missing implementation.
 
+The coding agent names the owning surface before creating a skill. Selecting protected coding instructions as the owner never authorizes changing them, and predictable checksum or validation behavior remains in deterministic software.
+
 ## Define activation precisely
 
 Every skill has a stable lowercase kebab-case directory and matching frontmatter `name`. Its `description` explains what the skill enables and the concrete requests or situations that should activate it.
@@ -37,7 +39,7 @@ A useful description includes natural adjacent terminology without claiming unre
 
 ## Keep host metadata supplemental
 
-Host-specific metadata may add presentation, a default prompt, invocation policy, dependencies, installation, or discovery information. The portable `SKILL.md` description remains authoritative for activation. When activation wording or a default prompt changes, the coding agent updates the portable description first and then synchronizes affected host fields. A host-only change does not update the portable behavior.
+Host-specific metadata may add presentation, a default prompt, invocation policy, dependencies, installation, or discovery information. The portable `SKILL.md` description remains authoritative for activation. When portable purpose, activation, or the default interaction changes, the coding agent updates the portable description first and synchronizes every affected host description or prompt. It then rereads or diffs both artifacts and reports only changes present in the workspace. A host-only change does not update portable behavior.
 
 An existing invocation policy and unrelated supported host fields are preserved unless you explicitly request a change or reliable host and repository evidence establishes that change as intended. The resulting description is checked against representative requests that should activate the skill and adjacent requests that should not. Discoverability never grants authority for destructive or external actions.
 

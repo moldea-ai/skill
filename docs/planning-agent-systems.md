@@ -22,7 +22,7 @@ Runtime selection remains optional unless you request it or it materially change
 
 The coding agent identifies the recipient, trigger or cadence, deliverables, success criteria, constraints, side effects, permissions, privacy, failure expectations, and prohibited outcomes that shape the system.
 
-It begins with instructions, README content, manifests, and canonical state. When that high-level view is sparse, it inspects a bounded root inventory and searches objective terms across ordinary source, documentation, configuration, and tests before claiming that project evidence is unavailable. A path listing is navigation, not evidence, so it reads the material files it finds. It then follows the material workflows, services, rules, data ownership, schemas, APIs, integrations, jobs, queues, approvals, and AI usage. The recommendation names the exact paths read and the current components and contracts they establish.
+It begins with instructions, README content, manifests, and canonical state. When that view is sparse, it inspects a bounded root inventory and searches objective terms across source, documentation, configuration, and tests. A path listing is navigation, so it directly reads accessible material files before claiming evidence is unavailable or asking you to provide it. The recommendation maps each material path to the current component, contract, fact, and responsibility it establishes.
 
 ## Classify responsibilities
 
@@ -43,7 +43,7 @@ An Agent Skill is not treated as an independently executing agent or as authorit
 
 A separate agent is warranted when it creates a meaningful boundary for specialized context, permissions, failure isolation, routing, reusable reasoning, independent evaluation, or maintainable ownership.
 
-Every material objective responsibility remains represented. Model-reasoning responsibilities with incompatible private context, permissions, trust, or failure boundaries remain separate unless reliable evidence shows that deterministic software can replace one. Public research and privileged project or customer reasoning stay separated when their data boundaries conflict. A smaller count is not useful when it drops a responsibility or creates one overprivileged agent.
+Every material evidence-established responsibility remains represented. Combining or removing one requires reliable replacement evidence and cannot erase its outcome. Model-reasoning responsibilities with incompatible private context, permissions, trust, or failure boundaries remain separate unless deterministic software replaces one. Public research and privileged project or customer reasoning stay separated when their data boundaries conflict. A smaller count is not useful when it drops a responsibility or creates one overprivileged agent.
 
 The recommendation may contain no agents. It avoids fashionable supervisors, critics, autonomous loops, memory systems, or model-based routers unless the objective genuinely requires them.
 
@@ -53,4 +53,4 @@ The plan identifies authoritative data, allowed readers and writers, persistence
 
 It produces one preferred architecture and an implementation sequence that validates risky services, schemas, capabilities, agent boundaries, routing, tests, and runtime integration early. This build order is distinct from the system's runtime control flow and remains part of a zero-agent recommendation.
 
-When one material authority or ownership decision remains unresolved, the coding agent still returns the invariant architecture supported by evidence. It identifies the exact branch that cannot be finalized, asks one focused question, and does not present the partial recommendation as a complete plan.
+When material decisions remain unresolved, the coding agent asks first about the one that most changes authority, ownership, topology, or consequential side effects, before downstream thresholds or categories. It still returns the invariant architecture, identifies the branch that cannot be finalized, and does not present the partial recommendation as complete.

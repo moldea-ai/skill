@@ -24,6 +24,8 @@ An agent is not complete when the model would need hidden repository knowledge. 
 
 Instructions should be complete, evidence-grounded, actionable, aligned with executable contracts, explicit about consequential ambiguity and failure, and concise enough that each runtime token earns its cost.
 
+For routing metadata, the coding agent inspects the target directory directly. It uses `handoff-description.md` when present. When that optional asset is absent, it reads `description.md`, runtime guidance, and the consumer before judging the fallback, rather than asking you to paste an accessible file.
+
 ## Register real capabilities
 
 A manifest tool or skill requires a qualifying repository-local implementation artifact. Before registration, the coding agent establishes its runtime-facing name, use conditions, inputs, outputs, preconditions, limitations, side effects, authorization, failure behavior, and actual runtime registration.
@@ -40,11 +42,11 @@ Executable and model-facing schemas are one semantic contract. Requiredness, nul
 
 The agent declares the highest-level available official runtime adapter whose verified target covers the actual primary integration boundary. Planned support is not presented as available, experimental support is not presented as production-ready, and `custom` is used only when the real composition requires it.
 
-Adapter behavior is established from authorized adapter documentation and repository evidence. Compatibility inventory proves availability only. When behavioral evidence is unavailable, the coding agent preserves the current runtime and names the material unknown invocation, instruction loading, tools, schemas, routing, handoffs, variables, or provider configuration. It also names the source-owned target documentation and closed repository wiring or integration tests that could resolve each gap. A generic statement that fit is unestablished is not enough. Package names, inventory, and model knowledge cannot supply target details, supported patterns, provider limitations, maturity, or wiring semantics. Dynamic wiring can establish a consumer's purpose and required canonical source without proving which source the runtime resolves; that actual source remains unknown rather than effective, absent, or wrong.
+Adapter behavior is established from authorized adapter documentation and repository evidence. Compatibility inventory proves availability only. When behavioral evidence is unavailable, the coding agent preserves the current runtime and pairs each unknown invocation, instruction loading, tool, schema, routing, handoff, variable, or provider fact with its smallest resolver, such as source-owned target documentation, closed repository wiring, provider configuration, or an integration test. It names a required artifact without inventing its path. A generic statement that fit is unestablished is not enough. Package names, inventory, and model knowledge cannot supply target details, supported patterns, provider limitations, maturity, or wiring semantics. Dynamic wiring can establish a consumer's purpose and required canonical source without proving which source the runtime resolves; that actual source remains unknown rather than effective, absent, or wrong.
 
 When the declared runtime is unavailable in the exact installed CLI, evaluation stops without selecting a replacement or changing dependencies. Other available adapter IDs establish inventory only, not this project's integration boundary.
 
-In a dedicated repository, related-application evidence can establish the primary runtime and provider-hosted capabilities. The coding agent maps those capabilities before editing and preserves model-visible behavior in the canonical instruction or runtime guidance without fabricating a cross-repository manifest binding. The final report first states that canonical inspection cannot observe the external invocation or capability, then names each repository's state, related evidence, externally established semantics, and other unknown implementation details.
+In a dedicated repository, related-application evidence can establish the primary runtime and provider-hosted capabilities. The coding agent maps those capabilities before editing and preserves model-visible behavior without fabricating a cross-repository manifest binding. The final report states what canonical inspection cannot observe, what each related path establishes, each repository's state, and what remains unknown.
 
 ## Prove instruction provenance
 

@@ -17,7 +17,7 @@ Prefer another surface when it owns the behavior more accurately:
 - ordinary documentation explains concepts for humans without needing coding-agent activation
 - canonical `/moldea/**` context records durable project truth rather than reusable operating procedure
 
-Do not create a skill to hide missing implementation, duplicate protected instructions, split a short cohesive workflow into ceremonial files, or manufacture a manifest capability. Reuse and extend an existing skill when its responsibility remains cohesive.
+State which surface owns each proposed behavior before creating a skill. Do not hide missing implementation, duplicate protected instructions, split a cohesive workflow into ceremonial files, or manufacture a manifest capability. Selecting protected instructions as the owner never authorizes changing them.
 
 ## Understand the complete artifact first
 
@@ -48,7 +48,7 @@ Review representative positive requests, adjacent requests that should remain ou
 
 Portable activation remains owned by the directory identity and `SKILL.md` frontmatter. Host metadata may add presentation, default-prompt, invocation-policy, dependency, installation, or discovery information when the target host establishes those fields.
 
-When activation wording or a default prompt changes, update the authoritative portable description first, then synchronize affected host descriptions or prompts. A host-only change leaves the portable activation contract stale. Keep host metadata consistent with the portable name, description, workflow, authority, and limitations. Preserve unrelated supported metadata when one field changes, and verify representative positive and adjacent non-activation requests. Do not claim installation, discovery, activation, consumption, or runtime registration without separate evidence.
+When portable purpose, activation, or default interaction changes, update the portable description first, then affected host descriptions or prompts. A host-only change leaves the portable contract stale. Preserve invocation policy and unrelated fields. Before completion, reread or diff both artifacts and report only workspace-proven changes. Verify positive and adjacent non-activation requests. Do not claim installation, discovery, activation, consumption, or runtime registration without separate evidence.
 
 Preserve an existing invocation policy unless the developer explicitly requests a change or reliable host and repository evidence establishes that change as intended. Sensitive or externally mutating operations still require task-specific authority when executed; they do not require making the entire skill undiscoverable by default.
 

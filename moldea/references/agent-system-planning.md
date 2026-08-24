@@ -17,8 +17,8 @@ Use an available compatible root-local CLI read-only. If runtime identity is exp
 ## Plan from the objective
 
 1. Establish the outcome, recipient, trigger or cadence, deliverables, success criteria, constraints, and prohibited outcomes that materially shape the system.
-2. Apply the bounded discovery ladder in `context-gathering.md` before asking for discoverable facts. Inspect high-information surfaces, then a bounded root inventory and objective-term matches when initial discovery is sparse. Read material files; listings are not evidence. This is a planning precondition when evidence is accessible. Do not claim none or recommend topology from the request after discovery output alone.
-3. Decompose the objective into the smallest cohesive system responsibilities before naming agents or components. Describe outcome or decision boundaries rather than arbitrary technical steps.
+2. Apply the bounded discovery ladder in `context-gathering.md` before asking for discoverable facts. Read material accessible files that discovery exposes and map each path to its established fact; listings are not evidence. Do not claim none or recommend topology from the request after discovery alone.
+3. Decompose the objective and every evidence-established outcome into the smallest cohesive system responsibilities before naming agents or components.
 4. Classify each responsibility as deterministic application logic, deterministic data or transformation logic, an existing or proposed service or runtime-native tool, a reusable Agent Skill, an AI agent, human control, or a deliberate combination with explicit boundaries.
 5. Keep fixed calculations, eligibility rules, filtering, storage, delivery mechanics, and predictable sequencing deterministic unless evidence establishes a real need for model reasoning.
 
@@ -30,7 +30,9 @@ A valid result may recommend zero agents. Prefer the smallest agent topology tha
 
 Create a separate agent candidate only when an independent boundary materially improves cohesive ownership, specialized model context, permission separation, failure isolation, routing clarity, reusable reasoning, independent evaluation or maintenance, or another evidence-backed concern.
 
-Preserve every material objective responsibility during decomposition. Model-reasoning responsibilities with mutually incompatible private context, permissions, trust, or failure boundaries require separate candidates unless reliable evidence establishes a deterministic replacement. Public research and privileged project or customer reasoning remain separated when their data boundaries conflict; reducing the count never justifies merging them.
+Before finalizing, reconcile every material evidence-established responsibility with an explicit deterministic, service, tool, skill, agent, or human owner. Combining or removing one requires reliable replacement evidence and cannot erase its outcome. Model-reasoning responsibilities with incompatible private context, permissions, trust, or failure boundaries remain separate unless deterministic software replaces one. Reducing agent count never justifies dropping a responsibility or merging incompatible boundaries.
+
+Public research and privileged project or customer reasoning remain separate when their data boundaries conflict.
 
 Reuse an existing agent only when the responsibility remains cohesive with its established purpose. Do not create a god agent to reduce the count, split one cohesive responsibility to manufacture a multi-agent design, or add planners, critics, supervisors, memory, autonomous loops, or an orchestrator by fashion.
 
@@ -66,10 +68,10 @@ Provide one preferred architecture when evidence supports it. Present alternativ
 
 Cover the materially applicable objective, established context, constraints, responsibility allocation, agents and their justification, deterministic components, services or tools, human control, authoritative data, readers and writers, persistence, permissions, control flow, model input and output contracts, deterministic enforcement, failures, runtime considerations, tradeoffs, and implementation sequence. Treat these as a completion check, not optional sections; omit only genuinely immaterial categories.
 
-Name the exact material repository paths read and the current components, workflows, contracts, permissions, or canonical facts they establish. If accessible repository evidence was not inspected, do not present a repository-specific topology as grounded.
+Name the material repository paths read and what each establishes. Ensure every resulting responsibility still appears in the recommended architecture. If accessible evidence was not inspected, do not present a repository-specific topology as grounded.
 
 Recommend an implementation order that reduces uncertainty and tests important boundaries early. It is distinct from runtime control flow and remains required with zero agents. Do not execute it during `plan`.
 
-When an unresolved material decision could change responsibility ownership or topology, investigate further or ask one focused question. Still state the invariant architecture supported by evidence, identify precisely which branch cannot be finalized, and distinguish that partial recommendation from a complete plan. Do not invent the missing semantics or create an unresolved requirement merely because planning is read-only.
+When unresolved decisions remain, investigate or ask the one question whose answer most changes authority, responsibility ownership, topology, or consequential side effects before asking about downstream configuration. Still state the invariant architecture, identify the branch that cannot be finalized, and distinguish the partial recommendation from a complete plan.
 
 Finish by distinguishing the recommendation from current implemented and canonical state and stating that no repository files were changed by `plan`.

@@ -43,6 +43,8 @@ Use the target's effective routing description for runtime metadata that helps a
 - otherwise use the effective agent description
 - never fall back when a present handoff description is structurally invalid
 
+Directly inspect the target directory. If `handoff-description.md` is absent, read `description.md`, runtime guidance, and the consumer before judging fallback. Never request an accessible description.
+
 Use the agent description for general-only runtime metadata. Establish the runtime property's semantic role from reliable runtime documentation, the active compatibility target, adapter evidence, project-local guidance, implementation behavior, and developer direction rather than its property name. A property named `description` may be routing-facing, and one property serving both general and routing purposes uses the effective routing description. Preserve that established shared-property contract; do not treat its shared purpose as misalignment or invent another runtime property solely to separate those purposes. Do not create `handoff-description.md` merely because a runtime exposes a description property; the agent-description fallback is valid when a dedicated routing hint is unnecessary.
 
 Before changing a runtime description mapping, establish this evidence chain:
@@ -69,9 +71,9 @@ Create project-local runtime guidance when repository-specific behavior, limitat
 
 Do not infer behavioral compatibility from package names, the compact CLI inventory, or general runtime knowledge, install adapters dynamically, or claim support without reliable adapter documentation and repository evidence.
 
-Treat adapter documentation as available only when it is present in authorized evidence. Compatibility inventory establishes availability only. When behavioral evidence is absent, preserve the existing runtime and report both the exact unestablished facts, such as invocation, instruction loading, capabilities, schemas, routing, or variables, and the concrete source-owned adapter documentation plus closed repository wiring or tests that could resolve each gap. Do not reconstruct target details, supported patterns, provider limitations, maturity, or wiring semantics from model knowledge, package names, or inventory.
+Treat adapter documentation as available only in authorized evidence. Compatibility inventory establishes availability only. Without behavioral evidence, preserve the runtime and pair each unknown invocation, instruction-loading, capability, schema, routing, or variable fact with its smallest resolver: source-owned target documentation, closed wiring, provider configuration, or an integration test. Name a required artifact without inventing its path. Never reconstruct target details, limitations, maturity, or wiring from model knowledge, package names, or inventory.
 
-In dedicated-repository mode, map every material provider-hosted or external capability established by the developer-identified related application before editing. Preserve it in canonical instruction or runtime guidance with the runtime change. State that canonical inspection cannot observe the external invocation or capability; then name the related evidence, each repository's state, established semantics, and other unknown implementation facts. A missing qualifying local artifact prevents a manifest capability entry, not semantic representation, and does not justify a requirement solely for the missing cross-repository binding.
+In dedicated-repository mode, map every material provider-hosted or external capability established by the developer-identified related application before editing. Preserve it in canonical instruction or runtime guidance with the runtime change. State directly what canonical inspection cannot observe, what each related path establishes, each repository's state, and what remains unknown. A missing qualifying local artifact prevents a manifest capability entry, not semantic representation, and does not justify a requirement solely for the missing cross-repository binding.
 
 ## Register real relationships
 

@@ -51,20 +51,20 @@ A non-conflicting current claim can establish truth regardless of format. When i
 
 Do not infer consequential authority from broad verbs such as “process,” “handle,” or “manage.” When a broad consequential claim is paired with implementation that establishes only narrower behavior, classify the foundation as Partial. Preserve the narrower observed conclusion, identify the unestablished authority, permission, value-bearing, destructive, lifecycle, or external-action boundary, and ask one focused question before any tooling, canonical, mirror, or README write.
 
-A focused question asks for one missing fact or one decision whose answer changes the result. Choose the highest-information uncertainty first, normally purpose or recipient for an otherwise empty foundation, and do not bundle purpose, users, goals, boundaries, authority, or workflow into one prompt. When one consequential boundary is already visible, ask only about that boundary.
+A focused question asks for one missing fact or decision. Prioritize authority, responsibility ownership, topology, or consequential side effects over downstream thresholds, categories, or workflow details. Ask purpose or recipient only for an otherwise empty foundation. Do not bundle purpose, users, goals, boundaries, authority, or workflow.
 
 ## Investigate progressively
 
 1. Inspect applicable instructions, the root README, manifests, canonical `moldea` state, and other high-information project surfaces first.
 2. When filename discovery is sparse, use a bounded root inventory for navigation; path listings do not establish project evidence.
-3. Search objective terms across ordinary source, documentation, configuration, and test locations, then inspect the material files, contracts, and relationships found.
+3. Search objective terms across source, documentation, configuration, and tests. Directly read each accessible material file and connect its path to the fact it establishes.
 4. Follow relevant imports, bindings, impact paths, schemas, capabilities, Agent Skill resources and consumers, runtime construction, instruction loaders, variable providers, tests, runtime guidance, decisions, unresolved references, and adapter evidence.
 5. Test consequential conclusions against a second reliable surface when practical.
 6. Identify contradictions, temporal differences, and material unknowns.
 7. Ask one focused question only when different reasonable answers would materially change persisted truth, behavior, policy, permission, schema semantics, capability use, routing, failure handling, or implementation direction.
 8. Stop when more evidence is unlikely to change a material conclusion for the current purpose.
 
-Do not claim that project-specific evidence is unavailable after only a high-level filename filter. Do not ask the developer for facts reliable repository or deterministic evidence can establish, and do not read the entire repository by default.
+Before claiming project evidence is absent or asking for it, reconcile discovered material candidates and read accessible ones. Never ask the developer to paste an accessible repository file or read the entire repository by default.
 
 ## Select durable state
 
@@ -87,7 +87,7 @@ Never use canonical context as an issue tracker, implementation log, exhaustive 
 
 Planning begins from the developer's desired outcome rather than proposed agent names. Gather enough evidence to distinguish deterministic responsibilities from work that materially benefits from model reasoning.
 
-When relevant, establish the current workflow and services, domain rules, data sources and ownership, schemas and contracts, APIs, jobs, queues, integrations, existing agents and AI usage, capabilities, permissions, side effects, human approvals, scale, cadence, latency, privacy, security, compliance, audit, failure, and recovery expectations. Retain the exact material evidence paths so the recommendation can distinguish repository-established facts from proposed architecture.
+When relevant, establish the current workflow and services, domain rules, data sources and ownership, schemas and contracts, APIs, jobs, queues, integrations, existing agents and AI usage, capabilities, permissions, side effects, human approvals, scale, cadence, latency, privacy, security, compliance, audit, failure, and recovery expectations. Retain each material path, the fact and responsibility it establishes, and whether the recommendation preserves, combines, or reliably replaces that responsibility.
 
 Planning context is sufficient when the objective and material success criteria are clear and the current system, data, state, authority, side effects, contracts, and existing capabilities are understood well enough to classify responsibilities without consequential unsupported assumptions. It is insufficient when an unresolved fact could change whether a responsibility is deterministic, Agent Skill-guided, agent-owned, human-controlled, or separately owned.
 

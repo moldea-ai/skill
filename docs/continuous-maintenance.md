@@ -34,7 +34,7 @@ An impact path, knowledge handoff, or semantic relationship means “inspect thi
 
 The same scope rule applies to unresolved requirements. Discovering a referenced path is not enough: before changing it, the coding agent reads the requirement and every resolution criterion. After the authorized work, it reports which criteria are satisfied or outstanding. It does not complete additional work merely to close the requirement, and the requirement remains until current evidence satisfies every criterion.
 
-The completion report identifies the canonical state that was reconsidered and why it remains correct. This avoids noisy documentation churn while still preventing silent drift.
+The completion report identifies the canonical state reconsidered, explicitly states that no canonical change was required, and explains why it remains correct. This avoids noisy documentation churn while still preventing silent drift.
 
 ## What can be synchronized
 

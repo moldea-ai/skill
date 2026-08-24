@@ -25,7 +25,7 @@ For every relevant developer-authorized change:
 5. Make no canonical edit when established project truth and declared behavior remain correct.
 6. Before changing a requirement-referenced path, read its current-state description and every criterion; discovery is insufficient. Afterward recheck and report each criterion as satisfied or outstanding. Do not expand scope to close the requirement; preserve it unless every criterion is established.
 7. After writes, rerun deterministic inspection and relevant project-native checks.
-8. Report surfaces reconsidered, result, verification, limitations, and why unchanged canonical state remains correct.
+8. Report reconsidered surfaces, result, verification, and limitations. When unchanged, explicitly state why no canonical change was required.
 
 An `affectedBy` or other relevance match means “reconsider this surface,” not “edit this file.” Stop relevance expansion when more investigation is unlikely to change a material conclusion.
 

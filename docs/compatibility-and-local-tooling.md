@@ -32,7 +32,7 @@ Before any Git, package-manager, deterministic CLI, or tooling-establishment com
 - CLI version and supported JSON schema
 - command, status, payload, and exit-code consistency
 
-In a pnpm Plug'n'Play repository, provider verification does not require `node_modules/.bin`. The coding agent resolves the exact root package through `pnpapi`, validates the package identity, relative binary, and canonical containment, then invokes the accepted binary in a separate `pnpm node` process. It does not use `pnpm exec` or change the linker.
+In a pnpm Plug'n'Play repository, provider verification does not require `node_modules/.bin`. The coding agent resolves the exact root package through `pnpapi`, validates the package identity, relative binary, and canonical containment, then invokes the accepted binary in a separate `pnpm node` process. It does not use `pnpm exec` or change the linker. When repository evidence is accessible, even a request to explain the proof executes these checks and reports the provider, exact version, command, and accepted envelope. Only a request without accessible repository evidence receives the procedure alone.
 
 In a Yarn 4 repository, declaration, installed identity and exported binary, and effective provider are separate ordered checks. Evidence accepted at an earlier stage remains part of the report when a later provider conflict stops execution. The coding agent never resolves or invokes the binary after that conflict.
 

@@ -12,7 +12,7 @@ Do not capture a generic implementation, architecture, migration, refactor, depl
 
 Planning may run before `/moldea/**` exists and does not adopt or initialize `moldea`. Do not modify repository files, package or lock state, installed dependencies, Git state or configuration, generated artifacts, protected coding instructions, or external systems. Create no canonical plan file, hidden cache, or planning database.
 
-Use an already available compatible repository-local CLI read-only when its deterministic evidence materially helps. Never create package metadata, select a package manager, install or repair the CLI, or use a global or transient package launcher merely to plan. When deterministic or compatibility evidence is unavailable, continue from sufficient repository and developer evidence, disclose the limitation, and make no unsupported validity or compatibility claim.
+Use an available compatible root-local CLI read-only. If runtime identity is explicitly requested and safe exact CLI proof is available, run `compatibility --json`; inventory proves availability only. Never create package metadata, choose a manager, install or repair the CLI, or use a global or transient launcher to plan. Without it, continue from evidence, disclose limitation, and make no unsupported claim.
 
 ## Plan from the objective
 
@@ -56,7 +56,7 @@ Expose the principal inputs, outputs, events, service and tool contracts, and fa
 
 ## Treat runtime compatibility honestly
 
-Runtime selection is optional during architecture planning unless it changes the recommendation. The exact CLI can establish which adapter IDs are available in its installed package composition, but it does not establish behavioral support for a specific target or provider usage.
+Runtime selection is optional unless requested or material. Exact CLI inventory establishes adapter availability, not behavioral support for target or provider usage. Leave runtime undecided without behavioral evidence.
 
 When reliable adapter documentation and repository evidence are unavailable, describe runtime requirements or candidate considerations without claiming that a target, provider limit, pattern, or complete behavior is supported. Final `runtime.id` and runtime integration belong to later agent design and implementation.
 

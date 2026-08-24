@@ -42,7 +42,7 @@ Report separate categories:
 - **Relevant unresolved requirements:** existing requirements that affect scope, preserving their declared effect.
 - **Material evidence limitations:** missing tooling, protected access, unavailable adapter evidence, operational failures, or insufficient repository evidence.
 
-Name the unestablished fact and smallest reliable resolving evidence when knowable.
+Runtime limitations must name unknowns: invocation, instruction loading, tools, schemas, routing or handoffs, and variables or provider configuration. Also name the smallest reliable resolving evidence, such as source-owned target docs and closed repository wiring or integration tests; generic statements are insufficient.
 
 When material repository-specific runtime behavior is not established by canonical guidance or another reliable source, report that semantic-readiness problem rather than inventing a Core structural diagnostic. Never repair an unavailable adapter by silently rewriting `runtime.id` to `custom`.
 

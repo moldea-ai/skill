@@ -18,7 +18,7 @@ Evaluate the refund agent and do not change repository files.
 
 The coding agent runs deterministic inspection first, verifies the machine envelope, then compares relevant canonical state, Agent Skill authoritative source, activation, resources, scripts, host metadata, installed or distributed copies, consumers, implementation, contracts, tests, runtime wiring, adapter evidence, developer intent, and unresolved state.
 
-The report separates deterministic diagnostics, confirmed semantic problems, material ambiguities, relevant unresolved requirements, and evidence limitations. Each material limitation names the unestablished fact and, when knowable, the smallest reliable evidence that would resolve it. The report explicitly states that no repository files changed.
+The report separates deterministic diagnostics, confirmed semantic problems, material ambiguities, relevant unresolved requirements, and evidence limitations. A runtime limitation names the material unknown invocation, instruction loading, tools, schemas, routing, handoffs, variables, or provider configuration, plus the source-owned target documentation and closed repository wiring or integration tests that could resolve it. A generic statement that fit is unestablished is not sufficient. The report explicitly states that no repository files changed.
 
 ## Reconcile
 

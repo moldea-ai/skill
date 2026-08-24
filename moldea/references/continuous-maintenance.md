@@ -92,11 +92,11 @@ When canonical `/moldea/**` and application implementation live in separate Git 
 - treat an established external provenance chain as valid semantic evidence without inventing a version `1` cross-repository relationship; when the implementation is unavailable, report the evidence limitation and do not claim readiness
 - use sufficiently established related-application evidence to select the actual available official `runtime.id`; do not select `custom` merely because implementation is external
 - treat absent or partial local adapter evidence for externally implemented agents as an evidence-location limitation, not proof that the runtime or implementation is missing
-- in the final report, name the canonical repository state and each related repository state, the related evidence used, and the external implementation facts canonical deterministic inspection cannot observe
+- in the final report, name the canonical repository state and each related repository state as observed, related evidence, and external implementation facts canonical deterministic inspection cannot observe; a future promise is not a status
 - preserve established application-only and provider-hosted model-visible capabilities in accurate instruction or runtime-guidance semantics; a missing repository-local artifact prevents a manifest binding, not semantic representation
 - do not create unresolved requirements solely because version `1` cannot bind an otherwise established cross-repository relationship
 - never imply cross-repository Git atomicity or cross-repository PR Assurance
 - if the application repository has its own `/moldea/**` state, treat it as an independent project
 - coordinate changes only when both repository scopes are authorized, verify each separately, and report completion for each side accurately
 
-A direction that establishes repository authority but specifies no actual semantic change does not authorize invented work. Inspect enough to report each repository as changed, unchanged, uninspected, or blocked, then ask one focused question for the desired update. A change completed in one repository does not make the other complete.
+A direction that establishes repository authority but no semantic change does not authorize invented work. Report every repository's actual state as changed, unchanged, uninspected, or blocked, then ask one focused question for the desired update. One repository's change does not complete another.

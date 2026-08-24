@@ -1,7 +1,7 @@
 ---
 name: moldea
 description: >-
-  Use first when a message supplies, confirms, or corrects potentially durable project knowledge, including ownership, responsibility, approval, escalation, policy, boundaries, terminology, architecture, or operations, even as terse prose, an answer, table, YAML, JSON, or accessible source without a moldea request; inspect adoption and conflicts. Also use for initialization; agent-system planning; agent or Agent Skill design and maintenance; behavioral instructions, capabilities, schemas, routing, bindings, runtime integration; evaluation, reconciliation, validation; and authorized changes to behavior or paths referenced by adopted canonical state or unresolved requirements. Initial adoption requires explicit developer intent.
+  Use first when a message supplies, confirms, or corrects potentially durable project knowledge, including ownership, responsibility, approval, escalation, policy, boundaries, terminology, architecture, or operations, even as terse prose, an answer, table, YAML, JSON, or accessible source without a moldea request, or authorizes changes to behavior or paths referenced by adopted canonical state or unresolved requirements. Inspect adoption, affected surfaces, and conflicts. Also use for initialization; agent-system planning; agent or Agent Skill design and maintenance; behavioral instructions, capabilities, schemas, routing, bindings, runtime integration; evaluation, reconciliation, and validation. Initial adoption requires explicit developer intent.
 license: MIT
 metadata:
   version: '3.1.0'
@@ -88,12 +88,12 @@ Load only references triggered by the operation. They operationalize this contra
 4. Use supported local tooling for the operation. Inspect executable manager configuration as file data before any package-manager process. `plan` never establishes tooling; `evaluate` and `validate` report incompatible tooling without writes.
 5. When the operation uses deterministic tooling, invoke the exact repository-local CLI in its own process and verify that completed process's exit code and machine envelope before interpreting command-specific fields.
 6. Distinguish current truth, developer-confirmed truth, intended resulting state, planned work, accepted rationale, historical state, unresolved state, and inference used only for investigation.
-7. Identify affected surfaces through relationships and available related repositories. Inspect each material repository directly within its authority boundary.
-8. Enforce the pre-write evidence and intended-state gate. Before editing a path referenced by an unresolved requirement, read every criterion; afterward recheck each, report satisfied and outstanding criteria, and remove the requirement only when all are established.
+7. Before editing a path, check canonical relationships, requirement references, mirrors, generated surfaces, and related-repository boundaries; inspect repositories within authority.
+8. Read each referencing requirement's state and criteria before editing; afterward classify every criterion as satisfied, outstanding, or evidence-blocked. Preserve the requirement unless all are established.
 9. Map runtime metadata by purpose. Routing uses the target handoff description when present, otherwise its agent description; general metadata uses the agent description. Under dynamic wiring, separate consumer purpose, required source, selected source, and resolving evidence. If selection is unknown, conclude conditionally; never call a candidate current, effective, absent, or wrong.
 10. Apply the smallest coherent authorized write and synchronize every affected representation. Make no canonical edit when existing state remains correct.
 11. Run relevant project-native verification when executable behavior changed and authority permits it, keeping each result independently attributable.
-12. After writes, rerun `inspect --json` separately, review semantic readiness, mirrors, and unresolved requirements, and distinguish scoped completion from unrelated invalidity.
+12. After writes, rerun `inspect --json` separately and retain its literal invocation, status, diagnostics, mirror findings, and requirement outcomes; review readiness and unrelated invalidity.
 
 ## Deterministic boundary
 
@@ -110,7 +110,7 @@ Keep reports proportional; make these results explicit when relevant:
 - selected operation and activation path
 - authorized scope and each repository as clean, dirty, unborn, unavailable, or uninspected, including unchanged related repositories
 - canonical surfaces changed, explicitly unchanged with why no canonical change was required, or blocked by material ambiguity and its focused question
-- exact local CLI version, deterministic commands, statuses, and material diagnostics
+- exact local CLI version, every accepted tooling proof stage, and deterministic commands, statuses, and material diagnostics
 - dependency changes and Agent Skill source, metadata, copy, consumer, and activation decisions
 - semantic decisions and the evidence chain that established any consequential misalignment and resulting state
 - relevant requirements, ambiguities, protected-instruction conflicts, and evidence limitations pairing each unknown with reliable resolving documentation, closed wiring, configuration, or tests; otherwise evaluation is incomplete
@@ -118,7 +118,7 @@ Keep reports proportional; make these results explicit when relevant:
 - an explicit stop and reason when continuing would require invented authority, policy, behavior, or replacement
 - project-native checks and checks not run
 
-After writes, report the literal repository-local deterministic invocation, status, and material diagnostics or mirror findings. Version or subcommand alone and failed, incomplete, aggregate, or unverified execution cannot support completion. Report only workspace-proven changes. In dedicated-repository mode, state what canonical inspection cannot observe, the related evidence, and remaining unknowns.
+After writes, report that record, including explicit absence of diagnostics or findings. Version or subcommand alone and failed, incomplete, aggregate, or unverified execution cannot support completion. Report only workspace-proven changes. In dedicated-repository mode, state what canonical inspection cannot observe, the related evidence, and remaining unknowns.
 
 For `initialize`, report which material sources established each foundation conclusion and whether initialization completed or awaits context. If awaiting, end with the focused clarification. If completed, end with `Next actions` offering foundation review and ordinary development; mention planning or agent creation only when relevant. Validation does not replace this handoff or make file creation semantic completion.
 

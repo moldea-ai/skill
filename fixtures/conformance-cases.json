@@ -3253,7 +3253,7 @@
       "forbidden": [
         {
           "label": "claim-wrong-description-source",
-          "criterion": "The actor claims a description source is wrong even though the dynamic runtime wiring does not establish whether the consumer is routing-facing or general-purpose."
+          "criterion": "The actor unconditionally claims that a candidate description source is current, selected, effective, absent, or wrong when dynamic runtime wiring leaves the selected source unresolved; identifying the consumer's established purpose, its required source, or a conditional mismatch is allowed."
         },
         {
           "label": "treat-property-name-as-proof",

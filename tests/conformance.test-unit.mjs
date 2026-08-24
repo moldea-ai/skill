@@ -369,7 +369,7 @@ describe('portable Agent Skill contract', () => {
       /ownership, responsibility, approval, escalation, policy, boundaries, terminology, architecture, or operations/u,
       /terse prose, an answer, table, YAML, JSON, or accessible source/u,
       /without a moldea request/u,
-      /inspect adoption and conflicts/u,
+      /Inspect adoption, affected surfaces, and conflicts/u,
       /paths? referenced by adopted canonical state or unresolved requirements/u,
       /Initial adoption requires explicit developer intent/u,
     ]);
@@ -442,7 +442,7 @@ describe('portable Agent Skill contract', () => {
       /message itself hands off potentially material durable project knowledge/i,
       /without requesting persistence or documentation/i,
       /path referenced by adopted canonical state or an unresolved requirement/i,
-      /authorized changes to behavior or paths referenced by adopted canonical state or unresolved requirements/i,
+      /authorizes changes to behavior or paths referenced by adopted canonical state or unresolved requirements/i,
       /Skill loading is not adoption/i,
       /In an adopted repository, route durable knowledge through Maintain/i,
       /classify each claim: persist, clarify, or omit/i,
@@ -512,7 +512,7 @@ describe('portable Agent Skill contract', () => {
       /literal repository-local deterministic invocation/i,
       /Name a correction's stale and current truth/i,
       /Without explicit intent or existing adoption, do not initialize or persist; report why and that no files changed/i,
-      /requirement-referenced path, read its current-state description and every criterion; discovery is insufficient/i,
+      /requirement referencing a planned path, read its current state and all criteria before editing; discovery is insufficient/i,
       /durable project truth changed or was newly established/i,
     ]);
   });
@@ -674,11 +674,13 @@ describe('portable Agent Skill contract', () => {
 
     assertMatchesEvery(skill, [
       /After writes/i,
-      /literal repository-local deterministic invocation/i,
       /Version or subcommand alone and failed, incomplete, aggregate, or unverified execution cannot support completion/i,
       /canonical surfaces changed, explicitly unchanged with why no canonical change was required, or blocked by material ambiguity/i,
       /semantic decisions and the evidence chain that established any consequential misalignment/i,
       /Under dynamic wiring, separate consumer purpose, required source, selected source, and resolving evidence/i,
+      /every accepted tooling proof stage/i,
+      /literal invocation, status, diagnostics, mirror findings, and requirement outcomes/i,
+      /explicit absence of diagnostics or findings/i,
       /Report only workspace-proven changes/i,
       /state what canonical inspection cannot observe, the related evidence, and remaining unknowns/i,
     ]);
@@ -705,10 +707,12 @@ describe('portable Agent Skill contract', () => {
       /never call a candidate current, effective, absent, or wrong/i,
       /Prove a mismatch before editing/i,
       /Tests confirm a correction, not its justification/i,
-      /inventory established external capabilities before editing/i,
-      /Classify each as model-visible or integration-only/i,
+      /complete a pre-edit gate/i,
+      /Inventory external capabilities/i,
+      /classify them as model-visible, integration-only, or qualifying local implementation/i,
+      /Reconcile runtime identity and semantic surfaces together/i,
       /Provider hosting or a correct `runtime\.id` never replaces model-visible semantics/i,
-      /Report what canonical inspection misses, what each related path establishes, every repository's state, and remaining unknowns/i,
+      /Report canonical inspection limits, each related path's evidence, both repository states, and remaining unknowns/i,
       /Stop explicitly without selecting a replacement runtime/i,
     ]);
     assertMatchesEvery(continuousMaintenance, [
@@ -733,18 +737,21 @@ describe('portable Agent Skill contract', () => {
       /including version or discovery/i,
       /does not block the entire `moldea` workflow/i,
       /dependency changes or exact provider proof or invocation requires the manager/i,
-      /retain this independent blocker in the final report even when another clarification or stop also applies/i,
+      /retain an independent blocker record in the final report even when another clarification or stop applies/i,
       /independently verify and invoke an already declared and installed exact CLI without the manager/i,
-      /exact configuration path, blocked operation, and unavailable evidence/i,
+      /exact path, blocked operation, unavailable evidence, and safe prerequisite/i,
       /remove or disable the extension and retry/i,
       /Never propose bypassing, trusting, or executing the extension/i,
       /Lifecycle-script suppression does not neutralize a repository-supplied manager extension/,
       /every command whose safety or authority depends on earlier output as a separate process execution/i,
       /Never batch a result-dependent sequence/i,
+      /Retain cumulative CLI proof/i,
+      /exact root declaration; installed package identity and version; exported `bin\.moldea`; effective provider/i,
+      /Later conflicts do not erase accepted proof/i,
       /yarn info @moldea\.ai\/cli --json/,
       /prove and retain each stage separately/i,
-      /installed exact version and exported `moldea` binary/i,
-      /Report the accepted declaration, installed identity, version, and exported binary even when a later provider conflict stops execution/i,
+      /installed identity, exact version, and exported `bin\.moldea`/i,
+      /Report every accepted proof field even when a later provider conflict stops execution/i,
       /newline-delimited JSON records/,
       /`source` is exactly `@moldea\.ai\/cli`/,
       /`source` field identifies the provider package, not its version/,
@@ -787,8 +794,9 @@ describe('portable Agent Skill contract', () => {
       /Do not use requirements as a roadmap or backlog/,
       /related file changed/,
       /Do not expand scope to close the requirement/i,
-      /Before changing a requirement-referenced path, read its current-state description and every criterion; discovery is insufficient/i,
-      /report each criterion as satisfied or outstanding/i,
+      /Before editing, identify affected behavior and check planned paths against canonical relationships, requirements, mirrors, generated surfaces, and related-repository boundaries/i,
+      /For every requirement referencing a planned path, read its current state and all criteria before editing; discovery is insufficient/i,
+      /classify each criterion as satisfied, outstanding, or evidence-blocked/i,
       /preserve it unless every criterion is established/i,
       /synchronize every mirror/,
       /Never edit a mirror independently/,
@@ -1032,6 +1040,29 @@ describe('source repository conformance', () => {
     assert.match(
       requirementCase.forbidden[0].criterion,
       /adds integration coverage outside the authorized partial change/i,
+    );
+  });
+
+  test('distinguishes a required routing source from an unresolved selected source', () => {
+    const routingCase = cases.semanticCases.find(
+      ({ id }) => id === 'routing-description-dynamic-wiring',
+    );
+    const wrongSourceCriterion = routingCase?.forbidden.find(
+      ({ label }) => label === 'claim-wrong-description-source',
+    );
+
+    assert.ok(routingCase);
+    assert.ok(wrongSourceCriterion);
+    assert.match(wrongSourceCriterion.criterion, /unconditionally claims/i);
+    assert.match(wrongSourceCriterion.criterion, /current, selected, effective, absent, or wrong/i);
+    assert.match(wrongSourceCriterion.criterion, /selected source unresolved/i);
+    assert.match(
+      wrongSourceCriterion.criterion,
+      /consumer's established purpose, its required source, or a conditional mismatch is allowed/i,
+    );
+    assert.doesNotMatch(
+      wrongSourceCriterion.criterion,
+      /does not establish whether the consumer is routing-facing or general-purpose/i,
     );
   });
 

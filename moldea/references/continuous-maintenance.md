@@ -18,14 +18,14 @@ Do not merely acknowledge a handoff. Compare durable claims with canonical state
 
 For every relevant developer-authorized change:
 
-1. Identify the implementation, contract, project, agent, or Agent Skill behavior that may change.
-2. Map it through exact bindings, `affectedBy` paths, context and decision relationships, unresolved-requirement references, schemas, capabilities, Agent Skill resources and consumers, runtime-agent construction, instruction loaders, variable providers, canonical descriptions, routing-facing metadata, mirrors, runtime guidance, runtime-adapter evidence, imports, tests, configuration, and other material semantic evidence.
-3. Inspect the affected project, agent, and skill surfaces deeply enough to establish whether truth or declared behavior actually changed.
-4. Update all affected representations in the same coherent developer change when the intended state is sufficiently established and writes are authorized.
-5. Make no canonical edit when established project truth and declared behavior remain correct.
-6. Before changing a requirement-referenced path, read its current-state description and every criterion; discovery is insufficient. Afterward recheck and report each criterion as satisfied or outstanding. Do not expand scope to close the requirement; preserve it unless every criterion is established.
-7. After writes, rerun deterministic inspection and relevant project-native checks.
-8. Report reconsidered surfaces, result, verification, and limitations. When unchanged, explicitly state why no canonical change was required.
+1. Before editing, identify affected behavior and check planned paths against canonical relationships, requirements, mirrors, generated surfaces, and related-repository boundaries.
+2. Map it through exact bindings, `affectedBy` paths, context, decisions, requirements, schemas, capabilities, skill consumers, runtime construction, instruction and variable providers, descriptions, routing, mirrors, runtime guidance, adapter evidence, imports, tests, and configuration.
+3. Inspect each material project, agent, skill, and related repository deeply enough to establish changed truth or behavior.
+4. For every requirement referencing a planned path, read its current state and all criteria before editing; discovery is insufficient.
+5. Update affected representations coherently when authorized, or leave correct canonical state unchanged.
+6. Afterward classify each criterion as satisfied, outstanding, or evidence-blocked. Do not expand scope to close the requirement; preserve it unless every criterion is established.
+7. Rerun deterministic inspection and relevant project-native checks after writes.
+8. Retain for the final report each literal command, status, diagnostics including none, mirror findings, and requirement outcomes. Report reconsidered surfaces, limitations, and why unchanged canonical state needed no edit.
 
 An `affectedBy` or other relevance match means “reconsider this surface,” not “edit this file.” Stop relevance expansion when more investigation is unlikely to change a material conclusion.
 

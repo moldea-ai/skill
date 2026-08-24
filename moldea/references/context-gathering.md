@@ -49,21 +49,22 @@ Persist clear current truth or an explicit correction when it is material, durab
 
 A non-conflicting current claim can establish truth regardless of whether it arrives as prose, structured data, a table, or a file. When it materially conflicts with established evidence, that same bare assertion does not authorize replacement. Continue only when the developer explicitly marks the claim as a correction or current replacement, or other reliable evidence resolves the conflict. Otherwise identify the exact conflict, ask one focused question, and make no semantic write before the answer. Do not require repository corroboration for organizational truth that only the developer can establish.
 
-Do not infer consequential authority from broad verbs such as “process,” “handle,” or “manage.” When those words leave materially different boundaries plausible, preserve the supported foundation, identify the unresolved boundary, and ask one focused question before writing.
+Do not infer consequential authority from broad verbs such as “process,” “handle,” or “manage.” When a broad consequential claim is paired with implementation that establishes only narrower behavior, classify the foundation as Partial. Preserve the narrower observed conclusion, identify the unestablished authority, permission, value-bearing, destructive, lifecycle, or external-action boundary, and ask one focused question before any tooling, canonical, mirror, or README write.
 
 A focused question asks for one missing fact or one decision whose answer changes the result. Choose the highest-information uncertainty first, normally purpose or recipient for an otherwise empty foundation, and do not bundle purpose, users, goals, boundaries, authority, or workflow into one prompt. When one consequential boundary is already visible, ask only about that boundary.
 
 ## Investigate progressively
 
-1. Inspect the root README and other high-information project surfaces first.
-2. Inspect package, runtime, entry-point, configuration, canonical `moldea`, and central contract evidence proportional to the task.
-3. Follow material imports, bindings, impact paths, schemas, capability registrations, Agent Skill resources and consumers, runtime-agent construction, instruction loaders, variable providers, tests, runtime guidance, decisions, unresolved references, and adapter evidence.
-4. Test consequential conclusions against a second reliable surface when practical.
-5. Identify contradictions, temporal differences, and material unknowns.
-6. Ask one focused question about one missing fact or decision only when different reasonable answers would materially change persisted truth, behavior, policy, permission, schema semantics, capability use, routing, failure handling, or implementation direction.
-7. Stop when more evidence is unlikely to change a material conclusion for the current purpose.
+1. Inspect applicable instructions, the root README, manifests, canonical `moldea` state, and other high-information project surfaces first.
+2. When high-level filename discovery is sparse, inspect a bounded root inventory instead of concluding that project evidence is absent.
+3. Search objective terms across ordinary source, documentation, configuration, and test locations, then inspect the material files, contracts, and relationships found.
+4. Follow relevant imports, bindings, impact paths, schemas, capabilities, Agent Skill resources and consumers, runtime construction, instruction loaders, variable providers, tests, runtime guidance, decisions, unresolved references, and adapter evidence.
+5. Test consequential conclusions against a second reliable surface when practical.
+6. Identify contradictions, temporal differences, and material unknowns.
+7. Ask one focused question only when different reasonable answers would materially change persisted truth, behavior, policy, permission, schema semantics, capability use, routing, failure handling, or implementation direction.
+8. Stop when more evidence is unlikely to change a material conclusion for the current purpose.
 
-Do not ask the developer for facts reliable repository or deterministic evidence can establish. Do not read the entire repository by default.
+Do not claim that project-specific evidence is unavailable after only a high-level filename filter. Do not ask the developer for facts reliable repository or deterministic evidence can establish, and do not read the entire repository by default.
 
 ## Select durable state
 
@@ -86,7 +87,7 @@ Never use canonical context as an issue tracker, implementation log, exhaustive 
 
 Planning begins from the developer's desired outcome rather than proposed agent names. Gather enough evidence to distinguish deterministic responsibilities from work that materially benefits from model reasoning.
 
-When relevant, establish the current workflow and services, domain rules, data sources and ownership, schemas and contracts, APIs, jobs, queues, integrations, existing agents and AI usage, capabilities, permissions, side effects, human approvals, scale, cadence, latency, privacy, security, compliance, audit, failure, and recovery expectations.
+When relevant, establish the current workflow and services, domain rules, data sources and ownership, schemas and contracts, APIs, jobs, queues, integrations, existing agents and AI usage, capabilities, permissions, side effects, human approvals, scale, cadence, latency, privacy, security, compliance, audit, failure, and recovery expectations. Retain the exact material evidence paths so the recommendation can distinguish repository-established facts from proposed architecture.
 
 Planning context is sufficient when the objective and material success criteria are clear and the current system, data, state, authority, side effects, contracts, and existing capabilities are understood well enough to classify responsibilities without consequential unsupported assumptions. It is insufficient when an unresolved fact could change whether a responsibility is deterministic, Agent Skill-guided, agent-owned, human-controlled, or separately owned.
 
@@ -113,7 +114,7 @@ Inspect high-information project evidence and classify the foundation before cha
 Before finalizing canonical project truth, classify the available foundation as an interaction outcome rather than a persisted score or status. Project and directory names, generic labels, placeholder files, empty exports, and brief or generic package metadata may inform clarification but cannot establish a sufficient foundation alone:
 
 - **Insufficient:** meaningful purpose, users or systems served, principal goals, and relevant boundaries cannot be established. State that no meaningful project context was inferred, identify the high-information evidence inspected, stop before dependency changes, canonical project state, or the owned README awareness block, ask one question about the highest-value missing fact, and do not claim completion.
-- **Partial:** some foundational conclusions are supported, but a material gap or consequential alternative remains. Do not turn missing evidence into a negative claim that the project excludes the unestablished behavior. Summarize the supported conclusions, label the uncertainty, stop before dependency changes, canonical project state, or the owned README awareness block, ask one question about the consequential boundary, and resume only after the developer answers.
+- **Partial:** some foundational conclusions are supported, but a material gap or consequential alternative remains. Broad claims such as payment handling do not establish authority or side effects when implementation proves only narrower processing. Summarize the narrower supported conclusions, label the unestablished consequential boundary, stop before dependency changes, canonical project state, mirrors, or the owned README awareness block, ask one question about that boundary, and resume only after the developer answers.
 - **Sufficient:** the evidence supports a useful and truthful foundation without material unsupported assumptions. Complete initialization without a ceremonial question and report the established understanding, resulting files, validation, non-blocking limitations, and an explicit `Next actions` handoff.
 
 Judge evidence by its quality, coverage, consistency, and authority rather than documentation volume. A concise authoritative source may be sufficient; extensive stale or contradictory documentation may not be.

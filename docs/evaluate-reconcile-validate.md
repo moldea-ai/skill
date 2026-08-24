@@ -28,7 +28,7 @@ Use reconciliation when you want confirmed drift corrected:
 Reconcile the refund agent with the current implementation.
 ```
 
-Reconciliation begins with the same evidence model, then completes an intended-state gate before editing. Permission to reconcile does not authorize choosing between unresolved policies. A material conflict is a pre-write stop: no asset type wins automatically, and deterministic checks can expose the conflict but cannot decide whether code, tests, context, or instructions express the intended policy. The coding agent asks one focused question before any correction when reliable evidence has not resolved the alternatives.
+Reconciliation begins with the same evidence model, then completes an intended-state gate before editing. Permission to reconcile does not authorize choosing between unresolved policies. For a consequential same-scope conflict, the coding agent names the exact claims and the evidence role of each. No asset type wins automatically, synchronization does not establish intended-state authority, and deterministic checks can expose but not resolve the conflict. The coding agent changes nothing and asks one focused question when reliable evidence has not resolved the alternatives.
 
 The resulting correction is the smallest coherent change across all genuinely affected canonical, Agent Skill source, resource, metadata, copy, consumer, runtime, implementation, schema, test, mirror, and documentation surfaces.
 

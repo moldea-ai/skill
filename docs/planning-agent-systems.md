@@ -20,7 +20,7 @@ The operation is read-only. It does not initialize `moldea`, install tooling, cr
 
 The coding agent identifies the recipient, trigger or cadence, deliverables, success criteria, constraints, side effects, permissions, privacy, failure expectations, and prohibited outcomes that shape the system.
 
-It inspects existing workflows, services, rules, data ownership, schemas, APIs, integrations, jobs, queues, approvals, and AI usage before asking the developer to repeat discoverable facts. When relevant repository evidence is accessible, that inspection is required before a repository-specific topology can be presented as grounded. The recommendation names the material current components and contracts it relied on.
+It begins with instructions, README content, manifests, and canonical state. When that high-level view is sparse, it inspects a bounded root inventory and searches objective terms across ordinary source, documentation, configuration, and tests before claiming that project evidence is unavailable. It then follows the material workflows, services, rules, data ownership, schemas, APIs, integrations, jobs, queues, approvals, and AI usage it finds. The recommendation names the exact evidence paths and the current components and contracts they establish.
 
 ## Classify responsibilities
 
@@ -41,13 +41,13 @@ An Agent Skill is not treated as an independently executing agent or as authorit
 
 A separate agent is warranted when it creates a meaningful boundary for specialized context, permissions, failure isolation, routing, reusable reasoning, independent evaluation, or maintainable ownership.
 
-Every material objective responsibility remains represented. Model-reasoning responsibilities with incompatible private context, permissions, trust, or failure boundaries remain separate unless reliable evidence shows that deterministic software can replace one. A smaller count is not useful when it silently drops a responsibility or creates one overprivileged agent.
+Every material objective responsibility remains represented. Model-reasoning responsibilities with incompatible private context, permissions, trust, or failure boundaries remain separate unless reliable evidence shows that deterministic software can replace one. Public research and privileged project or customer reasoning stay separated when their data boundaries conflict. A smaller count is not useful when it drops a responsibility or creates one overprivileged agent.
 
 The recommendation may contain no agents. It avoids fashionable supervisors, critics, autonomous loops, memory systems, or model-based routers unless the objective genuinely requires them.
 
 ## Make control explicit
 
-The plan identifies authoritative data, allowed readers and writers, deterministic enforcement, recommendation versus execution authority, human approvals, least-privilege access, state ownership, contracts, and failure boundaries.
+The plan identifies authoritative data, allowed readers and writers, persistence, deterministic enforcement, model input and output contracts, recommendation versus execution authority, human approvals, least-privilege access, state ownership, and failure boundaries. It preserves the approval scope already established by the repository, including human approval for every publication when required.
 
 It produces one preferred architecture and an implementation sequence that validates risky services, schemas, capabilities, agent boundaries, routing, tests, and runtime integration early. This build order is distinct from the system's runtime control flow and remains part of a zero-agent recommendation.
 

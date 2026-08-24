@@ -17,7 +17,7 @@ Use an already available compatible repository-local CLI read-only when its dete
 ## Plan from the objective
 
 1. Establish the outcome, recipient, trigger or cadence, deliverables, success criteria, constraints, and prohibited outcomes that materially shape the system.
-2. Apply `context-gathering.md` and inspect high-information repository evidence before asking the developer to repeat discoverable facts. This is a planning precondition whenever relevant evidence is accessible. Inspect current workflows, services, rules, data sources and ownership, schemas, APIs, jobs, queues, integrations, AI usage, permissions, side effects, approvals, scale, latency, privacy, security, compliance, audit, and failure expectations as relevant. Do not recommend topology from the request alone.
+2. Apply the bounded discovery ladder in `context-gathering.md` before asking the developer to repeat discoverable facts. Inspect high-information surfaces, then a bounded root inventory and objective-term matches across ordinary source, documentation, configuration, and tests when initial discovery is sparse. This is a planning precondition whenever relevant evidence is accessible. Do not claim no project evidence or recommend topology from the request alone after only a high-level filename filter.
 3. Decompose the objective into the smallest cohesive system responsibilities before naming agents or components. Describe outcome or decision boundaries rather than arbitrary technical steps.
 4. Classify each responsibility as deterministic application logic, deterministic data or transformation logic, an existing or proposed service or runtime-native tool, a reusable Agent Skill, an AI agent, human control, or a deliberate combination with explicit boundaries.
 5. Keep fixed calculations, eligibility rules, filtering, storage, delivery mechanics, and predictable sequencing deterministic unless evidence establishes a real need for model reasoning.
@@ -30,7 +30,7 @@ A valid result may recommend zero agents. Prefer the smallest agent topology tha
 
 Create a separate agent candidate only when an independent boundary materially improves cohesive ownership, specialized model context, permission separation, failure isolation, routing clarity, reusable reasoning, independent evaluation or maintenance, or another evidence-backed concern.
 
-Preserve every material objective responsibility during decomposition. Model-reasoning responsibilities with mutually incompatible private context, permissions, trust, or failure boundaries require separate candidates unless reliable evidence establishes a deterministic replacement; reducing the agent count never justifies dropping or merging such responsibilities.
+Preserve every material objective responsibility during decomposition. Model-reasoning responsibilities with mutually incompatible private context, permissions, trust, or failure boundaries require separate candidates unless reliable evidence establishes a deterministic replacement. Public research and privileged project or customer reasoning remain separated when their data boundaries conflict; reducing the count never justifies merging them.
 
 Reuse an existing agent only when the responsibility remains cohesive with its established purpose. Do not create a god agent to reduce the count, split one cohesive responsibility to manufacture a multi-agent design, or add planners, critics, supervisors, memory, autonomous loops, or an orchestrator by fashion.
 
@@ -50,7 +50,7 @@ Prefer deterministic orchestration when sequencing, branching, and routing can b
 
 Repository format version `1` defines no canonical orchestration or handoff graph. Keep proposed routing and transfers as architectural behavior until a later implementation establishes them through runtime-native mechanisms and the appropriate agent-owned surfaces.
 
-Identify authoritative and derived data, transient and persistent state, allowed readers and writers, deterministic enforcement points, agent recommendation versus execution authority, human approvals or escalation, and least-privilege constraints. Avoid implicit claims that an agent “knows” data whose source or access path materially affects the design.
+Identify authoritative and derived data, transient and persistent state, allowed readers and writers, deterministic enforcement points, agent recommendation versus execution authority, human approvals or escalation, and least-privilege constraints. Preserve repository-established approval scope exactly, including approval for every publication when required. Avoid implying that an agent knows data whose source or access path materially affects the design.
 
 Expose the principal inputs, outputs, events, service and tool contracts, and failure boundaries needed for components to interact. Planning need not finalize executable schema syntax, but agent separation must not depend on hidden contract assumptions.
 
@@ -64,9 +64,9 @@ When reliable adapter documentation and repository evidence are unavailable, des
 
 Provide one preferred architecture when evidence supports it. Present alternatives only when their tradeoff could reasonably change the developer's decision.
 
-Cover the materially applicable objective, established context, constraints, responsibility allocation, agents and their justification, deterministic components, services or tools, human control, data and state ownership, permissions, control flow, contracts, failures, runtime considerations, tradeoffs, and implementation sequence. Treat these as a completion check, not optional sections; omit only categories that are genuinely immaterial.
+Cover the materially applicable objective, established context, constraints, responsibility allocation, agents and their justification, deterministic components, services or tools, human control, authoritative data, readers and writers, persistence, permissions, control flow, model input and output contracts, deterministic enforcement, failures, runtime considerations, tradeoffs, and implementation sequence. Treat these as a completion check, not optional sections; omit only genuinely immaterial categories.
 
-Name the material current components, workflows, contracts, permissions, or canonical facts that grounded the recommendation. If accessible repository evidence was not inspected, do not present a repository-specific topology as grounded.
+Name the exact material repository paths and the current components, workflows, contracts, permissions, or canonical facts they establish. If accessible repository evidence was not inspected, do not present a repository-specific topology as grounded.
 
 Recommend an implementation order that reduces uncertainty and tests important boundaries early. It is distinct from runtime control flow and remains required with zero agents. Do not execute it during `plan`.
 

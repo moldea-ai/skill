@@ -65,6 +65,8 @@ Before any semantic edit, complete an intended-state gate. Reconciliation author
 7. Remove an unresolved requirement only after authorized work or current evidence satisfies every explicit resolution criterion; never broaden the task merely to close it.
 8. Run relevant project-native verification, synchronize mirrors, rerun root-local `inspect --json`, and perform semantic readiness review.
 
+For a same-scope contradiction over permission, approval, ownership, authorization, value-bearing behavior, destructive effects, or another consequential policy, name the exact conflicting claims and the evidence role of each. State that neither implementation nor synchronized canonical or mirror content establishes intended-state authority, ask the exact choice that must be made, and change nothing while awaiting the answer. Inspection may describe the conflict but cannot resolve it.
+
 When reconciliation establishes canonical instruction provenance, update the canonical asset, runtime loading or provisioning mechanism, material bindings, tests, mirrors, and runtime guidance together as applicable. Remove a superseded independent instruction source only when intended behavior is established and the implementation path is within the authorized scope.
 
 If unrelated invalidity remains, distinguish successful scoped reconciliation from complete repository validity. Do not claim alignment while a relevant semantic conflict or ambiguity remains.

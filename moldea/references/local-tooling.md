@@ -1,6 +1,6 @@
 # Local tooling
 
-Read this reference before deterministic CLI use or any write-capable workflow that may establish or reconcile tooling.
+Read this reference after the skill entrypoint and before any Git, package-manager, deterministic CLI, or tooling-establishment command. Finish reading it before the first governed command; do not combine reference loading and that command in one shell expression.
 
 ## Compatibility contract
 
@@ -29,9 +29,9 @@ Determine the package manager from repository data before invoking any package-m
 5. An explicitly established unsupported manager is a prerequisite conflict.
 6. When no manager is established, select npm because it ships with Node.js.
 
-Before any npm, pnpm, Yarn, Corepack, or related package-manager command, inspect pnpmfiles, hook-bearing pnpm configuration, repository-declared Yarn plugins, and equivalent executable extension mechanisms. Their presence blocks package-manager execution for this release because it defines no automatic path that can prove those repository-supplied extensions remain unloaded. Report the condition before invoking any package-manager process, including a version or discovery command.
+Before any npm, pnpm, Yarn, Corepack, or related package-manager command, inspect pnpmfiles, hook-bearing pnpm configuration, repository-declared Yarn plugins, and equivalent executable extension mechanisms. Their presence blocks package-manager execution for this release because it defines no automatic path that can prove those repository-supplied extensions remain unloaded. Before invoking any manager process, including a version or discovery command, report the exact executable configuration path, blocked operation, and evidence the block prevents.
 
-This gate does not automatically block the entire `moldea` workflow. If dependency state must change, or exact provider proof or invocation requires the manager, stop the tooling-dependent workflow and report the prerequisite. If the exact release CLI is already declared and installed, and its provider can be independently verified and its canonical executable invoked directly without the package manager, preserve it and continue without a package-manager process. Separately authorized package-manager-extension execution remains subject to coding instructions and is never implied by a `moldea` request.
+This gate does not automatically block the entire `moldea` workflow. If dependency state must change, or exact provider proof or invocation requires the manager, stop and report the safe developer-controlled prerequisite: remove or disable the executable extension and retry, or independently verify and invoke an already declared and installed exact CLI without the manager. Do not propose bypassing, trusting, or executing the hidden extension merely to continue. Separately authorized extension execution remains subject to coding instructions and is never implied by a `moldea` request.
 
 Only after that file-only safety gate passes, resolve the executable that will perform the operation and verify its actual version with `npm --version`, `pnpm --version`, or `yarn --version`. The version must satisfy this release's range. When concrete `packageManager` metadata exists, its version and the actual executable version must be the same semantic version. Do not silently install or upgrade Node.js or a package manager.
 
@@ -122,7 +122,7 @@ Structural `invalid` output is deterministic project evidence when its expected 
 
 Consume CLI, Core, and runtime-adapter results rather than reimplementing Git inventory, repository snapshots, repository-format parsing, path validation, placeholder validation, mirror comparison, diagnostics, adapter invocation, or compatibility interpretation. Do not import private CLI modules.
 
-When additional read-only Git evidence is materially necessary, use command-specific safe options rather than a bare Git command. For every command disable fsmonitor and pagers with `-c core.fsmonitor=false`, `-c core.pager=cat`, and `--no-pager`; disable global attributes and LFS processing where relevant with `-c core.attributesFile=/dev/null`, empty LFS process and smudge settings, and `-c filter.lfs.required=false`. For `diff`, `show`, or another patch-producing command, also use `-c diff.external=`, `--no-ext-diff`, and `--no-textconv`; repository attributes may still exist, so `--no-textconv` is required. Avoid submodule recursion and request explicit machine-oriented output such as porcelain or NUL-delimited paths. Apply only options supported by the selected Git subcommand.
+When additional read-only Git evidence is materially necessary, use command-specific safe options rather than a bare Git command. No Git command, including `rev-parse`, `status`, `log`, or `diff`, is harmless before this reference is loaded. For every command disable fsmonitor and pagers with `-c core.fsmonitor=false`, `-c core.pager=cat`, and `--no-pager`; disable global attributes and LFS processing where relevant with `-c core.attributesFile=/dev/null`, empty LFS process and smudge settings, and `-c filter.lfs.required=false`. For `diff`, `show`, or another patch-producing command, also use `-c diff.external=`, `--no-ext-diff`, and `--no-textconv`; repository attributes may still exist, so `--no-textconv` is required. Avoid submodule recursion and request explicit machine-oriented output such as porcelain or NUL-delimited paths. Apply only options supported by the selected Git subcommand.
 
 Use these command shapes, adding only the required pathspec or supported output options:
 
@@ -131,6 +131,6 @@ git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -
 git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false -c diff.external= --no-pager diff --no-ext-diff --no-textconv --ignore-submodules=all -- <pathspec>
 ```
 
-After supplemental inspection, verify that no helper sentinel or workspace change was created and report the result truthfully. If the required evidence cannot be gathered without executing repository code, use other reliable evidence or report the limitation instead of weakening these controls.
+After every supplemental Git command, especially a failure, inspect the workspace and any helper sentinel before claiming no writes. Report observed changes truthfully. If the required evidence cannot be gathered without executing repository code, use other reliable evidence or report the limitation instead of weakening these controls.
 
 Treat `inspect --json` as sensitive local content. Use it only for the active task; do not persist the raw envelope, expose canonical content unnecessarily, or copy machine output into README guidance.

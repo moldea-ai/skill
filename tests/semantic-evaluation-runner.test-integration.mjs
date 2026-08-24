@@ -67,6 +67,9 @@ const SKILL_HOST_METADATA_CASE_DEFINITION = SEMANTIC_CASES.find(
 const EXISTING_PROJECT_PLAN_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'plan-existing-project-one-agent',
 );
+const MULTI_AGENT_PLAN_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'plan-justified-multi-agent',
+);
 const AMBIGUOUS_PLAN_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'plan-material-ambiguity',
 );
@@ -75,6 +78,9 @@ const GIT_HELPER_CASE_DEFINITION = SEMANTIC_CASES.find(
 );
 const PNPM_PNP_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'pnpm-pnp-local-cli-provider',
+);
+const PNPM_HOOK_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'pnpm-hook-install-blocked',
 );
 const SKILL_REUSE_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'skill-reuse-existing-cohesive',
@@ -316,10 +322,12 @@ test('skill host metadata scenario begins with stale portable activation', async
   }
 });
 
-test('planning scenarios expose grounded evidence and a material authority conflict', async () => {
+test('planning scenarios expose grounded evidence, permission boundaries, and authority conflict', async () => {
   const groundedRoot = mkdtempSync(join(tmpdir(), 'moldea-grounded-plan-test-'));
+  const multiAgentRoot = mkdtempSync(join(tmpdir(), 'moldea-multi-agent-plan-test-'));
   const ambiguousRoot = mkdtempSync(join(tmpdir(), 'moldea-ambiguous-plan-test-'));
   assert.ok(EXISTING_PROJECT_PLAN_CASE_DEFINITION);
+  assert.ok(MULTI_AGENT_PLAN_CASE_DEFINITION);
   assert.ok(AMBIGUOUS_PLAN_CASE_DEFINITION);
 
   try {
@@ -327,10 +335,22 @@ test('planning scenarios expose grounded evidence and a material authority confl
       groundedRoot,
       EXISTING_PROJECT_PLAN_CASE_DEFINITION,
     );
+    const multiAgent = await createActorRepository(
+      multiAgentRoot,
+      MULTI_AGENT_PLAN_CASE_DEFINITION,
+    );
     const ambiguous = await createActorRepository(ambiguousRoot, AMBIGUOUS_PLAN_CASE_DEFINITION);
     const supportApi = readFileSync(join(grounded.repositoryPath, 'src', 'support-api.js'), 'utf8');
     const supportContract = readFileSync(
       join(grounded.repositoryPath, 'docs', 'support-triage.md'),
+      'utf8',
+    );
+    const promotionContract = readFileSync(
+      join(multiAgent.repositoryPath, 'docs', 'promotion-system.md'),
+      'utf8',
+    );
+    const promotionControls = readFileSync(
+      join(multiAgent.repositoryPath, 'src', 'promotion-controls.js'),
       'utf8',
     );
     const refundApi = readFileSync(join(ambiguous.repositoryPath, 'src', 'refund-api.js'), 'utf8');
@@ -342,12 +362,20 @@ test('planning scenarios expose grounded evidence and a material authority confl
     assert.match(supportApi, /authorization\.requireSupportAccess/u);
     assert.match(supportApi, /persistence\.saveClassification/u);
     assert.match(supportContract, /cannot authorize access or perform state transitions/u);
+    assert.match(promotionContract, /Public market research has no customer access/u);
+    assert.match(
+      promotionContract,
+      /Personalized recommendations require private purchase history/u,
+    );
+    assert.match(promotionContract, /human approves publication/u);
+    assert.match(promotionControls, /eligible && humanApproved/u);
     assert.match(refundApi, /payments\.reverse/u);
     assert.match(authorityContract, /automated refunds/u);
     assert.match(authorityContract, /human to approve every reversal/u);
     assert.match(authorityContract, /No accepted decision/u);
   } finally {
     rmSync(groundedRoot, { force: true, recursive: true });
+    rmSync(multiAgentRoot, { force: true, recursive: true });
     rmSync(ambiguousRoot, { force: true, recursive: true });
   }
 });
@@ -465,6 +493,27 @@ test('safe Git diff suppresses configured execution helpers', async () => {
     assert.equal(status.status, 0, status.stderr);
     assert.equal(status.stdout, ' M src/project-state.js\n');
     assert.equal(existsSync(sentinelPath), false);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('pnpm hook scenario exposes executable configuration without installing the CLI', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-pnpm-hook-test-'));
+  assert.ok(PNPM_HOOK_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      PNPM_HOOK_CASE_DEFINITION,
+    );
+    const packageManifest = JSON.parse(readFileSync(join(repositoryPath, 'package.json'), 'utf8'));
+    const pnpmfile = readFileSync(join(repositoryPath, '.pnpmfile.cjs'), 'utf8');
+
+    assert.equal(packageManifest.packageManager, 'pnpm@11.20.0');
+    assert.equal(existsSync(join(repositoryPath, 'node_modules', '@moldea.ai', 'cli')), false);
+    assert.match(pnpmfile, /hooks: \{ readPackage/u);
+    assert.equal(existsSync(join(repositoryPath, 'package-manager-hook-ran.txt')), false);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

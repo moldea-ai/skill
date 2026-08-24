@@ -10,7 +10,7 @@ Probe repository-root `/moldea/moldea.yaml`, `/moldea/project.md`, and the exact
 
 ## Maintain newly learned truth
 
-In an adopted repository, treat an unambiguous direct handoff of current project knowledge as Maintain authority unless the surrounding request is read-only or excludes writes. This includes terse ownership, responsibility, approval, escalation, policy, and boundary handoffs; prose, an answer, a table, structured data, or an accessible source differ only in format. Use context-gathering guidance to classify, verify, route, and filter the claims. A shared container does not determine authority, truth, durability, or replacement semantics. A conflicting assertion needs explicit correction or replacement meaning, or one focused clarification before any semantic write.
+In an adopted repository, treat an unambiguous direct handoff of current project knowledge as Maintain authority unless the surrounding request is read-only or excludes writes. The handoff itself is enough to activate maintenance; it needs no explicit request to persist or document it. This includes terse ownership, responsibility, approval, escalation, policy, and boundary handoffs; prose, an answer, a table, structured data, or an accessible source differ only in format. Use context-gathering guidance to classify, verify, route, and filter the claims. A shared container does not determine authority, truth, durability, or replacement semantics. A conflicting assertion needs explicit correction or replacement meaning, or one focused clarification before any semantic write.
 
 Do not stop at acknowledging or summarizing a handoff. Compare its material durable claims with current canonical state: persist newly established truth through the smallest appropriate surface, replace an explicitly corrected stale claim, or name an unexplained conflict and ask the focused question. After writing, copy the literal repository-local deterministic invocation into the final response with its status and material diagnostics, then distinguish retained or corrected truth from transient or otherwise omitted detail.
 
@@ -23,7 +23,7 @@ For every relevant developer-authorized change:
 3. Inspect the affected project, agent, and skill surfaces deeply enough to establish whether truth or declared behavior actually changed.
 4. Update all affected representations in the same coherent developer change when the intended state is sufficiently established and writes are authorized.
 5. Make no canonical edit when established project truth and declared behavior remain correct.
-6. Re-evaluate related unresolved requirements after the authorized change. Do not expand scope merely to satisfy remaining criteria; preserve the requirement unless every criterion is established by current evidence.
+6. Before changing a path referenced by an unresolved requirement, read its complete current-state description and every resolution criterion. After the authorized change, recheck every criterion and report which are satisfied or outstanding. Do not expand scope merely to close the requirement; preserve it unless every criterion is established.
 7. After writes, rerun deterministic inspection and relevant project-native checks.
 8. Report surfaces reconsidered, result, verification, limitations, and why unchanged canonical state remains correct.
 
@@ -92,11 +92,11 @@ When canonical `/moldea/**` and application implementation live in separate Git 
 - treat an established external provenance chain as valid semantic evidence without inventing a version `1` cross-repository relationship; when the implementation is unavailable, report the evidence limitation and do not claim readiness
 - use sufficiently established related-application evidence to select the actual available official `runtime.id`; do not select `custom` merely because implementation is external
 - treat absent or partial local adapter evidence for externally implemented agents as an evidence-location limitation, not proof that the runtime or implementation is missing
-- in the final report, distinguish behavior established by related-application evidence from facts canonical deterministic inspection cannot observe
+- in the final report, name the canonical repository state and each related repository state, the related evidence used, and the external implementation facts canonical deterministic inspection cannot observe
 - preserve established application-only and provider-hosted model-visible capabilities in accurate instruction or runtime-guidance semantics; a missing repository-local artifact prevents a manifest binding, not semantic representation
 - do not create unresolved requirements solely because version `1` cannot bind an otherwise established cross-repository relationship
 - never imply cross-repository Git atomicity or cross-repository PR Assurance
 - if the application repository has its own `/moldea/**` state, treat it as an independent project
 - coordinate changes only when both repository scopes are authorized, verify each separately, and report completion for each side accurately
 
-A change completed in one repository does not make the other complete.
+A direction that establishes repository authority but specifies no actual semantic change does not authorize invented work. Inspect enough to report each repository as changed, unchanged, uninspected, or blocked, then ask one focused question for the desired update. A change completed in one repository does not make the other complete.

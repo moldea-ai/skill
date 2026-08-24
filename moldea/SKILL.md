@@ -60,18 +60,18 @@ The CLI version is an exact release dependency. A client repository stores that 
 - **Reconcile:** begin from the same evidence model as `evaluate`, establish intended state, and apply the smallest authorized coherent correction.
 - **Validate:** run deterministic repository-local validation only. Treat it as read-only.
 
-Initialize, create, update, maintain, refine, fix, and reconcile are write-capable only within authorized scope. Relevant implementation work authorizes necessary same-change `moldea` synchronization unless excluded. In an adopted repository, an unambiguous handoff of current project knowledge authorizes necessary context maintenance. Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only unless writes are later authorized.
+Write-capable operations remain within authorized scope. Relevant implementation work authorizes necessary same-change `moldea` synchronization unless excluded. In an adopted repository, an unambiguous current-knowledge handoff authorizes necessary context maintenance. Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only unless writes are later authorized.
 
-During `initialize`, an insufficient or partial project foundation is a pre-write stop condition. Before creating `/moldea/**` or the owned README awareness block, ask the focused clarification and wait for the developer's answer. Never convert developer-answerable foundational ambiguity into an unresolved requirement or claim initialization completed.
+Before semantic writes, establish adoption, inspect high-information evidence, classify claims, and confirm authority. Names, generic labels, placeholders, empty exports, and brief or generic package metadata may inform clarification but cannot establish a sufficient foundation alone. Omission from search, Git inventory, or ignore-sensitive discovery does not prove non-adoption.
 
-Absence of evidence is not evidence that a consequential behavior is excluded. If the repository does not establish whether the project performs a materially different action, such as extracting payment data versus authorizing payments, classify the foundation as partial and clarify before writing.
+During `initialize`, an insufficient or partial foundation stops writes. Ask a focused question and wait before changing dependencies, `/moldea/**`, or the owned README block. Never persist answerable ambiguity, infer excluded behavior from missing evidence, or claim completion.
 
-For every write-capable operation, materially conflicting plausible states are a pre-write stop. No source wins by asset type. Continue only after reliable evidence or an explicit correction resolves the conflict; otherwise ask one focused question, wait, and make no partial semantic correction.
+For every write operation, an unexplained conflict between plausible states also stops writes. A bare assertion establishes a claim, not authority to replace conflicting truth; reconciliation permission does not authorize choosing one asset type. Continue only after evidence or explicit correction semantics resolve the conflict. Otherwise ask one focused question, wait, and write nothing.
 
 ## Load focused guidance
 
 - Read `references/local-tooling.md` before any deterministic CLI operation or any write-capable workflow that may establish or reconcile local tooling.
-- Read `references/context-gathering.md` before initialization, consequential project-context work, Agent Skill creation or material maintenance, agent creation, semantic evaluation, or reconciliation.
+- Read `references/context-gathering.md` before initialization, agent-system planning, consequential project-context work, Agent Skill creation or material maintenance, agent creation, semantic evaluation, or reconciliation.
 - Read `references/agent-system-planning.md` before planning an AI- or agent-enabled system, decomposing agent responsibilities, or recommending orchestration.
 - Read `references/continuous-maintenance.md` before initialization, knowledge- or relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
 - Read `references/agent-design.md` before creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, runtime relationship, or unresolved requirement.
@@ -89,7 +89,7 @@ Load only the references triggered by the current operation. These files operati
 5. When the operation uses deterministic tooling, invoke the exact repository-local CLI in its own process and verify that completed process's exit code and machine envelope before interpreting command-specific fields.
 6. Distinguish current truth, developer-confirmed truth, intended resulting state, planned work, accepted rationale, historical state, unresolved state, and inference used only for investigation.
 7. Identify affected surfaces through exact bindings, impact paths, Agent Skill authoritative sources, resources, host metadata, installed or distributed copies, consumers, unresolved relationships, runtime-adapter evidence, and additional semantic evidence.
-8. Enforce the material-conflict pre-write stop. Use unresolved requirements only for genuine incomplete state, not answerable ambiguity or backlog work.
+8. Enforce the pre-write evidence gate. Re-evaluate unresolved requirements only within authorized work; remove one only when every criterion is established.
 9. Map runtime metadata by its established semantic purpose. Routing-facing metadata uses the target's effective routing description: the handoff description when present, otherwise the agent description. General-only metadata uses the agent description, regardless of property names. Before changing a runtime metadata mapping, establish and retain the consumer-semantics evidence, current canonical source, and required resulting source, then carry that evidence chain into the final report.
 10. For write-capable work, apply the smallest coherent authorized change and synchronize every affected representation. Make no canonical edit when the existing state remains correct.
 11. Run relevant project-native verification when executable behavior changed and authority permits it, keeping each result independently attributable.

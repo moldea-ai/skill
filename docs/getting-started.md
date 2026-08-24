@@ -56,7 +56,7 @@ Initialization does not create an agent automatically. It also does not create c
 
 Initialization is conversational when the evidence is not yet sufficient:
 
-- When no meaningful project context can be established, the coding agent says what it inspected and asks the highest-value foundational question needed to continue.
+- When no meaningful project context can be established, the coding agent says what it inspected and asks the highest-value foundational question needed to continue. Brief or generic package metadata can inform that question, but it cannot finalize the foundation by itself. Neither can a repository name, generic label, placeholder file, or empty export.
 - When part of the project is clear but a material purpose, user, goal, or boundary remains uncertain, it summarizes the supported conclusions and asks a focused clarification before finalizing affected claims.
 - When the foundation is sufficiently clear, it completes initialization without asking a question merely for ceremony.
 

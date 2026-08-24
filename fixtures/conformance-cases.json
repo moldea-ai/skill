@@ -1637,7 +1637,7 @@
       "scenario": "A file referenced by an unresolved requirement changes but the requirement's explicit resolution criteria are not all satisfied.",
       "operation": "maintain-relevant-change",
       "input": {
-        "developerDirection": "Implement part of the pending capability.",
+        "developerDirection": "Enable the provider support flag in src/pending-capability.js. Leave integration coverage for a separate change.",
         "repositoryEvidence": [
           {
             "claim": "An unresolved requirement names the related implementation path.",
@@ -1663,6 +1663,10 @@
           "criterion": "The actor rechecks resolution criteria against its authoritative current contract before changing state."
         },
         {
+          "label": "complete-authorized-partial-implementation",
+          "criterion": "The workspace changes enable the provider support flag without adding the integration coverage that the developer explicitly left for a separate change."
+        },
+        {
           "label": "preserve-unresolved-requirement",
           "criterion": "The response and workspace changes preserve unresolved requirement throughout the operation."
         }
@@ -1670,7 +1674,7 @@
       "forbidden": [
         {
           "label": "automatic-resolution",
-          "criterion": "The actor performs resolution without checking the requirement's explicit resolution criteria."
+          "criterion": "The actor removes the unresolved requirement or adds integration coverage outside the authorized partial change instead of preserving the remaining criterion."
         },
         {
           "label": "treat-requirement-as-backlog",

@@ -20,7 +20,7 @@ The operation is read-only. It does not initialize `moldea`, install tooling, cr
 
 The coding agent identifies the recipient, trigger or cadence, deliverables, success criteria, constraints, side effects, permissions, privacy, failure expectations, and prohibited outcomes that shape the system.
 
-It inspects existing workflows, services, rules, data ownership, schemas, APIs, integrations, jobs, queues, approvals, and AI usage before asking the developer to repeat discoverable facts.
+It inspects existing workflows, services, rules, data ownership, schemas, APIs, integrations, jobs, queues, approvals, and AI usage before asking the developer to repeat discoverable facts. It does not recommend a topology from the request alone when repository evidence is available.
 
 ## Classify responsibilities
 
@@ -40,6 +40,8 @@ An Agent Skill is not treated as an independently executing agent or as authorit
 ## Justify every agent
 
 A separate agent is warranted when it creates a meaningful boundary for specialized context, permissions, failure isolation, routing, reusable reasoning, independent evaluation, or maintainable ownership.
+
+Every material objective responsibility remains represented. Model-reasoning responsibilities with incompatible private context, permissions, trust, or failure boundaries remain separate unless reliable evidence shows that deterministic software can replace one. A smaller count is not useful when it silently drops a responsibility or creates one overprivileged agent.
 
 The recommendation may contain no agents. It avoids fashionable supervisors, critics, autonomous loops, memory systems, or model-based routers unless the objective genuinely requires them.
 

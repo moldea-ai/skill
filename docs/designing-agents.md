@@ -40,7 +40,9 @@ Executable and model-facing schemas are one semantic contract. Requiredness, nul
 
 The agent declares the highest-level available official runtime adapter whose verified target covers the actual primary integration boundary. Planned support is not presented as available, experimental support is not presented as production-ready, and `custom` is used only when the real composition requires it.
 
-Adapter behavior is established from authorized adapter documentation and repository evidence. When that documentation is unavailable, package names, compatibility inventory, and model knowledge cannot supply target details, supported patterns, provider limitations, maturity, or wiring semantics. The coding agent identifies the missing evidence and preserves the existing runtime unless other reliable evidence establishes a replacement. In a dedicated repository, related-application evidence can establish external behavior, but the final report distinguishes those facts from what canonical deterministic inspection cannot observe.
+Adapter behavior is established from authorized adapter documentation and repository evidence. Compatibility inventory proves availability only. When behavioral evidence is unavailable, the coding agent names the unestablished invocation, instruction, capability, schema, routing, or variable facts that matter and identifies the smallest source-owned documentation and closed repository wiring or tests that could resolve them. Package names, inventory, and model knowledge cannot supply target details, supported patterns, provider limitations, maturity, or wiring semantics, so the existing runtime remains unless other reliable evidence establishes a replacement.
+
+In a dedicated repository, related-application evidence can establish the primary runtime and provider-hosted capabilities. The canonical instruction or runtime guidance preserves that model-visible behavior without fabricating a cross-repository manifest binding. The final report distinguishes those externally established facts from implementation details canonical deterministic inspection cannot observe.
 
 ## Prove instruction provenance
 

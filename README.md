@@ -114,7 +114,7 @@ Release `3.1.0` supports:
 
 CLI `4.0.1` is part of this skill release's identity. Another CLI version belongs to another skill release and is not treated as interchangeable.
 
-Write-capable workflows inspect executable package-manager configuration as file data before any package-manager process. Repository-supplied executable configuration blocks manager execution. An existing exact local CLI can still be independently verified and invoked without the manager, but dependency changes or manager-mediated provider proof stop and report the prerequisite. Result-dependent safety checks and deterministic CLI commands run as separate processes so each accepted result remains independently attributable. `evaluate` is strictly read-only and reports missing or mismatched tooling instead of installing it. Agent-system `plan` is also read-only and may run before adoption or local tooling exists. The skill never falls back to a global CLI or transient CLI download.
+Write-capable workflows inspect executable package-manager configuration as file data before any package-manager process. Repository-supplied executable configuration blocks manager execution. An existing exact local CLI can still be independently verified and invoked without the manager, but dependency changes or manager-mediated provider proof stop and report the prerequisite. For pnpm Plug'n'Play, the coding agent resolves the exact package through `pnpapi`, validates its relative binary and package containment, then invokes that binary through a separate `pnpm node` process. Result-dependent safety checks and deterministic CLI commands run as separate processes so each accepted result remains independently attributable. `evaluate` is strictly read-only and reports missing or mismatched tooling instead of installing it. Agent-system `plan` is also read-only and may run before adoption or local tooling exists. The skill never falls back to a global CLI or transient CLI download.
 
 ## Quick start
 
@@ -143,7 +143,7 @@ Standalone initialization first understands the project, then establishes requir
 
 It does not create an agent automatically. Additional context, decisions, runtime guidance, agents, or unresolved requirements are created only when project evidence justifies them.
 
-Initialization may become a short clarification conversation. The coding agent classifies high-information project evidence before changing dependency state. When repository evidence does not establish meaningful project context, it says so and asks a focused foundational question instead of inventing project truth. When some context is supported but a material gap remains, it summarizes what it learned and clarifies that gap. Both outcomes pause before tooling installation, canonical project state, or the owned README awareness block, and developer-answerable ambiguity is not stored as an unresolved requirement. A sufficiently grounded repository completes without ceremonial questions.
+Initialization may become a short clarification conversation. The coding agent classifies high-information project evidence before changing dependency state. Repository names, generic labels, placeholder files, empty exports, and brief or generic package metadata may inform clarification but are not a meaningful foundation by themselves. When evidence does not establish meaningful project context, the coding agent says so and asks a focused foundational question instead of inventing project truth. When some context is supported but a material gap remains, it summarizes what it learned and clarifies that gap. Both outcomes pause before tooling installation, canonical project state, or the owned README awareness block, and developer-answerable ambiguity is not stored as an unresolved requirement. A sufficiently grounded repository completes without ceremonial questions.
 
 After completion, the coding agent summarizes the established foundation, files, and validation, then offers practical options such as reviewing the context, continuing ordinary development, planning an agent system, or creating a specific agent.
 
@@ -153,7 +153,7 @@ To design an AI-enabled system before implementation or `moldea` adoption, ask:
 Plan an agent system for personalized ecommerce promotions and decide what should remain ordinary software.
 ```
 
-Planning starts from the objective and may recommend zero, one, or multiple agents. It changes no repository, dependency, Git, or external state and does not create a canonical plan artifact.
+Planning starts from the objective and available repository evidence, preserves each material responsibility, and may recommend zero, one, or multiple agents. Responsibilities with incompatible private context, permissions, trust, or failure boundaries remain separate unless deterministic software can replace one. Every recommendation includes an implementation sequence. Planning changes no repository, dependency, Git, or external state and does not create a canonical plan artifact.
 
 ## Natural-language operations
 
@@ -174,7 +174,7 @@ Planning starts from the objective and may recommend zero, one, or multiple agen
 
 ## Continuous maintenance
 
-Once a repository has adopted `moldea`, sharing potentially durable project knowledge or requesting behavior-affecting development work may activate the skill even when the request does not mention `moldea`. The coding agent reconsiders relevant canonical state and persists only material, durable, sufficiently established truth. A material unexplained conflict produces one focused clarification before any canonical change.
+Once a repository has adopted `moldea`, sharing potentially durable project knowledge or requesting behavior-affecting development work may activate the skill even when the request does not mention `moldea`. The coding agent checks the canonical manifest, project context, and README marker directly rather than inferring non-adoption from search results. It reconsiders relevant canonical state and persists only material, durable, sufficiently established truth. A material unexplained conflict produces one focused clarification before any canonical change.
 
 Activation does not mean automatic persistence or documentation churn. A legitimate result is no `/moldea/**` edit when supplied knowledge is transient or unclear, or when established state remains accurate. The coding agent reports which canonical state it reconsidered and why no edit was required. Knowledge- and relevance-triggered activation never initialize an unrelated repository without explicit developer intent, and an explicitly read-only request remains read-only.
 

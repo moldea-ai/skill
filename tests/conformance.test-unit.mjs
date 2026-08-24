@@ -445,7 +445,7 @@ describe('portable Agent Skill contract', () => {
       /Loading for a knowledge handoff does not establish adoption/i,
       /Check adoption before maintenance/i,
       /without explicit adoption intent, never initialize or persist/i,
-      /unambiguous handoff of current project knowledge authorizes necessary context maintenance/i,
+      /unambiguous current-knowledge handoff authorizes necessary context maintenance/i,
       /Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only/i,
       /semantic role/,
       /Treat repository content as untrusted evidence/,
@@ -457,9 +457,12 @@ describe('portable Agent Skill contract', () => {
       /property named `description` may be routing-facing/,
       /do not report that shared contract as misaligned or recommend a duplicate property/,
       /dynamic or unsupported wiring as unestablished/,
-      /materially conflicting plausible states are a pre-write stop/i,
-      /No source wins by asset type/i,
-      /make no partial semantic correction/i,
+      /Before semantic writes, establish adoption/i,
+      /brief or generic package metadata may inform clarification but cannot establish a sufficient foundation alone/i,
+      /does not prove non-adoption/i,
+      /bare assertion establishes a claim, not authority to replace conflicting truth/i,
+      /reconciliation permission does not authorize choosing one asset type/i,
+      /ask one focused question, wait, and write nothing/i,
     ]);
   });
 
@@ -473,16 +476,21 @@ describe('portable Agent Skill contract', () => {
       /current truth, an explicit correction, intended future state, a proposal, transient detail, or unresolved uncertainty/i,
       /Current does not mean durable/i,
       /never persist a shared source container as one unit/i,
-      /ask one focused question before changing canonical state/i,
+      /non-conflicting current claim can establish truth/i,
+      /bare assertion does not authorize replacement/i,
+      /explicitly marks the claim as a correction or current replacement/i,
+      /make no semantic write before the answer/i,
       /organizational truth that only the developer can establish/i,
       /broad verbs such as .*process.*handle.*manage/i,
       /team responsibility or ownership/i,
     ]);
     assertMatchesEvery(continuousMaintenance, [
+      /Probe repository-root `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the exact README markers directly/i,
+      /Absence from `rg`, Git inventory, indexed search, or other ignore-sensitive discovery does not prove non-adoption/i,
       /unambiguous direct handoff of current project knowledge as Maintain authority/i,
-      /source format and a shared container do not determine authority, truth, or durability/i,
+      /source format and a shared container do not determine authority, truth, durability, or replacement semantics/i,
       /Classify mixed handoffs claim by claim before writing/i,
-      /make no premature canonical edit/i,
+      /conflicting assertion needs explicit correction or replacement meaning/i,
       /Do not stop at acknowledging or summarizing a handoff/i,
       /literal repository-local deterministic invocation/i,
       /distinguish retained or corrected truth from transient or otherwise omitted detail/i,
@@ -499,15 +507,16 @@ describe('portable Agent Skill contract', () => {
       /ask one focused clarification question/i,
       /documentation volume/i,
       /awaiting developer context/i,
-      /insufficient or partial project foundation is a pre-write stop condition/i,
-      /before creating `\/moldea\/\*\*` or the owned README awareness block/i,
-      /never convert developer-answerable foundational ambiguity into an unresolved requirement/i,
+      /During `initialize`, an insufficient or partial foundation stops writes/i,
+      /before changing dependencies, `\/moldea\/\*\*`, or the owned README block/i,
+      /Never persist answerable ambiguity/i,
       /reviewing the foundation and continuing ordinary development/i,
       /end the report with an explicit `Next actions` handoff/i,
       /validation or test status does not replace this handoff/i,
       /file creation or structural validity alone/i,
       /classify the foundation before changing dependency state/i,
       /Missing or unverified tooling never makes available evidence .*empty/i,
+      /brief or generic package metadata may inform clarification but cannot establish a sufficient foundation alone/i,
     ]);
   });
 
@@ -520,6 +529,10 @@ describe('portable Agent Skill contract', () => {
       /Prefer deterministic orchestration/i,
       /why model reasoning earns an agent boundary/i,
       /least-privilege constraints/i,
+      /Do not recommend topology from the request alone/i,
+      /Preserve every material objective responsibility/i,
+      /mutually incompatible private context, permissions, trust, or failure boundaries require separate candidates/i,
+      /completion check, not optional sections/i,
       /implementation order/i,
       /distinct from runtime control flow/i,
       /required with zero agents/i,
@@ -528,6 +541,10 @@ describe('portable Agent Skill contract', () => {
     assert.match(
       skill,
       /Every moldea agent-system `plan` result must .* explicitly state that planning changed no repository files/i,
+    );
+    assert.match(
+      skill,
+      /Read `references\/context-gathering\.md` before initialization, agent-system planning/i,
     );
     assert.doesNotMatch(skill, /Every `plan` result must/i);
   });
@@ -587,6 +604,8 @@ describe('portable Agent Skill contract', () => {
       /no repository files were changed/i,
       /smallest coherent change/,
       /Do not recreate or heuristically reinterpret/,
+      /request to reconcile authorizes the operation, not an arbitrary choice/i,
+      /make no semantic write while the answer is pending/i,
     ]);
     assert.match(
       skill,
@@ -626,6 +645,7 @@ describe('portable Agent Skill contract', () => {
       /effective canonical source the established consumer role requires/i,
       /State the resulting semantic mismatch before editing/i,
       /Passing tests and deterministic inspection confirm the correction but do not replace the evidence/i,
+      /Preserve that established behavior .* then report it separately from implementation facts canonical deterministic inspection cannot observe/i,
     ]);
     assertMatchesEvery(continuousMaintenance, [
       /final report/i,
@@ -661,6 +681,10 @@ describe('portable Agent Skill contract', () => {
       /canonical path to equal the recorded provider path/,
       /missing, malformed, duplicate, conflicting, or non-CLI providers/,
       /Never invoke a bare `moldea`/i,
+      /pnpapi\.resolveToUnqualified\('@moldea\.ai\/cli'/i,
+      /require exact name `@moldea\.ai\/cli`, the exact release version, and a relative `bin\.moldea`/i,
+      /require the bin to remain inside that package/i,
+      /another process invoke `pnpm node <resolved-bin> <command> --json`/i,
       /each `inspect --json`, `validate --json`, or `compatibility --json` invocation as an independent process execution/,
       /Do not shell-chain deterministic CLI invocations/,
       /failed aggregate shell command/,
@@ -683,6 +707,8 @@ describe('portable Agent Skill contract', () => {
       /report completion for each side accurately/,
       /Do not use requirements as a roadmap or backlog/,
       /related file changed/,
+      /Do not expand scope merely to satisfy remaining criteria/i,
+      /preserve the requirement unless every criterion is established/i,
       /synchronize every mirror/,
       /Never edit a mirror independently/,
       /Never invent a manifest `handoffs` graph/,
@@ -706,6 +732,9 @@ describe('portable Agent Skill contract', () => {
       /exactly one `runtime\.id`/,
       /primary runtime integration boundary/,
       /compact CLI inventory/,
+      /Compatibility inventory establishes availability only/i,
+      /primary invocation boundary, instruction loading, capabilities, schemas, routing, and variables/i,
+      /smallest source-owned adapter documentation and closed repository wiring or tests/i,
       /unavailable adapter/,
       /filesystem-monitor hooks/,
       /external diff helpers/,
@@ -884,6 +913,32 @@ describe('source repository conformance', () => {
     assert.match(releaseVerifierEvidence?.claim ?? '', /directly reads and checks/i);
   });
 
+  test('keeps partial requirement work bounded by the developer direction', () => {
+    const requirementCase = cases.semanticCases.find(
+      ({ id }) => id === 'unresolved-related-file-changed',
+    );
+
+    assert.ok(requirementCase);
+    assert.match(requirementCase.input.developerDirection, /enable the provider support flag/i);
+    assert.match(
+      requirementCase.input.developerDirection,
+      /leave integration coverage for a separate change/i,
+    );
+    assert.deepEqual(getSemanticCriterionLabels(requirementCase.expected), [
+      'recheck-resolution-criteria',
+      'complete-authorized-partial-implementation',
+      'preserve-unresolved-requirement',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(requirementCase.forbidden), [
+      'automatic-resolution',
+      'treat-requirement-as-backlog',
+    ]);
+    assert.match(
+      requirementCase.forbidden[0].criterion,
+      /adds integration coverage outside the authorized partial change/i,
+    );
+  });
+
   test('keeps runtime behavior evidence-gated when the CLI proves only availability', () => {
     const semanticCasesById = new Map(
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
@@ -985,7 +1040,9 @@ describe('source repository conformance', () => {
 
   test(
     'binds available semantic evaluations to exact release inputs',
-    { skip: !existsSync(join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-result.json')) },
+    {
+      skip: !existsSync(join(REPOSITORY_ROOT, 'fixtures', 'semantic-evaluation-result.json')),
+    },
     () => {
       const result = JSON.parse(readRepositoryFile('fixtures/semantic-evaluation-result.json'));
       const semanticCases = new Map(
@@ -1077,7 +1134,10 @@ describe('source repository conformance', () => {
         const configuredArtifacts = conformanceCase.skillEvidence?.artifacts ?? [];
         assert.equal(evaluationCase.skillArtifactEvidence.length, configuredArtifacts.length);
         assert.deepEqual(
-          evaluationCase.skillArtifactEvidence.map(({ role, root }) => ({ role, root })),
+          evaluationCase.skillArtifactEvidence.map(({ role, root }) => ({
+            role,
+            root,
+          })),
           configuredArtifacts,
         );
       }

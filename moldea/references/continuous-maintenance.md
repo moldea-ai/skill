@@ -6,11 +6,11 @@ Read this reference before initialization, knowledge- or relevance-triggered mai
 
 Skill loading is not adoption. When a knowledge handoff triggers discovery before adoption is known, inspect only enough to determine it. Without explicit adoption intent or existing adoption, do not initialize or persist.
 
-Evidence that adoption exists or is underway includes canonical `/moldea/**` assets, current changes introducing them, prior developer direction, or the owned README awareness section. The README block alone is a signal to investigate, not authority to recreate missing canonical state; distinguish incomplete initialization, decommissioning, and stale guidance.
+Probe repository-root `/moldea/moldea.yaml`, `/moldea/project.md`, and the exact README markers directly before classifying adoption. Evidence that adoption exists or is underway includes those canonical assets, current changes introducing them, prior developer direction, or the owned README awareness section. Absence from `rg`, Git inventory, indexed search, or other ignore-sensitive discovery does not prove non-adoption. The README block alone is a signal to investigate, not authority to recreate missing canonical state; distinguish incomplete initialization, decommissioning, and stale guidance.
 
 ## Maintain newly learned truth
 
-In an adopted repository, treat an unambiguous direct handoff of current project knowledge as Maintain authority unless the surrounding request is read-only or excludes writes. Use context-gathering guidance to classify, verify, route, and filter it. Classify mixed handoffs claim by claim before writing; source format and a shared container do not determine authority, truth, or durability. When an unexplained conflict could materially change persisted meaning, ask one focused question and make no premature canonical edit.
+In an adopted repository, treat an unambiguous direct handoff of current project knowledge as Maintain authority unless the surrounding request is read-only or excludes writes. Use context-gathering guidance to classify, verify, route, and filter it. Classify mixed handoffs claim by claim before writing; source format and a shared container do not determine authority, truth, durability, or replacement semantics. A conflicting assertion needs explicit correction or replacement meaning, or one focused clarification before any semantic write.
 
 Do not stop at acknowledging or summarizing a handoff. Compare its material durable claims with current canonical state: persist newly established truth through the smallest appropriate surface, replace an explicitly corrected stale claim, or name an unexplained conflict and ask the focused question. After writing, copy the literal repository-local deterministic invocation into the final response with its status and material diagnostics, then distinguish retained or corrected truth from transient or otherwise omitted detail.
 
@@ -23,7 +23,7 @@ For every relevant developer-authorized change:
 3. Inspect the affected project, agent, and skill surfaces deeply enough to establish whether truth or declared behavior actually changed.
 4. Update all affected representations in the same coherent developer change when the intended state is sufficiently established and writes are authorized.
 5. Make no canonical edit when established project truth and declared behavior remain correct.
-6. Re-evaluate related unresolved requirements against their explicit resolution criteria; a related file change alone never resolves one.
+6. Re-evaluate related unresolved requirements after the authorized change. Do not expand scope merely to satisfy remaining criteria; preserve the requirement unless every criterion is established by current evidence.
 7. After writes, rerun deterministic inspection and relevant project-native checks.
 8. Report surfaces reconsidered, result, verification, limitations, and why unchanged canonical state remains correct.
 

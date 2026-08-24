@@ -32,6 +32,8 @@ Before deterministic execution, the coding agent verifies:
 - CLI version and supported JSON schema
 - command, status, payload, and exit-code consistency
 
+In a pnpm Plug'n'Play repository, provider verification does not require `node_modules/.bin`. The coding agent resolves the exact root package through `pnpapi`, validates the package identity, relative binary, and canonical containment, then invokes the accepted binary in a separate `pnpm node` process. It does not use `pnpm exec` or change the linker.
+
 The coding agent then uses `inspect --json` for complete deterministic evidence, `validate --json` for structural validation, or `compatibility --json` when installed package composition, available adapter IDs, repository-format versions, or Node.js and Git requirements can change the conclusion. The compatibility command does not publish target maturity or behavioral support claims.
 
 You should not need to perform these checks manually. They are the under-the-hood safety boundary that lets you continue requesting outcomes naturally.

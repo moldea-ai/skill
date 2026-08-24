@@ -54,13 +54,13 @@ Every evaluation reports scope, deterministic state, all five categories, toolin
 
 `reconcile` begins with the evaluate evidence model but may write within developer-authorized scope.
 
-1. Establish intended state from question-specific repository evidence and developer direction.
+1. Establish intended state from question-specific repository evidence and developer direction. A request to reconcile authorizes the operation, not an arbitrary choice among unresolved policies.
 2. Do not assume code, tests, schemas, context, decisions, instructions, or adapter evidence always wins.
-3. Ask the developer before choosing among materially different plausible intended states.
+3. Ask the developer before choosing among materially different plausible intended states, and make no semantic write while the answer is pending.
 4. Use unresolved requirements only for genuine incomplete state, not to avoid an answerable clarification.
 5. Apply the smallest coherent change across every affected canonical, Agent Skill source, resource, host metadata, installed or distributed copy, coding-agent consumer, model-facing, runtime, implementation, schema, test, relationship, variable, requirement, and mirror surface. A routing-description correction includes the applicable canonical description, runtime loader or registration, routing behavior, and focused tests.
 6. Preserve still-valid behavior and unrelated defects. Remove superseded paths only when the authorized resulting state makes them unnecessary.
-7. Remove an unresolved requirement only after its explicit resolution criteria are satisfied.
+7. Remove an unresolved requirement only after authorized work or current evidence satisfies every explicit resolution criterion; never broaden the task merely to close it.
 8. Run relevant project-native verification, synchronize mirrors, rerun root-local `inspect --json`, and perform semantic readiness review.
 
 When reconciliation establishes canonical instruction provenance, update the canonical asset, runtime loading or provisioning mechanism, material bindings, tests, mirrors, and runtime guidance together as applicable. Remove a superseded independent instruction source only when intended behavior is established and the implementation path is within the authorized scope.

@@ -24,13 +24,15 @@ You can also provide current project knowledge directly:
 Platform owns the application runtime and delivery pipeline. Security approves production access.
 ```
 
-The same handoff can arrive as YAML or JSON, an answer to a focused question, a table, or an accessible project file. Format does not determine whether it becomes canonical. The coding agent evaluates the handoff claim by claim, separating durable current truth and explicit corrections from proposals, transient details, speculation, secrets, and unnecessary personal information. Current does not automatically mean durable: short-lived work status or focus remains transient unless it establishes a lasting operating constraint.
+The same handoff can arrive as YAML or JSON, an answer to a focused question, a table, or an accessible project file. Format does not determine whether it becomes canonical. The coding agent checks `/moldea/moldea.yaml`, `/moldea/project.md`, and the README marker directly before classifying adoption; omission from search or Git inventory is not proof that the repository is unadopted. It then evaluates the handoff claim by claim, separating durable current truth and explicit corrections from proposals, transient details, speculation, secrets, and unnecessary personal information. Current does not automatically mean durable: short-lived work status or focus remains transient unless it establishes a lasting operating constraint.
 
-When a new claim materially conflicts with established context and does not clearly replace it, the coding agent asks one focused question before writing. An explicitly read-only request remains read-only, and incidental knowledge never initializes an unrelated repository.
+When a new claim materially conflicts with established context, its format or bare assertion does not authorize replacement. The coding agent proceeds only when you clearly identify a correction or reliable evidence resolves the conflict; otherwise it asks one focused question before writing. An explicitly read-only request remains read-only, and incidental knowledge never initializes an unrelated repository.
 
 ## Reconsider does not mean rewrite
 
 An impact path, knowledge handoff, or semantic relationship means “inspect this surface,” not “edit this file.” If supplied information is not suitable for persistence or existing project context and declared behavior remain accurate, the right result is no `/moldea/**` change.
+
+The same scope rule applies to unresolved requirements. A related implementation change prompts the coding agent to recheck every resolution criterion, but it does not authorize completing additional work merely to close the requirement. The requirement remains until current evidence satisfies every criterion.
 
 The completion report identifies the canonical state that was reconsidered and why it remains correct. This avoids noisy documentation churn while still preventing silent drift.
 

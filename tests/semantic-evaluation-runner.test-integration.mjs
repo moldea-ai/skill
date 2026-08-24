@@ -43,6 +43,9 @@ const YARN_CONFLICT_CASE_DEFINITION = SEMANTIC_CASES.find(
 const UNADOPTED_CONTEXT_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'unadopted-direct-context-handoff',
 );
+const ADOPTED_DIRECT_CONTEXT_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'adopted-direct-context-handoff',
+);
 const AMBIGUOUS_CONTEXT_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'adopted-ambiguous-context-handoff',
 );
@@ -57,6 +60,9 @@ const PNPM_PNP_CASE_DEFINITION = SEMANTIC_CASES.find(
 );
 const SKILL_REUSE_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'skill-reuse-existing-cohesive',
+);
+const UNRESOLVED_REQUIREMENT_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'unresolved-related-file-changed',
 );
 const DEDICATED_REPOSITORY_CASE_DEFINITIONS = SEMANTIC_CASES.filter(({ id }) =>
   ['dedicated-repository-runtime-selection', 'dedicated-repository-single-side-change'].includes(
@@ -115,6 +121,31 @@ test('unadopted context handoff exposes no adoption state or marker', async () =
     assert.equal(existsSync(join(repositoryPath, 'moldea')), false);
     assert.doesNotMatch(readme, /<!-- moldea:(?:start|end) -->/u);
     assert.equal(existsSync(join(repositoryPath, 'src', 'http-client.js')), true);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('adopted direct context handoff exposes canonical state and marker', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-adopted-context-test-'));
+  assert.ok(ADOPTED_DIRECT_CONTEXT_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      ADOPTED_DIRECT_CONTEXT_CASE_DEFINITION,
+    );
+    const status = spawnSync('git', ['status', '--porcelain'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
+
+    assert.equal(status.status, 0, status.stderr);
+    assert.equal(status.stdout, '');
+    assert.equal(existsSync(join(repositoryPath, 'moldea', 'moldea.yaml')), true);
+    assert.equal(existsSync(join(repositoryPath, 'moldea', 'project.md')), true);
+    assert.match(readme, /<!-- moldea:start -->[\s\S]*<!-- moldea:end -->/u);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }
@@ -190,6 +221,29 @@ test('partial initialization exposes payment involvement without deciding author
     assert.doesNotMatch(readme, /authoriz|initiat|extract/i);
     assert.match(implementation, /processInvoice/);
     assert.doesNotMatch(implementation, /authoriz|initiat|payment|extract/i);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('partial requirement scenario leaves integration coverage unresolved at baseline', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-partial-requirement-test-'));
+  assert.ok(UNRESOLVED_REQUIREMENT_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      UNRESOLVED_REQUIREMENT_CASE_DEFINITION,
+    );
+    const manifest = readFileSync(join(repositoryPath, 'moldea', 'moldea.yaml'), 'utf8');
+    const implementation = readFileSync(
+      join(repositoryPath, 'src', 'pending-capability.js'),
+      'utf8',
+    );
+
+    assert.match(manifest, /Confirm provider support and add passing integration coverage/u);
+    assert.match(implementation, /providerSupport = false/u);
+    assert.equal(existsSync(join(repositoryPath, 'test', 'provider.test.js')), false);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }
@@ -416,36 +470,57 @@ test('pnpm PnP scenario resolves and executes the exact local CLI provider', asy
       ),
     );
     const pnpResolutionProbe = [
+      'const { realpathSync } = require("node:fs");',
+      'const { isAbsolute, join, relative, resolve } = require("node:path");',
       'const pnpapi = require("pnpapi");',
-      'const root = pnpapi.resolveToUnqualified("@moldea.ai/cli", "/mnt/package.json");',
-      'const manifest = require(root + "/package.json");',
+      'const packageRoot = pnpapi.resolveToUnqualified("@moldea.ai/cli", "/mnt/package.json");',
+      'const manifest = require(join(packageRoot, "package.json"));',
+      'if (manifest.name !== "@moldea.ai/cli") process.exit(9);',
       `if (manifest.version !== ${JSON.stringify(RELEASE_CLI_VERSION)}) process.exit(10);`,
+      'if (typeof manifest.bin?.moldea !== "string" || isAbsolute(manifest.bin.moldea)) process.exit(11);',
+      'const canonicalRoot = realpathSync(packageRoot);',
+      'const canonicalBin = realpathSync(resolve(canonicalRoot, manifest.bin.moldea));',
+      'const relativeBin = relative(canonicalRoot, canonicalBin);',
+      'if (relativeBin === ".." || relativeBin.startsWith("../") || isAbsolute(relativeBin)) process.exit(12);',
+      'process.stdout.write(JSON.stringify({ binPath: canonicalBin, packageRoot: canonicalRoot }));',
     ].join(' ');
-    const result = spawnSync(
-      'bwrap',
-      buildCodexEvaluationBwrapArguments({
-        command: [
-          'codex',
-          '-c',
-          [
-            `pnpm node --eval ${JSON.stringify(pnpResolutionProbe)}`,
-            'pnpm node .pnp/node_modules/@moldea.ai/cli/dist/moldea.js --version',
-          ].join(' && '),
-        ],
-        cwd: repositoryPath,
-        hostExecutable: realpathSync('/bin/sh'),
-        nodeExecutable: process.execPath,
-        readOnlyMounts: actorToolMounts,
-        sandboxHome,
-      }),
-      { encoding: 'utf8', timeout: 2_000 },
+    const runIsolatedProbe = (command) =>
+      spawnSync(
+        'bwrap',
+        buildCodexEvaluationBwrapArguments({
+          command: ['codex', '-c', command],
+          cwd: repositoryPath,
+          hostExecutable: realpathSync('/bin/sh'),
+          nodeExecutable: process.execPath,
+          readOnlyMounts: actorToolMounts,
+          sandboxHome,
+        }),
+        { encoding: 'utf8', timeout: 2_000 },
+      );
+
+    const versionResult = runIsolatedProbe('pnpm --version');
+    const resolutionResult = runIsolatedProbe(
+      `pnpm node --eval ${JSON.stringify(pnpResolutionProbe)}`,
     );
 
     assert.equal(packageManifest.packageManager, 'pnpm@11.21.0');
     assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': RELEASE_CLI_VERSION });
     assert.equal(pnpCliManifest.version, RELEASE_CLI_VERSION);
-    assert.equal(result.status, 0, result.stderr);
-    assert.equal(result.stdout.trim(), RELEASE_CLI_VERSION);
+    assert.equal(versionResult.status, 0, versionResult.stderr);
+    assert.equal(versionResult.stdout, '11.21.0\n');
+    assert.equal(resolutionResult.status, 0, resolutionResult.stderr);
+
+    const resolvedProvider = JSON.parse(resolutionResult.stdout);
+    assert.deepEqual(resolvedProvider, {
+      binPath: '/mnt/.pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
+      packageRoot: '/mnt/.pnp/node_modules/@moldea.ai/cli',
+    });
+
+    const invocationResult = runIsolatedProbe(
+      `pnpm node ${JSON.stringify(resolvedProvider.binPath)} --version`,
+    );
+    assert.equal(invocationResult.status, 0, invocationResult.stderr);
+    assert.equal(invocationResult.stdout.trim(), RELEASE_CLI_VERSION);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

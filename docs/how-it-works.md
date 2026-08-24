@@ -49,6 +49,8 @@ The coding agent begins with high-information repository evidence and follows ma
 
 Code, tests, schemas, context, decisions, runtime guidance, and developer direction answer different questions. No source type automatically wins every conflict.
 
+Before a semantic write, the coding agent directly establishes adoption, inspects high-information evidence, classifies the relevant claims, and confirms authority for the exact change. Insufficient foundations and unexplained conflicts stop before dependencies or canonical state change.
+
 ## Deterministic local tooling
 
 When an operation needs mechanical repository evidence, the coding agent verifies the exact repository-local `@moldea.ai/cli` dependency and executable before invoking it. The CLI owns Git inventory, repository snapshots, format parsing, path and placeholder validation, mirrors, diagnostics, runtime-adapter evidence, and compatibility data.

@@ -22,7 +22,7 @@ Runtime selection remains optional unless you request it or it materially change
 
 The coding agent identifies the recipient, trigger or cadence, deliverables, success criteria, constraints, side effects, permissions, privacy, failure expectations, and prohibited outcomes that shape the system.
 
-It begins with instructions, README content, manifests, and canonical state. When that high-level view is sparse, it inspects a bounded root inventory and searches objective terms across ordinary source, documentation, configuration, and tests before claiming that project evidence is unavailable. It then follows the material workflows, services, rules, data ownership, schemas, APIs, integrations, jobs, queues, approvals, and AI usage it finds. The recommendation names the exact evidence paths and the current components and contracts they establish.
+It begins with instructions, README content, manifests, and canonical state. When that high-level view is sparse, it inspects a bounded root inventory and searches objective terms across ordinary source, documentation, configuration, and tests before claiming that project evidence is unavailable. A path listing is navigation, not evidence, so it reads the material files it finds. It then follows the material workflows, services, rules, data ownership, schemas, APIs, integrations, jobs, queues, approvals, and AI usage. The recommendation names the exact paths read and the current components and contracts they establish.
 
 ## Classify responsibilities
 

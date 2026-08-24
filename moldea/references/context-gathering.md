@@ -56,7 +56,7 @@ A focused question asks for one missing fact or one decision whose answer change
 ## Investigate progressively
 
 1. Inspect applicable instructions, the root README, manifests, canonical `moldea` state, and other high-information project surfaces first.
-2. When high-level filename discovery is sparse, inspect a bounded root inventory instead of concluding that project evidence is absent.
+2. When filename discovery is sparse, use a bounded root inventory for navigation; path listings do not establish project evidence.
 3. Search objective terms across ordinary source, documentation, configuration, and test locations, then inspect the material files, contracts, and relationships found.
 4. Follow relevant imports, bindings, impact paths, schemas, capabilities, Agent Skill resources and consumers, runtime construction, instruction loaders, variable providers, tests, runtime guidance, decisions, unresolved references, and adapter evidence.
 5. Test consequential conclusions against a second reliable surface when practical.

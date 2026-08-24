@@ -4,7 +4,7 @@ Read this reference before initialization, knowledge- or relevance-triggered mai
 
 ## Recognize adoption without inventing it
 
-Skill loading is not adoption. When a knowledge handoff triggers discovery before adoption is known, inspect only enough to determine it. Without explicit adoption intent or existing adoption, do not initialize or persist.
+Skill loading is not adoption. For a handoff, inspect only enough to determine adoption. Without explicit intent or existing adoption, do not initialize or persist; report why and that no files changed.
 
 Probe repository-root `/moldea/moldea.yaml`, `/moldea/project.md`, and the exact README markers directly before classifying adoption. Evidence that adoption exists or is underway includes those canonical assets, current changes introducing them, prior developer direction, or the owned README awareness section. Absence from `rg`, Git inventory, indexed search, or other ignore-sensitive discovery does not prove non-adoption. The README block alone is a signal to investigate, not authority to recreate missing canonical state; distinguish incomplete initialization, decommissioning, and stale guidance.
 
@@ -12,7 +12,7 @@ Probe repository-root `/moldea/moldea.yaml`, `/moldea/project.md`, and the exact
 
 In an adopted repository, treat an unambiguous direct handoff of current project knowledge as Maintain authority unless the surrounding request is read-only or excludes writes. The handoff itself is enough to activate maintenance; it needs no explicit request to persist or document it. This includes terse ownership, responsibility, approval, escalation, policy, and boundary handoffs; prose, an answer, a table, structured data, or an accessible source differ only in format. Use context-gathering guidance to classify, verify, route, and filter the claims. A shared container does not determine authority, truth, durability, or replacement semantics. A conflicting assertion needs explicit correction or replacement meaning, or one focused clarification before any semantic write.
 
-Do not stop at acknowledging or summarizing a handoff. Compare its material durable claims with current canonical state: persist newly established truth through the smallest appropriate surface, replace an explicitly corrected stale claim, or name an unexplained conflict and ask the focused question. After writing, copy the literal repository-local deterministic invocation into the final response with its status and material diagnostics, then distinguish retained or corrected truth from transient or otherwise omitted detail.
+Do not merely acknowledge a handoff. Compare durable claims with canonical state: persist new truth through the smallest surface, replace an explicitly corrected stale claim, or clarify an unexplained conflict. After writing, report the literal repository-local deterministic invocation, status, and diagnostics. Name a correction's stale and current truth; otherwise distinguish retained truth from omissions.
 
 ## Maintain affected behavior
 
@@ -23,7 +23,7 @@ For every relevant developer-authorized change:
 3. Inspect the affected project, agent, and skill surfaces deeply enough to establish whether truth or declared behavior actually changed.
 4. Update all affected representations in the same coherent developer change when the intended state is sufficiently established and writes are authorized.
 5. Make no canonical edit when established project truth and declared behavior remain correct.
-6. Before changing a path referenced by an unresolved requirement, read its complete current-state description and every resolution criterion. After the authorized change, recheck every criterion and report which are satisfied or outstanding. Do not expand scope merely to close the requirement; preserve it unless every criterion is established.
+6. Before changing a requirement-referenced path, read its current-state description and every criterion; discovery is insufficient. Afterward recheck and report each criterion as satisfied or outstanding. Do not expand scope to close the requirement; preserve it unless every criterion is established.
 7. After writes, rerun deterministic inspection and relevant project-native checks.
 8. Report surfaces reconsidered, result, verification, limitations, and why unchanged canonical state remains correct.
 

@@ -1,7 +1,7 @@
 ---
 name: moldea
 description: >-
-  Use when the developer's message itself supplies, confirms, or corrects potentially durable current-project knowledge such as ownership, responsibility, approval, escalation, policy, or boundaries, including bare prose, an answer, table, YAML, JSON, or accessible source with no explicit moldea or documentation request; load first to check adoption and conflicts. Also use for initialization; agent-system planning; agent or Agent Skill design and maintenance; behavioral instructions, capabilities, schemas, routing, bindings, and runtime integration; evaluation, reconciliation, or validation; and authorized behavior changes or changes to paths referenced by adopted canonical state or unresolved requirements. Initial adoption requires explicit developer intent.
+  Use for initialization; agent-system planning; agent or Agent Skill design and maintenance; behavioral instructions, capabilities, schemas, routing, bindings, and runtime integration; evaluation, reconciliation, or validation; and authorized behavior changes or changes to paths referenced by adopted canonical state or unresolved requirements. Also use when a message supplies, confirms, or corrects potentially durable current-project knowledge such as ownership, responsibility, approval, escalation, policy, or boundaries, in prose, answers, tables, YAML, JSON, or accessible sources without a moldea request; load first to check adoption and conflicts. Initial adoption requires explicit developer intent.
 license: MIT
 metadata:
   version: '3.1.0'
@@ -11,7 +11,7 @@ metadata:
 
 ## Purpose and activation
 
-Use `moldea` for Git-owned project truth, agent-system planning, agent behavior, and reusable Agent Skills. Prefer deterministic software unless reasoning earns an agent boundary, and never invent behavior.
+Use `moldea` for Git-owned project truth, agent-system planning, agent behavior, and reusable Agent Skills. Prefer deterministic software unless reasoning earns an agent boundary; never invent behavior.
 
 Activate this skill in any of these cases:
 
@@ -19,9 +19,9 @@ Activate this skill in any of these cases:
 - **Knowledge-triggered activation:** in an adopted repository, the message itself hands off potentially material durable project knowledge, even without requesting persistence or documentation.
 - **Relevance-triggered activation:** an authorized change may affect project truth, declared agent behavior, or a path referenced by adopted canonical state or an unresolved requirement.
 
-In an adopted repository, route durable knowledge through Maintain. Classify each claim: persist, clarify, or omit; never copy its source container. Correct canonical state needs no edit.
+In an adopted repository, route durable knowledge through Maintain and classify each claim: persist, clarify, or omit. Never copy source containers or edit correct canonical state.
 
-Loading for a knowledge handoff does not establish adoption. Check adoption first; without explicit adoption intent, never initialize or persist. Once adopted, maintenance needs no “and update moldea” request.
+A knowledge handoff does not establish adoption. Check; without explicit adoption intent, never initialize or persist. Report an unadopted handoff as not persisted with no files changed. Adopted maintenance needs no “and update moldea” request.
 
 Agent-system planning activates only for dividing an AI- or agent-enabled objective among agents and non-agent components. Generic planning and host-defined `plan` commands remain outside unless explicitly selected.
 
@@ -60,13 +60,13 @@ The CLI is an exact root development dependency; other entries retain their rang
 - **Reconcile:** begin from the same evidence model as `evaluate`, establish intended state, and apply the smallest authorized coherent correction.
 - **Validate:** run deterministic repository-local validation only. Treat it as read-only.
 
-Writes remain within authorized scope. Relevant implementation work authorizes necessary same-change `moldea` synchronization unless excluded. In an adopted repository, an unambiguous current-knowledge handoff authorizes context maintenance. Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only unless writes are later authorized.
+Writes stay within authorized scope. Relevant implementation authorizes necessary same-change `moldea` synchronization unless excluded; an adopted unambiguous current-knowledge handoff authorizes context maintenance. Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only unless later authorized.
 
-Before semantic writes, establish adoption, inspect high-information evidence, classify its sufficiency and conflicts, confirm authority, and establish the intended resulting state. Names, labels, placeholders, empty exports, and generic package metadata may inform clarification but cannot establish a sufficient foundation alone. Omission from search, Git inventory, or ignore-sensitive discovery does not prove non-adoption.
+Before semantic writes, establish adoption, authority, intended state, and sufficient conflict-checked high-information evidence. Path discovery is navigation; read material files. Names, labels, placeholders, empty exports, and generic package metadata may inform clarification but cannot establish a sufficient foundation. Search or Git omissions do not prove non-adoption.
 
-During `initialize`, an insufficient or partial foundation stops all writes. A broad consequential claim with only narrower implementation evidence is Partial, especially for authority, permissions, value movement, destructive effects, or external actions. State the supported conclusion and unestablished boundary, ask one focused question, and wait before changing dependencies, `/moldea/**`, or the owned README block. Never persist answerable ambiguity, infer exclusions from missing evidence, or claim completion.
+During `initialize`, an insufficient or partial foundation stops all writes. Narrow implementation evidence cannot establish broad consequential authority, permissions, value movement, destructive effects, or external actions. State the supported conclusion and unestablished boundary, ask one focused question, and wait before changing dependencies, `/moldea/**`, or the owned README block. Never persist answerable ambiguity, infer exclusions, or claim completion.
 
-For every write operation, an unexplained same-scope conflict over policy, permission, approval, ownership, authorization, value-bearing behavior, or destructive effects stops writes. Implementation, canonical state, instructions, mirrors, tests, and deterministic inspection establish different facts; none becomes intended-state authority by synchronization or asset type. Continue only after evidence or explicit correction semantics resolve the conflict. Otherwise identify the conflicting claims, ask one focused question that distinguishes current replacement from proposed or future state, wait, and write nothing.
+An unexplained same-scope conflict over policy, permission, approval, ownership, authorization, value-bearing behavior, or destructive effects stops writes. Implementation, canonical state, instructions, mirrors, tests, and inspection establish different facts; none wins by synchronization or asset type. Continue only when evidence or correction resolves it. Otherwise identify the claims, ask one focused question that distinguishes current replacement from proposed or future state, wait, and write nothing.
 
 ## Load focused guidance
 
@@ -90,7 +90,7 @@ Load only references triggered by the operation. They operationalize this contra
 6. Distinguish current truth, developer-confirmed truth, intended resulting state, planned work, accepted rationale, historical state, unresolved state, and inference used only for investigation.
 7. Identify affected surfaces through bindings, impact paths, skill sources, consumers, resources, metadata, copies, unresolved relationships, adapter evidence, and other semantic evidence.
 8. Enforce the pre-write evidence and intended-state gate. Before editing a path referenced by an unresolved requirement, read every criterion; afterward recheck each, report satisfied and outstanding criteria, and remove the requirement only when all are established.
-9. Map runtime metadata by established purpose. Routing uses the target handoff description when present, otherwise its agent description; general-only metadata uses the agent description. Retain evidence of consumer semantics, current source, and required source.
+9. Map runtime metadata by established purpose. Routing requires the target handoff description when present, otherwise its agent description; general-only metadata requires the agent description. Dynamic wiring may establish consumer purpose and the required canonical source without establishing the current runtime source; report that source as unknown, not effective or wrong.
 10. Apply the smallest coherent authorized write and synchronize every affected representation. Make no canonical edit when existing state remains correct.
 11. Run relevant project-native verification when executable behavior changed and authority permits it, keeping each result independently attributable.
 12. After writes, rerun `inspect --json` separately, review semantic readiness, mirrors, and unresolved requirements, and distinguish scoped completion from unrelated invalidity.
@@ -113,15 +113,15 @@ Keep reports proportional; make these results explicit when relevant:
 - exact local CLI version, deterministic commands, statuses, and material diagnostics
 - dependency changes and Agent Skill source, metadata, copy, consumer, and activation decisions
 - semantic decisions and the evidence chain that established any consequential misalignment and resulting state
-- relevant unresolved requirements, ambiguities, protected-instruction conflicts, and evidence limitations with the unestablished facts and resolving evidence
+- relevant unresolved requirements, ambiguities, protected-instruction conflicts, and evidence limitations naming each material unknown and the concrete documentation, closed wiring, or test that could resolve it
 - blocked tooling's executable configuration path, blocked operation, and safe developer-controlled prerequisite
 - an explicit stop and reason when continuing would require invented authority, policy, behavior, or replacement
 - project-native checks and checks not run
 
-When deterministic tooling runs after writes, report the literal repository-local invocation, status, and material diagnostics or mirror findings. Naming only the version or subcommand is insufficient. Failed, incomplete, aggregate, or unverified execution cannot support completion. Never imply that canonical inspection proves behavior it cannot observe. In dedicated-repository mode, name related evidence and the external implementation facts local inspection cannot establish.
+When deterministic tooling runs after writes, report the literal repository-local invocation, status, and material diagnostics or mirror findings. Naming only the version or subcommand is insufficient. Failed, incomplete, aggregate, or unverified execution cannot support completion. Never imply that canonical inspection proves behavior it cannot observe. In dedicated-repository mode, state what canonical inspection cannot observe, then name the related evidence establishing external facts.
 
 For `initialize`, report which material sources established each foundation conclusion and whether initialization completed or awaits context. If awaiting, end with the focused clarification. If completed, end with `Next actions` offering foundation review and ordinary development; mention planning or agent creation only when relevant. Validation does not replace this handoff or make file creation semantic completion.
 
 Treat each deterministic validator result as evidence only for the boundary it actually validates. Never generalize a component validator's success into whole-artifact or whole-system structural validity; establish all relevant resources, relationships, and consumer evidence before making the broader claim. Never claim alignment while consequential ambiguity remains or production readiness while a blocking unresolved requirement affects the claimed behavior. Every `evaluate` result must explicitly state that no repository files were changed.
 
-Every moldea agent-system `plan` result must name the material repository evidence used, distinguish proposed architecture from current implemented or canonical state, recommend an implementation sequence without executing it, and explicitly state that planning changed no repository files. If one material decision remains unresolved, return the reliable invariant architecture, identify only what cannot be finalized, ask one focused question, and do not claim completion.
+Every moldea agent-system `plan` result must name the material repository paths read and what they establish, distinguish proposed architecture from current implemented or canonical state, recommend an implementation sequence without executing it, and explicitly state that planning changed no repository files. If one material decision remains unresolved, return the reliable invariant architecture, identify only what cannot be finalized, ask one focused question, and do not claim completion.

@@ -17,7 +17,7 @@ Use an available compatible root-local CLI read-only. If runtime identity is exp
 ## Plan from the objective
 
 1. Establish the outcome, recipient, trigger or cadence, deliverables, success criteria, constraints, and prohibited outcomes that materially shape the system.
-2. Apply the bounded discovery ladder in `context-gathering.md` before asking the developer to repeat discoverable facts. Inspect high-information surfaces, then a bounded root inventory and objective-term matches across ordinary source, documentation, configuration, and tests when initial discovery is sparse. This is a planning precondition whenever relevant evidence is accessible. Do not claim no project evidence or recommend topology from the request alone after only a high-level filename filter.
+2. Apply the bounded discovery ladder in `context-gathering.md` before asking for discoverable facts. Inspect high-information surfaces, then a bounded root inventory and objective-term matches when initial discovery is sparse. Read material files; listings are not evidence. This is a planning precondition when evidence is accessible. Do not claim none or recommend topology from the request after discovery output alone.
 3. Decompose the objective into the smallest cohesive system responsibilities before naming agents or components. Describe outcome or decision boundaries rather than arbitrary technical steps.
 4. Classify each responsibility as deterministic application logic, deterministic data or transformation logic, an existing or proposed service or runtime-native tool, a reusable Agent Skill, an AI agent, human control, or a deliberate combination with explicit boundaries.
 5. Keep fixed calculations, eligibility rules, filtering, storage, delivery mechanics, and predictable sequencing deterministic unless evidence establishes a real need for model reasoning.
@@ -66,7 +66,7 @@ Provide one preferred architecture when evidence supports it. Present alternativ
 
 Cover the materially applicable objective, established context, constraints, responsibility allocation, agents and their justification, deterministic components, services or tools, human control, authoritative data, readers and writers, persistence, permissions, control flow, model input and output contracts, deterministic enforcement, failures, runtime considerations, tradeoffs, and implementation sequence. Treat these as a completion check, not optional sections; omit only genuinely immaterial categories.
 
-Name the exact material repository paths and the current components, workflows, contracts, permissions, or canonical facts they establish. If accessible repository evidence was not inspected, do not present a repository-specific topology as grounded.
+Name the exact material repository paths read and the current components, workflows, contracts, permissions, or canonical facts they establish. If accessible repository evidence was not inspected, do not present a repository-specific topology as grounded.
 
 Recommend an implementation order that reduces uncertainty and tests important boundaries early. It is distinct from runtime control flow and remains required with zero agents. Do not execute it during `plan`.
 

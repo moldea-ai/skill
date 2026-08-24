@@ -40,6 +40,6 @@ The coding agent then uses `inspect --json` for complete deterministic evidence,
 
 When supplemental Git evidence is necessary, no Git subcommand is presumed harmless. The coding agent uses command-specific controls for filesystem monitors, pagers, external diff programs, text conversion, filters, LFS, and submodule recursion. After every command, especially a failure, it checks the workspace and helper sentinels before claiming no writes. If those controls cannot make the inspection safe, it reports the limitation instead of executing repository code.
 
-An executable package-manager extension blocks manager execution. The report names its exact path, blocked operation, unavailable evidence, and safe prerequisite: remove or disable the extension and retry, or independently verify an already declared and installed exact CLI without the manager. It does not recommend bypassing or executing the extension merely to continue.
+An executable package-manager extension blocks manager execution. A Yarn `plugins[].path` declaration counts even when the plugin remains unread and unrun. The report names its exact path, blocked operation, unavailable evidence, and safe prerequisite: remove or disable the extension and retry, or independently verify an already declared and installed exact CLI without the manager. It does not recommend bypassing or executing the extension merely to continue.
 
 You should not need to perform these checks manually. They are the under-the-hood safety boundary that lets you continue requesting outcomes naturally.

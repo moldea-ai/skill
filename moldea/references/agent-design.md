@@ -48,10 +48,10 @@ Use the agent description for general-only runtime metadata. Establish the runti
 Before changing a runtime description mapping, establish this evidence chain:
 
 1. Name the exact runtime guidance, compatibility evidence, or implementation behavior that establishes whether the consumer is routing-facing, general-only, or shared.
-2. Identify the canonical description source the runtime currently consumes.
-3. Identify the effective canonical source the established consumer role requires.
+2. Identify the canonical source currently consumed, or report it unestablished under dynamic wiring.
+3. Identify the source the established consumer role requires.
 
-State the resulting semantic mismatch before editing, then preserve this evidence chain in the completion report together with the previous and resulting sources. Passing tests and deterministic inspection confirm the correction but do not replace the evidence that justified it.
+A required source does not prove the current one. Never call an unestablished runtime source effective, absent, or wrong. State a proven mismatch before editing and preserve the evidence chain in the report. Tests and inspection confirm a correction but do not justify it.
 
 ## Select the runtime honestly
 
@@ -71,7 +71,7 @@ Do not infer behavioral compatibility from package names, the compact CLI invent
 
 Treat adapter documentation as available only when it is present in authorized evidence. Compatibility inventory establishes availability only. When behavioral evidence is absent, preserve the existing runtime and report both the exact unestablished facts, such as invocation, instruction loading, capabilities, schemas, routing, or variables, and the concrete source-owned adapter documentation plus closed repository wiring or tests that could resolve each gap. Do not reconstruct target details, supported patterns, provider limitations, maturity, or wiring semantics from model knowledge, package names, or inventory.
 
-In dedicated-repository mode, continue from runtime selection into model-visible capability reconciliation before editing. Map every material provider-hosted or external capability established by the developer-identified related application. Preserve that behavior in the canonical instruction or project-local runtime guidance as part of the same coherent runtime change. Report the related evidence used, each repository's state, the externally established semantics, and the implementation facts local deterministic inspection cannot observe. The absence of a qualifying repository-local artifact prevents a manifest capability entry; it does not justify omitting established model-visible behavior or creating an unresolved requirement solely for the missing cross-repository binding.
+In dedicated-repository mode, map every material provider-hosted or external capability established by the developer-identified related application before editing. Preserve it in canonical instruction or runtime guidance with the runtime change. State that canonical inspection cannot observe the external invocation or capability; then name the related evidence, each repository's state, established semantics, and other unknown implementation facts. A missing qualifying local artifact prevents a manifest capability entry, not semantic representation, and does not justify a requirement solely for the missing cross-repository binding.
 
 ## Register real relationships
 

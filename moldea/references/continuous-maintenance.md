@@ -12,7 +12,7 @@ Probe repository-root `/moldea/moldea.yaml`, `/moldea/project.md`, and the exact
 
 In an adopted repository, treat an unambiguous direct handoff of current project knowledge as Maintain authority unless the surrounding request is read-only or excludes writes. The handoff itself is enough to activate maintenance; it needs no explicit request to persist or document it. This includes terse ownership, responsibility, approval, escalation, policy, and boundary handoffs; prose, an answer, a table, structured data, or an accessible source differ only in format. Use context-gathering guidance to classify, verify, route, and filter the claims. A shared container does not determine authority, truth, durability, or replacement semantics. A conflicting assertion needs explicit correction or replacement meaning, or one focused clarification before any semantic write.
 
-Do not merely acknowledge a handoff. Compare durable claims with canonical state: persist new truth through the smallest surface, replace an explicitly corrected stale claim, or clarify an unexplained conflict. After writing, report the literal repository-local deterministic invocation, status, and diagnostics. Name a correction's stale and current truth; otherwise distinguish retained truth from omissions.
+Do not merely acknowledge a handoff. Persist new truth through the smallest canonical surface, replace an explicit correction, or clarify unexplained conflict. After writing, copy the literal completed repository-local deterministic invocation, status, and diagnostics (including none) into the report; “inspection passed” is insufficient. For a correction, name stale and current truth; otherwise distinguish retained truth from omissions.
 
 ## Maintain affected behavior
 

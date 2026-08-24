@@ -70,7 +70,7 @@ Cover the materially applicable objective, established context, constraints, res
 
 Name material paths read and what each establishes. Preserve each resulting responsibility. A repository-specific plan is incomplete while a material candidate is unread; neither the request nor a listing substitutes for evidence.
 
-Recommend an implementation order that reduces uncertainty and tests important boundaries early. It is distinct from runtime control flow and remains required with zero agents. Do not execute it during `plan`.
+Recommend an ordered build-and-verification sequence that tests risky boundaries early. Runtime control flow is not that sequence. It remains required with zero agents and unexecuted during `plan`.
 
 When unresolved decisions remain, investigate or ask the one question whose answer most changes authority, responsibility ownership, topology, or consequential side effects before asking about downstream configuration. Still state the invariant architecture, identify the branch that cannot be finalized, and distinguish the partial recommendation from a complete plan.
 

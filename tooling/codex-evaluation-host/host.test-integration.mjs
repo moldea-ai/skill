@@ -14,6 +14,19 @@ import {
   runCodexEvaluationHost,
 } from './host.mjs';
 
+const HOST_COMMAND = buildCodexEvaluationHostCommand([
+  'codex',
+  'exec',
+  '--ignore-user-config',
+  '--ignore-rules',
+  '--ephemeral',
+  '--skip-git-repo-check',
+  '--dangerously-bypass-approvals-and-sandbox',
+  '-c',
+  'shell_environment_policy.inherit=none',
+  '-',
+]);
+
 test('sandbox npm probe reports the fixture version and rejects execution commands', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-npm-probe-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');
@@ -262,6 +275,52 @@ test('Bubblewrap can mount the primary evaluation workspace read-only for judges
   }
 });
 
+test('shared host closes its relay after successful and failed executions', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-completion-test-'));
+  const executableDirectory = join(evaluationRoot, 'bin');
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  const codexPath = join(executableDirectory, 'codex');
+  const companionPath = join(executableDirectory, 'codex-code-mode-host');
+  mkdirSync(executableDirectory);
+  mkdirSync(repositoryPath);
+  mkdirSync(sandboxHome);
+  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+  chmodSync(companionPath, 0o755);
+  await prepareCodexEvaluationHome(sandboxHome);
+  const originalPath = process.env.PATH;
+  process.env.PATH = `${executableDirectory}:${originalPath ?? ''}`;
+
+  try {
+    writeFileSync(codexPath, '#!/bin/sh\nprintf "host success\\n"\n');
+    chmodSync(codexPath, 0o755);
+    assert.equal(
+      await runCodexEvaluationHost({
+        command: HOST_COMMAND,
+        cwd: repositoryPath,
+        prompt: 'test success',
+        sandboxHome,
+      }),
+      'host success',
+    );
+
+    writeFileSync(codexPath, '#!/bin/sh\nprintf "host failure\\n" >&2\nexit 7\n');
+    await assert.rejects(
+      runCodexEvaluationHost({
+        command: HOST_COMMAND,
+        cwd: repositoryPath,
+        prompt: 'test failure',
+        sandboxHome,
+      }),
+      /Evaluation host failed with exit code 7: host failure/,
+    );
+  } finally {
+    if (originalPath === undefined) delete process.env.PATH;
+    else process.env.PATH = originalPath;
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
 test('shared host cancellation stops the outer Bubblewrap execution', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-cancellation-test-'));
   const executableDirectory = join(evaluationRoot, 'bin');
@@ -285,18 +344,7 @@ test('shared host cancellation stops the outer Bubblewrap execution', async () =
   try {
     await assert.rejects(
       runCodexEvaluationHost({
-        command: buildCodexEvaluationHostCommand([
-          'codex',
-          'exec',
-          '--ignore-user-config',
-          '--ignore-rules',
-          '--ephemeral',
-          '--skip-git-repo-check',
-          '--dangerously-bypass-approvals-and-sandbox',
-          '-c',
-          'shell_environment_policy.inherit=none',
-          '-',
-        ]),
+        command: HOST_COMMAND,
         cwd: repositoryPath,
         prompt: 'test cancellation',
         sandboxHome,
@@ -333,18 +381,7 @@ test('shared host enforces a workflow-owned default timeout', async () => {
   try {
     await assert.rejects(
       runCodexEvaluationHost({
-        command: buildCodexEvaluationHostCommand([
-          'codex',
-          'exec',
-          '--ignore-user-config',
-          '--ignore-rules',
-          '--ephemeral',
-          '--skip-git-repo-check',
-          '--dangerously-bypass-approvals-and-sandbox',
-          '-c',
-          'shell_environment_policy.inherit=none',
-          '-',
-        ]),
+        command: HOST_COMMAND,
         cwd: repositoryPath,
         defaultHostTimeoutMs: 50,
         prompt: 'test timeout',

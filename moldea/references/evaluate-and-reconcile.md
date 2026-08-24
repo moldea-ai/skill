@@ -28,7 +28,7 @@ An explicit agent, Agent Skill, capability, domain, path, runtime, change, or co
 
 For every scoped registered agent, establish how canonical instruction content reaches each material runtime invocation or provider-side configuration path. Treat an unused canonical instruction, an independently maintained runtime instruction, or a material path that bypasses established canonical provenance as a confirmed semantic problem. A valid `instructionLoader` binding, declared mirror, or deterministic inspection does not by itself prove runtime consumption. When the relevant implementation is unavailable, report a material evidence limitation instead of assuming the relationship exists or is absent.
 
-For every scoped runtime description consumer, inspect the target directory, canonical descriptions, runtime guidance, and consumer directly. Routing requires the handoff description when present and otherwise the agent description; an absent optional handoff with a consumer of `description.md` is aligned fallback. General-only metadata requires the agent description. A property name does not establish the role. A shared property is routing-facing and uses the required routing description. Dynamic wiring may establish purpose and required source, but not the source resolved at runtime; report it unknown rather than effective, absent, or wrong.
+For every scoped runtime description consumer, inspect the target, canonical descriptions, runtime guidance, and consumer. Routing uses the handoff description when present, otherwise the agent description; absent handoff with a consumer of `description.md` is aligned fallback. General metadata uses the agent description. A property name does not establish its role. Under dynamic wiring, separate consumer purpose, required source, selected source, and resolving evidence. If selection is unknown, conclude conditionally and never call a candidate current, effective, absent, or wrong.
 
 For every scoped Agent Skill, apply the structural and semantic classification in `skill-design.md`. Assess its authoritative source and repository ownership, directory identity, portable frontmatter, activation precision, universal workflow, resource routing and links, focused references, scripts and supported environments, assets, dependencies, tests, host metadata and invocation policy, installation and distribution paths, generated or installed copy synchronization, coding-agent consumers, project documentation, agent guidance, manifest declarations, and runtime registration as applicable. Structural validity does not prove useful activation, complete workflow behavior, safe execution, consumption, or runtime registration. Treat a skill directory or installed copy as evidence of an artifact, not proof that a coding or runtime agent receives it.
 
@@ -42,7 +42,7 @@ Report separate categories:
 - **Relevant unresolved requirements:** existing requirements that affect scope, preserving their declared effect.
 - **Material evidence limitations:** missing tooling, protected access, unavailable adapter evidence, operational failures, or insufficient repository evidence.
 
-Runtime limitations pair each unknown invocation, instruction loading, tool, schema, routing, handoff, variable, or provider fact with the smallest resolving evidence, such as source-owned target docs, closed wiring, provider configuration, or an integration test. Name the required artifact without inventing a path; generic statements are insufficient.
+Pair each runtime unknown with its smallest reliable resolver: source-owned target docs, closed wiring, provider configuration, or an integration test. Name its artifact type and owner without inventing a path. Generic statements are insufficient; evaluation is incomplete while a material unknown lacks a resolver.
 
 When material repository-specific runtime behavior is not established by canonical guidance or another reliable source, report that semantic-readiness problem rather than inventing a Core structural diagnostic. Never repair an unavailable adapter by silently rewriting `runtime.id` to `custom`.
 
@@ -54,7 +54,7 @@ Every evaluation reports scope, deterministic state, all five categories, toolin
 
 `reconcile` begins with the evaluate evidence model but may write within developer-authorized scope.
 
-Before any semantic edit, complete an intended-state gate. Reconciliation authority permits resolving established drift; it does not select which plausible policy, permission, or behavior should govern. Deterministic checks can expose the conflict but cannot convert code, tests, canonical context, or instructions into intended-state authority.
+Before semantic edits, complete an intended-state gate. Reconciliation corrects established drift; it does not select policy, permission, or behavior. Code proves implementation and instructions declare model behavior, but neither selects intended policy. Deterministic checks, validation, and mirror synchronization expose or reproduce conflicts, not resolve them.
 
 1. Establish intended state from question-specific repository evidence and developer direction. A request to reconcile authorizes the operation, not an arbitrary choice among unresolved policies.
 2. Do not assume code, tests, schemas, context, decisions, instructions, or adapter evidence always wins.

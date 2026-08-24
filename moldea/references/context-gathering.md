@@ -47,7 +47,7 @@ Treat developer-supplied prose, structured data, answers, tables, and accessible
 
 Persist clear current truth or an explicit correction when it is material, durable, and authorized. Current does not mean durable: short-lived work status or focus remains transient unless it establishes a lasting operating constraint. Preserve future or proposed state without presenting it as current only when an appropriate planned or decision surface is justified. Omit transient, speculative, secret, unnecessarily personal, generic, redundant, or easily rediscovered information. Classify mixed handoffs claim by claim before choosing canonical surfaces; never persist a shared source container as one unit.
 
-A non-conflicting current claim can establish truth regardless of format. When it materially conflicts with established evidence, that bare assertion does not authorize replacement. Continue only when the developer explicitly marks the claim as a correction or current replacement, or other reliable evidence resolves the conflict. Otherwise identify the exact conflict and ask one focused question that distinguishes whether the new claim replaces current state or describes proposed or future state; make no semantic write before the answer. Do not require repository corroboration for organizational truth that only the developer can establish.
+A non-conflicting current claim can establish truth in any format. A conflicting bare assertion does not authorize replacement. Reconciliation corrects known truth; it does not make implementation, instructions, validation, or mirrors the policy authority. Continue only when the developer marks a correction or current replacement, or reliable evidence resolves the conflict. Otherwise identify it, ask whether the new claim replaces current state or is proposed or future state, and make no semantic write before the answer. Do not require repository corroboration for organizational truth only the developer can establish.
 
 Do not infer consequential authority from broad verbs such as “process,” “handle,” or “manage.” When a broad consequential claim is paired with implementation that establishes only narrower behavior, classify the foundation as Partial. Preserve the narrower observed conclusion, identify the unestablished authority, permission, value-bearing, destructive, lifecycle, or external-action boundary, and ask one focused question before any tooling, canonical, mirror, or README write.
 
@@ -56,15 +56,15 @@ A focused question asks for one missing fact or decision. Prioritize authority, 
 ## Investigate progressively
 
 1. Inspect applicable instructions, the root README, manifests, canonical `moldea` state, and other high-information project surfaces first.
-2. When filename discovery is sparse, use a bounded root inventory for navigation; path listings do not establish project evidence.
-3. Search objective terms across source, documentation, configuration, and tests. Directly read each accessible material file and connect its path to the fact it establishes.
+2. When filename discovery is sparse, use a bounded root inventory to queue candidates; path listings are not evidence.
+3. Search objective terms across source, documentation, configuration, and tests. Before concluding or planning, read each accessible material candidate and map its path to its fact and responsibility.
 4. Follow relevant imports, bindings, impact paths, schemas, capabilities, Agent Skill resources and consumers, runtime construction, instruction loaders, variable providers, tests, runtime guidance, decisions, unresolved references, and adapter evidence.
 5. Test consequential conclusions against a second reliable surface when practical.
 6. Identify contradictions, temporal differences, and material unknowns.
 7. Ask one focused question only when different reasonable answers would materially change persisted truth, behavior, policy, permission, schema semantics, capability use, routing, failure handling, or implementation direction.
 8. Stop when more evidence is unlikely to change a material conclusion for the current purpose.
 
-Before claiming project evidence is absent or asking for it, reconcile discovered material candidates and read accessible ones. Never ask the developer to paste an accessible repository file or read the entire repository by default.
+Before an absence claim, request, or repository-specific recommendation, reconcile discovered candidates and read accessible ones. Discovery without material reads cannot support “no evidence.” Never ask the developer to paste an accessible file or read the entire repository by default.
 
 ## Select durable state
 
@@ -89,7 +89,7 @@ Planning begins from the developer's desired outcome rather than proposed agent 
 
 When relevant, establish the current workflow and services, domain rules, data sources and ownership, schemas and contracts, APIs, jobs, queues, integrations, existing agents and AI usage, capabilities, permissions, side effects, human approvals, scale, cadence, latency, privacy, security, compliance, audit, failure, and recovery expectations. Retain each material path, the fact and responsibility it establishes, and whether the recommendation preserves, combines, or reliably replaces that responsibility.
 
-Planning context is sufficient when the objective and material success criteria are clear and the current system, data, state, authority, side effects, contracts, and existing capabilities are understood well enough to classify responsibilities without consequential unsupported assumptions. It is insufficient when an unresolved fact could change whether a responsibility is deterministic, Agent Skill-guided, agent-owned, human-controlled, or separately owned.
+Planning context is sufficient when clear objectives, criteria, and opened material paths establish enough current behavior, authority, state, contracts, and capabilities to classify responsibilities without consequential assumptions. It is insufficient while a material candidate is unread or an unknown could change responsibility ownership.
 
 Because `plan` is read-only, do not persist discovered context, proposed candidates, or architecture decisions during that operation. Recommend later initialization or maintenance for durable current truth when useful.
 

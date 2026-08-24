@@ -47,13 +47,13 @@ Directly inspect the target directory. If `handoff-description.md` is absent, re
 
 Use the agent description for general-only runtime metadata. Establish the runtime property's semantic role from reliable runtime documentation, the active compatibility target, adapter evidence, project-local guidance, implementation behavior, and developer direction rather than its property name. A property named `description` may be routing-facing, and one property serving both general and routing purposes uses the effective routing description. Preserve that established shared-property contract; do not treat its shared purpose as misalignment or invent another runtime property solely to separate those purposes. Do not create `handoff-description.md` merely because a runtime exposes a description property; the agent-description fallback is valid when a dedicated routing hint is unnecessary.
 
-Before changing a runtime description mapping, establish this evidence chain:
+Before changing a runtime description mapping, keep these facts separate:
 
 1. Name the exact runtime guidance, compatibility evidence, or implementation behavior that establishes whether the consumer is routing-facing, general-only, or shared.
 2. Identify the canonical source currently consumed, or report it unestablished under dynamic wiring.
 3. Identify the source the established consumer role requires.
 
-A required source does not prove the current one. Never call an unestablished runtime source effective, absent, or wrong. State a proven mismatch before editing and preserve the evidence chain in the report. Tests and inspection confirm a correction but do not justify it.
+A required source does not prove the selected source. When dynamic wiring leaves selection unknown, conclude conditionally and name resolving wiring or tests; never call a candidate current, effective, absent, or wrong. Prove a mismatch before editing. Tests confirm a correction, not its justification.
 
 ## Select the runtime honestly
 
@@ -71,9 +71,9 @@ Create project-local runtime guidance when repository-specific behavior, limitat
 
 Do not infer behavioral compatibility from package names, the compact CLI inventory, or general runtime knowledge, install adapters dynamically, or claim support without reliable adapter documentation and repository evidence.
 
-Treat adapter documentation as available only in authorized evidence. Compatibility inventory establishes availability only. Without behavioral evidence, preserve the runtime and pair each unknown invocation, instruction-loading, capability, schema, routing, or variable fact with its smallest resolver: source-owned target documentation, closed wiring, provider configuration, or an integration test. Name a required artifact without inventing its path. Never reconstruct target details, limitations, maturity, or wiring from model knowledge, package names, or inventory.
+Adapter documentation exists only in authorized evidence; inventory proves availability only. Without behavioral evidence, preserve the runtime and pair each unknown invocation, instruction-loading, capability, schema, routing, or variable fact with its smallest reliable resolver: source-owned target documentation, closed wiring, provider configuration, or an integration test. Name the artifact type and owner without inventing its path. Evaluation is incomplete while a material unknown lacks a resolver. Never reconstruct target behavior from model knowledge, package names, or inventory.
 
-In dedicated-repository mode, map every material provider-hosted or external capability established by the developer-identified related application before editing. Preserve it in canonical instruction or runtime guidance with the runtime change. State directly what canonical inspection cannot observe, what each related path establishes, each repository's state, and what remains unknown. A missing qualifying local artifact prevents a manifest capability entry, not semantic representation, and does not justify a requirement solely for the missing cross-repository binding.
+In dedicated-repository mode, inventory established external capabilities before editing. Classify each as model-visible or integration-only. Put model-visible behavior in canonical instruction, project-specific integration behavior in runtime guidance, and a manifest entry only around a qualifying local implementation. Provider hosting or a correct `runtime.id` never replaces model-visible semantics. Report what canonical inspection misses, what each related path establishes, every repository's state, and remaining unknowns. A missing local artifact prevents a manifest entry, not semantic representation.
 
 ## Register real relationships
 
@@ -107,7 +107,7 @@ Before describing a capability, establish its runtime-facing name, purpose, use 
 
 Give each registered capability a stable agent-scoped ID, exact runtime-facing name, concise vendor-independent agent-specific description, implementation binding, registration/schema bindings when applicable, and complete instruction guidance. Distinguish overlapping capabilities by use condition.
 
-A provider-hosted or external model-visible capability without a qualifying repository-local artifact remains instruction or runtime-guidance behavior when reliable evidence supports it. Do not fabricate a manifest tool or skill entry. Related-application evidence never becomes adapter evidence or a cross-repository binding.
+A provider-hosted or external model-visible capability belongs in canonical instruction even without a qualifying local artifact. Put integration-only behavior and project-specific limitations in runtime guidance. Do not fabricate a manifest entry or treat related-application evidence as adapter evidence or a binding.
 
 ## Schemas
 

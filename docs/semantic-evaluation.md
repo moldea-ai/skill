@@ -31,7 +31,7 @@ Repository evidence must identify an inspectable source. Supported sources inclu
 
 Actors can edit the ordinary working tree when a scenario authorizes changes. Bubblewrap overlays the repository's `.git` metadata and installed `.agents/skills/moldea` tree as read-only. The runner captures Git metadata, HEAD, refs, staged state, local configuration, and the installed skill before and after every actor.
 
-A case cannot pass when any protected control changes, even if the judge otherwise approves the response. Judges run in separate read-only workspaces.
+A case cannot pass when any protected control changes, even if the judge otherwise approves the response. Judges run in separate read-only workspaces. After every success, failure, timeout, or cancellation, the host destroys active relay tunnels, gives the relay five seconds to exit, then kills only that exact child if necessary and waits for it to close.
 
 ## Coverage and release identity
 

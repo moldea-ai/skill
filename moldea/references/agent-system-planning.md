@@ -17,7 +17,7 @@ Use an available compatible root-local CLI read-only. If runtime identity is exp
 ## Plan from the objective
 
 1. Establish the outcome, recipient, trigger or cadence, deliverables, success criteria, constraints, and prohibited outcomes that materially shape the system.
-2. Apply the bounded discovery ladder in `context-gathering.md` before asking for discoverable facts. Read material accessible files that discovery exposes and map each path to its established fact; listings are not evidence. Do not claim none or recommend topology from the request after discovery alone.
+2. Apply the bounded discovery ladder in `context-gathering.md` before asking for discoverable facts. Discovery queues candidates, not evidence. Open each accessible material candidate and map its path to a fact and responsibility before absence claims, allocation, or topology.
 3. Decompose the objective and every evidence-established outcome into the smallest cohesive system responsibilities before naming agents or components.
 4. Classify each responsibility as deterministic application logic, deterministic data or transformation logic, an existing or proposed service or runtime-native tool, a reusable Agent Skill, an AI agent, human control, or a deliberate combination with explicit boundaries.
 5. Keep fixed calculations, eligibility rules, filtering, storage, delivery mechanics, and predictable sequencing deterministic unless evidence establishes a real need for model reasoning.
@@ -68,7 +68,7 @@ Provide one preferred architecture when evidence supports it. Present alternativ
 
 Cover the materially applicable objective, established context, constraints, responsibility allocation, agents and their justification, deterministic components, services or tools, human control, authoritative data, readers and writers, persistence, permissions, control flow, model input and output contracts, deterministic enforcement, failures, runtime considerations, tradeoffs, and implementation sequence. Treat these as a completion check, not optional sections; omit only genuinely immaterial categories.
 
-Name the material repository paths read and what each establishes. Ensure every resulting responsibility still appears in the recommended architecture. If accessible evidence was not inspected, do not present a repository-specific topology as grounded.
+Name material paths read and what each establishes. Preserve each resulting responsibility. A repository-specific plan is incomplete while a material candidate is unread; neither the request nor a listing substitutes for evidence.
 
 Recommend an implementation order that reduces uncertainty and tests important boundaries early. It is distinct from runtime control flow and remains required with zero agents. Do not execute it during `plan`.
 

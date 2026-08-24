@@ -18,7 +18,7 @@ Evaluate the refund agent and do not change repository files.
 
 The coding agent runs deterministic inspection first, verifies the machine envelope, then directly reads relevant canonical state, Agent Skill sources, host metadata, consumers, implementation, contracts, tests, runtime wiring, adapter evidence, developer intent, and unresolved state. Discovery alone does not justify an absence claim or a request to paste an accessible file.
 
-The report separates deterministic diagnostics, confirmed semantic problems, material ambiguities, relevant unresolved requirements, and evidence limitations. Each runtime unknown is paired with its smallest resolver, such as source-owned target documentation, closed wiring, provider configuration, or an integration test. For routing metadata, an absent optional handoff description with a consumer of the canonical agent description is an aligned fallback. Dynamic wiring may establish semantic purpose and a required source while leaving the runtime-resolved source unknown. The report explicitly states that no repository files changed.
+The report separates deterministic diagnostics, confirmed semantic problems, material ambiguities, relevant unresolved requirements, and evidence limitations. Each material runtime unknown is paired with its smallest reliable resolver, such as source-owned target documentation, closed wiring, provider configuration, or an integration test; otherwise the evaluation is incomplete. For routing metadata, an absent optional handoff description with a consumer of the canonical agent description is an aligned fallback. Under dynamic wiring, the report separates consumer purpose, required canonical source, selected source, and resolving evidence. When selection remains unknown, conclusions stay conditional instead of calling a candidate source current, effective, absent, or wrong. The report explicitly states that no repository files changed.
 
 ## Reconcile
 
@@ -28,7 +28,7 @@ Use reconciliation when you want confirmed drift corrected:
 Reconcile the refund agent with the current implementation.
 ```
 
-Reconciliation begins with the same evidence model, then completes an intended-state gate before editing. Permission to reconcile does not authorize choosing between unresolved policies. For a consequential same-scope conflict, the coding agent names the exact claims and the evidence role of each. No asset type wins automatically, synchronization does not establish intended-state authority, and deterministic checks can expose but not resolve the conflict. The coding agent changes nothing and asks one focused question when reliable evidence has not resolved the alternatives.
+Reconciliation begins with the same evidence model, then completes an intended-state gate before editing. Permission to reconcile does not authorize choosing between unresolved policies. Code proves implementation and instructions declare model-facing behavior, but neither selects intended policy. For a consequential same-scope conflict, the coding agent names the exact claims and the evidence role of each. Validation and mirror synchronization can expose or reproduce the conflict, not resolve it. The coding agent changes nothing and asks one focused question when reliable evidence has not resolved the alternatives.
 
 The resulting correction is the smallest coherent change across all genuinely affected canonical, Agent Skill source, resource, metadata, copy, consumer, runtime, implementation, schema, test, mirror, and documentation surfaces.
 

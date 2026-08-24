@@ -58,6 +58,15 @@ export const parseConnectAuthority = (authority) => {
 };
 
 /**
+ * Destroys every socket owned by one restricted relay.
+ * @param sockets The relay's active client and upstream sockets.
+ */
+export const destroyCodexEvaluationProxySockets = (sockets) => {
+  for (const socket of sockets) socket.destroy();
+  sockets.clear();
+};
+
+/**
  * Starts the exact-host, public-address-only CONNECT relay.
  * @returns A promise that settles when the relay closes.
  */
@@ -73,10 +82,17 @@ export const runCodexEvaluationProxy = async () => {
     throw new Error('The evaluation proxy requires a socket path and allowed hosts.');
   }
 
+  const activeSockets = new Set();
+  let isClosing = false;
+  const trackSocket = (socket) => {
+    activeSockets.add(socket);
+    socket.once('close', () => activeSockets.delete(socket));
+  };
   const server = createServer((request, response) => {
     response.writeHead(405, { connection: 'close' });
     response.end();
   });
+  server.on('connection', trackSocket);
   server.on('connect', async (request, clientSocket, head) => {
     clientSocket.on('error', () => {});
     try {
@@ -90,12 +106,14 @@ export const runCodexEvaluationProxy = async () => {
         clientSocket.end('HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n');
         return;
       }
+      if (isClosing) return;
       const selectedAddress = addresses[0];
       const upstreamSocket = connect({
         family: selectedAddress.family,
         host: selectedAddress.address,
         port,
       });
+      trackSocket(upstreamSocket);
       upstreamSocket.on('error', () => {
         clientSocket.end('HTTP/1.1 502 Bad Gateway\r\nConnection: close\r\n\r\n');
       });
@@ -119,7 +137,12 @@ export const runCodexEvaluationProxy = async () => {
   });
 
   await new Promise((resolvePromise) => {
-    const close = () => server.close(resolvePromise);
+    const close = () => {
+      if (isClosing) return;
+      isClosing = true;
+      destroyCodexEvaluationProxySockets(activeSockets);
+      server.close(resolvePromise);
+    };
     process.once('SIGINT', close);
     process.once('SIGTERM', close);
   });

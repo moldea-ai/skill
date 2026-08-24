@@ -11,7 +11,7 @@ order: 30
 The normal experience has three steps:
 
 1. You describe the outcome to your coding agent.
-2. The coding agent uses `moldea` when it is explicitly requested or relevant to an adopted project.
+2. The coding agent uses `moldea` when you share potentially durable knowledge, explicitly request it, or make a relevant change in an adopted project.
 3. The coding agent returns the implementation, analysis, or plan with an evidence-based report.
 
 There is no separate `moldea` chat surface to operate.
@@ -21,7 +21,7 @@ There is no separate `moldea` chat surface to operate.
 The coding agent can activate the skill in three ways:
 
 - **Explicit activation:** you request initialization, agent-system planning, agent creation or refinement, evaluation, reconciliation, validation, or another `moldea` outcome.
-- **Knowledge-triggered activation:** in an adopted repository, you supply, confirm, or correct potentially durable project knowledge through ordinary prose, structured data, an answer, or an accessible source.
+- **Knowledge-triggered activation:** in an adopted repository, you supply, confirm, or correct potentially durable project knowledge through terse prose, an answer, a table, YAML, JSON, or an accessible source. This is the first activation signal even without a persistence request.
 - **Relevance-triggered activation:** an ordinary authorized change may affect declared project or agent behavior in a repository that already uses or is adopting `moldea`.
 
 A knowledge handoff can load the skill before adoption is known so it can inspect that boundary. Loading never establishes adoption or authorizes persistence. In an unadopted repository, it creates no canonical state and reports that the knowledge was not persisted and no files changed. In an adopted repository, the coding agent determines whether the information is current, durable, material, sufficiently established, and authorized for persistence.
@@ -47,7 +47,7 @@ The portable skill has a small universal contract and focused references. The co
 
 The coding agent begins with high-information repository evidence and follows material relationships. It distinguishes observed facts, developer-confirmed truth, intended resulting state, plans, rationale, history, unresolved state, and investigative inference.
 
-Code, tests, schemas, context, decisions, runtime guidance, and developer direction answer different questions. No source type automatically wins every conflict.
+Code proves current behavior and instructions declare model-facing behavior, but neither selects intended policy. Tests, schemas, context, decisions, runtime guidance, and developer direction answer other questions. Reconciliation, validation, and mirror synchronization cannot choose truth merely by making surfaces match.
 
 Before a semantic write, the coding agent directly establishes adoption, inspects high-information evidence, classifies the relevant claims, and confirms authority for the exact change. Insufficient foundations and unexplained conflicts stop before dependencies or canonical state change.
 

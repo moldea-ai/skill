@@ -84,7 +84,7 @@ The block is awareness guidance, not canonical project context, a manifest asset
 When canonical `/moldea/**` and application implementation live in separate Git repositories:
 
 - the canonical repository owns `moldea` state, package-manager identity, package metadata and lockfile when required, exact local CLI dependency, and deterministic inspection
-- inspect a related application repository only when the developer identifies or makes it available and its evidence is materially necessary
+- directly inspect a material developer-identified related application through its instructions, files, and safe read-only Git state; never substitute a canonical summary
 - treat application code and project-native verification as separate semantic evidence, not part of the canonical snapshot
 - never search neighboring repositories opportunistically
 - never create cross-repository bindings, repository references, impact paths, mirrors, or manifest relationships
@@ -92,7 +92,7 @@ When canonical `/moldea/**` and application implementation live in separate Git 
 - treat an established external provenance chain as valid semantic evidence without inventing a version `1` cross-repository relationship; when the implementation is unavailable, report the evidence limitation and do not claim readiness
 - use sufficiently established related-application evidence to select the actual available official `runtime.id`; do not select `custom` merely because implementation is external
 - treat absent or partial local adapter evidence for externally implemented agents as an evidence-location limitation, not proof that the runtime or implementation is missing
-- in the final report, name the canonical repository state and each related repository state as observed, related evidence, and external implementation facts canonical deterministic inspection cannot observe; a future promise is not a status
+- in the final report, classify the canonical and each related repository as clean, dirty, unborn, unavailable, or uninspected; name related evidence and external facts canonical inspection cannot observe, because a promise is not a status
 - preserve established application-only and provider-hosted model-visible capabilities in accurate instruction or runtime-guidance semantics; a missing repository-local artifact prevents a manifest binding, not semantic representation
 - do not create unresolved requirements solely because version `1` cannot bind an otherwise established cross-repository relationship
 - never imply cross-repository Git atomicity or cross-repository PR Assurance

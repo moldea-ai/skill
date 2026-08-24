@@ -2,7 +2,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { isPublicIpAddress, parseConnectAuthority } from './proxy.mjs';
+import {
+  destroyCodexEvaluationProxySockets,
+  isPublicIpAddress,
+  parseConnectAuthority,
+} from './proxy.mjs';
 
 test('public-address check rejects host-local and private destinations', () => {
   for (const address of [
@@ -31,4 +35,17 @@ test('CONNECT authority permits only HTTPS port 443', () => {
     port: 443,
   });
   assert.throws(() => parseConnectAuthority('localhost:8080'), /port 443/);
+});
+
+test('relay shutdown destroys every tracked client and upstream socket', () => {
+  const destroyedSockets = [];
+  const sockets = new Set([
+    { destroy: () => destroyedSockets.push('client') },
+    { destroy: () => destroyedSockets.push('upstream') },
+  ]);
+
+  destroyCodexEvaluationProxySockets(sockets);
+
+  assert.deepEqual(destroyedSockets, ['client', 'upstream']);
+  assert.equal(sockets.size, 0);
 });

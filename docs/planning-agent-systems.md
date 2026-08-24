@@ -22,7 +22,7 @@ Runtime selection remains optional unless you request it or it materially change
 
 The coding agent identifies the recipient, trigger or cadence, deliverables, success criteria, constraints, side effects, permissions, privacy, failure expectations, and prohibited outcomes that shape the system.
 
-It begins with instructions, README content, manifests, and canonical state. When that view is sparse, it inspects a bounded root inventory and searches objective terms across source, documentation, configuration, and tests. A path listing is navigation, so it directly reads accessible material files before claiming evidence is unavailable or asking you to provide it. The recommendation maps each material path to the current component, contract, fact, and responsibility it establishes.
+It begins with instructions, README content, manifests, and canonical state. When that view is sparse, it inspects a bounded root inventory and searches objective terms across source, documentation, configuration, and tests. Discovery creates a candidate queue, not evidence. Before claiming evidence is unavailable or recommending responsibilities or topology, it opens every accessible material candidate and maps the path to the component, contract, fact, and responsibility it establishes. A repository-specific plan remains incomplete while a material candidate is unread.
 
 ## Classify responsibilities
 

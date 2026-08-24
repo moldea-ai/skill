@@ -24,13 +24,13 @@ An agent is not complete when the model would need hidden repository knowledge. 
 
 Instructions should be complete, evidence-grounded, actionable, aligned with executable contracts, explicit about consequential ambiguity and failure, and concise enough that each runtime token earns its cost.
 
-For routing metadata, the coding agent inspects the target directory directly. It uses `handoff-description.md` when present. When that optional asset is absent, it reads `description.md`, runtime guidance, and the consumer before judging the fallback, rather than asking you to paste an accessible file.
+For routing metadata, the coding agent inspects the target directory directly. It uses `handoff-description.md` when present. When that optional asset is absent, it reads `description.md`, runtime guidance, and the consumer before judging the fallback. Under dynamic wiring, it records the consumer purpose, required canonical source, current selected source, and evidence that could resolve selection. If the selected source is unknown, it gives only conditional conclusions.
 
 ## Register real capabilities
 
 A manifest tool or skill requires a qualifying repository-local implementation artifact. Before registration, the coding agent establishes its runtime-facing name, use conditions, inputs, outputs, preconditions, limitations, side effects, authorization, failure behavior, and actual runtime registration.
 
-Provider-hosted capabilities without a qualifying repository-local artifact can still be described accurately in instructions or runtime guidance; they are not fabricated into the manifest.
+Every established external capability is classified before editing. Model-visible behavior belongs in canonical instruction, while integration-only behavior and material project-specific limitations belong in runtime guidance. A manifest tool or skill still requires a qualifying repository-local implementation. Provider hosting and a correct runtime ID never substitute for model-visible semantics.
 
 Creating or maintaining the reusable Agent Skill artifact is a separate workflow. See [Design reusable Agent Skills](/docs/designing-skills/) for activation, progressive disclosure, resources, scripts, maintenance, and verification guidance.
 
@@ -42,11 +42,11 @@ Executable and model-facing schemas are one semantic contract. Requiredness, nul
 
 The agent declares the highest-level available official runtime adapter whose verified target covers the actual primary integration boundary. Planned support is not presented as available, experimental support is not presented as production-ready, and `custom` is used only when the real composition requires it.
 
-Adapter behavior is established from authorized adapter documentation and repository evidence. Compatibility inventory proves availability only. When behavioral evidence is unavailable, the coding agent preserves the current runtime and pairs each unknown invocation, instruction loading, tool, schema, routing, handoff, variable, or provider fact with its smallest resolver, such as source-owned target documentation, closed repository wiring, provider configuration, or an integration test. It names a required artifact without inventing its path. A generic statement that fit is unestablished is not enough. Package names, inventory, and model knowledge cannot supply target details, supported patterns, provider limitations, maturity, or wiring semantics. Dynamic wiring can establish a consumer's purpose and required canonical source without proving which source the runtime resolves; that actual source remains unknown rather than effective, absent, or wrong.
+Adapter behavior is established from authorized adapter documentation and repository evidence. Compatibility inventory proves availability only. When behavioral evidence is unavailable, the coding agent preserves the current runtime and pairs each unknown invocation, instruction loading, tool, schema, routing, handoff, variable, or provider fact with its smallest reliable resolver, such as source-owned target documentation, closed repository wiring, provider configuration, or an integration test. It names the artifact type and owner without inventing a path. Evaluation remains incomplete while a material unknown lacks a resolver. Package names, inventory, and model knowledge cannot supply target details, supported patterns, provider limitations, maturity, or wiring semantics.
 
 When the declared runtime is unavailable in the exact installed CLI, evaluation stops without selecting a replacement or changing dependencies. Other available adapter IDs establish inventory only, not this project's integration boundary.
 
-In a dedicated repository, related-application evidence can establish the primary runtime and provider-hosted capabilities. The coding agent maps those capabilities before editing and preserves model-visible behavior without fabricating a cross-repository manifest binding. The final report states what canonical inspection cannot observe, what each related path establishes, each repository's state, and what remains unknown.
+In a dedicated repository, the coding agent directly inspects the developer-identified related application, including its instructions, material files, and safe read-only Git state. It does not substitute a local summary. The final report classifies each repository as clean, dirty, unborn, unavailable, or uninspected, then states what canonical inspection cannot observe, what each related path establishes, and what remains unknown.
 
 ## Prove instruction provenance
 

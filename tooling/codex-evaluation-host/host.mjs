@@ -19,6 +19,7 @@ export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS = [
 ];
 const EGRESS_PROXY_PATH = fileURLToPath(new URL('./proxy.mjs', import.meta.url));
 const EGRESS_PROXY_PORT = 3128;
+const EGRESS_PROXY_SHUTDOWN_TIMEOUT_MS = 5_000;
 const MAX_HOST_OUTPUT_BYTES = 16 * 1024 * 1024;
 const NODE_EXECUTABLE_PATH = realpathSync(process.execPath);
 const REQUIRED_CODEX_FLAGS = [
@@ -701,6 +702,48 @@ const waitForProxyReady = (proxyProcess) =>
   });
 
 /**
+ * Stops the exact evaluation relay without letting an open tunnel keep the runner alive.
+ * @param proxyProcess The relay child owned by the current host execution.
+ * @param gracePeriodMs The bounded graceful-shutdown period.
+ * @returns A promise that resolves after the relay exits or was already closed.
+ */
+export const stopCodexEvaluationProxyProcess = async (
+  proxyProcess,
+  gracePeriodMs = EGRESS_PROXY_SHUTDOWN_TIMEOUT_MS,
+) => {
+  const closePromise = new Promise((resolvePromise) => {
+    proxyProcess.once('close', resolvePromise);
+  });
+  if (proxyProcess.exitCode !== null || proxyProcess.signalCode !== null) return;
+
+  try {
+    proxyProcess.kill('SIGTERM');
+  } catch {
+    return;
+  }
+
+  let graceTimeout;
+  const didCloseGracefully = await Promise.race([
+    closePromise.then(() => true),
+    new Promise((resolvePromise) => {
+      graceTimeout = setTimeout(() => resolvePromise(false), gracePeriodMs);
+      graceTimeout.unref();
+    }),
+  ]);
+  clearTimeout(graceTimeout);
+  if (didCloseGracefully || proxyProcess.exitCode !== null || proxyProcess.signalCode !== null) {
+    return;
+  }
+
+  try {
+    proxyProcess.kill('SIGKILL');
+  } catch {
+    return;
+  }
+  await closePromise;
+};
+
+/**
  * Runs one Codex process with disposable paths and restricted public egress.
  * @param options The command, prompt, workspace, home, and optional read-only mounts.
  * @returns A promise resolving to trimmed host output.
@@ -756,6 +799,6 @@ export const runCodexEvaluationHost = async ({
       timeoutMs: hostConfiguration.hostTimeoutMs,
     });
   } finally {
-    proxyProcess.kill('SIGTERM');
+    await stopCodexEvaluationProxyProcess(proxyProcess);
   }
 };

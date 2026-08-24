@@ -1,5 +1,7 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
+import { spawn } from 'node:child_process';
+import { once } from 'node:events';
 import { chmodSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -13,6 +15,7 @@ import {
   identifyConfiguredModel,
   identifyConfiguredReasoningEffort,
   resolveCodeModeHostPath,
+  stopCodexEvaluationProxyProcess,
   validateCodexEvaluationHostCommand,
 } from './host.mjs';
 
@@ -329,4 +332,35 @@ test('host command rejects missing external-sandbox delegation', () => {
       ),
     /outer sandbox/,
   );
+});
+
+test('proxy shutdown handles graceful, stubborn, and already-exited children', async () => {
+  const gracefulProcess = spawn(
+    process.execPath,
+    [
+      '--eval',
+      "process.once('SIGTERM', () => process.exit(0)); process.stdout.write('ready'); setInterval(() => {}, 1_000);",
+    ],
+    { stdio: ['ignore', 'pipe', 'ignore'] },
+  );
+  await once(gracefulProcess.stdout, 'data');
+  await stopCodexEvaluationProxyProcess(gracefulProcess, 25);
+  assert.equal(gracefulProcess.exitCode, 0);
+
+  const stubbornProcess = spawn(
+    process.execPath,
+    [
+      '--eval',
+      "process.once('SIGTERM', () => {}); process.stdout.write('ready'); setInterval(() => {}, 1_000);",
+    ],
+    { stdio: ['ignore', 'pipe', 'ignore'] },
+  );
+  await once(stubbornProcess.stdout, 'data');
+  await stopCodexEvaluationProxyProcess(stubbornProcess, 25);
+  assert.equal(stubbornProcess.signalCode, 'SIGKILL');
+
+  const exitedProcess = spawn(process.execPath, ['--eval', 'process.exit(0)']);
+  await once(exitedProcess, 'close');
+  await stopCodexEvaluationProxyProcess(exitedProcess, 25);
+  assert.equal(exitedProcess.exitCode, 0);
 });

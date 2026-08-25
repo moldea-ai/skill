@@ -34,6 +34,9 @@ test('explains current semantic evidence through keyboard-accessible disclosure'
   await expect(page.getByRole('heading', { level: 1 })).toContainText('20260825T004601727Z');
   await expect(page.getByText('5/48 scenarios', { exact: true })).toBeVisible();
   await expect(page.getByText('adopted-direct-context-handoff', { exact: true })).toBeVisible();
+  await expect(page.getByText('Actor host', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('Judge host', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/^codex-cli /u).first()).toBeVisible();
 });
 
 test('keeps semantic evidence accessible without JavaScript and at 320px', async ({ browser }) => {

@@ -23,6 +23,8 @@ import { buildCodexEvaluationBwrapArguments } from '../tooling/codex-evaluation-
 import {
   collectSkillArtifactEvidence,
   createActorRepository,
+  createSemanticEvaluationCandidate,
+  migrateSemanticEvaluationCheckpoint,
   prepareSemanticEvaluationHome,
   readSemanticEvaluationCandidate,
   seedSemanticTooling,
@@ -1001,6 +1003,76 @@ test('semantic candidate checkpoints are atomically replaceable', async () => {
     await writeSemanticEvaluationCandidate(updatedCandidate, candidatePath);
     assert.deepEqual(await readSemanticEvaluationCandidate(candidatePath), updatedCandidate);
     assert.deepEqual(readdirSync(evaluationRoot), ['.semantic-evaluation-candidate.json']);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('semantic checkpoint migration preserves exact source recovery bytes', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-candidate-migration-test-'));
+  const candidatePath = join(evaluationRoot, '.semantic-evaluation-candidate.json');
+  const actorHost = {
+    model: 'gpt-5.6-terra',
+    name: 'codex',
+    reasoningEffort: 'medium',
+    version: 'codex-cli 0.149.0',
+  };
+  const cli = {
+    integrity: `sha512-${'a'.repeat(86)}`,
+    jsonSchemaVersion: 2,
+    name: '@moldea.ai/cli',
+    packageLockSha256: 'b'.repeat(64),
+    version: '4.0.1',
+  };
+  const currentCandidate = createSemanticEvaluationCandidate({
+    actorHost,
+    artifactDigest: 'c'.repeat(64),
+    caseDefinitions: [],
+    cli,
+    coverageDigest: 'd'.repeat(64),
+    generatedAt: '2026-08-25T00:00:00.000Z',
+    judgeHost: actorHost,
+  });
+  const legacyCandidate = {
+    actorHost,
+    artifactDigest: currentCandidate.artifactDigest,
+    caseSuiteDigest: currentCandidate.caseSuiteDigest,
+    cli,
+    confirmations: [],
+    coverageDigest: currentCandidate.coverageDigest,
+    evaluationProtocolVersion: currentCandidate.evaluationProtocolVersion,
+    generatedAt: currentCandidate.generatedAt,
+    judgeHost: actorHost,
+    results: [],
+    schemaVersion: 3,
+    updatedAt: currentCandidate.updatedAt,
+  };
+  const sourceEvidenceText = `${JSON.stringify(legacyCandidate, null, 2)}\n`;
+
+  try {
+    writeFileSync(candidatePath, sourceEvidenceText);
+    const currentBoundary = {
+      artifactDigest: legacyCandidate.artifactDigest,
+      caseDefinitions: [],
+      cli,
+      coverageDigest: legacyCandidate.coverageDigest,
+    };
+    const migration = await migrateSemanticEvaluationCheckpoint({
+      currentBoundary,
+      migratedAt: '2026-08-25T00:05:00.000Z',
+      path: candidatePath,
+    });
+
+    assert.equal(migration.isMigrated, true);
+    assert.equal(readFileSync(migration.recoveryPath, 'utf8'), sourceEvidenceText);
+    assert.equal((await readSemanticEvaluationCandidate(candidatePath)).schemaVersion, 4);
+    const repeatedMigration = await migrateSemanticEvaluationCheckpoint({
+      currentBoundary,
+      migratedAt: '2026-08-25T00:06:00.000Z',
+      path: candidatePath,
+    });
+    assert.equal(repeatedMigration.isMigrated, false);
+    assert.equal(readdirSync(evaluationRoot).length, 2);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

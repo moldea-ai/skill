@@ -20,7 +20,9 @@ import {
   SEMANTIC_EVALUATION_ROUTE,
 } from './constants.ts';
 import type {
+  ISemanticAttemptCaseModel,
   ISemanticAttemptModel,
+  ISemanticAttemptTrialModel,
   ISemanticCaseDefinition,
   ISemanticEvaluationCaseId,
   ISemanticEvaluationCaseModel,
@@ -36,6 +38,36 @@ import {
 const CONFORMANCE_CASES_PATH = 'fixtures/conformance-cases.json';
 const SEMANTIC_ATTEMPTS_PATH = 'fixtures/semantic-evaluation-results';
 const SEMANTIC_COVERAGE_PATH = 'fixtures/semantic-evaluation-coverage.json';
+
+const isOfficialSemanticHost = (host: {
+  model: string;
+  name: string;
+  reasoningEffort: string;
+  version?: string;
+}): boolean =>
+  host.model === 'gpt-5.6-terra' &&
+  host.name === 'codex' &&
+  host.reasoningEffort === 'medium' &&
+  (host.version === undefined ||
+    (host.version.trim().length > 0 && host.version !== 'unavailable'));
+
+const createAttemptCases = (attempt: ISemanticAttemptRecord): ISemanticAttemptCaseModel[] => {
+  if (attempt.schemaVersion === 1) {
+    return attempt.cases.map((attemptCase) => ({
+      ...attemptCase,
+      trials: attemptCase.trials.map((trial) => ({
+        ...trial,
+        actorHost: attempt.actorHost,
+        judgeHost: attempt.judgeHost,
+      })),
+    }));
+  }
+
+  return attempt.cases.map((attemptCase) => ({
+    ...attemptCase,
+    trials: attemptCase.trials.map((trial): ISemanticAttemptTrialModel => ({ ...trial })),
+  }));
+};
 
 const readJson = (path: string): unknown => {
   try {
@@ -93,12 +125,21 @@ const assertCurrentAttemptIdentity = (
       'Latest semantic attempt does not match the current release evidence boundary.',
     );
   }
-  if (
-    attempt.actorHost.model !== 'gpt-5.6-terra' ||
-    attempt.judgeHost.model !== 'gpt-5.6-terra' ||
-    attempt.actorHost.reasoningEffort !== 'medium' ||
-    attempt.judgeHost.reasoningEffort !== 'medium'
-  ) {
+  let hasOfficialHosts: boolean;
+  if (attempt.schemaVersion === 1) {
+    hasOfficialHosts =
+      isOfficialSemanticHost(attempt.actorHost) && isOfficialSemanticHost(attempt.judgeHost);
+  } else {
+    hasOfficialHosts =
+      isOfficialSemanticHost(attempt.hostContract) &&
+      attempt.cases.every(({ trials }) =>
+        trials.every(
+          ({ actorHost, judgeHost }) =>
+            isOfficialSemanticHost(actorHost) && isOfficialSemanticHost(judgeHost),
+        ),
+      );
+  }
+  if (!hasOfficialHosts) {
     throw new Error('Latest semantic attempt does not use the official Terra host configuration.');
   }
 };
@@ -106,6 +147,7 @@ const assertCurrentAttemptIdentity = (
 const createAttemptModel = (attempt: ISemanticAttemptRecord): ISemanticAttemptModel => {
   const attemptPath = `${SEMANTIC_ATTEMPTS_PATH}/attempts/${attempt.attemptId}`;
   return {
+    cases: createAttemptCases(attempt),
     rawAttemptUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${attemptPath}/attempt.json`,
     rawEvidenceUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${attemptPath}/evidence.json`,
     result: attempt,
@@ -115,7 +157,7 @@ const createAttemptModel = (attempt: ISemanticAttemptRecord): ISemanticAttemptMo
 
 const createCaseModel = (
   caseDefinition: ISemanticCaseDefinition,
-  latestAttempt: ISemanticAttemptRecord,
+  latestAttempt: ISemanticAttemptModel,
 ): ISemanticEvaluationCaseModel => {
   const id = caseDefinition.id as ISemanticEvaluationCaseId;
   const presentation = SEMANTIC_CASE_PRESENTATION[id];
@@ -174,9 +216,7 @@ export const loadSemanticEvaluationWebsiteModel = (
     throw new Error('Semantic last-passing pointer does not resolve to an immutable attempt.');
   }
 
-  const cases = caseDefinitions.map((caseDefinition) =>
-    createCaseModel(caseDefinition, latest.result),
-  );
+  const cases = caseDefinitions.map((caseDefinition) => createCaseModel(caseDefinition, latest));
   const groups = (
     Object.entries(SEMANTIC_EVALUATION_GROUPS) as Array<
       [ISemanticEvaluationGroupId, (typeof SEMANTIC_EVALUATION_GROUPS)[ISemanticEvaluationGroupId]]

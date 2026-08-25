@@ -127,7 +127,7 @@ const breadcrumbs = [
       </div>
       <div class="mt-7 grid gap-3">
         {
-          result.cases.map((attemptCase) => (
+          attempt.cases.map((attemptCase) => (
             <article class="surface-card min-w-0 overflow-hidden p-5 sm:p-6">
               <div class="flex flex-wrap items-center gap-3">
                 <EvidenceStatus status={attemptCase.status} />
@@ -152,6 +152,14 @@ const breadcrumbs = [
                       <EvidenceText text={trial.rationale} />
                     </p>
                     <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                      <div>
+                        <dt class="text-muted-foreground">Actor host</dt>
+                        <dd class="mt-1 font-mono text-xs break-all">{trial.actorHost.version}</dd>
+                      </div>
+                      <div>
+                        <dt class="text-muted-foreground">Judge host</dt>
+                        <dd class="mt-1 font-mono text-xs break-all">{trial.judgeHost.version}</dd>
+                      </div>
                       <div>
                         <dt class="text-muted-foreground">Expected labels observed</dt>
                         <dd class="mt-1">

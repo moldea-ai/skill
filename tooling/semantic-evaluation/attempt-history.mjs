@@ -3,9 +3,15 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 
+import {
+  CODEX_EVALUATION_MODEL,
+  CODEX_EVALUATION_REASONING_EFFORT,
+} from '../codex-evaluation-host/index.mjs';
+
 const ATTEMPT_EVIDENCE_FILENAME = 'evidence.json';
 const ATTEMPT_RECORD_FILENAME = 'attempt.json';
-const ATTEMPT_SCHEMA_VERSION = 1;
+const ATTEMPT_SCHEMA_VERSION = 2;
+const LEGACY_ATTEMPT_SCHEMA_VERSION = 1;
 const LATEST_SCHEMA_VERSION = 1;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
@@ -63,7 +69,22 @@ const createAttemptId = (updatedAt, evidenceSha256) => {
   return `${timestamp}-semantic-${evidenceSha256.slice(0, 8)}`;
 };
 
-const createTrialSummary = (result, kind, confirmationIndex) => {
+const hasValidHostContract = (hostContract) =>
+  isPlainRecord(hostContract) &&
+  hostContract.model === CODEX_EVALUATION_MODEL &&
+  hostContract.name === 'codex' &&
+  hostContract.reasoningEffort === CODEX_EVALUATION_REASONING_EFFORT;
+
+const hasValidHostIdentity = (host, hostContract) =>
+  isPlainRecord(host) &&
+  host.model === hostContract.model &&
+  host.name === hostContract.name &&
+  host.reasoningEffort === hostContract.reasoningEffort &&
+  typeof host.version === 'string' &&
+  host.version.trim().length > 0 &&
+  host.version !== 'unavailable';
+
+const createTrialSummary = (result, kind, confirmationIndex, hostContract) => {
   if (
     !isPlainRecord(result) ||
     typeof result.id !== 'string' ||
@@ -75,7 +96,7 @@ const createTrialSummary = (result, kind, confirmationIndex) => {
     throw new Error('Semantic attempt evidence contains an invalid case trial.');
   }
 
-  return {
+  const summary = {
     confirmationIndex,
     evaluatedAt: requireIsoDate(result.evaluatedAt, `Trial ${result.id} evaluation date`),
     forbidden: result.forbidden,
@@ -84,11 +105,28 @@ const createTrialSummary = (result, kind, confirmationIndex) => {
     passed: result.passed,
     rationale: result.rationale,
   };
+  if (hostContract === null) return summary;
+  if (
+    !hasValidHostIdentity(result.actorHost, hostContract) ||
+    !hasValidHostIdentity(result.judgeHost, hostContract)
+  ) {
+    throw new Error('Semantic attempt evidence contains invalid trial host provenance.');
+  }
+
+  return {
+    actorHost: result.actorHost,
+    ...summary,
+    judgeHost: result.judgeHost,
+  };
 };
 
 const collectCaseTrials = (evidence) => {
   const initialResults = Array.isArray(evidence.results) ? evidence.results : [];
   const confirmations = Array.isArray(evidence.confirmations) ? evidence.confirmations : [];
+  const hostContract = evidence.schemaVersion === 4 ? evidence.hostContract : null;
+  if (evidence.schemaVersion === 4 && !hasValidHostContract(hostContract)) {
+    throw new Error('Semantic attempt evidence contains an invalid host contract.');
+  }
   const trialsByCaseId = new Map();
 
   for (const result of initialResults) {
@@ -96,7 +134,7 @@ const collectCaseTrials = (evidence) => {
     if (trials.length > 0) {
       throw new Error(`Semantic attempt contains duplicate initial evidence for ${result.id}.`);
     }
-    trials.push(createTrialSummary(result, 'initial', null));
+    trials.push(createTrialSummary(result, 'initial', null, hostContract));
     trialsByCaseId.set(result.id, trials);
   }
 
@@ -120,7 +158,14 @@ const collectCaseTrials = (evidence) => {
         `Semantic attempt contains duplicate confirmation evidence for ${confirmation.id}.`,
       );
     }
-    trials.push(createTrialSummary(confirmation, 'confirmation', confirmation.confirmationIndex));
+    trials.push(
+      createTrialSummary(
+        confirmation,
+        'confirmation',
+        confirmation.confirmationIndex,
+        hostContract,
+      ),
+    );
   }
 
   return trialsByCaseId;
@@ -188,6 +233,9 @@ export const createSemanticAttemptRecord = ({
   if (!isPlainRecord(evidence) || !['candidate', 'result'].includes(evidenceKind)) {
     throw new Error('Semantic attempt evidence has an unsupported source.');
   }
+  if (![1, 2, 3, 4].includes(evidence.schemaVersion)) {
+    throw new Error('Semantic attempt evidence has an unsupported schema.');
+  }
   if (!Number.isInteger(totalCaseCount) || totalCaseCount < 0) {
     throw new Error('Semantic attempt total case count must be non-negative.');
   }
@@ -231,7 +279,7 @@ export const createSemanticAttemptRecord = ({
     'Semantic attempt artifact',
   );
 
-  return {
+  const legacyAttempt = {
     actorHost: evidence.actorHost ?? evidence.host,
     artifactDigest,
     attemptId: createAttemptId(updatedAt, digest),
@@ -256,11 +304,34 @@ export const createSemanticAttemptRecord = ({
     pendingCaseCount,
     recordedAt: requireIsoDate(recordedAt, 'Semantic attempt recording date'),
     recoveredCaseCount,
-    schemaVersion: ATTEMPT_SCHEMA_VERSION,
+    schemaVersion: LEGACY_ATTEMPT_SCHEMA_VERSION,
     status,
     stopReason,
     totalCaseCount,
     updatedAt,
+  };
+  if (evidence.schemaVersion !== 4) return legacyAttempt;
+
+  return {
+    artifactDigest: legacyAttempt.artifactDigest,
+    attemptId: legacyAttempt.attemptId,
+    caseSuiteDigest: legacyAttempt.caseSuiteDigest,
+    cases: legacyAttempt.cases,
+    cli: legacyAttempt.cli,
+    coverageDigest: legacyAttempt.coverageDigest,
+    createdAt: legacyAttempt.createdAt,
+    evidence: legacyAttempt.evidence,
+    failedCaseCount: legacyAttempt.failedCaseCount,
+    hostContract: evidence.hostContract,
+    passedCaseCount: legacyAttempt.passedCaseCount,
+    pendingCaseCount: legacyAttempt.pendingCaseCount,
+    recordedAt: legacyAttempt.recordedAt,
+    recoveredCaseCount: legacyAttempt.recoveredCaseCount,
+    schemaVersion: ATTEMPT_SCHEMA_VERSION,
+    status: legacyAttempt.status,
+    stopReason: legacyAttempt.stopReason,
+    totalCaseCount: legacyAttempt.totalCaseCount,
+    updatedAt: legacyAttempt.updatedAt,
   };
 };
 

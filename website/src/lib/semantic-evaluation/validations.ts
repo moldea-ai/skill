@@ -12,6 +12,8 @@ const SemanticHostSchema = z.object({
   version: z.string().trim().min(1),
 });
 
+const SemanticHostContractSchema = SemanticHostSchema.omit({ version: true });
+
 export const SemanticCliIdentitySchema = z.object({
   integrity: z.string().startsWith('sha512-'),
   jsonSchemaVersion: z.number().int().positive(),
@@ -20,7 +22,7 @@ export const SemanticCliIdentitySchema = z.object({
   version: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
 });
 
-const SemanticAttemptTrialSchema = z.object({
+const SemanticAttemptTrialShape = {
   confirmationIndex: z.union([z.literal(1), z.literal(2)]).nullable(),
   evaluatedAt: z.iso.datetime(),
   forbidden: z.array(StableIdSchema),
@@ -28,21 +30,29 @@ const SemanticAttemptTrialSchema = z.object({
   observed: z.array(StableIdSchema),
   passed: z.boolean(),
   rationale: z.string().trim().min(1),
+};
+
+const SemanticLegacyAttemptTrialSchema = z.object(SemanticAttemptTrialShape);
+const SemanticAttemptTrialSchema = z.object({
+  actorHost: SemanticHostSchema,
+  ...SemanticAttemptTrialShape,
+  judgeHost: SemanticHostSchema,
 });
 
-export const SemanticAttemptRecordSchema = z.object({
-  actorHost: SemanticHostSchema,
-  artifactDigest: Sha256Schema,
-  attemptId: z.string().trim().min(1),
-  caseSuiteDigest: Sha256Schema,
-  cases: z.array(
+const createSemanticAttemptCasesSchema = <TSchema extends z.ZodType>(trialSchema: TSchema) =>
+  z.array(
     z.object({
       confirmationStatus: z.enum(['not-required', 'passed', 'rejected', 'required']),
       id: StableIdSchema,
       status: z.enum(['failed', 'passed', 'recovered']),
-      trials: z.array(SemanticAttemptTrialSchema).min(1),
+      trials: z.array(trialSchema).min(1),
     }),
-  ),
+  );
+
+const SemanticAttemptRecordShape = {
+  artifactDigest: Sha256Schema,
+  attemptId: z.string().trim().min(1),
+  caseSuiteDigest: Sha256Schema,
   cli: SemanticCliIdentitySchema,
   coverageDigest: Sha256Schema.nullable(),
   createdAt: z.iso.datetime(),
@@ -54,12 +64,10 @@ export const SemanticAttemptRecordSchema = z.object({
     sha256: Sha256Schema,
   }),
   failedCaseCount: z.number().int().nonnegative(),
-  judgeHost: SemanticHostSchema,
   passedCaseCount: z.number().int().nonnegative(),
   pendingCaseCount: z.number().int().nonnegative(),
   recordedAt: z.iso.datetime(),
   recoveredCaseCount: z.number().int().nonnegative(),
-  schemaVersion: z.literal(1),
   status: AttemptStatusSchema,
   stopReason: z.enum([
     'case-failure',
@@ -70,7 +78,27 @@ export const SemanticAttemptRecordSchema = z.object({
   ]),
   totalCaseCount: z.number().int().positive(),
   updatedAt: z.iso.datetime(),
+};
+
+const SemanticLegacyAttemptRecordSchema = z.object({
+  actorHost: SemanticHostSchema,
+  ...SemanticAttemptRecordShape,
+  cases: createSemanticAttemptCasesSchema(SemanticLegacyAttemptTrialSchema),
+  judgeHost: SemanticHostSchema,
+  schemaVersion: z.literal(1),
 });
+
+const SemanticCurrentAttemptRecordSchema = z.object({
+  ...SemanticAttemptRecordShape,
+  cases: createSemanticAttemptCasesSchema(SemanticAttemptTrialSchema),
+  hostContract: SemanticHostContractSchema,
+  schemaVersion: z.literal(2),
+});
+
+export const SemanticAttemptRecordSchema = z.discriminatedUnion('schemaVersion', [
+  SemanticLegacyAttemptRecordSchema,
+  SemanticCurrentAttemptRecordSchema,
+]);
 
 export const SemanticLatestResultSchema = z.object({
   lastPassingAttemptId: z.string().trim().min(1).nullable(),

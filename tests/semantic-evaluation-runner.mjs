@@ -92,6 +92,7 @@ const MAX_SKILL_EVIDENCE_RESOURCE_REFERENCES = 32;
 const MAX_SKILL_ACTIVATION_SCENARIOS = 8;
 const MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS = 128;
 const MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES = 32_768;
+const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 4;
 const ACTOR_EXECUTION_ITEM_TYPES = new Set(['command_execution', 'mcp_tool_call']);
 const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 // unadopted initialization cases that use the published CLI with different context quality
@@ -141,6 +142,7 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
   const confirmationCaseId =
     confirmArgumentIndex === -1 ? undefined : arguments_[confirmArgumentIndex + 1];
   const isPreflightRequested = arguments_.includes('--preflight');
+  const isMigrateCheckpointRequested = arguments_.includes('--migrate-checkpoint');
   const isRecordRequested = arguments_.includes('--record');
   const isRecordCheckpointRequested = arguments_.includes('--record-checkpoint');
   const isRestartRequested = arguments_.includes('--restart');
@@ -150,6 +152,7 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
   const supportedOptions = new Set([
     '--case',
     '--confirm',
+    '--migrate-checkpoint',
     '--preflight',
     '--record',
     '--record-checkpoint',
@@ -184,6 +187,7 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
     confirmationCaseId &&
     (!isRecordRequested ||
       isRestartRequested ||
+      isMigrateCheckpointRequested ||
       requestedCaseId ||
       isPreflightRequested ||
       isRecordCheckpointRequested ||
@@ -191,14 +195,21 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
   ) {
     throw new Error('--confirm requires only --record and one semantic case ID.');
   }
-  if ((isRecordCheckpointRequested || isVerifyAttemptsRequested) && arguments_.length !== 1) {
-    throw new Error(
-      `${isRecordCheckpointRequested ? '--record-checkpoint' : '--verify-attempts'} must run without other options.`,
-    );
+  if (
+    (isMigrateCheckpointRequested || isRecordCheckpointRequested || isVerifyAttemptsRequested) &&
+    arguments_.length !== 1
+  ) {
+    const operation = isMigrateCheckpointRequested
+      ? '--migrate-checkpoint'
+      : isRecordCheckpointRequested
+        ? '--record-checkpoint'
+        : '--verify-attempts';
+    throw new Error(`${operation} must run without other options.`);
   }
 
   return {
     confirmationCaseId,
+    isMigrateCheckpointRequested,
     isPreflightRequested,
     isRecordRequested,
     isRecordCheckpointRequested,
@@ -215,7 +226,50 @@ export const shouldStopSemanticEvaluation = ({ isRecordRequested, passed }) =>
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
 
-/** Creates an empty artifact-bound checkpoint for one evaluation host pair. */
+const createSha256 = (content) => createHash('sha256').update(content).digest('hex');
+
+/** Returns the behavior-bearing portion of one Codex evaluation host identity. */
+export const createSemanticEvaluationHostContract = (host) => ({
+  model: host?.model,
+  name: host?.name,
+  reasoningEffort: host?.reasoningEffort,
+});
+
+/** Checks whether a host contract preserves the fixed semantic execution boundary. */
+const hasValidSemanticEvaluationHostContract = (hostContract) =>
+  isPlainRecord(hostContract) &&
+  hostContract.model === CODEX_EVALUATION_MODEL &&
+  hostContract.name === 'codex' &&
+  hostContract.reasoningEffort === CODEX_EVALUATION_REASONING_EFFORT;
+
+/** Checks whether exact host provenance satisfies one stable execution contract. */
+const hasValidSemanticEvaluationHostIdentity = (host, hostContract) =>
+  isPlainRecord(host) &&
+  JSON.stringify(createSemanticEvaluationHostContract(host)) === JSON.stringify(hostContract) &&
+  typeof host.version === 'string' &&
+  host.version.trim().length > 0 &&
+  host.version !== 'unavailable';
+
+/** Requires actor and judge identities to share the fixed semantic host contract. */
+const createCompatibleSemanticEvaluationHostContract = (actorHost, judgeHost) => {
+  const actorContract = createSemanticEvaluationHostContract(actorHost);
+  const judgeContract = createSemanticEvaluationHostContract(judgeHost);
+  if (
+    !hasValidSemanticEvaluationHostContract(actorContract) ||
+    JSON.stringify(actorContract) !== JSON.stringify(judgeContract) ||
+    !hasValidSemanticEvaluationHostIdentity(actorHost, actorContract) ||
+    !hasValidSemanticEvaluationHostIdentity(judgeHost, judgeContract)
+  ) {
+    throw new Error(
+      `Semantic evaluation requires ${CODEX_EVALUATION_MODEL} ` +
+        `${CODEX_EVALUATION_REASONING_EFFORT} actor and judge Codex hosts with exact versions.`,
+    );
+  }
+
+  return actorContract;
+};
+
+/** Creates an empty artifact-bound checkpoint for one stable evaluation host contract. */
 export const createSemanticEvaluationCandidate = ({
   actorHost,
   artifactDigest,
@@ -225,7 +279,6 @@ export const createSemanticEvaluationCandidate = ({
   generatedAt,
   judgeHost,
 }) => ({
-  actorHost,
   artifactDigest,
   caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
   cli,
@@ -233,9 +286,10 @@ export const createSemanticEvaluationCandidate = ({
   coverageDigest,
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt,
-  judgeHost,
+  hostContract: createCompatibleSemanticEvaluationHostContract(actorHost, judgeHost),
+  checkpointMigration: null,
   results: [],
-  schemaVersion: 3,
+  schemaVersion: SEMANTIC_CHECKPOINT_SCHEMA_VERSION,
   updatedAt: generatedAt,
 });
 
@@ -438,9 +492,23 @@ const hasValidSkillArtifactEvidence = (skillArtifactEvidence, caseDefinition) =>
 
 /** Requires checkpoint case evidence to remain complete and internally consistent. */
 const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
+  const isLegacyCandidate = candidate?.schemaVersion === 3;
+  const isCurrentCandidate = candidate?.schemaVersion === SEMANTIC_CHECKPOINT_SCHEMA_VERSION;
+  const legacyHostContract = isLegacyCandidate
+    ? createCompatibleSemanticEvaluationHostContract(candidate.actorHost, candidate.judgeHost)
+    : null;
+  const hostContract = isCurrentCandidate ? candidate.hostContract : legacyHostContract;
+  const hasValidMigration =
+    candidate?.checkpointMigration === null ||
+    (isPlainRecord(candidate?.checkpointMigration) &&
+      candidate.checkpointMigration.fromSchemaVersion === 3 &&
+      typeof candidate.checkpointMigration.migratedAt === 'string' &&
+      !Number.isNaN(Date.parse(candidate.checkpointMigration.migratedAt)) &&
+      typeof candidate.checkpointMigration.sourceSha256 === 'string' &&
+      /^[a-f0-9]{64}$/u.test(candidate.checkpointMigration.sourceSha256));
   if (
     !candidate ||
-    candidate.schemaVersion !== 3 ||
+    (!isLegacyCandidate && !isCurrentCandidate) ||
     candidate.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
     !hasValidSemanticCliIdentity(candidate.cli) ||
     typeof candidate.generatedAt !== 'string' ||
@@ -448,7 +516,13 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
     typeof candidate.coverageDigest !== 'string' ||
     !/^[a-f0-9]{64}$/u.test(candidate.coverageDigest) ||
     !Array.isArray(candidate.confirmations) ||
-    !Array.isArray(candidate.results)
+    !Array.isArray(candidate.results) ||
+    (isCurrentCandidate &&
+      (!hasValidSemanticEvaluationHostContract(hostContract) ||
+        !hasValidMigration ||
+        candidate.actorHost !== undefined ||
+        candidate.judgeHost !== undefined)) ||
+    (isLegacyCandidate && candidate.checkpointMigration !== undefined)
   ) {
     throw new Error('The semantic evaluation candidate has an unsupported shape.');
   }
@@ -494,7 +568,10 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       !hasValidRepositoryControlEvidence(result.repositoryControlEvidence) ||
       !hasValidSkillArtifactEvidence(result.skillArtifactEvidence, caseDefinition) ||
       typeof result.evaluatedAt !== 'string' ||
-      result.caseDefinitionDigest !== createSemanticCaseDefinitionDigest(caseDefinition)
+      result.caseDefinitionDigest !== createSemanticCaseDefinitionDigest(caseDefinition) ||
+      (isCurrentCandidate &&
+        (!hasValidSemanticEvaluationHostIdentity(result.actorHost, hostContract) ||
+          !hasValidSemanticEvaluationHostIdentity(result.judgeHost, hostContract)))
     ) {
       throw new Error('The semantic evaluation candidate contains invalid case evidence.');
     }
@@ -543,7 +620,10 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       !hasValidRepositoryControlEvidence(confirmation.repositoryControlEvidence) ||
       !hasValidSkillArtifactEvidence(confirmation.skillArtifactEvidence, caseDefinition) ||
       typeof confirmation.evaluatedAt !== 'string' ||
-      confirmation.caseDefinitionDigest !== createSemanticCaseDefinitionDigest(caseDefinition)
+      confirmation.caseDefinitionDigest !== createSemanticCaseDefinitionDigest(caseDefinition) ||
+      (isCurrentCandidate &&
+        (!hasValidSemanticEvaluationHostIdentity(confirmation.actorHost, hostContract) ||
+          !hasValidSemanticEvaluationHostIdentity(confirmation.judgeHost, hostContract)))
     ) {
       throw new Error('The semantic evaluation candidate contains invalid confirmation evidence.');
     }
@@ -570,6 +650,12 @@ export const validateSemanticCandidateCompatibility = (
   candidate,
   { actorHost, artifactDigest, caseDefinitions, cli, coverageDigest, judgeHost },
 ) => {
+  if (candidate?.schemaVersion !== SEMANTIC_CHECKPOINT_SCHEMA_VERSION) {
+    throw new Error(
+      'The semantic evaluation candidate must be migrated before it can resume. ' +
+        'Run --migrate-checkpoint without other options.',
+    );
+  }
   const caseSuiteDigest = createSemanticCaseSuiteDigest(caseDefinitions);
   if (candidate?.caseSuiteDigest !== caseSuiteDigest) {
     throw new Error(
@@ -593,47 +679,34 @@ export const validateSemanticCandidateCompatibility = (
       'The semantic evaluation candidate belongs to a different release CLI. Use --restart to replace it.',
     );
   }
-  if (
-    JSON.stringify(candidate.actorHost) !== JSON.stringify(actorHost) ||
-    JSON.stringify(candidate.judgeHost) !== JSON.stringify(judgeHost)
-  ) {
+  const currentHostContract = createCompatibleSemanticEvaluationHostContract(actorHost, judgeHost);
+  if (JSON.stringify(candidate.hostContract) !== JSON.stringify(currentHostContract)) {
     throw new Error(
-      'The semantic evaluation candidate belongs to different actor or judge hosts. Use --restart to replace it.',
+      'The semantic evaluation candidate belongs to a different host contract. ' +
+        'Use --restart to replace it.',
     );
   }
 };
-
-/** Checks whether a checkpoint host identity satisfies the fixed semantic evaluation contract. */
-const hasValidSemanticEvaluationHostIdentity = (host) =>
-  isPlainRecord(host) &&
-  host.model === CODEX_EVALUATION_MODEL &&
-  host.name === 'codex' &&
-  host.reasoningEffort === CODEX_EVALUATION_REASONING_EFFORT &&
-  typeof host.version === 'string' &&
-  host.version.length > 0;
 
 /** Requires a model-free checkpoint publication to match the current evidence boundary. */
 export const validateSemanticCandidateCheckpointCompatibility = (
   candidate,
   { artifactDigest, caseDefinitions, cli, coverageDigest },
 ) => {
-  if (
-    !hasValidSemanticEvaluationHostIdentity(candidate?.actorHost) ||
-    !hasValidSemanticEvaluationHostIdentity(candidate?.judgeHost)
-  ) {
+  if (!hasValidSemanticEvaluationHostContract(candidate?.hostContract)) {
     throw new Error(
       `The semantic evaluation candidate does not use the required ${CODEX_EVALUATION_MODEL} ` +
-        `${CODEX_EVALUATION_REASONING_EFFORT} actor and judge hosts.`,
+        `${CODEX_EVALUATION_REASONING_EFFORT} Codex host contract.`,
     );
   }
 
   validateSemanticCandidateCompatibility(candidate, {
-    actorHost: candidate.actorHost,
+    actorHost: { ...candidate.hostContract, version: 'checkpoint-validation' },
     artifactDigest,
     caseDefinitions,
     cli,
     coverageDigest,
-    judgeHost: candidate.judgeHost,
+    judgeHost: { ...candidate.hostContract, version: 'checkpoint-validation' },
   });
 };
 
@@ -666,6 +739,12 @@ export const appendSemanticCandidateInitialResult = (
   }
   if (candidate.results.some(({ id }) => id === caseDefinition.id)) {
     throw new Error(`Semantic case ${caseDefinition.id} already has an initial trial.`);
+  }
+  if (
+    !hasValidSemanticEvaluationHostIdentity(result.actorHost, candidate.hostContract) ||
+    !hasValidSemanticEvaluationHostIdentity(result.judgeHost, candidate.hostContract)
+  ) {
+    throw new Error('Semantic case evidence does not contain compatible actor and judge hosts.');
   }
 
   return {
@@ -710,6 +789,14 @@ export const appendSemanticCandidateConfirmation = (
   }
   if (result.id !== caseDefinition.id || result.caseId !== caseDefinition.id) {
     throw new Error('Semantic confirmation evidence must match the evaluated case definition.');
+  }
+  if (
+    !hasValidSemanticEvaluationHostIdentity(result.actorHost, candidate.hostContract) ||
+    !hasValidSemanticEvaluationHostIdentity(result.judgeHost, candidate.hostContract)
+  ) {
+    throw new Error(
+      'Semantic confirmation evidence does not contain compatible actor and judge hosts.',
+    );
   }
 
   const confirmationIndex =
@@ -772,9 +859,7 @@ export const readSemanticEvaluationCandidate = async (path = CANDIDATE_RESULT_PA
  * Reads the exact ignored checkpoint bytes for compatibility validation and recording.
  * @returns A promise that resolves with the checkpoint text, or `null` when none exists.
  */
-const readSemanticEvaluationCandidateEvidenceText = async (
-  path = CANDIDATE_RESULT_PATH,
-) => {
+const readSemanticEvaluationCandidateEvidenceText = async (path = CANDIDATE_RESULT_PATH) => {
   if (!existsSync(path)) return null;
   return readFile(path, 'utf8');
 };
@@ -782,6 +867,121 @@ const readSemanticEvaluationCandidateEvidenceText = async (
 /** Persists an ignored semantic candidate after each completed case. */
 export const writeSemanticEvaluationCandidate = async (candidate, path = CANDIDATE_RESULT_PATH) =>
   writeJsonAtomically(path, candidate);
+
+/** Rejects a checkpoint replacement when its source changed after validation. */
+export const assertSemanticCandidateSourceUnchanged = (evidenceText, expectedSha256) => {
+  if (createSha256(evidenceText) !== expectedSha256) {
+    throw new Error('The semantic evaluation checkpoint changed during migration.');
+  }
+};
+
+/** Converts one validated schema-3 checkpoint into trial-provenance schema 4. */
+export const migrateSemanticEvaluationCandidate = ({
+  candidate,
+  currentBoundary,
+  migratedAt,
+  sourceSha256,
+}) => {
+  if (candidate?.schemaVersion === SEMANTIC_CHECKPOINT_SCHEMA_VERSION) {
+    validateSemanticCandidateCheckpointCompatibility(candidate, currentBoundary);
+    return candidate;
+  }
+  if (candidate?.schemaVersion !== 3) {
+    throw new Error('Only semantic evaluation checkpoint schema 3 can be migrated.');
+  }
+
+  validateSemanticCandidateEvidence(candidate, currentBoundary.caseDefinitions);
+  if (
+    candidate.artifactDigest !== currentBoundary.artifactDigest ||
+    candidate.caseSuiteDigest !== createSemanticCaseSuiteDigest(currentBoundary.caseDefinitions) ||
+    candidate.coverageDigest !== currentBoundary.coverageDigest ||
+    JSON.stringify(candidate.cli) !== JSON.stringify(currentBoundary.cli)
+  ) {
+    throw new Error(
+      'The semantic evaluation checkpoint does not match the current evidence boundary.',
+    );
+  }
+  if (
+    typeof migratedAt !== 'string' ||
+    Number.isNaN(Date.parse(migratedAt)) ||
+    typeof sourceSha256 !== 'string' ||
+    !/^[a-f0-9]{64}$/u.test(sourceSha256)
+  ) {
+    throw new Error('Semantic checkpoint migration metadata is invalid.');
+  }
+
+  const hostContract = createCompatibleSemanticEvaluationHostContract(
+    candidate.actorHost,
+    candidate.judgeHost,
+  );
+  const { actorHost, judgeHost, ...candidateWithoutHosts } = candidate;
+  const attachHostProvenance = (trial) => ({
+    ...trial,
+    actorHost,
+    judgeHost,
+  });
+  const migratedCandidate = {
+    ...candidateWithoutHosts,
+    checkpointMigration: {
+      fromSchemaVersion: 3,
+      migratedAt,
+      sourceSha256,
+    },
+    confirmations: candidate.confirmations.map(attachHostProvenance),
+    hostContract,
+    results: candidate.results.map(attachHostProvenance),
+    schemaVersion: SEMANTIC_CHECKPOINT_SCHEMA_VERSION,
+    updatedAt: migratedAt,
+  };
+  validateSemanticCandidateCheckpointCompatibility(migratedCandidate, currentBoundary);
+  return migratedCandidate;
+};
+
+/** Migrates the ignored checkpoint atomically after preserving its exact source bytes. */
+export const migrateSemanticEvaluationCheckpoint = async ({
+  currentBoundary,
+  migratedAt = new Date().toISOString(),
+  path = CANDIDATE_RESULT_PATH,
+}) => {
+  const sourceEvidenceText = await readSemanticEvaluationCandidateEvidenceText(path);
+  if (sourceEvidenceText === null) {
+    throw new Error('No semantic evaluation checkpoint is available to migrate.');
+  }
+  const sourceSha256 = createSha256(sourceEvidenceText);
+  const candidate = JSON.parse(sourceEvidenceText);
+  const migratedCandidate = migrateSemanticEvaluationCandidate({
+    candidate,
+    currentBoundary,
+    migratedAt,
+    sourceSha256,
+  });
+  if (migratedCandidate === candidate) {
+    return { candidate, isMigrated: false, recoveryPath: null, sourceSha256 };
+  }
+
+  const recoveryPath = `${path}.schema-3-${sourceSha256}.recovery`;
+  try {
+    await writeFile(recoveryPath, sourceEvidenceText, { encoding: 'utf8', flag: 'wx' });
+  } catch (error) {
+    if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') throw error;
+    if ((await readFile(recoveryPath, 'utf8')) !== sourceEvidenceText) {
+      throw new Error('The semantic checkpoint recovery path contains different evidence.');
+    }
+  }
+  const recoveredEvidenceText = await readFile(recoveryPath, 'utf8');
+  assertSemanticCandidateSourceUnchanged(recoveredEvidenceText, sourceSha256);
+
+  const currentEvidenceText = await readFile(path, 'utf8');
+  assertSemanticCandidateSourceUnchanged(currentEvidenceText, sourceSha256);
+  await writeSemanticEvaluationCandidate(migratedCandidate, path);
+
+  return {
+    candidate: migratedCandidate,
+    isMigrated: true,
+    recoveryPath,
+    sourceSha256,
+  };
+};
 
 /** Returns only scenario evidence, never evaluation criteria, to the acting host. */
 export const buildActorPrompt = (caseDefinition) => {
@@ -2792,11 +2992,11 @@ export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, gen
   });
 
   return {
-    actorHost: candidate.actorHost,
     artifact: { sha256: candidate.artifactDigest },
     artifactDigest: candidate.artifactDigest,
     artifactSha256: candidate.artifactDigest,
     cases: results.map((result) => ({
+      actorHost: result.actorHost,
       actorResponse: result.actorResponse,
       actorExecutionEvidence: result.actorExecutionEvidence,
       caseDefinitionDigest: result.caseDefinitionDigest,
@@ -2804,6 +3004,7 @@ export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, gen
       expectedSatisfied: result.observed,
       forbiddenTriggered: result.forbidden,
       id: result.id,
+      judgeHost: result.judgeHost,
       passed: result.passed,
       rationale: result.rationale,
       repositoryControlEvidence: result.repositoryControlEvidence,
@@ -2821,6 +3022,7 @@ export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, gen
       resolution: getSemanticCaseResolution(candidate, id),
     })),
     cli: candidate.cli,
+    checkpointMigration: candidate.checkpointMigration,
     confirmationPolicy: {
       requiredPassingConfirmations: 2,
       version: 1,
@@ -2829,10 +3031,9 @@ export const createSemanticEvaluationRecord = ({ candidate, caseDefinitions, gen
     evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     evaluatedAt: generatedAt,
     generatedAt,
-    host: candidate.actorHost,
-    judgeHost: candidate.judgeHost,
+    hostContract: candidate.hostContract,
     results,
-    schemaVersion: 3,
+    schemaVersion: SEMANTIC_CHECKPOINT_SCHEMA_VERSION,
     skillDigest: candidate.artifactDigest,
   };
 };
@@ -2983,6 +3184,8 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
     });
     const repositoryControlBefore = await captureRepositoryControlState(actorRepository);
     const before = await snapshotWorkspace(actorRepository);
+    const actorHost = identifyCodexEvaluationHost(actorCommand);
+    createCompatibleSemanticEvaluationHostContract(actorHost, actorHost);
     const actorHostOutput = await runCodexEvaluationHost({
       command: actorCommand,
       cwd: actorRepository,
@@ -3004,6 +3207,8 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
       actorRepository,
       caseDefinition,
     );
+    const judgeHost = identifyCodexEvaluationHost(judgeCommand);
+    createCompatibleSemanticEvaluationHostContract(actorHost, judgeHost);
     const judgeHostOutput = await runCodexEvaluationHost({
       command: judgeCommand,
       cwd: judgeRepository,
@@ -3023,11 +3228,13 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
     const assessment = assessJudgeOutput(caseDefinition, judgeResponse);
 
     return {
+      actorHost,
       actorResponse,
       actorExecutionEvidence,
       caseId: caseDefinition.id,
       forbidden: assessment.forbidden,
       id: caseDefinition.id,
+      judgeHost,
       observed: assessment.observed,
       passed: assessment.isPassed && repositoryControlEvidence.violations.length === 0,
       rationale: assessment.rationale,
@@ -3052,6 +3259,7 @@ const main = async () => {
   const coverage = JSON.parse(await readFile(COVERAGE_PATH, 'utf8'));
   const {
     confirmationCaseId,
+    isMigrateCheckpointRequested,
     isPreflightRequested,
     isRecordRequested,
     isRecordCheckpointRequested,
@@ -3074,6 +3282,21 @@ const main = async () => {
   const caseSuiteDigest = createSemanticCaseSuiteDigest(caseDefinitions);
   const coverageDigest = createSemanticCoverageDigest(coverage, caseDefinitions);
   const cli = createSemanticCliIdentity(REPOSITORY_ROOT);
+  if (isMigrateCheckpointRequested) {
+    const migration = await migrateSemanticEvaluationCheckpoint({
+      currentBoundary: {
+        artifactDigest,
+        caseDefinitions,
+        cli,
+        coverageDigest,
+      },
+    });
+    const message = migration.isMigrated
+      ? `migrated checkpoint ${migration.sourceSha256}; recovery: ${migration.recoveryPath}`
+      : `checkpoint already uses schema ${SEMANTIC_CHECKPOINT_SCHEMA_VERSION}`;
+    process.stderr.write(`[semantic-evaluation] ${message}\n`);
+    return;
+  }
   if (isRecordCheckpointRequested) {
     const candidateEvidenceText = await readSemanticEvaluationCandidateEvidenceText();
     if (candidateEvidenceText === null) {
@@ -3119,6 +3342,7 @@ const main = async () => {
 
   const actorHost = identifyCodexEvaluationHost(actorCommand);
   const judgeHost = identifyCodexEvaluationHost(judgeCommand);
+  const hostContract = createCompatibleSemanticEvaluationHostContract(actorHost, judgeHost);
   const evidenceBoundary = {
     actorHost,
     artifactDigest,
@@ -3279,11 +3503,11 @@ const main = async () => {
   } else {
     const evaluatedAt = new Date().toISOString();
     const standaloneRecord = {
-      actorHost,
       artifact: { sha256: artifactDigest },
       artifactDigest,
       artifactSha256: artifactDigest,
       cases: results.map((result) => ({
+        actorHost: result.actorHost,
         actorResponse: result.actorResponse,
         actorExecutionEvidence: result.actorExecutionEvidence,
         caseDefinitionDigest: result.caseDefinitionDigest,
@@ -3291,6 +3515,7 @@ const main = async () => {
         expectedSatisfied: result.observed,
         forbiddenTriggered: result.forbidden,
         id: result.id,
+        judgeHost: result.judgeHost,
         passed: result.passed,
         rationale: result.rationale,
         repositoryControlEvidence: result.repositoryControlEvidence,
@@ -3299,6 +3524,7 @@ const main = async () => {
         workspaceChanges: result.workspaceChanges,
       })),
       caseSuiteDigest,
+      checkpointMigration: null,
       cli,
       confirmationPolicy: {
         requiredPassingConfirmations: 2,
@@ -3308,10 +3534,9 @@ const main = async () => {
       evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
       evaluatedAt,
       generatedAt: evaluatedAt,
-      host: actorHost,
-      judgeHost,
+      hostContract,
       results,
-      schemaVersion: 3,
+      schemaVersion: SEMANTIC_CHECKPOINT_SCHEMA_VERSION,
       skillDigest: artifactDigest,
     };
     process.stdout.write(`${JSON.stringify(standaloneRecord, null, 2)}\n`);

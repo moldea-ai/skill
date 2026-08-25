@@ -11,6 +11,35 @@ export type ISemanticEvaluationGroupId = keyof typeof SEMANTIC_EVALUATION_GROUPS
 export type ISemanticEvaluationCaseId = keyof typeof SEMANTIC_CASE_PRESENTATION;
 export type ISemanticEvaluationCaseStatus = 'failed' | 'passed' | 'pending' | 'recovered';
 
+// exact actor or judge host shown with one trial
+export interface ISemanticEvaluationHostModel {
+  model: 'gpt-5.6-terra';
+  name: string;
+  reasoningEffort: 'medium';
+  version: string;
+}
+
+// normalized trial provenance across immutable summary generations
+export interface ISemanticAttemptTrialModel {
+  actorHost: ISemanticEvaluationHostModel;
+  confirmationIndex: 1 | 2 | null;
+  evaluatedAt: string;
+  forbidden: string[];
+  judgeHost: ISemanticEvaluationHostModel;
+  kind: 'confirmation' | 'initial';
+  observed: string[];
+  passed: boolean;
+  rationale: string;
+}
+
+// normalized case history used by static attempt pages
+export interface ISemanticAttemptCaseModel {
+  confirmationStatus: 'not-required' | 'passed' | 'rejected' | 'required';
+  id: string;
+  status: 'failed' | 'passed' | 'recovered';
+  trials: ISemanticAttemptTrialModel[];
+}
+
 // semantic contracts consumed directly from the repository-owned evaluator
 export type ISemanticCriterion = ISemanticCriterionContract;
 export type ISemanticCaseDefinition = ISemanticCaseContract;
@@ -27,7 +56,7 @@ export interface ISemanticEvaluationCaseModel {
   scenario: string;
   status: ISemanticEvaluationCaseStatus;
   title: string;
-  trials: ISemanticAttemptRecord['cases'][number]['trials'];
+  trials: ISemanticAttemptTrialModel[];
 }
 
 // readable collection of related semantic cases
@@ -40,6 +69,7 @@ export interface ISemanticEvaluationGroupModel {
 
 // one immutable attempt with public routes to its summary and exact evidence
 export interface ISemanticAttemptModel {
+  cases: ISemanticAttemptCaseModel[];
   rawAttemptUrl: string;
   rawEvidenceUrl: string;
   result: ISemanticAttemptRecord;

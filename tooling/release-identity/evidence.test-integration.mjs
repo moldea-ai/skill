@@ -12,6 +12,8 @@ import { inspectReleaseEvidence } from './evidence.mjs';
 import { createSemanticCliIdentity } from './identity.mjs';
 import {
   createPortableSkillDigest,
+  createRepositoryControlEvidence,
+  createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
   createSemanticCoverageDigest,
   recordSemanticEvaluationAttempt,
@@ -75,6 +77,81 @@ const createRecordedPackages = (manifests) =>
 
 const createRecordedQualificationPackages = (publishedManifests) =>
   createRecordedPackages([...publishedManifests, TYPESCRIPT_MANIFEST]);
+
+const createSemanticCase = (id) => ({
+  expected: [
+    {
+      criterion: 'The actor satisfies the required release behavior.',
+      label: 'satisfy-release-behavior',
+    },
+  ],
+  forbidden: [
+    {
+      criterion: 'The actor contradicts the required release behavior.',
+      label: 'contradict-release-behavior',
+    },
+  ],
+  id,
+  input: {
+    developerDirection: `Complete the ${id} release scenario.`,
+    repositoryEvidence: [
+      {
+        claim: 'The developer supplied the release scenario directly.',
+        source: { kind: 'developer-direction' },
+      },
+    ],
+  },
+  operation: `evaluate-${id}`,
+  scenario: `The ${id} release scenario exercises semantic host provenance.`,
+});
+
+const createSemanticTrial = ({ caseDefinition, evaluatedAt, host }) => {
+  const repositoryState = {
+    gitDigest: '1'.repeat(64),
+    head: { commit: null, symbolicRef: 'refs/heads/main' },
+    indexDigest: '2'.repeat(64),
+    installedSkillDigest: '3'.repeat(64),
+    localConfigDigest: '4'.repeat(64),
+    refs: [],
+  };
+
+  return {
+    actorHost: host,
+    caseDefinitionDigest: createSemanticCaseDefinitionDigest(caseDefinition),
+    evaluatedAt,
+    forbidden: [],
+    id: caseDefinition.id,
+    judgeHost: host,
+    observed: ['satisfy-release-behavior'],
+    passed: true,
+    rationale: 'The required release behavior was observed.',
+    repositoryControlEvidence: createRepositoryControlEvidence(repositoryState, repositoryState),
+    scenarioEvidence: [
+      {
+        claim: caseDefinition.input.repositoryEvidence[0].claim,
+        observation: {
+          content: caseDefinition.input.developerDirection,
+          type: 'developer-direction',
+        },
+        source: caseDefinition.input.repositoryEvidence[0].source,
+      },
+    ],
+  };
+};
+
+const createPublicSemanticCase = (trial) => ({
+  actorHost: trial.actorHost,
+  caseDefinitionDigest: trial.caseDefinitionDigest,
+  evaluatedAt: trial.evaluatedAt,
+  expectedSatisfied: trial.observed,
+  forbiddenTriggered: trial.forbidden,
+  id: trial.id,
+  judgeHost: trial.judgeHost,
+  passed: trial.passed,
+  rationale: trial.rationale,
+  repositoryControlEvidence: trial.repositoryControlEvidence,
+  scenarioEvidence: trial.scenarioEvidence,
+});
 
 /** Creates one committed packages checkout for release-input freshness assertions. */
 const seedPackagesRepository = (root) => {
@@ -218,8 +295,32 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       'qualification/results/custom/custom/latest.json is missing qualification evidence.',
     ]);
 
-    const semanticCases = [];
-    const semanticCoverage = { schemaVersion: 1, claims: [] };
+    const semanticCases = [
+      createSemanticCase('release-host-a'),
+      createSemanticCase('release-host-b'),
+    ];
+    const semanticCoverage = {
+      schemaVersion: 1,
+      claims: [
+        {
+          description: 'Release evidence retains exact per-trial semantic host provenance.',
+          evidence: semanticCases.map(({ id }) => ({ id, kind: 'semantic-case' })),
+          id: 'release-host-provenance',
+          rationale: 'Both release cases exercise one stable host contract across CLI versions.',
+          sourcePaths: ['moldea/SKILL.md'],
+        },
+      ],
+    };
+    writeFile(
+      temporaryRoot,
+      'fixtures/conformance-cases.json',
+      `${JSON.stringify({ semanticCases })}\n`,
+    );
+    writeFile(
+      temporaryRoot,
+      'fixtures/semantic-evaluation-coverage.json',
+      `${JSON.stringify(semanticCoverage)}\n`,
+    );
     const skillDigest = createPortableSkillDigest(temporaryRoot);
     const semanticGeneratedAt = '2026-08-21T09:00:00.000Z';
     const semanticHost = {
@@ -228,18 +329,34 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       reasoningEffort: 'medium',
       version: 'codex-cli test',
     };
+    const updatedSemanticHost = {
+      ...semanticHost,
+      version: 'codex-cli updated',
+    };
+    const semanticHostContract = {
+      model: semanticHost.model,
+      name: semanticHost.name,
+      reasoningEffort: semanticHost.reasoningEffort,
+    };
+    const semanticResults = semanticCases.map((caseDefinition, index) =>
+      createSemanticTrial({
+        caseDefinition,
+        evaluatedAt: `2026-08-21T09:00:0${index}.000Z`,
+        host: index === 0 ? semanticHost : updatedSemanticHost,
+      }),
+    );
     const semanticCandidate = {
-      actorHost: semanticHost,
       artifactDigest: skillDigest,
       caseSuiteDigest: createSemanticCaseSuiteDigest(semanticCases),
+      checkpointMigration: null,
       cli: createSemanticCliIdentity(temporaryRoot),
       confirmations: [],
       coverageDigest: createSemanticCoverageDigest(semanticCoverage, semanticCases),
       evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
       generatedAt: semanticGeneratedAt,
-      judgeHost: semanticHost,
-      results: [],
-      schemaVersion: 3,
+      hostContract: semanticHostContract,
+      results: semanticResults,
+      schemaVersion: 4,
       updatedAt: semanticGeneratedAt,
     };
     const semanticCandidateText = `${JSON.stringify(semanticCandidate, null, 2)}\n`;
@@ -249,18 +366,23 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       recordedAt: '2026-08-21T09:00:01.000Z',
       resultsRoot: join(temporaryRoot, 'fixtures', 'semantic-evaluation-results'),
       stopReason: 'complete',
-      totalCaseCount: 0,
+      totalCaseCount: semanticCases.length,
     });
     writeFile(
       temporaryRoot,
       'fixtures/semantic-evaluation-result.json',
       `${JSON.stringify({
-        actorHost: semanticHost,
         artifact: { sha256: skillDigest },
         artifactDigest: skillDigest,
         artifactSha256: skillDigest,
-        cases: [],
-        caseHistories: [],
+        cases: semanticResults.map(createPublicSemanticCase),
+        caseHistories: semanticResults.map((result) => ({
+          confirmations: [],
+          id: result.id,
+          initial: result,
+          resolution: 'passed',
+        })),
+        checkpointMigration: null,
         skillDigest,
         caseSuiteDigest: semanticCandidate.caseSuiteDigest,
         cli: semanticCandidate.cli,
@@ -270,9 +392,9 @@ test('release evidence inspection requires fresh passing semantic and qualificat
         },
         coverageDigest: semanticCandidate.coverageDigest,
         evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
-        judgeHost: semanticHost,
-        results: [],
-        schemaVersion: 3,
+        hostContract: semanticHostContract,
+        results: semanticResults,
+        schemaVersion: 4,
         semanticAttemptId: semanticAttempt.attemptId,
       })}\n`,
     );
@@ -331,14 +453,43 @@ test('release evidence inspection requires fresh passing semantic and qualificat
 
     assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
 
+    const semanticResultPath = join(temporaryRoot, 'fixtures/semantic-evaluation-result.json');
+    const exactSemanticResult = JSON.parse(readFileSync(semanticResultPath, 'utf8'));
+    const mismatchedSemanticResult = structuredClone(exactSemanticResult);
+    mismatchedSemanticResult.caseHistories[1].initial.actorHost.version = 'codex-cli tampered';
+    writeFileSync(semanticResultPath, `${JSON.stringify(mismatchedSemanticResult)}\n`, 'utf8');
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
+        'fixtures/semantic-evaluation-result.json does not match the newest immutable passing semantic attempt.',
+      ),
+    );
+    writeFileSync(semanticResultPath, `${JSON.stringify(exactSemanticResult)}\n`, 'utf8');
+    assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
+
+    const mismatchedSelectedResult = structuredClone(exactSemanticResult);
+    for (const collectionName of ['cases', 'results']) {
+      mismatchedSelectedResult[collectionName][1].actorHost.version = 'codex-cli tampered';
+      mismatchedSelectedResult[collectionName][1].judgeHost.version = 'codex-cli tampered';
+    }
+    writeFileSync(semanticResultPath, `${JSON.stringify(mismatchedSelectedResult)}\n`, 'utf8');
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
+        'fixtures/semantic-evaluation-result.json does not contain every current passing case.',
+      ),
+    );
+    writeFileSync(semanticResultPath, `${JSON.stringify(exactSemanticResult)}\n`, 'utf8');
+    assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
+
     const laterFailedCandidate = {
       ...semanticCandidate,
       generatedAt: '2026-08-21T09:10:00.000Z',
       results: [
         {
+          actorHost: semanticHost,
           evaluatedAt: '2026-08-21T09:10:00.000Z',
           forbidden: [],
           id: 'later-failed-case',
+          judgeHost: semanticHost,
           observed: [],
           passed: false,
           rationale: 'The later attempt did not satisfy the required behavior.',
@@ -373,7 +524,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       recordedAt: '2026-08-21T09:00:01.000Z',
       resultsRoot: join(temporaryRoot, 'fixtures', 'semantic-evaluation-results'),
       stopReason: 'complete',
-      totalCaseCount: 0,
+      totalCaseCount: semanticCases.length,
     });
     assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
 

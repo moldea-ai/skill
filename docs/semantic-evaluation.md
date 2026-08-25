@@ -37,7 +37,7 @@ A case cannot pass when any protected control changes, even if the judge otherwi
 
 The committed [coverage map](https://github.com/moldea-ai/skill/blob/main/fixtures/semantic-evaluation-coverage.json) connects portable skill claims to semantic cases, deterministic suites, or qualification profiles. Every semantic case must appear in that map.
 
-Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, protocol, confirmation policy, and actor and judge hosts. A compatible local candidate checkpoints each completed trial. Input changes invalidate reuse. The canonical result exists only after all 48 cases pass initially or satisfy the bounded recovery policy.
+Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, protocol, confirmation policy, and fixed Codex, `gpt-5.6-terra`, medium host contract. Each completed trial records the exact actor and judge Codex CLI versions independently. A CLI version update alone does not discard compatible paid work, but a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. The canonical result exists only after all 48 cases pass initially or satisfy the bounded recovery policy.
 
 Every terminal recorded run is published under `fixtures/semantic-evaluation-results/attempts/` with a derived summary and the exact source checkpoint or result. `latest.json` tracks the newest attempt and the last passing attempt independently. Failed and incomplete history remains public but cannot satisfy the release gate. The canonical result is never assembled or edited by hand.
 
@@ -47,7 +47,7 @@ When inspection establishes plausible model variance, a separately authorized `-
 
 After correcting a source, fixture, or evaluator defect, or when a confirmation rejects the candidate, `--record --restart` begins a new full attempt. Restart removes only the ignored local checkpoint and preserves the published attempt history.
 
-An interrupted checkpoint remains resumable locally. `--record-checkpoint` can publish it without a model call, and `npm run eval:semantic:verify` validates every immutable evidence digest, summary, directory identity, and pointer.
+An interrupted checkpoint remains resumable locally. `--record-checkpoint` can publish it without a model call, and `npm run eval:semantic:verify` validates every immutable evidence digest, summary, directory identity, and pointer. A schema-3 local checkpoint can be converted once with `npm run eval:semantic -- --migrate-checkpoint`. The model-free migration validates current inputs, preserves the exact source in an ignored digest-named recovery file, attributes the former actor and judge identities to every existing trial, and writes schema 4 atomically. It does not publish evidence or invoke Codex.
 
 ## Run the free preflight
 
@@ -59,7 +59,7 @@ npm run eval:semantic:preflight
 
 This command validates the coverage map, materializes all 48 repositories, collects every declared evidence source, verifies protected repository controls, and confirms that every actor prompt is exactly the natural developer direction.
 
-The [semantic evidence page](/evidence/semantic/) presents the latest status, last passing attempt, complete history, provenance, methodology, coverage map, and current case criteria. Actor transcripts, runner-owned commands, and workspace artifacts remain available in each raw committed evidence artifact rather than being indexed as ordinary documentation.
+The [semantic evidence page](/evidence/semantic/) presents the latest status, last passing attempt, complete history, per-trial actor and judge versions, methodology, coverage map, and current case criteria. Actor transcripts, runner-owned commands, and workspace artifacts remain available in each raw committed evidence artifact rather than being indexed as ordinary documentation.
 
 ## Relationship to adapter qualification
 

@@ -11,6 +11,12 @@ const HOST = {
   reasoningEffort: 'medium',
   version: 'codex-cli test',
 };
+const UPDATED_HOST = { ...HOST, version: 'codex-cli updated' };
+const HOST_CONTRACT = {
+  model: HOST.model,
+  name: HOST.name,
+  reasoningEffort: HOST.reasoningEffort,
+};
 
 const createTrial = (id, passed, evaluatedAt) => ({
   evaluatedAt,
@@ -35,6 +41,24 @@ const createEvidence = (results, confirmations = []) => ({
   results,
   schemaVersion: 3,
   updatedAt: '2026-08-25T01:00:00.000Z',
+});
+
+const createCurrentEvidence = (results, confirmations = []) => ({
+  ...createEvidence([], []),
+  actorHost: undefined,
+  confirmations: confirmations.map((confirmation) => ({
+    actorHost: UPDATED_HOST,
+    judgeHost: UPDATED_HOST,
+    ...confirmation,
+  })),
+  hostContract: HOST_CONTRACT,
+  judgeHost: undefined,
+  results: results.map((result) => ({
+    actorHost: HOST,
+    judgeHost: HOST,
+    ...result,
+  })),
+  schemaVersion: 4,
 });
 
 test('semantic attempt summaries expose failures and pending cases', () => {
@@ -136,5 +160,61 @@ test('semantic attempt summaries reject stop reasons that contradict their evide
         totalCaseCount: 1,
       }),
     /stop reason case-failure does not match its case evidence/,
+  );
+});
+
+test('semantic attempt schema 2 preserves mixed per-trial host provenance', () => {
+  const initialFailure = createTrial('variable-case', false, '2026-08-25T00:30:00.000Z');
+  const confirmation = {
+    ...createTrial('variable-case', true, '2026-08-25T01:00:00.000Z'),
+    confirmationIndex: 1,
+  };
+  const attempt = createSemanticAttemptRecord({
+    evidence: createCurrentEvidence([initialFailure], [confirmation]),
+    evidenceKind: 'candidate',
+    evidenceSha256: 'e'.repeat(64),
+    recordedAt: '2026-08-25T01:00:01.000Z',
+    stopReason: 'operator-recorded',
+    totalCaseCount: 1,
+  });
+
+  assert.equal(attempt.schemaVersion, 2);
+  assert.deepEqual(attempt.hostContract, HOST_CONTRACT);
+  assert.equal(attempt.actorHost, undefined);
+  assert.equal(attempt.cases[0].trials[0].actorHost.version, HOST.version);
+  assert.equal(attempt.cases[0].trials[1].actorHost.version, UPDATED_HOST.version);
+  assert.equal(attempt.cases[0].trials[1].judgeHost.version, UPDATED_HOST.version);
+});
+
+test('semantic attempt schema 2 rejects missing or incompatible trial hosts', () => {
+  const trial = createTrial('passing-case', true, '2026-08-25T01:00:00.000Z');
+  const options = {
+    evidenceKind: 'candidate',
+    evidenceSha256: 'f'.repeat(64),
+    recordedAt: '2026-08-25T01:00:01.000Z',
+    stopReason: 'complete',
+    totalCaseCount: 1,
+  };
+
+  assert.throws(
+    () =>
+      createSemanticAttemptRecord({
+        ...options,
+        evidence: {
+          ...createCurrentEvidence([trial]),
+          results: [{ ...trial, actorHost: HOST, judgeHost: undefined }],
+        },
+      }),
+    /invalid trial host provenance/,
+  );
+  assert.throws(
+    () =>
+      createSemanticAttemptRecord({
+        ...options,
+        evidence: createCurrentEvidence([
+          { ...trial, actorHost: { ...HOST, reasoningEffort: 'high' } },
+        ]),
+      }),
+    /invalid trial host provenance/,
   );
 });

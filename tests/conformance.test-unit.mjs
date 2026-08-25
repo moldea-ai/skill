@@ -1201,7 +1201,7 @@ describe('source repository conformance', () => {
 
       const portableSkillDigest = createPortableSkillDigest();
       const coverage = JSON.parse(readRepositoryFile('fixtures/semantic-evaluation-coverage.json'));
-      assert.equal(result.schemaVersion, 3);
+      assert.equal(result.schemaVersion, 4);
       assert.deepEqual(result.confirmationPolicy, {
         requiredPassingConfirmations: 2,
         version: 1,
@@ -1247,13 +1247,14 @@ describe('source repository conformance', () => {
           'Release-version declarations changed without changing semantic skill content.',
         );
       }
-      assert.deepEqual(result.host, result.actorHost);
-      assert.equal(result.actorHost.model, 'gpt-5.6-terra');
-      assert.equal(result.judgeHost.model, 'gpt-5.6-terra');
-      assert.equal(result.actorHost.reasoningEffort, 'medium');
-      assert.equal(result.judgeHost.reasoningEffort, 'medium');
-      assert.ok(result.host.name.length > 0);
-      assert.ok(result.host.version.length > 0);
+      assert.deepEqual(result.hostContract, {
+        model: 'gpt-5.6-terra',
+        name: 'codex',
+        reasoningEffort: 'medium',
+      });
+      assert.equal(result.host, undefined);
+      assert.equal(result.actorHost, undefined);
+      assert.equal(result.judgeHost, undefined);
       assert.match(result.evaluatedAt, /^\d{4}-\d{2}-\d{2}T/);
       assert.deepEqual(
         result.cases.map((evaluationCase) => evaluationCase.id).sort(),
@@ -1263,6 +1264,12 @@ describe('source repository conformance', () => {
       for (const evaluationCase of result.cases) {
         const conformanceCase = semanticCases.get(evaluationCase.id);
         assert.equal(evaluationCase.passed, true);
+        assert.equal(evaluationCase.actorHost.model, 'gpt-5.6-terra');
+        assert.equal(evaluationCase.actorHost.reasoningEffort, 'medium');
+        assert.ok(evaluationCase.actorHost.version.length > 0);
+        assert.equal(evaluationCase.judgeHost.model, 'gpt-5.6-terra');
+        assert.equal(evaluationCase.judgeHost.reasoningEffort, 'medium');
+        assert.ok(evaluationCase.judgeHost.version.length > 0);
         assert.equal(
           evaluationCase.caseDefinitionDigest,
           createSemanticCaseDefinitionDigest(conformanceCase),
@@ -1591,9 +1598,11 @@ describe('source repository conformance', () => {
 
     assertMatchesEvery(readme, [
       /\.semantic-evaluation-candidate\.json/,
-      /checkpoint schema `3`/,
+      /checkpoint schema `4`/,
+      /--migrate-checkpoint/,
+      /Each trial separately records the exact actor and judge Codex CLI versions/,
       /confirmation policy `1`/,
-      /skipping completed successful or recovered cases/,
+      /skips completed successful or recovered cases/,
       /failed initial trial is never replaced or silently retried/,
       /--record --restart/,
       /--confirm <case-id> --record/,

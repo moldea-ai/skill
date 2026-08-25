@@ -27,6 +27,7 @@ const HOST = {
   reasoningEffort: 'medium',
   version: 'codex-cli test',
 } as const;
+const UPDATED_HOST = { ...HOST, version: 'codex-cli updated' } as const;
 
 const createTemporaryRoot = (): string => {
   const root = mkdtempSync(join(tmpdir(), 'moldea-semantic-website-'));
@@ -92,6 +93,42 @@ const createCandidate = (
   schemaVersion: 3,
   updatedAt,
 });
+
+const createCurrentCandidate = (
+  root: string,
+  caseDefinitions: ISemanticCaseDefinition[],
+  coverage: unknown,
+  evaluatedCaseIds: string[],
+  failedCaseId: string | null,
+  updatedAt: string,
+): Record<string, unknown> => {
+  const legacyCandidate = createCandidate(
+    root,
+    caseDefinitions,
+    coverage,
+    evaluatedCaseIds,
+    failedCaseId,
+    updatedAt,
+  );
+  return {
+    ...legacyCandidate,
+    actorHost: undefined,
+    hostContract: {
+      model: HOST.model,
+      name: HOST.name,
+      reasoningEffort: HOST.reasoningEffort,
+    },
+    judgeHost: undefined,
+    results: (legacyCandidate['results'] as Array<Record<string, unknown>>).map(
+      (result, index) => ({
+        actorHost: index === 0 ? HOST : UPDATED_HOST,
+        judgeHost: index === 0 ? HOST : UPDATED_HOST,
+        ...result,
+      }),
+    ),
+    schemaVersion: 4,
+  };
+};
 
 const recordCandidate = async (
   root: string,
@@ -177,6 +214,64 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.failedCaseCount).toBe(1);
     expect(model.pendingCaseCount).toBe(46);
     expect(model.latest.result.attemptId).not.toBe(model.lastPassing?.result.attemptId);
+  });
+
+  test('publishes mixed per-trial Codex versions from current attempt summaries', async () => {
+    const root = createTemporaryRoot();
+    const { cases, coverage } = loadInputs(root);
+    await recordCandidate(
+      root,
+      createCurrentCandidate(
+        root,
+        cases,
+        coverage,
+        [cases[0]!.id, cases[1]!.id],
+        cases[1]!.id,
+        '2026-08-25T13:00:00.000Z',
+      ),
+      cases.length,
+      'case-failure',
+    );
+
+    const model = loadSemanticEvaluationWebsiteModel(root);
+
+    expect(model.latest.result.schemaVersion).toBe(2);
+    expect(model.latest.cases[0]?.trials[0]?.actorHost.version).toBe(HOST.version);
+    expect(model.latest.cases[1]?.trials[0]?.actorHost.version).toBe(UPDATED_HOST.version);
+  });
+
+  test('rejects malformed current trial host provenance', async () => {
+    const root = createTemporaryRoot();
+    const { cases, coverage } = loadInputs(root);
+    await recordCandidate(
+      root,
+      createCurrentCandidate(
+        root,
+        cases,
+        coverage,
+        [cases[0]!.id],
+        cases[0]!.id,
+        '2026-08-25T13:00:00.000Z',
+      ),
+      cases.length,
+      'case-failure',
+    );
+    const latest = JSON.parse(
+      readFileSync(join(root, 'fixtures/semantic-evaluation-results/latest.json'), 'utf8'),
+    ) as { latestAttemptId: string };
+    const evidencePath = join(
+      root,
+      'fixtures/semantic-evaluation-results/attempts',
+      latest.latestAttemptId,
+      'evidence.json',
+    );
+    const evidence = JSON.parse(readFileSync(evidencePath, 'utf8')) as {
+      results: Array<Record<string, unknown>>;
+    };
+    evidence.results[0] = { ...evidence.results[0], judgeHost: undefined };
+    writeFileSync(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`, 'utf8');
+
+    expect(() => loadSemanticEvaluationWebsiteModel(root)).toThrow(/invalid trial host provenance/);
   });
 
   test('rejects changed immutable attempt evidence', async () => {

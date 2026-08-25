@@ -1191,7 +1191,7 @@
       "expected": [
         {
           "label": "reconsider-affected-state",
-          "criterion": "The actor response identifies the affected canonical state and explains why the behavior-preserving refactor leaves it accurate, consistently with the supplied scenario and workspace evidence."
+          "criterion": "The actor response reports both that the refactor preserves behavior or contracts and that canonical state was reconsidered and remains accurate or requires no update. The response need not name the internal manifest path or relationship; the supplied scenario and workspace evidence establish which canonical state was affected."
         },
         {
           "label": "report-no-canonical-change",
@@ -1205,7 +1205,7 @@
         },
         {
           "label": "skip-relevance-analysis",
-          "criterion": "The actor claims completion without identifying the affected canonical state or explaining why the behavior-preserving refactor leaves it accurate."
+          "criterion": "The actor claims completion without reporting both that behavior or contracts were preserved and that canonical state was reconsidered and remains accurate or requires no update."
         }
       ]
     },

@@ -945,9 +945,15 @@ describe('source repository conformance', () => {
     assert.ok(reconsiderCriterion);
     assert.ok(noChangeReportCriterion);
     assert.ok(skippedAnalysisCriterion);
-    assert.match(reconsiderCriterion.criterion, /actor response identifies/i);
-    assert.match(reconsiderCriterion.criterion, /affected canonical state/i);
-    assert.match(reconsiderCriterion.criterion, /scenario and workspace evidence/i);
+    assert.match(reconsiderCriterion.criterion, /actor response reports both/i);
+    assert.match(reconsiderCriterion.criterion, /preserves behavior or contracts/i);
+    assert.match(reconsiderCriterion.criterion, /canonical state was reconsidered/i);
+    assert.match(reconsiderCriterion.criterion, /need not name the internal manifest path/i);
+    assert.match(reconsiderCriterion.criterion, /scenario and workspace evidence establish/i);
+    assert.doesNotMatch(
+      reconsiderCriterion.criterion,
+      /moldea\/project\.md|affectedBy|\/src\/\*\*/,
+    );
     assert.doesNotMatch(reconsiderCriterion.criterion, /actor evaluates/i);
     assert.doesNotMatch(
       reconsiderCriterion.criterion,
@@ -957,8 +963,12 @@ describe('source repository conformance', () => {
     assert.match(noChangeReportCriterion.criterion, /no canonical change was required/i);
     assert.match(noChangeReportCriterion.criterion, /workspace evidence contains no canonical/i);
     assert.match(skippedAnalysisCriterion.criterion, /actor claims completion without/i);
-    assert.match(skippedAnalysisCriterion.criterion, /affected canonical state/i);
-    assert.match(skippedAnalysisCriterion.criterion, /explaining why/i);
+    assert.match(skippedAnalysisCriterion.criterion, /behavior or contracts were preserved/i);
+    assert.match(skippedAnalysisCriterion.criterion, /canonical state was reconsidered/i);
+    assert.doesNotMatch(
+      skippedAnalysisCriterion.criterion,
+      /moldea\/project\.md|affectedBy|\/src\/\*\*/,
+    );
   });
 
   test('assigns deterministic reporting to runner and actor evidence without weakening provider provenance', () => {

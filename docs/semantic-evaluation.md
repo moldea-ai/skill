@@ -65,6 +65,8 @@ Started commands, command text, command identifiers, and MCP events are discarde
 
 Path and envelope facts require the complete output to match their recognized shape. The focused runtime-test fact requires bounded non-empty output; the test source remains visible in workspace evidence so a passing command cannot substitute for meaningful coverage. Empty, unrecognized, mismatched, and oversized outputs retain only a byte count and an explicit disposition. They provide no result fact. A result-dependent criterion can pass only when the judge receives the relevant completed event, exit code, and projected fact. Actor prose cannot prove execution. Conversely, runner-owned evidence cannot prove what the actor reported. Criteria that require status or diagnostic reporting must be established by the actor response, while workspace and repository-control evidence establish resulting state. A concise response need not repeat the literal command when runner-owned evidence proves the exact invocation.
 
+Criteria require the actor to report material semantic conclusions and their reasons. They do not require internal manifest paths or relationship identifiers when sourced scenario and workspace evidence establish those details and repeating them would not improve the developer's decision.
+
 ## Run the free preflight
 
 Maintainers can verify all scenario contracts without model calls:

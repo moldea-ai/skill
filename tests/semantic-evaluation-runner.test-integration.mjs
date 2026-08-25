@@ -19,6 +19,10 @@ import { pathToFileURL } from 'node:url';
 import test from 'node:test';
 
 import { buildCodexEvaluationBwrapArguments } from '../tooling/codex-evaluation-host/index.mjs';
+import {
+  collectScenarioEvidence,
+  hasValidScenarioEvidence,
+} from '../tooling/semantic-evaluation/index.mjs';
 
 import {
   collectSkillArtifactEvidence,
@@ -79,6 +83,9 @@ const AMBIGUOUS_PLAN_CASE_DEFINITION = SEMANTIC_CASES.find(
 );
 const GIT_HELPER_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'read-only-git-helper-suppression',
+);
+const DIRTY_WORKING_TREE_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'evaluate-dirty-working-tree',
 );
 const PNPM_PNP_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'pnpm-pnp-local-cli-provider',
@@ -228,6 +235,77 @@ test('explicit correction scenario commits the stale product boundary baseline',
     assert.equal(status.stdout, '');
     assert.equal(committedProject.status, 0, committedProject.stderr);
     assert.match(committedProject.stdout, /authorizes payment decisions/);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('dirty evaluation scenario exposes its complete change scope and canonical relationship', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-dirty-evaluation-test-'));
+  assert.ok(DIRTY_WORKING_TREE_CASE_DEFINITION);
+
+  try {
+    const { readOnlyMounts, repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      DIRTY_WORKING_TREE_CASE_DEFINITION,
+    );
+    const statusBefore = spawnSync('git', ['status', '--short', '--untracked-files=all'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    assert.equal(statusBefore.status, 0, statusBefore.stderr);
+    assert.match(statusBefore.stdout, /^ D src\/deleted\.js$/mu);
+    assert.match(
+      statusBefore.stdout,
+      /^R  src\/renamed-before\.js -> src\/renamed-after\.js$/mu,
+    );
+    assert.match(statusBefore.stdout, /^M  src\/staged\.js$/mu);
+    assert.match(statusBefore.stdout, /^ M src\/unstaged\.js$/mu);
+    assert.match(statusBefore.stdout, /^\?\? src\/untracked\.js$/mu);
+
+    const evidence = await collectScenarioEvidence({
+      caseDefinition: DIRTY_WORKING_TREE_CASE_DEFINITION,
+      readOnlyMounts,
+      repositoryPath,
+    });
+    assert.equal(hasValidScenarioEvidence(evidence, DIRTY_WORKING_TREE_CASE_DEFINITION), true);
+
+    const workspaceEvidence = new Map(
+      evidence
+        .filter(({ source }) => source.kind === 'workspace-path')
+        .map(({ observation }) => [observation.path, observation]),
+    );
+    assert.deepEqual([...workspaceEvidence.keys()].sort(), [
+      'moldea/moldea.yaml',
+      'moldea/project.md',
+      'src/deleted.js',
+      'src/renamed-after.js',
+      'src/renamed-before.js',
+      'src/staged.js',
+      'src/unstaged.js',
+      'src/untracked.js',
+    ]);
+    assert.match(
+      workspaceEvidence.get('moldea/moldea.yaml').content,
+      /affectedBy:[\s\S]*\/src\/\*\*/u,
+    );
+    assert.match(
+      workspaceEvidence.get('moldea/project.md').content,
+      /Source files under `\/src\/\*\*`/u,
+    );
+    assert.equal(workspaceEvidence.get('src/deleted.js').type, 'missing');
+    assert.equal(workspaceEvidence.get('src/renamed-before.js').type, 'missing');
+    assert.equal(workspaceEvidence.get('src/renamed-after.js').type, 'file');
+    assert.match(workspaceEvidence.get('src/staged.js').content, /state = "staged"/u);
+    assert.match(workspaceEvidence.get('src/unstaged.js').content, /state = "unstaged"/u);
+    assert.match(workspaceEvidence.get('src/untracked.js').content, /state = "untracked"/u);
+
+    const statusAfter = spawnSync('git', ['status', '--short', '--untracked-files=all'], {
+      cwd: repositoryPath,
+      encoding: 'utf8',
+    });
+    assert.equal(statusAfter.status, 0, statusAfter.stderr);
+    assert.equal(statusAfter.stdout, statusBefore.stdout);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

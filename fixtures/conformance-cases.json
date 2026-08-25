@@ -1404,17 +1404,81 @@
               "kind": "git-state",
               "fact": "has-deleted-paths"
             }
+          },
+          {
+            "claim": "Canonical context declares that source changes can affect project context.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/moldea.yaml",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "Canonical project context describes the semantic role of the source tree.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/project.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The staged path contains an isolated source constant change.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/staged.js",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The unstaged path contains an isolated source constant change.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/unstaged.js",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The untracked path contains an isolated source constant.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/untracked.js",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The rename removes the original isolated source path.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/renamed-before.js",
+              "expectedType": "missing"
+            }
+          },
+          {
+            "claim": "The rename preserves the isolated source content at its destination.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/renamed-after.js",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The deleted isolated source path is absent.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/deleted.js",
+              "expectedType": "missing"
+            }
           }
         ]
       },
       "expected": [
         {
           "label": "scope-from-all-head-relative-changes",
-          "criterion": "The actor scopes from all head relative changes and then follows material semantic relationships."
+          "criterion": "The actor accounts for the complete independently evidenced staged, unstaged, untracked, renamed, and deleted HEAD-relative scope."
         },
         {
           "label": "expand-semantically",
-          "criterion": "The actor expands semantically only through material semantic relationships supported by evidence."
+          "criterion": "The actor follows the independently evidenced `/src/**` canonical relationship, assesses the relevant project context, and does not invent unrelated semantic expansion."
         },
         {
           "label": "report-no-writes",

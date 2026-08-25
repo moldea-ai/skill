@@ -1085,7 +1085,7 @@
         },
         {
           "label": "report-corrected-project-truth",
-          "criterion": "The actor response identifies the stale boundary it replaced and the current boundary it retained."
+          "criterion": "The actor response clearly states the corrected project boundary and resulting current truth. It need not separately repeat obsolete wording when the correction is unambiguous."
         }
       ],
       "forbidden": [

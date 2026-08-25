@@ -515,7 +515,8 @@ describe('portable Agent Skill contract', () => {
       /Do not merely acknowledge a handoff/i,
       /literal completed repository-local deterministic invocation, status, and diagnostics \(including none\)/i,
       /inspection passed.*insufficient/i,
-      /For a correction, name stale and current truth/i,
+      /For corrections, state the corrected boundary and current truth/i,
+      /obsolete wording need not be repeated/i,
       /Without explicit intent or existing adoption, do not initialize or persist; report why and that no files changed/i,
       /requirement referencing a planned path, read its current state and all criteria before editing; discovery is insufficient/i,
       /durable project truth changed or was newly established/i,
@@ -966,6 +967,18 @@ describe('source repository conformance', () => {
       'create-unrelated-runtime-or-agent',
       'rewrite-unrelated-correction-state',
     ]);
+    const explicitCorrectionReportCriterion = explicitCorrectionCase.expected.find(
+      ({ label }) => label === 'report-corrected-project-truth',
+    );
+    assert.ok(explicitCorrectionReportCriterion);
+    assert.match(
+      explicitCorrectionReportCriterion.criterion,
+      /clearly states the corrected project boundary and resulting current truth/i,
+    );
+    assert.match(
+      explicitCorrectionReportCriterion.criterion,
+      /need not separately repeat obsolete wording when the correction is unambiguous/i,
+    );
     assert.deepEqual(getSemanticCriterionLabels(ambiguousHandoffCase.expected), [
       'identify-material-ownership-conflict',
       'ask-focused-ownership-clarification',

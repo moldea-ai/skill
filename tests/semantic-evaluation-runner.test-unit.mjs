@@ -20,7 +20,9 @@ import {
   getSemanticToolingSource,
   mergeSemanticCandidateResult,
   normalizePortableSkillSemanticEvidence,
+  parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
+  shouldStopSemanticEvaluation,
   validateSemanticCandidateCompatibility,
   validateSemanticCaseDefinition,
   validateSemanticResultRecording,
@@ -235,6 +237,59 @@ test('actor prompt contains only the user scenario', () => {
   assert.equal(actorPrompt, CASE_DEFINITION.input.developerDirection);
   assert.doesNotMatch(actorPrompt, /expected-secret-label|forbidden-secret-label/);
   assert.doesNotMatch(actorPrompt, /expected secret behavior|forbidden secret behavior/);
+});
+
+test('semantic evaluation arguments constrain bounded failure stopping', () => {
+  assert.deepEqual(parseSemanticEvaluationArguments(['--record', '--stop-on-failure']), {
+    isPreflightRequested: false,
+    isRecordRequested: true,
+    isRestartRequested: false,
+    isStopOnFailureRequested: true,
+    requestedCaseId: undefined,
+  });
+  assert.deepEqual(
+    parseSemanticEvaluationArguments(['--record', '--restart', '--stop-on-failure']),
+    {
+      isPreflightRequested: false,
+      isRecordRequested: true,
+      isRestartRequested: true,
+      isStopOnFailureRequested: true,
+      requestedCaseId: undefined,
+    },
+  );
+  assert.throws(
+    () => parseSemanticEvaluationArguments(['--stop-on-failure']),
+    /requires a full semantic evaluation with --record/,
+  );
+  assert.throws(
+    () =>
+      parseSemanticEvaluationArguments([
+        '--case',
+        'blind-evaluation',
+        '--record',
+        '--stop-on-failure',
+      ]),
+    /requires a full semantic evaluation with --record/,
+  );
+  assert.throws(
+    () => parseSemanticEvaluationArguments(['--preflight', '--stop-on-failure']),
+    /preflight must run without recording, targeting, or other options/,
+  );
+});
+
+test('bounded semantic evaluation stops only after a failed case', () => {
+  assert.equal(
+    shouldStopSemanticEvaluation({ isStopOnFailureRequested: true, passed: false }),
+    true,
+  );
+  assert.equal(
+    shouldStopSemanticEvaluation({ isStopOnFailureRequested: true, passed: true }),
+    false,
+  );
+  assert.equal(
+    shouldStopSemanticEvaluation({ isStopOnFailureRequested: false, passed: false }),
+    false,
+  );
 });
 
 test('structured actor prompt excludes evaluation criteria', () => {

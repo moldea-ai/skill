@@ -1,261 +1,309 @@
-# Semantic evaluation convergence correction plan
+# Outcome-based correction reporting and bounded semantic rerun plan
 
 ## Status and planning basis
 
-This revision replaces the pinned-diagnostic plan after its Milestone 1 reached the approved evidence-backed stop outcome. The previous milestone sequence is invalid and must be regenerated before milestone-scoped implementation.
+This revision replaces the completed semantic-convergence plan after its fresh run reached the defined evidence-backed stop outcome. The previous plan's source correction was reviewed, committed, and pushed as commit `15ef3a1f559cb4ac678ea1c1cec187dc60d82059`. Its paid run then stopped at the first failed checkpoint, as required.
 
-The repository is currently on branch `qualifications` at commit `a6cb8d86ead9feccaf4ff9ec6a1e30ce5139432b`. Apart from this planning directory, the worktree has no uncommitted repository change. The ignored semantic candidate remains a valid 42/48 checkpoint for the current source:
+The repository is on branch `qualifications` at that commit with no tracked or untracked change. The ignored candidate is the only changed local runtime artifact:
 
-- candidate SHA-256: `19dd59e335997ae6d4673c7558f82d232323fe4442164c5be3b8a35d1963ef50`
+- candidate SHA-256: `277d169d9c4a4617bf2f822aff055f86ec286095dba8c278db80e6489b69f266`
 - committed result SHA-256: `24776c035f35a99c9a85492d40d2b5354fe02e48eb9d6e467267e0497d413134`
-- portable artifact digest: `41b4e8d4f42a508b4c0113f274b008db792b4a1ecc63989c833bfcc5fa8b1d9c`
+- portable artifact digest: `698a1309b89544d24d8f4188e0ed338c3b460dddf97ac2e88c14ea097c691169`
 - semantic case-suite digest: `7e404829632982fe672c6d3b28dfc86912c76261892580bd6fb2a30325d682b7`
 - semantic coverage digest: `d251af7f3fd13337e6f362b9a0c35e9fd605b006894f2f8e17fb3c1da1c2da57`
 - semantic protocol `12`, result schema `2`, and published `@moldea.ai/cli` `4.0.1`
 - actor and judge host identity: Codex CLI `0.149.0`, `gpt-5.6-terra`, `medium`
 
-The completed pinned-host diagnostic pass used the retained absolute Codex CLI `0.149.0` executable and produced these admissible results without changing the candidate or committed result:
+The candidate contains exactly six passes followed by the first failure. No later case was recorded:
 
-| Case | Outcome | Evidence |
-| --- | --- | --- |
-| `adopted-relevance-no-change` | Pass | The actor reconsidered canonical state, changed only the requested implementation, and explicitly reported why no canonical update was needed. |
-| `evaluate-dirty-working-tree` | Pass | The actor covered staged, unstaged, renamed, deleted, and untracked scope, preserved the dirty worktree, and made no writes. |
-| `skill-create-progressive-disclosure` | Pass | The actor created one valid concise skill, reused authoritative resources, preserved execution authority, and passed independent structural validation. |
-| `available-runtime-insufficient-behavioral-evidence` | Fail | The actor correctly preserved `runtime.id: custom` and rejected package-name and inventory inference, but did not state what reliable evidence would resolve the remaining behavioral uncertainty. |
+1. `unadopted-direct-context-handoff`: pass
+2. `unadopted-relevance-no-initialization`: pass
+3. `initialize-insufficient-context`: pass
+4. `initialize-partial-context`: pass
+5. `initialize-sufficient-context`: pass
+6. `adopted-direct-context-handoff`: pass
+7. `adopted-explicit-context-correction`: fail
 
-The hard stop prevented the final two diagnostics from running. Eight admissible model calls were used. Complete outputs remain outside the repository at `/tmp/moldea-semantic-pinned-01490-nGDVEiUh` for the lifetime of that temporary directory.
+Fourteen model calls were used. The source worktree stayed unchanged, the committed result was not replaced, and the candidate remains local and resumable only while all bound inputs stay unchanged.
 
-## Root-cause finding
+## Failure evidence and product decision
 
-The failing behavior is repeatable under the candidate-compatible host. Both the existing candidate attempt and the fresh pinned diagnostic omitted the same required information. This is not a host-identity, infrastructure, repository-control, or evaluator-input failure.
+The failed actor made the correct substantive change. It replaced the canonical sentence that said the invoice service authorized payment decisions with a sentence establishing extraction, validation, and no payment authority. It changed only `moldea/project.md`, ran the exact repository-local `moldea inspect --json`, received `valid` with no diagnostics, and preserved every protected repository control.
 
-The repository already owns the correct policy:
+The actor response was:
 
-- `moldea/SKILL.md` requires material evidence limitations to be paired with reliable resolving documentation, closed wiring, configuration, or tests.
-- `moldea/references/evaluate-and-reconcile.md` requires each runtime unknown to name the smallest reliable resolver, its artifact type, and its owner.
-- `moldea/references/agent-design.md` applies that rule specifically to invocation, instruction loading, capabilities, schemas, routing, and variables.
-- `README.md` and `docs/evaluate-reconcile-validate.md` document the same public behavior.
-- `available-runtime-insufficient-behavioral-evidence` already tests the correct contract and previously passed without changing its criterion.
+> Updated `moldea/project.md` to state that the service extracts and validates invoice data, and never authorizes payments. `moldea inspect --json` completed successfully (`valid`, no diagnostics).
 
-The problem is instruction routing and report salience, not a missing runtime policy. `moldea/SKILL.md` currently routes `agent-design.md` before creating or materially changing a runtime relationship, but it does not explicitly route read-only runtime-relationship evaluation there. The evaluation reference lists evidence-limit categories and then states the resolver rule as surrounding prose. The two repeated actors followed the high-level safety decision but returned a generic missing-evidence statement instead of a complete unknown-to-resolver mapping.
+The judge accepted correction authority, the canonical workspace change, and deterministic inspection. It failed only `report-corrected-project-truth` because the response did not separately restate the former false payment-authorization sentence.
 
-The correction must therefore make the existing rule operational at the point of use. It must not add an OpenAI-specific answer, weaken the judge, modify the scenario, duplicate a large runtime procedure in the entrypoint, or turn one observed wording failure into a rigid response template.
+The current contract requires the completion report to name stale and current truth. That requirement is more literal than the product needs and conflicts with the established goal of concise, useful reports. A report should make the corrected boundary and resulting truth clear, but it should not have to repeat obsolete false content when the correction is already unambiguous and independently visible in the workspace evidence.
+
+The approved product decision is therefore:
+
+- preserve explicit-correction authority and conflict safety unchanged
+- continue requiring the smallest correct canonical update
+- continue requiring removal of contradictory stale truth
+- continue requiring deterministic post-write evidence
+- require the actor response to identify the corrected boundary and state the resulting current truth
+- do not require verbatim or separately repeated stale wording when the correction is otherwise clear
+- continue rejecting a generic statement such as “context updated” that does not communicate the resulting boundary
+
+This is an outcome-based contract correction. It does not excuse an incorrect repository change, hidden stale content, broad rewrite, ceremonial clarification, missing validation evidence, or vague completion report.
 
 ## Objective
 
-Make runtime and agent-relationship evaluations reliably report every material behavioral unknown together with the smallest reliable resolving artifact, the artifact's owner, and the fact that artifact must establish, while preserving the current safe decision to avoid unsupported runtime changes.
+Align the portable maintenance contract, public documentation, deterministic assertions, and the existing explicit-correction semantic criterion with the approved concise outcome-based behavior. Add a native recorded-run option that stops after the first failed checkpoint so future bounded evaluations do not depend on an ad hoc process wrapper.
 
-Then generate one fresh, checkpointed 48-case semantic evaluation against the corrected portable artifact. This is the final authorized convergence attempt under this plan. It does not create another automatic diagnose-edit-rerun loop.
+Then generate one fresh 48-case semantic result from clean committed source. The previous six passes are diagnostic evidence only and cannot be reused because both the portable artifact and semantic case-suite digest will change.
 
 ## Desired final behavior
 
-For a read-only runtime evaluation with insufficient behavioral evidence, the coding agent must:
+For an adopted repository receiving an explicit correction, the coding agent must:
 
-1. Treat compact CLI compatibility data only as availability evidence.
-2. Avoid inferring runtime behavior from package names, inventory, or model knowledge.
-3. Preserve the existing runtime declaration when no behaviorally supported replacement is established.
-4. Identify each material unknown at the behavior level, such as invocation, instruction loading, capability exposure, schema handling, routing, or variable provision.
-5. Name the smallest reliable artifact that could resolve each unknown, identify who owns that artifact, and state what it must establish. The artifact may be source-owned target documentation, closed runtime wiring, provider configuration, or an integration test when appropriate.
-6. State that the evaluation is incomplete when a material unknown has no reliable resolver.
-7. Keep the evaluation read-only and explicitly report that no repository files changed.
+1. Treat the correction as sufficient Maintain authority without asking for ceremonial confirmation.
+2. Inspect the established canonical truth and classify the handoff as a current replacement.
+3. Apply the smallest coherent canonical change.
+4. Remove or replace contradictory current truth rather than appending a second incompatible claim.
+5. Preserve unrelated canonical state and avoid unrelated agents, runtimes, or relationships.
+6. Run the exact repository-local deterministic inspection after writing.
+7. Report the corrected project boundary, the resulting current truth, and the exact deterministic outcome.
 
-The final report may use natural prose or a concise list. No exact headings, sentence wording, special syntax, or case-specific answer is required.
+The response may be concise. It can say that the service now extracts and validates invoices and never authorizes payments without separately quoting the obsolete authorization sentence. It cannot merely say that documentation was updated, omit the resulting truth, or leave payment authorization presented as current behavior.
 
 ## In-scope files and ownership
 
 ### Portable skill
 
-- `moldea/SKILL.md`
-  - Extend the existing focused-reference routing so evaluating an agent or runtime relationship loads `references/agent-design.md`.
-  - Rework the existing evidence-limitation reporting bullet in place so the required unknown, resolver, owner, and resolving fact are a direct reporting contract.
-  - Consolidate nearby duplicate wording rather than appending another special-case rule.
+- `moldea/references/continuous-maintenance.md`
+  - Replace the literal “name stale and current truth” sentence with an outcome-based reporting rule.
+  - Require the corrected boundary and resulting current truth while allowing obsolete wording to remain omitted when the correction is clear.
+  - Preserve adoption, authority, conflict clarification, filtering, canonical routing, deterministic evidence, and no-churn behavior.
 
-- `moldea/references/evaluate-and-reconcile.md`
-  - Integrate the resolver requirement directly into the `Material evidence limitations` report category.
-  - Require the report to distinguish the unknown behavior, the smallest reliable artifact and owner, and what that artifact must prove.
-  - Preserve read-only evaluation, conditional conclusions, runtime inventory boundaries, and all five existing report categories.
+`moldea/SKILL.md`, `context-gathering.md`, activation metadata, and other portable references do not need changes. The entrypoint already routes knowledge-triggered maintenance to `continuous-maintenance.md`, and the failure did not expose an activation, authority, persistence, validation, or reference-loading gap.
 
-- `moldea/references/agent-design.md`
-  - Inspect after the entrypoint and evaluation-reference edits.
-  - Change only the smallest existing runtime-evidence sentence if needed to keep terminology consistent and avoid conflicting or duplicate instructions. Do not add another procedure or example unless the final wording would otherwise be ambiguous.
+### Semantic contract
 
-### Deterministic behavioral contracts
+- `fixtures/conformance-cases.json`
+  - Keep `adopted-explicit-context-correction` as the same natural request, repository seed, operation, expected labels, and forbidden labels.
+  - Change only the `report-corrected-project-truth` criterion so it evaluates whether the response clearly states the corrected boundary and resulting current truth.
+  - State that repeating the obsolete claim verbatim is unnecessary when the correction remains unambiguous.
+  - Preserve the workspace-owned correction criterion as the authority for actual stale-content removal.
 
 - `tests/conformance.test-unit.mjs`
-  - Update the existing focused assertions to prove that runtime-relationship evaluation routes to `agent-design.md`.
-  - Verify the report contract retains all three resolver components: the unknown behavior, the smallest reliable artifact and owner, and the fact it must establish.
-  - Preserve the existing tests for inventory-only availability, runtime preservation, conditional dynamic-wiring conclusions, and explicit no-write reporting.
+  - Replace the literal stale-and-current wording assertion with focused assertions for corrected-boundary reporting, resulting current truth, and permission to omit obsolete wording.
+  - Add a focused assertion for the revised `report-corrected-project-truth` criterion so future edits cannot weaken it into a generic completion claim.
+  - Preserve all activation, authority, ambiguity, canonical-change, validation, and forbidden-behavior assertions.
 
-No new semantic case is required. `available-runtime-insufficient-behavioral-evidence` is the exact regression case, and changing or duplicating it would weaken comparison with the two observed failures.
+The semantic coverage map remains unchanged. The same case still covers the same activation/adoption and knowledge-quality claims. The case definition digest and complete suite digest will change because an evaluator criterion changes; the coverage-file digest remains unchanged.
 
 ### Public state-bearing documentation
 
 - `README.md`
-  - Synchronize the concise evaluation behavior description with the strengthened unknown-to-resolver report contract.
-  - Do not add operational detail already owned by the semantic-evaluation guide.
+  - Replace the statement that a report names both the replaced claim and current truth with concise corrected-boundary and resulting-truth language.
 
-- `docs/evaluate-reconcile-validate.md`
-  - Explain in public language that a material runtime evidence limitation identifies what remains unknown, the resolving artifact and owner, and what the evidence must establish.
-  - Preserve the current short workflow examples and operation boundaries.
+- `docs/continuous-maintenance.md`
+  - Make the same public contract change.
+  - Preserve all examples, format-independent knowledge handling, clarification behavior, and write boundaries.
 
-No website component, route, layout, styling, metadata, search mapping, or semantic presentation change is needed. The website renders the directly affected documentation and the existing case metadata already describes the correct behavior.
+No website component or metadata change is required. The existing case title “Applies an explicit context correction” remains accurate, and the website derives current criteria from the committed fixture and result.
+
+### Bounded semantic-runner operation
+
+- `tests/semantic-evaluation-runner.mjs`
+  - Add `--stop-on-failure` for full recorded runs.
+  - Require it to be used with `--record` and reject combinations with `--case` or `--preflight`.
+  - After a failed case has been merged into the candidate and written atomically, stop before starting the next case.
+  - Preserve the candidate, report the remaining pending or failing count, and exit nonzero.
+  - Leave ordinary full runs, targeted diagnostics, targeted recording, restart, resume, promotion, and successful 48-case behavior unchanged.
+
+- `tests/semantic-evaluation-runner.test-unit.mjs`
+  - Add focused option-contract tests for accepted and rejected combinations.
+  - Test the loop decision through a small exported pure decision boundary used by the runner, proving that pass continues, ordinary failure preserves current behavior, and stop-on-failure halts only after failure.
+  - Avoid duplicating candidate persistence tests already owned by integration coverage.
+
+- `README.md` and `docs/semantic-evaluation.md`
+  - Document the option as the supported bounded-run mode.
+  - State that the checkpoint is written before stopping and a later run requires fresh authorization.
+  - Keep ordinary resumable and targeted-run documentation intact.
+
+The option changes orchestration, not evidence meaning. It does not require a result-schema or semantic-protocol change because actor input, judge input, case assessment, recorded artifacts, compatibility binding, and promotion semantics remain identical.
 
 ## Explicit exclusions
 
 This plan does not authorize:
 
-- changing `fixtures/conformance-cases.json`, its expected or forbidden criteria, or the natural actor prompt
-- changing `fixtures/semantic-evaluation-coverage.json`
-- weakening, broadening, or rewording the judge contract to accept the observed incomplete response
-- adding an OpenAI-specific response, fixture hint, hidden actor context, or evaluator answer to the portable skill
-- changing runtime-selection semantics, supported adapters, compatibility metadata, CLI identity, release version `3.1.0`, `agents/openai.yaml`, activation paths, invocation policy, dependencies, or portable structure
-- changing the semantic runner, model, reasoning effort, sandbox, relay, timeout, protocol, result schema, cache, checkpoint, or promotion behavior
-- adding another semantic scenario merely to increase case count
-- manually editing or deleting the ignored candidate or committed result
-- running a paid standalone diagnostic before the fresh full evaluation
-- targeted retries, source edits, or a second fresh full evaluation after a behavioral failure
-- qualification runs, qualification-result changes, release checks, publication, tagging, or release creation
-- commits or pushes except through a later explicit `repo push` command
+- weakening correction authority, conflict handling, canonical truth, validation, or repository-control requirements
+- accepting a generic response that does not state the resulting project boundary
+- changing the developer direction, scenario seed, operation, evidence sources, expected labels, or forbidden labels
+- changing any other semantic criterion or case
+- adding a new scenario or changing the 48-case count
+- exposing evaluator criteria to actors
+- changing judge prompts, assessment logic, model, reasoning effort, timeout, sandbox, relay, host identity, result schema, semantic protocol, cache, or candidate compatibility rules
+- changing `@moldea.ai/cli` `4.0.1`, dependencies, package-lock state, release `3.1.0`, `agents/openai.yaml`, activation paths, or portable structure
+- changing qualification profiles, qualification evidence, the committed semantic result by hand, or website UI
+- reusing any pass from the incompatible 7-result candidate after source or suite changes
+- running a targeted retry to replace the observed failure
+- committing, pushing, running paid evaluation, publishing, tagging, or releasing without the later explicit commands and approvals
 
 ## Implementation strategy
 
-### 1. Preserve the evidence baseline
+### 1. Preserve the failed evidence baseline
 
-Before editing source:
+Before editing:
 
 - record branch, `HEAD`, Git operation state, and complete non-excluded worktree status
-- record the existing candidate and committed-result hashes
-- record current portable word and byte counts
-- preserve the diagnostic artifact location and the exact repeated actor responses and judge rationales as review evidence
-- confirm no runner-bound source changed since the diagnostic
+- record the candidate and committed-result hashes
+- record the candidate's exact seven-case sequence, six passes, first failure, actor response, workspace change, repository-control evidence, observed and forbidden labels, and judge rationale
+- record the current portable artifact, suite, coverage, CLI, protocol, schema, actor, and judge identities
+- record current word and byte counts
 
-The ignored candidate remains untouched during source implementation. Its incompatibility after the portable edit is expected and will be handled later only by the runner's explicit full-run restart path.
+Do not edit, delete, or manually migrate the ignored candidate during implementation. It remains the evidence explaining the contract change until the later runner-owned restart replaces it.
 
-### 2. Strengthen routing without broadening activation
+### 2. Replace the literal portable reporting rule
 
-Edit the existing `Load focused guidance` rule in `moldea/SKILL.md` so read-only evaluation of an agent, its runtime relationship, or its material behavioral contracts loads `agent-design.md`. This changes progressive disclosure after activation; it does not add a new activation path or make generic evaluation activate `moldea`.
+Change only the correction-report sentence in `continuous-maintenance.md`. The wording must require the response to make the correction and current truth understandable without prescribing exact headings, a response template, or repetition of known false content.
 
-The rule must remain discriminating. It should not require loading the full agent-design reference for unrelated project-context evaluation, generic validation, or Agent Skill-only work.
+The rule must remain strong enough to reject:
 
-### 3. Make evidence limitations operational at report time
+- “Updated project context” with no resulting truth
+- a response that reports only validation status
+- a workspace that appends current truth while retaining a contradictory stale claim
+- a response that hides an unresolved conflict behind a claimed correction
 
-Rewrite the existing reporting guidance rather than adding parallel prose:
+It must accept a concise response that names the affected boundary and resulting truth, supported by the independently captured workspace change and deterministic inspection.
 
-- In `moldea/SKILL.md`, make each material runtime limitation report the unknown, resolving artifact and owner, and what the resolver must establish.
-- In `moldea/references/evaluate-and-reconcile.md`, make that mapping part of the `Material evidence limitations` category itself, then retain one concise rule explaining acceptable resolver classes and incomplete-evaluation behavior.
-- In `moldea/references/agent-design.md`, retain the domain-specific inventory boundary and resolver classes. Align terminology only if the other edits would otherwise leave two subtly different contracts.
+### 3. Align the existing case rather than adding another one
 
-The instructions must distinguish a resolver from a generic list of absent inputs. Saying only that documentation, wiring, or tests are missing is insufficient. The report must connect the evidence to the behavioral question it resolves. It must not invent a repository path, provider guarantee, owner identity, or expected test outcome.
+Update only `report-corrected-project-truth`. The criterion should judge the response and runner-owned evidence together according to their existing ownership:
 
-### 4. Preserve prompt economy
+- the response communicates the corrected boundary and resulting current truth
+- `maintain-corrected-product-boundary` continues to prove the actual canonical replacement
+- `preserve-stale-payment-authority` continues to fail any workspace retaining the false behavior
+- `rerun-correction-inspection` continues to require attributable deterministic evidence
 
-The correction must replace or consolidate existing wording. Baseline portable size is:
+Do not make the criterion match the observed sentence. It must remain format-independent and useful for corrections involving ownership, approval, responsibility, policy, lifecycle, or other durable project boundaries.
 
-- `moldea/SKILL.md`: 1,917 words and 15,364 bytes
-- complete `moldea/` Markdown tree: 13,913 words and 107,165 bytes
+### 4. Add a native bounded-run stop
+
+Extend the existing runner argument handling with one explicit option. Keep parsing and the loop decision small and directly testable. The stop must occur only after the completed failed result has been merged and atomically written. It must happen before input validation or actor startup for the next case.
+
+The option must not delete the candidate, promote incomplete evidence, convert failure to success, or silently resume later. A subsequent compatible resume is a separate paid action and still requires developer authorization.
+
+### 5. Preserve prompt economy
+
+Current portable baselines are:
+
+- `moldea/SKILL.md`: 1,917 words and 15,363 bytes
+- `moldea/references/continuous-maintenance.md`: 1,450 words and 11,088 bytes
+- complete `moldea/` Markdown tree: 13,913 words and 107,211 bytes
 
 After implementation:
 
-- `moldea/SKILL.md` must not exceed 1,917 words
+- `moldea/SKILL.md` must remain byte-identical
+- `continuous-maintenance.md` must not exceed 1,450 words
 - the complete portable Markdown tree must not exceed 13,913 words
-- no new portable file, reference, script, asset, dependency, or metadata field may be added
-- the implementation report must include before-and-after word and byte counts for each changed portable file and the complete portable Markdown tree
+- no portable file, resource, dependency, metadata field, or activation path may be added
+- the implementation report must include before-and-after counts
 
-This constraint prevents a repeated-evaluation fix from increasing paid runtime context. If clarity requires adding a term, remove equivalent duplicated wording in the same affected guidance instead of deleting an unrelated contract.
+### 6. Synchronize public documentation and focused tests
 
-### 5. Synchronize deterministic assertions and public documentation
+Update the root README and continuous-maintenance document in the same change as the portable contract. Update only the directly affected sentences and bounded-run instructions. Preserve the established public voice and avoid requiring one specific completion sentence.
 
-Update only the existing focused conformance assertions that own reference routing and evaluation reporting. Do not create wording snapshots or assert an exact sentence. Assertions should prove the durable semantic components and allow later concise rephrasing.
+Update unit coverage at the semantic contract rather than snapshotting the complete prose. Existing integration coverage already proves the explicit-correction repository seed and clean Git baseline. Existing candidate integration coverage owns atomic checkpoint persistence; do not duplicate it.
 
-Update `README.md` and `docs/evaluate-reconcile-validate.md` in the same source change. Public prose must remain concise and format-independent. `docs/semantic-evaluation.md`, the coverage map, website case titles, and website code remain unchanged because the suite and presentation contract do not change.
+### 7. Verify the source and runner change without model calls
 
-### 6. Verify the source correction without model calls
+Run formatting only through applicable repository-owned boundaries. The root has no Prettier configuration or formatting script, so do not apply the website or qualification formatter to root files. Use `git diff --check` for the root change.
 
-Run formatting on only the changed Markdown and test files through the repository's existing Prettier boundary when available. Then run, in order:
+Run:
 
 ```bash
 python3 /home/jesusgraterol/.codex/skills/.system/skill-creator/scripts/quick_validate.py moldea
 npm run test:unit
 npm run test:integration
 npm test
-npm run docs:check
 npm run eval:semantic:preflight
+npm run docs:check
 ```
 
 Also verify:
 
-- all 48 semantic cases still exist and preflight successfully
-- `available-runtime-insufficient-behavioral-evidence` retains its exact prompt, expected criteria, and forbidden criteria
-- semantic case-suite and coverage digests remain unchanged
-- only the portable artifact digest changes among semantic evidence inputs
+- all 48 semantic case IDs remain present and uniquely covered
+- the explicit-correction direction, scenario seed, operation, evidence sources, labels, and forbidden criteria remain unchanged
+- only `report-corrected-project-truth` changes within that case
+- the suite digest changes and coverage-file digest remains unchanged
+- the portable digest changes only because `continuous-maintenance.md` changes
+- `--stop-on-failure` rejects unsupported combinations and stops after checkpoint persistence
 - no test file enters the portable artifact or production website output
-- no new dependency, generated source, activation behavior, release identity, or website UI change exists
+- no dependency, lockfile, release identity, protocol, schema, activation, qualification, or website UI change exists
 - protected coding instructions remain unchanged and already cover the relevant durable guidance
 
-`npm run release:check` is intentionally excluded at this point because the portable change invalidates current semantic and qualification evidence. Weakening freshness checks is forbidden.
+Before fresh evidence, `npm run test:unit` and `npm run docs:check` are expected to retain only semantic-result freshness failures because the committed result belongs to schema `1`, the old portable artifact, and the old suite. Any independent failure blocks source readiness.
 
-### 7. Stop for source review and clean commit
+`npm run release:check` remains excluded because both semantic and qualification evidence are stale by design.
 
-After source verification, inspect the complete diff and stop at a review checkpoint. The developer should inspect:
+### 8. Stop for source review and clean commit
 
-- whether reference loading is limited to actual agent and runtime evaluation
-- whether the resolver contract is useful beyond the OpenAI fixture
-- whether the final wording requires an unknown, artifact, owner, and resolving fact without imposing an exact response format
-- whether runtime selection and no-write behavior remain unchanged
+Review the complete source diff, with particular attention to:
+
+- whether the revised criterion still rejects vague completion reporting
+- whether actual stale-content removal remains independently enforced
+- whether the contract works for project boundaries beyond the invoice example
+- whether concise reporting is allowed without losing material truth
+- whether native failure stopping occurs after checkpointing and before another case starts
+- whether candidate, promotion, and resume behavior remain unchanged
 - portable word and byte counts
-- unchanged scenario and judge contracts
-- documentation synchronization and complete source diff
+- exact unchanged scenario surfaces
 
-A separate `review` command should establish readiness, followed by a separate `repo push` command to commit and push the source. The paid run must not begin until the source commit is clean and its exact commit and artifact digest are recorded.
+A separate `review` must establish readiness. A separate `repo push` must commit and push the source before paid execution. The ignored failed candidate remains local until the clean committed source and new suite make it incompatible.
 
-### 8. Run one fresh checkpointed semantic evaluation
+### 9. Start one fresh bounded semantic evaluation
 
-After the corrected source is committed and the developer gives fresh explicit paid authorization, establish:
+After the corrected source is committed and the developer gives fresh explicit authorization for up to 96 model calls:
 
-- clean repository state at the exact source commit
-- exact portable artifact, case-suite, coverage, CLI, lockfile, protocol, and schema identities
-- retained absolute Codex CLI `0.149.0` and companion paths, versions, executable permissions, and SHA-256 hashes
-- actor and judge identity `gpt-5.6-terra` at `medium`
-- successful 48-case free preflight
+- require a clean repository at the exact source commit
+- verify the exact portable, suite, coverage, CLI, lockfile, protocol, schema, host executable, companion executable, model, and reasoning identities
+- run the free 48-case preflight
+- replace the incompatible candidate only through `--record --restart`
+- use the pinned absolute Codex CLI `0.149.0`
+- enable `--stop-on-failure`
 
-Then start exactly one fresh recorded candidate through the runner's supported restart operation:
+The command will be:
 
 ```bash
-MOLDEA_EVAL_ACTOR_COMMAND_JSON='["/home/jesusgraterol/.codex/packages/standalone/releases/0.149.0-x86_64-unknown-linux-musl/bin/codex","exec","--ignore-user-config","--ignore-rules","--ephemeral","--skip-git-repo-check","--dangerously-bypass-approvals-and-sandbox","-c","shell_environment_policy.inherit=none","-"]' npm run eval:semantic -- --record --restart
+MOLDEA_EVAL_ACTOR_COMMAND_JSON='["/home/jesusgraterol/.codex/packages/standalone/releases/0.149.0-x86_64-unknown-linux-musl/bin/codex","exec","--ignore-user-config","--ignore-rules","--ephemeral","--skip-git-repo-check","--dangerously-bypass-approvals-and-sandbox","-c","shell_environment_policy.inherit=none","-"]' npm run eval:semantic -- --record --restart --stop-on-failure
 ```
 
-The fresh execution may make at most 96 new model calls: one actor and one independent judge for each of 48 cases. It uses the existing five-minute per-process timeout, Bubblewrap isolation, restricted relay, read-only judge workspace, protected Git and installed-skill surfaces, and atomic per-case candidate writes.
+The run may make at most 96 calls. It uses one actor and one independent judge per completed case, five-minute process timeouts, atomic checkpoints, Bubblewrap isolation, restricted egress, protected Git and skill surfaces, and a read-only judge workspace.
 
-Do not run a standalone paid diagnostic first. The existing regression case and deterministic contract checks are sufficient to justify the correction, and another diagnostic would add cost without becoming release evidence.
+Do not run a standalone diagnostic or targeted retry first. The failed candidate already established the contract problem, and its evidence informed this correction.
 
-If the process is externally interrupted, preserve the compatible candidate. Do not automatically resume. A later explicit continuation may run the same command without `--restart`, provided all bound inputs and executable hashes remain identical and the remaining approved call budget is sufficient. Already passing cases are skipped. A partially completed case may require another actor and judge pair; those calls count against the 96-call limit.
+### 10. Apply the final stop rule
 
-### 9. Apply a final convergence stop rule
+If any case fails or an identity, infrastructure, or call-budget problem occurs:
 
-If any completed case fails behaviorally during the fresh run:
+- preserve the checkpoint and stop before the next case
+- do not retry, resume, edit source, change criteria, switch hosts, or restart
+- inspect the complete failed evidence
+- report the terminal outcome
 
-- preserve the candidate and stop immediately
-- do not rerun the case, continue to later cases, change source, change evaluator criteria, switch Codex versions, or restart
-- inspect the exact actor response, execution events, workspace, repository controls, expected and forbidden observations, and judge rationale
-- classify whether the failure repeats a proven gap, contradicts a deterministic contract, or indicates evaluator instability
-- report the result as the terminal outcome of this plan
+Another failure does not authorize another correction loop. Any further change requires a separate developer decision based on the complete evidence.
 
-An infrastructure or identity failure also stops immediately. Resume requires a later explicit instruction and unchanged compatible inputs; it is not a source-correction opportunity.
+If the process is interrupted without a completed failure, preserve the compatible checkpoint. Resuming still requires a later explicit instruction and unchanged bound inputs. Already passing cases remain checkpointed, while a partially completed case may consume another actor and judge pair.
 
-This hard stop prevents another open-ended instruction-patching loop. Any decision to redesign the evaluator or attempt another source revision requires a new plan based on the complete final candidate, not an automatic continuation of this plan.
+### 11. Verify successful promotion
 
-### 10. Verify successful promotion
+Only if all 48 cases pass, allow atomic promotion and candidate removal. Then verify:
 
-Only if all 48 cases pass, allow the runner to promote the candidate atomically to `fixtures/semantic-evaluation-result.json` and remove the candidate. Then:
+- exactly 48 unique passing cases
+- the explicit-correction case passes because the response communicates the corrected boundary and current truth while the workspace removes stale behavior
+- the runtime-evidence regression case still passes under the previously strengthened resolver contract
+- no forbidden outcome or repository-control violation exists
+- schema, protocol, artifact, suite, coverage, CLI, lockfile, actor, judge, model, effort, and host identities are exact
+- no secrets, credentials, private host paths, malformed artifacts, or unexpected repository content appear
+- the website semantic loader accepts the promoted result
 
-- verify exactly 48 unique passing cases
-- inspect the corrected runtime-evidence case for the intended unknown-to-resolver behavior
-- inspect every actor response, judge rationale, workspace change, repository-control record, and forbidden observation
-- confirm schema `2`, protocol `12`, exact portable, suite, coverage, CLI, lockfile, actor, judge, model, effort, and host identities
-- verify token usage, durations, and result timestamps
-- search the result for secrets, credentials, private host paths, malformed artifacts, and unexpected repository content
-- confirm the website semantic loader accepts the promoted evidence
-- rerun:
+Run:
 
 ```bash
 npm run test:unit
@@ -265,94 +313,93 @@ npm run docs:check
 npm run website:check
 ```
 
-Do not run qualification or `release:check`. The changed portable digest requires fresh qualification evidence in a later separately planned and authorized phase.
+Do not run qualification or `release:check`. The changed portable digest requires fresh Custom and adapter qualification evidence in a later separately planned and authorized phase.
 
-Stop with the generated result uncommitted. A separate `review` and `repo push` are required before any qualification work.
+Stop with the generated semantic result uncommitted. A separate `review` and `repo push` are required.
 
 ## Data flow and ownership
 
 ```text
-portable source correction
-  moldea/SKILL.md
-    -> routes runtime evaluation to agent-design.md
-    -> requires complete evidence-limitation reporting
-  moldea/references/evaluate-and-reconcile.md
-    -> owns evaluate report categories and resolver mapping
-  moldea/references/agent-design.md
-    -> owns runtime-specific evidence and selection policy
-              |
-              v
-existing unchanged 48-case semantic suite
-              |
-              v
-pinned Terra actor workspace
-              |
-              v
-independent pinned Terra judge workspace
-              |
-              v
-atomic compatible candidate checkpoint
-              |
-              v only after 48/48 pass
-committed semantic result candidate for review
+explicit developer correction
+        |
+        v
+portable maintenance contract
+  -> authorizes replacement
+  -> requires corrected boundary and current truth
+  -> does not require obsolete wording repetition
+        |
+        v
+semantic explicit-correction case
+  -> actor sees only natural direction
+  -> workspace proves canonical replacement
+  -> deterministic event proves inspection
+  -> judge checks outcome-based response criterion
+        |
+        v
+recorded runner with --stop-on-failure
+  -> writes each checkpoint atomically
+  -> stops before the next case after failure
+  -> promotes only after 48/48 pass
 ```
 
-The portable skill owns behavior. The semantic fixture owns the observable regression contract. The runner owns isolation, identity binding, checkpointing, and promotion. Public documentation explains the behavior but does not define a parallel implementation. Qualification remains the owner of real published adapter composition and is outside this plan.
+The portable reference owns behavior. The semantic fixture owns the observable evaluation contract. Runner-owned workspace and execution evidence prove the change independently of the actor's prose. The runner owns checkpoint, stop, resume, and promotion behavior. Public documentation explains the same contract. Qualification remains outside this plan.
 
-## Security, integrity, and recovery
+## Security, integrity, compatibility, and recovery
 
-- The correction adds no execution authority, network behavior, secret handling, dependency, or hidden persistence path.
-- Evaluation remains strictly read-only.
-- The actor continues to treat repository content as untrusted evidence.
-- The fixed absolute Codex executable prevents a moving global symlink from changing host identity mid-run.
-- Binary and companion hashes are checked before paid execution and after any interruption.
-- The old candidate is replaced only through `--record --restart` after source review, clean commit, preflight, and fresh paid authorization.
-- The committed passing result remains untouched until atomic 48/48 promotion.
-- Candidate checkpoint writes preserve completed cases across external interruption.
-- No automatic retry can exceed the approved model-call budget.
-- No source correction or evaluator change may occur while retaining evidence from an incompatible portable digest.
-- Temporary diagnostic artifacts remain outside the repository and are not release evidence.
+- The contract correction adds no execution authority, network behavior, dependency, secret handling, or persistence path.
+- Explicit corrections still require developer-established replacement meaning.
+- Unexplained conflicts still stop writes and require one focused question.
+- The actor still cannot modify Git controls or the installed skill.
+- The judge remains independent and read-only.
+- The native stop option cannot convert failure to passing evidence or promote an incomplete candidate.
+- The failed 7-result candidate is never manually edited or partially reused after its bound inputs change.
+- The committed passing result remains untouched until a complete fresh run promotes atomically.
+- No backwards-compatibility path is needed because this is unreleased development evidence and the user explicitly prefers one clean current contract.
+- Rollback before paid execution is the ordinary source revert of this cohesive change. After paid execution, evidence bound to the reverted inputs cannot be reused.
 
 ## Risks and edge cases
 
-- The skill already contains the intended rule. Adding more duplicate wording could increase token cost without changing behavior. The implementation must improve routing and report structure by replacing existing prose.
-- Explicitly routing runtime evaluation to `agent-design.md` loads more focused context for those tasks. This cost is justified only for agent and runtime relationship evaluation and must not apply to unrelated evaluation.
-- Requiring an owner must not cause the actor to invent a person's name or repository path. A responsible project surface or team role is sufficient when established; otherwise the report should say ownership is unestablished.
-- Naming a resolver does not prove the behavior. Conclusions remain conditional until the evidence exists and is inspected.
-- The resolver contract must not require every possible artifact. It requires the smallest reliable evidence appropriate to each unknown.
-- The previous passing committed sample demonstrates feasibility but is stale for the corrected portable digest. It cannot be reused.
-- The ignored 42/48 candidate becomes incompatible as soon as portable source changes. This is expected and must not be manually repaired.
-- A full run can take hours and up to 96 model calls. Checkpointing limits repeated completed work, but a partially completed case may consume calls again after interruption.
-- A new failure after the correction may be evaluator variance rather than another missing instruction. The final hard stop preserves evidence for that distinction instead of triggering another loop.
+- Relaxing wording too far could let a generic completion statement pass. The criterion must still require the corrected boundary and resulting current truth.
+- Repeating the failed actor sentence in the criterion would overfit one sample. The contract must remain format-independent.
+- The workspace can be correct while the response is misleading. The judge must continue assessing both surfaces independently.
+- A response can state current truth while the file retains a contradiction. The existing workspace and forbidden criteria must remain authoritative for actual correction.
+- A new suite digest invalidates every old candidate result, including six valid passes. Reuse would compromise evidence integrity.
+- Adding stop-on-failure after checkpointing is essential. Stopping before the write would lose the failure; stopping after another case starts would exceed the intended boundary.
+- A passing fresh run can still take hours and use 96 calls. Checkpointing protects completed work from interruption but does not make repeated paid attempts free.
+- Another behavioral failure may reflect model variance, another product-contract mismatch, or a genuine skill gap. The final stop rule prevents automatic interpretation as permission to edit again.
 
 ## Acceptance criteria
 
-The plan has two valid terminal outcomes.
+### Source and runner outcome
 
-### Passing terminal outcome
+- Explicit-correction authority, canonical replacement, ambiguity handling, validation, and repository controls remain unchanged.
+- Completion reports must state the corrected boundary and resulting current truth.
+- Obsolete false wording need not be quoted or separately repeated when the correction is clear.
+- Generic or materially incomplete reports still fail.
+- Only `report-corrected-project-truth` changes within the existing semantic case.
+- The semantic case count remains 48 and coverage remains complete.
+- `--stop-on-failure` writes the failed checkpoint and stops before the next case.
+- Ordinary run, restart, resume, targeted case, and promotion behavior remains intact.
+- `SKILL.md` is byte-identical, `continuous-maintenance.md` stays at or below 1,450 words, and the complete portable Markdown tree stays at or below 13,913 words.
+- Every model-free check passes except explicitly identified stale semantic-result freshness gates.
 
-- Runtime-relationship evaluation explicitly loads the existing agent-design guidance.
-- Every material runtime evidence limitation must identify the unknown behavior, smallest reliable resolving artifact, its owner, and what it must establish.
-- Inventory-only availability, runtime preservation, conditional conclusions, read-only behavior, and all activation paths remain unchanged.
-- No semantic fixture, criterion, prompt, coverage mapping, evaluator, runtime policy, dependency, release identity, or website UI changes.
-- `moldea/SKILL.md` remains at or below 1,917 words, and the complete portable Markdown tree remains at or below 13,913 words.
-- Skill validation, unit tests, integration tests, complete correctness tests, documentation checks, and 48-case semantic preflight pass.
+### Passing evidence outcome
+
 - Corrected source is reviewed and committed before paid execution.
-- One fresh pinned-host full run promotes exactly 48 passing cases atomically within the 96-call bound.
-- The corrected regression case passes for the intended resolver behavior, and all pre-existing cases pass without forbidden behavior or repository-control violations.
-- The result contains complete exact provenance and no secret, credential, private path, or malformed evidence.
-- Post-promotion tests, documentation checks, and website checks pass.
-- Source and evidence remain uncommitted until their respective explicit review and `repo push` commands.
+- One fresh bounded run produces exactly 48 passing cases within 96 calls.
+- The explicit-correction case passes for substantive correction and concise truthful reporting, not a matched sentence.
+- All pre-existing cases pass without forbidden behavior or repository-control violations.
+- The promoted result contains complete exact provenance and no sensitive or malformed evidence.
+- Post-promotion correctness, documentation, and website checks pass.
 
 ### Evidence-backed stop outcome
 
-- The first behavioral, identity, infrastructure, or call-budget failure stops the fresh run.
-- The compatible candidate and complete failure evidence remain inspectable.
+- The first behavioral, identity, infrastructure, or budget failure is checkpointed and stops the run before another case begins.
 - No automatic retry, targeted run, source edit, evaluator change, host change, restart, qualification, release check, commit, or push follows.
-- The final report classifies the failure and identifies the separately planned next decision without starting another correction loop.
+- The terminal report identifies the exact failure and preserves evidence for a separate developer decision.
 
-Either outcome completes this plan. Only the passing outcome makes fresh Custom qualification planning appropriate.
+Either evidence outcome completes the paid phase. Only the passing outcome makes fresh qualification planning appropriate.
 
 ## Approval required
 
-Approval authorizes only the implementation scope described here: strengthen existing portable reference routing and evidence-limitation reporting, synchronize focused deterministic assertions and public documentation, preserve all 48 semantic contracts and release identity, and complete model-free verification. It does not authorize source edits until approval is given, does not authorize a commit or push, and does not authorize the paid semantic run. After the corrected source is reviewed and committed, the fresh 48-case evaluation requires separate explicit authorization for up to 96 new Terra model calls. No standalone diagnostic, evaluator weakening, repeated correction loop, qualification, release check, publication, or tag is authorized.
+Approval authorizes only the model-free implementation described here: replace the literal stale-claim repetition requirement with a concise outcome-based correction-report contract, update the one existing semantic criterion and its focused tests and public documentation, add and document native `--stop-on-failure` runner behavior, and complete model-free verification. It does not authorize a commit, push, paid semantic call, candidate replacement, qualification, release check, publication, or tag. After source review and a clean commit, the fresh 48-case Terra run requires separate explicit authorization for up to 96 model calls.

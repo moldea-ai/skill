@@ -130,6 +130,48 @@ export const getSemanticToolingSource = (caseId) => {
   return 'published-package';
 };
 
+/** Parses the runner's recording, targeting, preflight, and bounded-stop options. */
+export const parseSemanticEvaluationArguments = (arguments_) => {
+  const isPreflightRequested = arguments_.includes('--preflight');
+  const isRecordRequested = arguments_.includes('--record');
+  const isRestartRequested = arguments_.includes('--restart');
+  const isStopOnFailureRequested = arguments_.includes('--stop-on-failure');
+  const caseArgumentIndex = arguments_.indexOf('--case');
+  const requestedCaseId =
+    caseArgumentIndex === -1 ? undefined : arguments_[caseArgumentIndex + 1];
+
+  if (
+    isPreflightRequested &&
+    (arguments_.length !== 1 ||
+      arguments_.some((argument) =>
+        ['--case', '--record', '--restart', '--stop-on-failure'].includes(argument),
+      ))
+  ) {
+    throw new Error('--preflight must run without recording, targeting, or other options.');
+  }
+  if (caseArgumentIndex !== -1 && (!requestedCaseId || requestedCaseId.startsWith('--'))) {
+    throw new Error('--case requires one semantic case ID.');
+  }
+  if (isRestartRequested && (!isRecordRequested || requestedCaseId)) {
+    throw new Error('--restart requires a full semantic evaluation with --record.');
+  }
+  if (isStopOnFailureRequested && (!isRecordRequested || requestedCaseId)) {
+    throw new Error('--stop-on-failure requires a full semantic evaluation with --record.');
+  }
+
+  return {
+    isPreflightRequested,
+    isRecordRequested,
+    isRestartRequested,
+    isStopOnFailureRequested,
+    requestedCaseId,
+  };
+};
+
+/** Decides whether a completed case should end a bounded recorded run. */
+export const shouldStopSemanticEvaluation = ({ isStopOnFailureRequested, passed }) =>
+  isStopOnFailureRequested && !passed;
+
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
 
@@ -2719,14 +2761,14 @@ const main = async () => {
   const fixture = JSON.parse(await readFile(CASES_PATH, 'utf8'));
   const caseDefinitions = fixture.semanticCases;
   const coverage = JSON.parse(await readFile(COVERAGE_PATH, 'utf8'));
-  const isPreflightRequested = process.argv.includes('--preflight');
+  const {
+    isPreflightRequested,
+    isRecordRequested,
+    isRestartRequested,
+    isStopOnFailureRequested,
+    requestedCaseId,
+  } = parseSemanticEvaluationArguments(process.argv.slice(2));
   if (isPreflightRequested) {
-    if (
-      process.argv.slice(2).length !== 1 ||
-      process.argv.some((argument) => ['--case', '--record', '--restart'].includes(argument))
-    ) {
-      throw new Error('--preflight must run without recording, targeting, or other options.');
-    }
     await runSemanticEvaluationPreflight(caseDefinitions, coverage);
     return;
   }
@@ -2738,22 +2780,11 @@ const main = async () => {
   );
   const actorCommand = buildSemanticEvaluationHostCommand(actorBaseCommand);
   const judgeCommand = buildSemanticEvaluationHostCommand(judgeBaseCommand);
-  const caseArgumentIndex = process.argv.indexOf('--case');
-  const requestedCaseId =
-    caseArgumentIndex === -1 ? undefined : process.argv[caseArgumentIndex + 1];
-  if (caseArgumentIndex !== -1 && (!requestedCaseId || requestedCaseId.startsWith('--'))) {
-    throw new Error('--case requires one semantic case ID.');
-  }
   const requestedCaseDefinition = requestedCaseId
     ? caseDefinitions.find(({ id }) => id === requestedCaseId)
     : undefined;
   if (requestedCaseId && !requestedCaseDefinition) {
     throw new Error(`Unknown semantic evaluation case: ${requestedCaseId}`);
-  }
-  const isRecordRequested = process.argv.includes('--record');
-  const isRestartRequested = process.argv.includes('--restart');
-  if (isRestartRequested && (!isRecordRequested || requestedCaseId)) {
-    throw new Error('--restart requires a full semantic evaluation with --record.');
   }
 
   const artifactDigest = createPortableSkillDigest();
@@ -2832,6 +2863,14 @@ const main = async () => {
     process.stderr.write(
       `[semantic-evaluation] ${result.passed ? 'pass' : 'fail'} ${caseDefinition.id}\n`,
     );
+    if (
+      shouldStopSemanticEvaluation({
+        isStopOnFailureRequested,
+        passed: result.passed,
+      })
+    ) {
+      break;
+    }
   }
 
   const hasFailures = results.some((result) => !result.passed);

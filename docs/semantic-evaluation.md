@@ -41,6 +41,8 @@ Recorded evidence is bound to the exact portable skill, semantic case suite, cov
 
 Failures remain in the local checkpoint for inspection and correction. The official result is never assembled or edited by hand.
 
+For a bounded full recording, `--stop-on-failure` writes the first failed case to the checkpoint, stops before another case begins, and exits nonzero. It requires `--record`, cannot be combined with `--case` or `--preflight`, and does not authorize a later resume.
+
 ## Run the free preflight
 
 Maintainers can verify all scenario contracts without model calls:

@@ -957,7 +957,7 @@
         },
         {
           "label": "rerun-deterministic-inspection",
-          "criterion": "The actor reports the exact repository-local deterministic inspection or validation after its writes, including the resulting status or diagnostics rather than a bare readiness claim."
+          "criterion": "Runner-owned actor execution evidence contains a completed exact repository-local `inspect` or `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
         },
         {
           "label": "offer-practical-next-actions",
@@ -1021,7 +1021,7 @@
         },
         {
           "label": "rerun-deterministic-inspection",
-          "criterion": "The actor reports the exact repository-local deterministic inspection or validation after its writes, including the resulting status or diagnostics rather than a bare readiness claim."
+          "criterion": "Runner-owned actor execution evidence contains a completed exact repository-local `inspect` or `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
         },
         {
           "label": "report-knowledge-selection",
@@ -1081,7 +1081,7 @@
         },
         {
           "label": "rerun-correction-inspection",
-          "criterion": "The actor reports the exact repository-local deterministic inspection or validation after its write, including the resulting status or diagnostics rather than a bare readiness claim."
+          "criterion": "Runner-owned actor execution evidence contains a completed exact repository-local `inspect` or `validate` invocation after the actor's write, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
         },
         {
           "label": "report-corrected-project-truth",
@@ -1249,7 +1249,7 @@
         },
         {
           "label": "rerun-deterministic-inspection",
-          "criterion": "The actor reports the exact repository-local deterministic inspection or validation after its writes, including the resulting status or diagnostics rather than a bare readiness claim."
+          "criterion": "Runner-owned actor execution evidence contains a completed exact repository-local `inspect` or `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
         }
       ],
       "forbidden": [
@@ -1319,7 +1319,7 @@
         },
         {
           "label": "rerun-deterministic-inspection",
-          "criterion": "The actor reports the exact repository-local deterministic inspection or validation after its writes, including the resulting status or diagnostics rather than a bare readiness claim."
+          "criterion": "Runner-owned actor execution evidence contains a completed exact repository-local `inspect` or `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
         }
       ],
       "forbidden": [
@@ -3485,7 +3485,7 @@
         },
         {
           "label": "rerun-deterministic-inspection",
-          "criterion": "The actor reports the exact repository-local deterministic inspection or validation after its writes, including the resulting status or diagnostics rather than a bare readiness claim."
+          "criterion": "Runner-owned actor execution evidence contains a completed exact repository-local `inspect` or `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none; it need not repeat the literal invocation."
         }
       ],
       "forbidden": [

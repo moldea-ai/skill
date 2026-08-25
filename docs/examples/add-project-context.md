@@ -75,7 +75,7 @@ Clear corrections do not require ceremonial questions. If a new statement confli
 5. It asks one focused question when an unanswered conflict could change persisted meaning.
 6. It updates the smallest appropriate foundational or focused context surface when writes are authorized.
 7. It omits secrets, unnecessary personal information, transient notes, speculation, generic material, and unsupported relationships.
-8. After writes, it reruns deterministic inspection and reports the literal command, status, retained knowledge, omitted details, and reasons.
+8. After writes, it reruns exact repository-local deterministic inspection and reports its status, retained knowledge, omitted details, diagnostics, and reasons without needing to repeat the literal invocation.
 
 ## Resulting context
 

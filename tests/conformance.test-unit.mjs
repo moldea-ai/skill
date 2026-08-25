@@ -510,7 +510,8 @@ describe('portable Agent Skill contract', () => {
       /shared container does not determine authority, truth, durability, or replacement semantics/i,
       /conflicting assertion needs explicit correction or replacement meaning/i,
       /Do not merely acknowledge a handoff/i,
-      /literal completed repository-local deterministic invocation, status, and diagnostics \(including none\)/i,
+      /completed deterministic proof stage, status, and diagnostics \(including none\)/i,
+      /exact repository-local invocation must still run separately but need not be repeated/i,
       /inspection passed.*insufficient/i,
       /For corrections, state the corrected boundary and current truth/i,
       /obsolete wording need not be repeated/i,
@@ -686,7 +687,7 @@ describe('portable Agent Skill contract', () => {
       /semantic decisions and the evidence chain that established any consequential misalignment/i,
       /Under dynamic wiring, separate consumer purpose, required source, selected source, and resolving evidence/i,
       /every accepted tooling proof stage/i,
-      /literal invocation, status, diagnostics, mirror findings, and requirement outcomes/i,
+      /proof stage, status, diagnostics, mirror findings, and requirement outcomes/i,
       /explicit absence of diagnostics or findings/i,
       /Report only workspace-proven changes/i,
       /state what canonical inspection cannot observe, the related evidence, and remaining unknowns/i,
@@ -958,6 +959,48 @@ describe('source repository conformance', () => {
     assert.match(skippedAnalysisCriterion.criterion, /actor claims completion without/i);
     assert.match(skippedAnalysisCriterion.criterion, /affected canonical state/i);
     assert.match(skippedAnalysisCriterion.criterion, /explaining why/i);
+  });
+
+  test('assigns deterministic reporting to runner and actor evidence without weakening provider provenance', () => {
+    const reportingCriteria = cases.semanticCases
+      .flatMap(({ expected, id }) =>
+        expected
+          .filter(({ label }) =>
+            ['rerun-correction-inspection', 'rerun-deterministic-inspection'].includes(label),
+          )
+          .map(({ criterion, label }) => ({ criterion, id, label })),
+      )
+      .sort((left, right) => left.id.localeCompare(right.id));
+    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
+
+    assert.deepEqual(
+      reportingCriteria.map(({ id, label }) => `${id}:${label}`),
+      [
+        'adopted-direct-context-handoff:rerun-deterministic-inspection',
+        'adopted-explicit-context-correction:rerun-correction-inspection',
+        'adopted-relevance-changed-behavior:rerun-deterministic-inspection',
+        'agent-adoption-inline-runtime-instruction:rerun-deterministic-inspection',
+        'initialize-sufficient-context:rerun-deterministic-inspection',
+        'routing-description-reconciliation:rerun-deterministic-inspection',
+      ],
+    );
+
+    for (const { criterion } of reportingCriteria) {
+      assert.match(criterion, /runner-owned actor execution evidence/i);
+      assert.match(
+        criterion,
+        /completed exact repository-local `inspect` or `validate` invocation/i,
+      );
+      assert.match(criterion, /compatible exit code, status, and result fact/i);
+      assert.match(
+        criterion,
+        /actor response states the resulting status and material diagnostics/i,
+      );
+      assert.match(criterion, /need not repeat the literal invocation/i);
+      assert.doesNotMatch(criterion, /actor reports the exact repository-local/i);
+    }
+
+    assert.match(localTooling, /Report provider, exact version, command, and envelope/i);
   });
 
   test('covers unadopted, direct, corrective, and ambiguous project-knowledge handoffs', () => {

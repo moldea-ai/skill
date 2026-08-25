@@ -560,7 +560,7 @@ test('semantic host output rejects unbounded evidence without retaining oversize
   assert.doesNotMatch(JSON.stringify(oversizedCommandResult.actorExecutionEvidence), /x{16}/u);
 });
 
-test('judge prompt receives criteria after actor execution', () => {
+test('judge prompt enforces bidirectional source attribution after actor execution', () => {
   const judgePrompt = buildJudgePrompt(
     HOST_CASE_DEFINITION,
     'Actor response',
@@ -644,7 +644,13 @@ test('judge prompt receives criteria after actor execution', () => {
   assert.match(judgePrompt, /supplies no result fact/);
   assert.match(judgePrompt, /Raw command output,\s+command text/);
   assert.match(judgePrompt, /started commands, and MCP events are intentionally unavailable/);
-  assert.match(judgePrompt, /actor's final\s+response alone is insufficient/i);
+  assert.match(judgePrompt, /Evidence sources are\s+not interchangeable/i);
+  assert.match(judgePrompt, /actor's final response cannot prove execution or command results/i);
+  assert.match(
+    judgePrompt,
+    /runner-owned execution evidence cannot prove what the actor reported/i,
+  );
+  assert.match(judgePrompt, /each clause must be established by that source/i);
   assert.match(judgePrompt, /Evaluator-only activation scenarios/);
   assert.match(judgePrompt, /Review this release/);
   assert.match(judgePrompt, /Independently collected pre-actor scenario evidence/);

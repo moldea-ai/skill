@@ -93,7 +93,7 @@ Load only references triggered by the operation. They operationalize this contra
 9. Map runtime metadata by purpose. Routing uses the target handoff description when present, otherwise its agent description; general metadata uses the agent description. Under dynamic wiring, separate consumer purpose, required source, selected source, and resolving evidence. If selection is unknown, conclude conditionally; never call a candidate current, effective, absent, or wrong.
 10. Apply the smallest coherent authorized write and synchronize every affected representation. Make no canonical edit when existing state remains correct.
 11. Run relevant project-native verification when executable behavior changed and authority permits it, keeping each result independently attributable.
-12. After writes, rerun `inspect --json` separately and retain its literal invocation, status, diagnostics, mirror findings, and requirement outcomes; review readiness and unrelated invalidity.
+12. After writes, rerun `inspect --json` separately and retain its proof stage, status, diagnostics, mirror findings, and requirement outcomes; review readiness and unrelated invalidity.
 
 ## Deterministic boundary
 
@@ -111,7 +111,7 @@ Keep reports proportional; make these results explicit when relevant:
 
 - selected operation and activation path
 - authorized scope and each repository as clean, dirty, unborn, unavailable, or uninspected, including unchanged related repositories
-- exact local CLI version, every accepted tooling proof stage, and deterministic commands, statuses, and material diagnostics
+- exact local CLI version, every accepted tooling proof stage, and deterministic statuses and material diagnostics
 - dependency changes and Agent Skill source, metadata, copy, consumer, and activation decisions
 - semantic decisions and the evidence chain that established any consequential misalignment and resulting state
 - relevant requirements, ambiguities, protected-instruction conflicts, and each material evidence limitation's unknown fact, smallest reliable resolving artifact and owner, and required proof; otherwise evaluation is incomplete

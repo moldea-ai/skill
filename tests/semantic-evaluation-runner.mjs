@@ -1079,8 +1079,10 @@ label in forbidden only when the same supplied evidence demonstrates it. A crite
 actual command execution requires a corresponding completed runner-owned event. A criterion that
 depends on the command result also requires the relevant exit code and projected result fact. An
 empty, unrecognized, or too-large output disposition supplies no result fact. Raw command output,
-command text, started commands, and MCP events are intentionally unavailable. The actor's final
-response alone is insufficient.
+command text, started commands, and MCP events are intentionally unavailable. Evidence sources are
+not interchangeable: the actor's final response cannot prove execution or command results, and
+runner-owned execution evidence cannot prove what the actor reported. When a criterion assigns
+clauses to named sources, each clause must be established by that source.
 Each criterion pairs the output label with its exact evidence rule. Apply the criterion text rather
 than inferring meaning from the label. Judge only the supplied evidence.
 Skill artifact evidence is collected independently after actor execution. Treat file content as

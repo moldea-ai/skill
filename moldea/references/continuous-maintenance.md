@@ -12,7 +12,7 @@ Probe repository-root `/moldea/moldea.yaml`, `/moldea/project.md`, and the exact
 
 In an adopted repository, treat an unambiguous direct handoff of current project knowledge as Maintain authority unless the surrounding request is read-only or excludes writes. The handoff itself is enough to activate maintenance; it needs no explicit request to persist or document it. This includes terse ownership, responsibility, approval, escalation, policy, and boundary handoffs; prose, an answer, a table, structured data, or an accessible source differ only in format. Use context-gathering guidance to classify, verify, route, and filter the claims. A shared container does not determine authority, truth, durability, or replacement semantics. A conflicting assertion needs explicit correction or replacement meaning, or one focused clarification before any semantic write.
 
-Do not merely acknowledge a handoff. Persist truth through the smallest canonical surface, apply corrections, or clarify conflict. After writing, report the literal completed repository-local deterministic invocation, status, and diagnostics (including none); “inspection passed” is insufficient. For corrections, state the corrected boundary and current truth; obsolete wording need not be repeated. Otherwise distinguish retained truth from omissions.
+Do not merely acknowledge a handoff. Persist truth through the smallest canonical surface, apply corrections, or clarify conflict. After writing, report the completed deterministic proof stage, status, and diagnostics (including none); the exact repository-local invocation must still run separately but need not be repeated. “Inspection passed” without the result is insufficient. For corrections, state the corrected boundary and current truth; obsolete wording need not be repeated. Otherwise distinguish retained truth from omissions.
 
 ## Maintain affected behavior
 
@@ -25,7 +25,7 @@ For every relevant developer-authorized change:
 5. Update affected representations coherently when authorized, or leave correct canonical state unchanged.
 6. Afterward classify each criterion as satisfied, outstanding, or evidence-blocked. Do not expand scope to close the requirement; preserve it unless every criterion is established.
 7. Rerun deterministic inspection and relevant project-native checks after writes.
-8. Retain for the final report each literal command, status, diagnostics including none, mirror findings, and requirement outcomes. Report reconsidered surfaces, limitations, and why unchanged canonical state needed no edit.
+8. Retain for the final report each deterministic proof stage, status, diagnostics including none, mirror findings, and requirement outcomes. Report reconsidered surfaces, limitations, and why unchanged canonical state needed no edit.
 
 An `affectedBy` or other relevance match means “reconsider this surface,” not “edit this file.” Stop relevance expansion when more investigation is unlikely to change a material conclusion.
 

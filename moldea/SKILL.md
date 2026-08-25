@@ -19,9 +19,9 @@ Activate this skill in any of these cases:
 - **Knowledge-triggered activation:** in an adopted repository, the message itself hands off potentially material durable project knowledge, even without requesting persistence or documentation.
 - **Relevance-triggered activation:** an authorized change may affect project truth, declared agent behavior, or a path referenced by adopted canonical state or an unresolved requirement.
 
-In an adopted repository, route durable knowledge through Maintain and classify each claim: persist, clarify, or omit. Never copy source containers or edit correct canonical state.
+Established adoption makes durable-knowledge handoffs Maintain authority. Classify claims: persist, clarify, or omit. Do not request adoption, an update, or a storage path. Never copy containers or edit correct canonical state.
 
-A handoff does not establish adoption. Without explicit adoption intent, never initialize or persist; report it unpersisted with no files changed. Adopted maintenance needs no explicit update request.
+A handoff alone cannot establish adoption. Without explicit intent or existing adoption, never initialize or persist; report it unpersisted with no files changed.
 
 Agent-system planning activates only to divide an AI- or agent-enabled objective among agents and non-agent components. Generic planning and host-defined `plan` commands remain outside.
 

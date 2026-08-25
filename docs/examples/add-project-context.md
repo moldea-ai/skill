@@ -68,7 +68,7 @@ Clear corrections do not require ceremonial questions. If a new statement confli
 
 ## Coding agent and `moldea` under the hood
 
-1. The adopted repository and direct handoff activate project-context maintenance.
+1. The coding agent confirms existing adoption; the direct handoff then authorizes project-context maintenance without another adoption or storage-location question.
 2. The coding agent loads context-gathering and continuous-maintenance guidance.
 3. It classifies each claim independently. Current does not automatically mean durable, and a shared payload does not make transient detail canonical.
 4. It checks only the evidence needed to route the information and resolve material conflicts.

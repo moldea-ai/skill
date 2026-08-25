@@ -1,253 +1,253 @@
-# Semantic convergence and release-candidate plan
+# Project-scoped evaluation correction and release-candidate restart plan
 
 ## Objective
 
-End the current refinement loop with one bounded correction to the ordinary deterministic-tooling reporting contract, freeze the exact corrected source and evaluation boundary, produce one final semantic candidate under explicit stopping rules, refresh the required Custom and Vercel AI SDK qualifications, and reach a binary release-candidate decision for skill `3.1.0`.
+Make one deliberate correction after the terminal `evaluate-clean-working-tree` confirmation failure, then restart the frozen release-candidate cycle from clean committed source.
 
-The goal is not to make every Terra response identical. The goal is to prove material Moldea behavior while assigning each fact to the evidence source that can establish it reliably:
+The correction must ensure that an unscoped request such as `Evaluate moldea.` in an adopted repository evaluates that repository's project-owned Moldea system, beginning with canonical state and following material relationships into implementation. The installed `.agents/skills/moldea` artifact is the operating instruction source. Its presence alone must not turn it into a project-owned Agent Skill or replace the project assessment with an audit of the skill itself.
 
-- runner-owned execution evidence proves that an exact supported repository-local CLI operation actually completed and what machine result it returned
-- the actor response reports the resulting status, material diagnostics, maintained state, omissions, ambiguity, or limitations concisely
-- workspace and repository-control evidence prove what changed and what remained protected
-- the independent judge assesses semantic meaning across those sources without treating one source as proof of content owned by another
+The semantic case must also judge this behavior from evidence it can actually observe. The runner deliberately discards raw command text and output, so the case will use a concise actor scope report plus independently sourced canonical and implementation evidence instead of attempting to infer an internal inspection sequence from opaque command events.
+
+This is a bounded reopening of the previously frozen boundary. It is not permission to resume iterative prompt refinement after every stochastic miss.
 
 ## Current state and repository evidence
 
-- The committed source is `db634e999c65d49cf27ba18664d50f277578c362` on `qualifications`, synchronized with `origin/qualifications`.
-- The portable release remains `3.1.0`, the exact published CLI remains `4.0.1`, semantic protocol remains `14`, and the suite contains 48 cases.
-- The latest corrected suite digest is `243d47d368718eda7cae67c38ff0a798903d60f9e1c0dcbce6cdd52444ebd9aa`. The portable digest is `1b81aa56466ba3bad78a737435a45bc34efb9e2ae1452e72746c7fa9890207bb`.
-- Two newly recorded attempts are currently uncommitted:
-  - `20260825T163303199Z-semantic-f2bb59b6` records five passes followed by the initial `adopted-direct-context-handoff` failure.
-  - `20260825T163807925Z-semantic-99389785` records two passing confirmations, marks that case recovered, and leaves 42 cases pending.
-- `fixtures/semantic-evaluation-results/latest.json` points to the second attempt. `npm run eval:semantic:verify` accepts all 15 immutable attempts.
-- The ignored schema-4 checkpoint contains six initial results and two confirmations under protocol 14. It remains locally resumable only while the current portable and case-suite digests remain unchanged.
-- Across the initial trial and both confirmations, the actor consistently performed the material product behavior:
-  - it persisted the durable team ownership and production-access approval boundary
-  - it omitted the transient sprint focus
-  - it made only focused canonical changes
-  - it executed a valid exact repository-local `inspect` operation
-- The actor's reporting varied:
-  - the initial response reported that canonical inspection passed with no diagnostics but did not print a literal CLI command
-  - confirmation 1 made the same concise status report
-  - confirmation 2 printed `moldea inspect --json`
-- The judges treated equivalent evidence inconsistently. The initial judge withheld `rerun-deterministic-inspection` because the response omitted a literal command; confirmation 1 awarded the same label using the projected runner-owned `inspect` fact and the reported status; confirmation 2 also passed.
-- This is not evidence that knowledge-triggered maintenance is broken. It is evidence that the current criterion conflates two evidence owners: exact execution and user-facing reporting.
-- `tooling/semantic-evaluation/actor-execution-evidence.mjs` already recognizes only exact supported repository-local Moldea invocations, validates their complete release-bound JSON envelopes, and projects only `command`, `status`, schema/version identity, and result/error presence. Raw command text and arbitrary output are deliberately discarded.
-- `tests/semantic-evaluation-runner.mjs` already tells the judge that actual execution requires a completed runner event and result-dependent claims require the projected fact. It also says that actor prose cannot replace execution evidence.
-- Six semantic criteria currently require the actor to report an exact deterministic command:
-  - `initialize-sufficient-context` (`rerun-deterministic-inspection`)
-  - `adopted-direct-context-handoff` (`rerun-deterministic-inspection`)
-  - `adopted-explicit-context-correction` (`rerun-correction-inspection`)
-  - `adopted-relevance-changed-behavior` (`rerun-deterministic-inspection`)
-  - `agent-adoption-inline-runtime-instruction` (`rerun-deterministic-inspection`)
-  - `routing-description-reconciliation` (`rerun-deterministic-inspection`)
-- The portable and public general maintenance contract repeats that literal-command reporting requirement in `moldea/SKILL.md`, `moldea/references/continuous-maintenance.md`, `docs/continuous-maintenance.md`, and `docs/examples/add-project-context.md`.
-- Exact command reporting still has a distinct provenance purpose in compatibility-sensitive package-manager and CLI-provider resolution. That specialized contract lives in `references/local-tooling.md` and related cases and must remain unchanged.
-- The ready qualification profiles remain:
-  - `custom/custom`: 8 cases, up to 16 Terra calls
-  - `vercel-ai-sdk/typescript-generate-stream-text-7`: 10 cases, up to 20 Terra calls
-- The current Custom public result passes for an older portable digest. The current Vercel public history has no passing attempt. Any portable change requires a new matching Custom baseline and then a new Vercel attempt.
+- The active branch is `qualifications` at committed source `9d6d1f61d0f1cd86a3b54a64b1338e07b3d25714`, synchronized with `origin/qualifications` before the current generated evidence.
+- Release identity remains skill `3.1.0`, exact `@moldea.ai/cli 4.0.1`, CLI JSON schema `2`, semantic protocol `14`, confirmation policy `1`, and 48 semantic cases.
+- The current portable digest is `7ba11b73c912750012e5fcb184114b61763a1559293e32fd3f0c76c2510f3f8c`, suite digest is `862fa92957164e23381d2f74398bdc9f6dc4a965273077a6473e8c818262f6c1`, and coverage digest is `d251af7f3fd13337e6f362b9a0c35e9fd605b006894f2f8e17fb3c1da1c2da57`.
+- The ignored checkpoint contains 13 initial trials and three confirmations. Its current summary is 11 initial passes, one recovered case, one terminal failed case, and 35 pending cases.
+- Four generated attempt directories and the advanced `latest.json` pointer are currently uncommitted:
+  - `20260825T180442352Z-semantic-e06a881d` records the initial `agent-adoption-inline-runtime-instruction` reporting failure.
+  - `20260825T181123521Z-semantic-d4b54967` records two passing confirmations, marks that case recovered, and leaves 37 cases pending.
+  - `20260825T181611710Z-semantic-d28207ea` records the initial `evaluate-clean-working-tree` failure after `evaluate-dirty-working-tree` passed.
+  - `20260825T181959873Z-semantic-7d351f4b` records the rejected first confirmation and terminal candidate failure.
+- `fixtures/semantic-evaluation-results/latest.json` points to `20260825T181959873Z-semantic-7d351f4b` with status `failed`; no passing attempt exists for the current release identity.
+- `npm run eval:semantic:verify` accepts all 23 immutable attempts.
+- Both `evaluate-clean-working-tree` trials were read-only, produced valid deterministic inspection evidence, changed no repository or Git state, and triggered no forbidden behavior.
+- The initial actor reported the adopted project as coherent, then audited the installed skill's identity, activation, resources, and host metadata. The confirmation actor again emphasized the installed skill's structure and distribution limitation. Neither response established that it followed the manifest's `/src/**` relationship into `src/project-state.js` or considered whether its exported `"active"` state was represented by canonical project truth.
+- Both judges withheld only `progressive-whole-system-assessment` because the supplied evidence did not establish the order or materiality of expansion.
+- The case definition digest `bc69e3c197af066e416dfe6131a8ba25e961f6dc28a22e8fbf349b909b0aacf6` is unchanged from two earlier passing runs. Those actors followed the project relationship and reported the unresolved meaning of `src/project-state.js`; the current artifact produced the same scope substitution twice.
+- `moldea/references/evaluate-and-reconcile.md` already says a clean evaluation begins with the project foundation and progressively inspects relevant implementation. It does not explicitly distinguish the installed operating skill from repository-owned Agent Skills. Its later instruction to assess every scoped Agent Skill leaves room for `Evaluate moldea.` to be misread as an audit of the installed Moldea skill itself.
+- The current clean-tree criterion says the actor “performs” progressive assessment but does not assign proof to an observable evidence source. The judge receives no raw command identity and the case currently supplies only HEAD state, clean-tree state, and `moldea/moldea.yaml`, so it cannot reliably distinguish correct project traversal from an unrelated artifact audit.
+- `moldea/SKILL.md` currently contains 1,915 words and `moldea/references/evaluate-and-reconcile.md` contains 1,266 words. Concision remains a release constraint.
 
-## Decisions
+## Desired behavior
 
-### Ordinary deterministic-reporting contract
+### Project target
 
-For ordinary write-capable Moldea operations, the final response will no longer need to repeat a literal repository-local command. It must still report:
+Within an adopted repository, an unqualified Moldea evaluation targets the current repository's project-owned Moldea system:
 
-- the deterministic operation or proof stage used when that distinction is material
-- the resulting status
-- material diagnostics, including an explicit absence when relevant
-- maintained canonical state, omissions, limitations, or ambiguity required by the operation
+1. establish the Git and adoption state
+2. run and verify root-local deterministic inspection
+3. begin with `/moldea/**` project foundation, relationships, decisions, agents, capabilities, schemas, runtime guidance, requirements, and adapter evidence
+4. follow material registered and semantic relationships into implementation, contracts, tests, runtime integration, and related repositories within authority
+5. stop when the evidence supports reliable conclusions
 
-The actor must still execute the exact repository-local CLI in a separate process and validate its exit code and machine envelope before interpreting it. This correction changes reporting verbosity, not execution rigor.
+The installed `.agents/skills/moldea` tree remains available as the operating instructions and may be checked for installation integrity by the host or runner. It becomes an evaluation subject only when the developer explicitly scopes that artifact or repository evidence establishes it as a project-owned source, copy, consumer, or declared Agent Skill. Merely being installed for the actor does not satisfy that condition.
 
-Specialized provider-provenance flows retain their exact provider, version, command, and envelope reporting requirements because the command shape itself proves which provider was accepted. The general correction must not weaken those cases or `references/local-tooling.md`.
+This distinction must not remove or narrow explicit Agent Skill evaluation. Requests such as `Evaluate the release-review skill` and repository-declared Agent Skill relationships continue to use the complete `skill-design.md` assessment.
 
-### Evaluator evidence ownership
+### Observable concise reporting
 
-The six affected semantic criteria will explicitly assign:
+An unscoped clean evaluation must report enough scope reasoning for a developer and judge to understand what was assessed without reproducing an internal transcript. The response should concisely state:
 
-- exact repository-local invocation and machine result to runner-owned completed-command evidence
-- concise status and material diagnostics to the actor response
-- resulting repository state to workspace and repository-control evidence
+- that the adopted project-owned Moldea system was the starting scope
+- which material canonical relationship caused implementation expansion, or why no expansion was material
+- the resulting deterministic and semantic conclusion, including ambiguity or evidence limitation
+- that no repository files changed
 
-The judge prompt will state the reverse attribution rule as well: runner events cannot prove that the actor response said something, and actor prose cannot prove that a command ran. When a criterion contains clauses owned by different sources, each clause must be established by its named source.
+The actor does not need to list every file read, print command text, or narrate every inspection step. Runner-owned evidence continues to prove recognized deterministic commands and results. The actor response proves its reported scope and semantic conclusion. Independently sourced scenario evidence proves the underlying project facts. Repository controls prove read-only behavior.
 
-No new evidence schema, deterministic-requirement DSL, command parser, projected fact, transcript capture, or raw command retention will be introduced. The existing safe projector already establishes the deterministic fact. Adding another parallel validation framework would increase complexity without changing the evidence available.
+### Stronger clean-tree scenario
 
-### Freeze and convergence rule
+Keep the existing `evaluate-clean-working-tree` case and natural developer direction. Strengthen it rather than adding another case:
 
-“Freeze” means that after the correction is reviewed, committed, and pushed, the exact portable skill, semantic cases, coverage map, runner, qualification engine, and ready profiles become the fixed release-candidate boundary.
+- retain HEAD, clean-tree, and adoption evidence
+- add independently sourced `moldea/project.md` and `src/project-state.js` evidence
+- require the actor response to identify the project-owned Moldea system as its scope and follow the manifest's `/src/**` relationship into the relevant implementation
+- require the actor to report that the exported `"active"` state is not sufficiently established as durable canonical project truth, treating that gap as a material ambiguity or evidence limitation rather than inventing context or declaring complete semantic alignment
+- retain the explicit no-write requirement
+- forbid substituting an audit of the installed operating skill for the adopted project assessment
+- retain the prohibition on unjustified repository-wide traversal and the empty-scope prohibition
 
-During the final evidence cycle:
+This makes the case materially stronger while keeping the suite at 48 scenarios.
 
-- no source change will be made because of one actor miss or one judge disagreement
-- an initial semantic failure will be classified from the actor response, workspace, runner facts, repository controls, and judge rationale before any next action
-- plausible model variance may use the existing separately authorized two-confirmation policy; it does not trigger a source edit
-- a recovered case remains accepted and the same candidate resumes
-- a deterministic violation, repeated material product failure, terminal confirmation failure, or genuinely undecidable evaluator contract blocks the release candidate and ends the cycle
-- a blocked cycle produces a clear release decision and preserved evidence; it does not automatically start another correction-and-restart loop
-- reopening the frozen boundary requires a new explicit developer decision and a new release-candidate cycle, not an automatic response to the failed run
-
-This rule allows the finite checkpoint and confirmation workflow to finish while preventing another series of prompt edits and full-suite invalidations.
-
-## In-scope source changes
+## In-scope implementation
 
 ### Portable skill
 
-Update only the general final-report wording in:
+Update:
 
 - `moldea/SKILL.md`
-- `moldea/references/continuous-maintenance.md`
+- `moldea/references/evaluate-and-reconcile.md`
 
-Preserve exact execution, separate-process validation, machine-envelope handling, activation, authority, context quality, write boundaries, CLI identity, release version, dependencies, and every specialized local-tooling provenance rule. The entrypoint should not grow beyond its current 1,916 words; the correction should reduce wording where possible.
+Add the project-target boundary at the operation or evidence-scope decision point. Keep the detailed clean-tree sequence in the focused reference and only the shortest durable rule needed for reliable routing in the entrypoint.
 
-### Public documentation
+Preserve:
 
-Synchronize the ordinary reporting contract and convergence workflow in:
+- all three activation paths
+- adoption and write-authority rules
+- read-only evaluation
+- exact CLI execution and envelope verification
+- context-quality and ambiguity handling
+- explicit scoped evaluation of project-owned Agent Skills
+- installed-skill discovery and runtime behavior
+- release version, dependencies, file structure, and host metadata
 
-- `README.md`
-- `docs/continuous-maintenance.md`
-- `docs/examples/add-project-context.md`
-- `docs/semantic-evaluation.md`
+The final `moldea/SKILL.md` must not exceed its current 1,915-word count. Prefer consolidation over adding another broad rule.
 
-The documentation must explain that exact execution remains provable in committed runner evidence while the user-facing response remains concise. It must also document the frozen-candidate stopping rules so future maintainers do not treat every stochastic discrepancy as a reason to edit the skill.
+### Semantic contract and coverage
 
-No website component, route, schema, style, or dependency change is planned. The existing static documentation and evidence loaders should consume the updated Markdown and result artifacts.
+Update:
 
-### Semantic cases and judge contract
+- `fixtures/conformance-cases.json`
+- `fixtures/semantic-evaluation-coverage.json`
 
-Update `fixtures/conformance-cases.json` for the six affected criteria while preserving case IDs, natural actor directions, scenarios, fixtures, labels, label order, coverage, website metadata, and the 48-case count.
+For `evaluate-clean-working-tree`:
 
-Each revised criterion must require:
+- preserve the case ID, operation, natural prompt, fixture, website title, and case ordering
+- add `moldea/project.md` and `src/project-state.js` as explicit repository-evidence sources
+- revise `progressive-whole-system-assessment` so its clauses identify their proof owners: the actor response reports the project starting scope and material expansion, while sourced scenario evidence establishes the relationship and implementation fact
+- add or refine one criterion for the unresolved `"active"` state conclusion if keeping that conclusion separate makes review clearer
+- add a forbidden criterion for treating the installed operating Moldea skill as the project evaluation target without explicit or repository-established ownership
+- keep `report-no-writes`, `unjustified-exhaustive-repository-read`, and `empty-scope-result`
 
-- a matching completed runner-owned `inspect` or `validate` fact with compatible status and result evidence after the actor's writes
-- an actor response that states the resulting status and material diagnostics rather than a bare readiness claim
-- no literal command repetition in the actor response
-
-Update `tests/semantic-evaluation-runner.mjs` only to clarify evidence-source attribution in the judge prompt. Do not change event projection, persisted result shape, checkpoint schema, confirmation policy, command allowlists, sandboxing, model configuration, or attempt recording.
-
-Semantic protocol remains `14` because no projected fact, event shape, result schema, host contract, or persistence rule changes. The portable and suite digests will change and are sufficient to invalidate the ignored checkpoint.
+Update the existing adoption-and-repository-state coverage claim and rationale only as needed to state this target boundary and strengthened clean-tree proof. Do not add a claim, case, protocol, result field, or new coverage mechanism.
 
 ### Focused tests
 
 Update:
 
 - `tests/conformance.test-unit.mjs`
-- `tests/semantic-evaluation-runner.test-unit.mjs`
+- `tests/semantic-evaluation-runner.test-integration.mjs`
 
-Coverage must prove:
+Unit coverage must establish that:
 
-- all six affected labels retain their existing inventories and case ownership
-- each criterion assigns exact execution to runner-owned evidence and status/diagnostics to the actor response
-- none of the six criteria requires the actor response to repeat a literal or exact command
-- the specialized provider-provenance contracts still require exact provider, version, command, and envelope reporting
-- the judge prompt prohibits cross-source substitution in both directions
-- actor prose alone cannot satisfy execution and runner evidence alone cannot satisfy response-content requirements
-- case count, coverage, protocol, fixed Terra model, and medium reasoning remain unchanged
+- all 48 semantic case IDs remain unchanged
+- the clean-tree case keeps the natural `Evaluate moldea.` actor prompt
+- its expected criterion names actor-response and scenario-evidence ownership rather than relying on hidden command order
+- its evidence declarations include the manifest, project context, and related implementation
+- its criteria require the unresolved project-state conclusion and no-write report
+- its forbidden criteria reject installed-operating-skill scope substitution, empty scope, and unjustified exhaustive traversal
+- scoped project-owned Agent Skill evaluation remains required by the portable contract
+- the fixed Terra model, medium reasoning, protocol, and confirmation policy remain unchanged
 
-Avoid full-sentence snapshots. Assert the durable evidence-ownership properties that would have made all three observed trials receive consistent treatment.
+Integration coverage must materialize the clean-tree repository and prove that the independent evidence collector receives the exact manifest relationship, project-context statement, and `src/project-state.js` content used by the judge. It must also confirm the installed `.agents/skills/moldea` artifact remains separately protected and is not represented as project-owned scenario evidence.
+
+Do not test model wording or simulate a passing judge. The tests should protect the observable contract and evidence boundary.
+
+No change to `tests/semantic-evaluation-runner.mjs`, `tooling/semantic-evaluation/`, event projection, or result schemas is currently planned. The existing judge prompt already enforces named-source attribution. If implementation inspection proves that a runner change is required to supply the newly declared evidence, that would materially change this plan and requires revision before proceeding.
+
+### Public documentation
+
+Synchronize:
+
+- `README.md`
+- `docs/evaluate-reconcile-validate.md`
+- `docs/semantic-evaluation.md`
+
+Document that unscoped evaluation in an adopted repository starts from the project-owned Moldea system and follows its material relationships. Clarify that the installed operating skill is not automatically a project-owned Agent Skill or the evaluation target. Preserve concise reporting and explicit scoped Agent Skill evaluation.
+
+Update semantic methodology to explain that progressive scope is judged from the actor's concise scope conclusion plus independently sourced project evidence, not from retained raw command text. No website component, route, schema, style, or dependency change is needed because the static documentation and evidence pages already consume these sources and the unchanged case ID.
+
+`docs/examples/evaluate-and-reconcile.md` does not require modification unless implementation changes its scoped support-agent example. Avoid adding another example solely to repeat the workflow page.
 
 ### Transparent attempt history
 
-Preserve byte-for-byte and include in the source-correction review boundary:
+Preserve byte-for-byte:
 
-- `fixtures/semantic-evaluation-results/attempts/20260825T163303199Z-semantic-f2bb59b6/`
-- `fixtures/semantic-evaluation-results/attempts/20260825T163807925Z-semantic-99389785/`
-- the current `fixtures/semantic-evaluation-results/latest.json`
+- the four uncommitted attempt directories listed above
+- every previously committed attempt
+- `fixtures/semantic-evaluation-results/latest.json`
 
-These artifacts explain why the correction exists. Do not delete, rewrite, rejudge, migrate, or sanitize them again. The ignored checkpoint remains untouched during implementation and is removed only by the future authorized `--record --restart` operation.
+Before source edits, fingerprint every file and mode in the four attempts plus `latest.json`. Recompute those fingerprints at the review checkpoint. Do not delete, rewrite, rejudge, migrate, compact, or manually sanitize historical evidence.
+
+The ignored terminal checkpoint remains untouched during implementation. Source and suite changes will make it incompatible. A later separately authorized `--record --restart` operation is the only planned removal path.
 
 ## Explicit exclusions
 
-- Do not add more semantic cases, qualification cases, adapter profiles, dependencies, workflows, CI jobs, website components, or release versions.
-- Do not change activation paths, context-gathering behavior, knowledge persistence, ambiguity handling, canonical formats, adapter behavior, or package composition.
-- Do not weaken the requirement to execute and validate the exact repository-local CLI.
-- Do not weaken specialized package-manager or provider-provenance reporting where the exact command establishes the accepted provider.
-- Do not retain raw actor command text, arbitrary command output, chain-of-thought, MCP payloads, secrets, or host paths.
-- Do not add a deterministic evidence DSL or another result layer.
-- Do not reinterpret or overwrite historical attempts under the corrected criteria.
-- Do not resume the current checkpoint after source changes; its digests will be incompatible.
-- Do not run a diagnostic, semantic evaluation, confirmation, qualification, retry, release, tag, or publication during source implementation.
-- Do not commit or push without the separate `repo push` command.
+- Do not add semantic cases, qualification cases, adapter profiles, dependencies, scripts, workflows, CI jobs, website components, routes, or release versions.
+- Do not change knowledge-triggered activation, context persistence, initialization, planning, reconciliation, maintenance, agent design, adapter behavior, or package composition.
+- Do not weaken read-only evaluation, exact repository-local CLI execution, machine-envelope validation, repository controls, sandboxing, egress restrictions, or evidence sanitization.
+- Do not retain raw command text, command output, actor reasoning, MCP payloads, credentials, private host paths, or another transcript-derived evidence format.
+- Do not require verbose process narration, exact command repetition, or exhaustive file lists in actor responses.
+- Do not treat the installed operating skill as irrelevant to execution; only prevent its installation from making it project-owned evaluation scope.
+- Do not rewrite or remove immutable failed and incomplete attempts.
+- Do not resume, confirm, migrate, or manually delete the terminal checkpoint.
+- Do not run any paid diagnostic, semantic evaluation, qualification, retry, release, tag, publication, or deployment during implementation.
+- Do not commit or push without a separate `repo push` command.
 - Do not edit protected coding-instruction files.
 
-## Ordered implementation and release strategy
+## Ordered implementation strategy
 
-1. **Fingerprint and preserve the current evidence boundary.**
-   - Record SHA-256 hashes for the two new attempts and `latest.json`.
-   - Verify all 15 attempts and record the current ignored checkpoint identity and counts.
-   - Treat any generated-evidence byte change during source implementation as a blocker.
+1. **Fingerprint the current generated evidence.**
+   - Record paths, modes, and SHA-256 digests for the four uncommitted attempts and `latest.json`.
+   - Verify all 23 attempts and record the terminal checkpoint's artifact, suite, coverage, case, trial, and confirmation identities.
+   - Treat any evidence-byte change during source implementation as a blocker.
 
-2. **Simplify ordinary portable reporting without weakening execution.**
-   - Replace the general literal-command final-report requirement with concise status and diagnostic reporting in the entrypoint and continuous-maintenance reference.
-   - Keep exact CLI execution, provider resolution, envelope validation, and separate-process requirements unchanged.
-   - Measure the changed portable files and complete `moldea/` tree before and after; do not increase the entrypoint word count.
+2. **Correct the portable evaluation target.**
+   - Add the narrow adopted-project default and operating-skill exclusion at the existing operation/scope boundary.
+   - Preserve explicit project-owned Agent Skill evaluation and every existing activation and authority route.
+   - Consolidate wording so `SKILL.md` remains at or below 1,915 words.
+   - Record before-and-after bytes and words for both changed portable files and the complete `moldea/` tree.
 
-3. **Align public documentation and operational convergence.**
-   - Update the maintenance guide and example to show concise result reporting.
-   - Update semantic methodology to explain evidence ownership, the frozen release-candidate boundary, classification of failures, bounded confirmation, and terminal stop conditions.
-   - Update the root README's semantic workflow consistently without expanding unrelated release or deployment documentation.
+3. **Strengthen the existing clean-tree semantic case.**
+   - Add independent project-context and source evidence.
+   - Make the progressive-scope criterion observable through named evidence owners.
+   - Require the unresolved project-state conclusion without prescribing exact prose.
+   - Forbid installed operating-skill scope substitution.
+   - Update the existing coverage claim without changing the case inventory.
 
-4. **Clarify all affected semantic criteria and judge attribution.**
-   - Rewrite the six criteria around the runner fact plus actor status report.
-   - Add the bidirectional source-attribution instruction to the judge prompt.
-   - Preserve labels, cases, fixtures, coverage, protocol, and event projection.
+4. **Add focused regression coverage.**
+   - Extend conformance assertions for the portable boundary, case evidence, expected outcomes, forbidden outcomes, and unchanged global contracts.
+   - Add the clean-tree materialization and evidence-collection integration test.
+   - Avoid runner or projector changes unless newly discovered repository evidence proves they are necessary; revise the plan first if so.
 
-5. **Add focused regression coverage and verify the source correction.**
-   - Extend the existing conformance and runner unit tests.
-   - Run Skill Creator validation, focused tests, the complete root tests, all 48 preflight cases, attempt verification, release identity, formatting, and diff checks.
-   - Run both ready qualification profiles in model-free dry-run mode to prove the portable wording change does not break deterministic project journeys.
-   - Confirm any documentation or website freshness failure is exclusively the expected stale semantic or qualification evidence boundary.
-   - Stop for `review`. After a clean review, require `repo push` so the correction and transparent attempts are committed together.
+5. **Synchronize concise public documentation.**
+   - Update the root usage contract and evaluation workflow page.
+   - Update semantic methodology for observable scope evidence.
+   - Leave unrelated examples and website UI untouched.
 
-6. **Freeze the committed release-candidate boundary.**
-   - Record the exact source commit, portable digest, suite digest, coverage digest, protocol, CLI identity, profile digests, qualification digest, package checkout commit and fingerprint, model, reasoning effort, Codex version, and tool versions.
-   - Do not change behavior-bearing inputs after this point during the cycle.
+6. **Verify and review the correction.**
+   - Run Skill Creator validation, targeted unit and integration tests, the complete root suites, all 48 model-free preflight scenarios, attempt verification, documentation and website checks, release identity checks, model-free qualification dry runs, formatting, and diff checks.
+   - Confirm that any release-gate failure is only the expected absence of current passing paid evidence.
+   - Recompute the generated-evidence fingerprints and inspect the complete source diff.
+   - Stop for `review`; after a clean review, require `repo push` before any paid restart.
 
-7. **Run one final semantic candidate.**
+7. **Freeze and restart one semantic release candidate.**
+   - Record the committed source, portable, suite, coverage, CLI, protocol, model, reasoning, host, and qualification identities.
    - Obtain fresh explicit authorization for up to 96 Terra calls.
-   - Run the official 48-case workflow with `--record --restart`; do not run a diagnostic first.
-   - Resume the same compatible checkpoint after interruption.
-   - At an initial failure, preserve the attempt and classify it before proceeding.
-   - Use a bounded confirmation only with separate authorization and only for plausible variance.
-   - Resume the same candidate after recovery.
-   - Stop the release cycle on deterministic failure, terminal confirmation failure, repeated material product failure, or a genuine evaluator defect. Do not edit source automatically.
-   - Promote only through the runner after every case passes or recovers.
-   - Review and commit the passing semantic result before qualification.
+   - Run the official 48-case workflow with `--record --restart`, without a separate paid diagnostic.
+   - Use compatible checkpoints after interruption and separately authorized bounded confirmation only for plausible variance.
+   - A deterministic violation, terminal confirmation failure, repeated material product failure, or genuinely undecidable evaluator contract stops the cycle. It does not automatically authorize another source revision.
+   - Promote only through the official runner, then review and commit the passing semantic result before qualification.
 
-8. **Generate the fresh Custom qualification baseline.**
-   - Confirm clean committed skill and packages inputs and current published package closure.
-   - Obtain fresh authorization for up to 16 Terra calls.
-   - Run `custom/custom` through the official qualification CLI.
-   - Allow candidate and model cache reuse only when the existing exact digest contracts accept it. The changed portable digest must reject old model evidence automatically.
-   - Record pass, failure, or execution error. Do not automatically retry a terminal failure.
-   - Verify, inspect, and commit the result. A passing current Custom result is required before Vercel.
-
-9. **Generate the fresh Vercel AI SDK qualification.**
-   - Confirm the exact matching passing Custom baseline.
-   - Obtain fresh authorization for up to 20 Terra calls.
-   - Run `vercel-ai-sdk/typescript-generate-stream-text-7` across all ten cases.
-   - Preserve cache, checkpoint, deterministic, workspace, package, and append-only evidence guarantees.
-   - Record every terminal outcome and do not automatically retry a failure.
-   - Verify, inspect, and commit the result.
-
-10. **Validate the final release candidate.**
-    - Run the complete source, semantic, qualification, documentation, website, accessibility, responsive, theme, and release gates against a clean committed tree.
-    - Confirm the public website shows the current semantic pass, current Custom pass, current Vercel pass, all failed and incomplete history, exact provenance, and valid latest/last-passing pointers.
-    - End with one binary outcome: release-ready or blocked with the exact material failure. Do not start another refinement cycle automatically.
-    - Do not publish, tag, or release without separate explicit authorization.
+8. **Refresh qualification and complete release verification.**
+   - Obtain separate authorization for the eight-case Custom qualification, up to 16 Terra calls, and require a current passing baseline.
+   - Obtain separate authorization for the ten-case Vercel AI SDK qualification, up to 20 Terra calls, and bind it to that Custom baseline.
+   - Preserve qualification checkpoints, exact caches, append-only results, package provenance, and terminal outcomes.
+   - Run the complete release, documentation, website, accessibility, responsive, theme, semantic, and qualification gates on the final clean committed tree.
+   - End with a binary release-ready or blocked result. Do not tag, publish, or deploy without separate authorization.
 
 ## Verification commands
 
-### Source correction
+### Focused source correction
 
 ```bash
 python3 /home/jesusgraterol/.codex/skills/.system/skill-creator/scripts/quick_validate.py moldea
-node --test --test-name-pattern='deterministic|source attribution|reporting' tests/conformance.test-unit.mjs tests/semantic-evaluation-runner.test-unit.mjs
-npm test
+node --test --test-name-pattern='evaluate|clean working tree|evidence scope' tests/conformance.test-unit.mjs
+node --test --test-name-pattern='clean working tree|scenario evidence' tests/semantic-evaluation-runner.test-integration.mjs
 npm run eval:semantic:preflight
 npm run eval:semantic:verify
+git diff --check
+```
+
+### Complete model-free correction boundary
+
+```bash
+npm run test:unit
+npm run test:integration
+npm test
 npm run release:identity:check
 npm run qualification:verify
 npm run qualification:dry-run
@@ -257,9 +257,11 @@ npm run website:check
 git diff --check
 ```
 
-Use the website's installed Prettier with `website/.prettierrc` for touched Markdown, JSON, and JavaScript files. `docs:check` or `website:check` may fail before fresh evidence only when the loader rejects the stale semantic or qualification identity; any other failure is a source defect.
+Use the repository's installed formatting tools on touched files only. Do not run a write-producing formatter across unrelated files. No check may be reported as passing unless it actually completes successfully.
 
-### After the final semantic result
+`npm run release:check` is not a source-correction success criterion before fresh paid evidence because it intentionally requires current passing semantic and qualification results. If run diagnostically, its only acceptable failure is that exact freshness boundary.
+
+### After semantic promotion
 
 ```bash
 npm run eval:semantic:verify
@@ -292,48 +294,46 @@ npm --prefix website run test:e2e
 npm run release:check
 ```
 
-No check may be reported as passing unless it actually runs successfully. Expected stale-evidence failures must be distinguished from source regressions and must disappear after the matching evidence is committed.
+## Persistence, compatibility, and rollback
 
-## Persistence, cache, compatibility, and rollback
-
-- All failed, incomplete, recovered, and passing attempts remain append-only. `latest.json` may advance only through the official recorder.
-- The source correction changes both portable and suite digests. The current ignored semantic checkpoint is intentionally incompatible and must be replaced through `--record --restart`; no migration or manual deletion is appropriate.
-- Protocol remains 14 because evidence shapes and projection semantics do not change.
-- Qualification engine and profile digests remain unchanged. The new portable digest invalidates old model evidence while allowing exact candidate-package caches to remain reusable when their independent integrity contracts match.
-- Release `3.1.0` and CLI `4.0.1` remain unchanged because the project is unreleased and this is the intended first public contract.
-- Before new paid evidence, rollback is an ordinary Git revert of the focused reporting/evaluator correction. Historical attempts remain history.
-- After new evidence exists, rollback must not delete or rewrite it. A reverted source would simply make that evidence non-current.
-- No migration, dependency change, package publication, CI change, or deployment is required.
+- All failed, incomplete, recovered, and passing attempts remain append-only. `latest.json` advances only through the official recorder.
+- The portable, suite, and coverage digests will change. The terminal ignored checkpoint must become incompatible and later be replaced only through `--record --restart`.
+- Semantic protocol remains `14` because host inputs, command projection, evidence shapes, result schemas, and persistence rules do not change.
+- The case count remains 48 and the natural actor prompt remains unchanged.
+- Qualification engine and profile digests remain unchanged. The new portable digest invalidates incompatible actor and judge evidence while independent exact candidate-package caches remain reusable when their contracts accept them.
+- Skill release `3.1.0` and CLI `4.0.1` remain unchanged because the project is unreleased and this correction belongs to the intended first public contract.
+- Before new paid evidence, rollback is an ordinary Git revert of the focused source and case correction. Historical attempts remain history.
+- After new evidence exists, rollback must not delete or rewrite it; reverted source simply makes that evidence non-current.
+- No migration, dependency installation, package publication, CI change, or deployment is required.
 
 ## Risks and controls
 
-- **Another wording loop:** the frozen-boundary rule prohibits automatic source edits during the final candidate. A blocking result ends the cycle with evidence.
-- **Weakening verification:** exact CLI execution, envelope validation, status, and result facts remain runner-owned and mandatory.
-- **Cross-source judge substitution:** the judge prompt and focused tests require each clause to be proven by its named source.
-- **Overengineering deterministic facts:** reuse the existing strict projector rather than creating another evidence schema or parser.
-- **Excessive user-facing tokens:** remove ordinary literal-command repetition while retaining status, diagnostics, and material outcomes.
-- **Loss of specialized provenance:** preserve exact command reporting in provider-selection paths where it proves the accepted provider.
-- **Evidence loss:** fingerprint and preserve every existing attempt and pointer; use only official append-only recorders.
-- **Repeated paid work:** use compatible checkpoints and exact caches, skip diagnostics, and require separate authorization before every full run, confirmation, and qualification.
-- **False release confidence:** deterministic failure, repeated material behavior failure, terminal confirmation failure, stale evidence, or missing qualification pass blocks the release.
-- **Pressure to force a pass:** the final outcome may be “blocked.” Finishing means reaching a trustworthy decision, not manufacturing passing evidence.
+- **Another refinement loop:** this reopening is justified by two matching failures under the current artifact. The next frozen candidate retains the terminal stopping rule and does not authorize automatic corrections.
+- **Overfitting to one fixture:** the portable rule describes ownership and evaluation targeting generally. The existing fixture is only the adversarial proof that canonical relationships lead to relevant implementation.
+- **Weakening Agent Skill evaluation:** explicit or repository-established project-owned Agent Skills retain the complete assessment. Only implicit ownership from the operating installation is rejected.
+- **Unobservable process criteria:** the revised criterion assigns response, scenario, execution, and repository-control facts to their actual evidence owners instead of inferring hidden commands.
+- **Verbose paid responses:** require only a concise starting scope, material expansion decision, result, and no-write statement.
+- **Evidence leakage:** preserve the current safe projector and do not retain command text or arbitrary output.
+- **Evidence loss:** fingerprint all generated evidence and compare it before review.
+- **Repeated paid work:** skip standalone diagnostics, preserve compatible future checkpoints, and require separate authorization for each paid operation.
+- **False release confidence:** stale semantic evidence, missing qualification baselines, terminal failures, or any non-fresh release identity continue to block release.
 
 ## Acceptance criteria
 
-- The ordinary portable contract requires exact deterministic execution but concise status and diagnostic reporting, without requiring literal command repetition.
-- Specialized provider-provenance reporting remains unchanged.
-- All six affected semantic criteria assign exact execution to runner evidence and response content to actor prose.
-- The three observed direct-context-handoff trials would be judged consistently under the corrected contract based on their material behavior and status reporting.
-- Case count remains 48, labels and coverage remain stable, semantic protocol remains 14, and no new evidence format exists.
-- The entrypoint does not exceed 1,916 words.
-- The two current attempts and latest pointer remain byte-identical and verifiable.
-- Every source-level model-free check passes except explicitly identified stale-evidence gates.
-- The corrected source is reviewed, committed, pushed, and then frozen before paid execution.
-- One final semantic candidate reaches either a valid passing promotion or a documented terminal block without another automatic correction cycle.
-- A passing current Custom baseline and passing current Vercel result are recorded against the same frozen portable skill and exact package closure.
-- The complete release gate passes on the final clean committed tree before any publication decision.
-- No release, tag, publication, or deployment occurs under this plan.
+- In an adopted repository, unscoped Moldea evaluation targets the project-owned Moldea system and follows material canonical relationships into implementation.
+- An installed `.agents/skills/moldea` artifact does not become project-owned evaluation scope merely because it supplies the actor's operating instructions.
+- Explicit and repository-established Agent Skill evaluations retain their existing behavior.
+- The clean-tree case keeps `Evaluate moldea.`, remains one of 48 cases, and independently supplies the manifest, project context, and related source evidence.
+- The clean-tree criteria require observable project-scope progression, the unresolved `"active"` state conclusion, and an explicit no-write report while forbidding scope substitution, empty scope, and unjustified exhaustive traversal.
+- The judge can evaluate every clause from a named available evidence source without raw command retention or inferred internal reasoning.
+- Semantic protocol, confirmation policy, fixed `gpt-5.6-terra` model, medium reasoning, CLI identity, release version, dependencies, and result schemas remain unchanged.
+- `moldea/SKILL.md` remains at or below 1,915 words, and the complete portable tree does not grow without a reviewed necessity.
+- All four new attempts, every older attempt, and `latest.json` remain byte-identical and verifiable.
+- Every model-free source check passes; release freshness remains blocked until new paid evidence is generated.
+- The corrected source is reviewed, committed, and pushed before one newly authorized `--record --restart` cycle.
+- A future passing semantic result is followed by current passing Custom and Vercel qualifications and the complete release gate.
+- No diagnostic, model run, qualification, commit, push, tag, release, publication, or deployment occurs under source-implementation approval alone.
 
 ## Approval required
 
-Approval authorizes only the source implementation portion of this plan: preserve the current semantic attempts, simplify ordinary literal-command reporting while retaining exact execution, update the six semantic criteria and judge source-attribution wording, synchronize the directly affected public documentation, add focused tests, and run the model-free verification boundary. It does not authorize committing, pushing, deleting or restarting the current checkpoint, running a diagnostic, semantic evaluation, confirmation, qualification, retry, release check that invokes paid models, tag, release, publication, or deployment. Each paid semantic or qualification operation still requires fresh explicit authorization after the corrected source is reviewed and committed.
+Approval authorizes only the focused source implementation: preserve the four current attempt directories and `latest.json`; clarify the adopted-project evaluation target in `moldea/SKILL.md` and `moldea/references/evaluate-and-reconcile.md`; strengthen the existing `evaluate-clean-working-tree` evidence, criteria, and coverage without adding a case; add focused unit and integration coverage; synchronize `README.md`, `docs/evaluate-reconcile-validate.md`, and `docs/semantic-evaluation.md`; and run the complete model-free verification boundary. It does not authorize committing, pushing, deleting or restarting the terminal checkpoint, running a diagnostic, semantic evaluation, confirmation, qualification, retry, tag, release, publication, or deployment. Every paid operation still requires fresh explicit authorization after the corrected source is reviewed and committed.

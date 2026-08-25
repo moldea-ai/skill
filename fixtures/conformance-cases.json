@@ -1524,13 +1524,33 @@
               "path": "moldea/moldea.yaml",
               "expectedType": "file"
             }
+          },
+          {
+            "claim": "The project context declares that source files implement represented canonical behavior.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/project.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The related implementation exports an active project state.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/project-state.js",
+              "expectedType": "file"
+            }
           }
         ]
       },
       "expected": [
         {
           "label": "progressive-whole-system-assessment",
-          "criterion": "The actor performs a progressive whole system assessment, beginning with high-information evidence and expanding only when material."
+          "criterion": "The actor response identifies the adopted project-owned Moldea system as its starting scope and reports material expansion through the independently evidenced `/src/**` canonical relationship into the independently evidenced `src/project-state.js` implementation; it need not narrate every read or command."
+        },
+        {
+          "label": "report-project-state-ambiguity",
+          "criterion": "The actor response reports that the independently evidenced `active` implementation state is not established as durable canonical project truth and treats the gap as a material ambiguity or evidence limitation rather than inventing context or declaring complete semantic alignment."
         },
         {
           "label": "report-no-writes",
@@ -1545,6 +1565,10 @@
         {
           "label": "empty-scope-result",
           "criterion": "The actor reports an empty or unavailable evaluation scope instead of performing a progressive assessment of the adopted clean repository."
+        },
+        {
+          "label": "substitute-installed-operating-skill-scope",
+          "criterion": "The actor response treats the installed `.agents/skills/moldea` operating artifact as the project evaluation target solely because it is present, instead of assessing the independently evidenced project-owned Moldea system."
         }
       ]
     },

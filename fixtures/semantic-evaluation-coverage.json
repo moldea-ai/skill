@@ -3,12 +3,13 @@
   "claims": [
     {
       "id": "activation-and-adoption",
-      "description": "The skill loads for potentially durable knowledge, checks adoption before knowledge- and relevance-triggered maintenance, and handles initialization according to available project context.",
+      "description": "The skill loads for potentially durable knowledge, checks adoption before knowledge- and relevance-triggered maintenance, handles initialization according to available project context, and scopes unqualified adopted-project evaluation from canonical state through material relationships.",
       "sourcePaths": [
         "moldea/SKILL.md#purpose-and-activation",
         "moldea/SKILL.md#select-the-operation",
         "moldea/references/continuous-maintenance.md#recognize-adoption-without-inventing-it",
-        "moldea/references/context-gathering.md#initialize-context-first"
+        "moldea/references/context-gathering.md#initialize-context-first",
+        "moldea/references/evaluate-and-reconcile.md#build-the-evidence-scope"
       ],
       "evidence": [
         { "kind": "semantic-case", "id": "unadopted-direct-context-handoff" },
@@ -26,7 +27,7 @@
         { "kind": "semantic-case", "id": "evaluate-clean-working-tree" },
         { "kind": "semantic-case", "id": "evaluate-unborn-repository" }
       ],
-      "rationale": "These scenarios exercise discovery before adoption is known, the adoption boundary, context sufficiency, direct and conflicting knowledge, no-change decisions, ordinary maintenance, and evaluation across material Git states."
+      "rationale": "These scenarios exercise discovery before adoption is known, the adoption boundary, context sufficiency, direct and conflicting knowledge, no-change decisions, ordinary maintenance, and project-scoped evaluation across material Git states without mistaking the operating skill installation for project ownership."
     },
     {
       "id": "knowledge-quality-and-reconciliation",

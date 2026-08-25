@@ -645,6 +645,12 @@ describe('portable Agent Skill contract', () => {
       /staged, unstaged, untracked, renamed, and deleted/,
       /working tree is clean/,
       /No `HEAD` exists/,
+      /unqualified request to evaluate `moldea` targets that repository's project-owned system/i,
+      /installed `\.agents\/skills\/moldea` tree supplies operating guidance/i,
+      /presence does not make it a project-owned Agent Skill or evaluation subject/i,
+      /explicitly scopes it or repository evidence establishes it as a project-owned source, copy, consumer, or declaration/i,
+      /unscoped clean evaluation, concisely report the adopted project-owned starting scope/i,
+      /canonical relationship that caused implementation expansion or why none was material/i,
       /Deterministic diagnostics/,
       /Confirmed semantic problems/,
       /Material ambiguities/,
@@ -672,6 +678,10 @@ describe('portable Agent Skill contract', () => {
     assert.match(
       skill,
       /Every `evaluate` result must explicitly state that no repository files were changed/i,
+    );
+    assert.match(
+      skill,
+      /installed operating skill becomes project scope only through explicit or repository-established ownership/i,
     );
   });
 
@@ -969,6 +979,57 @@ describe('source repository conformance', () => {
       skippedAnalysisCriterion.criterion,
       /moldea\/project\.md|affectedBy|\/src\/\*\*/,
     );
+  });
+
+  test('judges clean evaluation from project-owned scope and independently sourced relationships', () => {
+    const cleanEvaluationCase = cases.semanticCases.find(
+      ({ id }) => id === 'evaluate-clean-working-tree',
+    );
+
+    assert.ok(cleanEvaluationCase);
+    assert.equal(cleanEvaluationCase.input.developerDirection, 'Evaluate moldea.');
+    assert.deepEqual(
+      cleanEvaluationCase.input.repositoryEvidence
+        .filter(({ source }) => source.kind === 'workspace-path')
+        .map(({ source }) => source.path),
+      ['moldea/moldea.yaml', 'moldea/project.md', 'src/project-state.js'],
+    );
+    assert.deepEqual(getSemanticCriterionLabels(cleanEvaluationCase.expected), [
+      'progressive-whole-system-assessment',
+      'report-project-state-ambiguity',
+      'report-no-writes',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(cleanEvaluationCase.forbidden), [
+      'unjustified-exhaustive-repository-read',
+      'empty-scope-result',
+      'substitute-installed-operating-skill-scope',
+    ]);
+
+    const progressiveCriterion = cleanEvaluationCase.expected.find(
+      ({ label }) => label === 'progressive-whole-system-assessment',
+    );
+    const ambiguityCriterion = cleanEvaluationCase.expected.find(
+      ({ label }) => label === 'report-project-state-ambiguity',
+    );
+    const scopeSubstitutionCriterion = cleanEvaluationCase.forbidden.find(
+      ({ label }) => label === 'substitute-installed-operating-skill-scope',
+    );
+
+    assert.ok(progressiveCriterion);
+    assert.ok(ambiguityCriterion);
+    assert.ok(scopeSubstitutionCriterion);
+    assert.match(progressiveCriterion.criterion, /actor response identifies/i);
+    assert.match(progressiveCriterion.criterion, /independently evidenced `\/src\/\*\*`/i);
+    assert.match(
+      progressiveCriterion.criterion,
+      /independently evidenced `src\/project-state\.js`/i,
+    );
+    assert.match(progressiveCriterion.criterion, /need not narrate every read or command/i);
+    assert.match(ambiguityCriterion.criterion, /actor response reports/i);
+    assert.match(ambiguityCriterion.criterion, /independently evidenced `active`/i);
+    assert.match(ambiguityCriterion.criterion, /material ambiguity or evidence limitation/i);
+    assert.match(scopeSubstitutionCriterion.criterion, /installed `\.agents\/skills\/moldea`/i);
+    assert.match(scopeSubstitutionCriterion.criterion, /solely because it is present/i);
   });
 
   test('assigns deterministic reporting to runner and actor evidence without weakening provider provenance', () => {

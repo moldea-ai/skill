@@ -87,6 +87,9 @@ const GIT_HELPER_CASE_DEFINITION = SEMANTIC_CASES.find(
 const DIRTY_WORKING_TREE_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'evaluate-dirty-working-tree',
 );
+const CLEAN_WORKING_TREE_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'evaluate-clean-working-tree',
+);
 const PNPM_PNP_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'pnpm-pnp-local-cli-provider',
 );
@@ -255,10 +258,7 @@ test('dirty evaluation scenario exposes its complete change scope and canonical 
     });
     assert.equal(statusBefore.status, 0, statusBefore.stderr);
     assert.match(statusBefore.stdout, /^ D src\/deleted\.js$/mu);
-    assert.match(
-      statusBefore.stdout,
-      /^R  src\/renamed-before\.js -> src\/renamed-after\.js$/mu,
-    );
+    assert.match(statusBefore.stdout, /^R  src\/renamed-before\.js -> src\/renamed-after\.js$/mu);
     assert.match(statusBefore.stdout, /^M  src\/staged\.js$/mu);
     assert.match(statusBefore.stdout, /^ M src\/unstaged\.js$/mu);
     assert.match(statusBefore.stdout, /^\?\? src\/untracked\.js$/mu);
@@ -306,6 +306,52 @@ test('dirty evaluation scenario exposes its complete change scope and canonical 
     });
     assert.equal(statusAfter.status, 0, statusAfter.stderr);
     assert.equal(statusAfter.stdout, statusBefore.stdout);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('clean working tree exposes project-owned context and related implementation evidence', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-clean-working-tree-test-'));
+  assert.ok(CLEAN_WORKING_TREE_CASE_DEFINITION);
+
+  try {
+    const { readOnlyMounts, repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      CLEAN_WORKING_TREE_CASE_DEFINITION,
+    );
+    const evidence = await collectScenarioEvidence({
+      caseDefinition: CLEAN_WORKING_TREE_CASE_DEFINITION,
+      readOnlyMounts,
+      repositoryPath,
+    });
+    assert.equal(hasValidScenarioEvidence(evidence, CLEAN_WORKING_TREE_CASE_DEFINITION), true);
+
+    const workspaceEvidence = new Map(
+      evidence
+        .filter(({ source }) => source.kind === 'workspace-path')
+        .map(({ observation }) => [observation.path, observation]),
+    );
+    assert.deepEqual(
+      [...workspaceEvidence.keys()],
+      ['moldea/moldea.yaml', 'moldea/project.md', 'src/project-state.js'],
+    );
+    assert.match(
+      workspaceEvidence.get('moldea/moldea.yaml').content,
+      /affectedBy:[\s\S]*\/src\/\*\*/u,
+    );
+    assert.match(
+      workspaceEvidence.get('moldea/project.md').content,
+      /Source files under `\/src\/\*\*` implement the project behavior represented/u,
+    );
+    assert.equal(
+      workspaceEvidence.get('src/project-state.js').content,
+      'export const projectState = "active";\n',
+    );
+    assert.equal(
+      [...workspaceEvidence.keys()].some((path) => path.startsWith('.agents/skills/moldea')),
+      false,
+    );
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

@@ -9,10 +9,12 @@ Both operations begin from the same evidence model: supported local tooling, `in
 When no explicit scope is provided:
 
 - **`HEAD` exists and the working tree is dirty:** use staged, unstaged, untracked, renamed, and deleted paths relative to `HEAD` as the initial change set, then expand through registered and semantic relationships into every materially affected `moldea` surface.
-- **`HEAD` exists and the working tree is clean:** assess the current `moldea` system as a whole, beginning with project foundation, relationships, active decisions, agents, capabilities, schemas, runtime guidance, requirements, and runtime-adapter evidence, then progressively inspect relevant implementation without exhaustively reading the repository.
+- **`HEAD` exists and the working tree is clean:** assess the project-owned `moldea` system as a whole, beginning with project foundation, relationships, active decisions, agents, capabilities, schemas, runtime guidance, requirements, and runtime-adapter evidence, then progressively inspect relevant implementation without exhaustively reading the repository.
 - **No `HEAD` exists:** treat every current path as newly introduced for initial scope selection.
 
 An explicit agent, Agent Skill, capability, domain, path, runtime, change, or contradiction defines the starting point, not an artificial prohibition on inspecting materially related evidence.
+
+Within an adopted repository, an unqualified request to evaluate `moldea` targets that repository's project-owned system. The installed `.agents/skills/moldea` tree supplies operating guidance; its presence does not make it a project-owned Agent Skill or evaluation subject. Evaluate that artifact only when the developer explicitly scopes it or repository evidence establishes it as a project-owned source, copy, consumer, or declaration. Explicit and repository-established Agent Skill evaluations retain their complete assessment.
 
 ## Evaluate read-only
 
@@ -47,6 +49,8 @@ Resolvers include source-owned target docs, closed wiring, provider configuratio
 When material repository-specific runtime behavior is not established by canonical guidance or another reliable source, report that semantic-readiness problem rather than inventing a Core structural diagnostic. Never repair an unavailable adapter by silently rewriting `runtime.id` to `custom`.
 
 Do not fabricate PR Assurance outcomes, Cloud acceptance, merge conclusions, billable semantics, confidence thresholds, or style-only findings. Recommend a correction only when intended direction is sufficiently established.
+
+For an unscoped clean evaluation, concisely report the adopted project-owned starting scope, the canonical relationship that caused implementation expansion or why none was material, and the resulting conclusion. Do not narrate every read or substitute an audit of the installed operating skill.
 
 Every evaluation reports scope, deterministic state, all five categories, tooling and checks, and the explicit fact that no repository files were changed.
 

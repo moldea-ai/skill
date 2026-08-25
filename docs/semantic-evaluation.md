@@ -29,6 +29,8 @@ Repository evidence must identify an inspectable source. Supported sources inclu
 
 Dirty-tree scenarios combine categorical Git-state facts with bounded snapshots of every material changed path and the canonical relationships needed for semantic assessment. Judges can therefore compare the actor's claimed scope and reasoning with independent evidence without receiving raw actor commands or arbitrary command output.
 
+Clean-tree scenarios source the canonical foundation and material related implementation needed for the expected assessment. Progressive scope is judged from the actor's concise starting-scope and expansion conclusion together with that independent project evidence. It is not inferred from discarded command text or internal reasoning. The installed Moldea skill remains protected operating guidance and does not become project-owned scenario evidence merely because the actor uses it.
+
 ## Repository controls
 
 Actors can edit the ordinary working tree when a scenario authorizes changes. Bubblewrap overlays the repository's `.git` metadata and installed `.agents/skills/moldea` tree as read-only. The runner captures Git metadata, HEAD, refs, staged state, local configuration, and the installed skill before and after every actor.

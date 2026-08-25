@@ -56,9 +56,9 @@ The CLI is an exact root development dependency; other entries retain their rang
 - **Plan:** design the smallest robust agent-and-software system for an explicitly agent-enabled objective. Keep the operation read-only, allow zero agents, and never establish `moldea` state or local tooling merely to produce the recommendation.
 - **Initialize:** establish local tooling, project understanding, `/moldea/moldea.yaml`, `/moldea/project.md`, and the owned README awareness block. Do not create an agent automatically.
 - **Maintain:** reconsider and, when required, synchronize affected project context, decisions, runtime guidance, agents, Agent Skills, relationships, schemas, capabilities, variables, requirements, mirrors, README guidance, or implementation.
-- **Evaluate:** perform read-only deterministic and semantic assessment. Never establish dependency state or write any repository or Git surface.
+- **Evaluate:** assess the adopted project's Moldea system without writes. The installed operating skill becomes project scope only through explicit or repository-established ownership. Never establish dependency state.
 - **Reconcile:** begin from the same evidence model as `evaluate`, establish intended state, and apply the smallest authorized coherent correction.
-- **Validate:** run deterministic repository-local validation only. Treat it as read-only.
+- **Validate:** run read-only deterministic repository-local validation only.
 
 Writes stay within authorized scope. Relevant implementation authorizes necessary same-change `moldea` synchronization unless excluded; an adopted unambiguous current-knowledge handoff authorizes context maintenance. Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only unless later authorized.
 
@@ -78,7 +78,7 @@ An unexplained same-scope conflict over policy, permission, approval, ownership,
 - Read `references/skill-design.md` before creating, evaluating, or materially changing an Agent Skill, its `SKILL.md`, references, scripts, assets, activation contract, installation relationship, or runtime registration.
 - Read `references/evaluate-and-reconcile.md` before `evaluate`, `reconcile`, or a scoped semantic alignment assessment.
 
-Load only references triggered by the operation. They operationalize this contract without overriding governing specifications or deterministic CLI, Core, or adapter results.
+Load only operation-triggered references. Governing specifications and deterministic CLI, Core, or adapter results still control.
 
 ## Common lifecycle
 

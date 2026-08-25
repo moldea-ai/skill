@@ -9,6 +9,12 @@ export {
   validateSemanticCaseDefinition,
 } from './evidence.mjs';
 
+// actor execution evidence
+export {
+  hasValidActorExecutionEvidence,
+  projectActorExecutionEvidenceEvent,
+} from './actor-execution-evidence.mjs';
+
 // coverage
 export { createSemanticCoverageDigest, validateSemanticCoverage } from './coverage.mjs';
 

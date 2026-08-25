@@ -25,6 +25,7 @@ import {
   createActorRepository,
   createSemanticEvaluationCandidate,
   migrateSemanticEvaluationCheckpoint,
+  parseSemanticEvaluationHostOutput,
   prepareSemanticEvaluationHome,
   readSemanticEvaluationCandidate,
   seedSemanticTooling,
@@ -33,6 +34,7 @@ import {
 
 const ROOT_PACKAGE_MANIFEST = JSON.parse(readFileSync(join(process.cwd(), 'package.json'), 'utf8'));
 const RELEASE_CLI_VERSION = ROOT_PACKAGE_MANIFEST.devDependencies['@moldea.ai/cli'];
+const RELEASE_CLI_JSON_SCHEMA_VERSION = ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion;
 const SEMANTIC_CASES = JSON.parse(
   readFileSync(join(process.cwd(), 'fixtures', 'conformance-cases.json'), 'utf8'),
 ).semanticCases;
@@ -735,7 +737,7 @@ test('pnpm PnP scenario resolves and executes the exact local CLI provider', asy
       'const canonicalBin = realpathSync(resolve(canonicalRoot, manifest.bin.moldea));',
       'const relativeBin = relative(canonicalRoot, canonicalBin);',
       'if (relativeBin === ".." || relativeBin.startsWith("../") || isAbsolute(relativeBin)) process.exit(12);',
-      'process.stdout.write(JSON.stringify({ binPath: canonicalBin, packageRoot: canonicalRoot }));',
+      'process.stdout.write(canonicalRoot + "\\n" + canonicalBin + "\\n");',
     ].join(' ');
     const runIsolatedProbe = (command) =>
       spawnSync(
@@ -763,17 +765,88 @@ test('pnpm PnP scenario resolves and executes the exact local CLI provider', asy
     assert.equal(versionResult.stdout, '11.21.0\n');
     assert.equal(resolutionResult.status, 0, resolutionResult.stderr);
 
-    const resolvedProvider = JSON.parse(resolutionResult.stdout);
+    const [packageRoot, binPath] = resolutionResult.stdout.trim().split('\n');
+    const resolvedProvider = { binPath, packageRoot };
     assert.deepEqual(resolvedProvider, {
       binPath: '/mnt/.pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
       packageRoot: '/mnt/.pnp/node_modules/@moldea.ai/cli',
     });
+    const pathCommand = `realpath ${resolvedProvider.packageRoot}; realpath ${resolvedProvider.binPath}`;
+    const pathResult = runIsolatedProbe(pathCommand);
+    assert.equal(pathResult.status, 0, pathResult.stderr);
+    assert.equal(pathResult.stdout, resolutionResult.stdout);
 
     const invocationResult = runIsolatedProbe(
       `pnpm node ${JSON.stringify(resolvedProvider.binPath)} --version`,
     );
+    const inspectCommand = `pnpm node ${resolvedProvider.binPath} inspect --json`;
+    const inspectResult = runIsolatedProbe(inspectCommand);
     assert.equal(invocationResult.status, 0, invocationResult.stderr);
     assert.equal(invocationResult.stdout.trim(), RELEASE_CLI_VERSION);
+    assert.equal(inspectResult.status, 1, inspectResult.stderr);
+
+    const hostOutput = [
+      {
+        item: {
+          aggregated_output: pathResult.stdout,
+          command: pathCommand,
+          exit_code: pathResult.status,
+          id: 'resolution-command',
+          status: 'completed',
+          type: 'command_execution',
+        },
+        type: 'item.completed',
+      },
+      {
+        item: {
+          aggregated_output: inspectResult.stdout,
+          command: inspectCommand,
+          exit_code: inspectResult.status,
+          id: 'inspect-command',
+          status: 'failed',
+          type: 'command_execution',
+        },
+        type: 'item.completed',
+      },
+      {
+        item: { id: 'response', text: 'PnP proof complete.', type: 'agent_message' },
+        type: 'item.completed',
+      },
+    ]
+      .map((event) => JSON.stringify(event))
+      .join('\n');
+    const parsedHostOutput = parseSemanticEvaluationHostOutput(hostOutput, {
+      cliVersion: RELEASE_CLI_VERSION,
+      jsonSchemaVersion: RELEASE_CLI_JSON_SCHEMA_VERSION,
+    });
+
+    assert.deepEqual(parsedHostOutput.actorExecutionEvidence[0].item.outputEvidence.facts, [
+      {
+        kind: 'workspace-paths',
+        paths: [
+          '/.pnp/node_modules/@moldea.ai/cli',
+          '/.pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
+        ],
+      },
+    ]);
+    assert.equal(parsedHostOutput.actorExecutionEvidence[1].item.exitCode, 1);
+    assert.deepEqual(parsedHostOutput.actorExecutionEvidence[1].item.outputEvidence.facts, [
+      {
+        cliVersion: RELEASE_CLI_VERSION,
+        command: 'inspect',
+        errorPresent: false,
+        kind: 'moldea-cli-envelope',
+        resultPresent: true,
+        schemaVersion: RELEASE_CLI_JSON_SCHEMA_VERSION,
+        status: 'invalid',
+      },
+    ]);
+    const serializedFacts = JSON.stringify(
+      parsedHostOutput.actorExecutionEvidence.flatMap(
+        ({ item }) => item.outputEvidence?.facts ?? [],
+      ),
+    );
+    assert.doesNotMatch(serializedFacts, /\/mnt|issues|diagnostic|message/u);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

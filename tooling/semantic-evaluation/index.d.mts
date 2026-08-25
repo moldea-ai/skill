@@ -3,6 +3,56 @@ export interface ISemanticCriterion {
   label: string;
 }
 
+// release identity required to recognize safe Moldea CLI envelopes
+export interface ISemanticActorExecutionEvidenceOptions {
+  cliVersion: string;
+  jsonSchemaVersion: number;
+}
+
+// evaluator-owned facts that may be derived from complete recognized command output
+export type ISemanticActorExecutionOutputFact =
+  | {
+      kind: 'moldea-cli-envelope';
+      cliVersion: string;
+      command: 'compatibility' | 'inspect' | 'validate';
+      errorPresent: boolean;
+      resultPresent: boolean;
+      schemaVersion: number;
+      status: 'error' | 'invalid' | 'valid';
+    }
+  | {
+      kind: 'workspace-paths';
+      paths: string[];
+    };
+
+// safe command-output metadata persisted without raw command output
+export interface ISemanticActorExecutionOutputEvidence {
+  byteCount: number;
+  disposition: 'empty' | 'projected' | 'too-large' | 'unrecognized';
+  facts: ISemanticActorExecutionOutputFact[];
+}
+
+// strict persisted completed-command evidence
+export interface ISemanticActorExecutionEvidence {
+  eventType: 'item.completed';
+  item: {
+    exitCode: number;
+    outputEvidence: ISemanticActorExecutionOutputEvidence;
+    status: 'completed' | 'failed';
+    type: 'command_execution';
+  };
+}
+
+export const projectActorExecutionEvidenceEvent: (
+  event: unknown,
+  options: ISemanticActorExecutionEvidenceOptions,
+) => ISemanticActorExecutionEvidence | null;
+
+export const hasValidActorExecutionEvidence: (
+  executionEvidence: unknown,
+  options: ISemanticActorExecutionEvidenceOptions,
+) => boolean;
+
 export type ISemanticGitStateFact =
   | 'has-deleted-paths'
   | 'has-renamed-paths'
@@ -81,7 +131,13 @@ export type ISemanticScenarioObservation =
   | { fact: ISemanticGitStateFact; observed: true; type: 'git-state' }
   | { path: string; type: 'missing' }
   | { mode: number; path: string; type: 'directory' }
-  | { mode: number; path: string; sha256: string; target: string; type: 'symlink' }
+  | {
+      mode: number;
+      path: string;
+      sha256: string;
+      target: string;
+      type: 'symlink';
+    }
   | {
       content: string | null;
       mode: number;

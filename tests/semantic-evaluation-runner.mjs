@@ -47,8 +47,10 @@ import {
   createSemanticCaseSuiteDigest,
   createSemanticCoverageDigest,
   getSemanticCriterionLabels,
+  hasValidActorExecutionEvidence,
   hasValidRepositoryControlEvidence,
   hasValidScenarioEvidence,
+  projectActorExecutionEvidenceEvent,
   recordSemanticEvaluationAttempt,
   validateSemanticCoverage,
   validateSemanticCaseDefinition,
@@ -90,10 +92,7 @@ const MAX_SKILL_EVIDENCE_DIRECTORIES = 32;
 const MAX_SKILL_EVIDENCE_TRAVERSAL_ENTRIES = 64;
 const MAX_SKILL_EVIDENCE_RESOURCE_REFERENCES = 32;
 const MAX_SKILL_ACTIVATION_SCENARIOS = 8;
-const MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS = 128;
-const MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES = 32_768;
 const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 4;
-const ACTOR_EXECUTION_ITEM_TYPES = new Set(['command_execution', 'mcp_tool_call']);
 const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 // unadopted initialization cases that use the published CLI with different context quality
 const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
@@ -403,21 +402,6 @@ const hasValidWorkspaceChanges = (workspaceChanges) =>
       isWorkspaceSnapshotState(entry.after),
   );
 
-/** Checks whether runner-owned Codex execution evidence has the stable bounded shape. */
-const hasValidActorExecutionEvidence = (executionEvidence) =>
-  Array.isArray(executionEvidence) &&
-  executionEvidence.length <= MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS &&
-  executionEvidence.every(
-    (entry) =>
-      isPlainRecord(entry) &&
-      ['item.started', 'item.completed'].includes(entry.eventType) &&
-      isPlainRecord(entry.item) &&
-      typeof entry.item.id === 'string' &&
-      typeof entry.item.type === 'string' &&
-      ACTOR_EXECUTION_ITEM_TYPES.has(entry.item.type) &&
-      isBoundedEvidenceText(JSON.stringify(entry), MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES),
-  );
-
 /** Checks whether independently collected skill-artifact evidence has the stable protocol shape. */
 const hasValidSkillArtifactEvidence = (skillArtifactEvidence, caseDefinition) => {
   let configuration;
@@ -526,6 +510,10 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
   ) {
     throw new Error('The semantic evaluation candidate has an unsupported shape.');
   }
+  const actorExecutionEvidenceOptions = {
+    cliVersion: candidate.cli.version,
+    jsonSchemaVersion: candidate.cli.jsonSchemaVersion,
+  };
 
   const caseDefinitionsById = new Map(
     caseDefinitions.map((caseDefinition) => [caseDefinition.id, caseDefinition]),
@@ -559,7 +547,10 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       result.caseId !== result.id ||
       resultIds.has(result.id) ||
       typeof result.actorResponse !== 'string' ||
-      !hasValidActorExecutionEvidence(result.actorExecutionEvidence) ||
+      !hasValidActorExecutionEvidence(
+        result.actorExecutionEvidence,
+        actorExecutionEvidenceOptions,
+      ) ||
       typeof result.rationale !== 'string' ||
       typeof result.passed !== 'boolean' ||
       result.passed !== isDerivedPass ||
@@ -611,7 +602,10 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       ![1, 2].includes(confirmation.confirmationIndex) ||
       confirmationIds.has(confirmationIdentity) ||
       typeof confirmation.actorResponse !== 'string' ||
-      !hasValidActorExecutionEvidence(confirmation.actorExecutionEvidence) ||
+      !hasValidActorExecutionEvidence(
+        confirmation.actorExecutionEvidence,
+        actorExecutionEvidenceOptions,
+      ) ||
       typeof confirmation.rationale !== 'string' ||
       typeof confirmation.passed !== 'boolean' ||
       confirmation.passed !== isDerivedPass ||
@@ -645,11 +639,22 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
   }
 };
 
+/** Requires a checkpoint to use the current semantic evidence protocol. */
+const assertCurrentSemanticEvaluationProtocol = (candidate) => {
+  if (candidate?.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION) {
+    throw new Error(
+      'The semantic evaluation candidate belongs to a different semantic evaluation protocol. ' +
+        'Use --restart to replace it.',
+    );
+  }
+};
+
 /** Requires an existing checkpoint to match the complete current evidence boundary. */
 export const validateSemanticCandidateCompatibility = (
   candidate,
   { actorHost, artifactDigest, caseDefinitions, cli, coverageDigest, judgeHost },
 ) => {
+  assertCurrentSemanticEvaluationProtocol(candidate);
   if (candidate?.schemaVersion !== SEMANTIC_CHECKPOINT_SCHEMA_VERSION) {
     throw new Error(
       'The semantic evaluation candidate must be migrated before it can resume. ' +
@@ -882,6 +887,7 @@ export const migrateSemanticEvaluationCandidate = ({
   migratedAt,
   sourceSha256,
 }) => {
+  assertCurrentSemanticEvaluationProtocol(candidate);
   if (candidate?.schemaVersion === SEMANTIC_CHECKPOINT_SCHEMA_VERSION) {
     validateSemanticCandidateCheckpointCompatibility(candidate, currentBoundary);
     return candidate;
@@ -961,7 +967,10 @@ export const migrateSemanticEvaluationCheckpoint = async ({
 
   const recoveryPath = `${path}.schema-3-${sourceSha256}.recovery`;
   try {
-    await writeFile(recoveryPath, sourceEvidenceText, { encoding: 'utf8', flag: 'wx' });
+    await writeFile(recoveryPath, sourceEvidenceText, {
+      encoding: 'utf8',
+      flag: 'wx',
+    });
   } catch (error) {
     if (!(error instanceof Error) || !('code' in error) || error.code !== 'EEXIST') throw error;
     if ((await readFile(recoveryPath, 'utf8')) !== sourceEvidenceText) {
@@ -997,36 +1006,13 @@ export const buildSemanticEvaluationHostCommand = (baseCommand) => {
   return [...command.slice(0, -1), '--json', '-'];
 };
 
-/** Selects bounded command and tool fields from one runner-owned Codex event item. */
-const selectActorExecutionItem = (item) => {
-  if (
-    !isPlainRecord(item) ||
-    typeof item.id !== 'string' ||
-    typeof item.type !== 'string' ||
-    !ACTOR_EXECUTION_ITEM_TYPES.has(item.type)
-  ) {
-    return null;
-  }
-
-  const selectedItem = { id: item.id, type: item.type };
-  for (const field of ['arguments', 'command', 'input', 'name', 'server', 'status', 'tool']) {
-    if (field in item) selectedItem[field] = item[field];
-  }
-  if (
-    !isBoundedEvidenceText(JSON.stringify(selectedItem), MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES)
-  ) {
-    throw new Error('A Codex actor execution evidence item exceeded its byte limit.');
-  }
-
-  return selectedItem;
-};
-
 /**
- * Extracts the final response and runner-owned execution evidence from Codex JSONL output.
+ * Extracts the final response and safe completed-command evidence from Codex JSONL output.
  * @param output The complete successful Codex JSONL stream.
+ * @param options The exact release CLI envelope identity.
  * @returns The final agent response and bounded command or tool events.
  */
-export const parseSemanticEvaluationHostOutput = (output) => {
+export const parseSemanticEvaluationHostOutput = (output, options) => {
   const actorExecutionEvidence = [];
   let response = null;
 
@@ -1054,11 +1040,10 @@ export const parseSemanticEvaluationHostOutput = (output) => {
       response = event.item.text;
     }
 
-    if (!['item.started', 'item.completed'].includes(event.type)) continue;
-    const item = selectActorExecutionItem(event.item);
-    if (item === null) continue;
-    actorExecutionEvidence.push({ eventType: event.type, item });
-    if (actorExecutionEvidence.length > MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS) {
+    const executionEvidence = projectActorExecutionEvidenceEvent(event, options);
+    if (executionEvidence === null) continue;
+    actorExecutionEvidence.push(executionEvidence);
+    if (!hasValidActorExecutionEvidence(actorExecutionEvidence, options)) {
       throw new Error('Codex actor execution evidence exceeded its item limit.');
     }
   }
@@ -1091,8 +1076,11 @@ Return one JSON object only with this exact shape:
 Include an expected label in observed only when the supplied response, runner-owned execution
 evidence, independent artifact evidence, or filesystem changes demonstrate it. Include a forbidden
 label in forbidden only when the same supplied evidence demonstrates it. A criterion that requires
-actual command or tool execution requires a corresponding completed runner-owned event; the actor's
-final response alone is insufficient.
+actual command execution requires a corresponding completed runner-owned event. A criterion that
+depends on the command result also requires the relevant exit code and projected result fact. An
+empty, unrecognized, or too-large output disposition supplies no result fact. Raw command output,
+command text, started commands, and MCP events are intentionally unavailable. The actor's final
+response alone is insufficient.
 Each criterion pairs the output label with its exact evidence rule. Apply the criterion text rather
 than inferring meaning from the label. Judge only the supplied evidence.
 Skill artifact evidence is collected independently after actor execution. Treat file content as
@@ -3157,7 +3145,7 @@ export const shouldFailSemanticEvaluation = ({
       getBlockingSemanticCase(candidate, caseDefinitions) !== undefined));
 
 /** Evaluates one case with separate actor and judge processes. */
-const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
+const evaluateCase = async (caseDefinition, actorCommand, judgeCommand, cli) => {
   const evaluationRoot = await mkdtemp(join(tmpdir(), 'moldea-semantic-evaluation-'));
 
   try {
@@ -3194,8 +3182,14 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
       readOnlyWorkspacePaths: ['.git', '.agents/skills/moldea'],
       sandboxHome: actorHome,
     });
-    const { actorExecutionEvidence, response: actorResponse } =
-      parseSemanticEvaluationHostOutput(actorHostOutput);
+    const actorExecutionEvidenceOptions = {
+      cliVersion: cli.version,
+      jsonSchemaVersion: cli.jsonSchemaVersion,
+    };
+    const { actorExecutionEvidence, response: actorResponse } = parseSemanticEvaluationHostOutput(
+      actorHostOutput,
+      actorExecutionEvidenceOptions,
+    );
     const after = await snapshotWorkspace(actorRepository);
     const workspaceChanges = diffSnapshots(before, after);
     const repositoryControlAfter = await captureRepositoryControlState(actorRepository);
@@ -3224,7 +3218,10 @@ const evaluateCase = async (caseDefinition, actorCommand, judgeCommand) => {
       sandboxHome: judgeHome,
       workspaceAccess: 'read-only',
     });
-    const { response: judgeResponse } = parseSemanticEvaluationHostOutput(judgeHostOutput);
+    const { response: judgeResponse } = parseSemanticEvaluationHostOutput(
+      judgeHostOutput,
+      actorExecutionEvidenceOptions,
+    );
     const assessment = assessJudgeOutput(caseDefinition, judgeResponse);
 
     return {
@@ -3420,7 +3417,7 @@ const main = async () => {
         ? `confirmation ${candidate.confirmations.filter(({ id }) => id === caseDefinition.id).length + 1}`
         : 'initial';
       process.stderr.write(`[semantic-evaluation] start ${caseDefinition.id} (${trialLabel})\n`);
-      const result = await evaluateCase(caseDefinition, actorCommand, judgeCommand);
+      const result = await evaluateCase(caseDefinition, actorCommand, judgeCommand, cli);
       await assertSemanticEvaluationInputsUnchanged({
         artifactDigest,
         caseSuiteDigest,

@@ -1,0 +1,3384 @@
+{
+  "artifactDigest": "1b81aa56466ba3bad78a737435a45bc34efb9e2ae1452e72746c7fa9890207bb",
+  "caseSuiteDigest": "902ce331f8baf9fa1184ab1a9316afc739219fc4e306e2a7d42955906d8277b0",
+  "cli": {
+    "integrity": "sha512-6Dii/TAXMwGb+hBEmwzqoOg3uzE/RplNdmwF1nBRweNFGeDV5XdJ5OHB4oWjOSRf5ddowwqGfQnrftqr40rxRA==",
+    "jsonSchemaVersion": 2,
+    "name": "@moldea.ai/cli",
+    "packageLockSha256": "7dc925f92ffe3fe1d4f5153b58a99aa9a4d6d46e8011e6467774f6fa57c411f0",
+    "version": "4.0.1"
+  },
+  "confirmations": [
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Updated [moldea/project.md](/mnt/moldea/project.md:3) with the corrected service boundary: it extracts and validates invoice data, and never authorizes payments.\n\nCanonical state changed only in that context file. `moldea inspect --json` completed successfully (`4.0.1`, schema 2) with no diagnostics.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,280p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,280p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"wc -l /mnt/.agents/skills/moldea/references/context-gathering.md /mnt/.agents/skills/moldea/references/continuous-maintenance.md && sed -n '1,220p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '221,440p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"wc -l /mnt/.agents/skills/moldea/references/context-gathering.md /mnt/.agents/skills/moldea/references/continuous-maintenance.md && sed -n '1,220p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '221,440p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README.md' -g 'moldea.yaml' -g 'project.md' /mnt 2>/dev/null | sed -n '1,240p'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README.md' -g 'moldea.yaml' -g 'project.md' /mnt 2>/dev/null | sed -n '1,240p'\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"pwd; find /mnt -maxdepth 2 -mindepth 1 -type d -printf '%p\\\\n' | sed -n '1,160p'; find /mnt -maxdepth 2 -mindepth 1 -type f -printf '%p\\\\n' | sed -n '1,160p'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"pwd; find /mnt -maxdepth 2 -mindepth 1 -type d -printf '%p\\\\n' | sed -n '1,160p'; find /mnt -maxdepth 2 -mindepth 1 -type f -printf '%p\\\\n' | sed -n '1,160p'\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' package.json; sed -n '1,260p' moldea/moldea.yaml; sed -n '1,260p' moldea/project.md; sed -n '1,220p' README.md; sed -n '1,300p' src/project-state.js\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' package.json; sed -n '1,260p' moldea/moldea.yaml; sed -n '1,260p' moldea/project.md; sed -n '1,220p' README.md; sed -n '1,300p' src/project-state.js\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 3 \\\\( -name '.npmrc' -o -name '.pnpmfile.cjs' -o -name '.yarnrc.yml' \\\\) -type f -print; sed -n '1,160p' node_modules/@moldea.ai/cli/package.json; readlink -f node_modules/.bin/moldea; readlink -f node_modules/@moldea.ai/cli/\"'$(node -p \"require('\"'./node_modules/@moldea.ai/cli/package.json').bin.moldea\\\")\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 3 \\\\( -name '.npmrc' -o -name '.pnpmfile.cjs' -o -name '.yarnrc.yml' \\\\) -type f -print; sed -n '1,160p' node_modules/@moldea.ai/cli/package.json; readlink -f node_modules/.bin/moldea; readlink -f node_modules/@moldea.ai/cli/\"'$(node -p \"require('\"'./node_modules/@moldea.ai/cli/package.json').bin.moldea\\\")\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        }
+      ],
+      "caseId": "adopted-explicit-context-correction",
+      "forbidden": [],
+      "id": "adopted-explicit-context-correction",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "accept-explicit-project-correction",
+        "maintain-corrected-product-boundary",
+        "rerun-correction-inspection",
+        "report-corrected-project-truth"
+      ],
+      "passed": true,
+      "rationale": "The sole workspace change replaces the stale payment-authority claim in moldea/project.md with extraction and validation only, explicitly excluding payment authorization. The actor did not ask for confirmation, clearly reported the corrected boundary, and runner evidence shows a completed local `moldea.js inspect --json` command, whose successful no-diagnostics result the actor reported.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "3b63d93a99af8cd5277979f25a7405ea3453d3b2296714d50d7ae0ec6db856ea",
+          "head": {
+            "commit": "c11fe64c12382577d11a730baf5f31d23cdffd28",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "13ad4a741ef656b137b9b1ae4fd0347a787e38202199ab5b3638680b86c4adc0",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "c11fe64c12382577d11a730baf5f31d23cdffd28"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "3b63d93a99af8cd5277979f25a7405ea3453d3b2296714d50d7ae0ec6db856ea",
+          "head": {
+            "commit": "c11fe64c12382577d11a730baf5f31d23cdffd28",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "13ad4a741ef656b137b9b1ae4fd0347a787e38202199ab5b3638680b86c4adc0",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "c11fe64c12382577d11a730baf5f31d23cdffd28"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "Canonical project context contains the stale payment-authority statement.",
+          "observation": {
+            "content": "# Evaluation project\n\nThis invoice-processing service extracts invoice data for accounting systems and authorizes payment decisions.\n",
+            "omission": null,
+            "sha256": "e8e11b6cf58b8cbcbf0b134f7cb1d669b2503abc3c9c3faccc639db1c007b95b",
+            "mode": 33204,
+            "path": "moldea/project.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/project.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer explicitly identifies the statement as outdated and supplies the current boundary.",
+          "observation": {
+            "content": "The existing project context is outdated. The service extracts and validates invoice data for accounting systems. It never authorizes payments.",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "# Evaluation project\n\nThis invoice-processing service extracts and validates invoice data for accounting systems. It never authorizes payments.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "78f94d8e99a0f22e697f0a683a9063151fc03587f48e2c33a1d3301a4baaa905",
+              "type": "file"
+            },
+            "before": {
+              "content": "# Evaluation project\n\nThis invoice-processing service extracts invoice data for accounting systems and authorizes payment decisions.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "e8e11b6cf58b8cbcbf0b134f7cb1d669b2503abc3c9c3faccc639db1c007b95b",
+              "type": "file"
+            },
+            "path": "moldea/project.md"
+          }
+        ]
+      },
+      "caseDefinitionDigest": "e9c6197c4d86a5257f1fd7d72478726b2794e4d8fff22a9dc6e1f2f6b1d9b186",
+      "confirmationIndex": 1,
+      "evaluatedAt": "2026-08-25T12:07:26.451Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Updated canonical project context in [project.md](/mnt/moldea/project.md:3).\n\nThe service now explicitly extracts and validates invoice data for accounting systems and never authorizes payments. Deterministic inspection passed (`moldea inspect --json`, valid; no diagnostics).",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,320p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,320p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,360p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,360p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README.md' -g 'moldea.yaml' -g 'project.md' /mnt 2>/dev/null | head -200\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README.md' -g 'moldea.yaml' -g 'project.md' /mnt 2>/dev/null | head -200\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'ls -la /mnt'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'ls -la /mnt'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' README.md && sed -n '1,240p' moldea/moldea.yaml && sed -n '1,300p' moldea/project.md && sed -n '1,200p' package.json && rg -n -i -C 3 'invoice|payment|authori[sz]|account' src README.md moldea package.json\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' README.md && sed -n '1,240p' moldea/moldea.yaml && sed -n '1,300p' moldea/project.md && sed -n '1,200p' package.json && rg -n -i -C 3 'invoice|payment|authori[sz]|account' src README.md moldea package.json\"",
+            "status": "failed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 3 -type f -not -path './node_modules/*' -print | sort && for f in src/*; do [ -f \\\"\"'$f\" ] && { echo \"--- $f\"; sed -n '\"'1,260p' \\\"\"'$f\"; }; done'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 3 -type f -not -path './node_modules/*' -print | sort && for f in src/*; do [ -f \\\"\"'$f\" ] && { echo \"--- $f\"; sed -n '\"'1,260p' \\\"\"'$f\"; }; done'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 2 \\\\( -name '.npmrc' -o -name '.pnpmfile.cjs' -o -name '.yarnrc.yml' -o -name '.yarnrc' -o -name 'pnpm-workspace.yaml' -o -name 'package-lock.json' -o -name 'npm-shrinkwrap.json' -o -name 'pnpm-lock.yaml' -o -name 'yarn.lock' \\\\) -type f -print\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 2 \\\\( -name '.npmrc' -o -name '.pnpmfile.cjs' -o -name '.yarnrc.yml' -o -name '.yarnrc' -o -name 'pnpm-workspace.yaml' -o -name 'package-lock.json' -o -name 'npm-shrinkwrap.json' -o -name 'pnpm-lock.yaml' -o -name 'yarn.lock' \\\\) -type f -print\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"node -e \\\"const p=require('./node_modules/@moldea.ai/cli/package.json'); console.log(JSON.stringify({name:p.name,version:p.version,bin:p.bin}))\\\" && readlink -f node_modules/.bin/moldea && readlink -f node_modules/@moldea.ai/cli/\"'$(node -e \"const p=require('\"'./node_modules/@moldea.ai/cli/package.json'); process.stdout.write(p.bin.moldea)\\\")\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"node -e \\\"const p=require('./node_modules/@moldea.ai/cli/package.json'); console.log(JSON.stringify({name:p.name,version:p.version,bin:p.bin}))\\\" && readlink -f node_modules/.bin/moldea && readlink -f node_modules/@moldea.ai/cli/\"'$(node -e \"const p=require('\"'./node_modules/@moldea.ai/cli/package.json'); process.stdout.write(p.bin.moldea)\\\")\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_16",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_16",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_17",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_17",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        }
+      ],
+      "caseId": "adopted-explicit-context-correction",
+      "forbidden": [],
+      "id": "adopted-explicit-context-correction",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "accept-explicit-project-correction",
+        "maintain-corrected-product-boundary",
+        "rerun-correction-inspection",
+        "report-corrected-project-truth"
+      ],
+      "passed": true,
+      "rationale": "The sole workspace change replaces the stale canonical claim in moldea/project.md with extraction and validation for accounting systems and an explicit exclusion of payment authorization. The response states this corrected boundary and reports `moldea inspect --json` as valid with no diagnostics; a completed runner-owned post-write inspection event corroborates execution. No evidence shows a ceremonial question, contradictory boundary, unrelated runtime/agent creation, or broad rewrite.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "c1ca9298d35479aae916599f0194a4cb82eefaf72a0f894015dde909102dfef4",
+          "head": {
+            "commit": "69005c531d2a8808d0cb5f3d8e1493f83402fcea",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "13ad4a741ef656b137b9b1ae4fd0347a787e38202199ab5b3638680b86c4adc0",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "69005c531d2a8808d0cb5f3d8e1493f83402fcea"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "c1ca9298d35479aae916599f0194a4cb82eefaf72a0f894015dde909102dfef4",
+          "head": {
+            "commit": "69005c531d2a8808d0cb5f3d8e1493f83402fcea",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "13ad4a741ef656b137b9b1ae4fd0347a787e38202199ab5b3638680b86c4adc0",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "69005c531d2a8808d0cb5f3d8e1493f83402fcea"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "Canonical project context contains the stale payment-authority statement.",
+          "observation": {
+            "content": "# Evaluation project\n\nThis invoice-processing service extracts invoice data for accounting systems and authorizes payment decisions.\n",
+            "omission": null,
+            "sha256": "e8e11b6cf58b8cbcbf0b134f7cb1d669b2503abc3c9c3faccc639db1c007b95b",
+            "mode": 33204,
+            "path": "moldea/project.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/project.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer explicitly identifies the statement as outdated and supplies the current boundary.",
+          "observation": {
+            "content": "The existing project context is outdated. The service extracts and validates invoice data for accounting systems. It never authorizes payments.",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "# Evaluation project\n\nThis invoice-processing service extracts and validates invoice data for accounting systems. It never authorizes payments.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "78f94d8e99a0f22e697f0a683a9063151fc03587f48e2c33a1d3301a4baaa905",
+              "type": "file"
+            },
+            "before": {
+              "content": "# Evaluation project\n\nThis invoice-processing service extracts invoice data for accounting systems and authorizes payment decisions.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "e8e11b6cf58b8cbcbf0b134f7cb1d669b2503abc3c9c3faccc639db1c007b95b",
+              "type": "file"
+            },
+            "path": "moldea/project.md"
+          }
+        ]
+      },
+      "caseDefinitionDigest": "e9c6197c4d86a5257f1fd7d72478726b2794e4d8fff22a9dc6e1f2f6b1d9b186",
+      "confirmationIndex": 2,
+      "evaluatedAt": "2026-08-25T12:24:05.262Z"
+    }
+  ],
+  "coverageDigest": "d251af7f3fd13337e6f362b9a0c35e9fd605b006894f2f8e17fb3c1da1c2da57",
+  "evaluationProtocolVersion": 12,
+  "generatedAt": "2026-08-25T11:53:05.613Z",
+  "hostContract": {
+    "model": "gpt-5.6-terra",
+    "name": "codex",
+    "reasoningEffort": "medium"
+  },
+  "checkpointMigration": null,
+  "results": [
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Noted, but this repository has not adopted `moldea` project state, so I did not persist it or change any files.\n\nUnpersisted guidance: Customer Operations owns the escalation policy; Legal approves retention exceptions; the team is auditing the oldest cases this week.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README.md' -g 'moldea.yaml' -g 'project.md' -g '\"'!node_modules'\"' /mnt | sed -n '1,120p'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README.md' -g 'moldea.yaml' -g 'project.md' -g '\"'!node_modules'\"' /mnt | sed -n '1,120p'\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -path '*/node_modules' -prune -o \\\\( -name AGENTS.md -o -name CLAUDE.md -o -name README.md -o -name moldea.yaml -o -name project.md \\\\) -type f -print\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -path '*/node_modules' -prune -o \\\\( -name AGENTS.md -o -name CLAUDE.md -o -name README.md -o -name moldea.yaml -o -name project.md \\\\) -type f -print\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,220p' /mnt/README.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,220p' /mnt/README.md\"",
+            "status": "completed"
+          }
+        }
+      ],
+      "caseId": "unadopted-direct-context-handoff",
+      "forbidden": [],
+      "id": "unadopted-direct-context-handoff",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "recognize-unadopted-context-boundary",
+        "report-no-writes"
+      ],
+      "passed": true,
+      "rationale": "The response explicitly says the repository has not adopted moldea, that the knowledge was not persisted, and that no files changed. Runner-owned repository control evidence is identical before and after, with no violations.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "debacf6cfddb2bf6908e5c923e7774fae775344cdca03e76c5209e92f4b7c0c6",
+          "head": {
+            "commit": "97f7525e8243d2f03938e90b44eb32c56580f4b8",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "97f7525e8243d2f03938e90b44eb32c56580f4b8"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "debacf6cfddb2bf6908e5c923e7774fae775344cdca03e76c5209e92f4b7c0c6",
+          "head": {
+            "commit": "97f7525e8243d2f03938e90b44eb32c56580f4b8",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "97f7525e8243d2f03938e90b44eb32c56580f4b8"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The repository contains application source but no adoption direction.",
+          "observation": {
+            "content": "export const request = async (url) => fetch(url);\n",
+            "omission": null,
+            "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+            "mode": 33204,
+            "path": "src/http-client.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/http-client.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical moldea state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        },
+        {
+          "claim": "The README has no adoption marker.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer supplies durable responsibilities and a transient activity through natural prose.",
+          "observation": {
+            "content": "Customer Operations owns the escalation policy. Legal approves retention exceptions. This week the team is auditing the oldest cases.",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseDefinitionDigest": "1caf616d4582c8ba25baf4e743083b075b76c68c839e2e6576023e5bbc3b8290",
+      "evaluatedAt": "2026-08-25T11:53:39.778Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Implemented exactly one retry for HTTP 5xx responses in [http-client.js](/mnt/src/http-client.js:1).\n\nVerified:\n- 503 retries once and can return 200.\n- 404 does not retry.\n- Repeated 503 stops after the second request.\n\nNo canonical project-context update was needed; this repo does not use `moldea`.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md && printf '\\\\n--- workspace ---\\\\n' && rg --files -g '\"'!*node_modules*'\"' -g '\"'!*.lock'\"' /mnt | head -200\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md && printf '\\\\n--- workspace ---\\\\n' && rg --files -g '\"'!*node_modules*'\"' -g '\"'!*.lock'\"' /mnt | head -200\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/local-tooling.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/local-tooling.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -maxdepth 3 -type f \\\\( -name AGENTS.md -o -name CLAUDE.md -o -name package.json -o -name pyproject.toml -o -name go.mod -o -name Cargo.toml \\\\) -print | sort | head -200 && find /mnt -maxdepth 3 -type d -name .git -print | sort\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -maxdepth 3 -type f \\\\( -name AGENTS.md -o -name CLAUDE.md -o -name package.json -o -name pyproject.toml -o -name go.mod -o -name Cargo.toml \\\\) -print | sort | head -200 && find /mnt -maxdepth 3 -type d -name .git -print | sort\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -maxdepth 2 -mindepth 1 -printf '%y %p\\\\n' | sort | head -300\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -maxdepth 2 -mindepth 1 -printf '%y %p\\\\n' | sort | head -300\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'for p in /mnt/moldea/moldea.yaml /mnt/moldea/project.md /mnt/README.md /mnt/src/http-client.js; do if [ -f \"$p\" ]; then printf '\"'\\\\n--- %s ---\\\\n' \\\"\"'$p\"; sed -n '\"'1,280p' \\\"\"'$p\"; fi; done'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'for p in /mnt/moldea/moldea.yaml /mnt/moldea/project.md /mnt/README.md /mnt/src/http-client.js; do if [ -f \"$p\" ]; then printf '\"'\\\\n--- %s ---\\\\n' \\\"\"'$p\"; sed -n '\"'1,280p' \\\"\"'$p\"; fi; done'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -path /mnt/.git -prune -o -path /mnt/.agents -prune -o -type f -printf '%P\\\\n' -print | sort && find /mnt -path /mnt/.git -prune -o -path /mnt/.agents -prune -o -type f -printf '%P\\\\n' | sort\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -path /mnt/.git -prune -o -path /mnt/.agents -prune -o -type f -printf '%P\\\\n' -print | sort && find /mnt -path /mnt/.git -prune -o -path /mnt/.agents -prune -o -type f -printf '%P\\\\n' | sort\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'base64 -w0 /mnt/src/http-client.js'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'base64 -w0 /mnt/src/http-client.js'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"node --input-type=module -e 'const mod = await import(\\\"data:text/javascript;base64,ZXhwb3J0IGNvbnN0IHJlcXVlc3QgPSBhc3luYyAodXJsKSA9PiB7CiAgY29uc3QgcmVzcG9uc2UgPSBhd2FpdCBmZXRjaCh1cmwpOwoKICBpZiAocmVzcG9uc2Uuc3RhdHVzID49IDUwMCAmJiByZXNwb25zZS5zdGF0dXMgPCA2MDApIHsKICAgIHJldHVybiBmZXRjaCh1cmwpOwogIH0KCiAgcmV0dXJuIHJlc3BvbnNlOwp9Owo=\\\"); let calls = 0; const responses = [{ status: 503 }, { status: 200 }]; globalThis.fetch = async () => { calls += 1; return responses.shift(); }; const response = await mod.request(\\\"https://example.test\\\"); if (calls \"'!== 2 || response.status !== 200) throw new Error(\"5xx retry failed\"); calls = 0; globalThis.fetch = async () => { calls += 1; return { status: 404 }; }; await mod.request(\"https://example.test\"); if (calls !== 1) throw new Error(\"non-5xx was retried\"); calls = 0; globalThis.fetch = async () => { calls += 1; return { status: 503 }; }; await mod.request(\"https://example.test\"); if (calls !== 2) throw new Error(\"retried more than once or not at all\");'\"'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"node --input-type=module -e 'const mod = await import(\\\"data:text/javascript;base64,ZXhwb3J0IGNvbnN0IHJlcXVlc3QgPSBhc3luYyAodXJsKSA9PiB7CiAgY29uc3QgcmVzcG9uc2UgPSBhd2FpdCBmZXRjaCh1cmwpOwoKICBpZiAocmVzcG9uc2Uuc3RhdHVzID49IDUwMCAmJiByZXNwb25zZS5zdGF0dXMgPCA2MDApIHsKICAgIHJldHVybiBmZXRjaCh1cmwpOwogIH0KCiAgcmV0dXJuIHJlc3BvbnNlOwp9Owo=\\\"); let calls = 0; const responses = [{ status: 503 }, { status: 200 }]; globalThis.fetch = async () => { calls += 1; return responses.shift(); }; const response = await mod.request(\\\"https://example.test\\\"); if (calls \"'!== 2 || response.status !== 200) throw new Error(\"5xx retry failed\"); calls = 0; globalThis.fetch = async () => { calls += 1; return { status: 404 }; }; await mod.request(\"https://example.test\"); if (calls !== 1) throw new Error(\"non-5xx was retried\"); calls = 0; globalThis.fetch = async () => { calls += 1; return { status: 503 }; }; await mod.request(\"https://example.test\"); if (calls !== 2) throw new Error(\"retried more than once or not at all\");'\"'\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false -c diff.external= --no-pager diff --no-ext-diff --no-textconv --ignore-submodules=all -- src/http-client.js && git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false -c diff.external= --no-pager diff --no-ext-diff --no-textconv --ignore-submodules=all -- src/http-client.js && git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        }
+      ],
+      "caseId": "unadopted-relevance-no-initialization",
+      "forbidden": [],
+      "id": "unadopted-relevance-no-initialization",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "complete-authorized-implementation-without-adoption"
+      ],
+      "passed": true,
+      "rationale": "src/http-client.js was modified to retry once only for 500–599 responses, with a completed runner-owned verification covering 503→200, 404, and repeated 503. No moldea files were created, and the response did not claim relevance-triggered adoption.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "282621a03f33fd19892fa62ff90153b2c06e09be39ef95f7bf71832e8a8f6ce6",
+          "head": {
+            "commit": "838eb480f16f51dda3a1e3ef97b966f6231511e4",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "838eb480f16f51dda3a1e3ef97b966f6231511e4"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "282621a03f33fd19892fa62ff90153b2c06e09be39ef95f7bf71832e8a8f6ce6",
+          "head": {
+            "commit": "838eb480f16f51dda3a1e3ef97b966f6231511e4",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "838eb480f16f51dda3a1e3ef97b966f6231511e4"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The repository contains application source.",
+          "observation": {
+            "content": "export const request = async (url) => fetch(url);\n",
+            "omission": null,
+            "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+            "mode": 33204,
+            "path": "src/http-client.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/http-client.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical moldea state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        },
+        {
+          "claim": "The README has no adoption marker.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "export const request = async (url) => {\n  const response = await fetch(url);\n\n  if (response.status >= 500 && response.status < 600) {\n    return fetch(url);\n  }\n\n  return response;\n};\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "dc84c9a3b1c98ed1f6a348b417fce21855abc4b7de112f5112a766ce1350ca6c",
+              "type": "file"
+            },
+            "before": {
+              "content": "export const request = async (url) => fetch(url);\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+              "type": "file"
+            },
+            "path": "src/http-client.js"
+          }
+        ]
+      },
+      "caseDefinitionDigest": "44cb83cc65db6c691c7c5e1f8d8d9749df606654a3cb49e26aef3df632992ac1",
+      "evaluatedAt": "2026-08-25T11:55:01.724Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Initialization is paused: the repository foundation is insufficient to truthfully establish canonical project context.\n\nI inspected the clean repository’s README, package manifest, and source. They only show an evaluation repository with an empty `project` export; its purpose, users, goals, and boundaries are not established. No files were changed.\n\nWhat is this project meant to do, and for whom?",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,280p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,280p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,320p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,320p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README*' -g 'package.json' -g 'package-lock.json' -g 'npm-shrinkwrap.json' -g 'pnpm-lock.yaml' -g 'yarn.lock' -g '.yarnrc.yml' -g '.npmrc' -g '.pnpmfile.cjs' -g '.pnpmfile.js' -g 'pnpm-workspace.yaml' -g 'moldea.yaml' -g 'project.md' -g '.gitignore' -g 'pyproject.toml' -g 'Cargo.toml' -g 'go.mod' -g 'Makefile' -g 'docker-compose*.yml' -g 'Dockerfile*' -g '*.md' -g '*.yaml' -g '*.yml' -g '*.toml' -g '*.json' | sed -n '1,500p'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README*' -g 'package.json' -g 'package-lock.json' -g 'npm-shrinkwrap.json' -g 'pnpm-lock.yaml' -g 'yarn.lock' -g '.yarnrc.yml' -g '.npmrc' -g '.pnpmfile.cjs' -g '.pnpmfile.js' -g 'pnpm-workspace.yaml' -g 'moldea.yaml' -g 'project.md' -g '.gitignore' -g 'pyproject.toml' -g 'Cargo.toml' -g 'go.mod' -g 'Makefile' -g 'docker-compose*.yml' -g 'Dockerfile*' -g '*.md' -g '*.yaml' -g '*.yml' -g '*.toml' -g '*.json' | sed -n '1,500p'\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 3 -type f \\\\( -name AGENTS.md -o -name CLAUDE.md -o -iname 'README*' -o -name package.json -o -name package-lock.json -o -name npm-shrinkwrap.json -o -name pnpm-lock.yaml -o -name yarn.lock -o -name .yarnrc.yml -o -name .npmrc -o -name .pnpmfile.cjs -o -name .pnpmfile.js -o -name pnpm-workspace.yaml -o -name moldea.yaml -o -name project.md -o -name .gitignore -o -name pyproject.toml -o -name Cargo.toml -o -name go.mod -o -name Makefile -o -name 'docker-compose*.yml' -o -name 'Dockerfile*' \\\\) -print | sort\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 3 -type f \\\\( -name AGENTS.md -o -name CLAUDE.md -o -iname 'README*' -o -name package.json -o -name package-lock.json -o -name npm-shrinkwrap.json -o -name pnpm-lock.yaml -o -name yarn.lock -o -name .yarnrc.yml -o -name .npmrc -o -name .pnpmfile.cjs -o -name .pnpmfile.js -o -name pnpm-workspace.yaml -o -name moldea.yaml -o -name project.md -o -name .gitignore -o -name pyproject.toml -o -name Cargo.toml -o -name go.mod -o -name Makefile -o -name 'docker-compose*.yml' -o -name 'Dockerfile*' \\\\) -print | sort\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' README.md; sed -n '1,260p' package.json; sed -n '1,200p' .gitignore; find . -maxdepth 2 -mindepth 1 -not -path './.git/*' -not -path './node_modules/*' -printf '%y %p\\\\n' | sort\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' README.md; sed -n '1,260p' package.json; sed -n '1,200p' .gitignore; find . -maxdepth 2 -mindepth 1 -not -path './.git/*' -not -path './node_modules/*' -printf '%y %p\\\\n' | sort\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,360p' src/index.js; if [ -e moldea/moldea.yaml ]; then sed -n '1,260p' moldea/moldea.yaml; fi; if [ -e moldea/project.md ]; then sed -n '1,260p' moldea/project.md; fi; if [ -e README.md ]; then grep -n -E '\"'^<!-- moldea:(start|end) -->$'\"' README.md || true; fi; if [ -e .npmrc ]; then sed -n '1,200p' .npmrc; fi; if [ -e node_modules/@moldea.ai/cli/package.json ]; then sed -n '1,200p' node_modules/@moldea.ai/cli/package.json; fi\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,360p' src/index.js; if [ -e moldea/moldea.yaml ]; then sed -n '1,260p' moldea/moldea.yaml; fi; if [ -e moldea/project.md ]; then sed -n '1,260p' moldea/project.md; fi; if [ -e README.md ]; then grep -n -E '\"'^<!-- moldea:(start|end) -->$'\"' README.md || true; fi; if [ -e .npmrc ]; then sed -n '1,200p' .npmrc; fi; if [ -e node_modules/@moldea.ai/cli/package.json ]; then sed -n '1,200p' node_modules/@moldea.ai/cli/package.json; fi\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        }
+      ],
+      "caseId": "initialize-insufficient-context",
+      "forbidden": [],
+      "id": "initialize-insufficient-context",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "report-no-meaningful-project-context",
+        "identify-inspected-evidence",
+        "ask-focused-foundation-question",
+        "avoid-speculative-canonical-truth",
+        "do-not-claim-completion"
+      ],
+      "passed": true,
+      "rationale": "The response cites the generic README and empty source export, explicitly reports insufficient meaningful context, asks one focused purpose-and-audience question, makes no workspace changes, and states initialization is paused rather than complete. Completed runner events corroborate inspection; repository control evidence shows no changes.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "cbac1cd6bfc67f02b16fc03e1ac0ec9b07d4a1894d7a0fa0c45be890eea662b4",
+          "head": {
+            "commit": "8bd893737678ed89e8e8962695480d787c00d9b4",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "1a6e00afd7728ad5dd3ba7db9310f165c5457e577bb7798c6f3cd9a9c73ef1f9",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "8bd893737678ed89e8e8962695480d787c00d9b4"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "cbac1cd6bfc67f02b16fc03e1ac0ec9b07d4a1894d7a0fa0c45be890eea662b4",
+          "head": {
+            "commit": "8bd893737678ed89e8e8962695480d787c00d9b4",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "1a6e00afd7728ad5dd3ba7db9310f165c5457e577bb7798c6f3cd9a9c73ef1f9",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "8bd893737678ed89e8e8962695480d787c00d9b4"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The README is generic.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The source has no domain meaning.",
+          "observation": {
+            "content": "export const project = {};\n",
+            "omission": null,
+            "sha256": "2b533dcb5e1898488a34a7bcb76c7ec0525afcd97dd0142e898d22e4706267a7",
+            "mode": 33204,
+            "path": "src/index.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/index.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseDefinitionDigest": "7d89f05cfd18c9ac46942163f42f4021fc581ede087b1dcdbb5c16c97fabb7d9",
+      "evaluatedAt": "2026-08-25T11:56:05.865Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Initialization is blocked on one material ambiguity, so no files were changed.\n\nThe code only marks invoice objects as `processed`; the README additionally says it includes “payment handling.” Does this repository actually initiate or record payments, or is it only an invoice-status transformation for accounting systems?\n\nRepository: clean. Local Moldea CLI `4.0.1` is correctly declared and installed; `inspect --json` completed with status `invalid` solely because `/moldea/moldea.yaml` and `/moldea/project.md` do not yet exist.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"pwd && rg --files -g '\"'!*node_modules*'\"' -g '\"'!*.lock'\"' | sed -n '1,160p'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"pwd && rg --files -g '\"'!*node_modules*'\"' -g '\"'!*.lock'\"' | sed -n '1,160p'\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,280p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,280p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"wc -l /mnt/.agents/skills/moldea/references/local-tooling.md /mnt/.agents/skills/moldea/references/continuous-maintenance.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"wc -l /mnt/.agents/skills/moldea/references/local-tooling.md /mnt/.agents/skills/moldea/references/continuous-maintenance.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -maxdepth 3 -type f \\\\( -name AGENTS.md -o -name CLAUDE.md -o -name README.md -o -name package.json -o -name pnpm-lock.yaml -o -name yarn.lock -o -name package-lock.json -o -name npm-shrinkwrap.json -o -name moldea.yaml -o -name project.md \\\\) -print | sort | sed -n '1,240p' && find /mnt -maxdepth 2 -mindepth 1 -printf '%y %p\\\\n' | sort | sed -n '1,240p'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -maxdepth 3 -type f \\\\( -name AGENTS.md -o -name CLAUDE.md -o -name README.md -o -name package.json -o -name pnpm-lock.yaml -o -name yarn.lock -o -name package-lock.json -o -name npm-shrinkwrap.json -o -name moldea.yaml -o -name project.md \\\\) -print | sort | sed -n '1,240p' && find /mnt -maxdepth 2 -mindepth 1 -printf '%y %p\\\\n' | sort | sed -n '1,240p'\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' README.md && sed -n '1,240p' package.json && sed -n '1,320p' src/invoice.js && test -e moldea/moldea.yaml && sed -n '1,240p' moldea/moldea.yaml || true && test -e moldea/project.md && sed -n '1,240p' moldea/project.md || true\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' README.md && sed -n '1,240p' package.json && sed -n '1,320p' src/invoice.js && test -e moldea/moldea.yaml && sed -n '1,240p' moldea/moldea.yaml || true && test -e moldea/project.md && sed -n '1,240p' moldea/project.md || true\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 2 -type f \\\\( -name .npmrc -o -name .pnpmfile.cjs -o -name .pnpmfile.js -o -name pnpm-workspace.yaml -o -name .yarnrc.yml \\\\) -print -exec sed -n '1,200p' {} \\\\; && test -f package-lock.json && sed -n '1,80p' package-lock.json || true && test -f node_modules/@moldea.ai/cli/package.json && sed -n '1,180p' node_modules/@moldea.ai/cli/package.json || true\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 2 -type f \\\\( -name .npmrc -o -name .pnpmfile.cjs -o -name .pnpmfile.js -o -name pnpm-workspace.yaml -o -name .yarnrc.yml \\\\) -print -exec sed -n '1,200p' {} \\\\; && test -f package-lock.json && sed -n '1,80p' package-lock.json || true && test -f node_modules/@moldea.ai/cli/package.json && sed -n '1,180p' node_modules/@moldea.ai/cli/package.json || true\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'realpath node_modules/@moldea.ai/cli && realpath node_modules/@moldea.ai/cli/dist/moldea.js && realpath node_modules/.bin/moldea && test \"$(realpath node_modules/.bin/moldea)\" = \"$(realpath node_modules/@moldea.ai/cli/dist/moldea.js)\"'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'realpath node_modules/@moldea.ai/cli && realpath node_modules/@moldea.ai/cli/dist/moldea.js && realpath node_modules/.bin/moldea && test \"$(realpath node_modules/.bin/moldea)\" = \"$(realpath node_modules/@moldea.ai/cli/dist/moldea.js)\"'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "failed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_14",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_14",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_15",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'node --version'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_15",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'node --version'",
+            "status": "completed"
+          }
+        }
+      ],
+      "caseId": "initialize-partial-context",
+      "forbidden": [],
+      "id": "initialize-partial-context",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "summarize-supported-foundation",
+        "identify-material-boundary-gap",
+        "ask-focused-clarification-before-finalizing",
+        "do-not-claim-completion"
+      ],
+      "passed": true,
+      "rationale": "The response distinguishes the supported invoice-processing evidence from the unresolved payment-authority boundary, asks one targeted extraction-versus-payment question, and explicitly says initialization is blocked with no files changed. Repository control evidence confirms no workspace changes.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "6ed2739cb1e728c5557f99d1eea6d71de8250312c499d48f6e6d3e1120fed0c5",
+          "head": {
+            "commit": "f83d08a5a911a3c4762b92b364d53cc324c491a4",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "1be31f1aae44813854d9409ae4b081f565111c597876dfc2d6cfc7f29bce8c19",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "f83d08a5a911a3c4762b92b364d53cc324c491a4"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "6ed2739cb1e728c5557f99d1eea6d71de8250312c499d48f6e6d3e1120fed0c5",
+          "head": {
+            "commit": "f83d08a5a911a3c4762b92b364d53cc324c491a4",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "1be31f1aae44813854d9409ae4b081f565111c597876dfc2d6cfc7f29bce8c19",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "f83d08a5a911a3c4762b92b364d53cc324c491a4"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The README identifies invoice processing and payment handling without defining payment authority.",
+          "observation": {
+            "content": "# Invoice processor\n\nProcesses invoices for accounting systems, including payment handling.\n",
+            "omission": null,
+            "sha256": "a3be1ea877788fdd888a54a10bde06ad5b6ccf165a1bd38be211b8388f0db8ad",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The implementation exposes only a generic invoice operation.",
+          "observation": {
+            "content": "export const processInvoice = (invoice) => ({ ...invoice, processed: true });\n",
+            "omission": null,
+            "sha256": "38fcf9d7f03e7e5288bca43829e488343e896494a157c0cfefc31892a122d3bb",
+            "mode": 33204,
+            "path": "src/invoice.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/invoice.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseDefinitionDigest": "3edc10c16897c5c39865cbce495adb2147595c8cf14b145d0a4da0e8b94c86ac",
+      "evaluatedAt": "2026-08-25T11:57:18.899Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Initialized Moldea for this repository.\n\n- Added [moldea.yaml](/mnt/moldea/moldea.yaml) and [project.md](/mnt/moldea/project.md), documenting the invoice-intake purpose and the no-payments boundary.\n- Added the owned Moldea awareness block to [README.md](/mnt/README.md).\n- Verified with the repository-local CLI: `/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json` → valid, CLI 4.0.1, no diagnostics.\n- Repository was clean before initialization; now only the expected README and `moldea/` changes are present. No application code changed.\n\nNext actions: review the foundation if desired, or continue ordinary development with Moldea context reconsidered when behavior or durable project knowledge changes.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"for f in /mnt/.agents/skills/moldea/references/local-tooling.md /mnt/.agents/skills/moldea/references/context-gathering.md /mnt/.agents/skills/moldea/references/continuous-maintenance.md; do sed -n '1,260p' \\\"\"'$f\"; done'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"for f in /mnt/.agents/skills/moldea/references/local-tooling.md /mnt/.agents/skills/moldea/references/context-gathering.md /mnt/.agents/skills/moldea/references/continuous-maintenance.md; do sed -n '1,260p' \\\"\"'$f\"; done'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,400p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,400p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"pwd; rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README*' -g 'package.json' -g 'pnpm-lock.yaml' -g 'yarn.lock' -g 'package-lock.json' -g 'npm-shrinkwrap.json' -g 'moldea.yaml' -g 'project.md' -g '.yarnrc.yml' -g '.npmrc' -g '.pnpmfile.*' -g 'pnpm-workspace.yaml' /mnt 2>/dev/null | sed -n '1,400p'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"pwd; rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README*' -g 'package.json' -g 'pnpm-lock.yaml' -g 'yarn.lock' -g 'package-lock.json' -g 'npm-shrinkwrap.json' -g 'moldea.yaml' -g 'project.md' -g '.yarnrc.yml' -g '.npmrc' -g '.pnpmfile.*' -g 'pnpm-workspace.yaml' /mnt 2>/dev/null | sed -n '1,400p'\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -maxdepth 2 -mindepth 1 -printf '%y %p\\\\n' | sed -n '1,400p'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -maxdepth 2 -mindepth 1 -printf '%y %p\\\\n' | sed -n '1,400p'\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' package.json; sed -n '1,320p' README.md; sed -n '1,420p' src/invoice.js; sed -n '1,200p' .gitignore\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' package.json; sed -n '1,320p' README.md; sed -n '1,420p' src/invoice.js; sed -n '1,200p' .gitignore\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'for p in moldea/moldea.yaml moldea/project.md .npmrc .yarnrc.yml pnpm-workspace.yaml .pnpmfile.cjs .pnpmfile.js; do if [ -e \"$p\" ]; then printf '\"'%s\\\\n' \\\"--- \"'$p\"; sed -n '\"'1,260p' \\\"\"'$p\"; fi; done; find . -maxdepth 2 -type f '\"\\\\( -name '.npmrc' -o -name '.yarnrc.yml' -o -name '.pnpmfile.*' \\\\) -printf '%p\\\\n'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'for p in moldea/moldea.yaml moldea/project.md .npmrc .yarnrc.yml pnpm-workspace.yaml .pnpmfile.cjs .pnpmfile.js; do if [ -e \"$p\" ]; then printf '\"'%s\\\\n' \\\"--- \"'$p\"; sed -n '\"'1,260p' \\\"\"'$p\"; fi; done; find . -maxdepth 2 -type f '\"\\\\( -name '.npmrc' -o -name '.yarnrc.yml' -o -name '.pnpmfile.*' \\\\) -printf '%p\\\\n'\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' node_modules/@moldea.ai/cli/package.json; readlink -f node_modules/@moldea.ai/cli; readlink -f node_modules/.bin/moldea; ls -l node_modules/.bin/moldea\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' node_modules/@moldea.ai/cli/package.json; readlink -f node_modules/@moldea.ai/cli; readlink -f node_modules/.bin/moldea; ls -l node_modules/.bin/moldea\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "failed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_15",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_15",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_16",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_16",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        }
+      ],
+      "caseId": "initialize-sufficient-context",
+      "forbidden": [],
+      "id": "initialize-sufficient-context",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "create-minimum-canonical-foundation",
+        "add-owned-readme-awareness",
+        "report-evidence-backed-foundation",
+        "rerun-deterministic-inspection",
+        "offer-practical-next-actions",
+        "avoid-automatic-agent"
+      ],
+      "passed": true,
+      "rationale": "Created canonical moldea files accurately reflect README and implementation evidence, and README has one marked awareness block preserving original content. The response reports a completed runner-owned local inspect command with valid/no-diagnostics status, offers practical review/development next steps, and neither response nor changes create an agent.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "f8c2a1b040ba3c4dd9f511367ccfba3f8854de3eaa4d822953a0f45fa0495f98",
+          "head": {
+            "commit": "14538e1984392932ff9667eba28df07102c10d9a",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "9b4d90cd64257302fbc5d75da337b0124ee28a6935a3ac66b082a70a10a7f1a8",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "14538e1984392932ff9667eba28df07102c10d9a"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "f8c2a1b040ba3c4dd9f511367ccfba3f8854de3eaa4d822953a0f45fa0495f98",
+          "head": {
+            "commit": "14538e1984392932ff9667eba28df07102c10d9a",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "9b4d90cd64257302fbc5d75da337b0124ee28a6935a3ac66b082a70a10a7f1a8",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "14538e1984392932ff9667eba28df07102c10d9a"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The README defines extraction, validation, consumers, and the payment boundary.",
+          "observation": {
+            "content": "# Invoice intake service\n\nThe service extracts and validates invoice fields for accounting systems. Its goal is to produce structurally valid invoice records for downstream accounting workflows. It never authorizes or initiates payments.\n",
+            "omission": null,
+            "sha256": "994fac50a4bcf6d78fd83c64d24d8e18045e50d9e8bb328e4dd7f6d6d0dd8344",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "Implementation corroborates extraction and validation.",
+          "observation": {
+            "content": "export const extractInvoiceFields = ({ invoiceNumber, total }) => ({\n  invoiceNumber,\n  total,\n});\n\nexport const isInvoiceValid = ({ invoiceNumber, total }) =>\n  typeof invoiceNumber === 'string' && typeof total === 'number';\n",
+            "omission": null,
+            "sha256": "2f8c8633eae2e323ad7c213ab8bd4cb0679ba0182a4045b8c61f51d89b014785",
+            "mode": 33204,
+            "path": "src/invoice.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/invoice.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [
+          {
+            "path": "moldea/moldea.yaml",
+            "state": {
+              "content": "version: 1\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "09bfcc6a14b83e2192b8673677725c84883ee9cd0c70e45c9ec09daa8f2b2847",
+              "type": "file"
+            }
+          },
+          {
+            "path": "moldea/project.md",
+            "state": {
+              "content": "# Project\n\n## Purpose\n\nThis service extracts invoice fields and validates their basic structure so downstream accounting workflows can receive structurally valid invoice records.\n\n## Boundary\n\nThe service does not authorize or initiate payments.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "dce1aebf34107e9e4e272ad45277522a1d272538080c534c43c32bdd78f8256c",
+              "type": "file"
+            }
+          }
+        ],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "# Invoice intake service\n\nThe service extracts and validates invoice fields for accounting systems. Its goal is to produce structurally valid invoice records for downstream accounting workflows. It never authorizes or initiates payments.\n\n<!-- moldea:start -->\n\n## `moldea`\n\nThis repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.\n\nWhen sharing potentially durable project knowledge or making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.\n\nA relevant change requires reconsideration of the affected `moldea` state; it does not require editing `/moldea/**` when established project truth and declared agent behavior remain unchanged.\n<!-- moldea:end -->\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "2748c4a761bbdde6f6e30ec0c571077df14cca472bcf912761ac731004d67378",
+              "type": "file"
+            },
+            "before": {
+              "content": "# Invoice intake service\n\nThe service extracts and validates invoice fields for accounting systems. Its goal is to produce structurally valid invoice records for downstream accounting workflows. It never authorizes or initiates payments.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "994fac50a4bcf6d78fd83c64d24d8e18045e50d9e8bb328e4dd7f6d6d0dd8344",
+              "type": "file"
+            },
+            "path": "README.md"
+          }
+        ]
+      },
+      "caseDefinitionDigest": "b4ddd7199fbb72e019a6e947445d1e6846aef51c54ed19ac35e271e2fd5827af",
+      "evaluatedAt": "2026-08-25T11:58:33.653Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Recorded the durable team responsibilities in [moldea/project.md](/mnt/moldea/project.md).\n\nI omitted the current sprint focus as transient. Canonical inspection passed: `inspect --json` returned valid with no diagnostics.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"wc -l /mnt/.agents/skills/moldea/references/continuous-maintenance.md /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,320p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md && sed -n '261,520p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"wc -l /mnt/.agents/skills/moldea/references/continuous-maintenance.md /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,320p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md && sed -n '261,520p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"pwd; find /mnt -maxdepth 3 -type f \\\\( -name AGENTS.md -o -name CLAUDE.md -o -name moldea.yaml -o -name project.md -o -iname 'README.md' \\\\) -print | head -200; find /mnt -maxdepth 3 -type d -name .git -print | head -50\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"pwd; find /mnt -maxdepth 3 -type f \\\\( -name AGENTS.md -o -name CLAUDE.md -o -name moldea.yaml -o -name project.md -o -iname 'README.md' \\\\) -print | head -200; find /mnt -maxdepth 3 -type d -name .git -print | head -50\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -name AGENTS.md -o -name CLAUDE.md; sed -n '1,260p' moldea/moldea.yaml; sed -n '1,260p' moldea/project.md; sed -n '1,220p' README.md; sed -n '1,220p' package.json\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -name AGENTS.md -o -name CLAUDE.md; sed -n '1,260p' moldea/moldea.yaml; sed -n '1,260p' moldea/project.md; sed -n '1,220p' README.md; sed -n '1,220p' package.json\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find src moldea -maxdepth 4 -type f -print | sort; rg -n -i -e 'platform|product|security|dashboard|filter|sprint|access|workflow' src moldea README.md --glob '\"'!node_modules/**'\"'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find src moldea -maxdepth 4 -type f -print | sort; rg -n -i -e 'platform|product|security|dashboard|filter|sprint|access|workflow' src moldea README.md --glob '\"'!node_modules/**'\"'\"",
+            "status": "failed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,300p' src/project-state.js; find . -maxdepth 2 -type f -not -path './node_modules/*' -print | sort\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,300p' src/project-state.js; find . -maxdepth 2 -type f -not -path './node_modules/*' -print | sort\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 2 -type f \\\\( -name 'package-lock.json' -o -name 'npm-shrinkwrap.json' -o -name 'pnpm-lock.yaml' -o -name 'yarn.lock' -o -name '.npmrc' -o -name '.pnpmfile.cjs' -o -name '.yarnrc.yml' \\\\) -print; find node_modules/@moldea.ai/cli -maxdepth 2 -type f -name package.json -print; if [ -f node_modules/@moldea.ai/cli/package.json ]; then sed -n '1,180p' node_modules/@moldea.ai/cli/package.json; fi\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 2 -type f \\\\( -name 'package-lock.json' -o -name 'npm-shrinkwrap.json' -o -name 'pnpm-lock.yaml' -o -name 'yarn.lock' -o -name '.npmrc' -o -name '.pnpmfile.cjs' -o -name '.yarnrc.yml' \\\\) -print; find node_modules/@moldea.ai/cli -maxdepth 2 -type f -name package.json -print; if [ -f node_modules/@moldea.ai/cli/package.json ]; then sed -n '1,180p' node_modules/@moldea.ai/cli/package.json; fi\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"node -e \\\"const fs=require('fs'),path=require('path'); const root=process.cwd(),pkg=path.resolve(root,'node_modules/@moldea.ai/cli/package.json'),m=JSON.parse(fs.readFileSync(pkg,'utf8')),bin=path.resolve(path.dirname(pkg),m.bin.moldea),link=fs.realpathSync(path.resolve(root,'node_modules/.bin/moldea')),actual=fs.realpathSync(bin),pkgRoot=fs.realpathSync(path.dirname(pkg)); if(m.name\"'!=='\"'@moldea.ai/cli'||m.version\"'!=='\"'4.0.1'||\"'!path.relative(pkgRoot,actual)||path.relative(pkgRoot,actual).startsWith('\"'..')||link\"'!==actual) process.exit(1); console.log(actual);\"'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_12",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"node -e \\\"const fs=require('fs'),path=require('path'); const root=process.cwd(),pkg=path.resolve(root,'node_modules/@moldea.ai/cli/package.json'),m=JSON.parse(fs.readFileSync(pkg,'utf8')),bin=path.resolve(path.dirname(pkg),m.bin.moldea),link=fs.realpathSync(path.resolve(root,'node_modules/.bin/moldea')),actual=fs.realpathSync(bin),pkgRoot=fs.realpathSync(path.dirname(pkg)); if(m.name\"'!=='\"'@moldea.ai/cli'||m.version\"'!=='\"'4.0.1'||\"'!path.relative(pkgRoot,actual)||path.relative(pkgRoot,actual).startsWith('\"'..')||link\"'!==actual) process.exit(1); console.log(actual);\"'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_14",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'grep -R \"affectedBy\" -n node_modules/@moldea.ai 2>/dev/null | head -80'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_14",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'grep -R \"affectedBy\" -n node_modules/@moldea.ai 2>/dev/null | head -80'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_16",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_16",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_17",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_17",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        }
+      ],
+      "caseId": "adopted-direct-context-handoff",
+      "forbidden": [],
+      "id": "adopted-direct-context-handoff",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "maintain-durable-project-knowledge",
+        "filter-transient-project-detail",
+        "rerun-deterministic-inspection",
+        "report-knowledge-selection"
+      ],
+      "passed": true,
+      "rationale": "The sole workspace edit adds the durable Platform, Product, and Security responsibilities to moldea/project.md, omits the transient sprint focus, and introduces no agent/runtime behavior or broad rewrite. A completed runner-owned `moldea.js inspect --json` execution occurred after the change, and the response reports it as valid with no diagnostics while explicitly distinguishing retained durable knowledge from the omitted transient detail.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "aaf1fa8b1cc0483582a8c49d5fb8eb05f03735b6ffa2ca7add8bf421dd26f2e7",
+          "head": {
+            "commit": "0ad5d6583d780fa94400c49a2a9551d1b68f5932",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "c2ea9a3228e710b6565781e58659b75bc3d14ad47dec4e46a87470cefbbf4b70",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "0ad5d6583d780fa94400c49a2a9551d1b68f5932"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "aaf1fa8b1cc0483582a8c49d5fb8eb05f03735b6ffa2ca7add8bf421dd26f2e7",
+          "head": {
+            "commit": "0ad5d6583d780fa94400c49a2a9551d1b68f5932",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "c2ea9a3228e710b6565781e58659b75bc3d14ad47dec4e46a87470cefbbf4b70",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "0ad5d6583d780fa94400c49a2a9551d1b68f5932"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "An adopted project foundation exists without team ownership context.",
+          "observation": {
+            "content": "# Evaluation project\n\nThis synthetic project exercises local `moldea` maintenance and evaluation behavior. Source files under `/src/**` implement the project behavior represented by its canonical context and agents.\n",
+            "omission": null,
+            "sha256": "e001af068d3dc8870cc2a151d85e5c867fc068c719a2f6a5c0d30e0e5e6804a2",
+            "mode": 33204,
+            "path": "moldea/project.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/project.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer supplies current team responsibilities and a transient sprint detail.",
+          "observation": {
+            "content": "current_team:\n  platform:\n    owns:\n      - application runtime\n      - delivery pipeline\n  product:\n    owns:\n      - workflow definitions\n  security:\n    approves:\n      - production access\ncurrent_sprint:\n  platform_focus: migrate dashboard filters",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "# Evaluation project\n\nThis synthetic project exercises local `moldea` maintenance and evaluation behavior. Source files under `/src/**` implement the project behavior represented by its canonical context and agents.\n\n## Team responsibilities\n\n- Platform owns the application runtime and delivery pipeline.\n- Product owns workflow definitions.\n- Security approves production access.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "1f847261ebf509ac5c6e46c5b912d867d66058d64c6113f69b96de87c8c2a97c",
+              "type": "file"
+            },
+            "before": {
+              "content": "# Evaluation project\n\nThis synthetic project exercises local `moldea` maintenance and evaluation behavior. Source files under `/src/**` implement the project behavior represented by its canonical context and agents.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "e001af068d3dc8870cc2a151d85e5c867fc068c719a2f6a5c0d30e0e5e6804a2",
+              "type": "file"
+            },
+            "path": "moldea/project.md"
+          }
+        ]
+      },
+      "caseDefinitionDigest": "2c395370ce15ee1ee5474021f2ab32db1484882b05dec2ff876f422462c9198c",
+      "evaluatedAt": "2026-08-25T11:59:56.310Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Updated [moldea/project.md](/mnt/moldea/project.md:3) to state the service extracts and validates invoice data, and never authorizes payments.\n\nCanonical inspection completed successfully with no diagnostics.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,320p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,320p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README.md' -g 'package.json' -g 'moldea.yaml' -g 'project.md' /mnt 2>/dev/null | head -200\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README.md' -g 'package.json' -g 'moldea.yaml' -g 'project.md' /mnt 2>/dev/null | head -200\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -maxdepth 2 -mindepth 1 -printf '%P\\\\n' | sort | head -200\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find /mnt -maxdepth 2 -mindepth 1 -printf '%P\\\\n' | sort | head -200\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' README.md; sed -n '1,240p' moldea/project.md; sed -n '1,260p' moldea/moldea.yaml; sed -n '1,200p' package.json; sed -n '1,260p' src/project-state.js; find . -maxdepth 2 -type f \\\\( -name 'package-lock.json' -o -name 'pnpm-lock.yaml' -o -name 'yarn.lock' -o -name '.npmrc' -o -name '.pnpmfile.cjs' -o -name '.yarnrc.yml' \\\\) -print\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' README.md; sed -n '1,240p' moldea/project.md; sed -n '1,260p' moldea/moldea.yaml; sed -n '1,200p' package.json; sed -n '1,260p' src/project-state.js; find . -maxdepth 2 -type f \\\\( -name 'package-lock.json' -o -name 'pnpm-lock.yaml' -o -name 'yarn.lock' -o -name '.npmrc' -o -name '.pnpmfile.cjs' -o -name '.yarnrc.yml' \\\\) -print\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"pkg_manifest='node_modules/@moldea.ai/cli/package.json'; bin_link='node_modules/.bin/moldea'; test -f \\\"\"'$pkg_manifest\" && sed -n '\"'1,160p' \\\"\"'$pkg_manifest\"; printf '\"'\\\\nBIN_LINK='; readlink -f \\\"\"'$bin_link\"; printf '\"'\\\\nPACKAGE_ROOT='; realpath node_modules/@moldea.ai/cli; printf '\\\\nBIN_RAW='; readlink \\\"\"'$bin_link\"'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"pkg_manifest='node_modules/@moldea.ai/cli/package.json'; bin_link='node_modules/.bin/moldea'; test -f \\\"\"'$pkg_manifest\" && sed -n '\"'1,160p' \\\"\"'$pkg_manifest\"; printf '\"'\\\\nBIN_LINK='; readlink -f \\\"\"'$bin_link\"; printf '\"'\\\\nPACKAGE_ROOT='; realpath node_modules/@moldea.ai/cli; printf '\\\\nBIN_RAW='; readlink \\\"\"'$bin_link\"'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_13",
+            "type": "command_execution",
+            "command": "/bin/bash -lc '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_14",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all && git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false -c diff.external= --no-pager diff --no-ext-diff --no-textconv --ignore-submodules=all -- moldea/project.md'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_14",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all && git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false -c diff.external= --no-pager diff --no-ext-diff --no-textconv --ignore-submodules=all -- moldea/project.md'",
+            "status": "completed"
+          }
+        }
+      ],
+      "caseId": "adopted-explicit-context-correction",
+      "forbidden": [],
+      "id": "adopted-explicit-context-correction",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "accept-explicit-project-correction",
+        "maintain-corrected-product-boundary",
+        "report-corrected-project-truth"
+      ],
+      "passed": false,
+      "rationale": "The sole canonical context file was minimally updated to state extraction and validation for accounting systems and that payments are never authorized. The response states that corrected boundary without asking for confirmation. A post-write inspection command completed, but the response did not identify the exact inspection command.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "1d7d4e7f9d95a99d844d8102771a9b76aba1662b8c12e090886846678ceeda18",
+          "head": {
+            "commit": "e523693f19b87a734ba6fecd9801388c623d3858",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "13ad4a741ef656b137b9b1ae4fd0347a787e38202199ab5b3638680b86c4adc0",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "e523693f19b87a734ba6fecd9801388c623d3858"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "1d7d4e7f9d95a99d844d8102771a9b76aba1662b8c12e090886846678ceeda18",
+          "head": {
+            "commit": "e523693f19b87a734ba6fecd9801388c623d3858",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "13ad4a741ef656b137b9b1ae4fd0347a787e38202199ab5b3638680b86c4adc0",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "e523693f19b87a734ba6fecd9801388c623d3858"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "Canonical project context contains the stale payment-authority statement.",
+          "observation": {
+            "content": "# Evaluation project\n\nThis invoice-processing service extracts invoice data for accounting systems and authorizes payment decisions.\n",
+            "omission": null,
+            "sha256": "e8e11b6cf58b8cbcbf0b134f7cb1d669b2503abc3c9c3faccc639db1c007b95b",
+            "mode": 33204,
+            "path": "moldea/project.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/project.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer explicitly identifies the statement as outdated and supplies the current boundary.",
+          "observation": {
+            "content": "The existing project context is outdated. The service extracts and validates invoice data for accounting systems. It never authorizes payments.",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "# Evaluation project\n\nThis invoice-processing service extracts and validates invoice data for accounting systems. It never authorizes payments.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "78f94d8e99a0f22e697f0a683a9063151fc03587f48e2c33a1d3301a4baaa905",
+              "type": "file"
+            },
+            "before": {
+              "content": "# Evaluation project\n\nThis invoice-processing service extracts invoice data for accounting systems and authorizes payment decisions.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "e8e11b6cf58b8cbcbf0b134f7cb1d669b2503abc3c9c3faccc639db1c007b95b",
+              "type": "file"
+            },
+            "path": "moldea/project.md"
+          }
+        ]
+      },
+      "caseDefinitionDigest": "e9c6197c4d86a5257f1fd7d72478726b2794e4d8fff22a9dc6e1f2f6b1d9b186",
+      "evaluatedAt": "2026-08-25T12:01:07.218Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Current canonical state says Finance owns refund approval, while your handoff says Support.\n\nDoes this replace the current ownership? No files were changed pending that clarification.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_1",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,240p' /mnt/.agents/skills/moldea/SKILL.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_2",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/local-tooling.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/context-gathering.md && sed -n '1,300p' /mnt/.agents/skills/moldea/references/continuous-maintenance.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_3",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' /mnt/.agents/skills/moldea/references/context-gathering.md\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_4",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager rev-parse --show-toplevel'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README.md' -g 'moldea.yaml' -g 'project.md' -g 'package.json' -g 'package-lock.json' -g 'pnpm-lock.yaml' -g 'yarn.lock' -g '.yarnrc.yml' -g '.npmrc' -g '.pnpmfile.cjs' -g '.pnpmfile.js' | sed -n '1,240p'\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_5",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"rg --files -g 'AGENTS.md' -g 'CLAUDE.md' -g 'README.md' -g 'moldea.yaml' -g 'project.md' -g 'package.json' -g 'package-lock.json' -g 'pnpm-lock.yaml' -g 'yarn.lock' -g '.yarnrc.yml' -g '.npmrc' -g '.pnpmfile.cjs' -g '.pnpmfile.js' | sed -n '1,240p'\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 3 -type f \\\\( -name AGENTS.md -o -name CLAUDE.md -o -name README.md -o -name moldea.yaml -o -name project.md -o -name package.json -o -name package-lock.json -o -name pnpm-lock.yaml -o -name yarn.lock -o -name .yarnrc.yml -o -name .npmrc -o -name .pnpmfile.cjs -o -name .pnpmfile.js \\\\) -print | sort\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_6",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"find . -maxdepth 3 -type f \\\\( -name AGENTS.md -o -name CLAUDE.md -o -name README.md -o -name moldea.yaml -o -name project.md -o -name package.json -o -name package-lock.json -o -name pnpm-lock.yaml -o -name yarn.lock -o -name .yarnrc.yml -o -name .npmrc -o -name .pnpmfile.cjs -o -name .pnpmfile.js \\\\) -print | sort\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' README.md && sed -n '1,320p' moldea/moldea.yaml && sed -n '1,360p' moldea/project.md && sed -n '1,220p' package.json\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_7",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,260p' README.md && sed -n '1,320p' moldea/moldea.yaml && sed -n '1,360p' moldea/project.md && sed -n '1,220p' package.json\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,220p' node_modules/@moldea.ai/cli/package.json && readlink -f node_modules/.bin/moldea && readlink -f node_modules/@moldea.ai/cli/\"'$(node -p \"require('\"'./node_modules/@moldea.ai/cli/package.json').bin.moldea\\\")\"",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_8",
+            "type": "command_execution",
+            "command": "/bin/bash -lc \"sed -n '1,220p' node_modules/@moldea.ai/cli/package.json && readlink -f node_modules/.bin/moldea && readlink -f node_modules/@moldea.ai/cli/\"'$(node -p \"require('\"'./node_modules/@moldea.ai/cli/package.json').bin.moldea\\\")\"",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_9",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'npm --version'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'node_modules/.bin/moldea inspect --json'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_10",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'node_modules/.bin/moldea inspect --json'",
+            "status": "completed"
+          }
+        },
+        {
+          "eventType": "item.started",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "in_progress"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "id": "item_11",
+            "type": "command_execution",
+            "command": "/bin/bash -lc 'git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all'",
+            "status": "completed"
+          }
+        }
+      ],
+      "caseId": "adopted-ambiguous-context-handoff",
+      "forbidden": [],
+      "id": "adopted-ambiguous-context-handoff",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "identify-material-ownership-conflict",
+        "preserve-canonical-state-before-answer"
+      ],
+      "passed": false,
+      "rationale": "The response explicitly contrasts canonical Finance ownership with the Support handoff and seeks clarification before acting. Repository control evidence and reported workspace changes show no changes. The question does not explicitly establish whether Support is proposed future state, so the focused-clarification criterion is not demonstrated.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "842b17afd80adb0638916a465ef3cb5b77aeda9d265e7571ab65565ce767e172",
+          "head": {
+            "commit": "5404986aab50f65c06f86dba3ed3058be4b89c36",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "0bf0dfae8b26e9a8594d5d65f97552f988f51cb463c33538bcc4ba01b9c147d4",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "5404986aab50f65c06f86dba3ed3058be4b89c36"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "842b17afd80adb0638916a465ef3cb5b77aeda9d265e7571ab65565ce767e172",
+          "head": {
+            "commit": "5404986aab50f65c06f86dba3ed3058be4b89c36",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "0bf0dfae8b26e9a8594d5d65f97552f988f51cb463c33538bcc4ba01b9c147d4",
+          "installedSkillDigest": "367ed343b125039433e057bc2df0591e7bc4e7d74a1f3c243bb2716c33f4a76b",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "5404986aab50f65c06f86dba3ed3058be4b89c36"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "Canonical context says Finance currently owns refund approval.",
+          "observation": {
+            "content": "# Evaluation project\n\nThis synthetic project exercises local `moldea` maintenance behavior. Finance currently owns refund approval.\n",
+            "omission": null,
+            "sha256": "deddb7322da42d9bb446eca018a22dd00f046764c0d1a9c9803acf0195f8da9d",
+            "mode": 33204,
+            "path": "moldea/project.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/project.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer supplies a conflicting terse ownership handoff without correction semantics.",
+          "observation": {
+            "content": "Area | Owner\nRefund approval | Support",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseDefinitionDigest": "a1fb1fe1ca684eafde4b21c621423a3812bde46ecd636ca5c0a5a101337fa55b",
+      "evaluatedAt": "2026-08-25T12:25:48.499Z"
+    }
+  ],
+  "schemaVersion": 4,
+  "updatedAt": "2026-08-25T12:25:48.499Z"
+}

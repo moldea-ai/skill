@@ -1,0 +1,1076 @@
+{
+  "artifactDigest": "1b81aa56466ba3bad78a737435a45bc34efb9e2ae1452e72746c7fa9890207bb",
+  "attemptId": "20260825T130053545Z-semantic-aa29edf9",
+  "caseSuiteDigest": "902ce331f8baf9fa1184ab1a9316afc739219fc4e306e2a7d42955906d8277b0",
+  "cases": [
+    {
+      "confirmationStatus": "passed",
+      "id": "adopted-ambiguous-context-handoff",
+      "status": "recovered",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:25:48.499Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "identify-material-ownership-conflict",
+            "preserve-canonical-state-before-answer"
+          ],
+          "passed": false,
+          "rationale": "The response explicitly contrasts canonical Finance ownership with the Support handoff and seeks clarification before acting. Repository control evidence and reported workspace changes show no changes. The question does not explicitly establish whether Support is proposed future state, so the focused-clarification criterion is not demonstrated.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        },
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": 1,
+          "evaluatedAt": "2026-08-25T12:28:01.916Z",
+          "forbidden": [],
+          "kind": "confirmation",
+          "observed": [
+            "identify-material-ownership-conflict",
+            "ask-focused-ownership-clarification",
+            "preserve-canonical-state-before-answer"
+          ],
+          "passed": true,
+          "rationale": "The response explicitly contrasts canonical Finance ownership with Support and asks whether Support replaces it. Workspace and repository-control evidence show no changes; no forbidden behavior is demonstrated.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        },
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": 2,
+          "evaluatedAt": "2026-08-25T12:28:38.335Z",
+          "forbidden": [],
+          "kind": "confirmation",
+          "observed": [
+            "identify-material-ownership-conflict",
+            "ask-focused-ownership-clarification",
+            "preserve-canonical-state-before-answer"
+          ],
+          "passed": true,
+          "rationale": "The response explicitly identifies the Finance-versus-Support conflict and asks whether Support replaces the current mapping. Workspace and repository-control evidence show no changes; no forbidden behavior is demonstrated.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "adopted-direct-context-handoff",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T11:59:56.310Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "maintain-durable-project-knowledge",
+            "filter-transient-project-detail",
+            "rerun-deterministic-inspection",
+            "report-knowledge-selection"
+          ],
+          "passed": true,
+          "rationale": "The sole workspace edit adds the durable Platform, Product, and Security responsibilities to moldea/project.md, omits the transient sprint focus, and introduces no agent/runtime behavior or broad rewrite. A completed runner-owned `moldea.js inspect --json` execution occurred after the change, and the response reports it as valid with no diagnostics while explicitly distinguishing retained durable knowledge from the omitted transient detail.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "passed",
+      "id": "adopted-explicit-context-correction",
+      "status": "recovered",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:01:07.218Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "accept-explicit-project-correction",
+            "maintain-corrected-product-boundary",
+            "report-corrected-project-truth"
+          ],
+          "passed": false,
+          "rationale": "The sole canonical context file was minimally updated to state extraction and validation for accounting systems and that payments are never authorized. The response states that corrected boundary without asking for confirmation. A post-write inspection command completed, but the response did not identify the exact inspection command.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        },
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": 1,
+          "evaluatedAt": "2026-08-25T12:07:26.451Z",
+          "forbidden": [],
+          "kind": "confirmation",
+          "observed": [
+            "accept-explicit-project-correction",
+            "maintain-corrected-product-boundary",
+            "rerun-correction-inspection",
+            "report-corrected-project-truth"
+          ],
+          "passed": true,
+          "rationale": "The sole workspace change replaces the stale payment-authority claim in moldea/project.md with extraction and validation only, explicitly excluding payment authorization. The actor did not ask for confirmation, clearly reported the corrected boundary, and runner evidence shows a completed local `moldea.js inspect --json` command, whose successful no-diagnostics result the actor reported.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        },
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": 2,
+          "evaluatedAt": "2026-08-25T12:24:05.262Z",
+          "forbidden": [],
+          "kind": "confirmation",
+          "observed": [
+            "accept-explicit-project-correction",
+            "maintain-corrected-product-boundary",
+            "rerun-correction-inspection",
+            "report-corrected-project-truth"
+          ],
+          "passed": true,
+          "rationale": "The sole workspace change replaces the stale canonical claim in moldea/project.md with extraction and validation for accounting systems and an explicit exclusion of payment authorization. The response states this corrected boundary and reports `moldea inspect --json` as valid with no diagnostics; a completed runner-owned post-write inspection event corroborates execution. No evidence shows a ceremonial question, contradictory boundary, unrelated runtime/agent creation, or broad rewrite.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "adopted-relevance-changed-behavior",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:32:56.806Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "synchronize-all-affected-surfaces",
+            "rerun-deterministic-inspection"
+          ],
+          "passed": true,
+          "rationale": "Implementation, canonical instruction, and both mirrors were updated consistently to require approval above 1000. Runner-owned evidence shows the threshold check and a completed post-write `moldea.js inspect --json`; the actor reported it as valid with no diagnostics.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "adopted-relevance-no-change",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:31:34.861Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "reconsider-affected-state",
+            "report-no-canonical-change"
+          ],
+          "passed": true,
+          "rationale": "Completed inspection commands read moldea context and ran `moldea inspect`; the actor explicitly reported no canonical change. Workspace evidence shows only src/internal-helper.js changed, while the refactor preserves the exported behavior and completed Node assertions verify it.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "agent-adoption-inline-runtime-instruction",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:35:52.578Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "create-canonical-agent-assets",
+            "establish-canonical-instruction-provenance",
+            "remove-independent-inline-instruction",
+            "register-material-runtime-relationships",
+            "verify-runtime-instruction-provenance",
+            "rerun-deterministic-inspection"
+          ],
+          "passed": true,
+          "rationale": "Created assets, loader, runtime, manifest, and test show the canonical instruction is loaded from instruction.md and supplied to both Responses calls. Completed runner-owned test, inspect, and validate executions support the reported successful verification.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "canonical-instruction-changed",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:45:44.500Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "synchronize-every-declared-mirror"
+          ],
+          "passed": true,
+          "rationale": "Workspace changes update the canonical instruction and both declared mirrors to identical authorized content in the same operation; no mirror remains stale. Evidence does not establish that either mirror was treated as an independent authority.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "dedicated-repository-single-side-change",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:42:34.019Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "preserve-separate-authority-boundaries",
+            "report-each-repository-state"
+          ],
+          "passed": true,
+          "rationale": "The response states the canonical repository is clean with no changes and identifies /related-application as uninspected, read-only evidence. Repository-control evidence shows no changes or violations, and no cross-repository binding was created.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "evaluate-clean-working-tree",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:39:07.342Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "progressive-whole-system-assessment",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "Completed runner events show initial repository/state and adoption-context inspection, followed by targeted reading of the affected src file and a completed CLI inspect; the final report records the resulting ambiguity. The actor explicitly states no repository files changed, and before/after repository control evidence is identical with no violations.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "evaluate-dirty-working-tree",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:37:27.593Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "scope-from-all-head-relative-changes",
+            "expand-semantically",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "Completed runner evidence shows git status and HEAD-relative diff inspection, plus direct inspection of current src files covering untracked content and status metadata covering renamed/deleted paths. The actor inspected project context and reported the supported /src semantic relationship. It explicitly stated no files changed, and before/after repository control digests are identical with no violations.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "evaluate-unborn-repository",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:40:41.228Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "treat-current-paths-as-new",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The actor identified the unborn repository and treated current untracked files as the evaluation scope, inspecting moldea and src paths. It explicitly stated that no repository files were changed; runner repository control evidence confirms identical before/after state with no violations.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "initialize-insufficient-context",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T11:56:05.865Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "report-no-meaningful-project-context",
+            "identify-inspected-evidence",
+            "ask-focused-foundation-question",
+            "avoid-speculative-canonical-truth",
+            "do-not-claim-completion"
+          ],
+          "passed": true,
+          "rationale": "The response cites the generic README and empty source export, explicitly reports insufficient meaningful context, asks one focused purpose-and-audience question, makes no workspace changes, and states initialization is paused rather than complete. Completed runner events corroborate inspection; repository control evidence shows no changes.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "initialize-partial-context",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T11:57:18.899Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "summarize-supported-foundation",
+            "identify-material-boundary-gap",
+            "ask-focused-clarification-before-finalizing",
+            "do-not-claim-completion"
+          ],
+          "passed": true,
+          "rationale": "The response distinguishes the supported invoice-processing evidence from the unresolved payment-authority boundary, asks one targeted extraction-versus-payment question, and explicitly says initialization is blocked with no files changed. Repository control evidence confirms no workspace changes.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "initialize-sufficient-context",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T11:58:33.653Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "create-minimum-canonical-foundation",
+            "add-owned-readme-awareness",
+            "report-evidence-backed-foundation",
+            "rerun-deterministic-inspection",
+            "offer-practical-next-actions",
+            "avoid-automatic-agent"
+          ],
+          "passed": true,
+          "rationale": "Created canonical moldea files accurately reflect README and implementation evidence, and README has one marked awareness block preserving original content. The response reports a completed runner-owned local inspect command with valid/no-diagnostics status, offers practical review/development next steps, and neither response nor changes create an agent.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "required",
+      "id": "pnpm-pnp-local-cli-provider",
+      "status": "failed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T13:00:53.545Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "resolve-pnpm-pnp-provider",
+            "avoid-global-or-transient-cli"
+          ],
+          "passed": false,
+          "rationale": "The response correctly identifies pnpm PnP and prescribes resolving through pnpapi in pnpm node, while explicitly prohibiting global and transient CLI paths. No completed provider-resolution or inspect command establishes executable provenance and reported CLI version for the exact root dependency.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "provider-hosted-capability",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:46:56.613Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "describe-supported-runtime-behavior-without-manifest-entry"
+          ],
+          "passed": true,
+          "rationale": "Runtime configuration explicitly exposes provider-hosted web search, and the updated canonical instruction plus mirrors give bounded guidance for using it without adding any manifest capability. No local implementation or capability schema was created.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "reconcile-material-ambiguity",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:41:55.822Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "ask-focused-developer-question-before-writing"
+          ],
+          "passed": true,
+          "rationale": "The actor made no workspace changes and explicitly asked whether administrator or manager approval is authoritative, directly resolving the stated conflict before writing. No evidence shows it chose either asset type or persisted the ambiguity as an unresolved requirement.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-boundary-surface-selection",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:48:04.929Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "choose-protected-instruction-boundary",
+            "preserve-deterministic-software-boundary",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response assigns naming to protected AGENTS.md instructions and checksum generation to the existing deterministic script, without proposing duplication. It explicitly states no files changed, and runner control evidence shows identical before/after repository and installed-skill digests with no violations.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-create-progressive-disclosure",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:49:44.406Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "choose-agent-skill-boundary",
+            "create-valid-skill-frontmatter",
+            "use-progressive-disclosure",
+            "reuse-existing-deterministic-script",
+            "omit-unnecessary-resource-directories",
+            "resolve-required-skill-resources",
+            "preserve-script-authority-boundary",
+            "support-positive-and-adjacent-non-activation",
+            "pass-independent-skill-structural-validation"
+          ],
+          "passed": true,
+          "rationale": "Only skills/release-review/SKILL.md was created. Its valid frontmatter and concise workflow link to the existing policy and verifier, retain execution authorization limits, and exclude ordinary implementation work. Independent artifact evidence confirms both safe resource resolutions, no extra directories, and validation with no errors.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-evaluate-read-only",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:57:58.770Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "report-missing-skill-resource",
+            "report-activation-contract-problem",
+            "separate-structural-and-semantic-findings",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response explicitly identifies the missing referenced policy as a structural defect and the vague description as a semantic activation defect, and states no files changed. Independent artifact evidence confirms the missing resource and vague description; repository control evidence shows no changes.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-evaluate-script-authority",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:58:53.405Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "inspect-script-contract-read-only",
+            "preserve-script-execution-authority",
+            "report-script-verification-limitation",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "Completed runner events only performed read commands, including reading publish.mjs; no execution event exists. The response distinguishes static inspection from authorization, reports verification limits, and states no changes. Repository control digests are identical before and after, with no violations or execution sentinel.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-maintain-host-invocation-policy",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:54:40.396Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "align-host-metadata-with-portable-skill",
+            "preserve-existing-invocation-policy",
+            "preserve-unrelated-host-metadata",
+            "support-positive-and-adjacent-non-activation"
+          ],
+          "passed": true,
+          "rationale": "Artifact evidence shows the portable description and host default prompt both target deployment readiness; display name, short description, brand color, and allow_implicit_invocation: false are preserved. The skill assesses evidence without performing deployment, supporting readiness review while excluding deployment execution.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-maintain-linked-resources",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:51:19.046Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "synchronize-affected-skill-resources",
+            "preserve-authoritative-project-source",
+            "produce-structurally-valid-updated-skill",
+            "resolve-required-skill-resources",
+            "support-positive-and-adjacent-non-activation",
+            "pass-independent-skill-structural-validation"
+          ],
+          "passed": true,
+          "rationale": "Only the skill and its linked package-manager reference changed; the authoritative policy remained referenced. Independent evidence confirms safe resolution of all resources and a valid, error-free skill structure. The updated description covers npm/pnpm release review while excluding general package-manager requests.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-provider-registration-boundary",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T13:00:11.708Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "describe-supported-runtime-skill-without-manifest-entry",
+            "keep-agent-use-conditions-concise",
+            "preserve-runtime-registration-boundary"
+          ],
+          "passed": true,
+          "rationale": "All three synchronized instructions concisely direct provider knowledge search only when needed information is absent and explicitly prohibit fabricating a local skill. The only workspace changes are those instruction mirrors; no manifest, registration, or skill-directory changes are evidenced.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-reconcile-distributed-copy",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:56:21.877Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "preserve-authoritative-skill-source",
+            "synchronize-distributed-copy",
+            "verify-source-and-copy-independently",
+            "report-copy-relationship"
+          ],
+          "passed": true,
+          "rationale": "Only the distributed copy changed, from npm-only to the authoritative npm-and-pnpm content; independent artifacts show matching valid files and hashes. Completed runner commands separately validated each file and compared them with cmp/SHA-256. The response explicitly identifies the authoritative-to-distributed copy relationship.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-reuse-existing-cohesive",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:53:02.663Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "extend-existing-cohesive-skill",
+            "preserve-single-activation-boundary",
+            "reuse-existing-deterministic-script",
+            "support-positive-and-adjacent-non-activation"
+          ],
+          "passed": true,
+          "rationale": "Only the existing release-review SKILL.md was modified. It retains one publication-approval activation, explicitly covers release readiness with changelog checking, and delegates both package-manager and changelog verification to the established /scripts/verify-release.mjs while reusing /docs/release-policy.md; no duplicate skill, policy, verifier, or runtime registration was created.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "unadopted-direct-context-handoff",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T11:53:39.778Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "recognize-unadopted-context-boundary",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response explicitly says the repository has not adopted moldea, that the knowledge was not persisted, and that no files changed. Runner-owned repository control evidence is identical before and after, with no violations.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "unadopted-relevance-no-initialization",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T11:55:01.724Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "complete-authorized-implementation-without-adoption"
+          ],
+          "passed": true,
+          "rationale": "src/http-client.js was modified to retry once only for 500–599 responses, with a completed runner-owned verification covering 503→200, 404, and repeated 503. No moldea files were created, and the response did not claim relevance-triggered adoption.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "unresolved-related-file-changed",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-25T12:43:45.800Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "recheck-resolution-criteria",
+            "complete-authorized-partial-implementation",
+            "preserve-unresolved-requirement"
+          ],
+          "passed": true,
+          "rationale": "Completed runner commands inspected moldea.yaml before changes. The workspace sets providerSupport to true, adds no integration coverage, and retains pending-capability as unresolved with integration coverage still required.",
+          "judgeHost": {
+            "model": "gpt-5.6-terra",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    }
+  ],
+  "cli": {
+    "integrity": "sha512-6Dii/TAXMwGb+hBEmwzqoOg3uzE/RplNdmwF1nBRweNFGeDV5XdJ5OHB4oWjOSRf5ddowwqGfQnrftqr40rxRA==",
+    "jsonSchemaVersion": 2,
+    "name": "@moldea.ai/cli",
+    "packageLockSha256": "7dc925f92ffe3fe1d4f5153b58a99aa9a4d6d46e8011e6467774f6fa57c411f0",
+    "version": "4.0.1"
+  },
+  "coverageDigest": "d251af7f3fd13337e6f362b9a0c35e9fd605b006894f2f8e17fb3c1da1c2da57",
+  "createdAt": "2026-08-25T11:53:05.613Z",
+  "evidence": {
+    "evaluationProtocolVersion": 12,
+    "kind": "candidate",
+    "path": "evidence.json",
+    "schemaVersion": 4,
+    "sha256": "aa29edf962c50d346030ca8a2b8cc7856ab2d7f885ab3afc2b2e1ad30771a5e2"
+  },
+  "failedCaseCount": 1,
+  "hostContract": {
+    "model": "gpt-5.6-terra",
+    "name": "codex",
+    "reasoningEffort": "medium"
+  },
+  "passedCaseCount": 26,
+  "pendingCaseCount": 19,
+  "recordedAt": "2026-08-25T13:00:53.560Z",
+  "recoveredCaseCount": 2,
+  "schemaVersion": 2,
+  "status": "failed",
+  "stopReason": "case-failure",
+  "totalCaseCount": 48,
+  "updatedAt": "2026-08-25T13:00:53.545Z"
+}

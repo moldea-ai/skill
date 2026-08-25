@@ -150,6 +150,10 @@ const CLI_IDENTITY = {
   packageLockSha256: 'd'.repeat(64),
   version: '4.0.0',
 };
+const ACTOR_EXECUTION_EVIDENCE_OPTIONS = {
+  cliVersion: CLI_IDENTITY.version,
+  jsonSchemaVersion: CLI_IDENTITY.jsonSchemaVersion,
+};
 const BASE_HOST_COMMAND = [
   'codex',
   'exec',
@@ -396,7 +400,12 @@ test('semantic host output separates final response from runner-owned execution 
     status: 'in_progress',
     type: 'command_execution',
   };
-  const completedCommandItem = { ...commandItem, status: 'completed' };
+  const completedCommandItem = {
+    ...commandItem,
+    aggregated_output: '',
+    exit_code: 0,
+    status: 'completed',
+  };
   const toolItem = {
     arguments: { command: 'yarn info @moldea.ai/cli --json' },
     id: 'item-2',
@@ -421,14 +430,24 @@ test('semantic host output separates final response from runner-owned execution 
     .map((event) => JSON.stringify(event))
     .join('\n');
 
-  assert.deepEqual(parseSemanticEvaluationHostOutput(output), {
+  assert.deepEqual(parseSemanticEvaluationHostOutput(output, ACTOR_EXECUTION_EVIDENCE_OPTIONS), {
     actorExecutionEvidence: [
-      { eventType: 'item.started', item: commandItem },
-      { eventType: 'item.completed', item: completedCommandItem },
-      { eventType: 'item.completed', item: toolItem },
+      {
+        eventType: 'item.completed',
+        item: {
+          exitCode: 0,
+          outputEvidence: { byteCount: 0, disposition: 'empty', facts: [] },
+          status: 'completed',
+          type: 'command_execution',
+        },
+      },
     ],
     response: '{\"observed\":[],\"forbidden\":[],\"rationale\":\"done\"}',
   });
+  assert.doesNotMatch(
+    JSON.stringify(parseSemanticEvaluationHostOutput(output, ACTOR_EXECUTION_EVIDENCE_OPTIONS)),
+    /yarn bin|yarn info|arguments/u,
+  );
 });
 
 test('semantic host output does not derive execution evidence from the final response', () => {
@@ -441,11 +460,14 @@ test('semantic host output does not derive execution evidence from the final res
     type: 'item.completed',
   });
 
-  assert.deepEqual(parseSemanticEvaluationHostOutput(output), {
+  assert.deepEqual(parseSemanticEvaluationHostOutput(output, ACTOR_EXECUTION_EVIDENCE_OPTIONS), {
     actorExecutionEvidence: [],
     response: 'I ran yarn bin -v --json and it succeeded.',
   });
-  assert.throws(() => parseSemanticEvaluationHostOutput('{not-json}\n'), /malformed JSONL output/);
+  assert.throws(
+    () => parseSemanticEvaluationHostOutput('{not-json}\n', ACTOR_EXECUTION_EVIDENCE_OPTIONS),
+    /malformed JSONL output/,
+  );
   assert.throws(
     () =>
       parseSemanticEvaluationHostOutput(
@@ -457,15 +479,18 @@ test('semantic host output does not derive execution evidence from the final res
           },
           type: 'item.completed',
         }),
+        ACTOR_EXECUTION_EVIDENCE_OPTIONS,
       ),
-    /did not return a final agent message/,
+    /did not include its result evidence/,
   );
 });
 
-test('semantic host output rejects unbounded execution evidence', () => {
+test('semantic host output rejects unbounded evidence without retaining oversized commands', () => {
   const commandEvents = Array.from({ length: 129 }, (_, index) => ({
     item: {
+      aggregated_output: '',
       command: `echo ${index}`,
+      exit_code: 0,
       id: `item-${index}`,
       status: 'completed',
       type: 'command_execution',
@@ -481,29 +506,30 @@ test('semantic host output rejects unbounded execution evidence', () => {
     () =>
       parseSemanticEvaluationHostOutput(
         [...commandEvents, finalResponseEvent].map((event) => JSON.stringify(event)).join('\n'),
+        ACTOR_EXECUTION_EVIDENCE_OPTIONS,
       ),
     /exceeded its item limit/,
   );
-  assert.throws(
-    () =>
-      parseSemanticEvaluationHostOutput(
-        [
-          {
-            item: {
-              command: 'x'.repeat(32_769),
-              id: 'oversized-command',
-              status: 'completed',
-              type: 'command_execution',
-            },
-            type: 'item.completed',
-          },
-          finalResponseEvent,
-        ]
-          .map((event) => JSON.stringify(event))
-          .join('\n'),
-      ),
-    /item exceeded its byte limit/,
+  const oversizedCommandResult = parseSemanticEvaluationHostOutput(
+    [
+      {
+        item: {
+          aggregated_output: '',
+          command: 'x'.repeat(32_769),
+          exit_code: 0,
+          id: 'oversized-command',
+          status: 'completed',
+          type: 'command_execution',
+        },
+        type: 'item.completed',
+      },
+      finalResponseEvent,
+    ]
+      .map((event) => JSON.stringify(event))
+      .join('\n'),
+    ACTOR_EXECUTION_EVIDENCE_OPTIONS,
   );
+  assert.doesNotMatch(JSON.stringify(oversizedCommandResult.actorExecutionEvidence), /x{16}/u);
 });
 
 test('judge prompt receives criteria after actor execution', () => {
@@ -538,8 +564,8 @@ test('judge prompt receives criteria after actor execution', () => {
       {
         eventType: 'item.completed',
         item: {
-          command: 'bash -lc \"yarn bin -v --json\"',
-          id: 'item-1',
+          exitCode: 0,
+          outputEvidence: { byteCount: 0, disposition: 'empty', facts: [] },
           status: 'completed',
           type: 'command_execution',
         },
@@ -563,9 +589,12 @@ test('judge prompt receives criteria after actor execution', () => {
   assert.match(judgePrompt, /"valid": true/);
   assert.match(judgePrompt, /untrusted artifact evidence/);
   assert.match(judgePrompt, /Runner-owned actor execution evidence/);
-  assert.match(judgePrompt, /yarn bin -v --json/);
   assert.match(judgePrompt, /requires a corresponding completed runner-owned event/);
-  assert.match(judgePrompt, /final response alone is insufficient/);
+  assert.match(judgePrompt, /requires the relevant exit code and projected result fact/);
+  assert.match(judgePrompt, /supplies no result fact/);
+  assert.match(judgePrompt, /Raw command output,\s+command text/);
+  assert.match(judgePrompt, /started commands, and MCP events are intentionally unavailable/);
+  assert.match(judgePrompt, /actor's final\s+response alone is insufficient/i);
   assert.match(judgePrompt, /Evaluator-only activation scenarios/);
   assert.match(judgePrompt, /Review this release/);
   assert.match(judgePrompt, /Independently collected pre-actor scenario evidence/);
@@ -575,7 +604,11 @@ test('judge prompt receives criteria after actor execution', () => {
 test('semantic case definitions require strict unique evaluator criteria', () => {
   assert.doesNotThrow(() => validateSemanticCaseDefinition(CASE_DEFINITION));
   assert.throws(
-    () => validateSemanticCaseDefinition({ ...CASE_DEFINITION, expected: ['legacy-label'] }),
+    () =>
+      validateSemanticCaseDefinition({
+        ...CASE_DEFINITION,
+        expected: ['legacy-label'],
+      }),
     /invalid evaluator criteria/,
   );
   assert.throws(
@@ -817,7 +850,7 @@ test('semantic candidates bind exact evidence and stable host contracts', () => 
           judgeHost: JUDGE_HOST,
         },
       ),
-    /unsupported shape/,
+    /different semantic evaluation protocol.*--restart/s,
   );
   assert.throws(
     () =>
@@ -1014,12 +1047,25 @@ test('schema-3 migration preserves trials and enables version-independent resume
   assert.throws(
     () =>
       migrateSemanticEvaluationCandidate({
-        candidate: { ...legacyCandidate, actorHost: { ...ACTOR_HOST, version: 'unavailable' } },
+        candidate: {
+          ...legacyCandidate,
+          actorHost: { ...ACTOR_HOST, version: 'unavailable' },
+        },
         currentBoundary,
         migratedAt,
         sourceSha256,
       }),
     /requires gpt-5\.6-terra medium actor and judge Codex hosts with exact versions/,
+  );
+  assert.throws(
+    () =>
+      migrateSemanticEvaluationCandidate({
+        candidate: { ...legacyCandidate, evaluationProtocolVersion: 12 },
+        currentBoundary,
+        migratedAt,
+        sourceSha256,
+      }),
+    /different semantic evaluation protocol.*--restart/s,
   );
 });
 
@@ -1226,7 +1272,7 @@ test('semantic candidates retain failures and require two passing confirmations'
     caseDefinitions,
     generatedAt: '2026-08-16T12:03:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 12);
+  assert.equal(record.evaluationProtocolVersion, 13);
   assert.equal(record.schemaVersion, 4);
   assert.equal(record.actorHost, undefined);
   assert.equal(record.host, undefined);

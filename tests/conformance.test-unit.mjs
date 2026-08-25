@@ -1619,7 +1619,7 @@ describe('source repository conformance', () => {
       /independent structural and resource-link evidence/,
       /do not rely on opaque labels, the actor's report alone, or leaked answer criteria/,
       /Codex JSONL events/,
-      /bounded command and tool-call events/,
+      /bounded completed-command facts/,
       /final response cannot create or replace that evidence/,
       /mounted read-only over the isolated actor executable directory/,
       /actor cannot replace those probes/,

@@ -1,210 +1,258 @@
-# Canonical no-change reporting correction
+# Semantic command-result evidence correction
 
 ## Objective
 
-Make the existing relevance-triggered maintenance contract reliable on `gpt-5.6-terra` without broadening behavior or accumulating instructions. A write-capable Moldea operation that reconsiders canonical state must make one final canonical-state outcome explicit: which canonical surfaces changed, why no canonical change was required, or why the operation is blocked.
+Correct the semantic evaluator so an independent judge can verify the result of an actor's command without trusting the actor's final response and without publishing arbitrary command output. Prove the correction against the exact `pnpm-pnp-local-cli-provider` failure, then generate a fresh protocol-compatible 48-case semantic result from the already committed release-candidate skill.
 
-The narrow source correction and destructive semantic reset are already complete. The remaining work is to review and commit that exact source boundary, prove the corrected case with one bounded non-recording diagnostic, generate the first clean official 48-case semantic result, and only then run documentation and website verification against real attempt-backed evidence.
+This is an evaluator correction, not another portable-skill refinement. The current skill instructions already require the PnP proof that the confirmation actor performed. The missing evidence was created by the runner, which discarded the completed command's exit code and output before constructing the judge prompt.
 
-## Repository evidence
+## Current state and repository evidence
 
-- `moldea/SKILL.md` owns the universal final-report contract. Before correction, its canonical-state requirement was one item inside a long reporting list.
-- `moldea/references/continuous-maintenance.md` already requires relevance analysis, preservation of correct canonical state, retention of the no-change reason, and truthful reporting. The public `README.md` already says the coding agent explicitly states when no canonical change was required and explains why.
-- `fixtures/conformance-cases.json` defines `adopted-relevance-no-change` with a natural behavior-preserving refactor request. Its expected criteria require canonical reconsideration, no documentation churn, and an explicit no-change conclusion.
-- The rejected initial trial and confirmation both performed the refactor, inspected canonical state, ran the repository-local CLI, and avoided canonical edits. Both omitted the explicit no-change conclusion. That repeated omission established a portable-instruction salience defect.
-- The semantic case, coverage map, runner fixture, website presentation metadata, and public methodology remain correct. Changing them would hide rather than fix the observed behavior.
-- The website semantic loader is intentionally attempt-backed. `website/src/lib/semantic-evaluation/loader.ts` parses a required latest pointer, resolves it to an immutable attempt, validates its current release identity, and builds every case model from that attempt. Its public model requires non-null `latest` and `latestPointer` values.
-- With zero semantic attempts, `loadVerifiedSemanticEvaluationAttempts` returns `latest: null`. `npm run docs:check` and `npm run website:check` therefore fail at the required latest-pointer schema. This is the established website contract, not a regression caused by the portable correction.
-
-## Completed implementation
-
-### Portable reporting correction
-
-- `moldea/SKILL.md` now begins `## Report truthfully` with one standalone `Canonical state` outcome covering changed, unchanged, and blocked results.
-- The superseded buried list item was removed instead of duplicated.
-- The portable file decreased from 1,917 words and 15,363 bytes to 1,916 words and 15,368 bytes.
-- Activation, authority, relevance analysis, write behavior, read-only behavior, and deterministic reporting remain unchanged.
-
-### Deterministic contract synchronization
-
-- The single existing assertion in `tests/conformance.test-unit.mjs` was synchronized with the consolidated wording.
-- No second wording-only test was added.
-- `adopted-relevance-no-change`, its natural developer prompt, expected criteria, forbidden criteria, runner fixture, coverage entry, and website title remain unchanged.
-
-### Preserved prior correction
-
-- The already reviewed `register-material-runtime-relationships` correction in `fixtures/conformance-cases.json` remains byte-identical throughout this implementation.
-- Its current complete-file SHA-256 is `0edfc506d2fe5e1f271ea69beec7dd8993ba86bf833f6bf7c1cf50dd4d441d34`.
-
-### Clean semantic reset
-
-- The ignored terminal `fixtures/.semantic-evaluation-candidate.json` was permanently deleted without a backup.
-- Every current semantic attempt directory and `fixtures/semantic-evaluation-results/latest.json` was deleted.
-- The two older tracked attempt directories remain deleted in the worktree.
-- `fixtures/semantic-evaluation-result.json` is absent.
-- `fixtures/semantic-evaluation-results/README.md` remains.
-- `npm run eval:semantic:verify` accepts the empty history with zero attempts and zero issues.
-
-## Revised verification boundary
-
-The source review checkpoint does not require `npm run docs:check` or `npm run website:check` while semantic history is intentionally empty. Those commands require an immutable latest attempt by design and cannot pass until the official runner records one.
-
-Do not add a temporary semantic empty-state model, nullable public website contract, placeholder pointer, synthetic attempt, or hand-written evidence merely to make the intermediate development state render. That would expand product behavior, weaken evidence ownership, and create code that is unnecessary once the clean official run is recorded.
-
-Documentation and website verification move to the first terminal recorded attempt:
-
-- A failed or incomplete official attempt provides valid inspectable website evidence and must make both checks exercise the current failure state.
-- A passing official attempt provides the release-candidate website state and must make both checks pass before semantic evidence is committed.
-- The non-recording diagnostic does not create website evidence and therefore does not trigger those checks.
+- Source is clean and synchronized at commit `a3a12838b60d81b306a994645787325a6cab5170` on `qualifications`.
+- The committed portable artifact digest is `1b81aa56466ba3bad78a737435a45bc34efb9e2ae1452e72746c7fa9890207bb`, with skill release `3.1.0`, CLI `4.0.1`, JSON schema `2`, and 48 semantic cases.
+- `moldea/references/local-tooling.md` already requires safe executable PnP proof, exact package identity, canonical bin provenance, direct invocation, exit-code interpretation, and JSON-envelope validation. `README.md` states the same observable behavior. No additional portable wording is needed.
+- `fixtures/conformance-cases.json` correctly requires `resolve-pnpm-pnp-provider`, `verify-exact-root-cli`, and `avoid-global-or-transient-cli`. The case and its criteria must remain unchanged.
+- The latest official candidate contains 29 initial trials: 26 initial passes, two initial failures recovered by two passing confirmations each, and the terminal `pnpm-pnp-local-cli-provider` failure. Nineteen cases were not reached.
+- Six immutable attempt directories and `fixtures/semantic-evaluation-results/latest.json` are currently untracked. The latest attempt is failed, and the ignored local checkpoint is terminal under semantic protocol `12`. `npm run eval:semantic:verify` accepts all six attempts.
+- The initial PnP actor only described the proof and did not execute it, so that initial failure was valid.
+- Confirmation 1 then read the relevant skill guidance, inspected the PnP repository, resolved `@moldea.ai/cli` from the root manifest, verified the installed manifest and canonical bin, directly ran `pnpm node /mnt/.pnp/node_modules/@moldea.ai/cli/dist/moldea.js inspect --json`, interpreted exit `1` as structural invalidity, accurately reported CLI `4.0.1` and schema `2`, and left the repository unchanged.
+- The confirmation judge still failed `verify-exact-root-cli` because `tests/semantic-evaluation-runner.mjs` projects only command, status, and selected tool fields. It omits the installed Codex event's `exit_code` and `aggregated_output`, so the judge could see that the command ran but could not verify the reported version or envelope.
+- The [official Codex non-interactive-mode documentation](https://learn.chatgpt.com/docs/non-interactive-mode) confirms that `codex exec --json` emits JSONL `item.*` events and includes command executions as first-class items. The installed `codex-cli 0.149.1` binary and the observed run establish the completed-command fields used here: `exit_code` and `aggregated_output`.
+- `tooling/codex-evaluation-host/host.mjs` copies Codex authentication into the isolated home. An actor shell can therefore produce sensitive output. Forwarding arbitrary `aggregated_output`, even with best-effort regular-expression redaction, is not an acceptable public-evidence boundary.
+- The semantic website consumes additive attempt summaries and links to raw evidence. It does not parse `actorExecutionEvidence`, so no website schema or component change is needed for the additive raw evidence fields.
+- `tooling/semantic-evaluation/attempt-history.mjs` preserves raw attempts byte-for-byte and supports historical checkpoint schemas. Existing protocol-12 attempt history can remain verifiable even though it cannot satisfy a protocol-13 release gate.
 
 ## Desired final behavior
 
-- Every write-capable Moldea operation reports one concise and unmistakable `Canonical state` outcome.
-- When canonical state remains correct, the response explicitly says no canonical change was required and gives the evidence-based reason. Reporting only successful inspection or no diagnostics is insufficient.
-- The reporting contract does not force canonical edits, documentation churn, exact canned prose, or a verbose checklist.
-- Changed-state, blocked-state, read-only evaluation, initialization, ambiguity, and dedicated-repository behavior remain unchanged.
-- The portable skill remains vendor-neutral and fixed to release `3.1.0`, CLI `4.0.1`, schema `2`, and the existing file and dependency boundaries.
-- The suite remains at 48 cases. The existing failed case is the authoritative behavioral regression proof.
-- The next official semantic history begins empty and is populated only by the official runner from committed corrected source.
+- Every completed command-execution event records its safe integer exit code.
+- The runner consumes command output transiently and never copies raw `aggregated_output` into the judge prompt, checkpoint, attempt, canonical result, logs, or website model.
+- The runner projects only narrowly defined, evaluator-owned facts from an exact recognized invocation and matching complete output:
+  - workspace-contained absolute paths normalized to workspace-relative public paths
+  - the allowlisted Moldea JSON envelope fields `schemaVersion`, `cliVersion`, `command`, and `status`
+  - booleans stating whether `result` and `error` are present
+- Output is projected only when the command matches a recognized repository-local invocation and the complete bounded output matches its corresponding shape. Empty, unrecognized, mismatched, or oversized output is represented by an explicit disposition and byte count, with no content or digest.
+- A result-dependent criterion can pass only when a completed runner event supplies the relevant exit code and projected facts. A command string, completion status, omitted output, or actor claim alone cannot establish the result.
+- Started command events, command text, command identifiers, and MCP tool events are discarded before persistence.
+- Historical attempts remain immutable and verifiable. Protocol-12 checkpoints cannot resume under the new evidence semantics.
+- Routine future Codex CLI version changes remain resumable when the event contract still satisfies protocol 13. The protocol changes because evaluator semantics changed, not merely because the installed CLI version changed.
 
-## Remaining scope
+## In-scope implementation
 
-### Source review and publication checkpoint
+### Focused execution-evidence module
 
-- `moldea/SKILL.md`
-- `tests/conformance.test-unit.mjs`
-- the preserved correction in `fixtures/conformance-cases.json`
-- deletions under `fixtures/semantic-evaluation-results/`
-- the current planning artifact under `coding-agent-planning/1787657003_canonical-no-change-reporting/`
+Add `tooling/semantic-evaluation/actor-execution-evidence.mjs` as the single owner of completed-command projection and validation.
 
-### Paid forward verification after separate authorization
+The module will:
 
-- one non-recording Terra diagnostic for `adopted-relevance-no-change`, exactly two model calls
-- one clean recorded 48-case semantic run, up to 96 model calls
-- separately authorized confirmation or resume only if the recorded runner stops
+- define the supported event and item types, item-count limit, item-byte limit, command-output projection limit, recognized output dispositions, and safe fact shapes
+- accept the release CLI version and JSON schema version as explicit projection inputs instead of reading package state implicitly
+- copy only the existing allowlisted command or tool metadata
+- require `exit_code` to be a safe integer for a completed command event and expose it as `exitCode`
+- inspect `aggregated_output` only as an in-memory string
+- calculate its UTF-8 byte count without persisting a content digest
+- reject NUL-containing output from projection
+- recognize a bounded list of absolute `/mnt` paths only when every non-empty output line is an absolute normalized path inside `/mnt`; expose those paths without the `/mnt` host mount prefix
+- recognize a complete JSON Moldea envelope only when the release schema, release CLI version, supported command, supported status, and result/error consistency are valid; expose only the safe scalar fields and result/error presence booleans
+- use `empty`, `projected`, `unrecognized`, and `too-large` dispositions so omitted content cannot be mistaken for proof
+- enforce a strict persisted shape and reject raw `aggregated_output`, command text, command identifiers, MCP events, unknown evidence fields, malformed facts, and invalid dispositions
+- preserve the current maximum of 128 completed-command events and the current 32 KiB per-evidence-item bound; use a 32 KiB transient output projection bound and recognize only the two evaluator-owned pnpm Plug'n'Play CLI paths
 
-### Post-attempt verification
+Add `tooling/semantic-evaluation/actor-execution-evidence.test-unit.mjs` beside the new module and expose only the projector, validator, and required types through `tooling/semantic-evaluation/index.mjs` and `index.d.mts`.
 
-- semantic history verification
-- root correctness tests
-- documentation generation checks
-- website type, lint, format, build, and artifact checks through the existing `website:check` boundary
-- raw evidence, pointer, provenance, secret, and path inspection
+This module remains specific to semantic evaluator evidence. Do not move or rewrite qualification sanitization: qualification publishes broader artifact types through a separate TypeScript package and already owns a final sanitization boundary. Combining both systems is not required to correct this defect.
+
+### Runner integration and judge contract
+
+Update `tests/semantic-evaluation-runner.mjs` to delegate actor execution event selection and validation to the new module.
+
+- Pass the exact published CLI version and release JSON schema version into the projector.
+- Keep final agent-message extraction unchanged.
+- Keep actor prompts, case materialization, workspace snapshots, repository controls, skill-artifact evidence, model, reasoning effort, timeout, sandbox, egress, confirmation policy, and recording behavior unchanged.
+- Update the judge prompt to state that result-dependent criteria require relevant projected command-result facts, that omitted output proves no result, and that raw command output is intentionally unavailable.
+- Preserve the rule that actor prose alone cannot establish execution or its result.
+- Make protocol mismatch errors direct the operator to `--restart`; do not suggest checkpoint migration for a semantic protocol change.
+
+Update `tests/semantic-evaluation-runner.test-unit.mjs` for the new event shape, protocol identity, judge wording, compatibility failure, and parser behavior. Update the existing PnP integration in `tests/semantic-evaluation-runner.test-integration.mjs` so the real isolated fixture produces the same path and `inspect --json` outputs seen in the failed confirmation, passes them through the runner parser, and proves that the judge-visible evidence contains the exact safe path, CLI-envelope, and exit-code facts without raw output.
+
+### Protocol and documentation synchronization
+
+Change `SEMANTIC_EVALUATION_PROTOCOL_VERSION` from `12` to `13` in `tooling/release-identity/constants.mjs`. Keep checkpoint/result schema version `4`: the stored structure remains additively compatible, while protocol 13 is the explicit behavioral boundary for how command results are derived and judged.
+
+Update:
+
+- `README.md`
+- `docs/semantic-evaluation.md`
+- `fixtures/semantic-evaluation-results/README.md`
+
+The documentation will explain the safe projection boundary, output dispositions, result-dependent judging rule, protocol 13 identity, historical-attempt compatibility, and required fresh restart. It will continue to direct maintainers to raw evidence for inspectable actor, judge, workspace, and projected command facts without claiming that arbitrary stdout is published.
+
+No dependency or lockfile change is required.
 
 ## Explicit exclusions
 
-- Do not modify the website loader, website schemas, page components, route contracts, or empty-state behavior.
-- Do not add a placeholder semantic attempt or pointer.
-- Do not restore or preserve the rejected semantic checkpoint or attempt artifacts outside Git history.
-- Do not add another semantic case, lead the actor through a changed prompt, weaken criteria, change judge instructions, change confirmation policy, or modify checkpoint schemas.
-- Do not add exact phrase matching or make canned prose the semantic pass condition.
-- Do not change activation, write authority, canonical routing, CLI behavior, release identity, dependencies, package-manager support, model, reasoning effort, timeout, sandbox, network controls, or qualification profiles.
-- Do not run Custom or adapter qualification, publish a release, tag, commit, or push without its explicit command or authorization.
+- Do not modify `moldea/`, its version, release metadata, activation paths, authority rules, local-tooling instructions, or reporting rules.
+- Do not modify `fixtures/conformance-cases.json`, the 48-case catalog, coverage criteria, scenario prompts, expected labels, forbidden labels, or fixture difficulty.
+- Do not make the judge trust actor prose, command text, status alone, or a hash of omitted output.
+- Do not persist raw stdout, stderr, `aggregated_output`, authentication state, environment values, private host paths, full CLI diagnostics, package manifests, or arbitrary JSON values as command-result evidence.
+- Do not introduce best-effort redaction as permission to retain arbitrary actor output.
+- Do not change checkpoint/result schema 4, add a protocol-12 migration, or resume the terminal protocol-12 checkpoint.
+- Do not delete, rewrite, or replace the six current attempt directories or their latest pointer. They are legitimate transparent evidence of the failed evaluation.
+- Do not add a website UI, website schema field, empty-state workaround, or compatibility fallback for stale latest evidence.
+- Do not run confirmation 2 for the terminal candidate.
+- Do not run Custom or adapter qualification, publish a release, tag, commit, or push without its separate authorization.
 - Do not modify protected coding-instruction files.
 
-## Verification completed
+## Ordered implementation steps
 
-The following checks passed against the exact current source and empty semantic history:
+1. **Implement the safe projector and strict validator.**
+   - Add the focused semantic-evidence module and declarations.
+   - Model completed command events without actor-controlled command or MCP metadata.
+   - Implement exact path and Moldea-envelope projections, explicit omission dispositions, byte bounds, and strict field allowlists.
+   - Export the module through the established semantic-evaluation entry point.
 
-- `python3 /home/jesusgraterol/.codex/skills/.system/skill-creator/scripts/quick_validate.py moldea`
-- `npm run eval:semantic:verify`: zero attempts, zero issues
-- `node --test tests/conformance.test-unit.mjs`: 39 passed, one expected evidence-dependent skip
-- `node --test tests/semantic-evaluation-runner.test-unit.mjs tests/semantic-evaluation-runner.test-integration.mjs`: 50 passed
-- `npm run eval:semantic:preflight`: all 48 cases passed
-- `npm test`: 114 unit tests and 45 integration tests passed, with one expected skip in each category
-- `npm run release:identity:check`: skill `3.1.0` and CLI `4.0.1` synchronized
-- `git diff --check`
-- word, byte, and preserved-fixture digest checks
+2. **Integrate the evidence boundary into the runner.**
+   - Remove the runner-local loose selector and validator.
+   - Project `exit_code` and safe output facts during JSONL parsing.
+   - Require the strict persisted shape during checkpoint validation.
+   - Clarify the judge's evidence rules without changing its labels or answer schema.
+   - Add a precise incompatible-protocol restart error.
 
-The following commands were run and failed only because semantic history is intentionally empty:
+3. **Add adversarial and regression coverage.**
+   - Verify successful and exit-1 completed commands.
+   - Verify exact PnP path projection and valid/invalid Moldea envelopes.
+   - Verify empty and unrecognized output, oversized output, malformed JSON, unrecognized paths, path traversal, NULs, malformed exit codes, and unsupported event shapes.
+   - Verify credential-looking output, copied auth-file content, JSON with extra sensitive fields, and arbitrary file content never appear in projected or serialized evidence.
+   - Verify started events, command text, command identifiers, and MCP events are discarded.
+   - Verify the validator rejects injected `aggregated_output`, result fields on the wrong event, extra keys, malformed facts, and oversized serialized evidence.
+   - Preserve count and command-size limit tests and final-response separation.
+   - Extend the real PnP fixture integration so this exact regression would fail if exit code or envelope facts disappeared again.
 
-- `npm run docs:check`
-- `npm run website:check`
+4. **Bump the semantic protocol and synchronize durable documentation.**
+   - Set protocol 13 and update hard-coded protocol expectations.
+   - Keep historical attempt-history fixtures on older protocols where they intentionally prove historical compatibility.
+   - Document safe result projections and the fresh-run requirement in the three directly affected state-bearing documents.
+   - Confirm no portable artifact or semantic case digest changed.
 
-Their common failure is `SemanticLatestResultSchema.parse(loadedHistory.latest)` receiving `null`. Under this revised plan, that result is expected at the source-only checkpoint and must not be hidden or fixed with temporary website behavior.
+5. **Verify the source correction before any model call.**
+   - Run the new focused module test and runner unit test.
+   - Run the semantic runner integration suite, including the real PnP fixture.
+   - Run the complete root unit and integration suites.
+   - Run model-free semantic preflight and immutable attempt verification.
+   - Run release identity and formatting checks.
+   - Inspect the full diff and the six untouched attempt directories for secrets, private paths, and accidental mutation.
+   - `docs:check` and `website:check` are expected to reject the protocol-12 latest pointer after the protocol bump. Do not weaken those checks. Run them after the first protocol-13 recorded attempt exists.
 
-## Remaining execution steps
+6. **Review and commit the correction before paid verification.**
+   - Stop for `review`.
+   - Require a separate `repo push` command to commit the cohesive evaluator correction, documentation, and six transparent current attempts.
+   - Require a clean committed source boundary before running Codex.
 
-1. **Review the completed source boundary.**
-   - Inspect the full status and diff, including deleted evidence and the planning artifact.
-   - Confirm the reporting correction is concise, the prior fixture correction remains intact, no semantic scenario was weakened, and no unrelated source changed.
-   - Reuse the successful checks above only while their exact inputs remain unchanged.
-   - Treat the two empty-history website failures as explained deferred checks, not readiness evidence for the final release.
+7. **Run one exact non-recording PnP diagnostic after fresh authorization.**
+   - Explain the expected cost and obtain explicit authorization for two Terra calls.
+   - Run only `pnpm-pnp-local-cli-provider` with `--case` and without `--record`.
+   - Inspect the actor response, commands, workspace, projected path and envelope facts, exit code, and judge rationale.
+   - Require the actor to execute the safe PnP proof and require the judge to observe all three unchanged criteria from independent evidence.
+   - If it fails, stop. Do not retry, alter the portable skill, or start the full suite automatically.
 
-2. **Commit and push before model execution.**
-   - Require a separate `repo push` command.
-   - Stage the complete cohesive worktree according to the repository command contract, create the required signed and signed-off commit, and push only the active branch to its resolved destination.
-   - Do not run paid evidence from uncommitted source.
+8. **Run a fresh official semantic candidate after separate authorization.**
+   - After the diagnostic passes, explain the expected cost and obtain explicit authorization for up to 96 Terra calls.
+   - Confirm clean committed source, protocol 13, the exact portable and case-suite digests, CLI `4.0.1`, model `gpt-5.6-terra`, medium reasoning, and five-minute timeout.
+   - Use `--record --restart`. Restart may remove only the ignored terminal protocol-12 checkpoint; it must preserve all six published attempts.
+   - Start all 48 cases from the beginning because protocol-12 trials lack the result evidence required by protocol 13.
+   - Preserve atomic checkpoints and stop at the first failed initial trial. Do not confirm, retry, or resume without the existing separate authorization.
 
-3. **Run one targeted forward diagnostic after separate paid authorization.**
-   - Require a clean committed source boundary and authorization for exactly two Terra calls.
-   - Run `adopted-relevance-no-change` with `--case` and without `--record` using the fixed Codex host, `gpt-5.6-terra`, medium reasoning, existing Bubblewrap isolation, and five-minute timeout.
-   - Inspect the actor response, commands, workspace change, and judge rationale.
-   - Require the actor to perform the refactor, reconsider canonical state, avoid canonical churn, and explicitly explain why no canonical change was required.
-   - If it fails, stop. Do not add wording, retry, or begin the full run automatically. A new plan must reassess whether the contract is realistically reliable on Terra.
+9. **Verify and present the new terminal evidence.**
+   - Run `npm run eval:semantic:verify` immediately after any recorded terminal attempt.
+   - Inspect raw projected command facts, actor and judge hosts, workspace evidence, pointers, digests, token usage, secrets, and private paths.
+   - Run `npm run docs:check` and `npm run website:check` against the new protocol-13 latest attempt.
+   - On a failure or incomplete attempt, preserve it and stop with the exact case evidence.
+   - On a 48/48 pass, run the full release-candidate verification boundary and stop for `review` and a separate `repo push` before qualifications.
 
-4. **Run the first clean official semantic evaluation after separate paid authorization.**
-   - After the diagnostic passes, require authorization for up to 96 model calls.
-   - Confirm the exact committed source, portable digest, suite digest, coverage digest, CLI `4.0.1`, fixed host identity, empty attempt history, and absent checkpoint.
-   - Run all 48 cases with `--record --restart` using separate Terra actor and judge processes.
-   - Preserve atomic per-case checkpointing and stop at the first failed initial case.
-   - Do not confirm or resume without the existing separate approvals.
-   - Promote only when every case passes initially or through separately authorized bounded recovery.
+## Verification commands
 
-5. **Verify every terminal official attempt.**
-   - Immediately run `npm run eval:semantic:verify`.
-   - Inspect the attempt, evidence, latest pointer, actor and judge hosts, digests, token usage, workspace evidence, secrets, and private paths.
-   - Run `npm run docs:check` and `npm run website:check` now that a valid latest attempt exists.
-   - If the attempt failed or is incomplete, preserve it, report its exact case evidence, and stop under the existing confirmation or correction protocol.
+Source correction:
 
-6. **Verify and review a promoted passing result.**
-   - Require 48 resolved passing cases and a valid canonical `fixtures/semantic-evaluation-result.json`.
-   - Run `npm run eval:semantic:verify`, `npm test`, `npm run docs:check`, `npm run website:check`, `npm run release:identity:check`, and `git diff --check`.
-   - Inspect generated website presentation and raw evidence links.
-   - Stop for `review` and a separate `repo push` before qualification work.
+```bash
+node --test tooling/semantic-evaluation/actor-execution-evidence.test-unit.mjs tests/semantic-evaluation-runner.test-unit.mjs
+node --test tests/semantic-evaluation-runner.test-integration.mjs
+npm run test:unit
+npm run test:integration
+npm test
+npm run eval:semantic:preflight
+npm run eval:semantic:verify
+npm run release:identity:check
+git diff --check
+```
 
-## Data, persistence, and integrity
+After a protocol-13 terminal attempt:
 
-- The portable correction changes the artifact digest. Prior semantic and qualification evidence cannot establish freshness for it.
-- The developer's explicit clean-run direction authorizes removal of the rejected unreleased history. No backup was created. Previously committed artifacts remain recoverable only through Git history.
-- The diagnostic is non-recording and cannot satisfy the release gate.
-- The official runner remains the only writer of checkpoints, attempts, pointers, and canonical results.
-- A terminal recorded failure remains inspectable and must not be silently deleted, replaced, retried, or confirmed.
-- Compatible completed trials may resume only within the same official candidate. Source, suite, coverage, model, reasoning, protocol, or CLI changes invalidate reuse.
-- Website generation consumes valid attempt-backed evidence. It does not own or fabricate evaluation state.
+```bash
+npm run eval:semantic:verify
+npm run docs:check
+npm run website:check
+```
 
-## Security and authorization
+After a promoted 48/48 result:
 
-- No secrets, credentials, private paths, or model output are manually added to evidence.
-- Diagnostic, full evaluation, confirmation, and resume each require immediate explicit approval with the maximum call count stated beforehand.
-- Actor and judge retain separate Bubblewrap workspaces, restricted HTTPS relay, and the fixed Terra host contract.
-- No package installation, dependency change, Git mutation, external publication, qualification, or release occurs without its established authorization.
+```bash
+python3 /home/jesusgraterol/.codex/skills/.system/skill-creator/scripts/quick_validate.py moldea
+npm test
+npm run eval:semantic:verify
+npm run qualification:verify
+npm run docs:check
+npm run website:check
+npm run release:identity:check
+npm run release:check
+git diff --check
+```
+
+The non-recording diagnostic and full semantic evaluation commands remain outside implementation authorization because each makes paid model calls and requires its own immediate approval.
+
+## Persistence, compatibility, and rollback
+
+- The six current attempts are append-only historical evidence. Protocol 13 does not edit them or make them invalid as history; it only prevents them from satisfying current release freshness.
+- The ignored protocol-12 checkpoint is not migrated because its command-result evidence was discarded and cannot be reconstructed honestly. A source backup would not restore the missing output.
+- Checkpoint/result schema 4 stays stable, avoiding unnecessary migration code. `evaluationProtocolVersion` is the authoritative compatibility boundary.
+- A protocol-13 checkpoint remains resumable across ordinary Codex CLI version updates when artifact, suite, coverage, release CLI, model, reasoning, and protocol remain compatible and the installed CLI still emits the required event shape.
+- If a future Codex version omits or changes the required fields, parsing fails before evidence is accepted. The operator must inspect and deliberately revise the evaluator protocol rather than silently degrading proof.
+- Rollback of the source correction is an ordinary Git revert before new protocol-13 evidence exists. Once a protocol-13 attempt is committed, history remains append-only and rollback must not rewrite that evidence.
+
+## Security and integrity controls
+
+- Raw command output is untrusted and may contain copied Codex credentials, repository secrets, developer data, or host-specific paths.
+- Strict full-output recognition prevents a safe prefix followed by secret content from being projected as valid evidence.
+- Workspace paths are accepted only under `/mnt`, normalized, bounded in number, and stripped of the sandbox mount prefix.
+- Moldea envelope projection accepts only release-bound scalar fields and result/error presence. Diagnostic bodies, messages, paths, metadata, and unknown fields are never forwarded.
+- Unrecognized and oversized outputs retain only byte count and disposition. No content hash is stored because low-entropy secret material could be guessed offline.
+- The strict validator prevents hand-edited checkpoints from introducing raw output through unrecognized fields.
+- Existing Bubblewrap, empty environment, protected Git and skill mounts, restricted HTTPS relay, separate actor and judge workspaces, and five-minute timeout remain unchanged.
+- Paid diagnostic, full run, confirmation, resume, qualification, publication, and release remain separate authorization boundaries.
 
 ## Risks and controls
 
-- **Repeated instruction growth:** the correction consolidated one rule and reduced the portable word count.
-- **Teaching to the test:** the natural prompt and semantic criteria remain unchanged, and no literal phrase matcher was introduced.
-- **Another expensive recurrence:** the separately authorized two-call diagnostic precedes the 96-call run and has a hard stop on failure.
-- **Temporary website complexity:** empty-history support is explicitly excluded; website checks are deferred until real evidence exists.
-- **Invalid evidence inputs:** source must be committed before model execution, and behavior-bearing inputs must remain unchanged during the run.
-- **Over-deletion:** only the explicitly approved semantic checkpoint, attempts, result, and pointers were removed; the results README remains.
-- **Premature release claims:** semantic success does not replace Custom and adapter qualification, which remain later work.
+- **Another false negative:** the real PnP fixture integration must exercise exit `1` plus the exact schema-2 CLI envelope before any paid diagnostic.
+- **Credential leakage:** raw output is never persisted or hashed; only strict safe facts survive.
+- **Overfitting the skill:** portable instructions, prompt, case, criteria, and coverage remain unchanged.
+- **Weak proof:** a command string or actor claim cannot substitute for a matching completed event, exit code, and relevant projection.
+- **Silent evidence loss after a Codex update:** missing or malformed completed-command fields fail validation rather than producing weaker evidence.
+- **Unnecessary migration complexity:** protocol 13 intentionally requires restart; schema 4 and historical verification stay intact.
+- **Repeated expensive runs:** only one two-call targeted diagnostic is allowed before the fresh full run, with a hard stop on failure.
+- **Misleading website state:** website checks continue rejecting stale latest evidence until a real protocol-13 attempt exists.
 
 ## Acceptance criteria
 
-- `moldea/SKILL.md` contains one prominent canonical-state outcome contract and remains at or below its former 1,917-word count.
-- Existing activation, authority, maintenance, evaluation, initialization, and reporting semantics remain intact.
-- `adopted-relevance-no-change` and its evaluator contract remain unchanged.
-- The prior runtime-relationship fixture correction remains intact.
-- Semantic history is empty and verifier-valid before the new official run.
-- All completed source checks listed above pass; the two website checks are correctly deferred because no attempt exists.
-- No website empty-state or placeholder-evidence path is introduced.
-- Source is reviewed and committed before paid execution.
-- The targeted Terra diagnostic passes without recording evidence.
-- A separately authorized official run creates the first valid attempt-backed website state and ultimately a 48/48 passing canonical result.
-- Documentation and website checks pass against every terminal official attempt and the promoted result.
-- No qualification, publication, release, tag, commit, push, dependency change, or unrelated refactor occurs outside its explicit authorization boundary.
+- The exact PnP confirmation output can produce judge-visible safe facts for the resolved workspace path, exit code `1`, CLI `4.0.1`, schema `2`, command `inspect`, status `invalid`, present result, and absent error.
+- No raw command output, credential, private key, auth-file content, arbitrary JSON field, full diagnostic, `/home` path, or `/mnt` mount prefix can appear in serialized actor execution evidence.
+- Completed-command evidence has one strict bounded shape and excludes started commands and MCP events.
+- The judge contract requires result evidence for result-dependent criteria and continues to reject actor prose alone.
+- Semantic protocol is `13`; checkpoint/result schema remains `4`; protocol-12 checkpoints receive a clear restart requirement.
+- All six current attempts remain byte-identical and `npm run eval:semantic:verify` continues to accept them as history.
+- `moldea/`, the 48 cases, prompts, criteria, coverage, CLI identity, model, reasoning, timeout, sandbox, network policy, and confirmation policy remain unchanged.
+- All model-free source checks pass before paid execution.
+- A separately authorized two-call PnP diagnostic passes for all three existing criteria.
+- A separately authorized fresh official run produces valid protocol-13 evidence and ultimately a 48/48 canonical result before qualifications resume.
+- No qualification, release, tag, publication, commit, or push occurs without its separate command or authorization.
 
 ## Approval required
 
-Approval accepts the completed narrow source correction and destructive clean reset, and revises the verification order so `docs:check` and `website:check` are deferred until the official runner creates a valid latest attempt. It explicitly rejects adding temporary website empty-state support or placeholder evidence. Approval does not authorize a commit, push, paid diagnostic, semantic evaluation, confirmation, resume, qualification, publication, or release; those operations retain their separate authorization boundaries.
+Approval authorizes only the source implementation described above: add strict safe command-result projection and validation, integrate it with the semantic runner and judge, add the exact regression coverage, bump semantic protocol 12 to 13 while retaining schema 4 and historical attempts, and synchronize the three affected documentation files. Approval does not authorize a commit, push, paid PnP diagnostic, full semantic evaluation, confirmation, resume, qualification, publication, tag, or release. Each paid operation retains its stated fresh authorization boundary.

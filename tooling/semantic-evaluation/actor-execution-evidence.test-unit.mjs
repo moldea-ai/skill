@@ -113,6 +113,89 @@ test('projects normalized workspace paths without the sandbox mount prefix', () 
   assert.doesNotMatch(JSON.stringify(evidence), /\/mnt/u);
 });
 
+test('projects the exact focused runtime-test result without retaining output', () => {
+  const output = 'TAP version 13\n# token=sk-sensitive-value\n1..1\n';
+  const passedEvidence = projectActorExecutionEvidenceEvent(
+    createCompletedCommandEvent({
+      command: "/bin/bash -lc 'node --test src/support-agent.test-integration.js'",
+      output,
+    }),
+    PROJECTION_OPTIONS,
+  );
+  const failedEvidence = projectActorExecutionEvidenceEvent(
+    createCompletedCommandEvent({
+      command: 'node --test src/support-agent.test-integration.js',
+      exitCode: 1,
+      output: 'TAP version 13\nnot ok 1 - runtime provenance\n',
+      status: 'failed',
+    }),
+    PROJECTION_OPTIONS,
+  );
+
+  assert.deepEqual(passedEvidence.item.outputEvidence, {
+    byteCount: Buffer.byteLength(output),
+    disposition: 'projected',
+    facts: [
+      {
+        kind: 'focused-runtime-test',
+        path: '/src/support-agent.test-integration.js',
+        status: 'passed',
+      },
+    ],
+  });
+  assert.deepEqual(failedEvidence.item.outputEvidence.facts, [
+    {
+      kind: 'focused-runtime-test',
+      path: '/src/support-agent.test-integration.js',
+      status: 'failed',
+    },
+  ]);
+  assert.equal(hasValidActorExecutionEvidence([passedEvidence], PROJECTION_OPTIONS), true);
+  assert.equal(hasValidActorExecutionEvidence([failedEvidence], PROJECTION_OPTIONS), true);
+  assert.doesNotMatch(JSON.stringify(passedEvidence), /token|sk-sensitive-value|node --test/u);
+});
+
+test('does not project near-match runtime-test commands', () => {
+  for (const command of [
+    'node --test src/other.test-integration.js',
+    'node --test ./src/support-agent.test-integration.js',
+    'node --test src/support-agent.test-integration.js --test-name-pattern provenance',
+    "/bin/bash -lc 'node --test src/support-agent.test-integration.js; cat /mnt/secret'",
+    'npm test',
+  ]) {
+    const evidence = projectActorExecutionEvidenceEvent(
+      createCompletedCommandEvent({ command, output: 'TAP version 13\n1..1\n' }),
+      PROJECTION_OPTIONS,
+    );
+
+    assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
+    assert.deepEqual(evidence.item.outputEvidence.facts, []);
+  }
+});
+
+test('does not project a focused runtime-test result from empty or oversized output', () => {
+  const command = 'node --test src/support-agent.test-integration.js';
+  const emptyEvidence = projectActorExecutionEvidenceEvent(
+    createCompletedCommandEvent({ command }),
+    PROJECTION_OPTIONS,
+  );
+  const oversizedEvidence = projectActorExecutionEvidenceEvent(
+    createCompletedCommandEvent({ command, output: 'x'.repeat(32_769) }),
+    PROJECTION_OPTIONS,
+  );
+
+  assert.deepEqual(emptyEvidence.item.outputEvidence, {
+    byteCount: 0,
+    disposition: 'empty',
+    facts: [],
+  });
+  assert.deepEqual(oversizedEvidence.item.outputEvidence, {
+    byteCount: 32_769,
+    disposition: 'too-large',
+    facts: [],
+  });
+});
+
 test('projects release-bound valid and invalid Moldea envelope facts', () => {
   const validOutput = JSON.stringify({
     cliVersion: '4.0.1',
@@ -465,6 +548,25 @@ test('strict validation rejects injected raw output, extra keys, and misplaced r
             byteCount: 1,
             disposition: 'projected',
             facts: [{ kind: 'workspace-paths', paths: ['/mnt/private'] }],
+          },
+        },
+      },
+    ],
+    [
+      {
+        ...completedEvidence,
+        item: {
+          ...completedEvidence.item,
+          outputEvidence: {
+            byteCount: 1,
+            disposition: 'projected',
+            facts: [
+              {
+                kind: 'focused-runtime-test',
+                path: '/src/support-agent.test-integration.js',
+                status: 'failed',
+              },
+            ],
           },
         },
       },

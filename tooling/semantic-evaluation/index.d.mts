@@ -12,6 +12,11 @@ export interface ISemanticActorExecutionEvidenceOptions {
 // evaluator-owned facts that may be derived from complete recognized command output
 export type ISemanticActorExecutionOutputFact =
   | {
+      kind: 'focused-runtime-test';
+      path: '/src/support-agent.test-integration.js';
+      status: 'failed' | 'passed';
+    }
+  | {
       kind: 'moldea-cli-envelope';
       cliVersion: string;
       command: 'compatibility' | 'inspect' | 'validate';

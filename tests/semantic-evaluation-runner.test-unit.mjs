@@ -406,9 +406,17 @@ test('semantic host output separates final response from runner-owned execution 
     exit_code: 0,
     status: 'completed',
   };
+  const focusedTestItem = {
+    aggregated_output: 'TAP version 13\n1..1\n',
+    command: "/bin/bash -lc 'node --test src/support-agent.test-integration.js'",
+    exit_code: 0,
+    id: 'item-2',
+    status: 'completed',
+    type: 'command_execution',
+  };
   const toolItem = {
     arguments: { command: 'yarn info @moldea.ai/cli --json' },
-    id: 'item-2',
+    id: 'item-3',
     name: 'exec_command',
     status: 'completed',
     type: 'mcp_tool_call',
@@ -417,10 +425,11 @@ test('semantic host output separates final response from runner-owned execution 
     { thread_id: 'thread-1', type: 'thread.started' },
     { item: commandItem, type: 'item.started' },
     { item: completedCommandItem, type: 'item.completed' },
+    { item: focusedTestItem, type: 'item.completed' },
     { item: toolItem, type: 'item.completed' },
     {
       item: {
-        id: 'item-3',
+        id: 'item-4',
         text: '{\"observed\":[],\"forbidden\":[],\"rationale\":\"done\"}',
         type: 'agent_message',
       },
@@ -437,6 +446,25 @@ test('semantic host output separates final response from runner-owned execution 
         item: {
           exitCode: 0,
           outputEvidence: { byteCount: 0, disposition: 'empty', facts: [] },
+          status: 'completed',
+          type: 'command_execution',
+        },
+      },
+      {
+        eventType: 'item.completed',
+        item: {
+          exitCode: 0,
+          outputEvidence: {
+            byteCount: 20,
+            disposition: 'projected',
+            facts: [
+              {
+                kind: 'focused-runtime-test',
+                path: '/src/support-agent.test-integration.js',
+                status: 'passed',
+              },
+            ],
+          },
           status: 'completed',
           type: 'command_execution',
         },
@@ -570,6 +598,25 @@ test('judge prompt receives criteria after actor execution', () => {
           type: 'command_execution',
         },
       },
+      {
+        eventType: 'item.completed',
+        item: {
+          exitCode: 0,
+          outputEvidence: {
+            byteCount: 20,
+            disposition: 'projected',
+            facts: [
+              {
+                kind: 'focused-runtime-test',
+                path: '/src/support-agent.test-integration.js',
+                status: 'passed',
+              },
+            ],
+          },
+          status: 'completed',
+          type: 'command_execution',
+        },
+      },
     ],
     createScenarioEvidence(HOST_CASE_DEFINITION),
     {
@@ -589,6 +636,9 @@ test('judge prompt receives criteria after actor execution', () => {
   assert.match(judgePrompt, /"valid": true/);
   assert.match(judgePrompt, /untrusted artifact evidence/);
   assert.match(judgePrompt, /Runner-owned actor execution evidence/);
+  assert.match(judgePrompt, /focused-runtime-test/);
+  assert.match(judgePrompt, /\/src\/support-agent\.test-integration\.js/);
+  assert.match(judgePrompt, /"status": "passed"/);
   assert.match(judgePrompt, /requires a corresponding completed runner-owned event/);
   assert.match(judgePrompt, /requires the relevant exit code and projected result fact/);
   assert.match(judgePrompt, /supplies no result fact/);
@@ -1272,7 +1322,7 @@ test('semantic candidates retain failures and require two passing confirmations'
     caseDefinitions,
     generatedAt: '2026-08-16T12:03:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 13);
+  assert.equal(record.evaluationProtocolVersion, 14);
   assert.equal(record.schemaVersion, 4);
   assert.equal(record.actorHost, undefined);
   assert.equal(record.host, undefined);

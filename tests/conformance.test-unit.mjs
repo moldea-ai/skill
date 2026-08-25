@@ -1170,6 +1170,9 @@ describe('source repository conformance', () => {
     const provenanceCriterion = adoptionCase.expected.find(
       ({ label }) => label === 'establish-canonical-instruction-provenance',
     );
+    const runtimeVerificationCriterion = adoptionCase.expected.find(
+      ({ label }) => label === 'verify-runtime-instruction-provenance',
+    );
     const independentSourceCriterion = adoptionCase.forbidden.find(
       ({ label }) => label === 'retain-independently-editable-instruction-sources',
     );
@@ -1178,11 +1181,14 @@ describe('source repository conformance', () => {
     );
 
     assert.ok(provenanceCriterion);
+    assert.ok(runtimeVerificationCriterion);
     assert.ok(independentSourceCriterion);
     assert.ok(capabilityCriterion);
 
     assert.match(provenanceCriterion.criterion, /declared exact mirror/i);
     assert.match(provenanceCriterion.criterion, /model invocation/i);
+    assert.match(runtimeVerificationCriterion.criterion, /runner-owned focused runtime-test/i);
+    assert.match(runtimeVerificationCriterion.criterion, /workspace evidence/i);
     assert.match(independentSourceCriterion.criterion, /does not trigger/i);
     assert.match(capabilityCriterion.criterion, /instruction or runtime guidance/i);
     assert.match(capabilityCriterion.criterion, /without fabricating/i);

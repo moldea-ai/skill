@@ -1315,7 +1315,7 @@
         },
         {
           "label": "verify-runtime-instruction-provenance",
-          "criterion": "Focused runtime evidence verifies that every material model invocation receives the canonical-derived instruction. A test of the real loader and declared exact mirror chain satisfies this criterion."
+          "criterion": "Runner-owned focused runtime-test evidence reports that the repository-local integration test passed, and workspace evidence for that test verifies that every material model invocation receives the canonical-derived instruction. A test of the real loader and declared exact mirror chain satisfies this criterion."
         },
         {
           "label": "rerun-deterministic-inspection",

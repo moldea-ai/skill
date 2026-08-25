@@ -39,7 +39,7 @@ A case cannot pass when any protected control changes, even if the judge otherwi
 
 The committed [coverage map](https://github.com/moldea-ai/skill/blob/main/fixtures/semantic-evaluation-coverage.json) connects portable skill claims to semantic cases, deterministic suites, or qualification profiles. Every semantic case must appear in that map.
 
-Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, semantic protocol 13, confirmation policy, and fixed Codex, `gpt-5.6-terra`, medium host contract. Each completed trial records the exact actor and judge Codex CLI versions independently. A CLI version update alone does not discard compatible paid work, but a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. The canonical result exists only after all 48 cases pass initially or satisfy the bounded recovery policy.
+Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, semantic protocol 14, confirmation policy, and fixed Codex, `gpt-5.6-terra`, medium host contract. Each completed trial records the exact actor and judge Codex CLI versions independently. A CLI version update alone does not discard compatible paid work, but a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. The canonical result exists only after all 48 cases pass initially or satisfy the bounded recovery policy.
 
 Every terminal recorded run is published under `fixtures/semantic-evaluation-results/attempts/` with a derived summary and the exact source checkpoint or result. `latest.json` tracks the newest attempt and the last passing attempt independently. Failed and incomplete history remains public but cannot satisfy the release gate. The canonical result is never assembled or edited by hand.
 
@@ -47,7 +47,7 @@ Every full recording stops at the first failed initial trial. The runner writes 
 
 When inspection establishes plausible model variance, a separately authorized `--confirm <case-id> --record` operation runs at most two confirmations. Both must pass. Either confirmation failure is terminal, the second confirmation is skipped when recovery is already impossible, and the original failure is never replaced. A recovered case and all its trials remain visible. Resuming the remaining suite requires another explicit authorization.
 
-After correcting a source, fixture, or evaluator defect, or when a confirmation rejects the candidate, `--record --restart` begins a new full attempt. Restart removes only the ignored local checkpoint and preserves the published attempt history. Protocol-12 checkpoints cannot resume or migrate because they do not contain protocol 13 command-result facts. Historical protocol-12 attempts remain valid history, but they cannot satisfy the current release gate.
+After correcting a source, fixture, or evaluator defect, or when a confirmation rejects the candidate, `--record --restart` begins a new full attempt. Restart removes only the ignored local checkpoint and preserves the published attempt history. Protocol-13 and earlier checkpoints cannot resume or migrate because they do not contain the complete protocol-14 command-result facts. Historical attempts remain valid history, but they cannot satisfy the current release gate.
 
 An interrupted protocol-compatible checkpoint remains resumable locally. `--record-checkpoint` can publish it without a model call, and `npm run eval:semantic:verify` validates every immutable evidence digest, summary, directory identity, and pointer. A schema-3 local checkpoint on the current semantic protocol can be converted once with `npm run eval:semantic -- --migrate-checkpoint`. The model-free migration validates current inputs, preserves the exact source in an ignored digest-named recovery file, attributes the former actor and judge identities to every existing trial, and writes schema 4 atomically. It does not publish evidence or invoke Codex.
 
@@ -55,12 +55,13 @@ An interrupted protocol-compatible checkpoint remains resumable locally. `--reco
 
 The runner reads Codex JSONL command events directly. A completed command records its safe integer exit code, but its raw output is never placed in a checkpoint, judge prompt, attempt, canonical result, log, or website model.
 
-Started commands, command text, command identifiers, and MCP events are discarded. Output is inspected only in memory and only when it stays within the projection bound. The invocation must match an exact evaluator-owned repository-local command contract, and its complete output must match the corresponding recognized shape before the runner creates a fact:
+Started commands, command text, command identifiers, and MCP events are discarded. Output is inspected only in memory and only when it stays within the projection bound. The invocation must match an exact evaluator-owned repository-local command contract before the runner creates a fact:
 
 - the evaluator-owned pnpm Plug'n'Play CLI package root, executable path, or both, published without the sandbox's `/mnt` prefix
 - one Moldea JSON envelope matching the release CLI version and schema, reduced to `schemaVersion`, `cliVersion`, `command`, `status`, `resultPresent`, and `errorPresent`
+- the pass/fail result for the exact `node --test src/support-agent.test-integration.js` runtime-provenance test, reduced to its repository path and exit-code-derived status
 
-Empty, unrecognized, mismatched, and oversized outputs retain only a byte count and an explicit disposition. They provide no result fact. A result-dependent criterion can pass only when the judge receives the relevant completed event, exit code, and projected fact. Completion status and actor prose are not substitutes.
+Path and envelope facts require the complete output to match their recognized shape. The focused runtime-test fact requires bounded non-empty output; the test source remains visible in workspace evidence so a passing command cannot substitute for meaningful coverage. Empty, unrecognized, mismatched, and oversized outputs retain only a byte count and an explicit disposition. They provide no result fact. A result-dependent criterion can pass only when the judge receives the relevant completed event, exit code, and projected fact. Completion status and actor prose are not substitutes.
 
 ## Run the free preflight
 

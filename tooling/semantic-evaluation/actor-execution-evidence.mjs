@@ -4,6 +4,9 @@ const COMMAND_COMPLETED_STATUSES = new Set(['completed', 'failed']);
 const MOLDEA_COMMANDS = new Set(['compatibility', 'inspect', 'validate']);
 const MOLDEA_STATUSES = new Set(['error', 'invalid', 'valid']);
 const OUTPUT_DISPOSITIONS = new Set(['empty', 'projected', 'too-large', 'unrecognized']);
+const FOCUSED_RUNTIME_TEST_PATH = '/src/support-agent.test-integration.js';
+const FOCUSED_RUNTIME_TEST_COMMAND = `node --test ${FOCUSED_RUNTIME_TEST_PATH.slice(1)}`;
+const FOCUSED_RUNTIME_TEST_STATUSES = new Set(['failed', 'passed']);
 const RECOGNIZED_WORKSPACE_PATHS = new Set([
   '/.pnp/node_modules/@moldea.ai/cli',
   '/.pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
@@ -160,6 +163,17 @@ const projectMoldeaEnvelope = (source, command, exitCode, options) => {
   };
 };
 
+/** Returns one bounded test result only for the evaluator-owned runtime-provenance test. */
+const projectFocusedRuntimeTest = (command, exitCode) => {
+  if (unwrapSimpleBashCommand(command) !== FOCUSED_RUNTIME_TEST_COMMAND) return null;
+
+  return {
+    kind: 'focused-runtime-test',
+    path: FOCUSED_RUNTIME_TEST_PATH,
+    status: exitCode === 0 ? 'passed' : 'failed',
+  };
+};
+
 /** Projects one command output into safe evaluator-owned facts without retaining its content. */
 const createCommandOutputEvidence = (source, command, exitCode, options) => {
   const byteCount = Buffer.byteLength(source, 'utf8');
@@ -175,7 +189,8 @@ const createCommandOutputEvidence = (source, command, exitCode, options) => {
 
   const fact =
     projectMoldeaEnvelope(source, command, exitCode, options) ??
-    projectWorkspacePaths(source, command);
+    projectWorkspacePaths(source, command) ??
+    projectFocusedRuntimeTest(command, exitCode);
   return fact === null
     ? { byteCount, disposition: 'unrecognized', facts: [] }
     : { byteCount, disposition: 'projected', facts: [fact] };
@@ -225,6 +240,15 @@ const hasValidMoldeaEnvelopeFact = (fact, exitCode, options) =>
       !fact.resultPresent &&
       fact.errorPresent));
 
+const hasValidFocusedRuntimeTestFact = (fact, exitCode) =>
+  hasExactKeys(fact, ['kind', 'path', 'status']) &&
+  fact.kind === 'focused-runtime-test' &&
+  fact.path === FOCUSED_RUNTIME_TEST_PATH &&
+  typeof fact.status === 'string' &&
+  FOCUSED_RUNTIME_TEST_STATUSES.has(fact.status) &&
+  ((fact.status === 'passed' && exitCode === 0) ||
+    (fact.status === 'failed' && exitCode !== 0));
+
 const hasValidCommandOutputEvidence = (outputEvidence, exitCode, options) => {
   if (
     !isPlainRecord(outputEvidence) ||
@@ -268,7 +292,9 @@ const hasValidCommandOutputEvidence = (outputEvidence, exitCode, options) => {
   const [fact] = outputEvidence.facts;
   return (
     isPlainRecord(fact) &&
-    (hasValidWorkspacePathsFact(fact) || hasValidMoldeaEnvelopeFact(fact, exitCode, options))
+    (hasValidWorkspacePathsFact(fact) ||
+      hasValidMoldeaEnvelopeFact(fact, exitCode, options) ||
+      hasValidFocusedRuntimeTestFact(fact, exitCode))
   );
 };
 

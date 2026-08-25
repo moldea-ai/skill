@@ -105,11 +105,12 @@ Adapter evidence describes detectable implementation, not intent. Core invalidit
 
 ## Report truthfully
 
+Every write-capable operation reports `Canonical state`: changed surfaces; no canonical change and why; or blocked by ambiguity, with one focused question.
+
 Keep reports proportional; make these results explicit when relevant:
 
 - selected operation and activation path
 - authorized scope and each repository as clean, dirty, unborn, unavailable, or uninspected, including unchanged related repositories
-- canonical surfaces changed, explicitly unchanged with why no canonical change was required, or blocked by material ambiguity and its focused question
 - exact local CLI version, every accepted tooling proof stage, and deterministic commands, statuses, and material diagnostics
 - dependency changes and Agent Skill source, metadata, copy, consumer, and activation decisions
 - semantic decisions and the evidence chain that established any consequential misalignment and resulting state

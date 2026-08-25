@@ -682,7 +682,7 @@ describe('portable Agent Skill contract', () => {
     assertMatchesEvery(skill, [
       /After writes/i,
       /Version or subcommand alone and failed, incomplete, aggregate, or unverified execution cannot support completion/i,
-      /canonical surfaces changed, explicitly unchanged with why no canonical change was required, or blocked by material ambiguity/i,
+      /Every write-capable operation reports `Canonical state`: changed surfaces; no canonical change and why; or blocked by ambiguity, with one focused question/i,
       /semantic decisions and the evidence chain that established any consequential misalignment/i,
       /Under dynamic wiring, separate consumer purpose, required source, selected source, and resolving evidence/i,
       /every accepted tooling proof stage/i,

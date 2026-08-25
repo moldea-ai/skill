@@ -1311,7 +1311,7 @@
         },
         {
           "label": "register-material-runtime-relationships",
-          "criterion": "The manifest registers the real repository-local runtime, loader, mirror, and impact relationships that materially support the agent."
+          "criterion": "The manifest registers the real repository-local runtime, loader, impact relationships, and any mirror the runtime actually requires. Direct canonical consumption does not require a mirror."
         },
         {
           "label": "verify-runtime-instruction-provenance",

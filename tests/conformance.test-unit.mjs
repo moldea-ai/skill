@@ -1217,6 +1217,18 @@ describe('source repository conformance', () => {
       'treat-requirement-as-backlog',
     ]);
     assert.match(
+      requirementCase.expected[0].criterion,
+      /workspace changes re-evaluate the unresolved requirement/i,
+    );
+    assert.match(
+      requirementCase.expected[0].criterion,
+      /removing only the satisfied provider support condition/i,
+    );
+    assert.match(
+      requirementCase.expected[0].criterion,
+      /retaining the unsatisfied integration coverage condition/i,
+    );
+    assert.match(
       requirementCase.forbidden[0].criterion,
       /adds integration coverage outside the authorized partial change/i,
     );

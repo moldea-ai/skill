@@ -1748,7 +1748,7 @@
       "expected": [
         {
           "label": "recheck-resolution-criteria",
-          "criterion": "The actor rechecks resolution criteria against its authoritative current contract before changing state."
+          "criterion": "The workspace changes re-evaluate the unresolved requirement against its authoritative resolution criteria by removing only the satisfied provider support condition and retaining the unsatisfied integration coverage condition."
         },
         {
           "label": "complete-authorized-partial-implementation",

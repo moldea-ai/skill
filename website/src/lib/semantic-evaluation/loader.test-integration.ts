@@ -172,9 +172,9 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
     expect(model.route).toBe('/evidence/semantic/');
     expect(model.status).toBe('passed');
-    expect(model.caseCount).toBe(48);
-    expect(model.passedCaseCount).toBe(48);
-    expect(model.groups.flatMap(({ cases: groupCases }) => groupCases)).toHaveLength(48);
+    expect(model.caseCount).toBe(cases.length);
+    expect(model.passedCaseCount).toBe(cases.length);
+    expect(model.groups.flatMap(({ cases: groupCases }) => groupCases)).toHaveLength(cases.length);
   });
 
   test('keeps a failed latest attempt separate from the last passing attempt', async () => {
@@ -212,7 +212,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.status).toBe('failed');
     expect(model.passedCaseCount).toBe(1);
     expect(model.failedCaseCount).toBe(1);
-    expect(model.pendingCaseCount).toBe(46);
+    expect(model.pendingCaseCount).toBe(cases.length - 2);
     expect(model.latest.result.attemptId).not.toBe(model.lastPassing?.result.attemptId);
   });
 

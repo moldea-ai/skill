@@ -10,7 +10,7 @@ order: 172
 
 Semantic evaluation tests whether the portable `moldea` skill behaves correctly in difficult repository situations. It complements deterministic conformance and adapter qualification. It does not replace either one.
 
-The current suite contains 48 scenarios. Each initial trial uses one actor call and one independent judge call, for up to 96 model calls when every scenario passes initially. One bounded confirmation sequence can add up to four calls. Both processes use `gpt-5.6-terra` at `medium` reasoning effort and have a five-minute per-call timeout by default.
+The current suite contains 49 scenarios. Each initial trial uses one actor call and one independent judge call, for up to 98 model calls when every scenario passes initially. One bounded confirmation sequence can add up to four calls. Both processes use `gpt-5.6-terra` at `medium` reasoning effort and have a five-minute per-call timeout by default.
 
 ## What each scenario proves
 
@@ -29,7 +29,7 @@ Repository evidence must identify an inspectable source. Supported sources inclu
 
 Dirty-tree scenarios combine categorical Git-state facts with bounded snapshots of every material changed path and the canonical relationships needed for semantic assessment. Judges can therefore compare the actor's claimed scope and reasoning with independent evidence without receiving raw actor commands or arbitrary command output.
 
-Clean-tree scenarios source the canonical foundation and material related implementation needed for the expected assessment. Progressive scope is judged from the actor's concise starting-scope and expansion conclusion together with that independent project evidence. It is not inferred from discarded command text or internal reasoning. The installed Moldea skill remains protected operating guidance and does not become project-owned scenario evidence merely because the actor uses it.
+Clean-tree scenarios source the canonical foundation and material related implementation needed for the expected assessment. Progressive scope is judged from the actor's concise starting-scope and expansion conclusion together with that independent project evidence. It is not inferred from discarded command text or internal reasoning. The installed `moldea` skill remains protected operating guidance and does not become project-owned scenario evidence merely because the actor uses it.
 
 ## Repository controls
 
@@ -41,7 +41,7 @@ A case cannot pass when any protected control changes, even if the judge otherwi
 
 The committed [coverage map](https://github.com/moldea-ai/skill/blob/main/fixtures/semantic-evaluation-coverage.json) connects portable skill claims to semantic cases, deterministic suites, or qualification profiles. Every semantic case must appear in that map.
 
-Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, semantic protocol 14, confirmation policy, and fixed Codex, `gpt-5.6-terra`, medium host contract. Each completed trial records the exact actor and judge Codex CLI versions independently. A CLI version update alone does not discard compatible paid work, but a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. The canonical result exists only after all 48 cases pass initially or satisfy the bounded recovery policy.
+Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, semantic protocol 14, confirmation policy, and fixed Codex, `gpt-5.6-terra`, medium host contract. Each completed trial records the exact actor and judge Codex CLI versions independently. A CLI version update alone does not discard compatible paid work, but a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. The canonical result exists only after all 49 cases pass initially or satisfy the bounded recovery policy.
 
 Every terminal recorded run is published under `fixtures/semantic-evaluation-results/attempts/` with a derived summary and the exact source checkpoint or result. `latest.json` tracks the newest attempt and the last passing attempt independently. Failed and incomplete history remains public but cannot satisfy the release gate. The canonical result is never assembled or edited by hand.
 
@@ -77,7 +77,7 @@ Maintainers can verify all scenario contracts without model calls:
 npm run eval:semantic:preflight
 ```
 
-This command validates the coverage map, materializes all 48 repositories, collects every declared evidence source, verifies protected repository controls, and confirms that every actor prompt is exactly the natural developer direction.
+This command validates the coverage map, materializes all 49 repositories, collects every declared evidence source, verifies protected repository controls, and confirms that every actor prompt is exactly the natural developer direction.
 
 The [semantic evidence page](/evidence/semantic/) presents the latest status, last passing attempt, complete history, per-trial actor and judge versions, methodology, coverage map, and current case criteria. Actor transcripts, safe completed-command facts, and workspace artifacts remain available in each raw committed evidence artifact rather than being indexed as ordinary documentation. Actor-controlled command and MCP metadata and arbitrary command output are intentionally absent.
 

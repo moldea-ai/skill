@@ -56,7 +56,7 @@ The CLI is an exact root development dependency; other entries retain their rang
 - **Plan:** design the smallest robust agent-and-software system for an explicitly agent-enabled objective. Keep the operation read-only, allow zero agents, and never establish `moldea` state or local tooling merely to produce the recommendation.
 - **Initialize:** establish local tooling, project understanding, `/moldea/moldea.yaml`, `/moldea/project.md`, and the owned README awareness block. Do not create an agent automatically.
 - **Maintain:** reconsider and, when required, synchronize affected project context, decisions, runtime guidance, agents, Agent Skills, relationships, schemas, capabilities, variables, requirements, mirrors, README guidance, or implementation.
-- **Evaluate:** assess the adopted project's Moldea system without writes. The installed operating skill becomes project scope only through explicit or repository-established ownership. Never establish dependency state.
+- **Evaluate:** resolve the subject before evidence and assess it read-only. In an adopted repository, brief `moldea` defaults to the project-owned system; ask one focused question if ambiguity remains. Never audit the installed skill without explicit or repository-established scope or establish dependencies.
 - **Reconcile:** begin from the same evidence model as `evaluate`, establish intended state, and apply the smallest authorized coherent correction.
 - **Validate:** run read-only deterministic repository-local validation only.
 
@@ -83,7 +83,7 @@ Load only operation-triggered references. Governing specifications and determini
 ## Common lifecycle
 
 1. Establish the requested outcome, activation path, write authority, repository mode, and applicable coding instructions.
-2. Determine whether the repository has adopted `moldea`. Do not infer adoption from an unrelated repository or create canonical state without explicit adoption intent.
+2. Determine adoption and operation subject before gathering evidence. Do not infer adoption from an unrelated repository or create canonical state without explicit adoption intent.
 3. Treat discovery as a candidate queue. Read material accessible files before conclusions, absence claims, requests, or planning. For `initialize`, classify the foundation before dependency changes.
 4. Use supported local tooling for the operation. Inspect executable manager configuration as file data before any package-manager process. `plan` never establishes tooling; `evaluate` and `validate` report incompatible tooling without writes.
 5. When the operation uses deterministic tooling, invoke the exact repository-local CLI in its own process and verify that completed process's exit code and machine envelope before interpreting command-specific fields.

@@ -121,6 +121,7 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'canonical-instruction-changed',
     'dedicated-repository-runtime-selection',
     'dedicated-repository-single-side-change',
+    'evaluate-brief-name-only-request',
     'evaluate-clean-working-tree',
     'evaluate-dirty-working-tree',
     'evaluate-unborn-repository',
@@ -640,15 +641,21 @@ describe('portable Agent Skill contract', () => {
   });
 
   test('preserves evaluate, reconcile, and deterministic responsibility boundaries', () => {
+    const evaluateAndReconcile = readRepositoryFile('moldea/references/evaluate-and-reconcile.md');
+
     assertMatchesEvery(portableContent, [
       /`evaluate` must not modify/,
       /staged, unstaged, untracked, renamed, and deleted/,
       /working tree is clean/,
       /No `HEAD` exists/,
-      /unqualified request to evaluate `moldea` targets that repository's project-owned system/i,
-      /installed `\.agents\/skills\/moldea` tree supplies operating guidance/i,
-      /presence does not make it a project-owned Agent Skill or evaluation subject/i,
-      /explicitly scopes it or repository evidence establishes it as a project-owned source, copy, consumer, or declaration/i,
+      /Resolve the evaluation subject before collecting target evidence/i,
+      /default a brief name-only direction to the project-owned Moldea system/i,
+      /If subject ambiguity remains, ask one focused question/i,
+      /Load the installed `\.agents\/skills\/moldea` entrypoint and operation-triggered references only as operating guidance/i,
+      /Do not inventory, validate, or report that installed tree as target evidence/i,
+      /Before claiming semantic alignment, establish each material behavior's intended meaning and relevant consumption from reliable evidence/i,
+      /A registered relationship proves scope, and implementation proves current behavior; neither alone proves agreement/i,
+      /report the exact evidence limitation instead of declaring alignment/i,
       /unscoped clean evaluation, concisely report the adopted project-owned starting scope/i,
       /canonical relationship that caused implementation expansion or why none was material/i,
       /Deterministic diagnostics/,
@@ -681,7 +688,13 @@ describe('portable Agent Skill contract', () => {
     );
     assert.match(
       skill,
-      /installed operating skill becomes project scope only through explicit or repository-established ownership/i,
+      /resolve the subject before evidence[\s\S]*brief `moldea` defaults to the project-owned system[\s\S]*ask one focused question if ambiguity remains/i,
+    );
+    assert.ok(
+      evaluateAndReconcile.indexOf(
+        'Resolve the evaluation subject before collecting target evidence',
+      ) < evaluateAndReconcile.indexOf('When no explicit scope is provided'),
+      'Evaluation target resolution must precede Git-state scope selection.',
     );
   });
 
@@ -987,7 +1000,10 @@ describe('source repository conformance', () => {
     );
 
     assert.ok(cleanEvaluationCase);
-    assert.equal(cleanEvaluationCase.input.developerDirection, 'Evaluate moldea.');
+    assert.equal(
+      cleanEvaluationCase.input.developerDirection,
+      'Evaluate the current moldea project.',
+    );
     assert.deepEqual(
       cleanEvaluationCase.input.repositoryEvidence
         .filter(({ source }) => source.kind === 'workspace-path')
@@ -1030,6 +1046,39 @@ describe('source repository conformance', () => {
     assert.match(ambiguityCriterion.criterion, /material ambiguity or evidence limitation/i);
     assert.match(scopeSubstitutionCriterion.criterion, /installed `\.agents\/skills\/moldea`/i);
     assert.match(scopeSubstitutionCriterion.criterion, /solely because it is present/i);
+  });
+
+  test('keeps a brief Moldea evaluation request from silently becoming a skill audit', () => {
+    const briefEvaluationCase = cases.semanticCases.find(
+      ({ id }) => id === 'evaluate-brief-name-only-request',
+    );
+
+    assert.ok(briefEvaluationCase);
+    assert.equal(briefEvaluationCase.input.developerDirection, 'Evaluate moldea.');
+    assert.deepEqual(getSemanticCriterionLabels(briefEvaluationCase.expected), [
+      'resolve-or-clarify-evaluation-subject',
+      'report-no-writes',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(briefEvaluationCase.forbidden), [
+      'silently-audit-installed-operating-skill',
+      'repository-write',
+    ]);
+
+    const subjectCriterion = briefEvaluationCase.expected.find(
+      ({ label }) => label === 'resolve-or-clarify-evaluation-subject',
+    );
+    const silentAuditCriterion = briefEvaluationCase.forbidden.find(
+      ({ label }) => label === 'silently-audit-installed-operating-skill',
+    );
+
+    assert.ok(subjectCriterion);
+    assert.ok(silentAuditCriterion);
+    assert.match(subjectCriterion.criterion, /either identifies/i);
+    assert.match(subjectCriterion.criterion, /adopted project-owned Moldea system/i);
+    assert.match(subjectCriterion.criterion, /or asks one focused question/i);
+    assert.match(subjectCriterion.criterion, /before evaluating either/i);
+    assert.match(silentAuditCriterion.criterion, /installed `\.agents\/skills\/moldea`/i);
+    assert.match(silentAuditCriterion.criterion, /without first establishing/i);
   });
 
   test('assigns deterministic reporting to runner and actor evidence without weakening provider provenance', () => {
@@ -1738,8 +1787,8 @@ describe('source repository conformance', () => {
 
     assertMatchesEvery(readme, [
       /Semantic evaluation is intentionally lengthy/,
-      /48 cases/,
-      /96 model calls/,
+      /49 cases/,
+      /98 model calls/,
       /bounded confirmation sequence/,
       /up to four calls/,
       /adapter availability/,

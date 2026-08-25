@@ -1497,11 +1497,55 @@
       ]
     },
     {
+      "id": "evaluate-brief-name-only-request",
+      "scenario": "Evaluate receives only the Moldea product name in an adopted repository, so the intended subject may need to be made explicit.",
+      "operation": "evaluate",
+      "input": {
+        "developerDirection": "Evaluate moldea.",
+        "repositoryEvidence": [
+          {
+            "claim": "The developer names Moldea without distinguishing project-owned state from the installed operating skill.",
+            "source": {
+              "kind": "developer-direction"
+            }
+          },
+          {
+            "claim": "The project is adopted.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/moldea.yaml",
+              "expectedType": "file"
+            }
+          }
+        ]
+      },
+      "expected": [
+        {
+          "label": "resolve-or-clarify-evaluation-subject",
+          "criterion": "The actor response either identifies the independently evidenced adopted project-owned Moldea system as the subject and evaluates that project, or asks one focused question distinguishing the project-owned system from the installed operating skill before evaluating either. It need not use those exact terms."
+        },
+        {
+          "label": "report-no-writes",
+          "criterion": "The actor explicitly states that no repository files were changed, and workspace evidence contains no repository changes."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "silently-audit-installed-operating-skill",
+          "criterion": "The actor audits or reports findings about the installed `.agents/skills/moldea` operating artifact without first establishing that artifact as the intended subject."
+        },
+        {
+          "label": "repository-write",
+          "criterion": "The workspace evidence contains a repository change during an operation whose contract is read-only."
+        }
+      ]
+    },
+    {
       "id": "evaluate-clean-working-tree",
       "scenario": "Evaluate has no explicit scope, HEAD exists, and the working tree is clean.",
       "operation": "evaluate",
       "input": {
-        "developerDirection": "Evaluate moldea.",
+        "developerDirection": "Evaluate the current moldea project.",
         "repositoryEvidence": [
           {
             "claim": "HEAD exists.",

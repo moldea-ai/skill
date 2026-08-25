@@ -24,6 +24,7 @@
         { "kind": "semantic-case", "id": "adopted-relevance-changed-behavior" },
         { "kind": "semantic-case", "id": "agent-adoption-inline-runtime-instruction" },
         { "kind": "semantic-case", "id": "evaluate-dirty-working-tree" },
+        { "kind": "semantic-case", "id": "evaluate-brief-name-only-request" },
         { "kind": "semantic-case", "id": "evaluate-clean-working-tree" },
         { "kind": "semantic-case", "id": "evaluate-unborn-repository" }
       ],

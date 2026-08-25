@@ -81,6 +81,10 @@ export const SEMANTIC_CASE_PRESENTATION = {
     groupId: 'adoption',
     title: 'Evaluates a dirty working tree without editing it',
   },
+  'evaluate-brief-name-only-request': {
+    groupId: 'adoption',
+    title: 'Resolves a brief Moldea evaluation request',
+  },
   'evaluate-clean-working-tree': {
     groupId: 'adoption',
     title: 'Evaluates a clean working tree',

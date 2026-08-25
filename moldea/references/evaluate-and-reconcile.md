@@ -6,15 +6,21 @@ Read this reference before `evaluate`, `reconcile`, or a scoped semantic alignme
 
 Both operations begin from the same evidence model: supported local tooling, `inspect --json`, compatibility data when material, relevant canonical state, Agent Skill source and resources, implementation, executable contracts, tests, runtime integration, runtime-adapter evidence, developer intent, and unresolved state.
 
+Resolve the evaluation subject before collecting target evidence:
+
+1. Establish adoption from project-owned canonical state.
+2. In an adopted repository, default a brief name-only direction to the project-owned Moldea system. If subject ambiguity remains, ask one focused question before evaluating either plausible subject.
+3. Load the installed `.agents/skills/moldea` entrypoint and operation-triggered references only as operating guidance. Do not inventory, validate, or report that installed tree as target evidence unless the developer explicitly scopes it or repository evidence establishes project ownership.
+
+Only after resolving the subject, choose the initial evidence set from repository state:
+
 When no explicit scope is provided:
 
 - **`HEAD` exists and the working tree is dirty:** use staged, unstaged, untracked, renamed, and deleted paths relative to `HEAD` as the initial change set, then expand through registered and semantic relationships into every materially affected `moldea` surface.
 - **`HEAD` exists and the working tree is clean:** assess the project-owned `moldea` system as a whole, beginning with project foundation, relationships, active decisions, agents, capabilities, schemas, runtime guidance, requirements, and runtime-adapter evidence, then progressively inspect relevant implementation without exhaustively reading the repository.
 - **No `HEAD` exists:** treat every current path as newly introduced for initial scope selection.
 
-An explicit agent, Agent Skill, capability, domain, path, runtime, change, or contradiction defines the starting point, not an artificial prohibition on inspecting materially related evidence.
-
-Within an adopted repository, an unqualified request to evaluate `moldea` targets that repository's project-owned system. The installed `.agents/skills/moldea` tree supplies operating guidance; its presence does not make it a project-owned Agent Skill or evaluation subject. Evaluate that artifact only when the developer explicitly scopes it or repository evidence establishes it as a project-owned source, copy, consumer, or declaration. Explicit and repository-established Agent Skill evaluations retain their complete assessment.
+An explicit agent, Agent Skill, capability, domain, path, runtime, change, or contradiction defines the starting point, not an artificial prohibition on inspecting materially related evidence. Explicit and repository-established Agent Skill evaluations retain their complete assessment.
 
 ## Evaluate read-only
 
@@ -27,6 +33,8 @@ Within an adopted repository, an unqualified request to evaluate `moldea` target
 5. Compare affected surfaces in both directions. No asset type automatically wins.
 6. Limit findings to `moldea` structural and semantic alignment unless the registered behavior makes another quality, security, performance, architecture, or test concern relevant.
 7. Stop when evidence is sufficient for reliable scoped conclusions.
+
+Before claiming semantic alignment, establish each material behavior's intended meaning and relevant consumption from reliable evidence. A registered relationship proves scope, and implementation proves current behavior; neither alone proves agreement. When intent or consumption remains unestablished, report the exact evidence limitation instead of declaring alignment.
 
 For every scoped registered agent, establish how canonical instruction content reaches each material runtime invocation or provider-side configuration path. Treat an unused canonical instruction, an independently maintained runtime instruction, or a material path that bypasses established canonical provenance as a confirmed semantic problem. A valid `instructionLoader` binding, declared mirror, or deterministic inspection does not by itself prove runtime consumption. When the relevant implementation is unavailable, report a material evidence limitation instead of assuming the relationship exists or is absent.
 

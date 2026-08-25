@@ -5,13 +5,15 @@ import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('explains every passing semantic scenario through keyboard-accessible disclosure', async ({
+test('explains current semantic evidence through keyboard-accessible disclosure', async ({
   page,
 }) => {
   await page.goto(toPublicPath('/evidence/semantic/'));
 
   await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
-  await expect(page.getByText('48/48 scenarios')).toBeVisible();
+  await expect(page.getByText('5/48 scenarios', { exact: true })).toBeVisible();
+  await expect(page.getByText('Latest', { exact: true })).toBeVisible();
+  await expect(page.getByText('Last passing', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Read the methodology' })).toHaveAttribute(
     'href',
     toPublicPath('/docs/semantic-evaluation/'),
@@ -27,6 +29,11 @@ test('explains every passing semantic scenario through keyboard-accessible discl
   await expect(firstScenario.getByRole('heading', { name: 'What had to happen' })).toBeVisible();
   await expect(firstScenario.getByRole('heading', { name: 'What must not happen' })).toBeVisible();
   await expect(firstScenario.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
+  const latestAttemptLink = page.getByRole('link', { name: /Latest.*Inspect attempt/su });
+  await latestAttemptLink.click();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('20260825T004601727Z');
+  await expect(page.getByText('5/48 scenarios', { exact: true })).toBeVisible();
+  await expect(page.getByText('adopted-direct-context-handoff', { exact: true })).toBeVisible();
 });
 
 test('keeps semantic evidence accessible without JavaScript and at 320px', async ({ browser }) => {

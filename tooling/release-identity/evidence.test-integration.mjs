@@ -14,6 +14,7 @@ import {
   createPortableSkillDigest,
   createSemanticCaseSuiteDigest,
   createSemanticCoverageDigest,
+  recordSemanticEvaluationAttempt,
 } from '../semantic-evaluation/index.mjs';
 import {
   calculateCompatibilityBehaviorDigest,
@@ -220,21 +221,59 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     const semanticCases = [];
     const semanticCoverage = { schemaVersion: 1, claims: [] };
     const skillDigest = createPortableSkillDigest(temporaryRoot);
+    const semanticGeneratedAt = '2026-08-21T09:00:00.000Z';
+    const semanticHost = {
+      model: 'gpt-5.6-terra',
+      name: 'codex',
+      reasoningEffort: 'medium',
+      version: 'codex-cli test',
+    };
+    const semanticCandidate = {
+      actorHost: semanticHost,
+      artifactDigest: skillDigest,
+      caseSuiteDigest: createSemanticCaseSuiteDigest(semanticCases),
+      cli: createSemanticCliIdentity(temporaryRoot),
+      confirmations: [],
+      coverageDigest: createSemanticCoverageDigest(semanticCoverage, semanticCases),
+      evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
+      generatedAt: semanticGeneratedAt,
+      judgeHost: semanticHost,
+      results: [],
+      schemaVersion: 3,
+      updatedAt: semanticGeneratedAt,
+    };
+    const semanticCandidateText = `${JSON.stringify(semanticCandidate, null, 2)}\n`;
+    const semanticAttempt = await recordSemanticEvaluationAttempt({
+      evidenceKind: 'candidate',
+      evidenceText: semanticCandidateText,
+      recordedAt: '2026-08-21T09:00:01.000Z',
+      resultsRoot: join(temporaryRoot, 'fixtures', 'semantic-evaluation-results'),
+      stopReason: 'complete',
+      totalCaseCount: 0,
+    });
     writeFile(
       temporaryRoot,
       'fixtures/semantic-evaluation-result.json',
       `${JSON.stringify({
+        actorHost: semanticHost,
         artifact: { sha256: skillDigest },
         artifactDigest: skillDigest,
         artifactSha256: skillDigest,
         cases: [],
+        caseHistories: [],
         skillDigest,
-        caseSuiteDigest: createSemanticCaseSuiteDigest(semanticCases),
-        cli: createSemanticCliIdentity(temporaryRoot),
-        coverageDigest: createSemanticCoverageDigest(semanticCoverage, semanticCases),
+        caseSuiteDigest: semanticCandidate.caseSuiteDigest,
+        cli: semanticCandidate.cli,
+        confirmationPolicy: {
+          requiredPassingConfirmations: 2,
+          version: 1,
+        },
+        coverageDigest: semanticCandidate.coverageDigest,
         evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
+        judgeHost: semanticHost,
         results: [],
-        schemaVersion: 2,
+        schemaVersion: 3,
+        semanticAttemptId: semanticAttempt.attemptId,
       })}\n`,
     );
     const packagesState = await inspectGitRepositoryState(packagesRepository);
@@ -290,6 +329,52 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     );
     rmSync(qualificationArtifacts, { force: true, recursive: true });
 
+    assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
+
+    const laterFailedCandidate = {
+      ...semanticCandidate,
+      generatedAt: '2026-08-21T09:10:00.000Z',
+      results: [
+        {
+          evaluatedAt: '2026-08-21T09:10:00.000Z',
+          forbidden: [],
+          id: 'later-failed-case',
+          observed: [],
+          passed: false,
+          rationale: 'The later attempt did not satisfy the required behavior.',
+        },
+      ],
+      updatedAt: '2026-08-21T09:10:00.000Z',
+    };
+    const laterFailedAttempt = await recordSemanticEvaluationAttempt({
+      evidenceKind: 'candidate',
+      evidenceText: `${JSON.stringify(laterFailedCandidate, null, 2)}\n`,
+      recordedAt: '2026-08-21T09:10:01.000Z',
+      resultsRoot: join(temporaryRoot, 'fixtures', 'semantic-evaluation-results'),
+      stopReason: 'case-failure',
+      totalCaseCount: 1,
+    });
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
+        'fixtures/semantic-evaluation-result.json does not match the newest immutable passing semantic attempt.',
+      ),
+    );
+    rmSync(
+      join(
+        temporaryRoot,
+        'fixtures/semantic-evaluation-results/attempts',
+        laterFailedAttempt.attemptId,
+      ),
+      { force: true, recursive: true },
+    );
+    await recordSemanticEvaluationAttempt({
+      evidenceKind: 'candidate',
+      evidenceText: semanticCandidateText,
+      recordedAt: '2026-08-21T09:00:01.000Z',
+      resultsRoot: join(temporaryRoot, 'fixtures', 'semantic-evaluation-results'),
+      stopReason: 'complete',
+      totalCaseCount: 0,
+    });
     assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
 
     const attemptPath = join(

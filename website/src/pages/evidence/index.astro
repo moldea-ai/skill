@@ -47,8 +47,8 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
       <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
         Semantic evaluation answers whether the skill behaves correctly across difficult situations.
         Qualification answers whether the published packages, adapter, CLI, and skill work together
-        in realistic projects. Each card shows the current result, while qualification keeps prior
-        passing evidence and every failed or errored attempt available for inspection.
+        in realistic projects. Each card shows the current result, and both evidence systems keep
+        prior passes, failures, and incomplete attempts available for inspection.
       </p>
     </header>
 
@@ -58,10 +58,10 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
     >
       <EvidenceOptionCard
         title="Semantic evaluation"
-        description="Review the behavioral scenarios, the exact success and failure criteria, and the evidence-based rationale for each passing result."
+        description="Review the behavioral scenarios, exact success and failure criteria, and evidence-based rationale for every recorded outcome."
         href={semanticEvaluation.route}
-        metric={`${semanticEvaluation.caseCount} of ${semanticEvaluation.caseCount} scenarios passed`}
-        status="passed"
+        metric={`${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful in the latest attempt`}
+        status={semanticEvaluation.status}
         questions={[
           'Does the skill make the right decision when context is incomplete or conflicting?',
           'Does it respect repository truth, host constraints, and safety boundaries?',

@@ -174,3 +174,18 @@ export const hasValidPortableSkillSemanticCarryForward: (
   fromArtifactDigest: string,
   repositoryRoot?: string,
 ) => boolean;
+
+export type {
+  ISemanticAttemptCase,
+  ISemanticAttemptRecord,
+  ISemanticAttemptStatus,
+  ISemanticAttemptTrial,
+  ISemanticLatestResult,
+} from './attempt-history.d.mts';
+export {
+  createSemanticAttemptRecord,
+  loadSemanticEvaluationAttempts,
+  loadVerifiedSemanticEvaluationAttempts,
+  recordSemanticEvaluationAttempt,
+  verifySemanticEvaluationAttempts,
+} from './attempt-history.mjs';

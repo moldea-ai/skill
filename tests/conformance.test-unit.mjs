@@ -418,10 +418,7 @@ describe('portable Agent Skill contract', () => {
     );
 
     assert.deepEqual([...referencedPaths].sort(), REFERENCE_FILES);
-    assert.match(
-      skill,
-      /Read `references\/agent-design\.md` before agent or runtime evaluation/i,
-    );
+    assert.match(skill, /Read `references\/agent-design\.md` before agent or runtime evaluation/i);
 
     for (const fileName of REFERENCE_FILES) {
       assert.ok(existsSync(join(SKILL_DIRECTORY, 'references', fileName)));
@@ -1204,7 +1201,11 @@ describe('source repository conformance', () => {
 
       const portableSkillDigest = createPortableSkillDigest();
       const coverage = JSON.parse(readRepositoryFile('fixtures/semantic-evaluation-coverage.json'));
-      assert.equal(result.schemaVersion, 2);
+      assert.equal(result.schemaVersion, 3);
+      assert.deepEqual(result.confirmationPolicy, {
+        requiredPassingConfirmations: 2,
+        version: 1,
+      });
       assert.equal(result.evaluationProtocolVersion, SEMANTIC_EVALUATION_PROTOCOL_VERSION);
       assert.deepEqual(result.cli, createSemanticCliIdentity(REPOSITORY_ROOT));
       assert.equal(result.caseSuiteDigest, createSemanticCaseSuiteDigest(cases.semanticCases));
@@ -1558,10 +1559,12 @@ describe('source repository conformance', () => {
       /Semantic evaluation is intentionally lengthy/,
       /48 cases/,
       /96 model calls/,
+      /bounded confirmation sequence/,
+      /up to four calls/,
       /adapter availability/,
       /behavioral support/,
       /significant number of model tokens/,
-      /full or targeted semantic evaluation/,
+      /full evaluation, standalone diagnostic, or confirmation sequence/,
       /why fresh semantic evidence is important/,
       /why existing evidence or deterministic verification is insufficient/,
       /expected time and token cost/,
@@ -1588,13 +1591,19 @@ describe('source repository conformance', () => {
 
     assertMatchesEvery(readme, [
       /\.semantic-evaluation-candidate\.json/,
-      /already passing cases are skipped/,
-      /missing and failing cases are evaluated again/,
+      /checkpoint schema `3`/,
+      /confirmation policy `1`/,
+      /skipping completed successful or recovered cases/,
+      /failed initial trial is never replaced or silently retried/,
       /--record --restart/,
-      /--case <case-id> --record/,
-      /replaces only that case's compatible candidate evidence/,
-      /only after every required case passes/,
-      /Missing or failing evidence never replaces the committed result/,
+      /--confirm <case-id> --record/,
+      /Both must pass/,
+      /Either confirmation failure is terminal/,
+      /original failure remains intact/,
+      /--record-checkpoint/,
+      /eval:semantic:verify/,
+      /only after every case passes initially or, for a failed initial trial, both confirmations pass/,
+      /stale pass remains in immutable history but cannot replace current release evidence/,
       /hashes and bounded text content for repository-visible changes/,
       /pre-actor sourced evidence/,
       /bounded workspace changes/,

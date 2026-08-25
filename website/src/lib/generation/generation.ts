@@ -271,7 +271,7 @@ export const createSemanticEvaluationSearchRecords = (
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
 ): ISearchRecord[] => {
   const landingRecord: ISearchRecord = {
-    description: `Review ${semanticEvaluation.caseCount} passing behavioral scenarios and the criteria used to judge them.`,
+    description: `Review the latest ${semanticEvaluation.status} semantic attempt, immutable history, and ${semanticEvaluation.caseCount} behavioral scenarios.`,
     route: semanticEvaluation.route,
     searchText: normalizeSearchText(
       'Semantic evaluation behavioral scenarios expected behavior forbidden behavior passing evidence',
@@ -295,8 +295,21 @@ export const createSemanticEvaluationSearchRecords = (
     ),
     title: group.title,
   }));
+  const attemptRecords = semanticEvaluation.attempts.map(({ result, route }): ISearchRecord => ({
+    description: `Recorded ${result.status} semantic attempt with ${result.passedCaseCount + result.recoveredCaseCount} of ${result.totalCaseCount} scenarios successful.`,
+    route,
+    searchText: normalizeSearchText(
+      [
+        result.attemptId,
+        result.status,
+        result.stopReason,
+        ...result.cases.flatMap(({ id, status }) => [id, status]),
+      ].join(' '),
+    ),
+    title: `Semantic attempt: ${result.attemptId}`,
+  }));
 
-  return [landingRecord, ...groupRecords];
+  return [landingRecord, ...groupRecords, ...attemptRecords];
 };
 
 /** Creates the concise machine-oriented skill map from canonical public sources. */
@@ -341,7 +354,7 @@ export const createLlmsText = (
     '## Evidence',
     '',
     `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
-    `- [Semantic evaluation](${semanticEvaluation.route}): Review ${semanticEvaluation.caseCount} passing scenarios and their judgment criteria.`,
+    `- [Semantic evaluation](${semanticEvaluation.route}): Review the latest ${semanticEvaluation.status} attempt, ${semanticEvaluation.caseCount} scenarios, and immutable history.`,
     `- [Adapter qualification](${qualification.route}): Inspect the support gate, transparent profiles, passing outcomes, and immutable attempt history.`,
   );
 
@@ -379,6 +392,7 @@ export const createRouteManifest = (
     '/search-index.json',
     EVIDENCE_ROUTE,
     semanticEvaluation.route,
+    ...semanticEvaluation.attempts.map(({ route }) => route),
   ]);
 
   for (const document of documents) {

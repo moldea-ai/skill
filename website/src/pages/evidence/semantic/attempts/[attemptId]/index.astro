@@ -1,0 +1,228 @@
+---
+import { ExternalLink } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+
+import EvidenceStatus from '../../../../../components/evidence-status/evidence-status.astro';
+import EvidenceText from '../../../../../components/evidence-text/evidence-text.astro';
+import BaseLayout from '../../../../../layouts/base-layout.astro';
+import { loadWebsiteModel } from '../../../../../lib/generation/generation.ts';
+import type { ISemanticAttemptModel } from '../../../../../lib/semantic-evaluation/index.ts';
+
+interface Props {
+  attempt: ISemanticAttemptModel;
+}
+
+export const getStaticPaths = () =>
+  loadWebsiteModel().semanticEvaluation.attempts.map((attempt) => ({
+    params: { attemptId: attempt.result.attemptId },
+    props: { attempt },
+  }));
+
+const { attempt } = Astro.props;
+const { result } = attempt;
+const basePath = import.meta.env.BASE_URL;
+const successfulCaseCount = result.passedCaseCount + result.recoveredCaseCount;
+const breadcrumbs = [
+  { href: '/', label: 'Home' },
+  { href: '/evidence/', label: 'Evidence' },
+  { href: '/evidence/semantic/', label: 'Semantic evaluation' },
+  { label: result.attemptId },
+];
+---
+
+<BaseLayout
+  title={`Semantic attempt: ${result.attemptId}`}
+  description={`Immutable ${result.status} semantic evaluation evidence with ${successfulCaseCount} of ${result.totalCaseCount} scenarios successful.`}
+  {breadcrumbs}
+>
+  <div class="page-shell pt-7">
+    <Breadcrumbs
+      basePath={basePath}
+      items={breadcrumbs}
+    />
+
+    <header class="mt-7 border-b border-border pb-10">
+      <div class="flex flex-wrap items-center gap-3">
+        <EvidenceStatus status={result.status} />
+        <span class="font-mono text-sm font-bold">
+          {successfulCaseCount}/{result.totalCaseCount} scenarios
+        </span>
+      </div>
+      <p class="eyebrow mt-5">Immutable semantic attempt</p>
+      <h1
+        class="mt-3 max-w-5xl font-mono text-3xl leading-tight font-semibold break-all sm:text-4xl"
+      >
+        {result.attemptId}
+      </h1>
+      <p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
+        This page presents the attempt without converting failures or pending scenarios into passes.
+        The exact actor responses, commands, workspace evidence, and judge rationales remain in the
+        raw evidence artifact.
+      </p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <ActionLink
+          class="font-bold"
+          href={attempt.rawAttemptUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="outline"
+        >
+          Inspect raw summary
+          <ExternalLink
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+        <ActionLink
+          class="font-bold"
+          href={attempt.rawEvidenceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="outline"
+        >
+          Inspect exact evidence
+          <ExternalLink
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+      </div>
+    </header>
+
+    <section
+      class="grid gap-3 border-b border-border py-10 sm:grid-cols-2 lg:grid-cols-4"
+      aria-label="Semantic attempt summary"
+    >
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Passed</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{result.passedCaseCount}</p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Recovered</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{result.recoveredCaseCount}</p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Failed</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{result.failedCaseCount}</p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Pending</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{result.pendingCaseCount}</p>
+      </div>
+    </section>
+
+    <section
+      class="border-b border-border py-10"
+      aria-labelledby="semantic-attempt-cases-title"
+    >
+      <div class="max-w-3xl">
+        <p class="eyebrow mb-3">Completed scenarios</p>
+        <h2
+          id="semantic-attempt-cases-title"
+          class="section-title font-semibold"
+        >
+          Every actor and judge trial in this attempt
+        </h2>
+      </div>
+      <div class="mt-7 grid gap-3">
+        {
+          result.cases.map((attemptCase) => (
+            <article class="surface-card min-w-0 overflow-hidden p-5 sm:p-6">
+              <div class="flex flex-wrap items-center gap-3">
+                <EvidenceStatus status={attemptCase.status} />
+                <h3 class="font-mono text-sm font-semibold break-all">{attemptCase.id}</h3>
+              </div>
+              <p class="mt-3 text-sm text-muted-foreground">
+                Confirmation status: {attemptCase.confirmationStatus}. Trials recorded:{' '}
+                {attemptCase.trials.length}.
+              </p>
+              <ol class="mt-5 grid gap-3">
+                {attemptCase.trials.map((trial) => (
+                  <li class="rounded-xl border border-border bg-muted/30 p-4">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <EvidenceStatus status={trial.passed ? 'passed' : 'failed'} />
+                      <span class="font-mono text-xs font-bold text-muted-foreground">
+                        {trial.kind === 'initial'
+                          ? 'Initial trial'
+                          : `Confirmation ${trial.confirmationIndex}`}
+                      </span>
+                    </div>
+                    <p class="mt-3 text-sm leading-6 text-muted-foreground">
+                      <EvidenceText text={trial.rationale} />
+                    </p>
+                    <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
+                      <div>
+                        <dt class="text-muted-foreground">Expected labels observed</dt>
+                        <dd class="mt-1">
+                          {trial.observed.length === 0 ? (
+                            'None'
+                          ) : (
+                            <ul class="grid gap-1">
+                              {trial.observed.map((label) => (
+                                <li>
+                                  <code class="text-xs break-all">{label}</code>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt class="text-muted-foreground">Forbidden labels triggered</dt>
+                        <dd class="mt-1">
+                          {trial.forbidden.length === 0 ? (
+                            'None'
+                          ) : (
+                            <ul class="grid gap-1">
+                              {trial.forbidden.map((label) => (
+                                <li>
+                                  <code class="text-xs break-all">{label}</code>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </dd>
+                      </div>
+                    </dl>
+                    <p class="mt-3 font-mono text-xs text-muted-foreground">
+                      Evaluated <time datetime={trial.evaluatedAt}>{trial.evaluatedAt}</time>
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="py-10">
+      <details class="surface-card p-5 sm:p-6">
+        <summary
+          class="cursor-pointer font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        >
+          Technical provenance
+        </summary>
+        <dl class="mt-5 grid min-w-0 gap-4 text-sm sm:grid-cols-2">
+          <div>
+            <dt class="text-muted-foreground">Recorded at</dt>
+            <dd class="mt-1 font-mono break-all">{result.recordedAt}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Stop reason</dt>
+            <dd class="mt-1 font-mono break-all">{result.stopReason}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Portable artifact digest</dt>
+            <dd class="mt-1 font-mono text-xs break-all">{result.artifactDigest}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Evidence digest</dt>
+            <dd class="mt-1 font-mono text-xs break-all">{result.evidence.sha256}</dd>
+          </div>
+        </dl>
+      </details>
+    </section>
+  </div>
+</BaseLayout>

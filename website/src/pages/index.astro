@@ -302,8 +302,8 @@ const qualificationProjectCount = model.qualification.profiles.reduce(
           <h2 class="section-title max-w-4xl font-semibold">We do not ship on confidence alone.</h2>
           <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
             Every published release must pass behavioral semantic evaluation and realistic adapter
-            qualification. The website is generated only when both evidence sets are complete,
-            current, and successful.
+            qualification. The release gate requires complete current passes, while this website
+            also preserves failed and incomplete attempts for inspection.
           </p>
           <ActionLink
             class="mt-8 font-bold"
@@ -318,9 +318,12 @@ const qualificationProjectCount = model.qualification.profiles.reduce(
         </div>
         <dl class="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
           <div class="rounded-xl border border-border bg-muted/30 p-5">
-            <dt class="text-sm text-muted-foreground">Semantic scenarios passed</dt>
+            <dt class="text-sm text-muted-foreground">Latest semantic scenarios successful</dt>
             <dd class="mt-2 font-mono text-3xl font-bold">
-              {model.semanticEvaluation.caseCount}/{model.semanticEvaluation.caseCount}
+              {
+                model.semanticEvaluation.passedCaseCount +
+                  model.semanticEvaluation.recoveredCaseCount
+              }/{model.semanticEvaluation.caseCount}
             </dd>
           </div>
           <div class="rounded-xl border border-border bg-muted/30 p-5">

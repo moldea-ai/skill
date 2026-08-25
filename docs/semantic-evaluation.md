@@ -10,7 +10,7 @@ order: 172
 
 Semantic evaluation tests whether the portable `moldea` skill behaves correctly in difficult repository situations. It complements deterministic conformance and adapter qualification. It does not replace either one.
 
-The current suite contains 48 scenarios. Each scenario uses one actor call and one independent judge call, for up to 96 model calls in a complete run. Both processes use `gpt-5.6-terra` at `medium` reasoning effort and have a five-minute per-call timeout by default.
+The current suite contains 48 scenarios. Each initial trial uses one actor call and one independent judge call, for up to 96 model calls when every scenario passes initially. One bounded confirmation sequence can add up to four calls. Both processes use `gpt-5.6-terra` at `medium` reasoning effort and have a five-minute per-call timeout by default.
 
 ## What each scenario proves
 
@@ -37,11 +37,17 @@ A case cannot pass when any protected control changes, even if the judge otherwi
 
 The committed [coverage map](https://github.com/moldea-ai/skill/blob/main/fixtures/semantic-evaluation-coverage.json) connects portable skill claims to semantic cases, deterministic suites, or qualification profiles. Every semantic case must appear in that map.
 
-Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, protocol, and actor and judge hosts. A compatible local candidate checkpoints each completed case. Input changes invalidate reuse. The committed result is replaced only after all 48 cases pass.
+Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, protocol, confirmation policy, and actor and judge hosts. A compatible local candidate checkpoints each completed trial. Input changes invalidate reuse. The canonical result exists only after all 48 cases pass initially or satisfy the bounded recovery policy.
 
-Failures remain in the local checkpoint for inspection and correction. The official result is never assembled or edited by hand.
+Every terminal recorded run is published under `fixtures/semantic-evaluation-results/attempts/` with a derived summary and the exact source checkpoint or result. `latest.json` tracks the newest attempt and the last passing attempt independently. Failed and incomplete history remains public but cannot satisfy the release gate. The canonical result is never assembled or edited by hand.
 
-For a bounded full recording, `--stop-on-failure` writes the first failed case to the checkpoint, stops before another case begins, and exits nonzero. It requires `--record`, cannot be combined with `--case` or `--preflight`, and does not authorize a later resume.
+Every full recording stops at the first failed initial trial. The runner writes the checkpoint, publishes the failure, exits nonzero, and requires a separate decision before any more paid work.
+
+When inspection establishes plausible model variance, a separately authorized `--confirm <case-id> --record` operation runs at most two confirmations. Both must pass. Either confirmation failure is terminal, the second confirmation is skipped when recovery is already impossible, and the original failure is never replaced. A recovered case and all its trials remain visible. Resuming the remaining suite requires another explicit authorization.
+
+After correcting a source, fixture, or evaluator defect, or when a confirmation rejects the candidate, `--record --restart` begins a new full attempt. Restart removes only the ignored local checkpoint and preserves the published attempt history.
+
+An interrupted checkpoint remains resumable locally. `--record-checkpoint` can publish it without a model call, and `npm run eval:semantic:verify` validates every immutable evidence digest, summary, directory identity, and pointer.
 
 ## Run the free preflight
 
@@ -53,7 +59,7 @@ npm run eval:semantic:preflight
 
 This command validates the coverage map, materializes all 48 repositories, collects every declared evidence source, verifies protected repository controls, and confirms that every actor prompt is exactly the natural developer direction.
 
-The [semantic evidence page](/evidence/semantic/) presents the current passing result, provenance, methodology, coverage map, and case criteria. Actor transcripts and workspace artifacts remain available in the raw committed result rather than being indexed as ordinary documentation.
+The [semantic evidence page](/evidence/semantic/) presents the latest status, last passing attempt, complete history, provenance, methodology, coverage map, and current case criteria. Actor transcripts, runner-owned commands, and workspace artifacts remain available in each raw committed evidence artifact rather than being indexed as ordinary documentation.
 
 ## Relationship to adapter qualification
 

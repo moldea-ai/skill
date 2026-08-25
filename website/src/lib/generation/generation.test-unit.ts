@@ -37,7 +37,8 @@ vi.mock('../semantic-evaluation/index.ts', () => {
   return {
     loadSemanticEvaluationWebsiteModel: vi.fn(() => ({
       artifactDigest: 'a'.repeat(64),
-      caseCount: 47,
+      attempts: [],
+      caseCount: 48,
       caseSuiteDigest: 'b'.repeat(64),
       cli: {
         integrity: 'sha512-test',
@@ -49,6 +50,7 @@ vi.mock('../semantic-evaluation/index.ts', () => {
       coverageDigest: 'd'.repeat(64),
       coverageUrl: 'https://example.com/semantic-coverage.json',
       evaluatedAt: '2026-08-22T12:00:00.000Z',
+      failedCaseCount: 0,
       groups: [
         {
           cases: [],
@@ -57,9 +59,35 @@ vi.mock('../semantic-evaluation/index.ts', () => {
           title: 'Adoption and initialization',
         },
       ],
+      lastPassing: null,
+      latest: {
+        rawAttemptUrl: 'https://example.com/semantic-attempt.json',
+        rawEvidenceUrl: 'https://example.com/semantic-evidence.json',
+        result: {
+          attemptId: 'semantic-attempt',
+          failedCaseCount: 0,
+          passedCaseCount: 48,
+          pendingCaseCount: 0,
+          recoveredCaseCount: 0,
+          status: 'passed',
+          stopReason: 'complete',
+          totalCaseCount: 48,
+        },
+        route: '/evidence/semantic/attempts/semantic-attempt/',
+      },
+      latestPointer: {
+        lastPassingAttemptId: 'semantic-attempt',
+        latestAttemptId: 'semantic-attempt',
+        latestStatus: 'passed',
+        schemaVersion: 1,
+        updatedAt: '2026-08-22T12:00:00.000Z',
+      },
       methodologyUrl: '/docs/semantic-evaluation/',
-      rawResultUrl: 'https://example.com/semantic-result.json',
+      passedCaseCount: 48,
+      pendingCaseCount: 0,
+      recoveredCaseCount: 0,
       route: '/evidence/semantic/',
+      status: 'passed',
     })),
   };
 });

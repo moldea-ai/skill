@@ -34,7 +34,7 @@ The coding agent decides when the skill is relevant, including when you share du
 - [What `moldea` can do](/docs/capabilities/): explore the complete capability surface.
 - [How it works](/docs/how-it-works/): see the optional technical layer beneath the coding agent.
 - [Repository format](/docs/repository-format/): see how a two-file foundation grows into focused, explicit project organization.
-- [Evidence](/evidence/): choose between passing behavioral semantic evaluation and real-project adapter qualification evidence.
+- [Evidence](/evidence/): inspect current behavioral semantic evaluation and real-project adapter qualification evidence, including failed attempts.
 - [Semantic evaluation](/docs/semantic-evaluation/): inspect actor blindness, sourced scenarios, protected repository controls, coverage, and release evidence.
 - [Examples](/examples/): follow complete developer, coding-agent, and skill interactions.
 

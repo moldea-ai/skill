@@ -33,6 +33,10 @@ export const EVIDENCE_STATUS_PRESENTATION: Record<
     className: 'border-border bg-muted text-muted-foreground',
     label: 'Pending',
   },
+  recovered: {
+    className: 'border-success bg-success text-success-foreground',
+    label: 'Recovered',
+  },
   running: {
     className: 'border-accent bg-accent text-accent-foreground',
     label: 'Running',

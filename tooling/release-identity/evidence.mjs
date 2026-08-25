@@ -27,6 +27,7 @@ import {
   hasValidRepositoryControlEvidence,
   hasValidScenarioEvidence,
   hasValidPortableSkillSemanticCarryForward,
+  loadVerifiedSemanticEvaluationAttempts,
 } from '../semantic-evaluation/index.mjs';
 import {
   downloadPublishedPackageArtifact,
@@ -40,6 +41,8 @@ import {
   SEMANTIC_EVALUATION_PROTOCOL_VERSION,
 } from './constants.mjs';
 import { createSemanticCliIdentity, parseStableVersion } from './identity.mjs';
+
+const SEMANTIC_RESULTS_PATH = 'fixtures/semantic-evaluation-results';
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
@@ -286,8 +289,14 @@ const inspectSemanticEvidence = (repositoryRoot) => {
     }
   }
 
-  if (semanticResult.schemaVersion !== 2) {
-    issues.push(`${RELEASE_PATHS.semanticResult} does not use semantic result schema 2.`);
+  if (semanticResult.schemaVersion !== 3) {
+    issues.push(`${RELEASE_PATHS.semanticResult} does not use semantic result schema 3.`);
+  }
+  if (
+    semanticResult.confirmationPolicy?.version !== 1 ||
+    semanticResult.confirmationPolicy?.requiredPassingConfirmations !== 2
+  ) {
+    issues.push(`${RELEASE_PATHS.semanticResult} does not use confirmation policy 1.`);
   }
   if (semanticResult.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION) {
     issues.push(
@@ -323,16 +332,64 @@ const inspectSemanticEvidence = (repositoryRoot) => {
     issues.push(`${RELEASE_PATHS.semanticResult} does not match the semantic coverage contract.`);
   }
 
+  try {
+    const history = loadVerifiedSemanticEvaluationAttempts(
+      join(repositoryRoot, SEMANTIC_RESULTS_PATH),
+    );
+    const latestAttempt = history.attempts.find(
+      ({ attemptId }) => attemptId === history.latest?.latestAttemptId,
+    );
+    const hasMatchingLatestPass =
+      latestAttempt?.status === 'passed' &&
+      semanticResult.semanticAttemptId === latestAttempt.attemptId &&
+      history.latest?.lastPassingAttemptId === latestAttempt.attemptId &&
+      latestAttempt.artifactDigest === semanticResult.skillDigest &&
+      latestAttempt.caseSuiteDigest === semanticResult.caseSuiteDigest &&
+      latestAttempt.coverageDigest === semanticResult.coverageDigest &&
+      JSON.stringify(latestAttempt.cli) === JSON.stringify(semanticResult.cli) &&
+      JSON.stringify(latestAttempt.actorHost) === JSON.stringify(semanticResult.actorHost) &&
+      JSON.stringify(latestAttempt.judgeHost) === JSON.stringify(semanticResult.judgeHost);
+    if (!hasMatchingLatestPass) {
+      issues.push(
+        `${RELEASE_PATHS.semanticResult} does not match the newest immutable passing semantic attempt.`,
+      );
+    }
+  } catch (error) {
+    issues.push(
+      `${SEMANTIC_RESULTS_PATH} is invalid: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+
   const results = Array.isArray(semanticResult.results) ? semanticResult.results : [];
   const resultsById = new Map(results.map((result) => [result.id, result]));
   const publicCases = Array.isArray(semanticResult.cases) ? semanticResult.cases : [];
   const publicCasesById = new Map(publicCases.map((result) => [result.id, result]));
+  const caseHistories = Array.isArray(semanticResult.caseHistories)
+    ? semanticResult.caseHistories
+    : [];
+  const caseHistoriesById = new Map(caseHistories.map((history) => [history.id, history]));
   const hasCompletePassingCases =
     results.length === semanticCases.length &&
     publicCases.length === semanticCases.length &&
+    caseHistories.length === semanticCases.length &&
     semanticCases.every((caseDefinition) => {
       const result = resultsById.get(caseDefinition.id);
       const publicCase = publicCasesById.get(caseDefinition.id);
+      const history = caseHistoriesById.get(caseDefinition.id);
+      const hasPassingInitial =
+        history?.resolution === 'passed' &&
+        history.initial?.passed === true &&
+        Array.isArray(history.confirmations) &&
+        history.confirmations.length === 0;
+      const hasRecoveredFailure =
+        history?.resolution === 'recovered' &&
+        history.initial?.passed === false &&
+        Array.isArray(history.confirmations) &&
+        history.confirmations.length === 2 &&
+        history.confirmations.every(
+          (confirmation, index) =>
+            confirmation.confirmationIndex === index + 1 && confirmation.passed === true,
+        );
       return (
         result?.passed === true &&
         result.caseDefinitionDigest === createSemanticCaseDefinitionDigest(caseDefinition) &&
@@ -341,6 +398,7 @@ const inspectSemanticEvidence = (repositoryRoot) => {
         result.repositoryControlEvidence.violations.length === 0 &&
         publicCase?.passed === true &&
         publicCase.caseDefinitionDigest === result.caseDefinitionDigest &&
+        (hasPassingInitial || hasRecoveredFailure) &&
         JSON.stringify(publicCase.scenarioEvidence) === JSON.stringify(result.scenarioEvidence) &&
         JSON.stringify(publicCase.repositoryControlEvidence) ===
           JSON.stringify(result.repositoryControlEvidence)

@@ -5,6 +5,8 @@ import { join, relative } from 'node:path';
 import test from 'node:test';
 
 import {
+  appendSemanticCandidateConfirmation,
+  appendSemanticCandidateInitialResult,
   assessJudgeOutput,
   buildActorPrompt,
   buildJudgePrompt,
@@ -16,14 +18,17 @@ import {
   createSemanticEvaluationCandidate,
   createSemanticEvaluationRecord,
   getPendingSemanticCaseDefinitions,
+  getSemanticCaseResolution,
   getSemanticCriterionLabels,
   getSemanticToolingSource,
-  mergeSemanticCandidateResult,
   normalizePortableSkillSemanticEvidence,
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
+  recordSemanticCandidateCheckpoint,
+  shouldFailSemanticEvaluation,
   shouldStopSemanticEvaluation,
   validateSemanticCandidateCompatibility,
+  validateSemanticCandidateCheckpointCompatibility,
   validateSemanticCaseDefinition,
   validateSemanticResultRecording,
   validateSkillDocument,
@@ -239,56 +244,97 @@ test('actor prompt contains only the user scenario', () => {
   assert.doesNotMatch(actorPrompt, /expected secret behavior|forbidden secret behavior/);
 });
 
-test('semantic evaluation arguments constrain bounded failure stopping', () => {
-  assert.deepEqual(parseSemanticEvaluationArguments(['--record', '--stop-on-failure']), {
+test('semantic evaluation arguments separate runs, diagnostics, confirmations, and verification', () => {
+  assert.deepEqual(parseSemanticEvaluationArguments(['--record']), {
+    confirmationCaseId: undefined,
     isPreflightRequested: false,
     isRecordRequested: true,
+    isRecordCheckpointRequested: false,
     isRestartRequested: false,
-    isStopOnFailureRequested: true,
+    isVerifyAttemptsRequested: false,
     requestedCaseId: undefined,
   });
   assert.deepEqual(
-    parseSemanticEvaluationArguments(['--record', '--restart', '--stop-on-failure']),
+    parseSemanticEvaluationArguments(['--confirm', 'blind-evaluation', '--record']),
     {
+      confirmationCaseId: 'blind-evaluation',
       isPreflightRequested: false,
       isRecordRequested: true,
-      isRestartRequested: true,
-      isStopOnFailureRequested: true,
+      isRecordCheckpointRequested: false,
+      isRestartRequested: false,
+      isVerifyAttemptsRequested: false,
       requestedCaseId: undefined,
     },
   );
   assert.throws(
+    () => parseSemanticEvaluationArguments(['--case', 'blind-evaluation', '--record']),
+    /diagnostic-only/,
+  );
+  assert.throws(
+    () => parseSemanticEvaluationArguments(['--confirm', 'blind-evaluation']),
+    /requires only --record/,
+  );
+  assert.throws(
     () => parseSemanticEvaluationArguments(['--stop-on-failure']),
-    /requires a full semantic evaluation with --record/,
-  );
-  assert.throws(
-    () =>
-      parseSemanticEvaluationArguments([
-        '--case',
-        'blind-evaluation',
-        '--record',
-        '--stop-on-failure',
-      ]),
-    /requires a full semantic evaluation with --record/,
-  );
-  assert.throws(
-    () => parseSemanticEvaluationArguments(['--preflight', '--stop-on-failure']),
-    /preflight must run without recording, targeting, or other options/,
+    /Unsupported semantic evaluation option/,
   );
 });
 
 test('bounded semantic evaluation stops only after a failed case', () => {
+  assert.equal(shouldStopSemanticEvaluation({ isRecordRequested: true, passed: false }), true);
+  assert.equal(shouldStopSemanticEvaluation({ isRecordRequested: true, passed: true }), false);
+  assert.equal(shouldStopSemanticEvaluation({ isRecordRequested: false, passed: false }), false);
+});
+
+test('a recovered confirmation exits cleanly while the incomplete full suite stays pending', () => {
+  const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
+  let candidate = createSemanticEvaluationCandidate({
+    actorHost: ACTOR_HOST,
+    artifactDigest: ARTIFACT_DIGEST,
+    caseDefinitions,
+    cli: CLI_IDENTITY,
+    coverageDigest: COVERAGE_DIGEST,
+    generatedAt: EVALUATED_AT,
+    judgeHost: JUDGE_HOST,
+  });
+  candidate = appendSemanticCandidateInitialResult(
+    candidate,
+    CASE_DEFINITION,
+    createCaseResult(CASE_DEFINITION, false),
+    EVALUATED_AT,
+  );
+  candidate = appendSemanticCandidateConfirmation(
+    candidate,
+    CASE_DEFINITION,
+    createCaseResult(CASE_DEFINITION, true),
+    '2026-08-16T12:01:00.000Z',
+  );
+  candidate = appendSemanticCandidateConfirmation(
+    candidate,
+    CASE_DEFINITION,
+    createCaseResult(CASE_DEFINITION, true),
+    '2026-08-16T12:02:00.000Z',
+  );
+
   assert.equal(
-    shouldStopSemanticEvaluation({ isStopOnFailureRequested: true, passed: false }),
+    shouldFailSemanticEvaluation({
+      candidate,
+      caseDefinitions,
+      confirmationCaseId: CASE_DEFINITION.id,
+      hasFailures: false,
+      isRecordRequested: true,
+    }),
+    false,
+  );
+  assert.equal(
+    shouldFailSemanticEvaluation({
+      candidate,
+      caseDefinitions,
+      confirmationCaseId: undefined,
+      hasFailures: false,
+      isRecordRequested: true,
+    }),
     true,
-  );
-  assert.equal(
-    shouldStopSemanticEvaluation({ isStopOnFailureRequested: true, passed: true }),
-    false,
-  );
-  assert.equal(
-    shouldStopSemanticEvaluation({ isStopOnFailureRequested: false, passed: false }),
-    false,
   );
 });
 
@@ -784,7 +830,7 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
       }),
     /different case suite/,
   );
-  const populatedCandidate = mergeSemanticCandidateResult(
+  const populatedCandidate = appendSemanticCandidateInitialResult(
     candidate,
     CASE_DEFINITION,
     createCaseResult(CASE_DEFINITION, true),
@@ -851,7 +897,137 @@ test('semantic candidates bind exact artifacts, case suites, and hosts', () => {
   );
 });
 
-test('semantic candidates resume pending cases and replace targeted evidence', () => {
+test('checkpoint recording rejects stale release inputs and unofficial hosts', () => {
+  const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
+  const candidate = createSemanticEvaluationCandidate({
+    actorHost: ACTOR_HOST,
+    artifactDigest: ARTIFACT_DIGEST,
+    caseDefinitions,
+    cli: CLI_IDENTITY,
+    coverageDigest: COVERAGE_DIGEST,
+    generatedAt: EVALUATED_AT,
+    judgeHost: JUDGE_HOST,
+  });
+  const currentBoundary = {
+    artifactDigest: ARTIFACT_DIGEST,
+    caseDefinitions,
+    cli: CLI_IDENTITY,
+    coverageDigest: COVERAGE_DIGEST,
+  };
+
+  assert.doesNotThrow(() =>
+    validateSemanticCandidateCheckpointCompatibility(candidate, currentBoundary),
+  );
+  assert.throws(
+    () =>
+      validateSemanticCandidateCheckpointCompatibility(candidate, {
+        ...currentBoundary,
+        artifactDigest: 'b'.repeat(64),
+      }),
+    /different portable artifact/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticCandidateCheckpointCompatibility(candidate, {
+        ...currentBoundary,
+        caseDefinitions: [
+          {
+            ...CASE_DEFINITION,
+            scenario: 'A changed semantic evaluation scenario.',
+          },
+          SECOND_CASE_DEFINITION,
+        ],
+      }),
+    /different case suite/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticCandidateCheckpointCompatibility(candidate, {
+        ...currentBoundary,
+        coverageDigest: 'f'.repeat(64),
+      }),
+    /different coverage contract/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticCandidateCheckpointCompatibility(candidate, {
+        ...currentBoundary,
+        cli: { ...CLI_IDENTITY, version: '4.0.1' },
+      }),
+    /different release CLI/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticCandidateCheckpointCompatibility(
+        {
+          ...candidate,
+          actorHost: { ...ACTOR_HOST, model: 'gpt-5.6-sol' },
+        },
+        currentBoundary,
+      ),
+    /does not use the required gpt-5\.6-terra medium actor and judge hosts/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticCandidateCheckpointCompatibility(
+        {
+          ...candidate,
+          judgeHost: { ...JUDGE_HOST, reasoningEffort: 'high' },
+        },
+        currentBoundary,
+      ),
+    /does not use the required gpt-5\.6-terra medium actor and judge hosts/,
+  );
+});
+
+test('checkpoint recording validates exact evidence before persistence', async () => {
+  const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
+  const candidate = createSemanticEvaluationCandidate({
+    actorHost: ACTOR_HOST,
+    artifactDigest: ARTIFACT_DIGEST,
+    caseDefinitions,
+    cli: CLI_IDENTITY,
+    coverageDigest: COVERAGE_DIGEST,
+    generatedAt: EVALUATED_AT,
+    judgeHost: JUDGE_HOST,
+  });
+  const candidateEvidenceText = `${JSON.stringify(candidate, null, 2)}\n`;
+  const recordedEvidence = [];
+  const recordAttempt = async (evidenceText) => {
+    recordedEvidence.push(evidenceText);
+    return { attemptId: 'recorded-attempt' };
+  };
+
+  await assert.rejects(
+    recordSemanticCandidateCheckpoint({
+      candidateEvidenceText,
+      currentBoundary: {
+        artifactDigest: 'b'.repeat(64),
+        caseDefinitions,
+        cli: CLI_IDENTITY,
+        coverageDigest: COVERAGE_DIGEST,
+      },
+      recordAttempt,
+    }),
+    /different portable artifact/,
+  );
+  assert.deepEqual(recordedEvidence, []);
+
+  const attempt = await recordSemanticCandidateCheckpoint({
+    candidateEvidenceText,
+    currentBoundary: {
+      artifactDigest: ARTIFACT_DIGEST,
+      caseDefinitions,
+      cli: CLI_IDENTITY,
+      coverageDigest: COVERAGE_DIGEST,
+    },
+    recordAttempt,
+  });
+  assert.deepEqual(attempt, { attemptId: 'recorded-attempt' });
+  assert.deepEqual(recordedEvidence, [candidateEvidenceText]);
+});
+
+test('semantic candidates retain failures and require two passing confirmations', () => {
   const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
   let candidate = createSemanticEvaluationCandidate({
     actorHost: ACTOR_HOST,
@@ -863,13 +1039,13 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
     judgeHost: JUDGE_HOST,
   });
 
-  candidate = mergeSemanticCandidateResult(
+  candidate = appendSemanticCandidateInitialResult(
     candidate,
     CASE_DEFINITION,
     createCaseResult(CASE_DEFINITION, true),
     EVALUATED_AT,
   );
-  candidate = mergeSemanticCandidateResult(
+  candidate = appendSemanticCandidateInitialResult(
     candidate,
     SECOND_CASE_DEFINITION,
     createCaseResult(SECOND_CASE_DEFINITION, false),
@@ -878,29 +1054,60 @@ test('semantic candidates resume pending cases and replace targeted evidence', (
 
   assert.deepEqual(
     getPendingSemanticCaseDefinitions(candidate, caseDefinitions).map(({ id }) => id),
-    [SECOND_CASE_DEFINITION.id],
+    [],
+  );
+  assert.equal(
+    getSemanticCaseResolution(candidate, SECOND_CASE_DEFINITION.id),
+    'awaiting-confirmation',
   );
   assert.throws(
     () => validateSemanticResultRecording({ candidate, caseDefinitions }),
     /incomplete or failing/,
   );
 
-  candidate = mergeSemanticCandidateResult(
+  assert.throws(
+    () =>
+      appendSemanticCandidateInitialResult(
+        candidate,
+        SECOND_CASE_DEFINITION,
+        createCaseResult(SECOND_CASE_DEFINITION, true),
+        '2026-08-16T12:01:00.000Z',
+      ),
+    /already has an initial trial/,
+  );
+
+  candidate = appendSemanticCandidateConfirmation(
     candidate,
     SECOND_CASE_DEFINITION,
     createCaseResult(SECOND_CASE_DEFINITION, true),
     '2026-08-16T12:01:00.000Z',
   );
-  assert.deepEqual(getPendingSemanticCaseDefinitions(candidate, caseDefinitions), []);
+  assert.equal(
+    getSemanticCaseResolution(candidate, SECOND_CASE_DEFINITION.id),
+    'awaiting-confirmation',
+  );
+  candidate = appendSemanticCandidateConfirmation(
+    candidate,
+    SECOND_CASE_DEFINITION,
+    createCaseResult(SECOND_CASE_DEFINITION, true),
+    '2026-08-16T12:02:00.000Z',
+  );
+  assert.equal(getSemanticCaseResolution(candidate, SECOND_CASE_DEFINITION.id), 'recovered');
   assert.doesNotThrow(() => validateSemanticResultRecording({ candidate, caseDefinitions }));
 
   const record = createSemanticEvaluationRecord({
     candidate,
     caseDefinitions,
-    generatedAt: '2026-08-16T12:02:00.000Z',
+    generatedAt: '2026-08-16T12:03:00.000Z',
   });
   assert.equal(record.evaluationProtocolVersion, 12);
-  assert.equal(record.schemaVersion, 2);
+  assert.equal(record.schemaVersion, 3);
+  assert.deepEqual(record.confirmationPolicy, {
+    requiredPassingConfirmations: 2,
+    version: 1,
+  });
+  assert.equal(record.caseHistories[1].resolution, 'recovered');
+  assert.equal(record.caseHistories[1].confirmations.length, 2);
   assert.equal(record.coverageDigest, COVERAGE_DIGEST);
   assert.deepEqual(record.cli, CLI_IDENTITY);
   assert.equal(record.caseSuiteDigest, createSemanticCaseSuiteDigest(caseDefinitions));
@@ -946,7 +1153,7 @@ test('semantic candidates accept explicitly truncated skill artifact evidence', 
       },
     },
   ];
-  const candidate = mergeSemanticCandidateResult(
+  const candidate = appendSemanticCandidateInitialResult(
     createSemanticEvaluationCandidate({
       actorHost: ACTOR_HOST,
       artifactDigest: ARTIFACT_DIGEST,
@@ -992,7 +1199,7 @@ test('semantic candidates accept explicitly truncated skill artifact evidence', 
 
 test('semantic candidate validation rejects internally inconsistent evidence', () => {
   const caseDefinitions = [CASE_DEFINITION];
-  const candidate = mergeSemanticCandidateResult(
+  const candidate = appendSemanticCandidateInitialResult(
     createSemanticEvaluationCandidate({
       actorHost: ACTOR_HOST,
       artifactDigest: ARTIFACT_DIGEST,

@@ -22,3 +22,12 @@ export {
   createRepositoryControlEvidence,
   hasValidRepositoryControlEvidence,
 } from './repository-control.mjs';
+
+// immutable attempt history
+export {
+  createSemanticAttemptRecord,
+  loadSemanticEvaluationAttempts,
+  loadVerifiedSemanticEvaluationAttempts,
+  recordSemanticEvaluationAttempt,
+  verifySemanticEvaluationAttempts,
+} from './attempt-history.mjs';

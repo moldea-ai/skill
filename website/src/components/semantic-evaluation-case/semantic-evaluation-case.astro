@@ -11,6 +11,20 @@ interface Props {
 }
 
 const { evaluationCase, number } = Astro.props;
+const resultHeading =
+  evaluationCase.status === 'failed'
+    ? 'Why it failed'
+    : evaluationCase.status === 'pending'
+      ? 'Not evaluated in this attempt'
+      : evaluationCase.status === 'recovered'
+        ? 'Why it recovered'
+        : 'Why it passed';
+const resultClass =
+  evaluationCase.status === 'failed'
+    ? 'border-destructive/40 bg-destructive/10'
+    : evaluationCase.status === 'pending'
+      ? 'border-border bg-muted/30'
+      : 'border-success/40 bg-success/10';
 ---
 
 <details class="group surface-card min-w-0 overflow-hidden">
@@ -25,7 +39,7 @@ const { evaluationCase, number } = Astro.props;
         <span class="text-lg font-semibold tracking-tight">
           <EvidenceText text={evaluationCase.title} />
         </span>
-        <EvidenceStatus status="passed" />
+        <EvidenceStatus status={evaluationCase.status} />
       </span>
       <span class="mt-2 block text-sm leading-6 text-muted-foreground">
         <EvidenceText text={evaluationCase.scenario} />
@@ -77,21 +91,40 @@ const { evaluationCase, number } = Astro.props;
     </div>
 
     <section
-      class="mt-6 rounded-xl border border-success/40 bg-success/10 p-4 sm:p-5"
+      class:list={['mt-6 rounded-xl border p-4 sm:p-5', resultClass]}
       aria-labelledby={`${evaluationCase.id}-result`}
     >
       <h3
         id={`${evaluationCase.id}-result`}
         class="font-semibold"
       >
-        Why it passed
+        {resultHeading}
       </h3>
-      <p class="mt-2 text-sm leading-6 text-muted-foreground">
-        <EvidenceText text={evaluationCase.rationale} />
-      </p>
-      <p class="mt-3 font-mono text-xs text-muted-foreground">
-        Evaluated <time datetime={evaluationCase.evaluatedAt}>{evaluationCase.evaluatedAt}</time>
-      </p>
+      {
+        evaluationCase.rationale === null ? (
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+            This scenario remains pending because the recorded run stopped at an earlier failure.
+          </p>
+        ) : (
+          <>
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">
+              <EvidenceText text={evaluationCase.rationale} />
+            </p>
+            <p class="mt-3 font-mono text-xs text-muted-foreground">
+              Evaluated{' '}
+              <time datetime={evaluationCase.evaluatedAt ?? undefined}>
+                {evaluationCase.evaluatedAt}
+              </time>
+            </p>
+            {evaluationCase.confirmationStatus !== 'not-required' && (
+              <p class="mt-2 text-sm text-muted-foreground">
+                Confirmation status: {evaluationCase.confirmationStatus}. Recorded trials:{' '}
+                {evaluationCase.trials.length}.
+              </p>
+            )}
+          </>
+        )
+      }
     </section>
   </div>
 </details>

@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
 const StableIdSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
+const AttemptStatusSchema = z.enum(['failed', 'incomplete', 'passed']);
 
 // additive semantic result contracts preserve compatibility with new diagnostic fields
 const SemanticHostSchema = z.object({
@@ -19,93 +20,65 @@ export const SemanticCliIdentitySchema = z.object({
   version: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
 });
 
-const SemanticScenarioEvidenceSchema = z.array(
-  z.object({
-    claim: z.string().trim().min(1),
-    observation: z.looseObject({ type: z.string().trim().min(1) }),
-    source: z.looseObject({ kind: z.string().trim().min(1) }),
-  }),
-);
-
-const SemanticRepositoryControlStateSchema = z.object({
-  gitDigest: Sha256Schema,
-  head: z.object({
-    commit: z
-      .string()
-      .regex(/^[a-f0-9]{40,64}$/u)
-      .nullable(),
-    symbolicRef: z.string().nullable(),
-  }),
-  indexDigest: Sha256Schema,
-  installedSkillDigest: Sha256Schema,
-  localConfigDigest: Sha256Schema,
-  refs: z.array(
-    z.object({
-      name: z.string().trim().min(1),
-      oid: z.string().regex(/^[a-f0-9]{40,64}$/u),
-    }),
-  ),
-});
-
-const SemanticRepositoryControlEvidenceSchema = z.object({
-  after: SemanticRepositoryControlStateSchema,
-  before: SemanticRepositoryControlStateSchema,
-  violations: z.array(z.string()),
-});
-
-const SemanticCaseResultSchema = z.object({
-  caseDefinitionDigest: Sha256Schema,
-  evaluatedAt: z.iso.datetime(),
-  expectedSatisfied: z.array(StableIdSchema),
-  forbiddenTriggered: z.array(StableIdSchema),
-  id: StableIdSchema,
-  passed: z.boolean(),
-  rationale: z.string().trim().min(20),
-  repositoryControlEvidence: SemanticRepositoryControlEvidenceSchema,
-  scenarioEvidence: SemanticScenarioEvidenceSchema,
-  skillArtifactEvidence: z.array(z.unknown()),
-});
-
-const SemanticRawResultSchema = z.object({
-  caseDefinitionDigest: Sha256Schema,
+const SemanticAttemptTrialSchema = z.object({
+  confirmationIndex: z.union([z.literal(1), z.literal(2)]).nullable(),
   evaluatedAt: z.iso.datetime(),
   forbidden: z.array(StableIdSchema),
-  id: StableIdSchema,
+  kind: z.enum(['confirmation', 'initial']),
   observed: z.array(StableIdSchema),
   passed: z.boolean(),
-  rationale: z.string().trim().min(20),
-  repositoryControlEvidence: SemanticRepositoryControlEvidenceSchema,
-  scenarioEvidence: SemanticScenarioEvidenceSchema,
+  rationale: z.string().trim().min(1),
 });
 
-export const SemanticEvaluationResultSchema = z.object({
+export const SemanticAttemptRecordSchema = z.object({
   actorHost: SemanticHostSchema,
-  artifact: z.object({ sha256: Sha256Schema }),
   artifactDigest: Sha256Schema,
-  artifactSha256: Sha256Schema,
-  cases: z.array(SemanticCaseResultSchema).min(1),
+  attemptId: z.string().trim().min(1),
   caseSuiteDigest: Sha256Schema,
+  cases: z.array(
+    z.object({
+      confirmationStatus: z.enum(['not-required', 'passed', 'rejected', 'required']),
+      id: StableIdSchema,
+      status: z.enum(['failed', 'passed', 'recovered']),
+      trials: z.array(SemanticAttemptTrialSchema).min(1),
+    }),
+  ),
   cli: SemanticCliIdentitySchema,
-  coverageDigest: Sha256Schema,
-  evaluatedAt: z.iso.datetime(),
-  evaluationProtocolVersion: z.number().int().positive(),
-  generatedAt: z.iso.datetime(),
-  host: SemanticHostSchema,
+  coverageDigest: Sha256Schema.nullable(),
+  createdAt: z.iso.datetime(),
+  evidence: z.object({
+    evaluationProtocolVersion: z.number().int().positive(),
+    kind: z.enum(['candidate', 'result']),
+    path: z.literal('evidence.json'),
+    schemaVersion: z.number().int().positive(),
+    sha256: Sha256Schema,
+  }),
+  failedCaseCount: z.number().int().nonnegative(),
   judgeHost: SemanticHostSchema,
-  releaseEvidenceCarryForward: z
-    .object({
-      carriedForwardAt: z.iso.datetime(),
-      changedPortablePaths: z.array(z.string()),
-      fromArtifactDigest: Sha256Schema,
-      fromSemanticDigest: Sha256Schema,
-      reason: z.string().trim().min(1),
-      toArtifactDigest: Sha256Schema,
-      toSemanticDigest: Sha256Schema,
-    })
-    .optional(),
-  results: z.array(SemanticRawResultSchema).min(1),
-  schemaVersion: z.literal(2),
-  skillDigest: Sha256Schema,
+  passedCaseCount: z.number().int().nonnegative(),
+  pendingCaseCount: z.number().int().nonnegative(),
+  recordedAt: z.iso.datetime(),
+  recoveredCaseCount: z.number().int().nonnegative(),
+  schemaVersion: z.literal(1),
+  status: AttemptStatusSchema,
+  stopReason: z.enum([
+    'case-failure',
+    'complete',
+    'confirmation-failure',
+    'confirmations-passed',
+    'operator-recorded',
+  ]),
+  totalCaseCount: z.number().int().positive(),
+  updatedAt: z.iso.datetime(),
 });
 
-export type ISemanticEvaluationResult = z.infer<typeof SemanticEvaluationResultSchema>;
+export const SemanticLatestResultSchema = z.object({
+  lastPassingAttemptId: z.string().trim().min(1).nullable(),
+  latestAttemptId: z.string().trim().min(1),
+  latestStatus: AttemptStatusSchema,
+  schemaVersion: z.literal(1),
+  updatedAt: z.iso.datetime(),
+});
+
+export type ISemanticAttemptRecord = z.infer<typeof SemanticAttemptRecordSchema>;
+export type ISemanticLatestResult = z.infer<typeof SemanticLatestResultSchema>;

@@ -28,6 +28,17 @@ export type ISemanticActorExecutionOutputFact =
   | {
       kind: 'workspace-paths';
       paths: string[];
+    }
+  | {
+      binaries: ['moldea'];
+      kind: 'yarn-package-info';
+      packageName: '@moldea.ai/cli';
+      version: string;
+    }
+  | {
+      binaryName: 'moldea';
+      kind: 'yarn-binary-provider';
+      source: 'conflicting-moldea-provider';
     };
 
 // safe command-output metadata persisted without raw command output

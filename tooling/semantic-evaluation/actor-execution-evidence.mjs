@@ -4,6 +4,10 @@ const COMMAND_COMPLETED_STATUSES = new Set(['completed', 'failed']);
 const MOLDEA_COMMANDS = new Set(['compatibility', 'inspect', 'validate']);
 const MOLDEA_STATUSES = new Set(['error', 'invalid', 'valid']);
 const OUTPUT_DISPOSITIONS = new Set(['empty', 'projected', 'too-large', 'unrecognized']);
+const YARN_CLI_PACKAGE_NAME = '@moldea.ai/cli';
+const YARN_CONFLICTING_PROVIDER_NAME = 'conflicting-moldea-provider';
+const YARN_PACKAGE_INFO_COMMAND = `yarn info ${YARN_CLI_PACKAGE_NAME} --json`;
+const YARN_PROVIDER_INSPECTION_COMMAND = 'yarn bin -v --json';
 const FOCUSED_RUNTIME_TEST_PATH = '/src/support-agent.test-integration.js';
 const FOCUSED_RUNTIME_TEST_COMMAND = `node --test ${FOCUSED_RUNTIME_TEST_PATH.slice(1)}`;
 const FOCUSED_RUNTIME_TEST_STATUSES = new Set(['failed', 'passed']);
@@ -174,6 +178,67 @@ const projectFocusedRuntimeTest = (command, exitCode) => {
   };
 };
 
+/** Returns release-bound Yarn package metadata only for the exact safe inspection. */
+const projectYarnPackageInfo = (source, command, exitCode, options) => {
+  if (unwrapSimpleBashCommand(command) !== YARN_PACKAGE_INFO_COMMAND || exitCode !== 0) return null;
+
+  let packageInfo;
+  try {
+    packageInfo = JSON.parse(source);
+  } catch {
+    return null;
+  }
+  if (
+    !isPlainRecord(packageInfo) ||
+    !hasExactKeys(packageInfo, ['children', 'value']) ||
+    packageInfo.value !== `${YARN_CLI_PACKAGE_NAME}@npm:${options.cliVersion}` ||
+    !isPlainRecord(packageInfo.children) ||
+    !hasExactKeys(packageInfo.children, ['Exported Binaries', 'Version']) ||
+    packageInfo.children.Version !== options.cliVersion ||
+    !Array.isArray(packageInfo.children['Exported Binaries']) ||
+    packageInfo.children['Exported Binaries'].length !== 1 ||
+    packageInfo.children['Exported Binaries'][0] !== 'moldea'
+  ) {
+    return null;
+  }
+
+  return {
+    binaries: ['moldea'],
+    kind: 'yarn-package-info',
+    packageName: YARN_CLI_PACKAGE_NAME,
+    version: options.cliVersion,
+  };
+};
+
+/** Returns the conflicting Yarn provider only for the exact safe inspection. */
+const projectYarnBinaryProvider = (source, command, exitCode) => {
+  if (unwrapSimpleBashCommand(command) !== YARN_PROVIDER_INSPECTION_COMMAND || exitCode !== 0) {
+    return null;
+  }
+
+  let provider;
+  try {
+    provider = JSON.parse(source);
+  } catch {
+    return null;
+  }
+  if (
+    !isPlainRecord(provider) ||
+    !hasExactKeys(provider, ['name', 'path', 'source']) ||
+    provider.name !== 'moldea' ||
+    provider.source !== YARN_CONFLICTING_PROVIDER_NAME ||
+    provider.path !== `/mnt/node_modules/${YARN_CONFLICTING_PROVIDER_NAME}/bin/moldea.cjs`
+  ) {
+    return null;
+  }
+
+  return {
+    binaryName: 'moldea',
+    kind: 'yarn-binary-provider',
+    source: YARN_CONFLICTING_PROVIDER_NAME,
+  };
+};
+
 /** Projects one command output into safe evaluator-owned facts without retaining its content. */
 const createCommandOutputEvidence = (source, command, exitCode, options) => {
   const byteCount = Buffer.byteLength(source, 'utf8');
@@ -190,7 +255,9 @@ const createCommandOutputEvidence = (source, command, exitCode, options) => {
   const fact =
     projectMoldeaEnvelope(source, command, exitCode, options) ??
     projectWorkspacePaths(source, command) ??
-    projectFocusedRuntimeTest(command, exitCode);
+    projectFocusedRuntimeTest(command, exitCode) ??
+    projectYarnPackageInfo(source, command, exitCode, options) ??
+    projectYarnBinaryProvider(source, command, exitCode);
   return fact === null
     ? { byteCount, disposition: 'unrecognized', facts: [] }
     : { byteCount, disposition: 'projected', facts: [fact] };
@@ -249,6 +316,23 @@ const hasValidFocusedRuntimeTestFact = (fact, exitCode) =>
   ((fact.status === 'passed' && exitCode === 0) ||
     (fact.status === 'failed' && exitCode !== 0));
 
+const hasValidYarnPackageInfoFact = (fact, exitCode, options) =>
+  hasExactKeys(fact, ['binaries', 'kind', 'packageName', 'version']) &&
+  fact.kind === 'yarn-package-info' &&
+  fact.packageName === YARN_CLI_PACKAGE_NAME &&
+  fact.version === options.cliVersion &&
+  Array.isArray(fact.binaries) &&
+  fact.binaries.length === 1 &&
+  fact.binaries[0] === 'moldea' &&
+  exitCode === 0;
+
+const hasValidYarnBinaryProviderFact = (fact, exitCode) =>
+  hasExactKeys(fact, ['binaryName', 'kind', 'source']) &&
+  fact.kind === 'yarn-binary-provider' &&
+  fact.binaryName === 'moldea' &&
+  fact.source === YARN_CONFLICTING_PROVIDER_NAME &&
+  exitCode === 0;
+
 const hasValidCommandOutputEvidence = (outputEvidence, exitCode, options) => {
   if (
     !isPlainRecord(outputEvidence) ||
@@ -294,7 +378,9 @@ const hasValidCommandOutputEvidence = (outputEvidence, exitCode, options) => {
     isPlainRecord(fact) &&
     (hasValidWorkspacePathsFact(fact) ||
       hasValidMoldeaEnvelopeFact(fact, exitCode, options) ||
-      hasValidFocusedRuntimeTestFact(fact, exitCode))
+      hasValidFocusedRuntimeTestFact(fact, exitCode) ||
+      hasValidYarnPackageInfoFact(fact, exitCode, options) ||
+      hasValidYarnBinaryProviderFact(fact, exitCode))
   );
 };
 

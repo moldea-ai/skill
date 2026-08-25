@@ -113,6 +113,103 @@ test('projects normalized workspace paths without the sandbox mount prefix', () 
   assert.doesNotMatch(JSON.stringify(evidence), /\/mnt/u);
 });
 
+test('projects exact Yarn package and effective-provider inspections', () => {
+  const packageOutput = JSON.stringify({
+    value: '@moldea.ai/cli@npm:4.0.1',
+    children: {
+      Version: '4.0.1',
+      'Exported Binaries': ['moldea'],
+    },
+  });
+  const providerOutput = JSON.stringify({
+    name: 'moldea',
+    source: 'conflicting-moldea-provider',
+    path: '/mnt/node_modules/conflicting-moldea-provider/bin/moldea.cjs',
+  });
+  const packageEvidence = projectActorExecutionEvidenceEvent(
+    createCompletedCommandEvent({
+      command: 'yarn info @moldea.ai/cli --json',
+      output: packageOutput,
+    }),
+    PROJECTION_OPTIONS,
+  );
+  const providerEvidence = projectActorExecutionEvidenceEvent(
+    createCompletedCommandEvent({
+      command: 'yarn bin -v --json',
+      output: providerOutput,
+    }),
+    PROJECTION_OPTIONS,
+  );
+
+  assert.deepEqual(packageEvidence.item.outputEvidence.facts, [
+    {
+      binaries: ['moldea'],
+      kind: 'yarn-package-info',
+      packageName: '@moldea.ai/cli',
+      version: '4.0.1',
+    },
+  ]);
+  assert.deepEqual(providerEvidence.item.outputEvidence.facts, [
+    {
+      binaryName: 'moldea',
+      kind: 'yarn-binary-provider',
+      source: 'conflicting-moldea-provider',
+    },
+  ]);
+  assert.equal(
+    hasValidActorExecutionEvidence([packageEvidence, providerEvidence], PROJECTION_OPTIONS),
+    true,
+  );
+  assert.doesNotMatch(JSON.stringify(providerEvidence), /\/mnt|node_modules/u);
+});
+
+test('rejects malformed or near-match Yarn inspection evidence', () => {
+  const packageOutput = {
+    value: '@moldea.ai/cli@npm:4.0.1',
+    children: {
+      Version: '4.0.1',
+      'Exported Binaries': ['moldea'],
+    },
+  };
+  const providerOutput = {
+    name: 'moldea',
+    source: 'conflicting-moldea-provider',
+    path: '/mnt/node_modules/conflicting-moldea-provider/bin/moldea.cjs',
+  };
+  const cases = [
+    ['yarn info @moldea.ai/cli', packageOutput, 0],
+    ['yarn info @moldea.ai/cli --json', { ...packageOutput, private: 'secret' }, 0],
+    [
+      'yarn info @moldea.ai/cli --json',
+      {
+        ...packageOutput,
+        children: { ...packageOutput.children, Version: '4.0.2' },
+      },
+      0,
+    ],
+    ['yarn bin --json', providerOutput, 0],
+    ['yarn bin -v --json', { ...providerOutput, source: '@moldea.ai/cli' }, 0],
+    ['yarn bin -v --json', { ...providerOutput, private: 'secret' }, 0],
+    ['yarn bin -v --json', providerOutput, 1],
+  ];
+
+  for (const [command, output, exitCode] of cases) {
+    const evidence = projectActorExecutionEvidenceEvent(
+      createCompletedCommandEvent({
+        command,
+        exitCode,
+        output: JSON.stringify(output),
+        status: exitCode === 0 ? 'completed' : 'failed',
+      }),
+      PROJECTION_OPTIONS,
+    );
+
+    assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
+    assert.deepEqual(evidence.item.outputEvidence.facts, []);
+    assert.doesNotMatch(JSON.stringify(evidence), /secret/u);
+  }
+});
+
 test('projects the exact focused runtime-test result without retaining output', () => {
   const output = 'TAP version 13\n# token=sk-sensitive-value\n1..1\n';
   const passedEvidence = projectActorExecutionEvidenceEvent(

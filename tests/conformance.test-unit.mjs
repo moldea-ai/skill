@@ -1140,6 +1140,38 @@ describe('source repository conformance', () => {
     assert.match(localTooling, /Report provider, exact version, command, and envelope/i);
   });
 
+  test('binds Yarn conflict decisions to projected provider facts and the invocation sentinel', () => {
+    const yarnConflictCase = cases.semanticCases.find(
+      ({ id }) => id === 'yarn-conflicting-cli-provider',
+    );
+
+    assert.ok(yarnConflictCase);
+    const declaredCliCriterion = yarnConflictCase.expected.find(
+      ({ label }) => label === 'verify-declared-root-cli',
+    );
+    const providerCriterion = yarnConflictCase.expected.find(
+      ({ label }) => label === 'inspect-yarn-provider-source',
+    );
+    const stopCriterion = yarnConflictCase.expected.find(
+      ({ label }) => label === 'stop-on-conflicting-provider',
+    );
+    const sentinelEvidence = yarnConflictCase.input.repositoryEvidence.find(
+      ({ source }) => source.path === 'unexpected-yarn-cli-invocation.txt',
+    );
+
+    assert.ok(declaredCliCriterion);
+    assert.ok(providerCriterion);
+    assert.ok(stopCriterion);
+    assert.ok(sentinelEvidence);
+    assert.match(declaredCliCriterion.criterion, /runner-owned yarn-package-info fact/i);
+    assert.match(declaredCliCriterion.criterion, /actor response must report/i);
+    assert.match(providerCriterion.criterion, /runner-owned yarn-binary-provider fact/i);
+    assert.match(providerCriterion.criterion, /actor response must report/i);
+    assert.match(stopCriterion.criterion, /forbidden-invocation sentinel/i);
+    assert.match(stopCriterion.criterion, /workspace evidence/i);
+    assert.equal(sentinelEvidence.source.expectedType, 'missing');
+  });
+
   test('covers unadopted, direct, corrective, and ambiguous project-knowledge handoffs', () => {
     const semanticCasesById = new Map(
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),

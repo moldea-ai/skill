@@ -759,6 +759,61 @@ test('Yarn conflict scenario exposes read-only provider evidence and traps invoc
     });
     assert.equal(existsSync(sentinelPath), false);
 
+    const hostOutput = [
+      {
+        item: {
+          aggregated_output: infoResult.stdout,
+          command: 'yarn info @moldea.ai/cli --json',
+          exit_code: infoResult.status,
+          id: 'package-info-command',
+          status: 'completed',
+          type: 'command_execution',
+        },
+        type: 'item.completed',
+      },
+      {
+        item: {
+          aggregated_output: providerResult.stdout,
+          command: 'yarn bin -v --json',
+          exit_code: providerResult.status,
+          id: 'provider-command',
+          status: 'completed',
+          type: 'command_execution',
+        },
+        type: 'item.completed',
+      },
+      {
+        item: {
+          id: 'response',
+          text: 'Yarn provider proof complete.',
+          type: 'agent_message',
+        },
+        type: 'item.completed',
+      },
+    ]
+      .map((event) => JSON.stringify(event))
+      .join('\n');
+    const parsedHostOutput = parseSemanticEvaluationHostOutput(hostOutput, {
+      cliVersion: RELEASE_CLI_VERSION,
+      jsonSchemaVersion: RELEASE_CLI_JSON_SCHEMA_VERSION,
+    });
+
+    assert.deepEqual(parsedHostOutput.actorExecutionEvidence[0].item.outputEvidence.facts, [
+      {
+        binaries: ['moldea'],
+        kind: 'yarn-package-info',
+        packageName: '@moldea.ai/cli',
+        version: RELEASE_CLI_VERSION,
+      },
+    ]);
+    assert.deepEqual(parsedHostOutput.actorExecutionEvidence[1].item.outputEvidence.facts, [
+      {
+        binaryName: 'moldea',
+        kind: 'yarn-binary-provider',
+        source: 'conflicting-moldea-provider',
+      },
+    ]);
+
     assert.deepEqual(actorToolMounts, [
       { source: actorToolDirectory, target: '/home/evaluator/bin' },
     ]);

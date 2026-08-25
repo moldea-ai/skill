@@ -1750,6 +1750,9 @@ describe('source repository conformance', () => {
       /why existing evidence or deterministic verification is insufficient/,
       /expected time and token cost/,
       /developer's explicit approval/,
+      /standing confirmation authorization/,
+      /Record its scope before execution/,
+      /never authorizes a restart, source correction, changed evidence boundary, or additional candidate/,
     ]);
   });
 
@@ -1782,6 +1785,10 @@ describe('source repository conformance', () => {
       /--confirm <case-id> --record/,
       /Both must pass/,
       /Either confirmation failure is terminal/,
+      /resume the remaining cases after recovery without another approval interruption/,
+      /does not spend another model call after recovery is impossible/,
+      /actor response, runner-owned execution facts, workspace evidence, repository controls, judge rationale/,
+      /recommended next action, and available options/,
       /original failure remains intact/,
       /--record-checkpoint/,
       /eval:semantic:verify/,

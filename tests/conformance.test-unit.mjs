@@ -985,9 +985,23 @@ describe('source repository conformance', () => {
       reconsiderCriterion.criterion,
       /runner-owned|command[- ]result|execution evidence|projected (?:command )?fact/i,
     );
-    assert.match(noChangeReportCriterion.criterion, /explicitly reports/i);
-    assert.match(noChangeReportCriterion.criterion, /no canonical change was required/i);
-    assert.match(noChangeReportCriterion.criterion, /workspace evidence contains no canonical/i);
+    assert.match(noChangeReportCriterion.criterion, /canonical state remained unchanged/i);
+    assert.match(noChangeReportCriterion.criterion, /explains why no update was needed/i);
+    assert.match(noChangeReportCriterion.criterion, /semantically equivalent reporting/i);
+    assert.match(noChangeReportCriterion.criterion, /behavior was preserved/i);
+    assert.match(noChangeReportCriterion.criterion, /canonical state remains valid or accurate/i);
+    assert.match(
+      noChangeReportCriterion.criterion,
+      /workspace evidence shows only implementation changes/i,
+    );
+    assert.match(
+      noChangeReportCriterion.criterion,
+      /workspace evidence must contain no canonical/i,
+    );
+    assert.doesNotMatch(
+      noChangeReportCriterion.criterion,
+      /explicitly reports that no canonical change was required/i,
+    );
     assert.match(skippedAnalysisCriterion.criterion, /actor claims completion without/i);
     assert.match(skippedAnalysisCriterion.criterion, /behavior or contracts were preserved/i);
     assert.match(skippedAnalysisCriterion.criterion, /canonical state was reconsidered/i);

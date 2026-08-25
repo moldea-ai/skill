@@ -1195,7 +1195,7 @@
         },
         {
           "label": "report-no-canonical-change",
-          "criterion": "The actor response explicitly reports that no canonical change was required, and workspace evidence contains no canonical documentation or manifest change."
+          "criterion": "The actor response makes clear that canonical state remained unchanged and explains why no update was needed. Accept semantically equivalent reporting, including that behavior was preserved and canonical state remains valid or accurate while workspace evidence shows only implementation changes. Workspace evidence must contain no canonical documentation or manifest change."
         }
       ],
       "forbidden": [

@@ -1,0 +1,2460 @@
+{
+  "artifactDigest": "f4f9c28b5e426ed4eb57a14ee0643207e4b6b711bcd31660971a0a23a22e490f",
+  "caseSuiteDigest": "1ac445e6a22b529bfd56a8fb93fdafdaa5c12f44238b32ce5bed2ba8ad169096",
+  "cli": {
+    "integrity": "sha512-6Dii/TAXMwGb+hBEmwzqoOg3uzE/RplNdmwF1nBRweNFGeDV5XdJ5OHB4oWjOSRf5ddowwqGfQnrftqr40rxRA==",
+    "jsonSchemaVersion": 2,
+    "name": "@moldea.ai/cli",
+    "packageLockSha256": "7dc925f92ffe3fe1d4f5153b58a99aa9a4d6d46e8011e6467774f6fa57c411f0",
+    "version": "4.0.1"
+  },
+  "confirmations": [],
+  "coverageDigest": "2f9b6149558b3eaeb1d2d2556812a4be6596ae517b1f2c75a34fbd35bd59775e",
+  "evaluationProtocolVersion": 14,
+  "generatedAt": "2026-08-25T21:44:39.686Z",
+  "hostContract": {
+    "model": "gpt-5.6-terra",
+    "name": "codex",
+    "reasoningEffort": "medium"
+  },
+  "checkpointMigration": null,
+  "results": [
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "I captured the information, but this workspace has no existing `moldea` project state, so I did not persist it or change any files.\n\nCurrent unpersisted knowledge:\n- Customer Operations owns the escalation policy.\n- Legal approves retention exceptions.\n- The team is auditing the oldest cases this week.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15479,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 26701,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 43,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "caseId": "unadopted-direct-context-handoff",
+      "forbidden": [],
+      "id": "unadopted-direct-context-handoff",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "recognize-unadopted-context-boundary",
+        "report-no-writes"
+      ],
+      "passed": true,
+      "rationale": "The response explicitly identifies the absence of moldea project state, says the knowledge was not persisted, and states no files changed. Repository control evidence shows identical before/after state with no violations.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "ab952d418f4039ac68e4685cd2cce0e51c6226533230c8ae2f4b504bf127f78f",
+          "head": {
+            "commit": "e4cf628cdfcf06db28f590c86a42ee9e9461a2de",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "e4cf628cdfcf06db28f590c86a42ee9e9461a2de"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "ab952d418f4039ac68e4685cd2cce0e51c6226533230c8ae2f4b504bf127f78f",
+          "head": {
+            "commit": "e4cf628cdfcf06db28f590c86a42ee9e9461a2de",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "e4cf628cdfcf06db28f590c86a42ee9e9461a2de"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The repository contains application source but no adoption direction.",
+          "observation": {
+            "content": "export const request = async (url) => fetch(url);\n",
+            "omission": null,
+            "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+            "mode": 33204,
+            "path": "src/http-client.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/http-client.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical moldea state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        },
+        {
+          "claim": "The README has no adoption marker.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer supplies durable responsibilities and a transient activity through natural prose.",
+          "observation": {
+            "content": "Customer Operations owns the escalation policy. Legal approves retention exceptions. This week the team is auditing the oldest cases.",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseDefinitionDigest": "1caf616d4582c8ba25baf4e743083b075b76c68c839e2e6576023e5bbc3b8290",
+      "evaluatedAt": "2026-08-25T21:45:06.847Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Added exactly one retry for initial HTTP 5xx responses in [src/http-client.js](/mnt/src/http-client.js:1).\n\nNon-5xx responses and thrown fetch errors are unchanged. Syntax check passed.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15539,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 26701,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 25,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 115,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 73,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 524,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "caseId": "unadopted-relevance-no-initialization",
+      "forbidden": [],
+      "id": "unadopted-relevance-no-initialization",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "complete-authorized-implementation-without-adoption"
+      ],
+      "passed": true,
+      "rationale": "The sole workspace change retries fetch once when the initial response status is 500–599, preserving non-5xx responses and thrown errors. No moldea directory or adoption-related change was created, and the response makes no adoption claim.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "f098d735828fda583b368ace6fc3bed76dd6e86db12a46544977d6904303821e",
+          "head": {
+            "commit": "165d14dc3db8278b3f47ce45d3120a4feb4203be",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "165d14dc3db8278b3f47ce45d3120a4feb4203be"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "f098d735828fda583b368ace6fc3bed76dd6e86db12a46544977d6904303821e",
+          "head": {
+            "commit": "165d14dc3db8278b3f47ce45d3120a4feb4203be",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "165d14dc3db8278b3f47ce45d3120a4feb4203be"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The repository contains application source.",
+          "observation": {
+            "content": "export const request = async (url) => fetch(url);\n",
+            "omission": null,
+            "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+            "mode": 33204,
+            "path": "src/http-client.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/http-client.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical moldea state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        },
+        {
+          "claim": "The README has no adoption marker.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "export const request = async (url) => {\n  const response = await fetch(url);\n\n  if (response.status >= 500 && response.status < 600) {\n    return fetch(url);\n  }\n\n  return response;\n};\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "dc84c9a3b1c98ed1f6a348b417fce21855abc4b7de112f5112a766ce1350ca6c",
+              "type": "file"
+            },
+            "before": {
+              "content": "export const request = async (url) => fetch(url);\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+              "type": "file"
+            },
+            "path": "src/http-client.js"
+          }
+        ]
+      },
+      "caseDefinitionDigest": "44cb83cc65db6c691c7c5e1f8d8d9749df606654a3cb49e26aef3df632992ac1",
+      "evaluatedAt": "2026-08-25T21:45:59.759Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Initialization is awaiting project context. I made no changes.\n\nThe repository is clean and has Moldea CLI 4.0.1 configured correctly, but its only project evidence is a generic README and an empty export—insufficient to establish a truthful foundation. Deterministic inspection correctly reports the missing `/moldea/moldea.yaml` and `/moldea/project.md`.\n\nWhat is this project’s purpose—who uses it and what outcome should it provide?",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15479,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 42072,
+              "disposition": "too-large",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15371,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 5,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 609,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 41,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 562,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 189,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 2251,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 96,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 1,
+            "outputEvidence": {
+              "byteCount": 595,
+              "disposition": "projected",
+              "facts": [
+                {
+                  "cliVersion": "4.0.1",
+                  "command": "inspect",
+                  "errorPresent": false,
+                  "kind": "moldea-cli-envelope",
+                  "resultPresent": true,
+                  "schemaVersion": 2,
+                  "status": "invalid"
+                }
+              ]
+            },
+            "status": "failed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 1,
+            "outputEvidence": {
+              "byteCount": 595,
+              "disposition": "projected",
+              "facts": [
+                {
+                  "cliVersion": "4.0.1",
+                  "command": "inspect",
+                  "errorPresent": false,
+                  "kind": "moldea-cli-envelope",
+                  "resultPresent": true,
+                  "schemaVersion": 2,
+                  "status": "invalid"
+                }
+              ]
+            },
+            "status": "failed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 41,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "caseId": "initialize-insufficient-context",
+      "forbidden": [],
+      "id": "initialize-insufficient-context",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "report-no-meaningful-project-context",
+        "identify-inspected-evidence",
+        "ask-focused-foundation-question",
+        "avoid-speculative-canonical-truth",
+        "do-not-claim-completion"
+      ],
+      "passed": true,
+      "rationale": "The response cites the generic README, empty source export, and missing Moldea state; makes no workspace changes; explicitly states context is insufficient; and asks one focused purpose-and-users/outcome question without claiming completion or inventing a foundation.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "deca331d82824825b1cac6f302788b1d568dc2c4044266df5eec586bc5c34aad",
+          "head": {
+            "commit": "a0d083724526e1108057d1148397d877d41acd81",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "1a6e00afd7728ad5dd3ba7db9310f165c5457e577bb7798c6f3cd9a9c73ef1f9",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "a0d083724526e1108057d1148397d877d41acd81"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "deca331d82824825b1cac6f302788b1d568dc2c4044266df5eec586bc5c34aad",
+          "head": {
+            "commit": "a0d083724526e1108057d1148397d877d41acd81",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "1a6e00afd7728ad5dd3ba7db9310f165c5457e577bb7798c6f3cd9a9c73ef1f9",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "a0d083724526e1108057d1148397d877d41acd81"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The README is generic.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The source has no domain meaning.",
+          "observation": {
+            "content": "export const project = {};\n",
+            "omission": null,
+            "sha256": "2b533dcb5e1898488a34a7bcb76c7ec0525afcd97dd0142e898d22e4706267a7",
+            "mode": 33204,
+            "path": "src/index.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/index.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseDefinitionDigest": "7d89f05cfd18c9ac46942163f42f4021fc581ede087b1dcdbb5c16c97fabb7d9",
+      "evaluatedAt": "2026-08-25T21:47:10.883Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Initialization is blocked pending one material clarification; no files were changed.\n\nThe repo currently supports only that `processInvoice` returns the provided invoice with `processed: true`. The README says “including payment handling,” but it does not establish whether this project may initiate, authorize, or otherwise affect payments.\n\nDoes this repository ever perform real payment actions, or is it limited to invoice-processing metadata?",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 46,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15479,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 42072,
+              "disposition": "too-large",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15371,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 376,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 5,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 336,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 135,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "caseId": "initialize-partial-context",
+      "forbidden": [],
+      "id": "initialize-partial-context",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "summarize-supported-foundation",
+        "identify-material-boundary-gap",
+        "ask-focused-clarification-before-finalizing",
+        "do-not-claim-completion"
+      ],
+      "passed": true,
+      "rationale": "The response accurately distinguishes the generic processed=true implementation and ambiguous README payment-handling reference from the unresolved authority boundary, asks one focused extraction-versus-real-payment question, and explicitly states initialization is blocked with no files changed.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "ea4a903a1abaed440935d10b3ff92b6f412b28ede2999198e3163675361bea39",
+          "head": {
+            "commit": "c8b45ac5116f74dce0af084b1e2a0fa24373a66f",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "1be31f1aae44813854d9409ae4b081f565111c597876dfc2d6cfc7f29bce8c19",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "c8b45ac5116f74dce0af084b1e2a0fa24373a66f"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "ea4a903a1abaed440935d10b3ff92b6f412b28ede2999198e3163675361bea39",
+          "head": {
+            "commit": "c8b45ac5116f74dce0af084b1e2a0fa24373a66f",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "1be31f1aae44813854d9409ae4b081f565111c597876dfc2d6cfc7f29bce8c19",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "c8b45ac5116f74dce0af084b1e2a0fa24373a66f"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The README identifies invoice processing and payment handling without defining payment authority.",
+          "observation": {
+            "content": "# Invoice processor\n\nProcesses invoices for accounting systems, including payment handling.\n",
+            "omission": null,
+            "sha256": "a3be1ea877788fdd888a54a10bde06ad5b6ccf165a1bd38be211b8388f0db8ad",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The implementation exposes only a generic invoice operation.",
+          "observation": {
+            "content": "export const processInvoice = (invoice) => ({ ...invoice, processed: true });\n",
+            "omission": null,
+            "sha256": "38fcf9d7f03e7e5288bca43829e488343e896494a157c0cfefc31892a122d3bb",
+            "mode": 33204,
+            "path": "src/invoice.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/invoice.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseDefinitionDigest": "3edc10c16897c5c39865cbce495adb2147595c8cf14b145d0a4da0e8b94c86ac",
+      "evaluatedAt": "2026-08-25T21:47:55.628Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Initialized Moldea for this repository.\n\n- Added [moldea.yaml](/mnt/moldea/moldea.yaml) and [project.md](/mnt/moldea/project.md) with the invoice-validation purpose and no-payments boundary.\n- Added the owned Moldea awareness block to [README.md](/mnt/README.md).\n- Verified with repository-local Moldea CLI `4.0.1`: `inspect --json` is valid with no diagnostics.\n- Workspace is dirty only with the initialization changes observed; no application tests were needed because behavior was unchanged.\n\nNext actions: review the foundation or continue ordinary development.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15479,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 42072,
+              "disposition": "too-large",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 5,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 127,
+            "outputEvidence": {
+              "byteCount": 41,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "failed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 27,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 410,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 226,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 8,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 2164,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 1,
+            "outputEvidence": {
+              "byteCount": 595,
+              "disposition": "projected",
+              "facts": [
+                {
+                  "cliVersion": "4.0.1",
+                  "command": "inspect",
+                  "errorPresent": false,
+                  "kind": "moldea-cli-envelope",
+                  "resultPresent": true,
+                  "schemaVersion": 2,
+                  "status": "invalid"
+                }
+              ]
+            },
+            "status": "failed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 372507,
+              "disposition": "too-large",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15371,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 974,
+              "disposition": "projected",
+              "facts": [
+                {
+                  "cliVersion": "4.0.1",
+                  "command": "inspect",
+                  "errorPresent": false,
+                  "kind": "moldea-cli-envelope",
+                  "resultPresent": true,
+                  "schemaVersion": 2,
+                  "status": "valid"
+                }
+              ]
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 133,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "caseId": "initialize-sufficient-context",
+      "forbidden": [],
+      "id": "initialize-sufficient-context",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "create-minimum-canonical-foundation",
+        "add-owned-readme-awareness",
+        "report-evidence-backed-foundation",
+        "rerun-deterministic-inspection",
+        "offer-practical-next-actions",
+        "avoid-automatic-agent"
+      ],
+      "passed": true,
+      "rationale": "Artifacts establish the supported invoice extraction/validation purpose and payment boundary, with one owned README block preserved alongside original content. The response reports this foundation and practical next actions without agents. Completed runner evidence includes a projected repository-local inspect result with exit code 0 and status valid.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "4631beafc6f4caf4606408e203341dff0c5b72a3327f545fa0e241a430817629",
+          "head": {
+            "commit": "cc15233eff8ef80abd6adc68eddd92af7f114667",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "9b4d90cd64257302fbc5d75da337b0124ee28a6935a3ac66b082a70a10a7f1a8",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "cc15233eff8ef80abd6adc68eddd92af7f114667"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "4631beafc6f4caf4606408e203341dff0c5b72a3327f545fa0e241a430817629",
+          "head": {
+            "commit": "cc15233eff8ef80abd6adc68eddd92af7f114667",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "9b4d90cd64257302fbc5d75da337b0124ee28a6935a3ac66b082a70a10a7f1a8",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "cc15233eff8ef80abd6adc68eddd92af7f114667"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The README defines extraction, validation, consumers, and the payment boundary.",
+          "observation": {
+            "content": "# Invoice intake service\n\nThe service extracts and validates invoice fields for accounting systems. Its goal is to produce structurally valid invoice records for downstream accounting workflows. It never authorizes or initiates payments.\n",
+            "omission": null,
+            "sha256": "994fac50a4bcf6d78fd83c64d24d8e18045e50d9e8bb328e4dd7f6d6d0dd8344",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "Implementation corroborates extraction and validation.",
+          "observation": {
+            "content": "export const extractInvoiceFields = ({ invoiceNumber, total }) => ({\n  invoiceNumber,\n  total,\n});\n\nexport const isInvoiceValid = ({ invoiceNumber, total }) =>\n  typeof invoiceNumber === 'string' && typeof total === 'number';\n",
+            "omission": null,
+            "sha256": "2f8c8633eae2e323ad7c213ab8bd4cb0679ba0182a4045b8c61f51d89b014785",
+            "mode": 33204,
+            "path": "src/invoice.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/invoice.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [
+          {
+            "path": "moldea/moldea.yaml",
+            "state": {
+              "content": "version: 1\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "09bfcc6a14b83e2192b8673677725c84883ee9cd0c70e45c9ec09daa8f2b2847",
+              "type": "file"
+            }
+          },
+          {
+            "path": "moldea/project.md",
+            "state": {
+              "content": "# Invoice intake service\n\n## Purpose\n\nThe service extracts invoice fields and validates their basic structure for downstream accounting workflows.\n\n## Boundary\n\nIt produces structurally valid invoice records. It does not authorize or initiate payments.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "d3889a4ec68caf7e2d2a9504dba9931f430f3ed69f6709602c8ea981a28750c1",
+              "type": "file"
+            }
+          }
+        ],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "# Invoice intake service\n\nThe service extracts and validates invoice fields for accounting systems. Its goal is to produce structurally valid invoice records for downstream accounting workflows. It never authorizes or initiates payments.\n\n<!-- moldea:start -->\n\n## `moldea`\n\nThis repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.\n\nWhen sharing potentially durable project knowledge or making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.\n\nA relevant change requires reconsideration of the affected `moldea` state; it does not require editing `/moldea/**` when established project truth and declared agent behavior remain unchanged.\n<!-- moldea:end -->\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "2748c4a761bbdde6f6e30ec0c571077df14cca472bcf912761ac731004d67378",
+              "type": "file"
+            },
+            "before": {
+              "content": "# Invoice intake service\n\nThe service extracts and validates invoice fields for accounting systems. Its goal is to produce structurally valid invoice records for downstream accounting workflows. It never authorizes or initiates payments.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "994fac50a4bcf6d78fd83c64d24d8e18045e50d9e8bb328e4dd7f6d6d0dd8344",
+              "type": "file"
+            },
+            "path": "README.md"
+          }
+        ]
+      },
+      "caseDefinitionDigest": "a1625c13a9f648369ce9d2e94dee9f3d3ebd0b490c3e9cf683a60000224e1080",
+      "evaluatedAt": "2026-08-25T21:49:25.762Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Recorded the durable team boundaries in [team-ownership.md](/mnt/moldea/context/team-ownership.md) and registered it in [moldea.yaml](/mnt/moldea/moldea.yaml).\n\nThe sprint filter-migration focus was treated as transient and not persisted.\n\nValidation passed with `moldea` CLI 4.0.1; no diagnostics.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15479,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 42072,
+              "disposition": "too-large",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 26876,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 5,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 1806,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 162,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 8,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 2116,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 96,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 1060,
+              "disposition": "projected",
+              "facts": [
+                {
+                  "cliVersion": "4.0.1",
+                  "command": "inspect",
+                  "errorPresent": false,
+                  "kind": "moldea-cli-envelope",
+                  "resultPresent": true,
+                  "schemaVersion": 2,
+                  "status": "valid"
+                }
+              ]
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 362,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 1592,
+              "disposition": "projected",
+              "facts": [
+                {
+                  "cliVersion": "4.0.1",
+                  "command": "inspect",
+                  "errorPresent": false,
+                  "kind": "moldea-cli-envelope",
+                  "resultPresent": true,
+                  "schemaVersion": 2,
+                  "status": "valid"
+                }
+              ]
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 175,
+              "disposition": "projected",
+              "facts": [
+                {
+                  "cliVersion": "4.0.1",
+                  "command": "validate",
+                  "errorPresent": false,
+                  "kind": "moldea-cli-envelope",
+                  "resultPresent": true,
+                  "schemaVersion": 2,
+                  "status": "valid"
+                }
+              ]
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 150,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 287,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "caseId": "adopted-direct-context-handoff",
+      "forbidden": [],
+      "id": "adopted-direct-context-handoff",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "maintain-durable-project-knowledge",
+        "filter-transient-project-detail",
+        "rerun-deterministic-inspection",
+        "report-knowledge-selection"
+      ],
+      "passed": true,
+      "rationale": "Workspace changes add only canonical team-ownership context and register it, preserving all durable responsibilities while omitting the sprint focus. Completed runner events show projected valid inspect/validate results with exit code 0, and the response reports validation passed with no diagnostics while distinguishing retained versus omitted information.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "5a5d0fd711389345f0d6c7885d8ab0377d5903b054c109bdb74de105d26f86fe",
+          "head": {
+            "commit": "ff4266ceb5a7d21bf5ce85750c3084ee3129b78b",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "c2ea9a3228e710b6565781e58659b75bc3d14ad47dec4e46a87470cefbbf4b70",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "ff4266ceb5a7d21bf5ce85750c3084ee3129b78b"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "5a5d0fd711389345f0d6c7885d8ab0377d5903b054c109bdb74de105d26f86fe",
+          "head": {
+            "commit": "ff4266ceb5a7d21bf5ce85750c3084ee3129b78b",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "c2ea9a3228e710b6565781e58659b75bc3d14ad47dec4e46a87470cefbbf4b70",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "ff4266ceb5a7d21bf5ce85750c3084ee3129b78b"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "An adopted project foundation exists without team ownership context.",
+          "observation": {
+            "content": "# Evaluation project\n\nThis synthetic project exercises local `moldea` maintenance and evaluation behavior. Source files under `/src/**` implement the project behavior represented by its canonical context and agents.\n",
+            "omission": null,
+            "sha256": "e001af068d3dc8870cc2a151d85e5c867fc068c719a2f6a5c0d30e0e5e6804a2",
+            "mode": 33204,
+            "path": "moldea/project.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/project.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer supplies current team responsibilities and a transient sprint detail.",
+          "observation": {
+            "content": "current_team:\n  platform:\n    owns:\n      - application runtime\n      - delivery pipeline\n  product:\n    owns:\n      - workflow definitions\n  security:\n    approves:\n      - production access\ncurrent_sprint:\n  platform_focus: migrate dashboard filters",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [
+          {
+            "path": "moldea/context/team-ownership.md",
+            "state": {
+              "content": "# Team ownership\n\n- Platform owns the application runtime and delivery pipeline.\n- Product owns workflow definitions.\n- Security approves production access.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "82414473e62b83e5c5e16a2c00e507adb9593a56ca778530c5cf0ae4d7535a44",
+              "type": "file"
+            }
+          }
+        ],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n  /moldea/context/team-ownership.md:\n    affectedBy:\n      - /src/**\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "98803ac88ff745504869aac018647e6a7faa215fcc6dc8b31c2fd9464c329b4d",
+              "type": "file"
+            },
+            "before": {
+              "content": "version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "7c7899735df7f1b9c19eb17a5a6100cf3a5246eb56ee6fa14145e36125ef0d0d",
+              "type": "file"
+            },
+            "path": "moldea/moldea.yaml"
+          }
+        ]
+      },
+      "caseDefinitionDigest": "ef3d085e501d428fa73479c2016f9462e24e9ca1369b979f7c60a678a67e9bcf",
+      "evaluatedAt": "2026-08-25T21:50:57.997Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Updated canonical project context in [moldea/project.md](/mnt/moldea/project.md:3):\n\n- The service extracts and validates invoice data for accounting systems.\n- It never authorizes payments.\n\n`moldea inspect --json` completed successfully (CLI 4.0.1, schema 2) with no diagnostics. Only this canonical context file changed.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15479,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 42072,
+              "disposition": "too-large",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15371,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 5,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 127,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "failed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 2093,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 1112,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 174,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 977,
+              "disposition": "projected",
+              "facts": [
+                {
+                  "cliVersion": "4.0.1",
+                  "command": "inspect",
+                  "errorPresent": false,
+                  "kind": "moldea-cli-envelope",
+                  "resultPresent": true,
+                  "schemaVersion": 2,
+                  "status": "valid"
+                }
+              ]
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 988,
+              "disposition": "projected",
+              "facts": [
+                {
+                  "cliVersion": "4.0.1",
+                  "command": "inspect",
+                  "errorPresent": false,
+                  "kind": "moldea-cli-envelope",
+                  "resultPresent": true,
+                  "schemaVersion": 2,
+                  "status": "valid"
+                }
+              ]
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 535,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "caseId": "adopted-explicit-context-correction",
+      "forbidden": [],
+      "id": "adopted-explicit-context-correction",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "accept-explicit-project-correction",
+        "maintain-corrected-product-boundary",
+        "rerun-correction-inspection",
+        "report-corrected-project-truth"
+      ],
+      "passed": true,
+      "rationale": "The sole workspace change updates moldea/project.md to state extraction and validation for accounting systems and explicitly exclude payment authorization. The response reports that corrected boundary and a successful inspect with no diagnostics. Runner-owned evidence includes completed exit-0 projected moldea inspect results with status valid and resultPresent true.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "41ae85385578a7aa70d17028958cbb65fa54a86ea130ce0fb3632ecc3a74e214",
+          "head": {
+            "commit": "f2331e2ad929cbbcbfe0548ddc69c9f5f269a58b",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "13ad4a741ef656b137b9b1ae4fd0347a787e38202199ab5b3638680b86c4adc0",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "f2331e2ad929cbbcbfe0548ddc69c9f5f269a58b"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "41ae85385578a7aa70d17028958cbb65fa54a86ea130ce0fb3632ecc3a74e214",
+          "head": {
+            "commit": "f2331e2ad929cbbcbfe0548ddc69c9f5f269a58b",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "13ad4a741ef656b137b9b1ae4fd0347a787e38202199ab5b3638680b86c4adc0",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "f2331e2ad929cbbcbfe0548ddc69c9f5f269a58b"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "Canonical project context contains the stale payment-authority statement.",
+          "observation": {
+            "content": "# Evaluation project\n\nThis invoice-processing service extracts invoice data for accounting systems and authorizes payment decisions.\n",
+            "omission": null,
+            "sha256": "e8e11b6cf58b8cbcbf0b134f7cb1d669b2503abc3c9c3faccc639db1c007b95b",
+            "mode": 33204,
+            "path": "moldea/project.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/project.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer explicitly identifies the statement as outdated and supplies the current boundary.",
+          "observation": {
+            "content": "The existing project context is outdated. The service extracts and validates invoice data for accounting systems. It never authorizes payments.",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "# Evaluation project\n\nThis invoice-processing service extracts and validates invoice data for accounting systems. It never authorizes payments.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "78f94d8e99a0f22e697f0a683a9063151fc03587f48e2c33a1d3301a4baaa905",
+              "type": "file"
+            },
+            "before": {
+              "content": "# Evaluation project\n\nThis invoice-processing service extracts invoice data for accounting systems and authorizes payment decisions.\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "e8e11b6cf58b8cbcbf0b134f7cb1d669b2503abc3c9c3faccc639db1c007b95b",
+              "type": "file"
+            },
+            "path": "moldea/project.md"
+          }
+        ]
+      },
+      "caseDefinitionDigest": "fdcf0464592a132cc136a3f481c36ded9036675e4530ba6cd6dc57a827ce2efc",
+      "evaluatedAt": "2026-08-25T21:52:05.874Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Current canonical state assigns refund approval to Finance, while your table assigns it to Support.\n\nDoes this replace the current ownership assignment?",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15479,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 42072,
+              "disposition": "too-large",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15371,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 5,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 974,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "caseId": "adopted-ambiguous-context-handoff",
+      "forbidden": [],
+      "id": "adopted-ambiguous-context-handoff",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "identify-material-ownership-conflict",
+        "ask-focused-ownership-clarification",
+        "preserve-canonical-state-before-answer"
+      ],
+      "passed": true,
+      "rationale": "The response explicitly identifies the Finance-versus-Support conflict and asks whether Support replaces the current assignment. Workspace changes are empty and repository control evidence is unchanged, preserving canonical state.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "316a0a18a3f93c41e6ebf8a02adfe0e5c1104c2747590e81bd208caf4a689014",
+          "head": {
+            "commit": "ad180e312286106f8da6a43a83835c4c40c343f3",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "0bf0dfae8b26e9a8594d5d65f97552f988f51cb463c33538bcc4ba01b9c147d4",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "ad180e312286106f8da6a43a83835c4c40c343f3"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "316a0a18a3f93c41e6ebf8a02adfe0e5c1104c2747590e81bd208caf4a689014",
+          "head": {
+            "commit": "ad180e312286106f8da6a43a83835c4c40c343f3",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "0bf0dfae8b26e9a8594d5d65f97552f988f51cb463c33538bcc4ba01b9c147d4",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "ad180e312286106f8da6a43a83835c4c40c343f3"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "Canonical context says Finance currently owns refund approval.",
+          "observation": {
+            "content": "# Evaluation project\n\nThis synthetic project exercises local `moldea` maintenance behavior. Finance currently owns refund approval.\n",
+            "omission": null,
+            "sha256": "deddb7322da42d9bb446eca018a22dd00f046764c0d1a9c9803acf0195f8da9d",
+            "mode": 33204,
+            "path": "moldea/project.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/project.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer supplies a conflicting terse ownership handoff without correction semantics.",
+          "observation": {
+            "content": "Area | Owner\nRefund approval | Support",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseDefinitionDigest": "a1fb1fe1ca684eafde4b21c621423a3812bde46ecd636ca5c0a5a101337fa55b",
+      "evaluatedAt": "2026-08-25T21:52:56.729Z"
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "actorResponse": "Refactored `normalizeRefundId` into an explicit local normalization step without changing its output.\n\nVerified with representative inputs and canonical project inspection (`moldea inspect`: valid, no diagnostics). Only [src/internal-helper.js](/mnt/src/internal-helper.js:1) changed.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15539,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 15404,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 235,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 230,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 1144,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 11412,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 137,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 389,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 1060,
+              "disposition": "projected",
+              "facts": [
+                {
+                  "cliVersion": "4.0.1",
+                  "command": "inspect",
+                  "errorPresent": false,
+                  "kind": "moldea-cli-envelope",
+                  "resultPresent": true,
+                  "schemaVersion": 2,
+                  "status": "valid"
+                }
+              ]
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 497,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "caseId": "adopted-relevance-no-change",
+      "forbidden": [],
+      "id": "adopted-relevance-no-change",
+      "judgeHost": {
+        "model": "gpt-5.6-terra",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.149.1"
+      },
+      "observed": [
+        "reconsider-affected-state"
+      ],
+      "passed": false,
+      "rationale": "The response reports preserved output and a valid canonical-project inspection with no diagnostics, demonstrating canonical state was reconsidered and remains accurate. It does not explicitly state that no canonical change was required; workspace changes show only the implementation file changed.",
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "d0db34e9b9507889f2a9f771e6d4b8676364fbfbbbd3ddd726ae8fd2b58ac7c5",
+          "head": {
+            "commit": "d8f341752ce06e8ca73f5a77ba72cb32822d4695",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "7a8bb56c0f2df68ca85019fb94b5642c58f580e84d53ff2fac0fab280fde17f0",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "d8f341752ce06e8ca73f5a77ba72cb32822d4695"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "d0db34e9b9507889f2a9f771e6d4b8676364fbfbbbd3ddd726ae8fd2b58ac7c5",
+          "head": {
+            "commit": "d8f341752ce06e8ca73f5a77ba72cb32822d4695",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "7a8bb56c0f2df68ca85019fb94b5642c58f580e84d53ff2fac0fab280fde17f0",
+          "installedSkillDigest": "cdd048b6d5ae6f4f7046fab0debe24826fa6a3a1a03bf220accc1968d34d194f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "d8f341752ce06e8ca73f5a77ba72cb32822d4695"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "Canonical context declares the affected implementation path.",
+          "observation": {
+            "content": "version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n",
+            "omission": null,
+            "sha256": "7c7899735df7f1b9c19eb17a5a6100cf3a5246eb56ee6fa14145e36125ef0d0d",
+            "mode": 33204,
+            "path": "moldea/moldea.yaml",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/moldea.yaml",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The refactored implementation preserves behavior.",
+          "observation": {
+            "content": "export const normalizeRefundId = (refundId) => refundId.trim();\n",
+            "omission": null,
+            "sha256": "e8868c73398b55a024402ee7162379ec7efc42a20f8ee7b5be4b9e6584cc78d9",
+            "mode": 33204,
+            "path": "src/internal-helper.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/internal-helper.js",
+            "expectedType": "file"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "export const normalizeRefundId = (refundId) => {\n  const normalizedRefundId = refundId.trim();\n\n  return normalizedRefundId;\n};\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "b17b13569af41a5c433c52efe11858a08ff23c7e21c05f66fce6aa2c2b2ca60d",
+              "type": "file"
+            },
+            "before": {
+              "content": "export const normalizeRefundId = (refundId) => refundId.trim();\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "e8868c73398b55a024402ee7162379ec7efc42a20f8ee7b5be4b9e6584cc78d9",
+              "type": "file"
+            },
+            "path": "src/internal-helper.js"
+          }
+        ]
+      },
+      "caseDefinitionDigest": "a1b0f6d395baa4165cfad7b3a92044a5a9af2e2e710ee4a3509cc6ae30256bca",
+      "evaluatedAt": "2026-08-25T21:54:06.574Z"
+    }
+  ],
+  "schemaVersion": 4,
+  "updatedAt": "2026-08-25T21:54:06.574Z"
+}

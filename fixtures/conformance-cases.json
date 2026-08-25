@@ -1191,11 +1191,11 @@
       "expected": [
         {
           "label": "reconsider-affected-state",
-          "criterion": "The actor evaluates the affected canonical state and reports that the behavior-preserving refactor requires no canonical change."
+          "criterion": "The actor response identifies the affected canonical state and explains why the behavior-preserving refactor leaves it accurate, consistently with the supplied scenario and workspace evidence."
         },
         {
           "label": "report-no-canonical-change",
-          "criterion": "The actor response explicitly reports no canonical change, with the supplied workspace evidence remaining consistent with that report."
+          "criterion": "The actor response explicitly reports that no canonical change was required, and workspace evidence contains no canonical documentation or manifest change."
         }
       ],
       "forbidden": [
@@ -1205,7 +1205,7 @@
         },
         {
           "label": "skip-relevance-analysis",
-          "criterion": "The actor skips relevance analysis before reporting the result."
+          "criterion": "The actor claims completion without identifying the affected canonical state or explaining why the behavior-preserving refactor leaves it accurate."
         }
       ]
     },

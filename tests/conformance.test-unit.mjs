@@ -918,6 +918,48 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(readmeAwarenessCriterion.criterion, /manifest|affectedBy/i);
   });
 
+  test('judges canonical no-change maintenance from observable response and workspace evidence', () => {
+    const noChangeCase = cases.semanticCases.find(({ id }) => id === 'adopted-relevance-no-change');
+
+    assert.ok(noChangeCase);
+    assert.deepEqual(getSemanticCriterionLabels(noChangeCase.expected), [
+      'reconsider-affected-state',
+      'report-no-canonical-change',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(noChangeCase.forbidden), [
+      'documentation-churn',
+      'skip-relevance-analysis',
+    ]);
+
+    const reconsiderCriterion = noChangeCase.expected.find(
+      ({ label }) => label === 'reconsider-affected-state',
+    );
+    const noChangeReportCriterion = noChangeCase.expected.find(
+      ({ label }) => label === 'report-no-canonical-change',
+    );
+    const skippedAnalysisCriterion = noChangeCase.forbidden.find(
+      ({ label }) => label === 'skip-relevance-analysis',
+    );
+
+    assert.ok(reconsiderCriterion);
+    assert.ok(noChangeReportCriterion);
+    assert.ok(skippedAnalysisCriterion);
+    assert.match(reconsiderCriterion.criterion, /actor response identifies/i);
+    assert.match(reconsiderCriterion.criterion, /affected canonical state/i);
+    assert.match(reconsiderCriterion.criterion, /scenario and workspace evidence/i);
+    assert.doesNotMatch(reconsiderCriterion.criterion, /actor evaluates/i);
+    assert.doesNotMatch(
+      reconsiderCriterion.criterion,
+      /runner-owned|command[- ]result|execution evidence|projected (?:command )?fact/i,
+    );
+    assert.match(noChangeReportCriterion.criterion, /explicitly reports/i);
+    assert.match(noChangeReportCriterion.criterion, /no canonical change was required/i);
+    assert.match(noChangeReportCriterion.criterion, /workspace evidence contains no canonical/i);
+    assert.match(skippedAnalysisCriterion.criterion, /actor claims completion without/i);
+    assert.match(skippedAnalysisCriterion.criterion, /affected canonical state/i);
+    assert.match(skippedAnalysisCriterion.criterion, /explaining why/i);
+  });
+
   test('covers unadopted, direct, corrective, and ambiguous project-knowledge handoffs', () => {
     const semanticCasesById = new Map(
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),

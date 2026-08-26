@@ -38,7 +38,7 @@ const evidenceLayers = [
   },
   {
     description:
-      'A fixed actor using a balanced-tier model completes the natural task, and an independent judge using the same configuration evaluates a read-only copy against explicit requirements.',
+      'A fixed actor using the frontier assurance model completes the natural task, and an independent judge using the same configuration evaluates a read-only copy against explicit requirements.',
     icon: Scale,
     title: 'Semantic judgment',
   },
@@ -61,8 +61,8 @@ const evidenceLayers = [
       <h1 class="display-title max-w-5xl font-semibold">Adapter qualification evidence</h1>
       <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
         Realistic projects exercise exact published package artifacts, the portable skill,
-        deterministic repository behavior, and separate actor and judge stages using a balanced-tier
-        model. Profiles and every recorded outcome remain inspectable in Git.
+        deterministic repository behavior, and separate actor and judge stages using the frontier
+        assurance model. Profiles and every recorded outcome remain inspectable in Git.
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
@@ -122,7 +122,7 @@ const evidenceLayers = [
               href={withBase(profile.route, basePath)}
             >
               <div class="flex flex-wrap items-center gap-2">
-                <EvidenceStatus status={profile.latest?.latestStatus ?? 'not-recorded'} />
+                <EvidenceStatus status={profile.currentLatest?.result.status ?? 'not-recorded'} />
                 <code class="text-xs text-muted-foreground">
                   {profile.adapterId}/{profile.implementationId}
                 </code>

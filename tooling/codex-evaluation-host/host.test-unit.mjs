@@ -102,7 +102,7 @@ test('host configuration accepts a workflow-owned default timeout', () => {
 });
 
 test('host commands use the runner-owned model and reasoning effort', () => {
-  assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-5.6-terra');
+  assert.equal(identifyConfiguredModel(SAFE_HOST_COMMAND), 'gpt-5.6-sol');
   assert.equal(identifyConfiguredReasoningEffort(SAFE_HOST_COMMAND), 'medium');
   assert.throws(
     () =>
@@ -126,7 +126,7 @@ test('host commands reject caller-owned model and reasoning overrides', () => {
         'gpt-example',
         '-',
       ]),
-    /must not override the runner-owned gpt-5\.6-terra model/,
+    /must not override the runner-owned gpt-5\.6-sol model/,
   );
   assert.throws(
     () =>
@@ -135,7 +135,7 @@ test('host commands reject caller-owned model and reasoning overrides', () => {
         '--config=model=gpt-example',
         '-',
       ]),
-    /must not override the runner-owned gpt-5\.6-terra model/,
+    /must not override the runner-owned gpt-5\.6-sol model/,
   );
   assert.throws(
     () =>

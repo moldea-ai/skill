@@ -5,14 +5,17 @@ const StableIdSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
 const AttemptStatusSchema = z.enum(['failed', 'incomplete', 'passed']);
 
 // additive semantic result contracts preserve compatibility with new diagnostic fields
-const SemanticHostSchema = z.object({
-  model: z.literal('gpt-5.6-terra'),
-  name: z.string().trim().min(1),
-  reasoningEffort: z.literal('medium'),
-  version: z.string().trim().min(1),
-});
-
-const SemanticHostContractSchema = SemanticHostSchema.omit({ version: true });
+const createSemanticHostSchema = <TModel extends 'gpt-5.6-sol' | 'gpt-5.6-terra'>(model: TModel) =>
+  z.object({
+    model: z.literal(model),
+    name: z.string().trim().min(1),
+    reasoningEffort: z.literal('medium'),
+    version: z.string().trim().min(1),
+  });
+const SemanticSolHostSchema = createSemanticHostSchema('gpt-5.6-sol');
+const SemanticTerraHostSchema = createSemanticHostSchema('gpt-5.6-terra');
+const SemanticSolHostContractSchema = SemanticSolHostSchema.omit({ version: true });
+const SemanticTerraHostContractSchema = SemanticTerraHostSchema.omit({ version: true });
 
 export const SemanticCliIdentitySchema = z.object({
   integrity: z.string().startsWith('sha512-'),
@@ -33,11 +36,14 @@ const SemanticAttemptTrialShape = {
 };
 
 const SemanticLegacyAttemptTrialSchema = z.object(SemanticAttemptTrialShape);
-const SemanticAttemptTrialSchema = z.object({
-  actorHost: SemanticHostSchema,
-  ...SemanticAttemptTrialShape,
-  judgeHost: SemanticHostSchema,
-});
+const createSemanticAttemptTrialSchema = (
+  hostSchema: typeof SemanticSolHostSchema | typeof SemanticTerraHostSchema,
+) =>
+  z.object({
+    actorHost: hostSchema,
+    ...SemanticAttemptTrialShape,
+    judgeHost: hostSchema,
+  });
 
 const createSemanticAttemptCasesSchema = <TSchema extends z.ZodType>(trialSchema: TSchema) =>
   z.array(
@@ -81,22 +87,32 @@ const SemanticAttemptRecordShape = {
 };
 
 const SemanticLegacyAttemptRecordSchema = z.object({
-  actorHost: SemanticHostSchema,
+  actorHost: SemanticTerraHostSchema,
   ...SemanticAttemptRecordShape,
   cases: createSemanticAttemptCasesSchema(SemanticLegacyAttemptTrialSchema),
-  judgeHost: SemanticHostSchema,
+  judgeHost: SemanticTerraHostSchema,
   schemaVersion: z.literal(1),
+});
+
+const SemanticTerraAttemptRecordSchema = z.object({
+  ...SemanticAttemptRecordShape,
+  cases: createSemanticAttemptCasesSchema(
+    createSemanticAttemptTrialSchema(SemanticTerraHostSchema),
+  ),
+  hostContract: SemanticTerraHostContractSchema,
+  schemaVersion: z.literal(2),
 });
 
 const SemanticCurrentAttemptRecordSchema = z.object({
   ...SemanticAttemptRecordShape,
-  cases: createSemanticAttemptCasesSchema(SemanticAttemptTrialSchema),
-  hostContract: SemanticHostContractSchema,
-  schemaVersion: z.literal(2),
+  cases: createSemanticAttemptCasesSchema(createSemanticAttemptTrialSchema(SemanticSolHostSchema)),
+  hostContract: SemanticSolHostContractSchema,
+  schemaVersion: z.literal(3),
 });
 
 export const SemanticAttemptRecordSchema = z.discriminatedUnion('schemaVersion', [
   SemanticLegacyAttemptRecordSchema,
+  SemanticTerraAttemptRecordSchema,
   SemanticCurrentAttemptRecordSchema,
 ]);
 

@@ -18,7 +18,7 @@ const claimCount = qualification.profiles.reduce(
   0,
 );
 const qualificationStatuses = qualification.profiles.map(
-  (profile) => profile.latest?.latestStatus ?? 'not-recorded',
+  (profile) => profile.currentLatest?.result.status ?? 'not-recorded',
 );
 const qualificationStatus = qualificationStatuses.includes('errored')
   ? 'errored'
@@ -60,8 +60,10 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         title="Semantic evaluation"
         description="Review the behavioral scenarios, exact success and failure criteria, and evidence-based rationale for every recorded outcome."
         href={semanticEvaluation.route}
-        metric={`${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful in the latest attempt`}
-        status={semanticEvaluation.status}
+        metric={`${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful for current assurance`}
+        status={semanticEvaluation.hasCurrentAssuranceAttempt
+          ? semanticEvaluation.status
+          : 'not-recorded'}
         questions={[
           'Does the skill make the right decision when context is incomplete or conflicting?',
           'Does it respect repository truth, host constraints, and safety boundaries?',

@@ -9,7 +9,7 @@ import {
 } from './provenance.ts';
 
 const executionEnvironment: IQualificationExecutionEnvironment = {
-  model: 'gpt-5.6-terra',
+  model: 'gpt-5.6-sol',
   reasoningEffort: 'medium',
   codexVersion: 'codex-cli test',
   nodeVersion: 'v24.15.0',

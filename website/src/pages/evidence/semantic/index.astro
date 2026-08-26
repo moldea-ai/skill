@@ -35,7 +35,11 @@ const successfulCaseCount =
 
     <header class="mt-7 border-b border-border pb-10">
       <div class="flex flex-wrap items-center gap-3">
-        <EvidenceStatus status={semanticEvaluation.status} />
+        <EvidenceStatus
+          status={semanticEvaluation.hasCurrentAssuranceAttempt
+            ? semanticEvaluation.status
+            : 'not-recorded'}
+        />
         <span class="font-mono text-sm font-bold">
           {successfulCaseCount}/{semanticEvaluation.caseCount} scenarios
         </span>
@@ -43,9 +47,9 @@ const successfulCaseCount =
       <p class="eyebrow mt-5">Behavioral release evidence</p>
       <h1 class="display-title mt-3 max-w-5xl font-semibold">Semantic evaluation</h1>
       <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-        The latest immutable attempt is shown as it happened. Each completed scenario used a blind
-        actor and an independent judge, while pending scenarios remain visible instead of being
-        mistaken for passes. Prior success and every later failure stay separately inspectable.
+        The latest immutable attempt is shown as it happened. Historical Terra evidence remains
+        inspectable, but only a passing Sol attempt counts as current release assurance. Each
+        completed scenario used a blind actor and an independent judge.
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
@@ -182,6 +186,9 @@ const successfulCaseCount =
                     {result.attemptId === semanticEvaluation.latestPointer.lastPassingAttemptId && (
                       <span class="text-xs font-bold text-muted-foreground">Last passing</span>
                     )}
+                    <span class="text-xs font-bold text-muted-foreground">
+                      {result.schemaVersion === 3 ? 'Current Sol' : 'Historical Terra'}
+                    </span>
                   </span>
                   <span class="mt-3 block font-mono text-sm break-all">{result.attemptId}</span>
                   <span class="mt-2 block text-sm text-muted-foreground">
@@ -222,7 +229,9 @@ const successfulCaseCount =
           </div>
           <div>
             <dt class="text-muted-foreground">Actor and judge</dt>
-            <dd class="mt-1 font-mono break-all">gpt-5.6-terra, medium</dd>
+            <dd class="mt-1 font-mono break-all">
+              {semanticEvaluation.evaluationModel}, medium
+            </dd>
           </div>
           <div>
             <dt class="text-muted-foreground">Portable artifact digest</dt>

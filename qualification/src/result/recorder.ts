@@ -9,8 +9,11 @@ import {
 import {
   QualificationAttemptResultSchema,
   QualificationLatestResultSchema,
+  QualificationRecordedAttemptResultSchema,
+  QualificationRecordedLatestResultSchema,
   type IQualificationAttemptResult,
-  type IQualificationLatestResult,
+  type IQualificationRecordedAttemptResult,
+  type IQualificationRecordedLatestResult,
 } from '../contracts/index.ts';
 import {
   calculateFileSha256,
@@ -109,7 +112,7 @@ const sanitizeArtifactDirectory = async (
 const readRecordedAttempts = async (
   targetRoot: string,
   expectedSelection: { adapterId: string; implementationId: string },
-): Promise<IQualificationAttemptResult[]> => {
+): Promise<IQualificationRecordedAttemptResult[]> => {
   const attemptsRoot = path.join(targetRoot, 'attempts');
 
   if (!(await pathExists(attemptsRoot))) {
@@ -117,7 +120,7 @@ const readRecordedAttempts = async (
   }
 
   const entries = await readdir(attemptsRoot, { withFileTypes: true });
-  const attempts: IQualificationAttemptResult[] = [];
+  const attempts: IQualificationRecordedAttemptResult[] = [];
 
   for (const entry of entries) {
     if (!entry.isDirectory() || entry.name.startsWith('.')) {
@@ -126,7 +129,7 @@ const readRecordedAttempts = async (
 
     const result = await readJsonFile(
       path.join(attemptsRoot, entry.name, 'attempt.json'),
-      QualificationAttemptResultSchema,
+      QualificationRecordedAttemptResultSchema,
     );
 
     if (
@@ -261,7 +264,7 @@ export const recordQualificationResult = async (
 
 const verifyAttemptArtifacts = async (
   attemptDirectory: string,
-  result: IQualificationAttemptResult,
+  result: IQualificationRecordedAttemptResult,
   issues: IQualificationResultVerificationIssue[],
   resultsRoot: string,
 ): Promise<void> => {
@@ -334,7 +337,7 @@ export const verifyQualificationResults = async (
         const latestPath = path.join(targetRoot, 'latest.json');
 
         if (recordedAttempts.length > 0) {
-          const latest = await readJsonFile(latestPath, QualificationLatestResultSchema);
+          const latest = await readJsonFile(latestPath, QualificationRecordedLatestResultSchema);
           const expectedLatest = recordedAttempts.at(-1);
           const expectedPassing = recordedAttempts
             .filter(({ status }) => status === 'passed')
@@ -373,12 +376,12 @@ export const verifyQualificationResults = async (
 /** Lists every committed latest pointer for local status presentation. */
 export const listLatestQualificationResults = async (
   resultsRoot: string = QUALIFICATION_RESULTS_ROOT,
-): Promise<IQualificationLatestResult[]> => {
+): Promise<IQualificationRecordedLatestResult[]> => {
   if (!(await pathExists(resultsRoot))) {
     return [];
   }
 
-  const latestResults: IQualificationLatestResult[] = [];
+  const latestResults: IQualificationRecordedLatestResult[] = [];
   const adapterEntries = await readdir(resultsRoot, { withFileTypes: true });
 
   for (const adapterEntry of adapterEntries) {
@@ -403,7 +406,7 @@ export const listLatestQualificationResults = async (
       );
 
       if (await pathExists(latestPath)) {
-        latestResults.push(await readJsonFile(latestPath, QualificationLatestResultSchema));
+        latestResults.push(await readJsonFile(latestPath, QualificationRecordedLatestResultSchema));
       }
     }
   }

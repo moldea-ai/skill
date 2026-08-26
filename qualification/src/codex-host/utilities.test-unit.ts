@@ -11,7 +11,7 @@ describe('createCodexExecCommand', () => {
     });
 
     expect(command.slice(0, 2)).toStrictEqual(['codex', 'exec']);
-    expect(command).toContain('gpt-5.6-terra');
+    expect(command).toContain('gpt-5.6-sol');
     expect(command).toContain('model_reasoning_effort=medium');
     expect(command).toContain('shell_environment_policy.inherit=none');
     expect(command).toContain('web_search=disabled');

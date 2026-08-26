@@ -3,7 +3,8 @@ import { posix } from 'node:path';
 import { z } from 'zod';
 
 const QUALIFICATION_PROTOCOL_VERSION = 1;
-const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 3;
+const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 4;
+const QUALIFICATION_TERRA_EVIDENCE_PROTOCOL_VERSION = 3;
 const StableIdSchema = z
   .string()
   .regex(/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/u, 'Expected a stable kebab-case id.');
@@ -130,15 +131,24 @@ export const QualificationScenarioSchema = z.object({
 });
 
 // additive result contracts keep older website builds compatible with harmless producer fields
-export const QualificationLatestResultSchema = z.object({
-  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
+const QualificationLatestResultShape = {
   adapterId: StableIdSchema,
   implementationId: StableIdSchema,
   latestAttemptId: z.string().trim().min(1),
   latestStatus: AttemptStatusSchema,
   lastPassingAttemptId: z.string().trim().min(1).nullable(),
   updatedAt: z.iso.datetime(),
-});
+};
+export const QualificationLatestResultSchema = z.discriminatedUnion('protocolVersion', [
+  z.object({
+    protocolVersion: z.literal(QUALIFICATION_TERRA_EVIDENCE_PROTOCOL_VERSION),
+    ...QualificationLatestResultShape,
+  }),
+  z.object({
+    protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
+    ...QualificationLatestResultShape,
+  }),
+]);
 const ModelUsageSchema = z.object({
   inputTokens: z.number().int().nonnegative(),
   cachedInputTokens: z.number().int().nonnegative(),
@@ -153,8 +163,7 @@ const CandidatePackageSchema = z.object({
   tarballName: z.string().trim().min(1),
   sha256: Sha256Schema,
 });
-const QualificationProvenanceSchema = z.object({
-  model: z.literal('gpt-5.6-terra'),
+const QualificationProvenanceShape = {
   reasoningEffort: z.literal('medium'),
   codexVersion: z.string().trim().min(1),
   nodeVersion: z.string().trim().min(1),
@@ -182,6 +191,14 @@ const QualificationProvenanceSchema = z.object({
   targetDigest: Sha256Schema,
   baselineAttemptId: z.string().trim().min(1).nullable(),
   packages: z.array(CandidatePackageSchema).min(1),
+};
+const QualificationTerraProvenanceSchema = z.object({
+  model: z.literal('gpt-5.6-terra'),
+  ...QualificationProvenanceShape,
+});
+const QualificationCurrentProvenanceSchema = z.object({
+  model: z.literal('gpt-5.6-sol'),
+  ...QualificationProvenanceShape,
 });
 export const QualificationCaseResultSchema = z.object({
   caseId: StableIdSchema,
@@ -204,8 +221,7 @@ export const QualificationCaseResultSchema = z.object({
   judgeCacheSourceAttemptId: z.string().nullable(),
   failures: z.array(z.string()),
 });
-export const QualificationAttemptResultSchema = z.object({
-  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
+const QualificationAttemptResultShape = {
   attemptId: z.string().trim().min(1),
   parentAttemptId: z.string().trim().min(1).nullable(),
   selection: z.object({
@@ -217,7 +233,6 @@ export const QualificationAttemptResultSchema = z.object({
   completedAt: z.iso.datetime().nullable(),
   evidenceGeneratedAt: z.iso.datetime().nullable(),
   summary: z.string().trim().min(1),
-  provenance: QualificationProvenanceSchema,
   stages: z.array(
     z.object({
       id: z.string().trim().min(1),
@@ -232,7 +247,19 @@ export const QualificationAttemptResultSchema = z.object({
   ),
   cases: z.array(QualificationCaseResultSchema),
   artifactDigests: z.record(RelativePathSchema, Sha256Schema),
-});
+};
+export const QualificationAttemptResultSchema = z.discriminatedUnion('protocolVersion', [
+  z.object({
+    protocolVersion: z.literal(QUALIFICATION_TERRA_EVIDENCE_PROTOCOL_VERSION),
+    ...QualificationAttemptResultShape,
+    provenance: QualificationTerraProvenanceSchema,
+  }),
+  z.object({
+    protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
+    ...QualificationAttemptResultShape,
+    provenance: QualificationCurrentProvenanceSchema,
+  }),
+]);
 
 // additive public artifacts shown on immutable attempt pages
 export const QualificationCoverageResultSchema = z.object({
@@ -398,6 +425,8 @@ export interface IQualificationProfileModel {
   adapterId: string;
   attempts: IQualificationAttemptModel[];
   cases: IQualificationProfileCaseModel[];
+  currentLastPassing: IQualificationAttemptModel | null;
+  currentLatest: IQualificationAttemptModel | null;
   description: string;
   implementationId: string;
   latest: IQualificationLatestResult | null;

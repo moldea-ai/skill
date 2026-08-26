@@ -1,7 +1,7 @@
 import type {
   IQualificationAttemptCheckpoint,
   IQualificationAttemptResult,
-  IQualificationLatestResult,
+  IQualificationRecordedLatestResult,
 } from '../contracts/index.ts';
 import type { IQualificationImplementation } from '../compatibility/index.ts';
 import type { IUnavailableLocalAttempt } from '../execution/index.ts';
@@ -34,7 +34,7 @@ export const formatImplementationList = (
 export const formatQualificationStatus = (options: {
   attempts: readonly IQualificationAttemptCheckpoint[];
   unavailableAttempts: readonly IUnavailableLocalAttempt[];
-  latestResults: readonly IQualificationLatestResult[];
+  latestResults: readonly IQualificationRecordedLatestResult[];
 }): string => {
   const lines = ['Local attempts:'];
 

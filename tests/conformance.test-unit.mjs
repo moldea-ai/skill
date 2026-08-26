@@ -1508,11 +1508,9 @@ describe('source repository conformance', () => {
           'Release-version declarations changed without changing semantic skill content.',
         );
       }
-      assert.deepEqual(result.hostContract, {
-        model: 'gpt-5.6-terra',
-        name: 'codex',
-        reasoningEffort: 'medium',
-      });
+      assert.ok(['gpt-5.6-sol', 'gpt-5.6-terra'].includes(result.hostContract.model));
+      assert.equal(result.hostContract.name, 'codex');
+      assert.equal(result.hostContract.reasoningEffort, 'medium');
       assert.equal(result.host, undefined);
       assert.equal(result.actorHost, undefined);
       assert.equal(result.judgeHost, undefined);
@@ -1525,10 +1523,10 @@ describe('source repository conformance', () => {
       for (const evaluationCase of result.cases) {
         const conformanceCase = semanticCases.get(evaluationCase.id);
         assert.equal(evaluationCase.passed, true);
-        assert.equal(evaluationCase.actorHost.model, 'gpt-5.6-terra');
+        assert.equal(evaluationCase.actorHost.model, result.hostContract.model);
         assert.equal(evaluationCase.actorHost.reasoningEffort, 'medium');
         assert.ok(evaluationCase.actorHost.version.length > 0);
-        assert.equal(evaluationCase.judgeHost.model, 'gpt-5.6-terra');
+        assert.equal(evaluationCase.judgeHost.model, result.hostContract.model);
         assert.equal(evaluationCase.judgeHost.reasoningEffort, 'medium');
         assert.ok(evaluationCase.judgeHost.version.length > 0);
         assert.equal(
@@ -1843,12 +1841,12 @@ describe('source repository conformance', () => {
     ]);
   });
 
-  test('pins semantic evaluation to the balanced-tier model with fixed reasoning effort', () => {
+  test('pins semantic evaluation to the frontier assurance model with fixed reasoning effort', () => {
     const readme = readRepositoryFile('README.md');
 
     assertMatchesEvery(readme, [
-      /balanced-tier model/,
-      /gpt-5\.6-terra/,
+      /frontier assurance model/,
+      /gpt-5\.6-sol/,
       /actor and judge/,
       /medium/,
       /must not select their own model or reasoning effort/,

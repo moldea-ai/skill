@@ -537,6 +537,11 @@ export const QualificationProvenanceSchema = z.strictObject({
 
 export type IQualificationProvenance = z.infer<typeof QualificationProvenanceSchema>;
 
+// historical Terra provenance retained for protocol 3 result verification
+const QualificationTerraProvenanceSchema = QualificationProvenanceSchema.extend({
+  model: z.literal('gpt-5.6-terra'),
+});
+
 // local result draft shared by dry runs and official result publication
 export const QualificationAttemptResultDraftSchema = z.strictObject({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
@@ -556,57 +561,84 @@ export const QualificationAttemptResultDraftSchema = z.strictObject({
 
 export type IQualificationAttemptResult = z.infer<typeof QualificationAttemptResultDraftSchema>;
 
-// committed attempt record used by the website and repository verification command
+// protocol 3 Terra draft retained exclusively for immutable history verification
+const QualificationTerraAttemptResultDraftSchema = QualificationAttemptResultDraftSchema.extend({
+  protocolVersion: z.literal(3),
+  provenance: QualificationTerraProvenanceSchema,
+});
+
+const validateQualificationAttemptResult = (
+  result:
+    | z.infer<typeof QualificationAttemptResultDraftSchema>
+    | z.infer<typeof QualificationTerraAttemptResultDraftSchema>,
+  context: z.RefinementCtx,
+): void => {
+  if (
+    result.status === 'passed' &&
+    (result.provenance.packagesRepositoryDirty ||
+      result.provenance.qualificationRepositoryDirty ||
+      result.provenance.skillRepositoryDirty)
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Passing qualification evidence requires clean repository inputs.',
+      path: ['provenance'],
+    });
+  }
+
+  if (
+    result.status === 'passed' &&
+    result.selection.adapterId !== 'custom' &&
+    result.provenance.baselineAttemptId === null
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Passing adapter qualification evidence requires a compatible Custom baseline.',
+      path: ['provenance', 'baselineAttemptId'],
+    });
+  }
+
+  const hasTrustedModelEndpoint =
+    result.provenance.modelEndpoint === null ||
+    QUALIFICATION_MODEL_ENDPOINT_ORIGINS.some(
+      (origin) => origin === result.provenance.modelEndpoint?.origin,
+    );
+  const hasRestrictedEgress =
+    JSON.stringify([...result.provenance.allowedEgressHosts].sort()) ===
+    JSON.stringify(QUALIFICATION_ALLOWED_EGRESS_HOSTS);
+
+  if (
+    result.status === 'passed' &&
+    (!hasTrustedModelEndpoint ||
+      !hasRestrictedEgress ||
+      result.provenance.sslCertificateFileSha256 !== null)
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Passing qualification evidence requires the trusted execution-host boundary.',
+      path: ['provenance'],
+    });
+  }
+};
+
+// current committed attempt record used by the release workflow
 export const QualificationAttemptResultSchema = QualificationAttemptResultDraftSchema.superRefine(
-  (result, context) => {
-    if (
-      result.status === 'passed' &&
-      (result.provenance.packagesRepositoryDirty ||
-        result.provenance.qualificationRepositoryDirty ||
-        result.provenance.skillRepositoryDirty)
-    ) {
-      context.addIssue({
-        code: 'custom',
-        message: 'Passing qualification evidence requires clean repository inputs.',
-        path: ['provenance'],
-      });
-    }
-
-    if (
-      result.status === 'passed' &&
-      result.selection.adapterId !== 'custom' &&
-      result.provenance.baselineAttemptId === null
-    ) {
-      context.addIssue({
-        code: 'custom',
-        message: 'Passing adapter qualification evidence requires a compatible Custom baseline.',
-        path: ['provenance', 'baselineAttemptId'],
-      });
-    }
-
-    const hasTrustedModelEndpoint =
-      result.provenance.modelEndpoint === null ||
-      QUALIFICATION_MODEL_ENDPOINT_ORIGINS.some(
-        (origin) => origin === result.provenance.modelEndpoint?.origin,
-      );
-    const hasRestrictedEgress =
-      JSON.stringify([...result.provenance.allowedEgressHosts].sort()) ===
-      JSON.stringify(QUALIFICATION_ALLOWED_EGRESS_HOSTS);
-
-    if (
-      result.status === 'passed' &&
-      (!hasTrustedModelEndpoint ||
-        !hasRestrictedEgress ||
-        result.provenance.sslCertificateFileSha256 !== null)
-    ) {
-      context.addIssue({
-        code: 'custom',
-        message: 'Passing qualification evidence requires the trusted execution-host boundary.',
-        path: ['provenance'],
-      });
-    }
-  },
+  validateQualificationAttemptResult,
 );
+
+// protocol 3 Terra attempt retained exclusively for immutable history verification
+const QualificationTerraAttemptResultSchema =
+  QualificationTerraAttemptResultDraftSchema.superRefine(validateQualificationAttemptResult);
+
+// complete readable history across the frozen Terra and current Sol protocols
+export const QualificationRecordedAttemptResultSchema = z.union([
+  QualificationTerraAttemptResultSchema,
+  QualificationAttemptResultSchema,
+]);
+
+export type IQualificationRecordedAttemptResult = z.infer<
+  typeof QualificationRecordedAttemptResultSchema
+>;
 
 // latest always names the newest attempt while preserving the newest passing baseline separately
 export const QualificationLatestResultSchema = z.strictObject({
@@ -620,3 +652,17 @@ export const QualificationLatestResultSchema = z.strictObject({
 });
 
 export type IQualificationLatestResult = z.infer<typeof QualificationLatestResultSchema>;
+
+// protocol 3 pointer retained exclusively for immutable history verification
+const QualificationTerraLatestResultSchema = QualificationLatestResultSchema.extend({
+  protocolVersion: z.literal(3),
+});
+
+export const QualificationRecordedLatestResultSchema = z.union([
+  QualificationTerraLatestResultSchema,
+  QualificationLatestResultSchema,
+]);
+
+export type IQualificationRecordedLatestResult = z.infer<
+  typeof QualificationRecordedLatestResultSchema
+>;

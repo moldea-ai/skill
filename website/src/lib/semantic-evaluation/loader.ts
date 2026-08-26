@@ -39,13 +39,16 @@ const CONFORMANCE_CASES_PATH = 'fixtures/conformance-cases.json';
 const SEMANTIC_ATTEMPTS_PATH = 'fixtures/semantic-evaluation-results';
 const SEMANTIC_COVERAGE_PATH = 'fixtures/semantic-evaluation-coverage.json';
 
-const isOfficialSemanticHost = (host: {
-  model: string;
-  name: string;
-  reasoningEffort: string;
-  version?: string;
-}): boolean =>
-  host.model === 'gpt-5.6-terra' &&
+const isOfficialSemanticHost = (
+  host: {
+    model: string;
+    name: string;
+    reasoningEffort: string;
+    version?: string;
+  },
+  model: 'gpt-5.6-sol' | 'gpt-5.6-terra',
+): boolean =>
+  host.model === model &&
   host.name === 'codex' &&
   host.reasoningEffort === 'medium' &&
   (host.version === undefined ||
@@ -95,12 +98,12 @@ const loadCaseDefinitions = (repositoryRoot: string): ISemanticCaseDefinition[] 
   );
 };
 
-const assertCurrentAttemptIdentity = (
+const hasCurrentAttemptIdentity = (
   attempt: ISemanticAttemptRecord,
   caseDefinitions: ISemanticCaseDefinition[],
   coverage: unknown,
   repositoryRoot: string,
-): void => {
+): boolean => {
   const caseIds = caseDefinitions.map(({ id }) => id);
   const presentationIds = Object.keys(SEMANTIC_CASE_PRESENTATION);
   if (
@@ -111,7 +114,7 @@ const assertCurrentAttemptIdentity = (
   }
 
   const attemptCaseIds = attempt.cases.map(({ id }) => id);
-  if (
+  const hasInputMismatch =
     attempt.artifactDigest !== createPortableSkillDigest(repositoryRoot) ||
     attempt.caseSuiteDigest !== createSemanticCaseSuiteDigest(caseDefinitions) ||
     attempt.coverageDigest !== createSemanticCoverageDigest(coverage, caseDefinitions) ||
@@ -119,29 +122,29 @@ const assertCurrentAttemptIdentity = (
     JSON.stringify(attempt.cli) !== JSON.stringify(createSemanticCliIdentity(repositoryRoot)) ||
     attempt.totalCaseCount !== caseDefinitions.length ||
     new Set(attemptCaseIds).size !== attemptCaseIds.length ||
-    attemptCaseIds.some((id) => !caseIds.includes(id))
-  ) {
-    throw new Error(
-      'Latest semantic attempt does not match the current release evidence boundary.',
-    );
-  }
+    attemptCaseIds.some((id) => !caseIds.includes(id));
   let hasOfficialHosts: boolean;
   if (attempt.schemaVersion === 1) {
     hasOfficialHosts =
-      isOfficialSemanticHost(attempt.actorHost) && isOfficialSemanticHost(attempt.judgeHost);
+      isOfficialSemanticHost(attempt.actorHost, 'gpt-5.6-terra') &&
+      isOfficialSemanticHost(attempt.judgeHost, 'gpt-5.6-terra');
   } else {
+    const expectedModel = attempt.schemaVersion === 2 ? 'gpt-5.6-terra' : 'gpt-5.6-sol';
     hasOfficialHosts =
-      isOfficialSemanticHost(attempt.hostContract) &&
+      isOfficialSemanticHost(attempt.hostContract, expectedModel) &&
       attempt.cases.every(({ trials }) =>
         trials.every(
           ({ actorHost, judgeHost }) =>
-            isOfficialSemanticHost(actorHost) && isOfficialSemanticHost(judgeHost),
+            isOfficialSemanticHost(actorHost, expectedModel) &&
+            isOfficialSemanticHost(judgeHost, expectedModel),
         ),
       );
   }
   if (!hasOfficialHosts) {
-    throw new Error('Latest semantic attempt does not use the official Terra host configuration.');
+    throw new Error('Latest semantic attempt does not use its schema-owned host configuration.');
   }
+
+  return !hasInputMismatch;
 };
 
 const createAttemptModel = (attempt: ISemanticAttemptRecord): ISemanticAttemptModel => {
@@ -157,11 +160,11 @@ const createAttemptModel = (attempt: ISemanticAttemptRecord): ISemanticAttemptMo
 
 const createCaseModel = (
   caseDefinition: ISemanticCaseDefinition,
-  latestAttempt: ISemanticAttemptModel,
+  latestAttempt: ISemanticAttemptModel | null,
 ): ISemanticEvaluationCaseModel => {
   const id = caseDefinition.id as ISemanticEvaluationCaseId;
   const presentation = SEMANTIC_CASE_PRESENTATION[id];
-  const attemptCase = latestAttempt.cases.find(({ id: attemptCaseId }) => attemptCaseId === id);
+  const attemptCase = latestAttempt?.cases.find(({ id: attemptCaseId }) => attemptCaseId === id);
   const latestTrial = attemptCase?.trials.at(-1);
   if (presentation === undefined) {
     throw new Error(`Semantic case ${id} has no public presentation model.`);
@@ -204,7 +207,13 @@ export const loadSemanticEvaluationWebsiteModel = (
   if (latest === undefined) {
     throw new Error('Semantic latest pointer does not resolve to an immutable attempt.');
   }
-  assertCurrentAttemptIdentity(latest.result, caseDefinitions, coverage, repositoryRoot);
+  const hasCurrentInputs = hasCurrentAttemptIdentity(
+    latest.result,
+    caseDefinitions,
+    coverage,
+    repositoryRoot,
+  );
+  const hasCurrentEvaluation = hasCurrentInputs && latest.result.schemaVersion === 3;
 
   const lastPassing =
     latestPointer.lastPassingAttemptId === null
@@ -216,7 +225,9 @@ export const loadSemanticEvaluationWebsiteModel = (
     throw new Error('Semantic last-passing pointer does not resolve to an immutable attempt.');
   }
 
-  const cases = caseDefinitions.map((caseDefinition) => createCaseModel(caseDefinition, latest));
+  const cases = caseDefinitions.map((caseDefinition) =>
+    createCaseModel(caseDefinition, hasCurrentEvaluation ? latest : null),
+  );
   const groups = (
     Object.entries(SEMANTIC_EVALUATION_GROUPS) as Array<
       [ISemanticEvaluationGroupId, (typeof SEMANTIC_EVALUATION_GROUPS)[ISemanticEvaluationGroupId]]
@@ -230,29 +241,33 @@ export const loadSemanticEvaluationWebsiteModel = (
   if (groups.some(({ cases: groupCases }) => groupCases.length === 0)) {
     throw new Error('Every semantic evidence group must contain at least one current case.');
   }
-  const currentCoverageDigest = latest.result.coverageDigest;
-  if (currentCoverageDigest === null) {
-    throw new Error('Latest semantic attempt does not record the current coverage digest.');
-  }
+  const currentCoverageDigest = createSemanticCoverageDigest(coverage, caseDefinitions);
 
   return {
-    artifactDigest: latest.result.artifactDigest,
+    artifactDigest: createPortableSkillDigest(repositoryRoot),
     attempts: attemptModels,
     caseCount: caseDefinitions.length,
-    caseSuiteDigest: latest.result.caseSuiteDigest,
-    cli: latest.result.cli,
+    caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
+    cli: createSemanticCliIdentity(repositoryRoot),
     coverageDigest: currentCoverageDigest,
     coverageUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${SEMANTIC_COVERAGE_PATH}`,
     evaluatedAt: latest.result.updatedAt,
-    failedCaseCount: latest.result.failedCaseCount,
+    evaluationModel:
+      latest.result.schemaVersion === 1
+        ? latest.result.actorHost.model
+        : latest.result.hostContract.model,
+    failedCaseCount: hasCurrentEvaluation ? latest.result.failedCaseCount : 0,
     groups,
+    hasCurrentAssuranceAttempt: hasCurrentEvaluation,
     lastPassing,
     latest,
     latestPointer,
     methodologyUrl: SEMANTIC_EVALUATION_METHODOLOGY_ROUTE,
-    passedCaseCount: latest.result.passedCaseCount,
-    pendingCaseCount: latest.result.pendingCaseCount,
-    recoveredCaseCount: latest.result.recoveredCaseCount,
+    passedCaseCount: hasCurrentEvaluation ? latest.result.passedCaseCount : 0,
+    pendingCaseCount: hasCurrentEvaluation
+      ? latest.result.pendingCaseCount
+      : caseDefinitions.length,
+    recoveredCaseCount: hasCurrentEvaluation ? latest.result.recoveredCaseCount : 0,
     route: SEMANTIC_EVALUATION_ROUTE,
     status: latest.result.status,
   };

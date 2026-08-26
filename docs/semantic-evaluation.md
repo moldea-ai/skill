@@ -10,7 +10,7 @@ order: 172
 
 Semantic evaluation tests whether the portable `moldea` skill behaves correctly in difficult repository situations. It complements deterministic conformance and adapter qualification. It does not replace either one.
 
-The current suite contains 49 scenarios. Each initial trial uses one actor call and one independent judge call, for up to 98 model calls when every scenario passes initially. One bounded confirmation sequence can add up to four calls. Both processes use `gpt-5.6-terra` at `medium` reasoning effort and have a five-minute per-call timeout by default.
+The current suite contains 49 scenarios. Each initial trial uses one actor call and one independent judge call, for up to 98 model calls when every scenario passes initially. One bounded confirmation sequence can add up to four calls. Both processes use the fixed frontier assurance model, `gpt-5.6-sol`, at `medium` reasoning effort and have a five-minute per-call timeout by default. Terra attempts remain public as historical evidence, but Terra is not qualified for the current release.
 
 ## What each scenario proves
 
@@ -41,7 +41,7 @@ A case cannot pass when any protected control changes, even if the judge otherwi
 
 The committed [coverage map](https://github.com/moldea-ai/skill/blob/main/fixtures/semantic-evaluation-coverage.json) connects portable skill claims to semantic cases, deterministic suites, or qualification profiles. Every semantic case must appear in that map.
 
-Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, semantic protocol 14, confirmation policy, and fixed Codex, `gpt-5.6-terra`, medium host contract. Each completed trial records the exact actor and judge Codex CLI versions independently. A CLI version update alone does not discard compatible paid work, but a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. The canonical result exists only after all 49 cases pass initially or satisfy the bounded recovery policy.
+Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, semantic protocol 14, confirmation policy, and fixed Codex, `gpt-5.6-sol`, medium host contract. Each completed trial records the exact actor and judge Codex CLI versions independently. A CLI version update alone does not discard compatible paid work, but a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. The canonical result exists only after all 49 cases pass initially or satisfy the bounded recovery policy.
 
 Every terminal recorded run is published under `fixtures/semantic-evaluation-results/attempts/` with a derived summary and the exact source checkpoint or result. `latest.json` tracks the newest attempt and the last passing attempt independently. Failed and incomplete history remains public but cannot satisfy the release gate. The canonical result is never assembled or edited by hand.
 

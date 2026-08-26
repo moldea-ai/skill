@@ -11,9 +11,9 @@ test('explains current semantic evidence through keyboard-accessible disclosure'
   await page.goto(toPublicPath('/evidence/semantic/'));
 
   await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
-  await expect(page.getByText('5/48 scenarios', { exact: true })).toBeVisible();
+  await expect(page.getByText('0/49 scenarios', { exact: true })).toBeVisible();
   await expect(page.getByText('Latest', { exact: true })).toBeVisible();
-  await expect(page.getByText('Last passing', { exact: true })).toBeVisible();
+  await expect(page.getByText('Historical Terra', { exact: true }).first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'Read the methodology' })).toHaveAttribute(
     'href',
     toPublicPath('/docs/semantic-evaluation/'),
@@ -28,11 +28,14 @@ test('explains current semantic evidence through keyboard-accessible disclosure'
   await summary.press('Enter');
   await expect(firstScenario.getByRole('heading', { name: 'What had to happen' })).toBeVisible();
   await expect(firstScenario.getByRole('heading', { name: 'What must not happen' })).toBeVisible();
-  await expect(firstScenario.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
+  await expect(
+    firstScenario.getByRole('heading', { name: 'Not evaluated in this attempt' }),
+  ).toBeVisible();
   const latestAttemptLink = page.getByRole('link', { name: /Latest.*Inspect attempt/su });
   await latestAttemptLink.click();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('20260825T004601727Z');
-  await expect(page.getByText('5/48 scenarios', { exact: true })).toBeVisible();
+  await page.getByText('Technical provenance', { exact: true }).click();
+  await expect(page.getByText('Historical Terra', { exact: true })).toBeVisible();
+  await expect(page.getByText('30/49 scenarios', { exact: true })).toBeVisible();
   await expect(page.getByText('adopted-direct-context-handoff', { exact: true })).toBeVisible();
   await expect(page.getByText('Actor host', { exact: true }).first()).toBeVisible();
   await expect(page.getByText('Judge host', { exact: true }).first()).toBeVisible();
@@ -51,7 +54,9 @@ test('keeps semantic evidence accessible without JavaScript and at 320px', async
 
     const firstScenario = noJavaScriptPage.locator('main details').first();
     await firstScenario.locator('summary').click();
-    await expect(firstScenario.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
+    await expect(
+      firstScenario.getByRole('heading', { name: 'Not evaluated in this attempt' }),
+    ).toBeVisible();
     const widths = await noJavaScriptPage.evaluate(() => ({
       client: document.documentElement.clientWidth,
       scroll: document.documentElement.scrollWidth,

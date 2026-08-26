@@ -28,6 +28,8 @@ const HOST = {
   version: 'codex-cli test',
 } as const;
 const UPDATED_HOST = { ...HOST, version: 'codex-cli updated' } as const;
+const SOL_HOST = { ...HOST, model: 'gpt-5.6-sol' } as const;
+const UPDATED_SOL_HOST = { ...SOL_HOST, version: UPDATED_HOST.version } as const;
 
 const createTemporaryRoot = (): string => {
   const root = mkdtempSync(join(tmpdir(), 'moldea-semantic-website-'));
@@ -114,15 +116,15 @@ const createCurrentCandidate = (
     ...legacyCandidate,
     actorHost: undefined,
     hostContract: {
-      model: HOST.model,
-      name: HOST.name,
-      reasoningEffort: HOST.reasoningEffort,
+      model: SOL_HOST.model,
+      name: SOL_HOST.name,
+      reasoningEffort: SOL_HOST.reasoningEffort,
     },
     judgeHost: undefined,
     results: (legacyCandidate['results'] as Array<Record<string, unknown>>).map(
       (result, index) => ({
-        actorHost: index === 0 ? HOST : UPDATED_HOST,
-        judgeHost: index === 0 ? HOST : UPDATED_HOST,
+        actorHost: index === 0 ? SOL_HOST : UPDATED_SOL_HOST,
+        judgeHost: index === 0 ? SOL_HOST : UPDATED_SOL_HOST,
         ...result,
       }),
     ),
@@ -156,7 +158,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     const { cases, coverage } = loadInputs(root);
     await recordCandidate(
       root,
-      createCandidate(
+      createCurrentCandidate(
         root,
         cases,
         coverage,
@@ -172,6 +174,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
     expect(model.route).toBe('/evidence/semantic/');
     expect(model.status).toBe('passed');
+    expect(model.hasCurrentAssuranceAttempt).toBe(true);
     expect(model.caseCount).toBe(cases.length);
     expect(model.passedCaseCount).toBe(cases.length);
     expect(model.groups.flatMap(({ cases: groupCases }) => groupCases)).toHaveLength(cases.length);
@@ -182,7 +185,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     const { cases, coverage } = loadInputs(root);
     await recordCandidate(
       root,
-      createCandidate(
+      createCurrentCandidate(
         root,
         cases,
         coverage,
@@ -195,7 +198,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     );
     await recordCandidate(
       root,
-      createCandidate(
+      createCurrentCandidate(
         root,
         cases,
         coverage,
@@ -213,6 +216,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.passedCaseCount).toBe(1);
     expect(model.failedCaseCount).toBe(1);
     expect(model.pendingCaseCount).toBe(cases.length - 2);
+    expect(model.hasCurrentAssuranceAttempt).toBe(true);
     expect(model.latest.result.attemptId).not.toBe(model.lastPassing?.result.attemptId);
   });
 
@@ -235,9 +239,35 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
     const model = loadSemanticEvaluationWebsiteModel(root);
 
-    expect(model.latest.result.schemaVersion).toBe(2);
-    expect(model.latest.cases[0]?.trials[0]?.actorHost.version).toBe(HOST.version);
-    expect(model.latest.cases[1]?.trials[0]?.actorHost.version).toBe(UPDATED_HOST.version);
+    expect(model.latest.result.schemaVersion).toBe(3);
+    expect(model.latest.cases[0]?.trials[0]?.actorHost.version).toBe(SOL_HOST.version);
+    expect(model.latest.cases[1]?.trials[0]?.actorHost.version).toBe(UPDATED_SOL_HOST.version);
+  });
+
+  test('keeps Terra attempts inspectable without treating them as current assurance', async () => {
+    const root = createTemporaryRoot();
+    const { cases, coverage } = loadInputs(root);
+    await recordCandidate(
+      root,
+      createCandidate(
+        root,
+        cases,
+        coverage,
+        cases.map(({ id }) => id),
+        null,
+        '2026-08-25T12:00:00.000Z',
+      ),
+      cases.length,
+      'complete',
+    );
+
+    const model = loadSemanticEvaluationWebsiteModel(root);
+
+    expect(model.latest.result.schemaVersion).toBe(1);
+    expect(model.evaluationModel).toBe('gpt-5.6-terra');
+    expect(model.hasCurrentAssuranceAttempt).toBe(false);
+    expect(model.passedCaseCount).toBe(0);
+    expect(model.pendingCaseCount).toBe(cases.length);
   });
 
   test('rejects malformed current trial host provenance', async () => {

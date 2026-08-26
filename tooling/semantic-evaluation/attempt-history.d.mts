@@ -3,7 +3,7 @@ export type ISemanticAttemptStatus = 'failed' | 'incomplete' | 'passed';
 
 // behavior-bearing semantic execution contract
 export interface ISemanticEvaluationHostContract {
-  model: 'gpt-5.6-terra';
+  model: 'gpt-5.6-sol' | 'gpt-5.6-terra';
   name: 'codex';
   reasoningEffort: 'medium';
 }
@@ -80,14 +80,21 @@ export interface ISemanticLegacyAttemptRecord extends ISemanticAttemptRecordBase
   schemaVersion: 1;
 }
 
-// current summary with one stable contract and trial-level exact provenance
-export interface ISemanticCurrentAttemptRecord extends ISemanticAttemptRecordBase<ISemanticAttemptTrial> {
-  hostContract: ISemanticEvaluationHostContract;
+// historical Terra summary with one stable contract and trial-level exact provenance
+export interface ISemanticTerraAttemptRecord extends ISemanticAttemptRecordBase<ISemanticAttemptTrial> {
+  hostContract: ISemanticEvaluationHostContract & { model: 'gpt-5.6-terra' };
   schemaVersion: 2;
 }
 
+// current Sol summary with one stable contract and trial-level exact provenance
+export interface ISemanticCurrentAttemptRecord extends ISemanticAttemptRecordBase<ISemanticAttemptTrial> {
+  hostContract: ISemanticEvaluationHostContract & { model: 'gpt-5.6-sol' };
+  schemaVersion: 3;
+}
+
 // immutable public summary bound to exact raw semantic evidence
-export type ISemanticAttemptRecord = ISemanticLegacyAttemptRecord | ISemanticCurrentAttemptRecord;
+export type ISemanticAttemptRecord =
+  ISemanticLegacyAttemptRecord | ISemanticTerraAttemptRecord | ISemanticCurrentAttemptRecord;
 
 // independently tracks the latest attempt and most recent passing attempt
 export interface ISemanticLatestResult {

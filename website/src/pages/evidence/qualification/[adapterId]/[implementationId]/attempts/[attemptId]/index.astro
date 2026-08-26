@@ -225,6 +225,12 @@ const pageDescription =
                   {result.provenance.model} · {result.provenance.reasoningEffort}
                 </dd>
               </div>
+              <div>
+                <dt class="text-muted-foreground">Assurance generation</dt>
+                <dd class="mt-1">
+                  {result.protocolVersion === 4 ? 'Current Sol' : 'Historical Terra'}
+                </dd>
+              </div>
             </dl>
           </section>
 

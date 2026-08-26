@@ -23,7 +23,7 @@ const createCandidatePackage = (name: string, version: string, marker: string) =
 describe('qualification result transformation', () => {
   test('permits a dirty passing dry-run draft without making it publishable', () => {
     const checkpoint = QualificationAttemptCheckpointSchema.parse({
-      protocolVersion: 3,
+      protocolVersion: 4,
       attemptId: 'dry-run-attempt',
       parentAttemptId: null,
       selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -67,7 +67,7 @@ describe('qualification result transformation', () => {
       workspaceDirectories: {},
     });
     const provenance: IQualificationExecutionProvenance = {
-      model: 'gpt-5.6-terra',
+      model: 'gpt-5.6-sol',
       reasoningEffort: 'medium',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,

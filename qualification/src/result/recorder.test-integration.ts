@@ -31,7 +31,7 @@ const createResult = (
   status: 'errored' | 'failed' | 'incomplete' | 'passed',
 ): IQualificationAttemptResult =>
   QualificationAttemptResultSchema.parse({
-    protocolVersion: 3,
+    protocolVersion: 4,
     attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -41,7 +41,7 @@ const createResult = (
     evidenceGeneratedAt: createdAt,
     summary: `Fixture ${status} result.`,
     provenance: {
-      model: 'gpt-5.6-terra',
+      model: 'gpt-5.6-sol',
       reasoningEffort: 'medium',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,
@@ -396,7 +396,7 @@ describe('qualification result recording', () => {
       path.join(targetRoot, 'latest.json'),
       `${JSON.stringify(
         {
-          protocolVersion: 3,
+          protocolVersion: 4,
           adapterId: 'custom',
           implementationId: 'custom',
           latestAttemptId: 'missing-attempt',
@@ -592,7 +592,7 @@ describe('qualification result recording', () => {
       },
     };
     const latestResult = QualificationLatestResultSchema.parse({
-      protocolVersion: 3,
+      protocolVersion: 4,
       adapterId: 'custom',
       implementationId: 'custom',
       latestAttemptId: dirtyPassingResult.attemptId,

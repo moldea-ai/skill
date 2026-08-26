@@ -21,6 +21,8 @@ export const getStaticPaths = () =>
 
 const { attempt } = Astro.props;
 const { result } = attempt;
+const evaluationModel =
+  result.schemaVersion === 1 ? result.actorHost.model : result.hostContract.model;
 const basePath = import.meta.env.BASE_URL;
 const successfulCaseCount = result.passedCaseCount + result.recoveredCaseCount;
 const breadcrumbs = [
@@ -220,6 +222,14 @@ const breadcrumbs = [
           <div>
             <dt class="text-muted-foreground">Stop reason</dt>
             <dd class="mt-1 font-mono break-all">{result.stopReason}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Model configuration</dt>
+            <dd class="mt-1 font-mono break-all">{evaluationModel}, medium</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Assurance generation</dt>
+            <dd class="mt-1">{result.schemaVersion === 3 ? 'Current Sol' : 'Historical Terra'}</dd>
           </div>
           <div>
             <dt class="text-muted-foreground">Portable artifact digest</dt>

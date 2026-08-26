@@ -130,13 +130,13 @@ const HOST_CASE_DEFINITION = {
   },
 };
 const ACTOR_HOST = {
-  model: 'gpt-5.6-terra',
+  model: 'gpt-5.6-sol',
   name: 'codex',
   reasoningEffort: 'medium',
   version: '1.2.3',
 };
 const JUDGE_HOST = {
-  model: 'gpt-5.6-terra',
+  model: 'gpt-5.6-sol',
   name: 'codex',
   reasoningEffort: 'medium',
   version: '1.2.3',
@@ -382,7 +382,7 @@ test('semantic host command enables runner-owned JSONL events exactly once', () 
 
   assert.equal(command.at(-1), '-');
   assert.equal(command.filter((part) => part === '--json').length, 1);
-  assert.match(command.join(' '), /--model gpt-5\.6-terra/);
+  assert.match(command.join(' '), /--model gpt-5\.6-sol/);
   assert.match(command.join(' '), /model_reasoning_effort=medium/);
 
   const preconfiguredCommand = buildSemanticEvaluationHostCommand([
@@ -1002,7 +1002,7 @@ test('semantic candidates bind exact evidence and stable host contracts', () => 
         coverageDigest: COVERAGE_DIGEST,
         judgeHost: { ...JUDGE_HOST, reasoningEffort: 'high' },
       }),
-    /requires gpt-5\.6-terra medium actor and judge Codex hosts/,
+    /requires gpt-5\.6-sol medium actor and judge Codex hosts/,
   );
 });
 
@@ -1111,7 +1111,7 @@ test('schema-3 migration preserves trials and enables version-independent resume
         migratedAt,
         sourceSha256,
       }),
-    /requires gpt-5\.6-terra medium actor and judge Codex hosts with exact versions/,
+    /requires gpt-5\.6-sol medium actor and judge Codex hosts with exact versions/,
   );
   assert.throws(
     () =>
@@ -1189,11 +1189,11 @@ test('checkpoint recording rejects stale release inputs and unofficial hosts', (
       validateSemanticCandidateCheckpointCompatibility(
         {
           ...candidate,
-          hostContract: { ...candidate.hostContract, model: 'gpt-5.6-sol' },
+          hostContract: { ...candidate.hostContract, model: 'gpt-5.6-terra' },
         },
         currentBoundary,
       ),
-    /does not use the required gpt-5\.6-terra medium Codex host contract/,
+    /does not use the required gpt-5\.6-sol medium Codex host contract/,
   );
   assert.throws(
     () =>
@@ -1204,7 +1204,7 @@ test('checkpoint recording rejects stale release inputs and unofficial hosts', (
         },
         currentBoundary,
       ),
-    /does not use the required gpt-5\.6-terra medium Codex host contract/,
+    /does not use the required gpt-5\.6-sol medium Codex host contract/,
   );
 });
 

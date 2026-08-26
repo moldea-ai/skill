@@ -1264,7 +1264,7 @@ test('semantic checkpoint migration preserves exact source recovery bytes', asyn
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-candidate-migration-test-'));
   const candidatePath = join(evaluationRoot, '.semantic-evaluation-candidate.json');
   const actorHost = {
-    model: 'gpt-5.6-terra',
+    model: 'gpt-5.6-sol',
     name: 'codex',
     reasoningEffort: 'medium',
     version: 'codex-cli 0.149.0',

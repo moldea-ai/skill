@@ -20,7 +20,7 @@ import {
   type IActorOutput,
   type IDeterministicVerificationArtifact,
   type IJudgeOutput,
-  type IQualificationAttemptResult,
+  type IQualificationRecordedAttemptResult,
   type IQualificationCaseResult,
   type IQualificationCaseScenario,
   type IQualificationModelStageEvidence,
@@ -112,7 +112,7 @@ const createExpectedPassingArtifactPaths = (caseIds: readonly string[]): string[
 
 const requireArtifact = <TResult>(
   attemptDirectory: string,
-  result: IQualificationAttemptResult,
+  result: IQualificationRecordedAttemptResult,
   relativePath: string,
   schema: IBoundarySchema<TResult>,
 ): Promise<TResult> => {
@@ -135,7 +135,7 @@ const readOptionalArtifact = async <TResult>(
 /** Validates every JSON and JSON Lines artifact against its protocol-owned syntax and schema. */
 const validateArtifactSchemas = async (
   attemptDirectory: string,
-  result: IQualificationAttemptResult,
+  result: IQualificationRecordedAttemptResult,
 ): Promise<void> => {
   for (const relativePath of Object.keys(result.artifactDigests)) {
     const artifactPath = resolveContainedPath(attemptDirectory, relativePath);
@@ -375,7 +375,7 @@ const assertJudgeOutput = (judge: IJudgeOutput, scenario: IQualificationCaseScen
 
 const assertPassingCaseEvidence = async (options: {
   attemptDirectory: string;
-  result: IQualificationAttemptResult;
+  result: IQualificationRecordedAttemptResult;
   caseResult: IQualificationCaseResult;
   scenario: IQualificationCaseScenario;
   stages: ReadonlyMap<string, IQualificationStageCheckpoint>;
@@ -535,7 +535,7 @@ const assertPassingCaseEvidence = async (options: {
 };
 
 const assertPassingStages = (
-  result: IQualificationAttemptResult,
+  result: IQualificationRecordedAttemptResult,
   expectedStageIds: readonly string[],
 ): Map<string, IQualificationStageCheckpoint> => {
   const actualStageIds = result.stages.map(({ id }) => id);
@@ -574,7 +574,7 @@ const assertPassingStages = (
 /** Validates one passing attempt against the exact profile, scenario, and artifact contracts. */
 const validatePassingAttempt = async (
   attemptDirectory: string,
-  result: IQualificationAttemptResult,
+  result: IQualificationRecordedAttemptResult,
   resultsRoot: string,
 ): Promise<void> => {
   const profilesRoot = path.resolve(resultsRoot, '..', 'profiles');
@@ -714,7 +714,7 @@ const validatePassingAttempt = async (
 /** Validates the public artifacts and status contract for one committed attempt. */
 export const validateQualificationAttemptEvidence = async (options: {
   attemptDirectory: string;
-  result: IQualificationAttemptResult;
+  result: IQualificationRecordedAttemptResult;
   resultsRoot: string;
 }): Promise<void> => {
   await validateArtifactSchemas(options.attemptDirectory, options.result);

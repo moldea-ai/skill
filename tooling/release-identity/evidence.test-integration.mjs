@@ -324,7 +324,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     const skillDigest = createPortableSkillDigest(temporaryRoot);
     const semanticGeneratedAt = '2026-08-21T09:00:00.000Z';
     const semanticHost = {
-      model: 'gpt-5.6-terra',
+      model: 'gpt-5.6-sol',
       name: 'codex',
       reasoningEffort: 'medium',
       version: 'codex-cli test',
@@ -763,7 +763,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       temporaryRoot,
       'qualification/results/external/external-stream/latest.json',
       `${JSON.stringify({
-        protocolVersion: 3,
+        protocolVersion: 4,
         adapterId: 'external',
         implementationId: 'external-stream',
         latestAttemptId: externalAttemptId,

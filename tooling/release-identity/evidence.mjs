@@ -407,7 +407,7 @@ const inspectSemanticEvidence = (repositoryRoot) => {
       latestAttempt.caseSuiteDigest === semanticResult.caseSuiteDigest &&
       latestAttempt.coverageDigest === semanticResult.coverageDigest &&
       JSON.stringify(latestAttempt.cli) === JSON.stringify(semanticResult.cli) &&
-      latestAttempt.schemaVersion === 2 &&
+      latestAttempt.schemaVersion === 3 &&
       JSON.stringify(latestAttempt.hostContract) === JSON.stringify(semanticResult.hostContract) &&
       JSON.stringify(createAttemptTrialProvenance(latestAttempt)) ===
         JSON.stringify(createCanonicalTrialProvenance(semanticResult));
@@ -659,6 +659,8 @@ export const inspectReleaseEvidence = async (
     if (
       attempt.protocolVersion !== QUALIFICATION_EVIDENCE_PROTOCOL_VERSION ||
       attempt.status !== 'passed' ||
+      attempt.provenance?.model !== CODEX_EVALUATION_MODEL ||
+      attempt.provenance?.reasoningEffort !== CODEX_EVALUATION_REASONING_EFFORT ||
       attempt.selection?.adapterId !== adapterId ||
       attempt.selection?.implementationId !== implementationId ||
       attempt.provenance?.qualificationDigest !== qualificationDigest ||

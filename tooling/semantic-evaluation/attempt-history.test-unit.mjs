@@ -17,6 +17,8 @@ const HOST_CONTRACT = {
   name: HOST.name,
   reasoningEffort: HOST.reasoningEffort,
 };
+const SOL_HOST = { ...HOST, model: 'gpt-5.6-sol' };
+const SOL_HOST_CONTRACT = { ...HOST_CONTRACT, model: SOL_HOST.model };
 
 const createTrial = (id, passed, evaluatedAt) => ({
   evaluatedAt,
@@ -59,6 +61,21 @@ const createCurrentEvidence = (results, confirmations = []) => ({
     ...result,
   })),
   schemaVersion: 4,
+});
+
+const createSolEvidence = (results, confirmations = []) => ({
+  ...createCurrentEvidence([], []),
+  confirmations: confirmations.map((confirmation) => ({
+    actorHost: SOL_HOST,
+    judgeHost: SOL_HOST,
+    ...confirmation,
+  })),
+  hostContract: SOL_HOST_CONTRACT,
+  results: results.map((result) => ({
+    actorHost: SOL_HOST,
+    judgeHost: SOL_HOST,
+    ...result,
+  })),
 });
 
 test('semantic attempt summaries expose failures and pending cases', () => {
@@ -186,6 +203,21 @@ test('semantic attempt schema 2 preserves mixed per-trial host provenance', () =
   assert.equal(attempt.cases[0].trials[1].judgeHost.version, UPDATED_HOST.version);
 });
 
+test('semantic attempt schema 3 records current Sol provenance', () => {
+  const attempt = createSemanticAttemptRecord({
+    evidence: createSolEvidence([createTrial('passing-case', true, '2026-08-25T01:00:00.000Z')]),
+    evidenceKind: 'result',
+    evidenceSha256: 'd'.repeat(64),
+    recordedAt: '2026-08-25T01:00:01.000Z',
+    stopReason: 'complete',
+    totalCaseCount: 1,
+  });
+
+  assert.equal(attempt.schemaVersion, 3);
+  assert.deepEqual(attempt.hostContract, SOL_HOST_CONTRACT);
+  assert.equal(attempt.cases[0].trials[0].actorHost.model, SOL_HOST.model);
+});
+
 test('semantic attempt schema 2 rejects missing or incompatible trial hosts', () => {
   const trial = createTrial('passing-case', true, '2026-08-25T01:00:00.000Z');
   const options = {
@@ -214,6 +246,17 @@ test('semantic attempt schema 2 rejects missing or incompatible trial hosts', ()
         evidence: createCurrentEvidence([
           { ...trial, actorHost: { ...HOST, reasoningEffort: 'high' } },
         ]),
+      }),
+    /invalid trial host provenance/,
+  );
+  assert.throws(
+    () =>
+      createSemanticAttemptRecord({
+        ...options,
+        evidence: {
+          ...createSolEvidence([trial]),
+          results: [{ ...trial, actorHost: HOST, judgeHost: SOL_HOST }],
+        },
       }),
     /invalid trial host provenance/,
   );

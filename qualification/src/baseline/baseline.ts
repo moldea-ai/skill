@@ -1,6 +1,7 @@
 import path from 'node:path';
 
 import { createPublicCandidatePackage } from '../candidate-closure/index.ts';
+import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import {
   QualificationAttemptResultSchema,
   QualificationLatestResultSchema,
@@ -124,6 +125,8 @@ export const inspectQualificationBaseline = async (options: {
     left.localeCompare(right, 'en'),
   );
   const hasCompatibleIdentity =
+    latest.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
+    baseline.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
     baseline.status === 'passed' &&
     baseline.selection.adapterId === CUSTOM_SELECTION.adapterId &&
     baseline.selection.implementationId === CUSTOM_SELECTION.implementationId &&

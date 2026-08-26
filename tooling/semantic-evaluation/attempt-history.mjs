@@ -10,9 +10,11 @@ import {
 
 const ATTEMPT_EVIDENCE_FILENAME = 'evidence.json';
 const ATTEMPT_RECORD_FILENAME = 'attempt.json';
-const ATTEMPT_SCHEMA_VERSION = 2;
+const ATTEMPT_SCHEMA_VERSION = 3;
+const TERRA_ATTEMPT_SCHEMA_VERSION = 2;
 const LEGACY_ATTEMPT_SCHEMA_VERSION = 1;
 const LATEST_SCHEMA_VERSION = 1;
+const TERRA_EVALUATION_MODEL = 'gpt-5.6-terra';
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
 const STOP_REASON_VALUES = new Set([
@@ -69,11 +71,20 @@ const createAttemptId = (updatedAt, evidenceSha256) => {
   return `${timestamp}-semantic-${evidenceSha256.slice(0, 8)}`;
 };
 
-const hasValidHostContract = (hostContract) =>
+const hasHostContract = (hostContract, model) =>
   isPlainRecord(hostContract) &&
-  hostContract.model === CODEX_EVALUATION_MODEL &&
+  hostContract.model === model &&
   hostContract.name === 'codex' &&
   hostContract.reasoningEffort === CODEX_EVALUATION_REASONING_EFFORT;
+
+const getAttemptSchemaVersion = (hostContract) => {
+  if (hasHostContract(hostContract, CODEX_EVALUATION_MODEL)) return ATTEMPT_SCHEMA_VERSION;
+  if (hasHostContract(hostContract, TERRA_EVALUATION_MODEL)) {
+    return TERRA_ATTEMPT_SCHEMA_VERSION;
+  }
+
+  throw new Error('Semantic attempt evidence contains an invalid host contract.');
+};
 
 const hasValidHostIdentity = (host, hostContract) =>
   isPlainRecord(host) &&
@@ -124,9 +135,7 @@ const collectCaseTrials = (evidence) => {
   const initialResults = Array.isArray(evidence.results) ? evidence.results : [];
   const confirmations = Array.isArray(evidence.confirmations) ? evidence.confirmations : [];
   const hostContract = evidence.schemaVersion === 4 ? evidence.hostContract : null;
-  if (evidence.schemaVersion === 4 && !hasValidHostContract(hostContract)) {
-    throw new Error('Semantic attempt evidence contains an invalid host contract.');
-  }
+  if (evidence.schemaVersion === 4) getAttemptSchemaVersion(hostContract);
   const trialsByCaseId = new Map();
 
   for (const result of initialResults) {
@@ -327,7 +336,7 @@ export const createSemanticAttemptRecord = ({
     pendingCaseCount: legacyAttempt.pendingCaseCount,
     recordedAt: legacyAttempt.recordedAt,
     recoveredCaseCount: legacyAttempt.recoveredCaseCount,
-    schemaVersion: ATTEMPT_SCHEMA_VERSION,
+    schemaVersion: getAttemptSchemaVersion(evidence.hostContract),
     status: legacyAttempt.status,
     stopReason: legacyAttempt.stopReason,
     totalCaseCount: legacyAttempt.totalCaseCount,

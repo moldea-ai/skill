@@ -211,7 +211,7 @@ describe('qualification model stages', () => {
       candidate,
       caseArtifactDirectory,
       executionEnvironment: {
-        model: 'gpt-5.6-terra',
+        model: 'gpt-5.6-sol',
         reasoningEffort: 'medium',
         codexVersion: 'codex-cli fake',
         nodeVersion: process.version,
@@ -323,7 +323,7 @@ describe('qualification model stages', () => {
         candidate,
         caseArtifactDirectory,
         executionEnvironment: {
-          model: 'gpt-5.6-terra',
+          model: 'gpt-5.6-sol',
           reasoningEffort: 'medium',
           codexVersion: 'codex-cli test',
           nodeVersion: process.version,
@@ -461,7 +461,7 @@ describe('qualification model stages', () => {
         candidate,
         caseArtifactDirectory,
         executionEnvironment: {
-          model: 'gpt-5.6-terra',
+          model: 'gpt-5.6-sol',
           reasoningEffort: 'medium',
           codexVersion: 'codex-cli test',
           nodeVersion: process.version,

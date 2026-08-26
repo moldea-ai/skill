@@ -28,8 +28,11 @@ test('presents both evidence types with their current status', async ({ page }) 
   ).toBeVisible();
   const semanticLink = page.getByRole('link', { name: /Semantic evaluation/ });
   const qualificationLink = page.getByRole('link', { name: /Adapter qualification/ });
-  await expect(semanticLink).toContainText('Failed');
-  await expect(semanticLink).toContainText('5 of 48 scenarios successful in the latest attempt');
+  await expect(semanticLink.locator('[data-evidence-status]')).toHaveAttribute(
+    'data-evidence-status',
+    'not-recorded',
+  );
+  await expect(semanticLink).toContainText('0 of 49 scenarios successful for current assurance');
   await expect(qualificationLink.locator('[data-evidence-status]')).toHaveAttribute(
     'data-evidence-status',
     qualificationStatus,

@@ -493,11 +493,15 @@ const loadProfile = (
     new Map(cases.map((profileCase) => [profileCase.id, profileCase])),
     probes.probes.map(({ matrixPath }) => matrixPath),
   );
+  const currentAttempts = attempts.filter(({ result }) => result.protocolVersion === 4);
 
   return {
     adapterId: profile.adapterId,
     attempts,
     cases,
+    currentLastPassing:
+      currentAttempts.filter(({ result }) => result.status === 'passed').at(-1) ?? null,
+    currentLatest: currentAttempts.at(-1) ?? null,
     description: profile.description,
     implementationId: profile.implementationId,
     latest,

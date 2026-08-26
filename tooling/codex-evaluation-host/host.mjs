@@ -7,7 +7,7 @@ import { basename, delimiter, dirname, isAbsolute, join, relative, resolve } fro
 import { fileURLToPath } from 'node:url';
 
 // fixed model contract shared by local evaluation workflows
-export const CODEX_EVALUATION_MODEL = 'gpt-5.6-terra';
+export const CODEX_EVALUATION_MODEL = 'gpt-5.6-sol';
 export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
 export const CODEX_EVALUATION_REASONING_EFFORT = 'medium';
 

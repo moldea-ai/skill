@@ -27,7 +27,10 @@ test('represents the Custom profile current evidence state', async ({ page }) =>
 
   if (status === 'not-recorded') {
     await expect(page.getByText('No recorded attempt').first()).toBeVisible();
-    await expect(page.getByText('No official attempt has been committed.').first()).toBeVisible();
+    await expect(
+      page.getByText(/No current Sol attempt has been committed/u).first(),
+    ).toBeVisible();
+    await expect(page.getByText('Historical Terra', { exact: true }).first()).toBeVisible();
     await expect(page.getByRole('link', { name: /^Inspect the .* attempt$/u })).toHaveCount(0);
     return;
   }
@@ -45,7 +48,16 @@ test('describes the Custom profile and any current immutable attempt', async ({ 
 
   if ((await attemptLink.count()) === 0) {
     await expect(page.getByText('No recorded attempt').first()).toBeVisible();
-    await expect(page.getByText('No official attempt has been committed.').first()).toBeVisible();
+    await expect(
+      page.getByText(/No current Sol attempt has been committed/u).first(),
+    ).toBeVisible();
+    const historicalAttemptRow = page
+      .getByRole('row')
+      .filter({ hasText: 'Historical Terra' })
+      .first();
+    await expect(historicalAttemptRow).toBeVisible();
+    await historicalAttemptRow.getByRole('link').click();
+    await expect(page.getByText('Historical Terra', { exact: true })).toBeVisible();
     return;
   }
 
@@ -76,7 +88,7 @@ test('describes the Custom profile and any current immutable attempt', async ({ 
   }
 });
 
-test('presents the current Vercel qualification attempt transparently', async ({ page }) => {
+test('presents the Vercel qualification history transparently', async ({ page }) => {
   await page.goto(
     toPublicPath('/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/'),
   );
@@ -99,6 +111,20 @@ test('presents the current Vercel qualification attempt transparently', async ({
     passed:
       'Immutable passing qualification evidence for vercel-ai-sdk/typescript-generate-stream-text-7.',
   } as const;
+
+  if (status === 'not-recorded') {
+    await expect(
+      page.getByText(/No current Sol attempt has been committed/u).first(),
+    ).toBeVisible();
+    const historicalAttemptRow = page
+      .getByRole('row')
+      .filter({ hasText: 'Historical Terra' })
+      .first();
+    await expect(historicalAttemptRow).toBeVisible();
+    await historicalAttemptRow.getByRole('link').click();
+    await expect(page.getByText('Historical Terra', { exact: true })).toBeVisible();
+    return;
+  }
 
   if (status !== 'errored' && status !== 'failed' && status !== 'passed') {
     throw new Error(`Unexpected qualification status: ${status ?? 'missing'}.`);

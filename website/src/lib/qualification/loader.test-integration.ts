@@ -275,7 +275,7 @@ const createAttempt = (
     ]),
   );
   writeJson(attemptDirectory, 'attempt.json', {
-    protocolVersion: 3,
+    protocolVersion: 4,
     attemptId: options.attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -290,7 +290,7 @@ const createAttempt = (
           ? 'Qualification failed.'
           : 'Qualification stopped with an execution error.',
     provenance: {
-      model: 'gpt-5.6-terra',
+      model: 'gpt-5.6-sol',
       reasoningEffort: 'medium',
       codexVersion: '1.0.0',
       nodeVersion: '24.15.0',
@@ -422,7 +422,7 @@ const writeLatest = (
   lastPassingAttemptId: string | null,
 ): void => {
   writeJson(root, 'qualification/results/custom/custom/latest.json', {
-    protocolVersion: 3,
+    protocolVersion: 4,
     adapterId: 'custom',
     implementationId: 'custom',
     latestAttemptId,
@@ -482,6 +482,8 @@ describe('loadQualificationWebsiteModel', () => {
       latestStatus: 'passed',
       lastPassingAttemptId: 'attempt-pass',
     });
+    expect(profile?.currentLatest?.result.attemptId).toBe('attempt-pass');
+    expect(profile?.currentLastPassing?.result.attemptId).toBe('attempt-pass');
     expect(profile?.attempts).toHaveLength(1);
     expect(profile?.attempts[0]?.route).toBe(
       '/evidence/qualification/custom/custom/attempts/attempt-pass/',
@@ -493,6 +495,45 @@ describe('loadQualificationWebsiteModel', () => {
       workspaceAssertions: { passed: true },
     });
     expect(profile?.attempts[0]?.artifacts.length).toBeGreaterThan(8);
+  });
+
+  test('keeps Terra history visible without treating it as current assurance', () => {
+    const root = createTemporaryRoot();
+    seedProfile(root);
+    createAttempt(root, {
+      attemptId: 'attempt-terra',
+      createdAt: '2026-08-20T10:00:00.000Z',
+      status: 'passed',
+    });
+    const attempt = readAttemptFixture(root, 'attempt-terra');
+    attempt['protocolVersion'] = 3;
+    const provenance = attempt['provenance'];
+
+    if (typeof provenance !== 'object' || provenance === null || Array.isArray(provenance)) {
+      throw new Error('Missing test provenance.');
+    }
+    const mutableProvenance = provenance as Record<string, unknown>;
+    mutableProvenance['model'] = 'gpt-5.6-terra';
+    writeJson(
+      root,
+      'qualification/results/custom/custom/attempts/attempt-terra/attempt.json',
+      attempt,
+    );
+    writeJson(root, 'qualification/results/custom/custom/latest.json', {
+      protocolVersion: 3,
+      adapterId: 'custom',
+      implementationId: 'custom',
+      latestAttemptId: 'attempt-terra',
+      latestStatus: 'passed',
+      lastPassingAttemptId: 'attempt-terra',
+      updatedAt: '2026-08-20T12:00:00.000Z',
+    });
+
+    const profile = loadQualificationWebsiteModel(root).profiles[0];
+
+    expect(profile?.attempts[0]?.result.provenance.model).toBe('gpt-5.6-terra');
+    expect(profile?.currentLatest).toBeNull();
+    expect(profile?.currentLastPassing).toBeNull();
   });
 
   test('keeps a prior passing baseline when the latest attempt fails', () => {

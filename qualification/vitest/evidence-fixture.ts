@@ -234,7 +234,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     `case:${CASE_ID}:result`,
   ];
   const result = QualificationAttemptResultSchema.parse({
-    protocolVersion: 3,
+    protocolVersion: 4,
     attemptId: options.attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -244,7 +244,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     evidenceGeneratedAt: ACTOR_CREATED_AT,
     summary: 'Qualification passed.',
     provenance: {
-      model: 'gpt-5.6-terra',
+      model: 'gpt-5.6-sol',
       reasoningEffort: 'medium',
       codexVersion: 'codex-cli test',
       nodeVersion: process.version,

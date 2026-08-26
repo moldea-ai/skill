@@ -9,7 +9,7 @@ import {
 
 // immutable protocol and evaluator identity for committed qualification evidence
 export const QUALIFICATION_PROTOCOL_VERSION = 1 as const;
-export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 3 as const;
+export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 4 as const;
 export const QUALIFICATION_MODEL = CODEX_EVALUATION_MODEL;
 export const QUALIFICATION_REASONING_EFFORT = CODEX_EVALUATION_REASONING_EFFORT;
 export const QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS = 300_000;

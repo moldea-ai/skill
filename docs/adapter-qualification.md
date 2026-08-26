@@ -31,7 +31,7 @@ Matrix probes map every behavior-affecting compatibility claim to one or more pr
 
 Deterministic verification runs before and after the actor. It checks package provenance, repository-reader equivalence, Core and CLI behavior, project validity, project-local typechecking, dependency integrity, and workspace preservation.
 
-[Semantic evaluation](/docs/semantic-evaluation/) proves broad portable-skill behavior through controlled, sourced repository scenarios. Adapter qualification uses separate actor and judge processes with the same fixed balanced-tier model at `medium` reasoning effort (`gpt-5.6-terra`), but exercises transparent mock projects and exact published package compositions. In both workflows, the actor receives a natural project task rather than grading criteria, and the judge evaluates runner-owned evidence in a separate read-only workspace.
+[Semantic evaluation](/docs/semantic-evaluation/) proves broad portable-skill behavior through controlled, sourced repository scenarios. Adapter qualification uses separate actor and judge processes with the same fixed frontier assurance model at `medium` reasoning effort (`gpt-5.6-sol`), but exercises transparent mock projects and exact published package compositions. In both workflows, the actor receives a natural project task rather than grading criteria, and the judge evaluates runner-owned evidence in a separate read-only workspace. Historical Terra attempts remain inspectable but cannot satisfy the current qualification gate.
 
 A case passes only when its deterministic checks, workspace assertions, and semantic judgment all pass. No layer can override a failure in another layer.
 

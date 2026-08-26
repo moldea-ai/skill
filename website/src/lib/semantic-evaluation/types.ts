@@ -13,7 +13,7 @@ export type ISemanticEvaluationCaseStatus = 'failed' | 'passed' | 'pending' | 'r
 
 // exact actor or judge host shown with one trial
 export interface ISemanticEvaluationHostModel {
-  model: 'gpt-5.6-terra';
+  model: 'gpt-5.6-sol' | 'gpt-5.6-terra';
   name: string;
   reasoningEffort: 'medium';
   version: string;
@@ -86,8 +86,10 @@ export interface ISemanticEvaluationWebsiteModel {
   coverageDigest: string;
   coverageUrl: string;
   evaluatedAt: string;
+  evaluationModel: ISemanticEvaluationHostModel['model'];
   failedCaseCount: number;
   groups: ISemanticEvaluationGroupModel[];
+  hasCurrentAssuranceAttempt: boolean;
   lastPassing: ISemanticAttemptModel | null;
   latest: ISemanticAttemptModel;
   latestPointer: ISemanticLatestResult;

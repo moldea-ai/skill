@@ -109,6 +109,8 @@ Provider-hosted or application-only skills without a qualifying local relationsh
 
 ## Maintain and reconcile the complete artifact
 
+Before editing, assign each affected fact to its established owner. Keep repository-owned policy and procedure in its existing document or script; make skill resources route there and remove stale restatements instead of synchronizing duplicate prose. A linked skill-local restatement does not gain ownership, and a request to keep it aligned does not transfer ownership. Retain only skill-owned activation or procedure, then replace the restatement with a root-owned link or remove the resource when nothing skill-owned remains.
+
 Trace behavior changes across:
 
 - identity, frontmatter, and activation

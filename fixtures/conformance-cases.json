@@ -3407,7 +3407,7 @@
     },
     {
       "id": "routing-description-fallback",
-      "scenario": "An adopted custom-runtime agent has no handoff description because no dedicated routing hint is needed, and its routing-facing metadata consumes the canonical agent description.",
+      "scenario": "An adopted custom-runtime agent has no handoff description because no dedicated routing hint is needed, and its routing-facing metadata consumes a canonical agent description aligned with the agent's responsibility and authorization boundary.",
       "operation": "evaluate-routing-description",
       "input": {
         "developerDirection": "Evaluate the routing description without adding optional assets.",
@@ -3427,6 +3427,22 @@
               "path": "src/triage-agent.mjs",
               "expectedType": "file"
             }
+          },
+          {
+            "claim": "The canonical agent description defines support triage while excluding authorization decisions.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/agents/triage-agent/description.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The canonical agent instruction establishes the same responsibility and authorization boundary.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/agents/triage-agent/instruction.md",
+              "expectedType": "file"
+            }
           }
         ]
       },
@@ -3437,7 +3453,7 @@
         },
         {
           "label": "recognize-aligned-routing-metadata",
-          "criterion": "The actor recognizes aligned routing metadata and does not report an aligned state as defective."
+          "criterion": "The actor recognizes that the routing metadata preserves the agent's support-triage responsibility and authorization boundary, and does not report that aligned state as defective."
         },
         {
           "label": "report-no-writes",

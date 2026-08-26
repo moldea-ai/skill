@@ -102,6 +102,9 @@ const SKILL_REUSE_CASE_DEFINITION = SEMANTIC_CASES.find(
 const UNRESOLVED_REQUIREMENT_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'unresolved-related-file-changed',
 );
+const ROUTING_DESCRIPTION_FALLBACK_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'routing-description-fallback',
+);
 const DEDICATED_REPOSITORY_CASE_DEFINITIONS = SEMANTIC_CASES.filter(({ id }) =>
   ['dedicated-repository-runtime-selection', 'dedicated-repository-single-side-change'].includes(
     id,
@@ -134,6 +137,41 @@ test('actor repository materializes host instructions before the clean baseline'
     assert.equal(status.stdout, '');
     assert.equal(committedInstructions.status, 0, committedInstructions.stderr);
     assert.equal(committedInstructions.stdout, HOST_PLAN_CASE_DEFINITION.hostInstructions);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('routing fallback fixture aligns the canonical description with the agent boundary', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-routing-fallback-test-'));
+  assert.ok(ROUTING_DESCRIPTION_FALLBACK_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      ROUTING_DESCRIPTION_FALLBACK_CASE_DEFINITION,
+    );
+
+    assert.equal(
+      readFileSync(
+        join(repositoryPath, 'moldea', 'agents', 'triage-agent', 'description.md'),
+        'utf8',
+      ),
+      'Classifies support requests for triage without making authorization decisions.\n',
+    );
+    assert.match(
+      readFileSync(
+        join(repositoryPath, 'moldea', 'agents', 'triage-agent', 'instruction.md'),
+        'utf8',
+      ),
+      /Classify support requests without making authorization decisions/u,
+    );
+    assert.equal(
+      existsSync(
+        join(repositoryPath, 'moldea', 'agents', 'triage-agent', 'handoff-description.md'),
+      ),
+      false,
+    );
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

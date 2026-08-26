@@ -1646,6 +1646,8 @@ const seedRoutingDescriptionAgent = async (repositoryPath, caseId) => {
       testExpectation: null,
     },
     'routing-description-fallback': {
+      agentDescription:
+        'Classifies support requests for triage without making authorization decisions.\n',
       guidance:
         'The runtime description property is routing-facing. This target has no dedicated handoff description, so it uses the canonical agent description.',
       implementation: [
@@ -1718,7 +1720,8 @@ const seedRoutingDescriptionAgent = async (repositoryPath, caseId) => {
   await writeScenarioFile(
     repositoryPath,
     'moldea/agents/triage-agent/description.md',
-    'Provides detailed support triage and classification behavior.\n',
+    runtimeContract.agentDescription ??
+      'Provides detailed support triage and classification behavior.\n',
   );
   if (hasHandoffDescription) {
     await writeScenarioFile(

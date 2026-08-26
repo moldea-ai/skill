@@ -28,7 +28,6 @@ import {
   collectSkillArtifactEvidence,
   createActorRepository,
   createSemanticEvaluationCandidate,
-  migrateSemanticEvaluationCheckpoint,
   parseSemanticEvaluationHostOutput,
   prepareSemanticEvaluationHome,
   readSemanticEvaluationCandidate,
@@ -592,7 +591,7 @@ test('dedicated repository scenarios expose the declared related application mou
   }
 });
 
-test('safe Git diff suppresses configured execution helpers', async () => {
+test('hardened Git diff still executes a repository clean filter', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-git-helper-test-'));
   assert.ok(GIT_HELPER_CASE_DEFINITION);
 
@@ -602,6 +601,15 @@ test('safe Git diff suppresses configured execution helpers', async () => {
       GIT_HELPER_CASE_DEFINITION,
     );
     const sentinelPath = join(repositoryPath, 'git-helper-ran.txt');
+    const scenarioEvidence = await collectScenarioEvidence({
+      caseDefinition: GIT_HELPER_CASE_DEFINITION,
+      readOnlyMounts: [],
+      repositoryPath,
+    });
+
+    assert.equal(hasValidScenarioEvidence(scenarioEvidence, GIT_HELPER_CASE_DEFINITION), true);
+    assert.equal(existsSync(sentinelPath), false);
+
     const unsafeResult = spawnSync('git', ['diff', '--', 'src/project-state.js'], {
       cwd: repositoryPath,
       encoding: 'utf8',
@@ -611,7 +619,7 @@ test('safe Git diff suppresses configured execution helpers', async () => {
     assert.equal(existsSync(sentinelPath), true);
     rmSync(sentinelPath);
 
-    const safeResult = spawnSync(
+    const hardenedResult = spawnSync(
       'git',
       [
         '-c',
@@ -620,6 +628,8 @@ test('safe Git diff suppresses configured execution helpers', async () => {
         'core.pager=cat',
         '-c',
         'core.attributesFile=/dev/null',
+        '-c',
+        'filter.lfs.clean=',
         '-c',
         'filter.lfs.process=',
         '-c',
@@ -636,29 +646,16 @@ test('safe Git diff suppresses configured execution helpers', async () => {
         '--',
         'src/project-state.js',
       ],
-      { cwd: repositoryPath, encoding: 'utf8' },
+      {
+        cwd: repositoryPath,
+        encoding: 'utf8',
+        env: { ...process.env, GIT_ATTR_NOSYSTEM: '1' },
+      },
     );
 
-    assert.equal(safeResult.status, 0, safeResult.stderr);
-    assert.match(safeResult.stdout, /projectState = "changed"/u);
-    assert.equal(existsSync(sentinelPath), false);
-    const status = spawnSync(
-      'git',
-      [
-        '-c',
-        'core.fsmonitor=false',
-        '-c',
-        'core.pager=cat',
-        '--no-pager',
-        'status',
-        '--porcelain',
-        '--ignore-submodules=all',
-      ],
-      { cwd: repositoryPath, encoding: 'utf8' },
-    );
-    assert.equal(status.status, 0, status.stderr);
-    assert.equal(status.stdout, ' M src/project-state.js\n');
-    assert.equal(existsSync(sentinelPath), false);
+    assert.equal(hardenedResult.status, 0, hardenedResult.stderr);
+    assert.match(hardenedResult.stdout, /projectState = "changed"/u);
+    assert.equal(existsSync(sentinelPath), true);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }
@@ -1293,76 +1290,6 @@ test('semantic candidate checkpoints are atomically replaceable', async () => {
     await writeSemanticEvaluationCandidate(updatedCandidate, candidatePath);
     assert.deepEqual(await readSemanticEvaluationCandidate(candidatePath), updatedCandidate);
     assert.deepEqual(readdirSync(evaluationRoot), ['.semantic-evaluation-candidate.json']);
-  } finally {
-    rmSync(evaluationRoot, { force: true, recursive: true });
-  }
-});
-
-test('semantic checkpoint migration preserves exact source recovery bytes', async () => {
-  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-candidate-migration-test-'));
-  const candidatePath = join(evaluationRoot, '.semantic-evaluation-candidate.json');
-  const actorHost = {
-    model: 'gpt-5.6-sol',
-    name: 'codex',
-    reasoningEffort: 'medium',
-    version: 'codex-cli 0.149.0',
-  };
-  const cli = {
-    integrity: `sha512-${'a'.repeat(86)}`,
-    jsonSchemaVersion: 2,
-    name: '@moldea.ai/cli',
-    packageLockSha256: 'b'.repeat(64),
-    version: '4.0.1',
-  };
-  const currentCandidate = createSemanticEvaluationCandidate({
-    actorHost,
-    artifactDigest: 'c'.repeat(64),
-    caseDefinitions: [],
-    cli,
-    coverageDigest: 'd'.repeat(64),
-    generatedAt: '2026-08-25T00:00:00.000Z',
-    judgeHost: actorHost,
-  });
-  const legacyCandidate = {
-    actorHost,
-    artifactDigest: currentCandidate.artifactDigest,
-    caseSuiteDigest: currentCandidate.caseSuiteDigest,
-    cli,
-    confirmations: [],
-    coverageDigest: currentCandidate.coverageDigest,
-    evaluationProtocolVersion: currentCandidate.evaluationProtocolVersion,
-    generatedAt: currentCandidate.generatedAt,
-    judgeHost: actorHost,
-    results: [],
-    schemaVersion: 3,
-    updatedAt: currentCandidate.updatedAt,
-  };
-  const sourceEvidenceText = `${JSON.stringify(legacyCandidate, null, 2)}\n`;
-
-  try {
-    writeFileSync(candidatePath, sourceEvidenceText);
-    const currentBoundary = {
-      artifactDigest: legacyCandidate.artifactDigest,
-      caseDefinitions: [],
-      cli,
-      coverageDigest: legacyCandidate.coverageDigest,
-    };
-    const migration = await migrateSemanticEvaluationCheckpoint({
-      currentBoundary,
-      migratedAt: '2026-08-25T00:05:00.000Z',
-      path: candidatePath,
-    });
-
-    assert.equal(migration.isMigrated, true);
-    assert.equal(readFileSync(migration.recoveryPath, 'utf8'), sourceEvidenceText);
-    assert.equal((await readSemanticEvaluationCandidate(candidatePath)).schemaVersion, 4);
-    const repeatedMigration = await migrateSemanticEvaluationCheckpoint({
-      currentBoundary,
-      migratedAt: '2026-08-25T00:06:00.000Z',
-      path: candidatePath,
-    });
-    assert.equal(repeatedMigration.isMigrated, false);
-    assert.equal(readdirSync(evaluationRoot).length, 2);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

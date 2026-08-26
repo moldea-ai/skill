@@ -271,7 +271,9 @@ export const createSemanticEvaluationSearchRecords = (
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
 ): ISearchRecord[] => {
   const landingRecord: ISearchRecord = {
-    description: `Review the latest ${semanticEvaluation.status} semantic attempt, immutable history, and ${semanticEvaluation.caseCount} behavioral scenarios.`,
+    description: semanticEvaluation.hasAttempt
+      ? `Review the latest ${semanticEvaluation.status} semantic attempt, immutable history, and ${semanticEvaluation.caseCount} behavioral scenarios.`
+      : `Review ${semanticEvaluation.caseCount} behavioral scenarios and the semantic evaluation methodology before the first attempt is recorded.`,
     route: semanticEvaluation.route,
     searchText: normalizeSearchText(
       'Semantic evaluation behavioral scenarios expected behavior forbidden behavior passing evidence',
@@ -354,7 +356,9 @@ export const createLlmsText = (
     '## Evidence',
     '',
     `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
-    `- [Semantic evaluation](${semanticEvaluation.route}): Review the latest ${semanticEvaluation.status} attempt, ${semanticEvaluation.caseCount} scenarios, and immutable history.`,
+    semanticEvaluation.hasAttempt
+      ? `- [Semantic evaluation](${semanticEvaluation.route}): Review the latest ${semanticEvaluation.status} attempt, ${semanticEvaluation.caseCount} scenarios, and immutable history.`
+      : `- [Semantic evaluation](${semanticEvaluation.route}): Review ${semanticEvaluation.caseCount} behavioral scenarios and the methodology before the first attempt is recorded.`,
     `- [Adapter qualification](${qualification.route}): Inspect the support gate, transparent profiles, passing outcomes, and immutable attempt history.`,
   );
 

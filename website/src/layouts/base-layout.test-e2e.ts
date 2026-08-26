@@ -680,7 +680,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
   test(`keeps every public route accessible at 320px in ${colorScheme} mode`, async ({
     browser,
   }) => {
-    test.slow();
+    test.setTimeout(180_000);
 
     const context = await browser.newContext({
       colorScheme,

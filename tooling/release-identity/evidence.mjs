@@ -28,6 +28,7 @@ import {
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
   createSemanticCoverageDigest,
+  hasValidActorCommandPolicyEvidence,
   hasValidRepositoryControlEvidence,
   hasValidScenarioEvidence,
   hasValidPortableSkillSemanticCarryForward,
@@ -70,6 +71,7 @@ const createCanonicalTrialProvenance = (semanticResult) =>
       id: history.id,
       trials: [
         {
+          actorCommandPolicyEvidence: history.initial?.actorCommandPolicyEvidence,
           actorHost: history.initial?.actorHost,
           confirmationIndex: null,
           evaluatedAt: history.initial?.evaluatedAt,
@@ -78,6 +80,7 @@ const createCanonicalTrialProvenance = (semanticResult) =>
         },
         ...(Array.isArray(history.confirmations) ? history.confirmations : []).map(
           (confirmation) => ({
+            actorCommandPolicyEvidence: confirmation.actorCommandPolicyEvidence,
             actorHost: confirmation.actorHost,
             confirmationIndex: confirmation.confirmationIndex,
             evaluatedAt: confirmation.evaluatedAt,
@@ -92,13 +95,23 @@ const createCanonicalTrialProvenance = (semanticResult) =>
 const createAttemptTrialProvenance = (attempt) =>
   attempt.cases.map(({ id, trials }) => ({
     id,
-    trials: trials.map(({ actorHost, confirmationIndex, evaluatedAt, judgeHost, kind }) => ({
-      actorHost,
-      confirmationIndex,
-      evaluatedAt,
-      judgeHost,
-      kind,
-    })),
+    trials: trials.map(
+      ({
+        actorCommandPolicyEvidence,
+        actorHost,
+        confirmationIndex,
+        evaluatedAt,
+        judgeHost,
+        kind,
+      }) => ({
+        actorCommandPolicyEvidence,
+        actorHost,
+        confirmationIndex,
+        evaluatedAt,
+        judgeHost,
+        kind,
+      }),
+    ),
   }));
 
 const listQualificationProfiles = (repositoryRoot) => {
@@ -344,8 +357,8 @@ const inspectSemanticEvidence = (repositoryRoot) => {
     }
   }
 
-  if (semanticResult.schemaVersion !== 4) {
-    issues.push(`${RELEASE_PATHS.semanticResult} does not use semantic result schema 4.`);
+  if (semanticResult.schemaVersion !== 5) {
+    issues.push(`${RELEASE_PATHS.semanticResult} does not use semantic result schema 5.`);
   }
   if (JSON.stringify(semanticResult.hostContract) !== JSON.stringify(SEMANTIC_HOST_CONTRACT)) {
     issues.push(
@@ -407,7 +420,7 @@ const inspectSemanticEvidence = (repositoryRoot) => {
       latestAttempt.caseSuiteDigest === semanticResult.caseSuiteDigest &&
       latestAttempt.coverageDigest === semanticResult.coverageDigest &&
       JSON.stringify(latestAttempt.cli) === JSON.stringify(semanticResult.cli) &&
-      latestAttempt.schemaVersion === 3 &&
+      latestAttempt.schemaVersion === 4 &&
       JSON.stringify(latestAttempt.hostContract) === JSON.stringify(semanticResult.hostContract) &&
       JSON.stringify(createAttemptTrialProvenance(latestAttempt)) ===
         JSON.stringify(createCanonicalTrialProvenance(semanticResult));
@@ -441,6 +454,7 @@ const inspectSemanticEvidence = (repositoryRoot) => {
       const hasPassingInitial =
         history?.resolution === 'passed' &&
         history.initial?.passed === true &&
+        hasValidActorCommandPolicyEvidence(history.initial?.actorCommandPolicyEvidence) &&
         hasSemanticHostIdentity(history.initial?.actorHost) &&
         hasSemanticHostIdentity(history.initial?.judgeHost) &&
         Array.isArray(history.confirmations) &&
@@ -448,6 +462,7 @@ const inspectSemanticEvidence = (repositoryRoot) => {
       const hasRecoveredFailure =
         history?.resolution === 'recovered' &&
         history.initial?.passed === false &&
+        hasValidActorCommandPolicyEvidence(history.initial?.actorCommandPolicyEvidence) &&
         hasSemanticHostIdentity(history.initial?.actorHost) &&
         hasSemanticHostIdentity(history.initial?.judgeHost) &&
         Array.isArray(history.confirmations) &&
@@ -456,6 +471,7 @@ const inspectSemanticEvidence = (repositoryRoot) => {
           (confirmation, index) =>
             confirmation.confirmationIndex === index + 1 &&
             confirmation.passed === true &&
+            hasValidActorCommandPolicyEvidence(confirmation.actorCommandPolicyEvidence) &&
             hasSemanticHostIdentity(confirmation.actorHost) &&
             hasSemanticHostIdentity(confirmation.judgeHost),
         );
@@ -466,20 +482,26 @@ const inspectSemanticEvidence = (repositoryRoot) => {
           : null;
       return (
         result?.passed === true &&
+        hasValidActorCommandPolicyEvidence(result.actorCommandPolicyEvidence) &&
         hasSemanticHostIdentity(result.actorHost) &&
         hasSemanticHostIdentity(result.judgeHost) &&
         JSON.stringify(result.actorHost) === JSON.stringify(selectedHistoryTrial?.actorHost) &&
         JSON.stringify(result.judgeHost) === JSON.stringify(selectedHistoryTrial?.judgeHost) &&
         result.evaluatedAt === selectedHistoryTrial?.evaluatedAt &&
+        JSON.stringify(result.actorCommandPolicyEvidence) ===
+          JSON.stringify(selectedHistoryTrial?.actorCommandPolicyEvidence) &&
         result.caseDefinitionDigest === createSemanticCaseDefinitionDigest(caseDefinition) &&
         hasValidScenarioEvidence(result.scenarioEvidence, caseDefinition) &&
         hasValidRepositoryControlEvidence(result.repositoryControlEvidence) &&
         result.repositoryControlEvidence.violations.length === 0 &&
         publicCase?.passed === true &&
+        hasValidActorCommandPolicyEvidence(publicCase.actorCommandPolicyEvidence) &&
         JSON.stringify(publicCase.actorHost) === JSON.stringify(result.actorHost) &&
         JSON.stringify(publicCase.judgeHost) === JSON.stringify(result.judgeHost) &&
         publicCase.evaluatedAt === result.evaluatedAt &&
         publicCase.caseDefinitionDigest === result.caseDefinitionDigest &&
+        JSON.stringify(publicCase.actorCommandPolicyEvidence) ===
+          JSON.stringify(result.actorCommandPolicyEvidence) &&
         (hasPassingInitial || hasRecoveredFailure) &&
         JSON.stringify(publicCase.scenarioEvidence) === JSON.stringify(result.scenarioEvidence) &&
         JSON.stringify(publicCase.repositoryControlEvidence) ===

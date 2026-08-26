@@ -69,6 +69,26 @@ export const hasValidActorExecutionEvidence: (
   options: ISemanticActorExecutionEvidenceOptions,
 ) => boolean;
 
+export type ISemanticActorCommandClassification = 'indeterminate' | 'not-observed' | 'observed';
+
+// strict aggregate retained after raw actor command text is discarded
+export interface ISemanticActorCommandPolicyEvidence {
+  completedCommandCount: number;
+  indeterminateCommandCount: number;
+  packageManagerExecution: ISemanticActorCommandClassification;
+  packageManagerInvocationCount: number;
+}
+
+export const classifyActorCommandPolicyEvent: (
+  event: unknown,
+) => ISemanticActorCommandClassification | null;
+
+export const createActorCommandPolicyEvidence: (
+  classifications: ISemanticActorCommandClassification[],
+) => ISemanticActorCommandPolicyEvidence;
+
+export const hasValidActorCommandPolicyEvidence: (evidence: unknown) => boolean;
+
 export type ISemanticGitStateFact =
   | 'has-deleted-paths'
   | 'has-renamed-paths'
@@ -248,7 +268,9 @@ export const hasValidPortableSkillSemanticCarryForward: (
 ) => boolean;
 
 export type {
+  ISemanticAttemptCommandPolicyEvidence,
   ISemanticAttemptCase,
+  ISemanticAttemptCliIdentity,
   ISemanticAttemptRecord,
   ISemanticAttemptStatus,
   ISemanticAttemptTrial,

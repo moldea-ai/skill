@@ -28,7 +28,6 @@ import type {
   ISemanticEvaluationCaseModel,
   ISemanticEvaluationGroupId,
   ISemanticEvaluationWebsiteModel,
-  ISemanticAssuranceGeneration,
 } from './types.ts';
 import {
   SemanticAttemptRecordSchema,
@@ -40,45 +39,23 @@ const CONFORMANCE_CASES_PATH = 'fixtures/conformance-cases.json';
 const SEMANTIC_ATTEMPTS_PATH = 'fixtures/semantic-evaluation-results';
 const SEMANTIC_COVERAGE_PATH = 'fixtures/semantic-evaluation-coverage.json';
 
-const isOfficialSemanticHost = (
-  host: {
-    model: string;
-    name: string;
-    reasoningEffort: string;
-    version?: string;
-  },
-  model: 'gpt-5.6-sol' | 'gpt-5.6-terra',
-): boolean =>
-  host.model === model &&
+const isOfficialSemanticHost = (host: {
+  model: string;
+  name: string;
+  reasoningEffort: string;
+  version?: string;
+}): boolean =>
+  host.model === 'gpt-5.6-sol' &&
   host.name === 'codex' &&
   host.reasoningEffort === 'medium' &&
   (host.version === undefined ||
     (host.version.trim().length > 0 && host.version !== 'unavailable'));
 
 const createAttemptCases = (attempt: ISemanticAttemptRecord): ISemanticAttemptCaseModel[] => {
-  if (attempt.schemaVersion === 1) {
-    return attempt.cases.map((attemptCase) => ({
-      ...attemptCase,
-      trials: attemptCase.trials.map((trial) => ({
-        ...trial,
-        actorHost: attempt.actorHost,
-        judgeHost: attempt.judgeHost,
-      })),
-    }));
-  }
-
   return attempt.cases.map((attemptCase) => ({
     ...attemptCase,
     trials: attemptCase.trials.map((trial): ISemanticAttemptTrialModel => ({ ...trial })),
   }));
-};
-
-/** Classifies an attempt from its model-owned schema and semantic protocol. */
-const getAssuranceGeneration = (attempt: ISemanticAttemptRecord): ISemanticAssuranceGeneration => {
-  if (attempt.schemaVersion !== 3) return 'Historical Terra';
-  return attempt.evidence.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION
-    ? 'Current Sol'
-    : 'Historical Sol';
 };
 
 const readJson = (path: string): unknown => {
@@ -132,23 +109,14 @@ const hasCurrentAttemptIdentity = (
     attempt.totalCaseCount !== caseDefinitions.length ||
     new Set(attemptCaseIds).size !== attemptCaseIds.length ||
     attemptCaseIds.some((id) => !caseIds.includes(id));
-  let hasOfficialHosts: boolean;
-  if (attempt.schemaVersion === 1) {
-    hasOfficialHosts =
-      isOfficialSemanticHost(attempt.actorHost, 'gpt-5.6-terra') &&
-      isOfficialSemanticHost(attempt.judgeHost, 'gpt-5.6-terra');
-  } else {
-    const expectedModel = attempt.schemaVersion === 2 ? 'gpt-5.6-terra' : 'gpt-5.6-sol';
-    hasOfficialHosts =
-      isOfficialSemanticHost(attempt.hostContract, expectedModel) &&
-      attempt.cases.every(({ trials }) =>
-        trials.every(
-          ({ actorHost, judgeHost }) =>
-            isOfficialSemanticHost(actorHost, expectedModel) &&
-            isOfficialSemanticHost(judgeHost, expectedModel),
-        ),
-      );
-  }
+  const hasOfficialHosts =
+    isOfficialSemanticHost(attempt.hostContract) &&
+    attempt.cases.every(({ trials }) =>
+      trials.every(
+        ({ actorHost, judgeHost }) =>
+          isOfficialSemanticHost(actorHost) && isOfficialSemanticHost(judgeHost),
+      ),
+    );
   if (!hasOfficialHosts) {
     throw new Error('Latest semantic attempt does not use its schema-owned host configuration.');
   }
@@ -159,7 +127,6 @@ const hasCurrentAttemptIdentity = (
 const createAttemptModel = (attempt: ISemanticAttemptRecord): ISemanticAttemptModel => {
   const attemptPath = `${SEMANTIC_ATTEMPTS_PATH}/attempts/${attempt.attemptId}`;
   return {
-    assuranceGeneration: getAssuranceGeneration(attempt),
     cases: createAttemptCases(attempt),
     rawAttemptUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${attemptPath}/attempt.json`,
     rawEvidenceUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${attemptPath}/evidence.json`,
@@ -209,29 +176,28 @@ export const loadSemanticEvaluationWebsiteModel = (
   const attempts = loadedHistory.attempts.map((attempt) =>
     SemanticAttemptRecordSchema.parse(attempt),
   );
-  const latestPointer = SemanticLatestResultSchema.parse(loadedHistory.latest);
+  const latestPointer =
+    loadedHistory.latest === null ? null : SemanticLatestResultSchema.parse(loadedHistory.latest);
   const attemptModels = attempts.map(createAttemptModel);
-  const latest = attemptModels.find(
-    ({ result }) => result.attemptId === latestPointer.latestAttemptId,
-  );
-  if (latest === undefined) {
+  const latest =
+    latestPointer === null
+      ? null
+      : (attemptModels.find(({ result }) => result.attemptId === latestPointer.latestAttemptId) ??
+        null);
+  if (latestPointer !== null && latest === null) {
     throw new Error('Semantic latest pointer does not resolve to an immutable attempt.');
   }
-  const hasCurrentInputs = hasCurrentAttemptIdentity(
-    latest.result,
-    caseDefinitions,
-    coverage,
-    repositoryRoot,
-  );
-  const hasCurrentEvaluation = hasCurrentInputs && latest.result.schemaVersion === 3;
+  const hasCurrentEvaluation =
+    latest !== null &&
+    hasCurrentAttemptIdentity(latest.result, caseDefinitions, coverage, repositoryRoot);
 
   const lastPassing =
-    latestPointer.lastPassingAttemptId === null
+    latestPointer?.lastPassingAttemptId == null
       ? null
       : (attemptModels.find(
           ({ result }) => result.attemptId === latestPointer.lastPassingAttemptId,
         ) ?? null);
-  if (latestPointer.lastPassingAttemptId !== null && lastPassing === null) {
+  if (latestPointer?.lastPassingAttemptId != null && lastPassing === null) {
     throw new Error('Semantic last-passing pointer does not resolve to an immutable attempt.');
   }
 
@@ -261,14 +227,11 @@ export const loadSemanticEvaluationWebsiteModel = (
     cli: createSemanticCliIdentity(repositoryRoot),
     coverageDigest: currentCoverageDigest,
     coverageUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${SEMANTIC_COVERAGE_PATH}`,
-    evaluatedAt: latest.result.updatedAt,
-    evaluationModel:
-      latest.result.schemaVersion === 1
-        ? latest.result.actorHost.model
-        : latest.result.hostContract.model,
+    evaluatedAt: latest?.result.updatedAt ?? null,
+    evaluationModel: 'gpt-5.6-sol',
     failedCaseCount: hasCurrentEvaluation ? latest.result.failedCaseCount : 0,
     groups,
-    hasCurrentAssuranceAttempt: hasCurrentEvaluation,
+    hasAttempt: hasCurrentEvaluation,
     lastPassing,
     latest,
     latestPointer,
@@ -279,6 +242,6 @@ export const loadSemanticEvaluationWebsiteModel = (
       : caseDefinitions.length,
     recoveredCaseCount: hasCurrentEvaluation ? latest.result.recoveredCaseCount : 0,
     route: SEMANTIC_EVALUATION_ROUTE,
-    status: latest.result.status,
+    status: hasCurrentEvaluation ? latest.result.status : 'not-recorded',
   };
 };

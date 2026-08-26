@@ -22,14 +22,12 @@ import type { ISemanticCaseDefinition } from './types.ts';
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 const temporaryRoots: string[] = [];
 const HOST = {
-  model: 'gpt-5.6-terra',
+  model: 'gpt-5.6-sol',
   name: 'codex',
   reasoningEffort: 'medium',
   version: 'codex-cli test',
 } as const;
 const UPDATED_HOST = { ...HOST, version: 'codex-cli updated' } as const;
-const SOL_HOST = { ...HOST, model: 'gpt-5.6-sol' } as const;
-const UPDATED_SOL_HOST = { ...SOL_HOST, version: UPDATED_HOST.version } as const;
 
 const createTemporaryRoot = (): string => {
   const root = mkdtempSync(join(tmpdir(), 'moldea-semantic-website-'));
@@ -68,7 +66,6 @@ const createCandidate = (
   failedCaseId: string | null,
   updatedAt: string,
 ): Record<string, unknown> => ({
-  actorHost: HOST,
   artifactDigest: createPortableSkillDigest(root),
   caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
   cli: createSemanticCliIdentity(root),
@@ -76,15 +73,27 @@ const createCandidate = (
   coverageDigest: createSemanticCoverageDigest(coverage, caseDefinitions),
   evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt: updatedAt,
-  judgeHost: HOST,
-  results: evaluatedCaseIds.map((id) => {
+  hostContract: {
+    model: HOST.model,
+    name: HOST.name,
+    reasoningEffort: HOST.reasoningEffort,
+  },
+  results: evaluatedCaseIds.map((id, index) => {
     const caseDefinition = caseDefinitions.find(({ id: caseId }) => caseId === id);
     if (caseDefinition === undefined) throw new Error(`Unknown test case ${id}.`);
     const passed = id !== failedCaseId;
     return {
+      actorCommandPolicyEvidence: {
+        completedCommandCount: 1,
+        indeterminateCommandCount: 0,
+        packageManagerExecution: 'not-observed',
+        packageManagerInvocationCount: 0,
+      },
+      actorHost: index === 0 ? HOST : UPDATED_HOST,
       evaluatedAt: updatedAt,
       forbidden: [],
       id,
+      judgeHost: index === 0 ? HOST : UPDATED_HOST,
       observed: passed ? getSemanticCriterionLabels(caseDefinition.expected) : [],
       passed,
       rationale: passed
@@ -92,45 +101,9 @@ const createCandidate = (
         : 'The recorded response misses one declared criterion.',
     };
   }),
-  schemaVersion: 3,
+  schemaVersion: 5,
   updatedAt,
 });
-
-const createCurrentCandidate = (
-  root: string,
-  caseDefinitions: ISemanticCaseDefinition[],
-  coverage: unknown,
-  evaluatedCaseIds: string[],
-  failedCaseId: string | null,
-  updatedAt: string,
-): Record<string, unknown> => {
-  const legacyCandidate = createCandidate(
-    root,
-    caseDefinitions,
-    coverage,
-    evaluatedCaseIds,
-    failedCaseId,
-    updatedAt,
-  );
-  return {
-    ...legacyCandidate,
-    actorHost: undefined,
-    hostContract: {
-      model: SOL_HOST.model,
-      name: SOL_HOST.name,
-      reasoningEffort: SOL_HOST.reasoningEffort,
-    },
-    judgeHost: undefined,
-    results: (legacyCandidate['results'] as Array<Record<string, unknown>>).map(
-      (result, index) => ({
-        actorHost: index === 0 ? SOL_HOST : UPDATED_SOL_HOST,
-        judgeHost: index === 0 ? SOL_HOST : UPDATED_SOL_HOST,
-        ...result,
-      }),
-    ),
-    schemaVersion: 4,
-  };
-};
 
 const recordCandidate = async (
   root: string,
@@ -158,7 +131,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     const { cases, coverage } = loadInputs(root);
     await recordCandidate(
       root,
-      createCurrentCandidate(
+      createCandidate(
         root,
         cases,
         coverage,
@@ -174,13 +147,12 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
     expect(model.route).toBe('/evidence/semantic/');
     expect(model.status).toBe('passed');
-    expect(model.hasCurrentAssuranceAttempt).toBe(true);
-    expect(model.latest.assuranceGeneration).toBe('Current Sol');
-    expect(model.latest.rawAttemptUrl).toContain(
-      `/attempts/${model.latest.result.attemptId}/attempt.json`,
+    expect(model.hasAttempt).toBe(true);
+    expect(model.latest?.rawAttemptUrl).toContain(
+      `/attempts/${model.latest?.result.attemptId}/attempt.json`,
     );
-    expect(model.latest.rawEvidenceUrl).toContain(
-      `/attempts/${model.latest.result.attemptId}/evidence.json`,
+    expect(model.latest?.rawEvidenceUrl).toContain(
+      `/attempts/${model.latest?.result.attemptId}/evidence.json`,
     );
     expect(model.caseCount).toBe(cases.length);
     expect(model.passedCaseCount).toBe(cases.length);
@@ -192,7 +164,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     const { cases, coverage } = loadInputs(root);
     await recordCandidate(
       root,
-      createCurrentCandidate(
+      createCandidate(
         root,
         cases,
         coverage,
@@ -205,7 +177,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     );
     await recordCandidate(
       root,
-      createCurrentCandidate(
+      createCandidate(
         root,
         cases,
         coverage,
@@ -223,8 +195,8 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.passedCaseCount).toBe(1);
     expect(model.failedCaseCount).toBe(1);
     expect(model.pendingCaseCount).toBe(cases.length - 2);
-    expect(model.hasCurrentAssuranceAttempt).toBe(true);
-    expect(model.latest.result.attemptId).not.toBe(model.lastPassing?.result.attemptId);
+    expect(model.hasAttempt).toBe(true);
+    expect(model.latest?.result.attemptId).not.toBe(model.lastPassing?.result.attemptId);
   });
 
   test('publishes mixed per-trial Codex versions from current attempt summaries', async () => {
@@ -232,7 +204,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     const { cases, coverage } = loadInputs(root);
     await recordCandidate(
       root,
-      createCurrentCandidate(
+      createCandidate(
         root,
         cases,
         coverage,
@@ -246,66 +218,15 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
     const model = loadSemanticEvaluationWebsiteModel(root);
 
-    expect(model.latest.result.schemaVersion).toBe(3);
-    expect(model.latest.cases[0]?.trials[0]?.actorHost.version).toBe(SOL_HOST.version);
-    expect(model.latest.cases[1]?.trials[0]?.actorHost.version).toBe(UPDATED_SOL_HOST.version);
-  });
-
-  test('keeps Terra attempts inspectable without treating them as current assurance', async () => {
-    const root = createTemporaryRoot();
-    const { cases, coverage } = loadInputs(root);
-    await recordCandidate(
-      root,
-      createCandidate(
-        root,
-        cases,
-        coverage,
-        cases.map(({ id }) => id),
-        null,
-        '2026-08-25T12:00:00.000Z',
-      ),
-      cases.length,
-      'complete',
-    );
-
-    const model = loadSemanticEvaluationWebsiteModel(root);
-
-    expect(model.latest.result.schemaVersion).toBe(1);
-    expect(model.latest.assuranceGeneration).toBe('Historical Terra');
-    expect(model.evaluationModel).toBe('gpt-5.6-terra');
-    expect(model.hasCurrentAssuranceAttempt).toBe(false);
-    expect(model.passedCaseCount).toBe(0);
-    expect(model.pendingCaseCount).toBe(cases.length);
-  });
-
-  test('labels earlier Sol protocols as historical without treating them as current assurance', async () => {
-    const root = createTemporaryRoot();
-    const { cases, coverage } = loadInputs(root);
-    const candidate = createCurrentCandidate(
-      root,
-      cases,
-      coverage,
-      [cases[0]!.id],
-      cases[0]!.id,
-      '2026-08-25T13:00:00.000Z',
-    );
-    await recordCandidate(
-      root,
-      {
-        ...candidate,
-        evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION - 1,
-      },
-      cases.length,
-      'case-failure',
-    );
-
-    const model = loadSemanticEvaluationWebsiteModel(root);
-
-    expect(model.latest.result.schemaVersion).toBe(3);
-    expect(model.latest.assuranceGeneration).toBe('Historical Sol');
-    expect(model.hasCurrentAssuranceAttempt).toBe(false);
-    expect(model.passedCaseCount).toBe(0);
-    expect(model.pendingCaseCount).toBe(cases.length);
+    expect(model.latest?.result.schemaVersion).toBe(4);
+    expect(model.latest?.cases[0]?.trials[0]?.actorCommandPolicyEvidence).toStrictEqual({
+      completedCommandCount: 1,
+      indeterminateCommandCount: 0,
+      packageManagerExecution: 'not-observed',
+      packageManagerInvocationCount: 0,
+    });
+    expect(model.latest?.cases[0]?.trials[0]?.actorHost.version).toBe(HOST.version);
+    expect(model.latest?.cases[1]?.trials[0]?.actorHost.version).toBe(UPDATED_HOST.version);
   });
 
   test('rejects malformed current trial host provenance', async () => {
@@ -313,7 +234,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     const { cases, coverage } = loadInputs(root);
     await recordCandidate(
       root,
-      createCurrentCandidate(
+      createCandidate(
         root,
         cases,
         coverage,
@@ -376,9 +297,17 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     );
   });
 
-  test('rejects missing immutable semantic history', () => {
+  test('publishes a transparent empty state before the first semantic attempt', () => {
     const root = createTemporaryRoot();
 
-    expect(() => loadSemanticEvaluationWebsiteModel(root)).toThrow();
+    const model = loadSemanticEvaluationWebsiteModel(root);
+
+    expect(model.status).toBe('not-recorded');
+    expect(model.hasAttempt).toBe(false);
+    expect(model.attempts).toStrictEqual([]);
+    expect(model.latest).toBeNull();
+    expect(model.latestPointer).toBeNull();
+    expect(model.evaluatedAt).toBeNull();
+    expect(model.pendingCaseCount).toBe(model.caseCount);
   });
 });

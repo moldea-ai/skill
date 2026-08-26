@@ -1,6 +1,5 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import test from 'node:test';
@@ -8,7 +7,6 @@ import test from 'node:test';
 import {
   appendSemanticCandidateConfirmation,
   appendSemanticCandidateInitialResult,
-  assertSemanticCandidateSourceUnchanged,
   assessJudgeOutput,
   buildActorPrompt,
   buildJudgePrompt,
@@ -24,7 +22,6 @@ import {
   getSemanticCaseResolution,
   getSemanticCriterionLabels,
   getSemanticToolingSource,
-  migrateSemanticEvaluationCandidate,
   normalizePortableSkillSemanticEvidence,
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
@@ -189,6 +186,12 @@ const REPOSITORY_CONTROL_STATE = {
   localConfigDigest: '5'.repeat(64),
   refs: [],
 };
+const EMPTY_COMMAND_POLICY_EVIDENCE = {
+  completedCommandCount: 0,
+  indeterminateCommandCount: 0,
+  packageManagerExecution: 'not-observed',
+  packageManagerInvocationCount: 0,
+};
 
 const createScenarioEvidence = (caseDefinition) =>
   caseDefinition.input.repositoryEvidence.map(({ claim, source }) => {
@@ -217,6 +220,7 @@ const createScenarioEvidence = (caseDefinition) =>
 
 const createCaseResult = (caseDefinition, passed) => ({
   actorHost: ACTOR_HOST,
+  actorCommandPolicyEvidence: EMPTY_COMMAND_POLICY_EVIDENCE,
   actorExecutionEvidence: [],
   actorResponse: `Actor response for ${caseDefinition.id}`,
   caseId: caseDefinition.id,
@@ -257,7 +261,6 @@ test('actor prompt contains only the user scenario', () => {
 test('semantic evaluation arguments separate runs, diagnostics, confirmations, and verification', () => {
   assert.deepEqual(parseSemanticEvaluationArguments(['--record']), {
     confirmationCaseId: undefined,
-    isMigrateCheckpointRequested: false,
     isPreflightRequested: false,
     isRecordRequested: true,
     isRecordCheckpointRequested: false,
@@ -269,7 +272,6 @@ test('semantic evaluation arguments separate runs, diagnostics, confirmations, a
     parseSemanticEvaluationArguments(['--confirm', 'blind-evaluation', '--record']),
     {
       confirmationCaseId: 'blind-evaluation',
-      isMigrateCheckpointRequested: false,
       isPreflightRequested: false,
       isRecordRequested: true,
       isRecordCheckpointRequested: false,
@@ -290,19 +292,9 @@ test('semantic evaluation arguments separate runs, diagnostics, confirmations, a
     () => parseSemanticEvaluationArguments(['--stop-on-failure']),
     /Unsupported semantic evaluation option/,
   );
-  assert.deepEqual(parseSemanticEvaluationArguments(['--migrate-checkpoint']), {
-    confirmationCaseId: undefined,
-    isMigrateCheckpointRequested: true,
-    isPreflightRequested: false,
-    isRecordCheckpointRequested: false,
-    isRecordRequested: false,
-    isRestartRequested: false,
-    isVerifyAttemptsRequested: false,
-    requestedCaseId: undefined,
-  });
   assert.throws(
-    () => parseSemanticEvaluationArguments(['--migrate-checkpoint', '--record']),
-    /must run without other options/,
+    () => parseSemanticEvaluationArguments(['--migrate-checkpoint']),
+    /Unsupported semantic evaluation option/,
   );
 });
 
@@ -440,6 +432,12 @@ test('semantic host output separates final response from runner-owned execution 
     .join('\n');
 
   assert.deepEqual(parseSemanticEvaluationHostOutput(output, ACTOR_EXECUTION_EVIDENCE_OPTIONS), {
+    actorCommandPolicyEvidence: {
+      completedCommandCount: 2,
+      indeterminateCommandCount: 1,
+      packageManagerExecution: 'observed',
+      packageManagerInvocationCount: 1,
+    },
     actorExecutionEvidence: [
       {
         eventType: 'item.completed',
@@ -489,6 +487,7 @@ test('semantic host output does not derive execution evidence from the final res
   });
 
   assert.deepEqual(parseSemanticEvaluationHostOutput(output, ACTOR_EXECUTION_EVIDENCE_OPTIONS), {
+    actorCommandPolicyEvidence: EMPTY_COMMAND_POLICY_EVIDENCE,
     actorExecutionEvidence: [],
     response: 'I ran yarn bin -v --json and it succeeded.',
   });
@@ -624,6 +623,12 @@ test('judge prompt enforces bidirectional source attribution after actor executi
       before: REPOSITORY_CONTROL_STATE,
       violations: [],
     },
+    {
+      completedCommandCount: 2,
+      indeterminateCommandCount: 1,
+      packageManagerExecution: 'indeterminate',
+      packageManagerInvocationCount: 0,
+    },
   );
 
   assert.match(judgePrompt, /expected-secret-label/);
@@ -650,6 +655,14 @@ test('judge prompt enforces bidirectional source attribution after actor executi
     judgePrompt,
     /runner-owned execution evidence cannot prove what the actor reported/i,
   );
+  assert.match(judgePrompt, /Runner-owned actor command-policy evidence/);
+  assert.match(judgePrompt, /packageManagerExecution "not-observed"/);
+  assert.match(
+    judgePrompt,
+    /"indeterminate" makes a package-manager non-execution\s+criterion fail/,
+  );
+  assert.match(judgePrompt, /cannot replace complete command classification/);
+  assert.match(judgePrompt, /"packageManagerExecution": "indeterminate"/);
   assert.match(judgePrompt, /each clause must be established by that source/i);
   assert.match(judgePrompt, /Evaluator-only activation scenarios/);
   assert.match(judgePrompt, /Review this release/);
@@ -1006,125 +1019,6 @@ test('semantic candidates bind exact evidence and stable host contracts', () => 
   );
 });
 
-test('schema-3 migration preserves trials and enables version-independent resume', () => {
-  const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
-  const currentCandidate = appendSemanticCandidateInitialResult(
-    createSemanticEvaluationCandidate({
-      actorHost: ACTOR_HOST,
-      artifactDigest: ARTIFACT_DIGEST,
-      caseDefinitions,
-      cli: CLI_IDENTITY,
-      coverageDigest: COVERAGE_DIGEST,
-      generatedAt: EVALUATED_AT,
-      judgeHost: JUDGE_HOST,
-    }),
-    CASE_DEFINITION,
-    createCaseResult(CASE_DEFINITION, true),
-    EVALUATED_AT,
-  );
-  const removeTrialHosts = ({ actorHost: _actorHost, judgeHost: _judgeHost, ...trial }) => trial;
-  const legacyCandidate = {
-    actorHost: ACTOR_HOST,
-    artifactDigest: currentCandidate.artifactDigest,
-    caseSuiteDigest: currentCandidate.caseSuiteDigest,
-    cli: currentCandidate.cli,
-    confirmations: currentCandidate.confirmations.map(removeTrialHosts),
-    coverageDigest: currentCandidate.coverageDigest,
-    evaluationProtocolVersion: currentCandidate.evaluationProtocolVersion,
-    generatedAt: currentCandidate.generatedAt,
-    judgeHost: JUDGE_HOST,
-    results: currentCandidate.results.map(removeTrialHosts),
-    schemaVersion: 3,
-    updatedAt: currentCandidate.updatedAt,
-  };
-  const sourceEvidenceText = `${JSON.stringify(legacyCandidate, null, 2)}\n`;
-  const sourceSha256 = createHash('sha256').update(sourceEvidenceText).digest('hex');
-  const currentBoundary = {
-    artifactDigest: ARTIFACT_DIGEST,
-    caseDefinitions,
-    cli: CLI_IDENTITY,
-    coverageDigest: COVERAGE_DIGEST,
-  };
-  const migratedAt = '2026-08-16T12:05:00.000Z';
-  const migratedCandidate = migrateSemanticEvaluationCandidate({
-    candidate: legacyCandidate,
-    currentBoundary,
-    migratedAt,
-    sourceSha256,
-  });
-
-  assert.equal(migratedCandidate.schemaVersion, 4);
-  assert.deepEqual(
-    migratedCandidate.hostContract,
-    createSemanticEvaluationHostContract(ACTOR_HOST),
-  );
-  assert.deepEqual(migratedCandidate.checkpointMigration, {
-    fromSchemaVersion: 3,
-    migratedAt,
-    sourceSha256,
-  });
-  assert.equal(migratedCandidate.updatedAt, migratedAt);
-  assert.deepEqual(removeTrialHosts(migratedCandidate.results[0]), legacyCandidate.results[0]);
-  assert.deepEqual(migratedCandidate.results[0].actorHost, ACTOR_HOST);
-  assert.deepEqual(migratedCandidate.results[0].judgeHost, JUDGE_HOST);
-  assert.doesNotThrow(() =>
-    validateSemanticCandidateCompatibility(migratedCandidate, {
-      actorHost: { ...ACTOR_HOST, version: 'codex-cli 0.149.1' },
-      ...currentBoundary,
-      judgeHost: { ...JUDGE_HOST, version: 'codex-cli 0.149.1' },
-    }),
-  );
-  assert.equal(
-    migrateSemanticEvaluationCandidate({
-      candidate: migratedCandidate,
-      currentBoundary,
-      migratedAt: '2026-08-16T12:06:00.000Z',
-      sourceSha256: 'f'.repeat(64),
-    }),
-    migratedCandidate,
-  );
-  assert.doesNotThrow(() =>
-    assertSemanticCandidateSourceUnchanged(sourceEvidenceText, sourceSha256),
-  );
-  assert.throws(
-    () => assertSemanticCandidateSourceUnchanged(`${sourceEvidenceText} `, sourceSha256),
-    /changed during migration/,
-  );
-  assert.throws(
-    () =>
-      migrateSemanticEvaluationCandidate({
-        candidate: legacyCandidate,
-        currentBoundary: { ...currentBoundary, artifactDigest: 'b'.repeat(64) },
-        migratedAt,
-        sourceSha256,
-      }),
-    /does not match the current evidence boundary/,
-  );
-  assert.throws(
-    () =>
-      migrateSemanticEvaluationCandidate({
-        candidate: {
-          ...legacyCandidate,
-          actorHost: { ...ACTOR_HOST, version: 'unavailable' },
-        },
-        currentBoundary,
-        migratedAt,
-        sourceSha256,
-      }),
-    /requires gpt-5\.6-sol medium actor and judge Codex hosts with exact versions/,
-  );
-  assert.throws(
-    () =>
-      migrateSemanticEvaluationCandidate({
-        candidate: { ...legacyCandidate, evaluationProtocolVersion: 14 },
-        currentBoundary,
-        migratedAt,
-        sourceSha256,
-      }),
-    /different semantic evaluation protocol.*--restart/s,
-  );
-});
-
 test('checkpoint recording rejects stale release inputs and unofficial hosts', () => {
   const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
   const candidate = createSemanticEvaluationCandidate({
@@ -1328,8 +1222,8 @@ test('semantic candidates retain failures and require two passing confirmations'
     caseDefinitions,
     generatedAt: '2026-08-16T12:03:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 15);
-  assert.equal(record.schemaVersion, 4);
+  assert.equal(record.evaluationProtocolVersion, 16);
+  assert.equal(record.schemaVersion, 5);
   assert.equal(record.actorHost, undefined);
   assert.equal(record.host, undefined);
   assert.equal(record.judgeHost, undefined);
@@ -1350,6 +1244,7 @@ test('semantic candidates retain failures and require two passing confirmations'
     record.cases.map(({ caseDefinitionDigest }) => caseDefinitionDigest),
     caseDefinitions.map(createSemanticCaseDefinitionDigest),
   );
+  assert.deepEqual(record.cases[0].actorCommandPolicyEvidence, EMPTY_COMMAND_POLICY_EVIDENCE);
 });
 
 test('semantic candidates accept explicitly truncated skill artifact evidence', () => {
@@ -1419,6 +1314,26 @@ test('semantic candidates accept explicitly truncated skill artifact evidence', 
                   ],
                 },
               ],
+            },
+          ],
+        },
+        caseDefinitions,
+      }),
+    /invalid case evidence/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticResultRecording({
+        candidate: {
+          ...candidate,
+          results: [
+            {
+              ...candidate.results[0],
+              actorCommandPolicyEvidence: {
+                ...candidate.results[0].actorCommandPolicyEvidence,
+                packageManagerExecution: 'not-observed',
+                packageManagerInvocationCount: 1,
+              },
             },
           ],
         },
@@ -1546,6 +1461,109 @@ test('semantic candidate validation rejects internally inconsistent evidence', (
         caseDefinitions,
       }),
     /invalid case evidence/,
+  );
+});
+
+test('semantic candidate validation rejects indeterminate package-manager non-execution passes', () => {
+  const packageManagerCaseDefinition = {
+    ...CASE_DEFINITION,
+    id: 'package-manager-non-execution',
+    expected: [
+      {
+        criterion: 'No package-manager command can be invoked.',
+        label: 'stop-before-package-manager-execution',
+      },
+    ],
+  };
+  const caseDefinitions = [packageManagerCaseDefinition];
+  const candidate = appendSemanticCandidateInitialResult(
+    createSemanticEvaluationCandidate({
+      actorHost: ACTOR_HOST,
+      artifactDigest: ARTIFACT_DIGEST,
+      caseDefinitions,
+      cli: CLI_IDENTITY,
+      coverageDigest: COVERAGE_DIGEST,
+      generatedAt: EVALUATED_AT,
+      judgeHost: JUDGE_HOST,
+    }),
+    packageManagerCaseDefinition,
+    createCaseResult(packageManagerCaseDefinition, true),
+    EVALUATED_AT,
+  );
+  const indeterminateCandidate = {
+    ...candidate,
+    results: [
+      {
+        ...candidate.results[0],
+        actorCommandPolicyEvidence: {
+          completedCommandCount: 1,
+          indeterminateCommandCount: 1,
+          packageManagerExecution: 'indeterminate',
+          packageManagerInvocationCount: 0,
+        },
+      },
+    ],
+  };
+
+  assert.throws(
+    () =>
+      validateSemanticResultRecording({
+        candidate: indeterminateCandidate,
+        caseDefinitions,
+      }),
+    /invalid case evidence/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticResultRecording({
+        candidate: {
+          ...indeterminateCandidate,
+          results: [{ ...indeterminateCandidate.results[0], passed: false }],
+        },
+        caseDefinitions,
+      }),
+    /incomplete or failing/,
+  );
+
+  const failingInitialCandidate = appendSemanticCandidateInitialResult(
+    createSemanticEvaluationCandidate({
+      actorHost: ACTOR_HOST,
+      artifactDigest: ARTIFACT_DIGEST,
+      caseDefinitions,
+      cli: CLI_IDENTITY,
+      coverageDigest: COVERAGE_DIGEST,
+      generatedAt: EVALUATED_AT,
+      judgeHost: JUDGE_HOST,
+    }),
+    packageManagerCaseDefinition,
+    createCaseResult(packageManagerCaseDefinition, false),
+    EVALUATED_AT,
+  );
+  const confirmationCandidate = appendSemanticCandidateConfirmation(
+    failingInitialCandidate,
+    packageManagerCaseDefinition,
+    {
+      ...createCaseResult(packageManagerCaseDefinition, true),
+      actorCommandPolicyEvidence:
+        indeterminateCandidate.results[0].actorCommandPolicyEvidence,
+    },
+    EVALUATED_AT,
+  );
+
+  assert.throws(
+    () => validateSemanticResultRecording({ candidate: confirmationCandidate, caseDefinitions }),
+    /invalid confirmation evidence/,
+  );
+  assert.throws(
+    () =>
+      validateSemanticResultRecording({
+        candidate: {
+          ...confirmationCandidate,
+          confirmations: [{ ...confirmationCandidate.confirmations[0], passed: false }],
+        },
+        caseDefinitions,
+      }),
+    /incomplete or failing/,
   );
 });
 

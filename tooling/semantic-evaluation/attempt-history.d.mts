@@ -3,7 +3,7 @@ export type ISemanticAttemptStatus = 'failed' | 'incomplete' | 'passed';
 
 // behavior-bearing semantic execution contract
 export interface ISemanticEvaluationHostContract {
-  model: 'gpt-5.6-sol' | 'gpt-5.6-terra';
+  model: 'gpt-5.6-sol';
   name: 'codex';
   reasoningEffort: 'medium';
 }
@@ -13,55 +13,68 @@ export interface ISemanticEvaluationHostIdentity extends ISemanticEvaluationHost
   version: string;
 }
 
+// aggregate command-policy evidence retained without raw command text
+export interface ISemanticAttemptCommandPolicyEvidence {
+  completedCommandCount: number;
+  indeterminateCommandCount: number;
+  packageManagerExecution: 'indeterminate' | 'not-observed' | 'observed';
+  packageManagerInvocationCount: number;
+}
+
+// exact published CLI identity bound to the semantic attempt
+export interface ISemanticAttemptCliIdentity {
+  integrity: string;
+  jsonSchemaVersion: number;
+  name: '@moldea.ai/cli';
+  packageLockSha256: string;
+  version: string;
+}
+
 // one initial or confirmation evaluation for a semantic case
-export interface ISemanticAttemptTrialBase {
+export interface ISemanticAttemptTrial {
+  actorCommandPolicyEvidence: ISemanticAttemptCommandPolicyEvidence;
+  actorHost: ISemanticEvaluationHostIdentity;
   confirmationIndex: 1 | 2 | null;
   evaluatedAt: string;
   forbidden: string[];
+  judgeHost: ISemanticEvaluationHostIdentity;
   kind: 'confirmation' | 'initial';
   observed: string[];
   passed: boolean;
   rationale: string;
 }
 
-// historical trial whose host identity was recorded at attempt level
-export type ISemanticLegacyAttemptTrial = ISemanticAttemptTrialBase;
-
-// current trial with independent actor and judge provenance
-export interface ISemanticAttemptTrial extends ISemanticAttemptTrialBase {
-  actorHost: ISemanticEvaluationHostIdentity;
-  judgeHost: ISemanticEvaluationHostIdentity;
-}
-
 // derived case status and its complete ordered trial history
-export interface ISemanticAttemptCase<TTrial extends ISemanticAttemptTrialBase> {
+export interface ISemanticAttemptCase {
   confirmationStatus: 'not-required' | 'passed' | 'rejected' | 'required';
   id: string;
   status: 'failed' | 'passed' | 'recovered';
-  trials: TTrial[];
+  trials: ISemanticAttemptTrial[];
 }
 
-// immutable fields shared by every semantic summary generation
-export interface ISemanticAttemptRecordBase<TTrial extends ISemanticAttemptTrialBase> {
+// immutable public summary bound to exact current semantic evidence
+export interface ISemanticAttemptRecord {
   artifactDigest: string;
   attemptId: string;
   caseSuiteDigest: string;
-  cases: ISemanticAttemptCase<TTrial>[];
-  cli: unknown;
-  coverageDigest: string | null;
+  cases: ISemanticAttemptCase[];
+  cli: ISemanticAttemptCliIdentity;
+  coverageDigest: string;
   createdAt: string;
   evidence: {
-    evaluationProtocolVersion: number;
-    kind: 'candidate' | 'result';
+    evaluationProtocolVersion: 16;
+    kind: 'candidate';
     path: 'evidence.json';
-    schemaVersion: number;
+    schemaVersion: 5;
     sha256: string;
   };
   failedCaseCount: number;
+  hostContract: ISemanticEvaluationHostContract;
   passedCaseCount: number;
   pendingCaseCount: number;
   recordedAt: string;
   recoveredCaseCount: number;
+  schemaVersion: 4;
   status: ISemanticAttemptStatus;
   stopReason:
     | 'case-failure'
@@ -72,29 +85,6 @@ export interface ISemanticAttemptRecordBase<TTrial extends ISemanticAttemptTrial
   totalCaseCount: number;
   updatedAt: string;
 }
-
-// historical summary retained byte-for-byte for immutable evidence verification
-export interface ISemanticLegacyAttemptRecord extends ISemanticAttemptRecordBase<ISemanticLegacyAttemptTrial> {
-  actorHost: ISemanticEvaluationHostIdentity;
-  judgeHost: ISemanticEvaluationHostIdentity;
-  schemaVersion: 1;
-}
-
-// historical Terra summary with one stable contract and trial-level exact provenance
-export interface ISemanticTerraAttemptRecord extends ISemanticAttemptRecordBase<ISemanticAttemptTrial> {
-  hostContract: ISemanticEvaluationHostContract & { model: 'gpt-5.6-terra' };
-  schemaVersion: 2;
-}
-
-// current Sol summary with one stable contract and trial-level exact provenance
-export interface ISemanticCurrentAttemptRecord extends ISemanticAttemptRecordBase<ISemanticAttemptTrial> {
-  hostContract: ISemanticEvaluationHostContract & { model: 'gpt-5.6-sol' };
-  schemaVersion: 3;
-}
-
-// immutable public summary bound to exact raw semantic evidence
-export type ISemanticAttemptRecord =
-  ISemanticLegacyAttemptRecord | ISemanticTerraAttemptRecord | ISemanticCurrentAttemptRecord;
 
 // independently tracks the latest attempt and most recent passing attempt
 export interface ISemanticLatestResult {
@@ -107,14 +97,14 @@ export interface ISemanticLatestResult {
 
 export const createSemanticAttemptRecord: (options: {
   evidence: Record<string, unknown>;
-  evidenceKind: 'candidate' | 'result';
+  evidenceKind: 'candidate';
   evidenceSha256: string;
   recordedAt: string;
   stopReason: ISemanticAttemptRecord['stopReason'];
   totalCaseCount: number;
 }) => ISemanticAttemptRecord;
 export const recordSemanticEvaluationAttempt: (options: {
-  evidenceKind: 'candidate' | 'result';
+  evidenceKind: 'candidate';
   evidenceText: string;
   recordedAt?: string;
   resultsRoot: string;

@@ -21,8 +21,7 @@ export const getStaticPaths = () =>
 
 const { attempt } = Astro.props;
 const { result } = attempt;
-const evaluationModel =
-  result.schemaVersion === 1 ? result.actorHost.model : result.hostContract.model;
+const evaluationModel = result.hostContract.model;
 const basePath = import.meta.env.BASE_URL;
 const successfulCaseCount = result.passedCaseCount + result.recoveredCaseCount;
 const breadcrumbs = [
@@ -163,6 +162,22 @@ const breadcrumbs = [
                         <dd class="mt-1 font-mono text-xs break-all">{trial.judgeHost.version}</dd>
                       </div>
                       <div>
+                        <dt class="text-muted-foreground">Package-manager execution</dt>
+                        <dd class="mt-1 font-mono text-xs break-all">
+                          {trial.actorCommandPolicyEvidence.packageManagerExecution}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt class="text-muted-foreground">Command-policy coverage</dt>
+                        <dd class="mt-1">
+                          {trial.actorCommandPolicyEvidence.completedCommandCount} completed,{' '}
+                          {trial.actorCommandPolicyEvidence.indeterminateCommandCount}{' '}
+                          indeterminate,{' '}
+                          {trial.actorCommandPolicyEvidence.packageManagerInvocationCount}{' '}
+                          package-manager invocations
+                        </dd>
+                      </div>
+                      <div>
                         <dt class="text-muted-foreground">Expected labels observed</dt>
                         <dd class="mt-1">
                           {trial.observed.length === 0 ? (
@@ -226,10 +241,6 @@ const breadcrumbs = [
           <div>
             <dt class="text-muted-foreground">Model configuration</dt>
             <dd class="mt-1 font-mono break-all">{evaluationModel}, medium</dd>
-          </div>
-          <div>
-            <dt class="text-muted-foreground">Assurance generation</dt>
-            <dd class="mt-1">{attempt.assuranceGeneration}</dd>
           </div>
           <div>
             <dt class="text-muted-foreground">Portable artifact digest</dt>

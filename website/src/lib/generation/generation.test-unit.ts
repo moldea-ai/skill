@@ -63,7 +63,7 @@ vi.mock('../semantic-evaluation/index.ts', () => {
         },
       ],
       lastPassing: null,
-      hasCurrentAssuranceAttempt: true,
+      hasAttempt: true,
       latest: {
         rawAttemptUrl: 'https://example.com/semantic-attempt.json',
         rawEvidenceUrl: 'https://example.com/semantic-evidence.json',
@@ -83,7 +83,7 @@ vi.mock('../semantic-evaluation/index.ts', () => {
         lastPassingAttemptId: 'semantic-attempt',
         latestAttemptId: 'semantic-attempt',
         latestStatus: 'passed',
-        schemaVersion: 3,
+        schemaVersion: 1,
         updatedAt: '2026-08-22T12:00:00.000Z',
       },
       methodologyUrl: '/docs/semantic-evaluation/',

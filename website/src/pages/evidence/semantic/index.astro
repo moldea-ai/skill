@@ -24,7 +24,7 @@ const successfulCaseCount =
 
 <BaseLayout
   title="Semantic evaluation"
-  description={`Review the latest ${semanticEvaluation.status} semantic attempt, immutable history, and ${semanticEvaluation.caseCount} behavioral scenarios.`}
+  description={`Review current semantic assurance, immutable attempt history, and ${semanticEvaluation.caseCount} behavioral scenarios.`}
   {breadcrumbs}
 >
   <div class="page-shell pt-7">
@@ -35,11 +35,7 @@ const successfulCaseCount =
 
     <header class="mt-7 border-b border-border pb-10">
       <div class="flex flex-wrap items-center gap-3">
-        <EvidenceStatus
-          status={semanticEvaluation.hasCurrentAssuranceAttempt
-            ? semanticEvaluation.status
-            : 'not-recorded'}
-        />
+        <EvidenceStatus status={semanticEvaluation.status} />
         <span class="font-mono text-sm font-bold">
           {successfulCaseCount}/{semanticEvaluation.caseCount} scenarios
         </span>
@@ -47,9 +43,9 @@ const successfulCaseCount =
       <p class="eyebrow mt-5">Behavioral release evidence</p>
       <h1 class="display-title mt-3 max-w-5xl font-semibold">Semantic evaluation</h1>
       <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-        The latest immutable attempt is shown as it happened. Historical Terra and earlier Sol
-        evidence remain inspectable, but only a passing attempt on the current Sol protocol counts
-        as release assurance. Each completed scenario used a blind actor and an independent judge.
+        Every immutable attempt is shown as it happened, but only evidence matching the current Sol
+        protocol and exact release inputs counts as release assurance. Each completed scenario uses
+        a blind actor and an independent judge.
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
@@ -63,19 +59,23 @@ const successfulCaseCount =
             aria-hidden="true"
           />
         </ActionLink>
-        <ActionLink
-          class="font-bold"
-          href={semanticEvaluation.latest.rawEvidenceUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          variant="outline"
-        >
-          Inspect latest raw evidence
-          <ExternalLink
-            class="size-4"
-            aria-hidden="true"
-          />
-        </ActionLink>
+        {
+          semanticEvaluation.latest !== null && (
+            <ActionLink
+              class="font-bold"
+              href={semanticEvaluation.latest.rawEvidenceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outline"
+            >
+              Inspect latest raw evidence
+              <ExternalLink
+                class="size-4"
+                aria-hidden="true"
+              />
+            </ActionLink>
+          )
+        }
         <ActionLink
           class="font-bold"
           href={semanticEvaluation.coverageUrl}
@@ -169,11 +169,14 @@ const successfulCaseCount =
           earlier evidence, and an earlier pass never makes a newer attempt look successful.
         </p>
       </div>
-      <ol class="mt-7 grid gap-3">
-        {
-          [...semanticEvaluation.attempts]
-            .reverse()
-            .map(({ assuranceGeneration, result, route }) => (
+      {
+        semanticEvaluation.attempts.length === 0 ? (
+          <p class="surface-card mt-7 p-5 text-muted-foreground sm:p-6">
+            No semantic attempt has been recorded for this release candidate yet.
+          </p>
+        ) : (
+          <ol class="mt-7 grid gap-3">
+            {[...semanticEvaluation.attempts].reverse().map(({ result, route }) => (
               <li>
                 <a
                   class="surface-card interactive-card flex min-w-0 flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
@@ -182,16 +185,13 @@ const successfulCaseCount =
                   <span class="min-w-0">
                     <span class="flex flex-wrap items-center gap-2">
                       <EvidenceStatus status={result.status} />
-                      {result.attemptId === semanticEvaluation.latestPointer.latestAttemptId && (
+                      {result.attemptId === semanticEvaluation.latestPointer?.latestAttemptId && (
                         <span class="text-xs font-bold text-muted-foreground">Latest</span>
                       )}
                       {result.attemptId ===
-                        semanticEvaluation.latestPointer.lastPassingAttemptId && (
+                        semanticEvaluation.latestPointer?.lastPassingAttemptId && (
                         <span class="text-xs font-bold text-muted-foreground">Last passing</span>
                       )}
-                      <span class="text-xs font-bold text-muted-foreground">
-                        {assuranceGeneration}
-                      </span>
                     </span>
                     <span class="mt-3 block font-mono text-sm break-all">{result.attemptId}</span>
                     <span class="mt-2 block text-sm text-muted-foreground">
@@ -209,9 +209,10 @@ const successfulCaseCount =
                   </span>
                 </a>
               </li>
-            ))
-        }
-      </ol>
+            ))}
+          </ol>
+        )
+      }
     </section>
 
     <section class="border-t border-border py-10">
@@ -224,7 +225,9 @@ const successfulCaseCount =
         <dl class="mt-5 grid min-w-0 gap-4 text-sm sm:grid-cols-2">
           <div>
             <dt class="text-muted-foreground">Evaluated at</dt>
-            <dd class="mt-1 font-mono break-all">{semanticEvaluation.evaluatedAt}</dd>
+            <dd class="mt-1 font-mono break-all">
+              {semanticEvaluation.evaluatedAt ?? 'Not recorded'}
+            </dd>
           </div>
           <div>
             <dt class="text-muted-foreground">CLI</dt>

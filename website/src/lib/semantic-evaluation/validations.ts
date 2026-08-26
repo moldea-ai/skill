@@ -4,18 +4,36 @@ const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
 const StableIdSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
 const AttemptStatusSchema = z.enum(['failed', 'incomplete', 'passed']);
 
-// additive semantic result contracts preserve compatibility with new diagnostic fields
-const createSemanticHostSchema = <TModel extends 'gpt-5.6-sol' | 'gpt-5.6-terra'>(model: TModel) =>
-  z.object({
-    model: z.literal(model),
-    name: z.string().trim().min(1),
-    reasoningEffort: z.literal('medium'),
-    version: z.string().trim().min(1),
+// additive semantic result contracts tolerate harmless future diagnostic fields
+const SemanticHostSchema = z.object({
+  model: z.literal('gpt-5.6-sol'),
+  name: z.literal('codex'),
+  reasoningEffort: z.literal('medium'),
+  version: z.string().trim().min(1),
+});
+const SemanticHostContractSchema = SemanticHostSchema.omit({ version: true });
+const SemanticActorCommandPolicyEvidenceSchema = z
+  .object({
+    completedCommandCount: z.number().int().nonnegative(),
+    indeterminateCommandCount: z.number().int().nonnegative(),
+    packageManagerExecution: z.enum(['indeterminate', 'not-observed', 'observed']),
+    packageManagerInvocationCount: z.number().int().nonnegative(),
+  })
+  .superRefine((evidence, context) => {
+    const expectedStatus =
+      evidence.packageManagerInvocationCount > 0
+        ? 'observed'
+        : evidence.indeterminateCommandCount > 0
+          ? 'indeterminate'
+          : 'not-observed';
+    if (
+      evidence.indeterminateCommandCount + evidence.packageManagerInvocationCount >
+        evidence.completedCommandCount ||
+      evidence.packageManagerExecution !== expectedStatus
+    ) {
+      context.addIssue({ code: 'custom', message: 'Invalid command-policy aggregate.' });
+    }
   });
-const SemanticSolHostSchema = createSemanticHostSchema('gpt-5.6-sol');
-const SemanticTerraHostSchema = createSemanticHostSchema('gpt-5.6-terra');
-const SemanticSolHostContractSchema = SemanticSolHostSchema.omit({ version: true });
-const SemanticTerraHostContractSchema = SemanticTerraHostSchema.omit({ version: true });
 
 export const SemanticCliIdentitySchema = z.object({
   integrity: z.string().startsWith('sha512-'),
@@ -25,55 +43,48 @@ export const SemanticCliIdentitySchema = z.object({
   version: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
 });
 
-const SemanticAttemptTrialShape = {
+const SemanticAttemptTrialSchema = z.object({
+  actorCommandPolicyEvidence: SemanticActorCommandPolicyEvidenceSchema,
+  actorHost: SemanticHostSchema,
   confirmationIndex: z.union([z.literal(1), z.literal(2)]).nullable(),
   evaluatedAt: z.iso.datetime(),
   forbidden: z.array(StableIdSchema),
+  judgeHost: SemanticHostSchema,
   kind: z.enum(['confirmation', 'initial']),
   observed: z.array(StableIdSchema),
   passed: z.boolean(),
   rationale: z.string().trim().min(1),
-};
+});
 
-const SemanticLegacyAttemptTrialSchema = z.object(SemanticAttemptTrialShape);
-const createSemanticAttemptTrialSchema = (
-  hostSchema: typeof SemanticSolHostSchema | typeof SemanticTerraHostSchema,
-) =>
-  z.object({
-    actorHost: hostSchema,
-    ...SemanticAttemptTrialShape,
-    judgeHost: hostSchema,
-  });
-
-const createSemanticAttemptCasesSchema = <TSchema extends z.ZodType>(trialSchema: TSchema) =>
-  z.array(
+export const SemanticAttemptRecordSchema = z.object({
+  artifactDigest: Sha256Schema,
+  attemptId: z.string().trim().min(1),
+  caseSuiteDigest: Sha256Schema,
+  cases: z.array(
     z.object({
       confirmationStatus: z.enum(['not-required', 'passed', 'rejected', 'required']),
       id: StableIdSchema,
       status: z.enum(['failed', 'passed', 'recovered']),
-      trials: z.array(trialSchema).min(1),
+      trials: z.array(SemanticAttemptTrialSchema).min(1),
     }),
-  );
-
-const SemanticAttemptRecordShape = {
-  artifactDigest: Sha256Schema,
-  attemptId: z.string().trim().min(1),
-  caseSuiteDigest: Sha256Schema,
+  ),
   cli: SemanticCliIdentitySchema,
-  coverageDigest: Sha256Schema.nullable(),
+  coverageDigest: Sha256Schema,
   createdAt: z.iso.datetime(),
   evidence: z.object({
-    evaluationProtocolVersion: z.number().int().positive(),
-    kind: z.enum(['candidate', 'result']),
+    evaluationProtocolVersion: z.literal(16),
+    kind: z.literal('candidate'),
     path: z.literal('evidence.json'),
-    schemaVersion: z.number().int().positive(),
+    schemaVersion: z.literal(5),
     sha256: Sha256Schema,
   }),
   failedCaseCount: z.number().int().nonnegative(),
+  hostContract: SemanticHostContractSchema,
   passedCaseCount: z.number().int().nonnegative(),
   pendingCaseCount: z.number().int().nonnegative(),
   recordedAt: z.iso.datetime(),
   recoveredCaseCount: z.number().int().nonnegative(),
+  schemaVersion: z.literal(4),
   status: AttemptStatusSchema,
   stopReason: z.enum([
     'case-failure',
@@ -84,37 +95,7 @@ const SemanticAttemptRecordShape = {
   ]),
   totalCaseCount: z.number().int().positive(),
   updatedAt: z.iso.datetime(),
-};
-
-const SemanticLegacyAttemptRecordSchema = z.object({
-  actorHost: SemanticTerraHostSchema,
-  ...SemanticAttemptRecordShape,
-  cases: createSemanticAttemptCasesSchema(SemanticLegacyAttemptTrialSchema),
-  judgeHost: SemanticTerraHostSchema,
-  schemaVersion: z.literal(1),
 });
-
-const SemanticTerraAttemptRecordSchema = z.object({
-  ...SemanticAttemptRecordShape,
-  cases: createSemanticAttemptCasesSchema(
-    createSemanticAttemptTrialSchema(SemanticTerraHostSchema),
-  ),
-  hostContract: SemanticTerraHostContractSchema,
-  schemaVersion: z.literal(2),
-});
-
-const SemanticCurrentAttemptRecordSchema = z.object({
-  ...SemanticAttemptRecordShape,
-  cases: createSemanticAttemptCasesSchema(createSemanticAttemptTrialSchema(SemanticSolHostSchema)),
-  hostContract: SemanticSolHostContractSchema,
-  schemaVersion: z.literal(3),
-});
-
-export const SemanticAttemptRecordSchema = z.discriminatedUnion('schemaVersion', [
-  SemanticLegacyAttemptRecordSchema,
-  SemanticTerraAttemptRecordSchema,
-  SemanticCurrentAttemptRecordSchema,
-]);
 
 export const SemanticLatestResultSchema = z.object({
   lastPassingAttemptId: z.string().trim().min(1).nullable(),

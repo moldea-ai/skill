@@ -1,6 +1,6 @@
 # Local tooling
 
-Read this reference after the skill entrypoint and before any Git, package-manager, deterministic CLI, or tooling-establishment command. Finish reading it before the first governed command; do not combine reference loading and that command in one shell expression. Then locate the Git working-tree root with a safe command shape from this reference.
+Read this reference after the skill entrypoint and before any Git, package-manager, deterministic CLI, or tooling-establishment command. Finish reading it before the first governed command; do not combine reference loading and that command in one shell expression. Establish the candidate repository root by inert filesystem traversal before using Git.
 
 ## Compatibility contract
 
@@ -30,6 +30,8 @@ Before invoking a manager, inspect root `package.json`, recognized lockfiles, wo
 6. When no manager is established, select npm because it ships with Node.js.
 
 Before any npm, pnpm, Yarn, Corepack, or related command, inspect pnpmfiles, hook-bearing pnpm configuration, Yarn plugins, and equivalent executable extensions. A `.yarnrc.yml` `plugins[].path` is executable even when unread. Any such extension blocks manager execution, including version discovery, because this release cannot prove it stays unloaded.
+
+Inspect these extensions only as file data with direct inert readers; do not load or parse them through Node.js, a package manager, a repository executable, or a project script. Once one is established, stop executable discovery for manager-dependent work; finish only the minimum inert file inspection needed to identify independent prerequisites, then report every established blocker before asking the focused question that can resolve the remaining ambiguity.
 
 This gate blocks only manager-dependent work. Report each extension path, blocked operation, unavailable evidence, and safe prerequisite. Remove or disable the extension and retry; invoke without the manager only for an already declared and installed exact CLI. Never bypass, trust, or execute the extension.
 
@@ -122,14 +124,22 @@ Complete structural `invalid` is diagnostic evidence, not successful validation 
 
 Consume public CLI, Core, and adapter results rather than reimplementing their mechanics or importing private CLI modules.
 
-When additional read-only Git evidence is materially necessary, use command-specific safe options rather than a bare Git command. No Git command, including `rev-parse`, `status`, `log`, or `diff`, is harmless before this reference is loaded. For every command disable fsmonitor and pagers with `-c core.fsmonitor=false`, `-c core.pager=cat`, and `--no-pager`; disable global attributes and LFS processing where relevant with `-c core.attributesFile=/dev/null`, empty LFS process and smudge settings, and `-c filter.lfs.required=false`. For `diff`, `show`, or another patch-producing command, also use `-c diff.external=`, `--no-ext-diff`, and `--no-textconv`; repository attributes may still exist, so `--no-textconv` is required. Avoid submodule recursion and request explicit machine-oriented output such as porcelain or NUL-delimited paths. Apply only options supported by the selected Git subcommand.
+When additional read-only Git evidence is materially necessary, no Git command, including `rev-parse`, `status`, `log`, or `diff`, is presumed harmless. Before worktree-aware Git, inspect every `.gitattributes` file under the candidate working tree and the applicable Git directory's `info/attributes` as inert file data. Resolve a `.git` file only by reading its declared Git-directory path. Do not use Git, repository code, a project script, or a language runtime for this preflight.
+
+If any inspected attribute source assigns, unsets, resets, or defines a macro involving `filter`, or if every applicable source cannot be located and read completely, do not run worktree-aware Git. Report the attribute path and filter risk, then use independent inert file evidence or state the evidence limitation. A clean filter can execute during `status` or `diff`; command-line Git configuration cannot universally neutralize repository attribute rules.
+
+Only after that preflight passes, use command-specific hardened options instead of a bare Git command. Set `GIT_ATTR_NOSYSTEM=1` and `-c core.attributesFile=/dev/null` to disable system and global attributes. For every command, disable fsmonitor and pagers with `-c core.fsmonitor=false`, `-c core.pager=cat`, and `--no-pager`. Disable LFS clean, process, and smudge settings where relevant with empty `filter.lfs.clean`, `filter.lfs.process`, and `filter.lfs.smudge` values plus `-c filter.lfs.required=false`. For `diff`, `show`, or another patch-producing command, also use `-c diff.external=`, `--no-ext-diff`, and `--no-textconv`. Avoid submodule recursion and request explicit machine-oriented output such as porcelain or NUL-delimited paths. Apply only options supported by the selected Git subcommand.
 
 Use these command shapes, adding only the required pathspec or supported output options:
 
 ```text
-git -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z --ignore-submodules=all
-git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false -c diff.external= --no-pager diff --no-ext-diff --no-textconv --ignore-submodules=all -- <pathspec>
+env GIT_ATTR_NOSYSTEM=1 git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.clean= -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false --no-pager status --porcelain=v2 -z --ignore-submodules=all
+env GIT_ATTR_NOSYSTEM=1 git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.clean= -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false -c diff.external= --no-pager diff --no-ext-diff --no-textconv --ignore-submodules=all -- <pathspec>
 ```
+
+Run each hardened Git invocation alone in its tool call from the repository root. Run workspace and helper-sentinel checks in separate later calls; do not combine the Git invocation with chaining, piping, redirection, substitution, or inline parsing.
+
+When hardened status reports changes and the operation requires evaluating them, status does not describe their content. Run the documented hardened diff separately for each material path before drawing semantic conclusions; file reads, Git history, and the final report do not replace that diff evidence. This remains conditional on the completed attribute preflight.
 
 After every supplemental Git command, especially a failure, inspect the workspace and any helper sentinel before claiming no writes. Report observed changes truthfully. If the required evidence cannot be gathered without executing repository code, use other reliable evidence or report the limitation instead of weakening these controls.
 

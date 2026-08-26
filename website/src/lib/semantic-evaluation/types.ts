@@ -11,19 +11,22 @@ export type ISemanticEvaluationGroupId = keyof typeof SEMANTIC_EVALUATION_GROUPS
 export type ISemanticEvaluationCaseId = keyof typeof SEMANTIC_CASE_PRESENTATION;
 export type ISemanticEvaluationCaseStatus = 'failed' | 'passed' | 'pending' | 'recovered';
 
-// assurance generations shown for immutable semantic attempts
-export type ISemanticAssuranceGeneration = 'Current Sol' | 'Historical Sol' | 'Historical Terra';
-
 // exact actor or judge host shown with one trial
 export interface ISemanticEvaluationHostModel {
-  model: 'gpt-5.6-sol' | 'gpt-5.6-terra';
+  model: 'gpt-5.6-sol';
   name: string;
   reasoningEffort: 'medium';
   version: string;
 }
 
-// normalized trial provenance across immutable summary generations
+// exact current trial provenance shown on public attempt pages
 export interface ISemanticAttemptTrialModel {
+  actorCommandPolicyEvidence: {
+    completedCommandCount: number;
+    indeterminateCommandCount: number;
+    packageManagerExecution: 'indeterminate' | 'not-observed' | 'observed';
+    packageManagerInvocationCount: number;
+  };
   actorHost: ISemanticEvaluationHostModel;
   confirmationIndex: 1 | 2 | null;
   evaluatedAt: string;
@@ -72,7 +75,6 @@ export interface ISemanticEvaluationGroupModel {
 
 // one immutable attempt with public routes to its summary and exact evidence
 export interface ISemanticAttemptModel {
-  assuranceGeneration: ISemanticAssuranceGeneration;
   cases: ISemanticAttemptCaseModel[];
   rawAttemptUrl: string;
   rawEvidenceUrl: string;
@@ -89,18 +91,18 @@ export interface ISemanticEvaluationWebsiteModel {
   cli: ISemanticCliIdentity;
   coverageDigest: string;
   coverageUrl: string;
-  evaluatedAt: string;
+  evaluatedAt: string | null;
   evaluationModel: ISemanticEvaluationHostModel['model'];
   failedCaseCount: number;
   groups: ISemanticEvaluationGroupModel[];
-  hasCurrentAssuranceAttempt: boolean;
+  hasAttempt: boolean;
   lastPassing: ISemanticAttemptModel | null;
-  latest: ISemanticAttemptModel;
-  latestPointer: ISemanticLatestResult;
+  latest: ISemanticAttemptModel | null;
+  latestPointer: ISemanticLatestResult | null;
   methodologyUrl: string;
   passedCaseCount: number;
   pendingCaseCount: number;
   recoveredCaseCount: number;
   route: string;
-  status: ISemanticAttemptRecord['status'];
+  status: ISemanticAttemptRecord['status'] | 'not-recorded';
 }

@@ -12,8 +12,10 @@ test('explains current semantic evidence through keyboard-accessible disclosure'
 
   await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
   await expect(page.getByText('0/49 scenarios', { exact: true })).toBeVisible();
-  await expect(page.getByText('Latest', { exact: true })).toBeVisible();
-  await expect(page.getByText('Historical Sol', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('No recorded attempt', { exact: true })).toBeVisible();
+  await expect(
+    page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
+  ).toBeVisible();
   await expect(page.getByRole('link', { name: 'Read the methodology' })).toHaveAttribute(
     'href',
     toPublicPath('/docs/semantic-evaluation/'),
@@ -31,15 +33,6 @@ test('explains current semantic evidence through keyboard-accessible disclosure'
   await expect(
     firstScenario.getByRole('heading', { name: 'Not evaluated in this attempt' }),
   ).toBeVisible();
-  const latestAttemptLink = page.getByRole('link', { name: /Latest.*Inspect attempt/su });
-  await latestAttemptLink.click();
-  await page.getByText('Technical provenance', { exact: true }).click();
-  await expect(page.getByText('Historical Sol', { exact: true })).toBeVisible();
-  await expect(page.getByText('4/49 scenarios', { exact: true })).toBeVisible();
-  await expect(page.getByText('initialize-sufficient-context', { exact: true })).toBeVisible();
-  await expect(page.getByText('Actor host', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText('Judge host', { exact: true }).first()).toBeVisible();
-  await expect(page.getByText(/^codex-cli /u).first()).toBeVisible();
 });
 
 test('keeps semantic evidence accessible without JavaScript and at 320px', async ({ browser }) => {

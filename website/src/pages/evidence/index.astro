@@ -61,9 +61,7 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         description="Review the behavioral scenarios, exact success and failure criteria, and evidence-based rationale for every recorded outcome."
         href={semanticEvaluation.route}
         metric={`${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful for current assurance`}
-        status={semanticEvaluation.hasCurrentAssuranceAttempt
-          ? semanticEvaluation.status
-          : 'not-recorded'}
+        status={semanticEvaluation.status}
         questions={[
           'Does the skill make the right decision when context is incomplete or conflicting?',
           'Does it respect repository truth, host constraints, and safety boundaries?',

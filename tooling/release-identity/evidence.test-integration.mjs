@@ -117,6 +117,13 @@ const createSemanticTrial = ({ caseDefinition, evaluatedAt, host }) => {
 
   return {
     actorHost: host,
+    actorCommandPolicyEvidence: {
+      completedCommandCount: 0,
+      indeterminateCommandCount: 0,
+      packageManagerExecution: 'not-observed',
+      packageManagerInvocationCount: 0,
+    },
+    actorExecutionEvidence: [],
     caseDefinitionDigest: createSemanticCaseDefinitionDigest(caseDefinition),
     evaluatedAt,
     forbidden: [],
@@ -141,6 +148,8 @@ const createSemanticTrial = ({ caseDefinition, evaluatedAt, host }) => {
 
 const createPublicSemanticCase = (trial) => ({
   actorHost: trial.actorHost,
+  actorCommandPolicyEvidence: trial.actorCommandPolicyEvidence,
+  actorExecutionEvidence: trial.actorExecutionEvidence,
   caseDefinitionDigest: trial.caseDefinitionDigest,
   evaluatedAt: trial.evaluatedAt,
   expectedSatisfied: trial.observed,
@@ -348,7 +357,6 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     const semanticCandidate = {
       artifactDigest: skillDigest,
       caseSuiteDigest: createSemanticCaseSuiteDigest(semanticCases),
-      checkpointMigration: null,
       cli: createSemanticCliIdentity(temporaryRoot),
       confirmations: [],
       coverageDigest: createSemanticCoverageDigest(semanticCoverage, semanticCases),
@@ -356,7 +364,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       generatedAt: semanticGeneratedAt,
       hostContract: semanticHostContract,
       results: semanticResults,
-      schemaVersion: 4,
+      schemaVersion: 5,
       updatedAt: semanticGeneratedAt,
     };
     const semanticCandidateText = `${JSON.stringify(semanticCandidate, null, 2)}\n`;
@@ -382,7 +390,6 @@ test('release evidence inspection requires fresh passing semantic and qualificat
           initial: result,
           resolution: 'passed',
         })),
-        checkpointMigration: null,
         skillDigest,
         caseSuiteDigest: semanticCandidate.caseSuiteDigest,
         cli: semanticCandidate.cli,
@@ -394,7 +401,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
         evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
         hostContract: semanticHostContract,
         results: semanticResults,
-        schemaVersion: 4,
+        schemaVersion: 5,
         semanticAttemptId: semanticAttempt.attemptId,
       })}\n`,
     );
@@ -480,11 +487,28 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     writeFileSync(semanticResultPath, `${JSON.stringify(exactSemanticResult)}\n`, 'utf8');
     assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
 
+    const mismatchedCommandPolicyResult = structuredClone(exactSemanticResult);
+    mismatchedCommandPolicyResult.cases[0].actorCommandPolicyEvidence.packageManagerInvocationCount = 1;
+    writeFileSync(semanticResultPath, `${JSON.stringify(mismatchedCommandPolicyResult)}\n`, 'utf8');
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
+        'fixtures/semantic-evaluation-result.json does not contain every current passing case.',
+      ),
+    );
+    writeFileSync(semanticResultPath, `${JSON.stringify(exactSemanticResult)}\n`, 'utf8');
+    assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
+
     const laterFailedCandidate = {
       ...semanticCandidate,
       generatedAt: '2026-08-21T09:10:00.000Z',
       results: [
         {
+          actorCommandPolicyEvidence: {
+            completedCommandCount: 0,
+            indeterminateCommandCount: 0,
+            packageManagerExecution: 'not-observed',
+            packageManagerInvocationCount: 0,
+          },
           actorHost: semanticHost,
           evaluatedAt: '2026-08-21T09:10:00.000Z',
           forbidden: [],

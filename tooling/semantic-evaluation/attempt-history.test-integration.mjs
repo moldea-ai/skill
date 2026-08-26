@@ -12,20 +12,41 @@ import {
 } from './attempt-history.mjs';
 
 const createEvidence = (id, passed, updatedAt) => ({
-  actorHost: { name: 'codex' },
   artifactDigest: 'a'.repeat(64),
   caseSuiteDigest: 'b'.repeat(64),
   cli: { name: '@moldea.ai/cli', version: '4.0.1' },
   confirmations: [],
   coverageDigest: 'c'.repeat(64),
-  evaluationProtocolVersion: 12,
+  evaluationProtocolVersion: 16,
   generatedAt: updatedAt,
-  judgeHost: { name: 'codex' },
+  hostContract: {
+    model: 'gpt-5.6-sol',
+    name: 'codex',
+    reasoningEffort: 'medium',
+  },
   results: [
     {
+      actorCommandPolicyEvidence: {
+        completedCommandCount: 0,
+        indeterminateCommandCount: 0,
+        packageManagerExecution: 'not-observed',
+        packageManagerInvocationCount: 0,
+      },
+      actorHost: {
+        model: 'gpt-5.6-sol',
+        name: 'codex',
+        reasoningEffort: 'medium',
+        version: 'codex-cli test',
+      },
       evaluatedAt: updatedAt,
       forbidden: [],
       id,
+      judgeHost: {
+        model: 'gpt-5.6-sol',
+        name: 'codex',
+        reasoningEffort: 'medium',
+        version: 'codex-cli test',
+      },
       observed: passed ? ['required-behavior'] : [],
       passed,
       rationale: passed
@@ -33,7 +54,7 @@ const createEvidence = (id, passed, updatedAt) => ({
         : 'The required behavior was missing.',
     },
   ],
-  schemaVersion: 3,
+  schemaVersion: 5,
   updatedAt,
 });
 

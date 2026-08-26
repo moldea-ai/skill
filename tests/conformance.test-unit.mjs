@@ -841,7 +841,7 @@ describe('portable Agent Skill contract', () => {
     ]);
   });
 
-  test('uses only the runtime contract and safe read-only Git evidence', () => {
+  test('uses only the runtime contract and guarded read-only Git evidence', () => {
     const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
     const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
 
@@ -860,6 +860,8 @@ describe('portable Agent Skill contract', () => {
       /`-c core\.pager=cat`/,
       /`--no-pager`/,
       /`-c core\.attributesFile=\/dev\/null`/,
+      /`GIT_ATTR_NOSYSTEM=1`/,
+      /filter\.lfs\.clean/,
       /-c filter\.lfs\.process=/,
       /-c filter\.lfs\.smudge=/,
       /-c filter\.lfs\.required=false/,
@@ -867,9 +869,19 @@ describe('portable Agent Skill contract', () => {
       /`--no-ext-diff`/,
       /`--no-textconv`/,
       /--ignore-submodules=all/,
-      /repository attributes may still exist/i,
-      /No Git command, including `rev-parse`, `status`, `log`, or `diff`, is harmless before this reference is loaded/i,
-      /then locate the Git working-tree root with a safe command shape/i,
+      /every `\.gitattributes` file under the candidate working tree/i,
+      /Git directory's `info\/attributes`/i,
+      /assigns, unsets, resets, or defines a macro involving `filter`/i,
+      /do not run worktree-aware Git/i,
+      /A clean filter can execute during `status` or `diff`/i,
+      /cannot universally neutralize repository attribute rules/i,
+      /No Git command, including `rev-parse`, `status`, `log`, or `diff`, is presumed harmless/i,
+      /Establish the candidate repository root by inert filesystem traversal/i,
+      /Inspect these extensions only as file data with direct inert readers/i,
+      /report every established blocker before asking the focused question/i,
+      /Run each hardened Git invocation alone in its tool call from the repository root/i,
+      /status does not describe their content/i,
+      /Run the documented hardened diff separately for each material path/i,
       /especially a failure, inspect the workspace and any helper sentinel before claiming no writes/i,
     ]);
     assert.equal(portableContent.toLowerCase().includes(LEGACY_RUNTIME_TERM), false);
@@ -1462,7 +1474,7 @@ describe('source repository conformance', () => {
 
       const portableSkillDigest = createPortableSkillDigest();
       const coverage = JSON.parse(readRepositoryFile('fixtures/semantic-evaluation-coverage.json'));
-      assert.equal(result.schemaVersion, 4);
+      assert.equal(result.schemaVersion, 5);
       assert.deepEqual(result.confirmationPolicy, {
         requiredPassingConfirmations: 2,
         version: 1,
@@ -1508,7 +1520,7 @@ describe('source repository conformance', () => {
           'Release-version declarations changed without changing semantic skill content.',
         );
       }
-      assert.ok(['gpt-5.6-sol', 'gpt-5.6-terra'].includes(result.hostContract.model));
+      assert.equal(result.hostContract.model, 'gpt-5.6-sol');
       assert.equal(result.hostContract.name, 'codex');
       assert.equal(result.hostContract.reasoningEffort, 'medium');
       assert.equal(result.host, undefined);
@@ -1860,8 +1872,7 @@ describe('source repository conformance', () => {
 
     assertMatchesEvery(readme, [
       /\.semantic-evaluation-candidate\.json/,
-      /checkpoint schema `4`/,
-      /--migrate-checkpoint/,
+      /checkpoint schema `5`/,
       /Each trial separately records the exact actor and judge Codex CLI versions/,
       /confirmation policy `1`/,
       /skips completed successful or recovered cases/,
@@ -1886,6 +1897,10 @@ describe('source repository conformance', () => {
       /do not rely on opaque labels, the actor's report alone, or leaked answer criteria/,
       /Codex JSONL events/,
       /bounded completed-command facts/,
+      /package-manager policy evidence/,
+      /A package-manager non-execution criterion passes only when the status is `not-observed` and both the indeterminate and invocation counts are zero/,
+      /`Indeterminate` fails the criterion because absence was not established/,
+      /cannot replace complete command classification/,
       /final response cannot create or replace that evidence/,
       /mounted read-only over the isolated actor executable directory/,
       /actor cannot replace those probes/,

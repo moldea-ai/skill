@@ -13,7 +13,7 @@ const isPlainRecord = (input) =>
 const hasExactKeys = (input, keys) =>
   Object.keys(input).length === keys.length && keys.every((key) => key in input);
 
-/** Runs one read-only Git inspection with executable repository helpers disabled. */
+/** Runs evaluator-owned Git inspection for cases that explicitly declare Git-state evidence. */
 const inspectGit = (repositoryPath, argumentsList, allowFailure = false) => {
   const result = spawnSync(
     'git',
@@ -205,7 +205,11 @@ export const collectScenarioEvidence = async ({
   readOnlyMounts,
   repositoryPath,
 }) => {
-  const gitFacts = collectGitFacts(repositoryPath);
+  const gitFacts = caseDefinition.input.repositoryEvidence.some(
+    ({ source }) => source.kind === 'git-state',
+  )
+    ? collectGitFacts(repositoryPath)
+    : null;
   const mountsByTarget = new Map(readOnlyMounts.map(({ source, target }) => [target, source]));
   const evidence = [];
 
@@ -220,7 +224,11 @@ export const collectScenarioEvidence = async ({
     } else if (source.kind === 'host-instructions') {
       observation = { content: caseDefinition.hostInstructions, type: 'host-instructions' };
     } else if (source.kind === 'git-state') {
-      observation = { fact: source.fact, observed: gitFacts[source.fact], type: 'git-state' };
+      observation = {
+        fact: source.fact,
+        observed: gitFacts?.[source.fact] === true,
+        type: 'git-state',
+      };
       if (!observation.observed) {
         throw new Error(`Scenario Git fact ${source.fact} is not present.`);
       }

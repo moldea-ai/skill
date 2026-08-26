@@ -7,14 +7,15 @@ import {
   CODEX_EVALUATION_MODEL,
   CODEX_EVALUATION_REASONING_EFFORT,
 } from '../codex-evaluation-host/index.mjs';
+import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
+
+import { hasValidActorCommandPolicyEvidence } from './actor-command-policy-evidence.mjs';
 
 const ATTEMPT_EVIDENCE_FILENAME = 'evidence.json';
 const ATTEMPT_RECORD_FILENAME = 'attempt.json';
-const ATTEMPT_SCHEMA_VERSION = 3;
-const TERRA_ATTEMPT_SCHEMA_VERSION = 2;
-const LEGACY_ATTEMPT_SCHEMA_VERSION = 1;
+const ATTEMPT_SCHEMA_VERSION = 4;
+const EVIDENCE_SCHEMA_VERSION = 5;
 const LATEST_SCHEMA_VERSION = 1;
-const TERRA_EVALUATION_MODEL = 'gpt-5.6-terra';
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
 const STOP_REASON_VALUES = new Set([
@@ -57,34 +58,16 @@ const requireSha256 = (value, label) => {
   return value;
 };
 
-const getEvidenceArtifactDigest = (evidence) =>
-  evidence.artifactDigest ?? evidence.skillDigest ?? evidence.artifact?.sha256;
-
-const getEvidenceUpdatedAt = (evidence) =>
-  requireIsoDate(
-    evidence.updatedAt ?? evidence.evaluatedAt ?? evidence.generatedAt,
-    'Evidence date',
-  );
-
 const createAttemptId = (updatedAt, evidenceSha256) => {
   const timestamp = new Date(updatedAt).toISOString().replaceAll(/[-:.]/gu, '');
   return `${timestamp}-semantic-${evidenceSha256.slice(0, 8)}`;
 };
 
-const hasHostContract = (hostContract, model) =>
+const hasHostContract = (hostContract) =>
   isPlainRecord(hostContract) &&
-  hostContract.model === model &&
+  hostContract.model === CODEX_EVALUATION_MODEL &&
   hostContract.name === 'codex' &&
   hostContract.reasoningEffort === CODEX_EVALUATION_REASONING_EFFORT;
-
-const getAttemptSchemaVersion = (hostContract) => {
-  if (hasHostContract(hostContract, CODEX_EVALUATION_MODEL)) return ATTEMPT_SCHEMA_VERSION;
-  if (hasHostContract(hostContract, TERRA_EVALUATION_MODEL)) {
-    return TERRA_ATTEMPT_SCHEMA_VERSION;
-  }
-
-  throw new Error('Semantic attempt evidence contains an invalid host contract.');
-};
 
 const hasValidHostIdentity = (host, hostContract) =>
   isPlainRecord(host) &&
@@ -116,16 +99,19 @@ const createTrialSummary = (result, kind, confirmationIndex, hostContract) => {
     passed: result.passed,
     rationale: result.rationale,
   };
-  if (hostContract === null) return summary;
   if (
     !hasValidHostIdentity(result.actorHost, hostContract) ||
     !hasValidHostIdentity(result.judgeHost, hostContract)
   ) {
     throw new Error('Semantic attempt evidence contains invalid trial host provenance.');
   }
+  if (!hasValidActorCommandPolicyEvidence(result.actorCommandPolicyEvidence)) {
+    throw new Error('Semantic attempt evidence contains invalid trial command-policy evidence.');
+  }
 
   return {
     actorHost: result.actorHost,
+    actorCommandPolicyEvidence: result.actorCommandPolicyEvidence,
     ...summary,
     judgeHost: result.judgeHost,
   };
@@ -134,8 +120,10 @@ const createTrialSummary = (result, kind, confirmationIndex, hostContract) => {
 const collectCaseTrials = (evidence) => {
   const initialResults = Array.isArray(evidence.results) ? evidence.results : [];
   const confirmations = Array.isArray(evidence.confirmations) ? evidence.confirmations : [];
-  const hostContract = evidence.schemaVersion === 4 ? evidence.hostContract : null;
-  if (evidence.schemaVersion === 4) getAttemptSchemaVersion(hostContract);
+  const hostContract = evidence.hostContract;
+  if (!hasHostContract(hostContract)) {
+    throw new Error('Semantic attempt evidence contains an invalid host contract.');
+  }
   const trialsByCaseId = new Map();
 
   for (const result of initialResults) {
@@ -230,7 +218,7 @@ const deriveCaseResult = (id, trials) => {
   };
 };
 
-/** Builds one immutable public summary from a semantic checkpoint or canonical result. */
+/** Builds one immutable public summary from an exact semantic checkpoint. */
 export const createSemanticAttemptRecord = ({
   evidence,
   evidenceKind,
@@ -239,21 +227,24 @@ export const createSemanticAttemptRecord = ({
   stopReason,
   totalCaseCount,
 }) => {
-  if (!isPlainRecord(evidence) || !['candidate', 'result'].includes(evidenceKind)) {
+  if (!isPlainRecord(evidence) || evidenceKind !== 'candidate') {
     throw new Error('Semantic attempt evidence has an unsupported source.');
   }
-  if (![1, 2, 3, 4].includes(evidence.schemaVersion)) {
+  if (evidence.schemaVersion !== EVIDENCE_SCHEMA_VERSION) {
     throw new Error('Semantic attempt evidence has an unsupported schema.');
   }
-  if (!Number.isInteger(totalCaseCount) || totalCaseCount < 0) {
-    throw new Error('Semantic attempt total case count must be non-negative.');
+  if (evidence.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION) {
+    throw new Error('Semantic attempt evidence has an unsupported protocol.');
+  }
+  if (!Number.isInteger(totalCaseCount) || totalCaseCount < 1) {
+    throw new Error('Semantic attempt total case count must be positive.');
   }
   if (!STOP_REASON_VALUES.has(stopReason)) {
     throw new Error(`Unsupported semantic attempt stop reason: ${stopReason}`);
   }
 
   const generatedAt = requireIsoDate(evidence.generatedAt, 'Evidence generation date');
-  const updatedAt = getEvidenceUpdatedAt(evidence);
+  const updatedAt = requireIsoDate(evidence.updatedAt, 'Evidence date');
   const trialsByCaseId = collectCaseTrials(evidence);
   const cases = [...trialsByCaseId.entries()]
     .map(([id, trials]) => deriveCaseResult(id, trials))
@@ -283,22 +274,15 @@ export const createSemanticAttemptRecord = ({
     throw new Error(`Semantic attempt stop reason ${stopReason} does not match its case evidence.`);
   }
   const digest = requireSha256(evidenceSha256, 'Semantic attempt evidence');
-  const artifactDigest = requireSha256(
-    getEvidenceArtifactDigest(evidence),
-    'Semantic attempt artifact',
-  );
+  const artifactDigest = requireSha256(evidence.artifactDigest, 'Semantic attempt artifact');
 
-  const legacyAttempt = {
-    actorHost: evidence.actorHost ?? evidence.host,
+  return {
     artifactDigest,
     attemptId: createAttemptId(updatedAt, digest),
     caseSuiteDigest: requireSha256(evidence.caseSuiteDigest, 'Semantic attempt case suite'),
     cases,
     cli: evidence.cli,
-    coverageDigest:
-      evidence.coverageDigest === undefined
-        ? null
-        : requireSha256(evidence.coverageDigest, 'Semantic attempt coverage'),
+    coverageDigest: requireSha256(evidence.coverageDigest, 'Semantic attempt coverage'),
     createdAt: generatedAt,
     evidence: {
       evaluationProtocolVersion: evidence.evaluationProtocolVersion,
@@ -308,39 +292,16 @@ export const createSemanticAttemptRecord = ({
       sha256: digest,
     },
     failedCaseCount,
-    judgeHost: evidence.judgeHost,
+    hostContract: evidence.hostContract,
     passedCaseCount,
     pendingCaseCount,
     recordedAt: requireIsoDate(recordedAt, 'Semantic attempt recording date'),
     recoveredCaseCount,
-    schemaVersion: LEGACY_ATTEMPT_SCHEMA_VERSION,
+    schemaVersion: ATTEMPT_SCHEMA_VERSION,
     status,
     stopReason,
     totalCaseCount,
     updatedAt,
-  };
-  if (evidence.schemaVersion !== 4) return legacyAttempt;
-
-  return {
-    artifactDigest: legacyAttempt.artifactDigest,
-    attemptId: legacyAttempt.attemptId,
-    caseSuiteDigest: legacyAttempt.caseSuiteDigest,
-    cases: legacyAttempt.cases,
-    cli: legacyAttempt.cli,
-    coverageDigest: legacyAttempt.coverageDigest,
-    createdAt: legacyAttempt.createdAt,
-    evidence: legacyAttempt.evidence,
-    failedCaseCount: legacyAttempt.failedCaseCount,
-    hostContract: evidence.hostContract,
-    passedCaseCount: legacyAttempt.passedCaseCount,
-    pendingCaseCount: legacyAttempt.pendingCaseCount,
-    recordedAt: legacyAttempt.recordedAt,
-    recoveredCaseCount: legacyAttempt.recoveredCaseCount,
-    schemaVersion: getAttemptSchemaVersion(evidence.hostContract),
-    status: legacyAttempt.status,
-    stopReason: legacyAttempt.stopReason,
-    totalCaseCount: legacyAttempt.totalCaseCount,
-    updatedAt: legacyAttempt.updatedAt,
   };
 };
 
@@ -469,9 +430,10 @@ export const loadSemanticEvaluationAttempts = async (resultsRoot) => {
 /** Loads and verifies immutable semantic history for synchronous website generation. */
 export const loadVerifiedSemanticEvaluationAttempts = (resultsRoot) => {
   const attemptsRoot = join(resultsRoot, 'attempts');
-  if (!existsSync(attemptsRoot)) return { attempts: [], latest: null };
-
-  const attempts = readdirSync(attemptsRoot, { withFileTypes: true })
+  const entries = existsSync(attemptsRoot)
+    ? readdirSync(attemptsRoot, { withFileTypes: true })
+    : [];
+  const attempts = entries
     .filter((entry) => entry.isDirectory() && !entry.name.startsWith('.'))
     .map((entry) => {
       const attemptDirectory = join(attemptsRoot, entry.name);

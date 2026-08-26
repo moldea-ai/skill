@@ -896,7 +896,7 @@ test('semantic candidates bind exact evidence and stable host contracts', () => 
   assert.throws(
     () =>
       validateSemanticCandidateCompatibility(
-        { ...candidate, evaluationProtocolVersion: 10 },
+        { ...candidate, evaluationProtocolVersion: 14 },
         {
           actorHost: ACTOR_HOST,
           artifactDigest: ARTIFACT_DIGEST,
@@ -1116,7 +1116,7 @@ test('schema-3 migration preserves trials and enables version-independent resume
   assert.throws(
     () =>
       migrateSemanticEvaluationCandidate({
-        candidate: { ...legacyCandidate, evaluationProtocolVersion: 12 },
+        candidate: { ...legacyCandidate, evaluationProtocolVersion: 14 },
         currentBoundary,
         migratedAt,
         sourceSha256,
@@ -1328,7 +1328,7 @@ test('semantic candidates retain failures and require two passing confirmations'
     caseDefinitions,
     generatedAt: '2026-08-16T12:03:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 14);
+  assert.equal(record.evaluationProtocolVersion, 15);
   assert.equal(record.schemaVersion, 4);
   assert.equal(record.actorHost, undefined);
   assert.equal(record.host, undefined);

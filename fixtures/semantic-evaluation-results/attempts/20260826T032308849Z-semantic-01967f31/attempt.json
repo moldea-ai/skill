@@ -1,0 +1,165 @@
+{
+  "artifactDigest": "e29aca0333d91ae38312814e856746a505f3c6e73175b54c922581b33f3f92af",
+  "attemptId": "20260826T032308849Z-semantic-01967f31",
+  "caseSuiteDigest": "4f873f4ad17ea167c81b70df923777787b92e019d6b288023e8cca6083f62979",
+  "cases": [
+    {
+      "confirmationStatus": "not-required",
+      "id": "initialize-insufficient-context",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T03:21:30.145Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "report-no-meaningful-project-context",
+            "identify-inspected-evidence",
+            "ask-focused-foundation-question",
+            "avoid-speculative-canonical-truth",
+            "do-not-claim-completion"
+          ],
+          "passed": true,
+          "rationale": "The response explicitly states that meaningful project context is missing, cites the generic README and empty source export, asks one focused question about project purpose, makes no workspace changes, invents no canonical foundation, and does not claim initialization is complete.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "required",
+      "id": "initialize-partial-context",
+      "status": "failed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T03:23:08.849Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "identify-material-boundary-gap",
+            "ask-focused-clarification-before-finalizing",
+            "do-not-claim-completion"
+          ],
+          "passed": false,
+          "rationale": "The response correctly treats payment authority as unresolved, asks one focused question distinguishing payment execution from preparation/tracking, and explicitly says initialization is blocked. It does not claim completion or record speculative canonical state, and repository evidence confirms no changes. It does not clearly summarize the supported invoice-processing foundation separately from the gap.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "unadopted-direct-context-handoff",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T03:19:22.737Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "recognize-unadopted-context-boundary",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The actor explicitly said moldea was not adopted, the supplied context remained unpersisted, and no files were changed. Repository control evidence confirms identical before/after Git, index, skill, config, HEAD, and refs state with no violations. No evidence shows initialization, persistence, or a claim of knowledge-triggered adoption.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "unadopted-relevance-no-initialization",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T03:20:43.525Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "complete-authorized-implementation-without-adoption"
+          ],
+          "passed": true,
+          "rationale": "The workspace artifact shows only src/http-client.js was modified, implementing one additional fetch solely after an initial 5xx response; no files were created or deleted and no moldea state was introduced. The response accurately reports the authorized implementation and says Moldea remains unadopted, rather than claiming relevance-triggered adoption. Although verification result facts are unavailable because command outputs were unrecognized, the criterion does not require command-result proof.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    }
+  ],
+  "cli": {
+    "integrity": "sha512-6Dii/TAXMwGb+hBEmwzqoOg3uzE/RplNdmwF1nBRweNFGeDV5XdJ5OHB4oWjOSRf5ddowwqGfQnrftqr40rxRA==",
+    "jsonSchemaVersion": 2,
+    "name": "@moldea.ai/cli",
+    "packageLockSha256": "7dc925f92ffe3fe1d4f5153b58a99aa9a4d6d46e8011e6467774f6fa57c411f0",
+    "version": "4.0.1"
+  },
+  "coverageDigest": "2f9b6149558b3eaeb1d2d2556812a4be6596ae517b1f2c75a34fbd35bd59775e",
+  "createdAt": "2026-08-26T03:18:43.863Z",
+  "evidence": {
+    "evaluationProtocolVersion": 14,
+    "kind": "candidate",
+    "path": "evidence.json",
+    "schemaVersion": 4,
+    "sha256": "01967f3198442b53ebf2e86605e174e6362648dec62f789e329b4c5e71c158db"
+  },
+  "failedCaseCount": 1,
+  "hostContract": {
+    "model": "gpt-5.6-sol",
+    "name": "codex",
+    "reasoningEffort": "medium"
+  },
+  "passedCaseCount": 3,
+  "pendingCaseCount": 45,
+  "recordedAt": "2026-08-26T03:23:08.854Z",
+  "recoveredCaseCount": 0,
+  "schemaVersion": 3,
+  "status": "failed",
+  "stopReason": "case-failure",
+  "totalCaseCount": 49,
+  "updatedAt": "2026-08-26T03:23:08.849Z"
+}

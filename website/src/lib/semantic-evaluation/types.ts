@@ -11,6 +11,9 @@ export type ISemanticEvaluationGroupId = keyof typeof SEMANTIC_EVALUATION_GROUPS
 export type ISemanticEvaluationCaseId = keyof typeof SEMANTIC_CASE_PRESENTATION;
 export type ISemanticEvaluationCaseStatus = 'failed' | 'passed' | 'pending' | 'recovered';
 
+// assurance generations shown for immutable semantic attempts
+export type ISemanticAssuranceGeneration = 'Current Sol' | 'Historical Sol' | 'Historical Terra';
+
 // exact actor or judge host shown with one trial
 export interface ISemanticEvaluationHostModel {
   model: 'gpt-5.6-sol' | 'gpt-5.6-terra';
@@ -69,6 +72,7 @@ export interface ISemanticEvaluationGroupModel {
 
 // one immutable attempt with public routes to its summary and exact evidence
 export interface ISemanticAttemptModel {
+  assuranceGeneration: ISemanticAssuranceGeneration;
   cases: ISemanticAttemptCaseModel[];
   rawAttemptUrl: string;
   rawEvidenceUrl: string;

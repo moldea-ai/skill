@@ -1354,12 +1354,97 @@ test('semantic actors execute the copied published CLI closure', async () => {
       encoding: 'utf8',
     });
     const compatibilityEnvelope = JSON.parse(compatibilityResult.stdout);
+    const directCommand = 'node_modules/.bin/moldea compatibility --json';
+    const invocationCases = [
+      {
+        args: ['compatibility', '--json'],
+        command: directCommand,
+        executable: 'node_modules/.bin/moldea',
+      },
+      {
+        args: ['node_modules/.bin/moldea', 'compatibility', '--json'],
+        command: `node ${directCommand}`,
+        executable: 'node',
+      },
+      {
+        args: ['-lc', directCommand],
+        command: `/bin/bash -lc '${directCommand}'`,
+        executable: '/bin/bash',
+      },
+      {
+        args: ['-lc', directCommand],
+        command: `/bin/bash -lc "${directCommand}"`,
+        executable: '/bin/bash',
+      },
+    ];
+    const invocationResults = invocationCases.map(({ args, executable }) =>
+      spawnSync(executable, args, { cwd: repositoryPath, encoding: 'utf8' }),
+    );
+    const hostOutput = [
+      ...invocationCases.map(({ command }, index) => ({
+        item: {
+          aggregated_output: invocationResults[index].stdout,
+          command,
+          exit_code: invocationResults[index].status,
+          id: `approved-command-${index}`,
+          status: 'completed',
+          type: 'command_execution',
+        },
+        type: 'item.completed',
+      })),
+      {
+        item: {
+          aggregated_output: invocationResults[0].stdout,
+          command: `${directCommand} | cat`,
+          exit_code: invocationResults[0].status,
+          id: 'rejected-command',
+          status: 'completed',
+          type: 'command_execution',
+        },
+        type: 'item.completed',
+      },
+      {
+        item: { id: 'response', text: 'CLI proof complete.', type: 'agent_message' },
+        type: 'item.completed',
+      },
+    ]
+      .map((event) => JSON.stringify(event))
+      .join('\n');
+    const parsedHostOutput = parseSemanticEvaluationHostOutput(hostOutput, {
+      cliVersion: RELEASE_CLI_VERSION,
+      jsonSchemaVersion: RELEASE_CLI_JSON_SCHEMA_VERSION,
+    });
 
     assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': RELEASE_CLI_VERSION });
     assert.equal(cliManifest.bin.moldea, './dist/moldea.js');
     assert.equal(versionResult.status, 0, versionResult.stderr);
     assert.equal(versionResult.stdout.trim(), RELEASE_CLI_VERSION);
     assert.equal(compatibilityResult.status, 0, compatibilityResult.stderr);
+    for (const invocationResult of invocationResults) {
+      assert.equal(invocationResult.status, 0, invocationResult.stderr);
+    }
+    for (const evidence of parsedHostOutput.actorExecutionEvidence.slice(0, 4)) {
+      assert.deepEqual(evidence.item.outputEvidence.facts, [
+        {
+          cliVersion: RELEASE_CLI_VERSION,
+          command: 'compatibility',
+          errorPresent: false,
+          kind: 'moldea-cli-envelope',
+          resultPresent: true,
+          schemaVersion: RELEASE_CLI_JSON_SCHEMA_VERSION,
+          status: 'valid',
+        },
+      ]);
+    }
+    assert.deepEqual(parsedHostOutput.actorExecutionEvidence[4].item.outputEvidence, {
+      byteCount: Buffer.byteLength(invocationResults[0].stdout),
+      disposition: 'unrecognized',
+      facts: [],
+    });
+    assert.doesNotMatch(
+      JSON.stringify(parsedHostOutput.actorExecutionEvidence),
+      /node_modules|\/bin\/bash|\| cat/u,
+    );
     assert.equal(
       compatibilityEnvelope.schemaVersion,
       ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion,

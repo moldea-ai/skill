@@ -175,6 +175,13 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.route).toBe('/evidence/semantic/');
     expect(model.status).toBe('passed');
     expect(model.hasCurrentAssuranceAttempt).toBe(true);
+    expect(model.latest.assuranceGeneration).toBe('Current Sol');
+    expect(model.latest.rawAttemptUrl).toContain(
+      `/attempts/${model.latest.result.attemptId}/attempt.json`,
+    );
+    expect(model.latest.rawEvidenceUrl).toContain(
+      `/attempts/${model.latest.result.attemptId}/evidence.json`,
+    );
     expect(model.caseCount).toBe(cases.length);
     expect(model.passedCaseCount).toBe(cases.length);
     expect(model.groups.flatMap(({ cases: groupCases }) => groupCases)).toHaveLength(cases.length);
@@ -264,7 +271,38 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     const model = loadSemanticEvaluationWebsiteModel(root);
 
     expect(model.latest.result.schemaVersion).toBe(1);
+    expect(model.latest.assuranceGeneration).toBe('Historical Terra');
     expect(model.evaluationModel).toBe('gpt-5.6-terra');
+    expect(model.hasCurrentAssuranceAttempt).toBe(false);
+    expect(model.passedCaseCount).toBe(0);
+    expect(model.pendingCaseCount).toBe(cases.length);
+  });
+
+  test('labels earlier Sol protocols as historical without treating them as current assurance', async () => {
+    const root = createTemporaryRoot();
+    const { cases, coverage } = loadInputs(root);
+    const candidate = createCurrentCandidate(
+      root,
+      cases,
+      coverage,
+      [cases[0]!.id],
+      cases[0]!.id,
+      '2026-08-25T13:00:00.000Z',
+    );
+    await recordCandidate(
+      root,
+      {
+        ...candidate,
+        evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION - 1,
+      },
+      cases.length,
+      'case-failure',
+    );
+
+    const model = loadSemanticEvaluationWebsiteModel(root);
+
+    expect(model.latest.result.schemaVersion).toBe(3);
+    expect(model.latest.assuranceGeneration).toBe('Historical Sol');
     expect(model.hasCurrentAssuranceAttempt).toBe(false);
     expect(model.passedCaseCount).toBe(0);
     expect(model.pendingCaseCount).toBe(cases.length);

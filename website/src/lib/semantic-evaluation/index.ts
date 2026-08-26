@@ -8,6 +8,7 @@ export type {
   ISemanticEvaluationGroupId,
   ISemanticEvaluationGroupModel,
   ISemanticEvaluationWebsiteModel,
+  ISemanticAssuranceGeneration,
   ISemanticAttemptModel,
 } from './types.ts';
 

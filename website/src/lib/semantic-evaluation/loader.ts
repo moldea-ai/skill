@@ -28,6 +28,7 @@ import type {
   ISemanticEvaluationCaseModel,
   ISemanticEvaluationGroupId,
   ISemanticEvaluationWebsiteModel,
+  ISemanticAssuranceGeneration,
 } from './types.ts';
 import {
   SemanticAttemptRecordSchema,
@@ -70,6 +71,14 @@ const createAttemptCases = (attempt: ISemanticAttemptRecord): ISemanticAttemptCa
     ...attemptCase,
     trials: attemptCase.trials.map((trial): ISemanticAttemptTrialModel => ({ ...trial })),
   }));
+};
+
+/** Classifies an attempt from its model-owned schema and semantic protocol. */
+const getAssuranceGeneration = (attempt: ISemanticAttemptRecord): ISemanticAssuranceGeneration => {
+  if (attempt.schemaVersion !== 3) return 'Historical Terra';
+  return attempt.evidence.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION
+    ? 'Current Sol'
+    : 'Historical Sol';
 };
 
 const readJson = (path: string): unknown => {
@@ -150,6 +159,7 @@ const hasCurrentAttemptIdentity = (
 const createAttemptModel = (attempt: ISemanticAttemptRecord): ISemanticAttemptModel => {
   const attemptPath = `${SEMANTIC_ATTEMPTS_PATH}/attempts/${attempt.attemptId}`;
   return {
+    assuranceGeneration: getAssuranceGeneration(attempt),
     cases: createAttemptCases(attempt),
     rawAttemptUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${attemptPath}/attempt.json`,
     rawEvidenceUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${attemptPath}/evidence.json`,

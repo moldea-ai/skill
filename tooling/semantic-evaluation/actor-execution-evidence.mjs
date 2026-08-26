@@ -15,11 +15,20 @@ const RECOGNIZED_WORKSPACE_PATHS = new Set([
   '/.pnp/node_modules/@moldea.ai/cli',
   '/.pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
 ]);
-const RECOGNIZED_MOLDEA_EXECUTABLES = [
+const RECOGNIZED_MOLDEA_EXECUTABLE_PATHS = [
   'node_modules/.bin/moldea',
+  './node_modules/.bin/moldea',
   '/mnt/node_modules/.bin/moldea',
   'node_modules/@moldea.ai/cli/dist/moldea.js',
+  './node_modules/@moldea.ai/cli/dist/moldea.js',
   '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js',
+];
+const RECOGNIZED_MOLDEA_INVOCATION_PREFIXES = [
+  ...RECOGNIZED_MOLDEA_EXECUTABLE_PATHS,
+  ...RECOGNIZED_MOLDEA_EXECUTABLE_PATHS.flatMap((executablePath) => [
+    `node ${executablePath}`,
+    `/opt/node ${executablePath}`,
+  ]),
   'pnpm node .pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
   'pnpm node /mnt/.pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
 ];
@@ -49,20 +58,21 @@ const hasValidProjectionOptions = (options) =>
   Number.isSafeInteger(options.jsonSchemaVersion) &&
   options.jsonSchemaVersion > 0;
 
-/** Returns a direct command when the host used its fixed simple Bash wrapper. */
-const unwrapSimpleBashCommand = (command) => {
-  const match = /^\/bin\/bash -lc '([^'\r\n]+)'$/u.exec(command);
-  return match?.[1] ?? command;
-};
+/** Checks one complete command against its direct and fixed Bash-wrapped forms. */
+const matchesExactCommand = (command, directCommand) =>
+  command === directCommand ||
+  command === `/bin/bash -lc '${directCommand}'` ||
+  command === `/bin/bash -lc "${directCommand}"`;
 
 /** Returns whether a command exactly resolves the projected evaluator-owned paths. */
 const hasRecognizedWorkspacePathCommand = (command, paths) => {
-  const directCommand = unwrapSimpleBashCommand(command);
   const mountedPaths = paths.map((path) => `/mnt${path}`);
   return ['realpath', 'readlink -f'].some((operation) =>
-    ['; ', ' && '].some(
-      (separator) =>
-        directCommand === mountedPaths.map((path) => `${operation} ${path}`).join(separator),
+    ['; ', ' && '].some((separator) =>
+      matchesExactCommand(
+        command,
+        mountedPaths.map((path) => `${operation} ${path}`).join(separator),
+      ),
     ),
   );
 };
@@ -98,11 +108,10 @@ const projectWorkspacePaths = (source, command) => {
 
 /** Returns the recognized Moldea operation for one exact repository-local invocation. */
 const getRecognizedMoldeaOperation = (command) => {
-  const directCommand = unwrapSimpleBashCommand(command);
   for (const operation of MOLDEA_COMMANDS) {
     if (
-      RECOGNIZED_MOLDEA_EXECUTABLES.some(
-        (executable) => directCommand === `${executable} ${operation} --json`,
+      RECOGNIZED_MOLDEA_INVOCATION_PREFIXES.some((invocationPrefix) =>
+        matchesExactCommand(command, `${invocationPrefix} ${operation} --json`),
       )
     ) {
       return operation;
@@ -169,7 +178,7 @@ const projectMoldeaEnvelope = (source, command, exitCode, options) => {
 
 /** Returns one bounded test result only for the evaluator-owned runtime-provenance test. */
 const projectFocusedRuntimeTest = (command, exitCode) => {
-  if (unwrapSimpleBashCommand(command) !== FOCUSED_RUNTIME_TEST_COMMAND) return null;
+  if (!matchesExactCommand(command, FOCUSED_RUNTIME_TEST_COMMAND)) return null;
 
   return {
     kind: 'focused-runtime-test',
@@ -180,7 +189,7 @@ const projectFocusedRuntimeTest = (command, exitCode) => {
 
 /** Returns release-bound Yarn package metadata only for the exact safe inspection. */
 const projectYarnPackageInfo = (source, command, exitCode, options) => {
-  if (unwrapSimpleBashCommand(command) !== YARN_PACKAGE_INFO_COMMAND || exitCode !== 0) return null;
+  if (!matchesExactCommand(command, YARN_PACKAGE_INFO_COMMAND) || exitCode !== 0) return null;
 
   let packageInfo;
   try {
@@ -212,7 +221,7 @@ const projectYarnPackageInfo = (source, command, exitCode, options) => {
 
 /** Returns the conflicting Yarn provider only for the exact safe inspection. */
 const projectYarnBinaryProvider = (source, command, exitCode) => {
-  if (unwrapSimpleBashCommand(command) !== YARN_PROVIDER_INSPECTION_COMMAND || exitCode !== 0) {
+  if (!matchesExactCommand(command, YARN_PROVIDER_INSPECTION_COMMAND) || exitCode !== 0) {
     return null;
   }
 
@@ -313,8 +322,7 @@ const hasValidFocusedRuntimeTestFact = (fact, exitCode) =>
   fact.path === FOCUSED_RUNTIME_TEST_PATH &&
   typeof fact.status === 'string' &&
   FOCUSED_RUNTIME_TEST_STATUSES.has(fact.status) &&
-  ((fact.status === 'passed' && exitCode === 0) ||
-    (fact.status === 'failed' && exitCode !== 0));
+  ((fact.status === 'passed' && exitCode === 0) || (fact.status === 'failed' && exitCode !== 0));
 
 const hasValidYarnPackageInfoFact = (fact, exitCode, options) =>
   hasExactKeys(fact, ['binaries', 'kind', 'packageName', 'version']) &&

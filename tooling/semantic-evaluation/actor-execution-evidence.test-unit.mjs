@@ -356,6 +356,144 @@ test('projects release-bound valid and invalid Moldea envelope facts', () => {
   );
 });
 
+test('projects the same Moldea fact from every approved repository-local invocation form', () => {
+  const invocationPrefixes = [
+    'node_modules/.bin/moldea',
+    './node_modules/.bin/moldea',
+    '/mnt/node_modules/.bin/moldea',
+    'node_modules/@moldea.ai/cli/dist/moldea.js',
+    './node_modules/@moldea.ai/cli/dist/moldea.js',
+    '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js',
+    'node node_modules/.bin/moldea',
+    '/opt/node node_modules/@moldea.ai/cli/dist/moldea.js',
+    'pnpm node .pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
+  ];
+  for (const operation of ['compatibility', 'inspect', 'validate']) {
+    const output = JSON.stringify({
+      cliVersion: '4.0.1',
+      command: operation,
+      error: null,
+      result: { valid: true },
+      schemaVersion: 2,
+      status: 'valid',
+    });
+    const commands = invocationPrefixes.flatMap((invocationPrefix) => {
+      const directCommand = `${invocationPrefix} ${operation} --json`;
+      return [
+        directCommand,
+        `/bin/bash -lc '${directCommand}'`,
+        `/bin/bash -lc "${directCommand}"`,
+      ];
+    });
+
+    for (const command of commands) {
+      const evidence = projectActorExecutionEvidenceEvent(
+        createCompletedCommandEvent({ command, output }),
+        PROJECTION_OPTIONS,
+      );
+
+      assert.deepEqual(evidence.item.outputEvidence.facts, [
+        {
+          cliVersion: '4.0.1',
+          command: operation,
+          errorPresent: false,
+          kind: 'moldea-cli-envelope',
+          resultPresent: true,
+          schemaVersion: 2,
+          status: 'valid',
+        },
+      ]);
+      assert.equal(hasValidActorExecutionEvidence([evidence], PROJECTION_OPTIONS), true);
+      assert.equal(Object.hasOwn(evidence.item, 'command'), false);
+      assert.doesNotMatch(JSON.stringify(evidence), /node_modules|\/mnt|\/opt\/node/u);
+    }
+  }
+
+  for (const operation of ['inspect', 'validate']) {
+    const output = JSON.stringify({
+      cliVersion: '4.0.1',
+      command: operation,
+      error: null,
+      result: { valid: false },
+      schemaVersion: 2,
+      status: 'invalid',
+    });
+    const commands = invocationPrefixes.flatMap((invocationPrefix) => {
+      const directCommand = `${invocationPrefix} ${operation} --json`;
+      return [
+        directCommand,
+        `/bin/bash -lc '${directCommand}'`,
+        `/bin/bash -lc "${directCommand}"`,
+      ];
+    });
+
+    for (const command of commands) {
+      const evidence = projectActorExecutionEvidenceEvent(
+        createCompletedCommandEvent({ command, exitCode: 1, output, status: 'failed' }),
+        PROJECTION_OPTIONS,
+      );
+
+      assert.deepEqual(evidence.item.outputEvidence.facts, [
+        {
+          cliVersion: '4.0.1',
+          command: operation,
+          errorPresent: false,
+          kind: 'moldea-cli-envelope',
+          resultPresent: true,
+          schemaVersion: 2,
+          status: 'invalid',
+        },
+      ]);
+      assert.equal(hasValidActorExecutionEvidence([evidence], PROJECTION_OPTIONS), true);
+      assert.equal(Object.hasOwn(evidence.item, 'command'), false);
+      assert.doesNotMatch(JSON.stringify(evidence), /node_modules|\/mnt|\/opt\/node/u);
+    }
+  }
+});
+
+test('rejects composed and near-match Moldea commands even when their output is valid', () => {
+  const sensitive = 'sk-sensitive-value';
+  const output = JSON.stringify({
+    cliVersion: '4.0.1',
+    command: 'inspect',
+    error: null,
+    result: { valid: true, sensitive },
+    schemaVersion: 2,
+    status: 'valid',
+  });
+  const commands = [
+    'MOLDEA_TEST=1 node_modules/.bin/moldea inspect --json',
+    'node_modules/.bin/moldea inspect --json $(printf injected)',
+    'node_modules/.bin/moldea inspect --json | cat',
+    'node_modules/.bin/moldea inspect --json > result.json',
+    'node_modules/.bin/moldea inspect --json; cat /mnt/private',
+    'cd /mnt && node_modules/.bin/moldea inspect --json',
+    'npm exec moldea -- inspect --json',
+    'npx moldea inspect --json',
+    'pnpm exec moldea inspect --json',
+    'bun node_modules/.bin/moldea inspect --json',
+    '/usr/bin/node node_modules/.bin/moldea inspect --json',
+    'node_modules/.bin/moldea inspect --json --verbose',
+    '/tmp/node_modules/.bin/moldea inspect --json',
+    "/bin/bash -lc 'node_modules/.bin/moldea inspect --json | cat'",
+    '/bin/bash -lc "node_modules/.bin/moldea inspect --json && printf extra"',
+    "/bin/bash -lc 'node_modules/.bin/moldea inspect --json' extra",
+  ];
+
+  for (const command of commands) {
+    const evidence = projectActorExecutionEvidenceEvent(
+      createCompletedCommandEvent({ command, output }),
+      PROJECTION_OPTIONS,
+    );
+    const serializedEvidence = JSON.stringify(evidence);
+
+    assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
+    assert.deepEqual(evidence.item.outputEvidence.facts, []);
+    assert.equal(Object.hasOwn(evidence.item, 'command'), false);
+    assert.doesNotMatch(serializedEvidence, /sk-sensitive-value|node_modules|private/u);
+  }
+});
+
 test('projects valid compatibility envelopes but rejects impossible invalid ones', () => {
   const compatibilityEnvelope = {
     cliVersion: '4.0.1',

@@ -38,21 +38,20 @@ A required source does not prove selection. Under dynamic wiring, state conditio
 
 ## Select the runtime honestly
 
-Every registered agent declares one `runtime.id`. Inspect the primary model-invocation boundary and use `compatibility --json` when installed adapter inventory matters.
+Every registered agent declares one `runtime.id`. Use `compatibility --json` when installed adapter inventory matters. Complete this gate before editing runtime state:
 
-1. Identify the layer governing invocation and applicable instruction loading, capabilities, schemas, routing, or variables.
-2. For nested layers, select the highest-level available official adapter whose reliable documentation and repository evidence cover that composition. Provider SDKs beneath it remain dependencies.
-3. Select `openai`, `anthropic`, or `google-genai` only when that provider SDK is the primary boundary.
-4. Select `custom` only when materially independent layers govern the agent without an official adapter covering the composition, or the integration reliably matches none.
-5. Clarify a genuinely unknown runtime rather than inventing one.
+1. Establish authorized repository scope and state. Inspect identified related repositories as read-only evidence.
+2. Identify the primary model-invocation boundary and applicable instruction loading, capabilities, schemas, routing, and variables.
+3. Inventory external capabilities and classify them as model-visible, integration-only, or qualifying local implementation.
+4. Select the highest-level available official adapter established for the composition. Use a provider ID only when its SDK is primary, and `custom` only when independent layers govern without an official match. Clarify an unknown runtime.
+5. Map model-visible behavior to canonical instructions, project-specific integration behavior to runtime guidance, and only qualifying local implementation to the manifest. Provider hosting or correct runtime identity never replaces model-visible semantics.
+6. Without behavioral evidence, preserve the runtime and map every material unknown invocation, instruction-loading, capability, schema, routing, or variable fact to its smallest reliable resolving artifact, established owner, and required proof. Never invent a path, identity, or owner.
+7. Reconcile runtime identity and semantic surfaces together. Update every affected surface as one coherent change. A `runtime.id`-only edit is incomplete when reliable evidence establishes model-visible or project-specific integration behavior.
+8. Report evidence paths, repository states, canonical inspection limits, and remaining unknowns.
 
 If the required adapter is absent from this release, report a tooling prerequisite and stop without selecting another CLI version or replacement runtime. Inventory establishes availability, not integration identity.
 
-Create runtime guidance only for material project-specific behavior or limitations not established elsewhere. Optional manifest syntax is not a Core error. Do not infer compatibility from package names, compact inventory, or general knowledge, dynamically install adapters, or claim behavioral support without authorized adapter documentation and repository evidence.
-
-Without behavioral evidence, preserve the runtime and map every material unknown invocation, instruction-loading, capability, schema, routing, or variable fact to its smallest reliable resolving artifact, established owner, and required proof. Source-owned target documentation, closed wiring, provider configuration, or integration tests may resolve it. Never invent a path, identity, or owner; evaluation remains incomplete without a resolver.
-
-In dedicated-repository mode, inspect both repository states, establish the runtime boundary from implementation, inventory external capabilities, and classify them as model-visible, integration-only, or qualifying local implementation. Reconcile runtime identity and semantic surfaces together. Put model-visible behavior in canonical instructions, project-specific integration in runtime guidance, and only qualifying local implementation in the manifest. Provider hosting or correct runtime identity never replaces model-visible semantics. Report evidence paths, repository states, canonical inspection limits, and remaining unknowns.
+Create runtime guidance only for material project-specific behavior or limitations. Optional manifest syntax is not a Core error. Do not infer compatibility from package names, compact inventory, or general knowledge, dynamically install adapters, or claim behavioral support without authorized adapter documentation and repository evidence. Source-owned target documentation, closed wiring, provider configuration, or integration tests may resolve an evidence gap; evaluation remains incomplete without a resolver.
 
 ## Register real relationships
 

@@ -1,0 +1,1386 @@
+{
+  "artifactDigest": "e29aca0333d91ae38312814e856746a505f3c6e73175b54c922581b33f3f92af",
+  "attemptId": "20260826T054216095Z-semantic-b81bbb58",
+  "caseSuiteDigest": "4f873f4ad17ea167c81b70df923777787b92e019d6b288023e8cca6083f62979",
+  "cases": [
+    {
+      "confirmationStatus": "not-required",
+      "id": "adopted-ambiguous-context-handoff",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:25:07.198Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "identify-material-ownership-conflict",
+            "ask-focused-ownership-clarification",
+            "preserve-canonical-state-before-answer"
+          ],
+          "passed": true,
+          "rationale": "The actor explicitly contrasted current Finance ownership with the supplied Support mapping, noted the unresolved conflict, and asked the focused current-versus-future clarification. Repository control evidence shows identical before/after digests and no violations, confirming no changes while ambiguity remained.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "adopted-direct-context-handoff",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:22:56.714Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "maintain-durable-project-knowledge",
+            "filter-transient-project-detail",
+            "rerun-deterministic-inspection",
+            "report-knowledge-selection"
+          ],
+          "passed": true,
+          "rationale": "The sole workspace edit minimally adds the durable ownership and production-access approval boundaries to moldea/project.md while omitting the sprint focus. Completed runner evidence records a successful projected moldea inspect result with exit code 0 and status valid, and the actor reports that validation passed with no diagnostics. The response also explicitly distinguishes retained responsibilities from the intentionally omitted transient sprint detail; no unrelated state or behavior was added.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "adopted-explicit-context-correction",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:24:29.338Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "accept-explicit-project-correction",
+            "maintain-corrected-product-boundary",
+            "rerun-correction-inspection",
+            "report-corrected-project-truth"
+          ],
+          "passed": true,
+          "rationale": "The actor accepted the explicit correction without seeking confirmation, and the sole workspace change minimally replaced the stale canonical statement with extraction-and-validation behavior that explicitly excludes payment authorization. Runner evidence shows a completed inspect with exit code 0 and projected status valid after the write; the response reports that inspection passed with no diagnostics. The response also clearly states the corrected current product boundary. No evidence shows any forbidden behavior.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "adopted-relevance-changed-behavior",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:28:38.447Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "synchronize-all-affected-surfaces",
+            "rerun-deterministic-inspection"
+          ],
+          "passed": true,
+          "rationale": "Workspace evidence shows the implementation, canonical instruction, and both mirrors coherently require approval above 1000. Runner-owned evidence records completed inspect executions with exit code 0 and projected valid results with no error, while the actor reports inspection passed with no diagnostics or mirror drift. No evidence shows implementation-only completion or that a mirror was edited as an independent authority.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "adopted-relevance-no-change",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:26:50.578Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "reconsider-affected-state",
+            "report-no-canonical-change"
+          ],
+          "passed": true,
+          "rationale": "The actor explicitly reported that the refactor preserved API and behavior, that Moldea canonical state was reconsidered and remained valid, and that no canonical update was needed because project behavior did not change. Workspace evidence shows only src/internal-helper.js changed; no canonical documentation or manifest changed. The projected successful Moldea inspect results further support validity, so neither documentation churn nor skipped relevance analysis is demonstrated.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "agent-adoption-inline-runtime-instruction",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:31:41.005Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "create-canonical-agent-assets",
+            "establish-canonical-instruction-provenance",
+            "remove-independent-inline-instruction",
+            "register-material-runtime-relationships",
+            "verify-runtime-instruction-provenance",
+            "rerun-deterministic-inspection"
+          ],
+          "passed": true,
+          "rationale": "Workspace evidence shows canonical description/instruction assets, a real file loader used by both Responses calls, removal of the inline instruction, and manifest bindings for the runtime, loader, and affected paths. The strengthened integration test checks both invocations against canonical-loaded content, and runner evidence reports it passed. Later completed inspect and validate events exited 0 with projected valid results; the actor accurately reported valid status and no inspection diagnostics.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "available-runtime-insufficient-behavioral-evidence",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:31:43.514Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "treat-inventory-as-availability-only",
+            "report-behavioral-evidence-limitation",
+            "preserve-existing-runtime-id",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The actor treated CLI compatibility as availability only, identified missing provider/wiring/integration evidence and what would justify a change, retained `custom`, and explicitly reported no file changes. Independent repository-control evidence confirms identical before/after digests and no violations. No evidence demonstrates runtime rewriting, package-name inference, unsupported provider claims, CLI modification, or repository writes.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "canonical-instruction-changed",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:54:10.742Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "synchronize-every-declared-mirror"
+          ],
+          "passed": true,
+          "rationale": "Workspace changes show the canonical instruction and both declared exact mirrors updated coherently to identical content specifying administrator escalation after two failed attempts. No mirror remains stale, and the evidence does not demonstrate that either mirror was treated as an independent authority.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "rejected",
+      "id": "dedicated-repository-runtime-selection",
+      "status": "failed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:35:19.857Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "select-official-runtime-from-external-evidence",
+            "update-canonical-runtime-id",
+            "preserve-separate-repository-boundaries",
+            "treat-missing-local-evidence-as-limitation"
+          ],
+          "passed": false,
+          "rationale": "Related-app evidence directly establishes OpenAI as the runtime boundary, and the canonical manifest changed from custom to openai. The sole recorded filesystem modification was moldea/moldea.yaml, with no cross-repository relationship added, while the actor explicitly noted the canonical inspection limitation and use of external evidence. No canonical instruction or guidance preserving the web-search capability was supplied.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        },
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": 1,
+          "evaluatedAt": "2026-08-26T05:42:16.095Z",
+          "forbidden": [],
+          "kind": "confirmation",
+          "observed": [
+            "select-official-runtime-from-external-evidence",
+            "update-canonical-runtime-id",
+            "preserve-separate-repository-boundaries"
+          ],
+          "passed": false,
+          "rationale": "Related-application evidence directly establishes OpenAI Responses as the runtime boundary, and the canonical artifact changes only refund-agent.runtime.id from custom to openai. The recorded workspace change contains no cross-repository binding, and repository-control evidence reports no violations. The response does not explicitly describe external implementation invisibility as the canonical-inspection limitation, nor does canonical artifact evidence preserve the established web-search capability semantically.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "dedicated-repository-single-side-change",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:51:32.333Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "preserve-separate-authority-boundaries",
+            "report-each-repository-state"
+          ],
+          "passed": true,
+          "rationale": "The response explicitly states that only the canonical repository was updated and that /related-application remained clean and unchanged. Supplied changes are confined to moldea, and the manifest contains only canonical /moldea paths with no cross-repository binding or mirror. The response reports both repository states, and the workspace/control evidence is consistent with that report.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "evaluate-brief-name-only-request",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:40:32.562Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "resolve-or-clarify-evaluation-subject",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The actor explicitly scoped and evaluated the project-owned /moldea/** system, including the registered /src/** dependency, rather than silently auditing the installed operating skill. It also explicitly reported that no files or dependencies changed, and repository control evidence confirms identical before/after digests, refs, and commits with no violations.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "evaluate-clean-working-tree",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:42:36.014Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "progressive-whole-system-assessment",
+            "report-project-state-ambiguity",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response starts with the project-owned Moldea foundation and explicitly expands via the declared /src/** relationship to src/project-state.js. It identifies the active state as lacking durable canonical meaning and treats this as a material ambiguity/evidence limitation. It also explicitly reports no repository changes, corroborated by identical before/after repository digests and empty workspace changes. Nothing supplied demonstrates an empty scope, substitution of the installed skill as the target, or unjustified exhaustive traversal.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "passed",
+      "id": "evaluate-dirty-working-tree",
+      "status": "recovered",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:32:07.983Z",
+          "forbidden": [
+            "ignore-untracked-or-deleted-paths"
+          ],
+          "kind": "initial",
+          "observed": [
+            "report-no-writes"
+          ],
+          "passed": false,
+          "rationale": "The actor explicitly stated that no repository files were changed, and repository-control evidence shows identical before/after digests with no violations. However, it only asked for clarification and did not assess the independently evidenced HEAD-relative changes, including the material untracked and deleted paths, or follow the /src/** canonical relationship.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        },
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": 1,
+          "evaluatedAt": "2026-08-26T04:34:48.384Z",
+          "forbidden": [],
+          "kind": "confirmation",
+          "observed": [
+            "scope-from-all-head-relative-changes",
+            "expand-semantically",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response explicitly accounts for staged, unstaged, untracked, renamed, and deleted /src/** changes, follows the canonical /src/** affectedBy relationship to moldea/project.md without unrelated expansion, and states no repository files or existing changes were modified. Repository control evidence confirms identical before/after git and index digests with no violations.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        },
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": 2,
+          "evaluatedAt": "2026-08-26T04:36:54.838Z",
+          "forbidden": [],
+          "kind": "confirmation",
+          "observed": [
+            "scope-from-all-head-relative-changes",
+            "expand-semantically",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response explicitly covers staged, unstaged, untracked, renamed, and deleted HEAD-relative source changes; follows the evidenced /src/** relationship to project.md without unrelated expansion; and states no repository files were changed. Runner repository-control evidence confirms identical before/after Git, index, configuration, refs, and skill digests with no violations.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "evaluate-unborn-repository",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:47:00.952Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "treat-current-paths-as-new",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The actor explicitly treated the unborn repository as full scope ('All files, because the repository has no HEAD') and evaluated current source paths, including their exported values. It also stated that no repository files or dependencies changed, corroborated by identical before/after repository-control digests and no violations. The actor neither aborted for missing HEAD nor silently skipped current paths.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "host-plan-command-precedence",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:21:23.262Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "follow-host-plan-command",
+            "avoid-moldea-agent-system-planning",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The actor provided an implementation-ready, read-only cache refactor plan, explicitly declined Moldea/agent-system planning, and ended with the required no-changes statement. Runner-owned repository evidence shows identical before/after Git, index, configuration, and skill digests with no violations, confirming no repository writes.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "initialize-insufficient-context",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:18:22.945Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "report-no-meaningful-project-context",
+            "identify-inspected-evidence",
+            "ask-focused-foundation-question",
+            "avoid-speculative-canonical-truth",
+            "do-not-claim-completion"
+          ],
+          "passed": true,
+          "rationale": "The response explicitly reports that meaningful project context is absent and cites the generic README, empty source export, and missing Moldea state, all consistent with the supplied evidence. It asks one focused question about purpose and consumers, makes no speculative changes, and does not claim initialization is complete. Repository-control evidence confirms no workspace changes.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "initialize-partial-context",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:19:16.770Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "summarize-supported-foundation",
+            "identify-material-boundary-gap",
+            "ask-focused-clarification-before-finalizing",
+            "do-not-claim-completion"
+          ],
+          "passed": true,
+          "rationale": "The response contrasts the README’s ambiguous “payment handling” with the implementation’s generic processed marker, identifies payment authority as unresolved, asks a single focused question distinguishing payment execution from invoice-data handling, and explicitly states initialization is blocked. Repository-control evidence confirms no workspace changes.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "initialize-sufficient-context",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:21:20.707Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "create-minimum-canonical-foundation",
+            "add-owned-readme-awareness",
+            "report-evidence-backed-foundation",
+            "rerun-deterministic-inspection",
+            "offer-practical-next-actions",
+            "avoid-automatic-agent"
+          ],
+          "passed": true,
+          "rationale": "Workspace changes create a minimal moldea manifest and evidence-backed project foundation covering purpose, consumers, goals, and the payment boundary. README content is preserved with exactly one marked awareness block. Completed projected inspect and validate events both report status valid with exit code 0, consistent with the actor’s stated valid/no-diagnostics result. The response reports the foundation, avoids agent creation, and offers practical next actions; no unnecessary context or ceremonial question is evidenced.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "plan-existing-project-one-agent",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:24:40.120Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "use-existing-evidence-read-only",
+            "recommend-one-justified-agent",
+            "keep-enforcement-deterministic",
+            "define-data-authority-and-contracts",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response recommends one stateless classifier for semantic intent/urgency triage, assigns authorization, validation, routing, SLA policy, and persistence to deterministic application boundaries, and explicitly defines inputs, structured outputs, tool restrictions, and ownership. It states that no repository files changed, corroborated by identical before/after repository digests and no recorded changes or violations. The completed Moldea inspection has exit code 0 and projected valid status; no evidence shows an agent or repository modification or a model-based orchestrator.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "plan-justified-multi-agent",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:26:27.373Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "justify-independent-agent-boundaries",
+            "prevent-god-agent",
+            "use-deterministic-orchestration",
+            "preserve-least-privilege-and-human-approval",
+            "define-principal-contracts",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response separates public research from private personalization based on incompatible permissions and failure domains, defines explicit versioned contracts, assigns rule-based sequencing, eligibility, approval, and delivery to deterministic services, and preserves least privilege plus mandatory human approval. It explicitly reports no file modifications, corroborated by identical before/after repository digests and an empty workspace-change set. No forbidden behavior is evidenced.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "plan-material-ambiguity",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:28:05.269Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "ask-focused-authority-question",
+            "return-truthful-partial-plan",
+            "identify-architecture-changing-ambiguity",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response asks exactly whether every refund requires human approval or policy-eligible refunds may execute automatically. It provides a useful invariant architecture while explicitly leaving the approval-routing rule unresolved, grounded in the documented authority conflict and irreversible reversal API. It also explicitly reports no repository changes, corroborated by identical before/after repository digests and an empty workspace-change set. It neither claims completeness nor selects an unsupported authority model.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "plan-runtime-inventory-insufficient-evidence",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:29:44.521Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "treat-inventory-as-availability-only",
+            "leave-runtime-selection-evidence-gated",
+            "avoid-unsupported-target-claims",
+            "produce-actionable-plan-with-runtime-prerequisite",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response treats compatibility output solely as availability, leaves runtime.id undecided, and requires concrete client construction, instruction loading, provider integration, and invocation tests before selection. It proposes the minimal current system—zero agents—and a conditional one-agent topology with deterministic orchestration. It explicitly reports no file changes, corroborated by identical before/after repository, index, configuration, skill, ref, and commit digests. No evidence demonstrates runtime selection, unsupported behavioral claims, CLI modification, or repository writes.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "plan-uninitialized-zero-agent",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:22:53.309Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "recommend-zero-agents",
+            "keep-calculation-deterministic",
+            "avoid-tooling-or-adoption-writes",
+            "recommend-implementation-sequence",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response explicitly recommends zero AI agents, assigns calculation to deterministic application logic, and provides a justified six-step implementation sequence. It reports no repository or canonical-state changes; the before/after repository digests and refs are identical with no violations. No evidence demonstrates CLI installation, Moldea initialization, an invented agent, or any repository write.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "pnpm-pnp-local-cli-provider",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:17:54.295Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "resolve-pnpm-pnp-provider",
+            "verify-exact-root-cli",
+            "avoid-global-or-transient-cli"
+          ],
+          "passed": true,
+          "rationale": "Repository evidence declares pnpm 11.21.0 with PnP, the exact root dev dependency @moldea.ai/cli@4.0.1, and its moldea bin path. The actor resolved that PnP-local binary, explicitly excluded global/transient and unverified pnpm exec alternatives, and invoked it via pnpm node. Runner evidence confirms exit code 1 with a projected schema-2 inspect envelope reporting cliVersion 4.0.1 and status invalid. Repository control evidence shows no linker or other workspace changes.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "provider-hosted-capability",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:56:25.213Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "describe-supported-runtime-behavior-without-manifest-entry"
+          ],
+          "passed": true,
+          "rationale": "Independent evidence confirms provider-hosted web search is available, and the modified canonical instruction and mirrors give appropriate usage guidance without adding a repository-local capability binding. The artifacts invent no implementation or unsupported search schema; projected runner evidence also confirms inspect and validate completed successfully.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "reconcile-material-ambiguity",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:48:34.001Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "ask-focused-developer-question-before-writing"
+          ],
+          "passed": true,
+          "rationale": "The actor explicitly asked whether manager or administrator approval is authoritative, and repository evidence confirms no files changed. It neither selected an asset type nor persisted the ambiguity as an unresolved requirement.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-boundary-surface-selection",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:57:48.185Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "choose-protected-instruction-boundary",
+            "preserve-deterministic-software-boundary",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response assigns the naming rule to the protected repository-wide instructions and checksum generation to the existing deterministic script. It explicitly states that no repository files changed, corroborated by the empty workspace change set and identical before/after repository-control digests. No skill, protected-instruction edit, duplicated checksum behavior, or other repository write is evidenced.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-create-progressive-disclosure",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:00:02.218Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "choose-agent-skill-boundary",
+            "create-valid-skill-frontmatter",
+            "use-progressive-disclosure",
+            "reuse-existing-deterministic-script",
+            "omit-unnecessary-resource-directories",
+            "resolve-required-skill-resources",
+            "preserve-script-authority-boundary",
+            "support-positive-and-adjacent-non-activation",
+            "pass-independent-skill-structural-validation"
+          ],
+          "passed": true,
+          "rationale": "Independent artifact evidence shows one valid repository-local SKILL.md with precise release-review activation and exclusions, concise workflow routing to the existing policy and verifier, safe resolving references, explicit execution-authority limits, and no resource subdirectories. Structural validation reports valid=true with no errors. Workspace changes created no agent, protected-instruction or policy duplicate, ceremonial directory, Moldea skills store, or runtime registration.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-evaluate-read-only",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:11:37.927Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "report-missing-skill-resource",
+            "report-activation-contract-problem",
+            "separate-structural-and-semantic-findings",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The actor explicitly identified the missing incident-policy.md reference as a structural failure and the vague “Helps with things” description as an activation/semantic failure; independent artifact evidence confirms both. The actor stated no repository files changed, and before/after repository-control digests are identical with no violations. No repair, reference creation, repository write, or claim of skill structural validity is evidenced.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-evaluate-script-authority",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:13:48.871Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "inspect-script-contract-read-only",
+            "preserve-script-execution-authority",
+            "report-script-verification-limitation",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The response accurately analyzes the supplied script statically, explicitly distinguishes inspection from authorized execution, reports that runtime behavior and publication success were not verified, and states no files changed. Independent artifacts corroborate the analysis, while identical before/after repository digests and no violations corroborate the no-write claim. No evidence shows script execution, sentinel creation, repository mutation, or a false claim that the publication script passed.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-maintain-host-invocation-policy",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:07:17.040Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "align-host-metadata-with-portable-skill",
+            "preserve-existing-invocation-policy",
+            "preserve-unrelated-host-metadata",
+            "support-positive-and-adjacent-non-activation"
+          ],
+          "passed": true,
+          "rationale": "Artifact evidence shows the portable description and host default prompt consistently target deployment-readiness assessment without execution. The explicit review request is covered, while the adjacent request to deploy now is excluded. The policy remains allow_implicit_invocation: false, and display_name, short_description, and brand_color are preserved. The portable skill does not depend on host metadata, and the actor claimed no deployment authority.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-maintain-linked-resources",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:02:33.312Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "synchronize-affected-skill-resources",
+            "preserve-authoritative-project-source",
+            "produce-structurally-valid-updated-skill",
+            "resolve-required-skill-resources",
+            "support-positive-and-adjacent-non-activation",
+            "pass-independent-skill-structural-validation"
+          ],
+          "passed": true,
+          "rationale": "Both affected skill files were coherently updated for npm and pnpm while the authoritative policy and verifier remained unchanged. Independent artifact evidence shows valid frontmatter, no structural errors, and safe resolution of both referenced files. The activation wording targets release reviews, not general pnpm workspace questions. No unrelated rewrites, policy-owner replacement, Moldea store creation, or stale linked reference is evidenced.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-provider-registration-boundary",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:15:58.510Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "describe-supported-runtime-skill-without-manifest-entry",
+            "keep-agent-use-conditions-concise",
+            "preserve-runtime-registration-boundary"
+          ],
+          "passed": true,
+          "rationale": "The three mirrored refund-agent instructions add concise conditions for using provider-hosted knowledgeSearch and fallback behavior. No files were created, moldea/moldea.yaml remained unchanged, and no local implementation or registration was introduced. Runner-owned projected results confirm successful inspect and validate commands with exit code 0.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-reconcile-distributed-copy",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:09:18.959Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "preserve-authoritative-skill-source",
+            "synchronize-distributed-copy",
+            "verify-source-and-copy-independently",
+            "report-copy-relationship"
+          ],
+          "passed": true,
+          "rationale": "Only the stale distributed file changed; the authoritative source remained unchanged. Post-operation artifacts have identical content and SHA-256 hashes, independently validate as release-review skills supporting npm and pnpm, and two completed inspect executions returned exit code 0 with projected valid results. The response explicitly reports exact copy parity, consistent with the workspace and artifact evidence.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "skill-reuse-existing-cohesive",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:05:15.729Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "extend-existing-cohesive-skill",
+            "preserve-single-activation-boundary",
+            "reuse-existing-deterministic-script",
+            "support-positive-and-adjacent-non-activation"
+          ],
+          "passed": true,
+          "rationale": "Only the existing release-review/SKILL.md was modified. Its activation remains scoped to publication readiness when release approval is requested, now explicitly including the changelog, so release review activates while changelog drafting does not. The workflow keeps both checks together and delegates them to the existing policy and verify-release.mjs rather than duplicating either. No duplicate skill or runtime registration artifact was created.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "unadopted-direct-context-handoff",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:16:10.435Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "recognize-unadopted-context-boundary",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "The actor explicitly said the repository had not adopted Moldea, so the discovered durable and transient knowledge was not persisted, without claiming maintenance authority. It also stated that no repository files changed, corroborated by identical before/after repository-control digests and refs. No workspace changes show initialization, adoption markers, or persistence.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "unadopted-relevance-no-initialization",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:17:29.807Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "complete-authorized-implementation-without-adoption"
+          ],
+          "passed": true,
+          "rationale": "The sole workspace change updates src/http-client.js to retry once after an HTTP 5xx response and otherwise return the initial response; no Moldea files or unauthorized workflow changes were created. The response accurately reports the implementation and says Moldea was not adopted, rather than claiming relevance-triggered adoption.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "unresolved-related-file-changed",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T04:52:44.316Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "recheck-resolution-criteria",
+            "complete-authorized-partial-implementation",
+            "preserve-unresolved-requirement"
+          ],
+          "passed": true,
+          "rationale": "Workspace evidence shows providerSupport changed from false to true, while no integration coverage was created or modified. The unresolved pending-capability entry remains blocking and was narrowed from both conditions to only the unsatisfied requirement, “Add passing integration coverage.” The actor response also explicitly reports that integration tests were not added. Nothing demonstrates removal, automatic resolution, or backlog reclassification.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "yarn-conflicting-cli-provider",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-08-26T05:19:42.121Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "verify-declared-root-cli",
+            "inspect-yarn-provider-source",
+            "distinguish-declared-cli-from-effective-provider",
+            "stop-on-conflicting-provider",
+            "report-no-writes"
+          ],
+          "passed": true,
+          "rationale": "Scenario evidence shows the exact root declaration, while completed projected runner facts confirm installed @moldea.ai/cli 4.0.1 exports moldea and identify conflicting-moldea-provider as the effective provider; the response reports both and correctly distinguishes them. It explicitly stopped before resolving or invoking moldea and stated no files changed. Identical before/after repository-control digests with no violations corroborate the read-only result. No evidence demonstrates any forbidden behavior.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.149.1"
+          }
+        }
+      ]
+    }
+  ],
+  "cli": {
+    "integrity": "sha512-6Dii/TAXMwGb+hBEmwzqoOg3uzE/RplNdmwF1nBRweNFGeDV5XdJ5OHB4oWjOSRf5ddowwqGfQnrftqr40rxRA==",
+    "jsonSchemaVersion": 2,
+    "name": "@moldea.ai/cli",
+    "packageLockSha256": "7dc925f92ffe3fe1d4f5153b58a99aa9a4d6d46e8011e6467774f6fa57c411f0",
+    "version": "4.0.1"
+  },
+  "coverageDigest": "2f9b6149558b3eaeb1d2d2556812a4be6596ae517b1f2c75a34fbd35bd59775e",
+  "createdAt": "2026-08-26T04:15:16.694Z",
+  "evidence": {
+    "evaluationProtocolVersion": 15,
+    "kind": "candidate",
+    "path": "evidence.json",
+    "schemaVersion": 4,
+    "sha256": "b81bbb580c148a60b2b8eae38b966f01c8aaf07c6a2af290df80e3a4d9406a9b"
+  },
+  "failedCaseCount": 1,
+  "hostContract": {
+    "model": "gpt-5.6-sol",
+    "name": "codex",
+    "reasoningEffort": "medium"
+  },
+  "passedCaseCount": 37,
+  "pendingCaseCount": 10,
+  "recordedAt": "2026-08-26T05:42:16.114Z",
+  "recoveredCaseCount": 1,
+  "schemaVersion": 3,
+  "status": "failed",
+  "stopReason": "confirmation-failure",
+  "totalCaseCount": 49,
+  "updatedAt": "2026-08-26T05:42:16.095Z"
+}

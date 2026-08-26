@@ -4,74 +4,64 @@ Read this reference before planning an AI- or agent-enabled system, decomposing 
 
 ## Select this operation narrowly
 
-Use `plan` when the developer explicitly asks what agent-and-software system should accomplish an objective, what should be agents versus deterministic components, or how agent responsibilities should be separated and orchestrated.
+Use `plan` only when the developer asks what agent-and-software system should accomplish an objective, what should be agents versus deterministic components, or how agent responsibilities should be separated and orchestrated.
 
-Do not capture a generic implementation, architecture, migration, refactor, deployment, or host-defined `plan` command merely because it uses planning language. Relevance-triggered maintenance also does not create a separate planning exercise without clear developer intent.
+Generic implementation, architecture, migration, refactor, deployment, and host-defined `plan` commands remain outside. Relevance-triggered maintenance does not create a planning exercise without clear intent.
 
 ## Keep planning read-only
 
-Planning may run before `/moldea/**` exists and does not adopt or initialize `moldea`. Do not modify repository files, package or lock state, installed dependencies, Git state or configuration, generated artifacts, protected coding instructions, or external systems. Create no canonical plan file, hidden cache, or planning database.
+Planning may precede adoption and changes no repository, dependency, Git, protected instruction, generated artifact, or external system. It creates no canonical plan, cache, or planning database.
 
-Use an available compatible root-local CLI read-only. If runtime identity is explicitly requested and safe exact CLI proof is available, run `compatibility --json`; inventory proves availability only. Never create package metadata, choose a manager, install or repair the CLI, or use a global or transient launcher to plan. Without it, continue from evidence, disclose limitation, and make no unsupported claim.
+Use an available compatible root-local CLI read-only. If runtime identity is requested and provider proof is available, run `compatibility --json`; inventory proves availability only. Never create metadata, select a manager, install tooling, or use global or transient launchers to plan. Without compatible tooling, continue from evidence and disclose the limitation.
 
 ## Plan from the objective
 
 1. Establish the outcome, recipient, trigger or cadence, deliverables, success criteria, constraints, and prohibited outcomes that materially shape the system.
-2. Apply the bounded discovery ladder in `context-gathering.md` before asking for discoverable facts. Discovery queues candidates, not evidence. Open each accessible material candidate and map its path to a fact and responsibility before absence claims, allocation, or topology.
-3. Decompose the objective and every evidence-established outcome into the smallest cohesive system responsibilities before naming agents or components.
-4. Classify each responsibility as deterministic application logic, deterministic data or transformation logic, an existing or proposed service or runtime-native tool, a reusable Agent Skill, an AI agent, human control, or a deliberate combination with explicit boundaries.
-5. Keep fixed calculations, eligibility rules, filtering, storage, delivery mechanics, and predictable sequencing deterministic unless evidence establishes a real need for model reasoning.
+2. Apply `context-gathering.md`: discovery queues candidates, and every material accessible candidate must be read and mapped to a fact and responsibility before absence claims or allocation.
+3. Decompose every evidence-established outcome into the smallest cohesive responsibilities before naming components.
+4. Classify each responsibility as deterministic application or data logic, an existing or proposed service or runtime-native tool, a reusable Agent Skill, an AI agent, human control, or a deliberate combination with explicit boundaries.
+5. Keep fixed calculations, eligibility, filtering, storage, delivery, and predictable sequencing deterministic unless evidence establishes a need for model reasoning.
 
-Use an Agent Skill for reusable on-demand coding-agent knowledge, workflow, or supporting resources. Do not treat a skill as an independently executing runtime agent, a deterministic service, or authority to perform its described side effects.
+Use an Agent Skill for reusable on-demand coding-agent procedure or knowledge. It is not an independently executing runtime agent, deterministic service, or side-effect authority.
 
 ## Minimize and justify agents
 
-A valid result may recommend zero agents. Prefer the smallest agent topology that preserves reliable responsibility boundaries.
+A valid result may use zero agents. Prefer the smallest topology that preserves every material responsibility and boundary.
 
-Create a separate agent candidate only when an independent boundary materially improves cohesive ownership, specialized model context, permission separation, failure isolation, routing clarity, reusable reasoning, independent evaluation or maintenance, or another evidence-backed concern.
+Create a separate agent only when independent ownership materially improves specialized context, permission separation, failure isolation, routing, reusable reasoning, independent evaluation, or maintenance. Reconcile every evidenced responsibility with a deterministic, service, tool, skill, agent, or human owner. Combining or removing an owner requires reliable replacement evidence. Responsibilities with incompatible private context, permissions, trust, or failure boundaries remain separate unless deterministic software replaces one.
 
-Before finalizing, reconcile every material evidence-established responsibility with an explicit deterministic, service, tool, skill, agent, or human owner. Combining or removing one requires reliable replacement evidence and cannot erase its outcome. Model-reasoning responsibilities with incompatible private context, permissions, trust, or failure boundaries remain separate unless deterministic software replaces one. Reducing agent count never justifies dropping a responsibility or merging incompatible boundaries.
+Reuse an agent only when the added responsibility remains cohesive with its established purpose. Do not create a god agent, split cohesive work to manufacture multiple agents, or add planners, critics, supervisors, memory, autonomous loops, or orchestration by fashion. Public research and privileged project or customer reasoning remain separate when data boundaries conflict.
 
-Public research and privileged project or customer reasoning remain separate when their data boundaries conflict.
+For every agent candidate, establish:
 
-Reuse an existing agent only when the responsibility remains cohesive with its established purpose. Do not create a god agent to reduce the count, split one cohesive responsibility to manufacture a multi-agent design, or add planners, critics, supervisors, memory, autonomous loops, or an orchestrator by fashion.
-
-For every agent candidate, identify:
-
-- its proposed responsibility and why model reasoning earns an agent boundary
+- responsibility and why it requires model reasoning
 - principal inputs, outputs, decisions, and project context
-- capabilities, data access, permissions, and state it may read or affect
+- capabilities, data access, permissions, and affected state
 - interaction, handoff, escalation, and failure boundaries
-- why deterministic software or another candidate should not own the responsibility
+- why deterministic software or another candidate should not own it
 
-Proposed names and IDs remain illustrative until a later write-capable workflow establishes them.
+Names and IDs remain proposed until a later write-capable workflow establishes them.
 
 ## Design control, state, and contracts
 
-Prefer deterministic orchestration when sequencing, branching, and routing can be expressed reliably in ordinary application logic. Recommend a model-based router only when selecting the next responsibility genuinely requires semantic judgment.
+Prefer deterministic orchestration for reliable sequencing, branching, and routing. Use a model router only when selection genuinely requires semantic judgment. Repository format version `1` has no canonical orchestration or handoff graph; later implementation must use runtime-native mechanisms and agent-owned surfaces.
 
-Repository format version `1` defines no canonical orchestration or handoff graph. Keep proposed routing and transfers as architectural behavior until a later implementation establishes them through runtime-native mechanisms and the appropriate agent-owned surfaces.
+Identify authoritative and derived data, transient and persistent state, readers and writers, deterministic enforcement, recommendation versus execution authority, human approval or escalation, and least privilege. Preserve established approval scope, including approval for every publication when required. Do not imply data access without a source or access path.
 
-Identify authoritative and derived data, transient and persistent state, allowed readers and writers, deterministic enforcement points, agent recommendation versus execution authority, human approvals or escalation, and least-privilege constraints. Preserve repository-established approval scope exactly, including approval for every publication when required. Avoid implying that an agent knows data whose source or access path materially affects the design.
-
-Expose the principal inputs, outputs, events, service and tool contracts, and failure boundaries needed for components to interact. Planning need not finalize executable schema syntax, but agent separation must not depend on hidden contract assumptions.
+Describe the principal inputs, outputs, events, service and tool contracts, and failure boundaries needed for interaction. Planning need not finalize schema syntax, but separation cannot depend on hidden contract assumptions.
 
 ## Treat runtime compatibility honestly
 
-Runtime selection is optional unless requested or material. Exact CLI inventory establishes adapter availability, not behavioral support for target or provider usage. Leave runtime undecided without behavioral evidence.
-
-When reliable adapter documentation and repository evidence are unavailable, describe runtime requirements or candidate considerations without claiming that a target, provider limit, pattern, or complete behavior is supported. Final `runtime.id` and runtime integration belong to later agent design and implementation.
+Runtime selection is optional unless requested or material. CLI inventory establishes adapter availability, not behavioral support. Without reliable adapter documentation and repository evidence, state runtime requirements or considerations and leave the final `runtime.id` for later design and implementation.
 
 ## Produce one actionable recommendation
 
-Provide one preferred architecture when evidence supports it. Present alternatives only when their tradeoff could reasonably change the developer's decision.
+Give one preferred architecture when evidence supports it; present alternatives only when their tradeoff could change the decision.
 
-Cover the materially applicable objective, established context, constraints, responsibility allocation, agents and their justification, deterministic components, services or tools, human control, authoritative data, readers and writers, persistence, permissions, control flow, model input and output contracts, deterministic enforcement, failures, runtime considerations, tradeoffs, and implementation sequence. Treat these as a completion check, not optional sections; omit only genuinely immaterial categories.
+Cover every materially applicable objective, established context, constraint, responsibility and owner, agent justification, deterministic component, service or tool, human control, authoritative data, persistence, permission, control flow, model contract, deterministic enforcement, failure, runtime consideration, tradeoff, and implementation step. This is a completion check, not a mandatory prose template.
 
-Name material paths read and what each establishes. Preserve each resulting responsibility. A repository-specific plan is incomplete while a material candidate is unread; neither the request nor a listing substitutes for evidence.
+Name material paths read and what they establish. Preserve or reliably replace every resulting responsibility. Recommend an ordered, unexecuted build-and-verification sequence that tests risky boundaries early; runtime control flow is distinct and must also be described.
 
-Recommend an ordered build-and-verification sequence that tests risky boundaries early. Runtime control flow is not that sequence. It remains required with zero agents and unexecuted during `plan`.
+When a material decision remains unresolved, investigate or ask the one question that most changes authority, ownership, topology, or consequential side effects. Still state the invariant architecture and identify what cannot be finalized.
 
-When unresolved decisions remain, investigate or ask the one question whose answer most changes authority, responsibility ownership, topology, or consequential side effects before asking about downstream configuration. Still state the invariant architecture, identify the branch that cannot be finalized, and distinguish the partial recommendation from a complete plan.
-
-Finish by distinguishing the recommendation from current implemented and canonical state and stating that no repository files were changed by `plan`.
+Finish by distinguishing the recommendation from current implementation and canonical state and state that no repository files changed.

@@ -1,6 +1,6 @@
 # Local tooling
 
-Read this reference after the skill entrypoint and before any Git, package-manager, deterministic CLI, or tooling-establishment command. Finish reading it before the first governed command; do not combine reference loading and that command in one shell expression.
+Read this reference after the skill entrypoint and before any Git, package-manager, deterministic CLI, or tooling-establishment command. Finish reading it before the first governed command; do not combine reference loading and that command in one shell expression. Then locate the Git working-tree root with a safe command shape from this reference.
 
 ## Compatibility contract
 
@@ -16,11 +16,11 @@ Release `3.1.0` supports:
 
 Use node-semver range semantics for the Node.js and package-manager entries. Do not substitute another CLI release or select a prerelease CLI.
 
-`plan` does not establish this tooling merely to produce an architecture recommendation. It may use an already available exact release CLI read-only after verifying the same provider and envelope contract. When tooling is absent or does not match this release, continue planning from sufficient repository evidence and disclose the unavailable deterministic evidence without selecting a package manager, creating metadata, or changing dependencies.
+`plan` may use an already available verified release CLI read-only but never establishes tooling. Otherwise continue from sufficient repository evidence and disclose unavailable deterministic evidence without selecting a manager or changing files.
 
 ## Determine the package manager
 
-Determine the package manager from repository data before invoking any package-manager executable. Inspect repository-root `package.json`, recognized root lockfiles, workspace configuration, and applicable manager configuration as ordinary file data without changing them.
+Before invoking a manager, inspect root `package.json`, recognized lockfiles, workspace configuration, and applicable manager configuration as file data.
 
 1. A concrete `packageManager` value is strong identity and version evidence.
 2. A sole recognized lockfile establishes its manager family when explicit metadata does not contradict it: `package-lock.json` or `npm-shrinkwrap.json` for npm, `pnpm-lock.yaml` for pnpm, and `yarn.lock` for Yarn.
@@ -29,11 +29,11 @@ Determine the package manager from repository data before invoking any package-m
 5. An explicitly established unsupported manager is a prerequisite conflict.
 6. When no manager is established, select npm because it ships with Node.js.
 
-Before any npm, pnpm, Yarn, Corepack, or related command, inspect pnpmfiles, hook-bearing pnpm configuration, Yarn plugins, and equivalent executable extensions. A `.yarnrc.yml` `plugins[].path` declaration is executable configuration even if the plugin remains unread and unrun. Any such extension blocks manager execution, including version or discovery, because this release cannot prove it stays unloaded.
+Before any npm, pnpm, Yarn, Corepack, or related command, inspect pnpmfiles, hook-bearing pnpm configuration, Yarn plugins, and equivalent executable extensions. A `.yarnrc.yml` `plugins[].path` is executable even when unread. Any such extension blocks manager execution, including version discovery, because this release cannot prove it stays unloaded.
 
-This gate does not block the whole workflow. Before another clarification or stop, report each manager-dependent blocker: exact path, blocked operation, unavailable evidence, and applicable safe prerequisite. Removing or disabling the extension and retrying always applies; invocation without the manager applies only to an already declared and installed exact CLI. Never propose bypassing, trusting, or executing the extension.
+This gate blocks only manager-dependent work. Report each extension path, blocked operation, unavailable evidence, and safe prerequisite. Remove or disable the extension and retry; invoke without the manager only for an already declared and installed exact CLI. Never bypass, trust, or execute the extension.
 
-Only after that file-only safety gate passes, resolve the executable that will perform the operation and verify its actual version with `npm --version`, `pnpm --version`, or `yarn --version`. The version must satisfy this release's range. When concrete `packageManager` metadata exists, its version and the actual executable version must be the same semantic version. Do not silently install or upgrade Node.js or a package manager.
+After the file-only gate passes, verify the selected executable with `npm --version`, `pnpm --version`, or `yarn --version`. It must satisfy the release range and exactly match concrete `packageManager` metadata. Do not silently install or upgrade Node.js or a manager.
 
 ## Establish the exact local CLI
 
@@ -45,9 +45,9 @@ Release tooling state requires all of the following:
 - the established manager resolves the repository-local `moldea` executable from that root package
 - the machine envelope reports the same exact `cliVersion` and schema `2`
 
-Preserve an existing exact `4.0.1` declaration and executable. A different installed version belongs to a different skill release and must not be treated as interchangeable. If this release's exact CLI lacks a required official adapter or machine-contract capability, stop and report the release defect instead of selecting another CLI version.
+Preserve the exact version `4.0.1`. Another installed version belongs to another skill release. If the exact release CLI lacks a required official adapter or machine capability, report the release defect rather than selecting another version.
 
-Inspect the manager-specific manifest and executable directly; ignored-tree omission from Git or `rg` does not prove absence.
+Inspect the manager-specific manifest and executable directly; Git or `rg` omission does not prove absence.
 
 During a write-capable workflow:
 
@@ -55,9 +55,9 @@ During a write-capable workflow:
 - if the exact release CLI is absent or another version is installed, verify published registry metadata for `4.0.1`, install that version exactly, and update the ordinary lockfile
 - if installed and declared state conflict in a way that cannot be established reliably, stop and report the prerequisite instead of guessing
 
-During `plan`, `evaluate`, or `validate`, never create `package.json`, change dependency declarations or lockfiles, or install packages. Report the detected state and the write-capable remediation when relevant.
+During `plan`, `evaluate`, or `validate`, do not create manifests, change dependencies or lockfiles, or install packages. Report the state and relevant write-capable remediation.
 
-When a write-capable workflow needs tooling and root `package.json` is absent, create only a minimal private manifest needed for the development dependency. Do not invent application name, version, scripts, package-manager metadata, or unrelated dependencies.
+When authorized tooling work lacks a root `package.json`, create only the minimal private manifest needed for the dependency; do not invent other metadata or dependencies.
 
 ## Suppress executable installation surfaces
 
@@ -70,38 +70,38 @@ pnpm add --workspace-root --save-dev --save-exact --ignore-scripts @moldea.ai/cl
 yarn add --dev --exact --mode=skip-build @moldea.ai/cli@<resolved-version>
 ```
 
-Use the pnpm `--workspace-root` form only when the root is a pnpm workspace; otherwise use the non-workspace form. Yarn's supported `skip-build` mode omits the build step. npm and pnpm use their supported `ignore-scripts` setting. Replace the placeholder with exact version `4.0.1`; never write a range into a client manifest.
+Use pnpm `--workspace-root` only for a root workspace. Yarn uses `skip-build`; npm and pnpm use `ignore-scripts`. Replace the placeholder with the exact version `4.0.1`, never a range.
 
-The file-only safety gate occurs before selecting one of these commands. Lifecycle-script suppression does not neutralize a repository-supplied manager extension, hook, or plugin and must not be used to bypass the prohibition on package-manager execution.
+The file-only gate precedes command selection. Lifecycle-script suppression does not neutralize repository-supplied extensions and cannot bypass the manager prohibition.
 
-If the selected manager or version rejects the documented lifecycle-script control, repository configuration defeats it, or suppression would change dependency resolution materially, stop and report the prerequisite. Separately authorized lifecycle-script execution remains subject to coding instructions and is never implied by a `moldea` request.
+If the manager rejects the control, configuration defeats it, or suppression materially changes resolution, report the prerequisite. A Moldea request never implies lifecycle-script authority.
 
 ## Preserve decision gates
 
-Run every command whose safety or authority depends on earlier output as a separate process execution. Wait for the process to complete, interpret its exact result, and decide whether the next command is authorized. Never batch a result-dependent sequence into one shell command merely because the individual steps are read-only.
+Run every command whose safety or authority depends on earlier output separately. Accept the completed result before authorizing the next command; never batch a result-dependent sequence.
 
-This boundary applies to package-manager configuration and version checks, installed-package and executable-provider checks, executable resolution and invocation, and deterministic CLI operations. A later command must not begin before the preceding gate has been accepted.
+This applies to manager configuration and versions, installed identity, provider proof, executable resolution, invocation, and deterministic CLI operations.
 
 ## Invoke only the root-local CLI
 
-Verify the executable resolves from the exact root dependency through the established manager. Do not require a `node_modules` layout from Yarn because supported Yarn repositories may use Plug'n'Play.
+Resolve the executable from the exact root dependency through the established manager. Yarn may use Plug'n'Play and need not expose `node_modules`.
 
 ### Prove and invoke the repository-local executable
 
-Retain cumulative CLI proof: exact root declaration; installed package identity and version; exported `bin.moldea`; effective provider. Later conflicts do not erase accepted proof. Never invoke a bare `moldea`, `npx`, `pnpx`, `pnpm dlx`, `yarn dlx`, or any execution form that can download a missing package or fall back to a global executable.
+Retain cumulative proof of the root declaration, installed identity and version, exported `bin.moldea`, and effective provider. Never use a bare `moldea`, `npx`, `pnpx`, `pnpm dlx`, `yarn dlx`, or another form that can download or use a global fallback.
 
 - For npm, resolve the root `node_modules/@moldea.ai/cli/package.json`, validate its exact name and version, read its `bin.moldea` entry, and canonicalize both that target and `node_modules/.bin/moldea`. Require the executable to resolve inside that same installed package before invoking the canonical local path.
 - For pnpm with the `isolated` or `hoisted` linker, perform the same manifest, `bin.moldea`, canonical-target, package-name, and exact-version checks before invoking the canonical root `node_modules/.bin/moldea` path.
 - For pnpm with `nodeLinker: pnp` or another configuration without a root `node_modules/.bin`, first pass the file-only extension gate, then run `pnpm --version` as its own process. In a separate repository-root `pnpm node` process, use the active `pnpapi.resolveToUnqualified('@moldea.ai/cli', '<root-package-json>')` to locate the package. Read that root's manifest; require exact name `@moldea.ai/cli`, the exact release version, and a relative `bin.moldea`. Canonicalize the package root and resolved bin and require the bin to remain inside that package. Only after accepting those checks may another process invoke `pnpm node <resolved-bin> <command> --json`. Do not use `pnpm exec moldea`: it does not prove a project-local provider. If the active linker cannot prove and invoke the exact provider without fallback, stop rather than changing linker configuration.
 - For Yarn 4, after the file-only safety gate, prove each stage separately: exact root declaration; installed identity, version, and exported `bin.moldea` through `yarn info @moldea.ai/cli --json`; then effective provider through `yarn bin -v --json`. Parse its newline-delimited JSON records and require exactly one `moldea` entry sourced by `@moldea.ai/cli`; `source` identifies the package, not its version. Any missing, malformed, duplicate, conflicting, or non-CLI provider ends this proof branch. Do not then resolve or invoke the executable through Yarn, symlink inspection, `readlink`, `realpath`, Node.js filesystem APIs, or another tool. Report accepted stages and later stages as unattempted; unrelated safe reporting checks may continue. Only an accepted provider record permits a new `yarn bin moldea` process; require its canonical path to equal the recorded path before another process runs `yarn exec moldea`.
 
-Accessible repository evidence makes local CLI proof executable, even when requested as an explanation: run safe provider and CLI checks. Only requests without such evidence may receive a procedure. Report provider, exact version, command, and envelope. Never infer provider from version.
+When repository evidence is accessible, perform safe provider and CLI checks even for an explanation; otherwise provide a procedure. Report provider, exact version, command, and envelope. Version alone does not prove provider.
 
-`inspect --json` is primary. Run `compatibility --json` only when package composition, adapter IDs, format versions, or Node.js and Git requirements affect the task; it proves no maturity, provider limits, patterns, or other behavioral claims. Use `validate --json` for narrower structural validation.
+`inspect --json` is primary. Use `compatibility --json` only when package composition, adapter IDs, formats, or runtime requirements matter; it proves no behavioral claims. Use `validate --json` for narrower structure.
 
 ## Verify the machine envelope
 
-Run each `inspect --json`, `validate --json`, or `compatibility --json` invocation as an independent process execution. Do not shell-chain deterministic CLI invocations with each other or with package-manager checks, project-native verification, mirror comparisons, or Git inspection. Parse JSON only after that exact process completes, then validate the version `2` envelope before reading `result`:
+Run each CLI invocation independently, without shell-chaining it to manager checks, project verification, mirror comparison, Git inspection, or another CLI command. After completion, validate the version `2` envelope before reading `result`:
 
 - `schemaVersion` is integer `2`
 - `cliVersion` is exactly `4.0.1` and equals the declared and installed CLI version
@@ -114,13 +114,13 @@ Run each `inspect --json`, `validate --json`, or `compatibility --json` invocati
 
 Expected handled exit codes are `0` for `valid`, `1` for `invalid`, `2` or `3` for `error`, `130` for `SIGINT`, and `143` for `SIGTERM`. A package-manager launcher can fail before the CLI starts; distinguish that from a CLI envelope.
 
-Only the completed isolated process, its exit code, and its matching envelope establish the command's deterministic result. A failed or incomplete process, a failed aggregate shell command, an unsupported schema, a mismatched command, an invalid status/payload combination, malformed JSON, contradictory versions, or unexplained exit/envelope disagreement cannot support a validity claim. Stop deterministic interpretation and report the incompatibility.
+Only the completed process, exit code, and matching envelope establish a result. Failure, incompleteness, aggregation, unsupported schema, command mismatch, invalid payload, malformed JSON, contradictory version, or exit/envelope disagreement stops interpretation.
 
-Structural `invalid` output is deterministic project evidence when its expected exit code and envelope are complete; it is not successful validation or an operational failure. `error` represents usage, Git, repository-source, Core-operation, compatibility-integrity, resource, cancellation, or unexpected operational failure. Preserve that distinction and never report either result as `valid`.
+Complete structural `invalid` is diagnostic evidence, not successful validation or operational failure. `error` is an operational failure. Never report either as `valid`.
 
 ## Preserve responsibility boundaries
 
-Consume CLI, Core, and runtime-adapter results rather than reimplementing Git inventory, repository snapshots, repository-format parsing, path validation, placeholder validation, mirror comparison, diagnostics, adapter invocation, or compatibility interpretation. Do not import private CLI modules.
+Consume public CLI, Core, and adapter results rather than reimplementing their mechanics or importing private CLI modules.
 
 When additional read-only Git evidence is materially necessary, use command-specific safe options rather than a bare Git command. No Git command, including `rev-parse`, `status`, `log`, or `diff`, is harmless before this reference is loaded. For every command disable fsmonitor and pagers with `-c core.fsmonitor=false`, `-c core.pager=cat`, and `--no-pager`; disable global attributes and LFS processing where relevant with `-c core.attributesFile=/dev/null`, empty LFS process and smudge settings, and `-c filter.lfs.required=false`. For `diff`, `show`, or another patch-producing command, also use `-c diff.external=`, `--no-ext-diff`, and `--no-textconv`; repository attributes may still exist, so `--no-textconv` is required. Avoid submodule recursion and request explicit machine-oriented output such as porcelain or NUL-delimited paths. Apply only options supported by the selected Git subcommand.
 

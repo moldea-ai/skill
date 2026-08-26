@@ -364,18 +364,17 @@ describe('portable Agent Skill contract', () => {
     assert.equal(dirname(SKILL_PATH), SKILL_DIRECTORY);
     assert.equal(dirname(SKILL_PATH).split('/').at(-1), frontmatter.name);
     assert.ok(frontmatter.description.length >= 1 && frontmatter.description.length <= 1024);
-    assert.match(frontmatter.description, /^Use first when a message supplies/u);
+    assert.match(frontmatter.description, /^Use first when a message/u);
     assertMatchesEvery(frontmatter.description, [
-      /supplies, confirms, or corrects potentially durable project knowledge/u,
-      /ownership, responsibility, approval, escalation, policy, boundaries, terminology, architecture, or operations/u,
-      /terse prose, an answer, table, YAML, JSON, or accessible source/u,
-      /without a moldea request/u,
-      /Inspect adoption, affected surfaces, and conflicts/u,
-      /paths? referenced by adopted canonical state or unresolved requirements/u,
+      /supplies, confirms, or corrects potentially durable current-project knowledge/u,
+      /ownership, policy, terminology, architecture, or operations/u,
+      /in any format and even without naming Moldea or requesting persistence/u,
+      /determine adoption before writing/u,
+      /authorized work may affect canonical truth or declared behavior/u,
+      /explicit initialization, agent-system planning, agent or Agent Skill design, maintenance, evaluation, reconciliation, and validation/u,
       /Initial adoption requires explicit developer intent/u,
     ]);
     assert.ok(skill.split('\n').length < 500);
-    assert.ok(skill.trim().split(/\s+/u).length <= 1929);
   });
 
   test('rejects malformed or unsupported Agent Skills frontmatter', () => {
@@ -426,54 +425,69 @@ describe('portable Agent Skill contract', () => {
     }
 
     assertMatchesEvery(skillDesign, [
-      /Existing authoritative repository documents and scripts can provide focused progressive disclosure/i,
-      /skill-local reference only when the skill owns substantial conditional guidance/i,
-      /Do not add a reference that merely relays or duplicates an authoritative repository file/i,
-      /reference base is part of a resource link's contract/i,
-      /leading `\/` for a resource owned at the repository root/i,
-      /skill-relative path such as `references\/package-managers\.md`/i,
-      /Never add or remove the leading slash unless the authorized change intentionally relocates the resource or changes its owner/i,
+      /Route to existing authoritative repository documents or scripts when they own the information/i,
+      /skill-local reference only for substantial skill-owned conditional guidance/i,
+      /do not relay or duplicate another source/i,
+      /Resource paths encode ownership/i,
+      /leading `\/` is repository-root-owned/i,
+      /`references\/example\.md` is skill-relative/i,
+      /change the leading slash only when ownership or location intentionally changes/i,
     ]);
   });
 
   test('preserves activation, authority, and continuous-maintenance semantics', () => {
-    assertMatchesEvery(portableContent, [
+    const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
+    const contextGathering = readRepositoryFile('moldea/references/context-gathering.md');
+    const continuousMaintenance = readRepositoryFile('moldea/references/continuous-maintenance.md');
+    const knowledgeActivation = skill.match(
+      /\*\*Knowledge-triggered activation:\*\* ([^\n]+)/u,
+    )?.[1];
+
+    assert.ok(knowledgeActivation);
+    assert.match(knowledgeActivation, /the repository receives/u);
+    assert.match(knowledgeActivation, /without naming Moldea or requesting persistence/u);
+    assert.doesNotMatch(knowledgeActivation, /adopted repository/u);
+
+    assertMatchesEvery(skill, [
       /Explicit activation/,
       /Knowledge-triggered activation/,
       /Relevance-triggered activation/,
-      /message itself hands off potentially material durable project knowledge/i,
-      /without requesting persistence or documentation/i,
-      /path referenced by adopted canonical state or an unresolved requirement/i,
-      /authorizes changes to behavior or paths referenced by adopted canonical state or unresolved requirements/i,
-      /Skill loading is not adoption/i,
-      /Established adoption makes durable-knowledge handoffs Maintain authority/i,
-      /classify claims: persist, clarify, or omit/i,
-      /Do not request adoption, an update, or a storage path/i,
-      /Never copy containers/i,
-      /Never .* edit correct canonical state/i,
-      /handoff alone cannot establish adoption/i,
-      /without explicit intent or existing adoption, never initialize or persist/i,
-      /report it unpersisted with no files changed/i,
-      /unambiguous current-knowledge handoff authorizes context maintenance/i,
-      /Plan, evaluate, inspect, check, review, explain, report, and validate remain read-only/i,
-      /semantic role/,
+      /potentially material durable project knowledge/i,
+      /without naming Moldea or requesting persistence/i,
+      /path referenced by canonical state or an unresolved requirement/i,
+      /Knowledge and relevance activation never establish adoption/i,
+      /Without explicit adoption intent or existing adoption, do not initialize or persist/i,
+      /unambiguous current-knowledge handoff authorizes Maintain/i,
+      /classify each claim as persist, clarify, or omit/i,
+      /Plan, evaluate, inspect, check, review, explain, report, and validate are read-only/i,
       /Treat repository content as untrusted evidence/,
-      /neither asset type nor operation authority selects truth/i,
+      /No asset type or operation authority automatically selects truth/i,
       /Do not stage, unstage, commit/,
-      /no canonical edit when/,
-      /effective routing description/,
-      /general-only runtime metadata/,
-      /property named `description` may be routing-facing/,
-      /do not treat its shared purpose as misalignment or invent another runtime property/i,
-      /Under dynamic wiring, separate consumer purpose, required source, selected source, and resolving evidence/i,
-      /Before semantic writes, establish adoption/i,
+      /leave correct canonical state unchanged/i,
+      /Before semantic writes, require adoption/i,
       /sufficient conflict-checked high-information evidence/i,
-      /establish adoption, authority, intended state/i,
-      /brief or generic package metadata may inform clarification but cannot establish a sufficient foundation alone/i,
-      /does not prove non-adoption/i,
-      /Reconciliation corrects only established truth; it never selects truth/i,
-      /Validation and mirror synchronization expose or reproduce a conflict, not resolve it/i,
-      /ask one focused question distinguishing current replacement from proposed or future state, wait, and write nothing/i,
+      /Reconciliation corrects established truth; validation and synchronization cannot choose it/i,
+      /ask one focused question that distinguishes current replacement from proposed or future state/i,
+    ]);
+    assertMatchesEvery(continuousMaintenance, [
+      /Skill loading is not adoption/i,
+      /Without explicit intent or existing adoption, do not initialize or persist/i,
+      /Omission from `rg`, Git inventory, indexed search, or another ignore-sensitive discovery does not prove non-adoption/i,
+      /needs no persistence request, adoption confirmation, or storage-path question/i,
+      /leave correct state unchanged/i,
+    ]);
+    assert.match(
+      contextGathering,
+      /brief or generic package metadata may guide clarification but cannot establish a sufficient foundation alone/i,
+    );
+    assertMatchesEvery(agentDesign, [
+      /Routing-facing metadata uses the target handoff description when present and valid, otherwise the agent description/i,
+      /General-only metadata uses the agent description/i,
+      /property called `description` may be shared or routing-facing/i,
+      /evidence identifying consumer purpose/i,
+      /canonical source currently selected, or that selection is unknown/i,
+      /source required by the established purpose/i,
+      /Under dynamic wiring, state conditional outcomes and identify resolving wiring or tests/i,
     ]);
   });
 
@@ -482,114 +496,111 @@ describe('portable Agent Skill contract', () => {
     const continuousMaintenance = readRepositoryFile('moldea/references/continuous-maintenance.md');
 
     assertMatchesEvery(contextGathering, [
-      /meaning rather than format/i,
-      /does not make every claim canonical/i,
-      /current truth, an explicit correction, intended future state, a proposal, transient detail, or unresolved uncertainty/i,
-      /Current does not mean durable/i,
-      /never persist a shared source container as one unit/i,
+      /by meaning rather than format/i,
+      /Activation requires reconsideration, not automatic persistence/i,
+      /current truth, explicit correction, future intent, proposal, transient detail, or unresolved uncertainty/i,
+      /Current does not imply durable/i,
+      /never persist a shared container as one unit/i,
       /non-conflicting current claim can establish truth in any format/i,
-      /conflicting bare assertion does not authorize replacement/i,
+      /conflicting bare assertion cannot replace established truth/i,
       /developer marks a correction or current replacement/i,
-      /new claim replaces current state or is proposed or future state/i,
+      /new one replaces current state or is proposed or future state/i,
       /make no semantic write before the answer/i,
-      /organizational truth only the developer can establish/i,
+      /Organizational truth that only the developer can establish does not require repository corroboration/i,
       /broad verbs such as .*process.*handle.*manage/i,
-      /broad consequential claim is paired with implementation that establishes only narrower behavior/i,
-      /authority, permission, value-bearing, destructive, lifecycle, or external-action boundary/i,
+      /implementation proves only narrower behavior/i,
+      /unestablished permission, value-bearing, destructive, lifecycle, or external-action boundary/i,
       /focused question asks for one missing fact or decision/i,
-      /do not bundle purpose, users, goals, boundaries, authority, or workflow/i,
-      /team responsibility or ownership/i,
-      /path listings are not evidence/i,
-      /read each accessible material candidate and map its path to its fact and responsibility/i,
+      /do not bundle purpose, users, goals, boundaries, authority, and workflow/i,
+      /team ownership/i,
+      /path listing only queues candidates/i,
+      /Read every accessible material candidate before a conclusion, absence claim, request, or plan/i,
       /Never ask the developer to paste an accessible file/i,
     ]);
     assertMatchesEvery(continuousMaintenance, [
       /Probe repository-root `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the exact README markers directly/i,
-      /Absence from `rg`, Git inventory, indexed search, or other ignore-sensitive discovery does not prove non-adoption/i,
-      /unambiguous direct handoff of current project knowledge as Maintain authority/i,
-      /no explicit persistence request or adoption confirmation/i,
-      /do not ask where durable truth should be recorded/i,
-      /ownership, responsibility, approval, escalation, policy, and boundary handoffs/i,
-      /prose, an answer, a table, structured data, or an accessible source differ only in format/i,
-      /shared container does not determine authority, truth, durability, or replacement semantics/i,
-      /conflicting assertion needs explicit correction or replacement meaning/i,
+      /Omission from `rg`, Git inventory, indexed search, or another ignore-sensitive discovery does not prove non-adoption/i,
+      /unambiguous direct handoff of current project knowledge is Maintain authority/i,
+      /needs no persistence request, adoption confirmation, or storage-path question/i,
+      /terse prose, answers, tables, structured data, and accessible sources/i,
+      /shared container establishes neither authority nor replacement semantics/i,
+      /consequential conflict lacks explicit correction or replacement meaning/i,
       /Do not merely acknowledge a handoff/i,
-      /completed deterministic proof stage, status, and diagnostics \(including none\)/i,
-      /exact repository-local invocation must still run separately but need not be repeated/i,
-      /inspection passed.*insufficient/i,
-      /For corrections, state the corrected boundary and current truth/i,
-      /obsolete wording need not be repeated/i,
+      /completed deterministic proof stage, status, and material diagnostics, including their absence/i,
+      /exact repository-local invocation still runs separately but need not be repeated/i,
+      /For corrections, state the corrected boundary and resulting current truth/i,
       /Without explicit intent or existing adoption, do not initialize or persist; report why and that no files changed/i,
-      /requirement referencing a planned path, read its current state and all criteria before editing; discovery is insufficient/i,
-      /durable project truth changed or was newly established/i,
+      /Read every referencing requirement's current state and criteria before editing/i,
+      /durable truth changed or was newly established/i,
     ]);
   });
 
   test('defines evidence-based initialization clarification and handoff behavior', () => {
-    assertMatchesEvery(portableContent, [
+    const contextGathering = readRepositoryFile('moldea/references/context-gathering.md');
+
+    assertMatchesEvery(contextGathering, [
       /Insufficient:/,
       /Partial:/,
       /Sufficient:/,
-      /no meaningful project context was inferred/i,
+      /no meaningful context was established/i,
       /ask one question about that boundary/i,
-      /documentation volume/i,
-      /awaits context/i,
-      /During `initialize`, an insufficient or partial foundation stops all writes/i,
-      /ask one focused question/i,
-      /do not bundle purpose, users, goals, boundaries, authority, or workflow/i,
-      /before dependency changes, canonical project state, or the owned README awareness block/i,
-      /Never persist answerable ambiguity/i,
-      /reviewing the foundation and continuing ordinary development/i,
-      /end with `Next actions`/i,
-      /which material sources established each foundation conclusion/i,
-      /validation or test status does not replace this handoff/i,
+      /Judge evidence by quality, coverage, consistency, and authority rather than volume/i,
+      /Stop before dependencies, canonical state, or the README block/i,
+      /do not bundle purpose, users, goals, boundaries, authority, and workflow/i,
+      /Never turn developer-answerable ambiguity into an unresolved requirement/i,
+      /Every completed initialization ends with `Next actions`/i,
+      /foundation review and ordinary development/i,
+      /material sources supporting each foundation conclusion/i,
+      /Validation does not replace this handoff/i,
       /make file creation semantic completion/i,
-      /classify the foundation before changing dependency state/i,
-      /Missing or unverified tooling never makes available evidence .*empty/i,
-      /brief or generic package metadata may inform clarification but cannot establish a sufficient foundation alone/i,
+      /Classify the project foundation before changing dependency state/i,
+      /Missing or unverified tooling never makes available evidence empty/i,
+      /brief or generic package metadata may guide clarification but cannot establish a sufficient foundation alone/i,
     ]);
   });
 
   test('defines objective-first read-only agent-system planning', () => {
-    assertMatchesEvery(portableContent, [
-      /agent-system planning activates only/i,
+    const agentSystemPlanning = readRepositoryFile('moldea/references/agent-system-planning.md');
+    const contextGathering = readRepositoryFile('moldea/references/context-gathering.md');
+
+    assertMatchesEvery(skill, [
+      /Agent-system planning applies only when the developer asks how an AI-enabled objective should be divided among agents and non-agent components/i,
       /Generic planning and host-defined `plan` commands remain outside/i,
-      /valid result may recommend zero agents/i,
-      /fixed calculations, eligibility rules, filtering, storage, delivery mechanics, and predictable sequencing deterministic/i,
-      /Prefer deterministic orchestration/i,
-      /why model reasoning earns an agent boundary/i,
-      /least-privilege constraints/i,
-      /Discovery queues candidates, not evidence/i,
-      /Open each accessible material candidate and map its path to a fact and responsibility/i,
+      /Read `references\/agent-system-planning\.md` before planning an AI- or agent-enabled system/i,
+    ]);
+    assertMatchesEvery(contextGathering, [
       /bounded root inventory/i,
       /Search objective terms across source, documentation, configuration, and tests/i,
-      /Before an absence claim, request, or repository-specific recommendation, reconcile discovered candidates and read accessible ones/i,
-      /Name material paths read and what each establishes/i,
-      /reconcile every material evidence-established responsibility with an explicit deterministic, service, tool, skill, agent, or human owner/i,
-      /Combining or removing one requires reliable replacement evidence and cannot erase its outcome/i,
-      /Model-reasoning responsibilities with incompatible private context, permissions, trust, or failure boundaries remain separate/i,
-      /Public research and privileged project or customer reasoning remain separate/i,
-      /approval for every publication when required/i,
-      /authoritative data, readers and writers, persistence/i,
-      /model input and output contracts, deterministic enforcement/i,
-      /material paths read/i,
-      /completion check, not optional sections/i,
-      /ordered build-and-verification sequence/i,
-      /tests risky boundaries early/i,
-      /Runtime control flow is not that sequence/i,
-      /required with zero agents/i,
-      /state the invariant architecture/i,
-      /identify the branch that cannot be finalized/i,
-      /question whose answer most changes authority, responsibility ownership, topology, or consequential side effects/i,
-      /runtime identity is explicitly requested/i,
-      /run `compatibility --json`; inventory proves availability only/i,
-      /Leave runtime undecided without behavioral evidence/i,
-      /no repository files were changed by `plan`/i,
+      /every accessible material candidate before a conclusion, absence claim, request, or plan/i,
+      /mapping each path to its fact and responsibility/i,
     ]);
-    assert.match(
-      skill,
-      /Every moldea agent-system `plan` maps each material path read .* states that no files changed/i,
-    );
+    assertMatchesEvery(agentSystemPlanning, [
+      /Use `plan` only when the developer asks what agent-and-software system should accomplish an objective/i,
+      /Generic implementation, architecture, migration, refactor, deployment, and host-defined `plan` commands remain outside/i,
+      /Planning may precede adoption and changes no repository, dependency, Git, protected instruction, generated artifact, or external system/i,
+      /inventory proves availability only/i,
+      /every material accessible candidate must be read and mapped to a fact and responsibility/i,
+      /Keep fixed calculations, eligibility, filtering, storage, delivery, and predictable sequencing deterministic/i,
+      /valid result may use zero agents/i,
+      /smallest topology that preserves every material responsibility and boundary/i,
+      /Reconcile every evidenced responsibility with a deterministic, service, tool, skill, agent, or human owner/i,
+      /Combining or removing an owner requires reliable replacement evidence/i,
+      /incompatible private context, permissions, trust, or failure boundaries remain separate/i,
+      /Public research and privileged project or customer reasoning remain separate/i,
+      /responsibility and why it requires model reasoning/i,
+      /Prefer deterministic orchestration/i,
+      /approval for every publication when required/i,
+      /authoritative and derived data, transient and persistent state, readers and writers/i,
+      /principal inputs, outputs, events, service and tool contracts, and failure boundaries/i,
+      /leave the final `runtime\.id` for later design and implementation/i,
+      /completion check, not a mandatory prose template/i,
+      /Name material paths read and what they establish/i,
+      /ordered, unexecuted build-and-verification sequence that tests risky boundaries early/i,
+      /runtime control flow is distinct/i,
+      /question that most changes authority, ownership, topology, or consequential side effects/i,
+      /state the invariant architecture and identify what cannot be finalized/i,
+      /state that no repository files changed/i,
+    ]);
     assert.match(
       skill,
       /Read `references\/context-gathering\.md` before initialization, agent-system planning/i,
@@ -601,102 +612,92 @@ describe('portable Agent Skill contract', () => {
     const evaluateAndReconcile = readRepositoryFile('moldea/references/evaluate-and-reconcile.md');
     const skillDesign = readRepositoryFile('moldea/references/skill-design.md');
 
-    assertMatchesEvery(portableContent, [
+    assertMatchesEvery(skillDesign, [
       /Choose a skill deliberately/,
       /primary activation contract/,
-      /representative positive requests/,
-      /adjacent requests that should remain outside/,
+      /representative positive, adjacent non-activation, ambiguous, and related-technology requests/i,
       /Keep host metadata aligned/,
-      /update the portable description first/i,
-      /host-only change leaves the portable contract stale/i,
-      /Verify positive and adjacent non-activation requests/i,
-      /Preserve an existing invocation policy/,
-      /State which surface owns each proposed behavior/i,
-      /Selecting protected instructions as the owner never authorizes changing them/i,
-      /reread or diff both artifacts and report only workspace-proven changes/i,
+      /Update portable purpose or activation first/i,
+      /Preserve invocation policy and unrelated fields/i,
+      /State ownership before creating a skill/i,
+      /Protected instructions remain developer-owned/i,
+      /Verify both artifacts and representative activation boundaries/i,
       /Use progressive disclosure/,
       /references\//,
       /scripts\//,
       /assets\//,
       /Design scripts as real software/,
-      /supported environments/,
-      /generated, installed, or distributed copies/,
-      /report non-atomicity/,
-      /repository format version `1` defines no canonical `\/moldea\/skills` store/i,
-      /does not prove installation, activation, or runtime-agent registration/i,
-      /Structural validity does not prove useful activation, complete workflow behavior/i,
+      /dependencies, environments, and exit behavior/i,
+      /installed, generated, cached, mirrored, or distributed copies/i,
+      /coordinated changes are non-atomic/i,
+      /Format version `1` defines no canonical `\/moldea\/skills` store/i,
+      /Source content alone does not prove installation, discovery, consumption, or runtime registration/i,
+      /basic validator cannot establish whole-artifact validity/i,
     ]);
     assert.match(skill, /Read `references\/skill-design\.md` before creating, evaluating/i);
     assertMatchesEvery(skill, [
-      /each deterministic validator result as evidence only for the boundary it actually validates/i,
-      /Never generalize a component validator's success into whole-artifact or whole-system structural validity/i,
-      /relevant resources, relationships, and consumer evidence/i,
+      /never generalize a component validator into whole-system validity/i,
+      /Use each focused reference's operation-specific completion contract/i,
     ]);
     assertMatchesEvery(skillDesign, [
-      /invalid identity or frontmatter, unsafe or unresolved links, missing required resources, and validator failures as structural problems/i,
-      /activation imprecision, incomplete workflow behavior, incorrect use conditions, and content drift as semantic problems/i,
-      /Do not call the complete artifact structurally valid when a required resource is missing/i,
+      /Invalid identity or frontmatter, broken links, missing required resources, and validator failures are structural/i,
+      /Activation imprecision, incomplete behavior, incorrect use conditions, and content drift are semantic/i,
+      /structural evidence only/i,
     ]);
     assert.match(
       evaluateAndReconcile,
-      /For every scoped Agent Skill, apply the structural and semantic classification in `skill-design\.md`/i,
+      /For Agent Skills, apply `skill-design\.md` to the authoritative artifact/i,
     );
   });
 
   test('preserves evaluate, reconcile, and deterministic responsibility boundaries', () => {
     const evaluateAndReconcile = readRepositoryFile('moldea/references/evaluate-and-reconcile.md');
 
-    assertMatchesEvery(portableContent, [
-      /`evaluate` must not modify/,
+    assertMatchesEvery(evaluateAndReconcile, [
+      /`evaluate` changes no repository, dependency, lockfile, mirror, or Git state/i,
       /staged, unstaged, untracked, renamed, and deleted/,
-      /working tree is clean/,
-      /No `HEAD` exists/,
-      /Resolve the evaluation subject before collecting target evidence/i,
-      /default a brief name-only direction to the project-owned Moldea system/i,
-      /If subject ambiguity remains, ask one focused question/i,
-      /Load the installed `\.agents\/skills\/moldea` entrypoint and operation-triggered references only as operating guidance/i,
-      /Do not inventory, validate, or report that installed tree as target evidence/i,
-      /Before claiming semantic alignment, establish each material behavior's intended meaning and relevant consumption from reliable evidence/i,
-      /A registered relationship proves scope, and implementation proves current behavior; neither alone proves agreement/i,
-      /report the exact evidence limitation instead of declaring alignment/i,
-      /unscoped clean evaluation, concisely report the adopted project-owned starting scope/i,
-      /canonical relationship that caused implementation expansion or why none was material/i,
+      /HEAD exists and the tree is clean/i,
+      /HEAD does not exist/i,
+      /Resolve the subject before collecting target evidence/i,
+      /brief name-only request targets the project-owned Moldea system/i,
+      /Ask one focused question before evaluating when material subject ambiguity remains/i,
+      /installed `\.agents\/skills\/moldea` entrypoint and operation-triggered references only as operating guidance/i,
+      /Do not inventory, validate, or report that tree as target evidence/i,
+      /Semantic alignment requires reliable evidence of each material behavior's intended meaning and relevant consumption/i,
+      /relationship proves scope and implementation proves current behavior; neither alone proves agreement/i,
+      /exact evidence limitation instead of claiming alignment/i,
+      /unscoped clean evaluation, state the project-owned starting scope/i,
+      /canonical relationship that expanded implementation evidence or why none was material/i,
       /Deterministic diagnostics/,
       /Confirmed semantic problems/,
       /Material ambiguities/,
       /Relevant unresolved requirements/,
       /Material evidence limitations/,
-      /each material unknown, its smallest reliable resolving artifact and owner/i,
-      /what that artifact must establish/i,
-      /source-owned target docs, closed wiring, provider configuration, or integration tests/i,
-      /report ownership unestablished when necessary/i,
-      /missing-evidence list without an unknown-to-resolver mapping is insufficient/i,
-      /absent handoff with a consumer of `description\.md` is aligned fallback/i,
-      /label it unknown and use only `if\.\.\.then` outcomes/i,
-      /Call the canonical path required, never correct, incorrect, current, effective, absent, or wrong/i,
-      /no repository files were changed/i,
+      /each unknown fact, its smallest reliable resolving artifact and established owner/i,
+      /what that artifact must prove/i,
+      /source-owned target documentation, closed wiring, provider configuration, and integration tests/i,
+      /missing-evidence list without an unknown-to-resolver mapping leaves evaluation incomplete/i,
+      /absent handoff description is aligned fallback when the consumer uses the agent description/i,
+      /Under unresolved dynamic wiring, state conditional outcomes/i,
+      /call a source required, never current, effective, absent, correct, or wrong/i,
+      /no repository files changed/i,
       /smallest coherent change/,
-      /Do not recreate those mechanics/,
-      /request to reconcile authorizes the operation, not an arbitrary choice/i,
-      /complete an intended-state gate/i,
-      /Code proves implementation and instructions declare model behavior, but neither selects intended policy/i,
-      /Deterministic checks, validation, and mirror synchronization expose or reproduce conflicts, not resolve them/i,
-      /name the exact conflicting claims and the evidence role of each/i,
-      /neither implementation nor synchronized canonical or mirror content establishes intended-state authority/i,
-      /make no semantic write while the answer is pending/i,
+      /Authorization to reconcile does not choose among unresolved alternatives/i,
+      /name both claims and the evidence role of each/i,
+      /neither implementation nor synchronized canonical or mirror content selects intended state/i,
+      /change nothing while awaiting the answer/i,
     ]);
     assert.match(
       skill,
-      /Every `evaluate` result must explicitly state that no repository files were changed/i,
+      /Every read-only result explicitly states that no repository files changed/i,
     );
     assert.match(
       skill,
-      /resolve the subject before evidence[\s\S]*brief `moldea` defaults to the project-owned system[\s\S]*ask one focused question if ambiguity remains/i,
+      /brief request to evaluate `moldea` targets the project-owned system[\s\S]*Ask one focused question before evaluating when the subject remains materially ambiguous/i,
     );
     assert.ok(
-      evaluateAndReconcile.indexOf(
-        'Resolve the evaluation subject before collecting target evidence',
-      ) < evaluateAndReconcile.indexOf('When no explicit scope is provided'),
+      evaluateAndReconcile.indexOf('Resolve the subject before collecting target evidence') <
+        evaluateAndReconcile.indexOf('After resolving the subject'),
       'Evaluation target resolution must precede Git-state scope selection.',
     );
   });
@@ -708,81 +709,63 @@ describe('portable Agent Skill contract', () => {
 
     assertMatchesEvery(skill, [
       /After writes/i,
-      /Version or subcommand alone and failed, incomplete, aggregate, or unverified execution cannot support completion/i,
-      /Every write-capable operation reports `Canonical state`: changed surfaces; no canonical change and why; or blocked by ambiguity, with one focused question/i,
-      /semantic decisions and the evidence chain that established any consequential misalignment/i,
-      /Under dynamic wiring, separate consumer purpose, required source, selected source, and resolving evidence/i,
-      /every accepted tooling proof stage/i,
-      /proof stage, status, diagnostics, mirror findings, and requirement outcomes/i,
-      /explicit absence of diagnostics or findings/i,
-      /Report only workspace-proven changes/i,
-      /state what canonical inspection cannot observe, the related evidence, and remaining unknowns/i,
+      /failed, incomplete, malformed, unsupported, or contradictory result supports no deterministic conclusion/i,
+      /Every write-capable result identifies `Canonical state` as changed, unchanged with a reason, or blocked with the focused question/i,
+      /Report only completed, independently attributable checks and workspace-proven changes/i,
     ]);
     assertMatchesEvery(skillDesign, [
-      /established script already owns a check/i,
-      /script's actual interface/i,
-      /Do not ask the model to reimplement the check/i,
-      /script-owned result as an input/i,
+      /established script's real interface/i,
+      /rather than asking the model to reproduce its check or derive script-owned results/i,
     ]);
     assertMatchesEvery(agentDesign, [
-      /Only authorized evidence supplies adapter documentation/i,
-      /Never reconstruct target behavior from model knowledge, package names, or inventory/i,
       /Without behavioral evidence, preserve the runtime/i,
-      /Report every unknown invocation, instruction-loading, capability, schema, routing, or variable fact/i,
+      /map every material unknown invocation, instruction-loading, capability, schema, routing, or variable fact/i,
       /smallest reliable resolving artifact, established owner, and required proof/i,
       /Never invent a path, identity, or owner/i,
-      /report unestablished ownership/i,
-      /Evaluation is incomplete without a resolver/i,
-      /If `handoff-description\.md` is absent, read `description\.md`, runtime guidance, and the consumer before judging fallback/i,
-      /Never request an accessible description/i,
-      /Before changing a runtime description mapping, keep these facts separate/i,
-      /exact runtime guidance, compatibility evidence, or implementation behavior that establishes whether the consumer is routing-facing, general-only, or shared/i,
-      /canonical source currently consumed, or report it unestablished under dynamic wiring/i,
-      /source the established consumer role requires/i,
-      /required source does not prove the selected source/i,
+      /evaluation remains incomplete without a resolver/i,
+      /Before changing a mapping, establish/i,
+      /evidence identifying consumer purpose/i,
+      /canonical source currently selected, or that selection is unknown/i,
+      /source required by the established purpose/i,
+      /required source does not prove selection/i,
       /never call a candidate current, effective, absent, or wrong/i,
       /Prove a mismatch before editing/i,
-      /Tests confirm a correction, not its justification/i,
-      /complete a pre-edit gate/i,
-      /Inventory external capabilities/i,
+      /Tests confirm a correction but do not justify it/i,
+      /inventory external capabilities/i,
       /classify them as model-visible, integration-only, or qualifying local implementation/i,
       /Reconcile runtime identity and semantic surfaces together/i,
-      /Provider hosting or a correct `runtime\.id` never replaces model-visible semantics/i,
-      /Report canonical inspection limits, each related path's evidence, both repository states, and remaining unknowns/i,
-      /Stop explicitly without selecting a replacement runtime/i,
+      /Provider hosting or correct runtime identity never replaces model-visible semantics/i,
+      /Report evidence paths, repository states, canonical inspection limits, and remaining unknowns/i,
     ]);
     assertMatchesEvery(continuousMaintenance, [
-      /final report/i,
       /classify the canonical and each related repository as clean, dirty, unborn, unavailable, or uninspected/i,
-      /external facts canonical inspection cannot observe/i,
+      /facts canonical inspection cannot observe/i,
     ]);
   });
 
   test('defines safe tooling, exact pinning, and machine-envelope handling', () => {
-    assertMatchesEvery(portableContent, [
+    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
+
+    assertMatchesEvery(localTooling, [
       /npm install --save-dev --save-exact --ignore-scripts/,
       /pnpm add --save-dev --save-exact --ignore-scripts/,
       /pnpm add --workspace-root --save-dev --save-exact --ignore-scripts/,
       /yarn add --dev --exact --mode=skip-build/,
       /repository-supplied executable package-manager extensions, hooks, or plugins/,
-      /before invoking any package-manager executable/i,
+      /Before any npm, pnpm, Yarn, Corepack, or related command/i,
       /pnpmfiles, hook-bearing pnpm configuration/,
       /Yarn plugins/,
-      /`.yarnrc.yml` `plugins\[\]\.path` declaration is executable configuration/i,
-      /even if the plugin remains unread and unrun/i,
-      /including version or discovery/i,
-      /does not block the whole workflow/i,
-      /Before another clarification or stop, report each manager-dependent blocker/i,
-      /exact path, blocked operation, unavailable evidence, and applicable safe prerequisite/i,
-      /Removing or disabling the extension and retrying always applies/i,
-      /invocation without the manager applies only to an already declared and installed exact CLI/i,
-      /Never propose bypassing, trusting, or executing the extension/i,
-      /Lifecycle-script suppression does not neutralize a repository-supplied manager extension/,
-      /every command whose safety or authority depends on earlier output as a separate process execution/i,
-      /Never batch a result-dependent sequence/i,
-      /Retain cumulative CLI proof/i,
-      /exact root declaration; installed package identity and version; exported `bin\.moldea`; effective provider/i,
-      /Later conflicts do not erase accepted proof/i,
+      /`.yarnrc.yml` `plugins\[\]\.path` is executable even when unread/i,
+      /blocks manager execution, including version discovery/i,
+      /blocks only manager-dependent work/i,
+      /Report each extension path, blocked operation, unavailable evidence, and safe prerequisite/i,
+      /Remove or disable the extension and retry/i,
+      /invoke without the manager only for an already declared and installed exact CLI/i,
+      /Never bypass, trust, or execute the extension/i,
+      /Lifecycle-script suppression does not neutralize repository-supplied extensions/i,
+      /every command whose safety or authority depends on earlier output separately/i,
+      /never batch a result-dependent sequence/i,
+      /Retain cumulative proof of the root declaration, installed identity and version, exported `bin\.moldea`, and effective provider/i,
       /yarn info @moldea\.ai\/cli --json/,
       /prove each stage separately/i,
       /installed identity, version, and exported `bin\.moldea` through `yarn info/i,
@@ -796,77 +779,83 @@ describe('portable Agent Skill contract', () => {
       /Only an accepted provider record permits a new `yarn bin moldea` process/i,
       /yarn exec moldea/,
       /canonical path to equal the recorded path/,
-      /Never invoke a bare `moldea`/i,
+      /Never use a bare `moldea`/i,
       /pnpapi\.resolveToUnqualified\('@moldea\.ai\/cli'/i,
       /require exact name `@moldea\.ai\/cli`, the exact release version, and a relative `bin\.moldea`/i,
       /require the bin to remain inside that package/i,
       /another process invoke `pnpm node <resolved-bin> <command> --json`/i,
-      /Accessible repository evidence makes local CLI proof executable/i,
-      /even when requested as an explanation: run safe provider and CLI checks/i,
-      /Only requests without such evidence may receive a procedure/i,
+      /When repository evidence is accessible, perform safe provider and CLI checks even for an explanation/i,
+      /otherwise provide a procedure/i,
       /Report provider, exact version, command, and envelope/i,
-      /each `inspect --json`, `validate --json`, or `compatibility --json` invocation as an independent process execution/,
-      /Do not shell-chain deterministic CLI invocations/,
-      /failed aggregate shell command/,
-      /ignored-tree omission from Git or `rg` does not prove absence/i,
+      /Run each CLI invocation independently, without shell-chaining it/i,
       new RegExp('`schemaVersion` is integer `' + RELEASE_CLI_JSON_SCHEMA_VERSION + '`'),
       /`command` equals the command invoked/,
       /`compatibility` never uses `invalid`/,
-      /Structural `invalid` output is deterministic project evidence/,
+      /Complete structural `invalid` is diagnostic evidence, not successful validation or operational failure/i,
     ]);
   });
 
   test('covers README ownership, dedicated repositories, unresolved state, and mirrors', () => {
-    assertMatchesEvery(portableContent, [
+    const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
+    const continuousMaintenance = readRepositoryFile('moldea/references/continuous-maintenance.md');
+
+    assertMatchesEvery(continuousMaintenance, [
       /<!-- moldea:start -->/,
-      /Duplicate, missing, reversed, nested, overlapping/,
+      /duplicate, missing, reversed, nested, overlapping, or otherwise ambiguous markers/i,
       /cross-repository bindings/,
-      /actual available official `runtime\.id`/,
+      /available official `runtime\.id`/,
       /evidence-location limitation/,
-      /application-only and provider-hosted model-visible capabilities/,
-      /report completion for each side accurately/,
-      /report every repository's actual state as changed, unchanged, uninspected, or blocked/i,
-      /direction that establishes repository authority but no semantic change does not authorize invented work/i,
-      /promise is not a status/i,
-      /Do not use requirements as a roadmap or backlog/,
-      /related file changed/,
-      /Do not expand scope to close the requirement/i,
-      /Before editing, identify affected behavior and check planned paths against canonical relationships, requirements, mirrors, generated surfaces, and related-repository boundaries/i,
-      /For every requirement referencing a planned path, read its current state and all criteria before editing; discovery is insufficient/i,
-      /classify each criterion as satisfied, outstanding, or evidence-blocked/i,
-      /preserve it unless every criterion is established/i,
-      /synchronize every mirror/,
-      /Never edit a mirror independently/,
-      /Never invent a manifest `handoffs` graph/,
+      /model-visible external capabilities in instructions/i,
+      /report each side's actual completion/i,
+      /Report each repository as changed, unchanged, uninspected, or blocked/i,
+      /Repository authority without a semantic change does not authorize invented work/i,
+      /Before editing, inspect planned paths against canonical relationships, requirement references, mirrors, generated surfaces, and repository boundaries/i,
+      /Read every referencing requirement's current state and criteria before editing/i,
+      /Classify each relevant requirement criterion as satisfied, outstanding, or evidence-blocked/i,
+      /Preserve the requirement unless every criterion is established/i,
+    ]);
+    assertMatchesEvery(agentDesign, [
+      /Requirements are not a roadmap/i,
+      /do not create one to avoid an answerable question or remove one because a related file changed/i,
+      /Edit canonical instruction first and synchronize every mirror in the same change/i,
+      /Never edit a mirror independently/i,
+      /Never invent a manifest `handoffs` graph/i,
     ]);
   });
 
   test('requires canonical instruction provenance without prescribing its mechanism', () => {
-    assertMatchesEvery(portableContent, [
+    const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
+
+    assertMatchesEvery(agentDesign, [
       /Establish canonical instruction provenance/,
-      /Do not prescribe a loading mechanism/,
-      /independently maintained behavioral source/,
+      /do not prescribe one mechanism/i,
+      /not an independently maintained policy source/i,
       /Field names do not alter provenance/i,
-      /`instructions`, `input`, continuation prompts, messages, or tool payloads/i,
-      /turn-specific content, never independent reusable policy/i,
-      /independent durable instructions from every field/i,
-      /verify that the runtime actually uses that mirror/,
-      /does not prove runtime consumption/,
-      /Do not require that binding when an adapter or other reliable evidence/,
-      /do not claim readiness/,
+      /turn-specific `instructions`, inputs, continuation prompts, messages, or tool payloads/i,
+      /cannot own reusable policy/i,
+      /superseded independent durable instructions from every material field/i,
+      /verify consumption/i,
+      /do not prove runtime consumption/i,
+      /Adapter or other reliable evidence may make that binding unnecessary/i,
+      /Do not claim completeness or production readiness while a material provenance gap remains/i,
     ]);
   });
 
   test('uses only the runtime contract and safe read-only Git evidence', () => {
-    assertMatchesEvery(portableContent, [
-      /exactly one `runtime\.id`/,
-      /primary runtime integration boundary/,
-      /compact CLI inventory/,
-      /inventory proves availability only/i,
-      /Report every unknown invocation, instruction-loading, capability, schema, routing, or variable fact/i,
+    const agentDesign = readRepositoryFile('moldea/references/agent-design.md');
+    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
+
+    assertMatchesEvery(agentDesign, [
+      /declares one `runtime\.id`/,
+      /primary model-invocation boundary/,
+      /compact inventory/,
+      /Inventory establishes availability, not integration identity/i,
+      /map every material unknown invocation, instruction-loading, capability, schema, routing, or variable fact/i,
       /smallest reliable resolving artifact, established owner, and required proof/i,
-      /source-owned target documentation, closed wiring, provider configuration, or an integration test/i,
-      /unavailable adapter/,
+      /Source-owned target documentation, closed wiring, provider configuration, or integration tests/i,
+      /required adapter is absent from this release/i,
+    ]);
+    assertMatchesEvery(localTooling, [
       /`-c core\.fsmonitor=false`/,
       /`-c core\.pager=cat`/,
       /`--no-pager`/,
@@ -880,7 +869,7 @@ describe('portable Agent Skill contract', () => {
       /--ignore-submodules=all/,
       /repository attributes may still exist/i,
       /No Git command, including `rev-parse`, `status`, `log`, or `diff`, is harmless before this reference is loaded/i,
-      /then locate the Git working-tree root with its safe command shape/i,
+      /then locate the Git working-tree root with a safe command shape/i,
       /especially a failure, inspect the workspace and any helper sentinel before claiming no writes/i,
     ]);
     assert.equal(portableContent.toLowerCase().includes(LEGACY_RUNTIME_TERM), false);

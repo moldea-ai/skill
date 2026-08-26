@@ -2,161 +2,118 @@
 
 Read this reference before creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, runtime relationship, or unresolved requirement.
 
-Agent-system planning determines whether an agent should exist and proposes its high-level responsibility boundary. Agent design begins when the developer directly requests an agent or accepts a candidate for implementation. Revalidate repository evidence rather than copying a planning recommendation mechanically into canonical state or model-facing instructions.
+Agent-system planning decides whether an agent should exist and proposes its responsibility. Agent design begins after a direct request or accepted candidate. Revalidate repository evidence rather than copying a recommendation into canonical state or model-facing instructions.
 
 ## Establish behavior before prose
 
-Gather sufficient project and agent-specific evidence first. Establish the supported behavioral contract before drafting or broadly rewriting model-facing text.
+Establish the supported behavioral contract before drafting or broadly rewriting model-facing text. Include only material identity, purpose, responsibility, project context, inputs, outputs, rules, scope, exclusions, capabilities, variables, ambiguity, failure, escalation, routing, and quality expectations.
 
-The contract may include identity, purpose, responsibility, minimum model-facing project context, inputs, outputs, rules, scope, exclusions, capabilities and use conditions, variables, ambiguity handling, failure and escalation, routing, and quality expectations. Include only categories that materially affect the agent.
-
-Do not call an agent complete when the model would need hidden repository knowledge to behave correctly. Instead provide the necessary runtime/model-facing context, bind the runtime mechanism, narrow the declared behavior, implement missing authorized support, clarify intent, or preserve genuine incomplete state.
+Do not call an agent complete when correct behavior depends on hidden repository knowledge. Supply model-facing context and a real runtime path, narrow the behavior, implement authorized support, clarify intent, or preserve incomplete state.
 
 ## Write minimum sufficient instructions
 
-Every `instruction.md` must be complete and directly readable after the runtime gives the agent responsibility. Keep it:
+Every `instruction.md` must be complete after the runtime assigns responsibility. Keep it grounded, actionable, scoped where boundaries matter, aligned with executable contracts, precise about consequential ambiguity and failure, internally consistent, and concise enough that every runtime token earns its cost.
 
-- grounded in reliable evidence
-- purposeful and explicit about actual responsibility
-- actionable rather than aspirational
-- scoped where boundaries prevent overlap, unsafe behavior, or unsupported work
-- aligned with executable input, output, capability, variable, and runtime contracts
-- precise about consequential ambiguity, failure, escalation, and routing
-- internally consistent and free of stale examples
-- concise enough that every runtime token earns its cost
+Avoid generic boilerplate, fixed heading templates, chain-of-thought demands, unnecessary provider detail, exhaustive edge cases, and decorative examples. Best effort never permits fabrication.
 
-Do not add generic boilerplate, mandatory heading templates, chain-of-thought requirements, provider details the model does not need, exhaustive edge cases, or examples that add no material clarity. Best effort never permits fabrication.
-
-Preserve still-valid behavior during refinement. Prefer local edits when organization remains coherent; rewrite broadly only when responsibility or structure materially changed or local patches would preserve contradiction or obsolete architecture. Update neighboring model-facing surfaces together when one contract changes.
+Preserve valid behavior during refinement. Prefer local edits while organization remains coherent; rewrite only when responsibility or structure changed or patching would preserve contradiction. Synchronize neighboring model-facing surfaces when their shared contract changes.
 
 ## Keep model-facing assets distinct
 
-- `description.md` answers **what the agent does**. Keep it concise, vendor-neutral, and focused on responsibility and practical scope.
-- `handoff-description.md` answers **when responsibility should transfer to this agent**. Create it only for a real routing use case and express concrete target-owned transfer conditions.
-- `instruction.md` answers **how the agent operates after receiving responsibility**. It must not depend on the description or handoff description to explain core behavior.
+- `description.md` states what the agent does. Keep it concise, vendor-neutral, and responsibility-focused.
+- `handoff-description.md` states when responsibility should transfer to the agent. Create it only for a real routing need.
+- `instruction.md` states how the agent operates after transfer and cannot depend on either description for core behavior.
 
-Every registered agent uses one stable lowercase ASCII kebab-case ID, one derived `/moldea/agents/{agent-id}/` directory, mandatory `description.md` and `instruction.md`, and optional `handoff-description.md`. The instruction begins by identifying the exact agent ID in backticks according to the active repository-format contract.
+Every registered agent has one lowercase ASCII kebab-case ID, one `/moldea/agents/{agent-id}/` directory, mandatory `description.md` and `instruction.md`, and optional `handoff-description.md`. The instruction begins with the exact agent ID under the active format contract.
 
-Use the target's effective routing description for runtime metadata that helps a model, agent, router, or workflow select, route to, delegate to, or hand off to that target:
+Routing-facing metadata uses the target handoff description when present and valid, otherwise the agent description. General-only metadata uses the agent description. Establish a consumer's routing, general, or shared role from runtime documentation, compatibility, adapter evidence, guidance, implementation, and developer direction rather than its property name. A property called `description` may be shared or routing-facing. Preserve an established shared-property contract and do not create a handoff description merely because such a property exists.
 
-- use the effective handoff description when `handoff-description.md` is present
-- otherwise use the effective agent description
-- never fall back when a present handoff description is structurally invalid
+Before changing a mapping, establish:
 
-Directly inspect the target directory. If `handoff-description.md` is absent, read `description.md`, runtime guidance, and the consumer before judging fallback. Never request an accessible description.
+1. the evidence identifying consumer purpose
+2. the canonical source currently selected, or that selection is unknown
+3. the source required by the established purpose
 
-Use the agent description for general-only runtime metadata. Establish the runtime property's semantic role from reliable runtime documentation, the active compatibility target, adapter evidence, project-local guidance, implementation behavior, and developer direction rather than its property name. A property named `description` may be routing-facing, and one property serving both general and routing purposes uses the effective routing description. Preserve that established shared-property contract; do not treat its shared purpose as misalignment or invent another runtime property solely to separate those purposes. Do not create `handoff-description.md` merely because a runtime exposes a description property; the agent-description fallback is valid when a dedicated routing hint is unnecessary.
-
-Before changing a runtime description mapping, keep these facts separate:
-
-1. Name the exact runtime guidance, compatibility evidence, or implementation behavior that establishes whether the consumer is routing-facing, general-only, or shared.
-2. Identify the canonical source currently consumed, or report it unestablished under dynamic wiring.
-3. Identify the source the established consumer role requires.
-
-A required source does not prove the selected source. When dynamic wiring leaves selection unknown, conclude conditionally and name resolving wiring or tests; never call a candidate current, effective, absent, or wrong. Prove a mismatch before editing. Tests confirm a correction, not its justification.
+A required source does not prove selection. Under dynamic wiring, state conditional outcomes and identify resolving wiring or tests; never call a candidate current, effective, absent, or wrong. Prove a mismatch before editing. Tests confirm a correction but do not justify it.
 
 ## Select the runtime honestly
 
-Every registered agent declares exactly one `runtime.id`. Inspect repository runtime evidence and run `compatibility --json` when the installed adapter inventory matters.
+Every registered agent declares one `runtime.id`. Inspect the primary model-invocation boundary and use `compatibility --json` when installed adapter inventory matters.
 
-1. Identify the primary runtime integration boundary that governs model invocation and, when applicable, instruction loading, capabilities, schemas, routing, or variable provision.
-2. When runtime layers are nested, select the highest-level available official adapter whose reliable documentation and repository evidence cover that boundary and composition. Treat provider SDKs beneath it as implementation dependencies rather than competing runtime IDs.
-3. Select `openai`, `anthropic`, or `google-genai` only when that provider SDK is itself the primary integration boundary.
-4. Use `custom` when multiple runtime layers materially and independently govern the agent and no available official adapter reliably covers the composition, or when the established integration does not reliably match one.
-5. Clarify when the runtime itself is genuinely unknown rather than inventing a declaration.
+1. Identify the layer governing invocation and applicable instruction loading, capabilities, schemas, routing, or variables.
+2. For nested layers, select the highest-level available official adapter whose reliable documentation and repository evidence cover that composition. Provider SDKs beneath it remain dependencies.
+3. Select `openai`, `anthropic`, or `google-genai` only when that provider SDK is the primary boundary.
+4. Select `custom` only when materially independent layers govern the agent without an official adapter covering the composition, or the integration reliably matches none.
+5. Clarify a genuinely unknown runtime rather than inventing one.
 
-When a needed adapter is absent from the installed CLI inventory, treat that as a tooling prerequisite. Do not select another CLI release because this skill owns one exact version. Report the release limitation; `evaluate` never changes the dependency. Stop explicitly without selecting a replacement runtime: available adapter IDs establish inventory, not the project's integration boundary or authority to rewrite it.
+If the required adapter is absent from this release, report a tooling prerequisite and stop without selecting another CLI version or replacement runtime. Inventory establishes availability, not integration identity.
 
-Create project-local runtime guidance when repository-specific behavior, limitations, or integration decisions are material and not established elsewhere. Do not turn optional manifest syntax into a Core structural error.
+Create runtime guidance only for material project-specific behavior or limitations not established elsewhere. Optional manifest syntax is not a Core error. Do not infer compatibility from package names, compact inventory, or general knowledge, dynamically install adapters, or claim behavioral support without authorized adapter documentation and repository evidence.
 
-Do not infer behavioral compatibility from package names, the compact CLI inventory, or general runtime knowledge, install adapters dynamically, or claim support without reliable adapter documentation and repository evidence.
+Without behavioral evidence, preserve the runtime and map every material unknown invocation, instruction-loading, capability, schema, routing, or variable fact to its smallest reliable resolving artifact, established owner, and required proof. Source-owned target documentation, closed wiring, provider configuration, or integration tests may resolve it. Never invent a path, identity, or owner; evaluation remains incomplete without a resolver.
 
-Only authorized evidence supplies adapter documentation; inventory proves availability only. Without behavioral evidence, preserve the runtime. Report every unknown invocation, instruction-loading, capability, schema, routing, or variable fact with its smallest reliable resolving artifact, established owner, and required proof. Use source-owned target documentation, closed wiring, provider configuration, or an integration test. Never invent a path, identity, or owner; report unestablished ownership. Evaluation is incomplete without a resolver. Never reconstruct target behavior from model knowledge, package names, or inventory.
-
-In dedicated-repository mode, complete a pre-edit gate: inspect both repository states; establish the runtime boundary from implementation; inventory external capabilities; classify them as model-visible, integration-only, or qualifying local implementation. Reconcile runtime identity and semantic surfaces together. Put model-visible behavior in canonical instruction, project-specific integration behavior in runtime guidance, and only qualifying local implementation in the manifest. Provider hosting or a correct `runtime.id` never replaces model-visible semantics. Report canonical inspection limits, each related path's evidence, both repository states, and remaining unknowns. A missing local artifact prevents a manifest entry, not semantic representation.
+In dedicated-repository mode, inspect both repository states, establish the runtime boundary from implementation, inventory external capabilities, and classify them as model-visible, integration-only, or qualifying local implementation. Reconcile runtime identity and semantic surfaces together. Put model-visible behavior in canonical instructions, project-specific integration in runtime guidance, and only qualifying local implementation in the manifest. Provider hosting or correct runtime identity never replaces model-visible semantics. Report evidence paths, repository states, canonical inspection limits, and remaining unknowns.
 
 ## Register real relationships
 
-Use only manifest properties supported by repository format version `1` as verified by the active CLI/Core contract or installed authoritative documentation.
+Use only properties supported by repository format version `1` under the active CLI/Core contract.
 
-Register repository-root-absolute logical paths and symbols when material implementation relationships exist and cannot be derived reliably. Important relationships can include runtime agent, executable input/output schemas, instruction loader, variable providers, capability implementation and registration, focused context, accepted decisions, runtime guidance, and broader `affectedBy` paths.
+Register repository-root-absolute logical paths and symbols only for material implementation relationships that cannot be derived reliably, including runtime agents, executable schemas, instruction loaders, variable providers, capability implementation or registration, context, decisions, runtime guidance, and broader `affectedBy` paths.
 
-Never create fake paths, symbols, selectors, future files, cross-repository references, or prose-only substitutes for required relationships. If the active manifest shape needed for a material relationship cannot be established, stop and report the blocker.
+Never create fake paths, symbols, selectors, future files, cross-repository references, or prose substitutes. If a material relationship cannot be expressed under the established format, report the blocker.
 
-Routing and handoffs remain runtime-native in version `1`. Maintain runtime routing implementation, routing-facing metadata, source/target instructions, target-owned descriptions, runtime guidance, relevant impact relationships, and focused tests as needed. When either canonical description changes, reconsider every supported runtime consumer of that value. When routing metadata changes, reconsider whether the canonical descriptions remain accurate. Never invent a manifest `handoffs` graph.
+Routing and handoffs remain runtime-native in version `1`. Maintain routing implementation, metadata, source and target instructions, target-owned descriptions, runtime guidance, impact relationships, and tests as needed. Reconsider every supported consumer when a canonical description changes, and reconsider canonical descriptions when routing behavior changes. Never invent a manifest `handoffs` graph.
 
 ## Establish canonical instruction provenance
 
-For every in-scope registered agent, establish how the canonical `/moldea/agents/{agent-id}/instruction.md` content reaches the runtime model or provider-side agent configuration. Do not prescribe a loading mechanism. Application code, a runtime adapter, runtime-library integration, build or provisioning logic, a declared mirror, or another established runtime path may provide the content.
+For every in-scope agent, establish how canonical `instruction.md` reaches each material invocation or provider-side configuration. Application code, adapters, runtime libraries, builds, provisioning, mirrors, or another evidenced runtime path may provide it; do not prescribe one mechanism.
 
-The active runtime instruction derives from canonical instruction, not an independently maintained behavioral source. Field names do not alter provenance: `instructions`, `input`, continuation prompts, messages, or tool payloads may carry turn-specific content, never independent reusable policy. Formatting or transport may preserve canonical behavior.
+The active instruction derives from canonical content, not an independently maintained policy source. Field names do not alter provenance: turn-specific `instructions`, inputs, continuation prompts, messages, or tool payloads may transport current input but cannot own reusable policy.
 
-Use a declared exact mirror when the runtime requires the instruction at another repository path, and verify that the runtime actually uses that mirror. Register `instructionLoader` when a material repository-local loader path and symbol exist and cannot be derived reliably. Do not require that binding when an adapter or other reliable evidence already establishes the relationship.
+Use an exact declared mirror only when the runtime requires another tracked path, and verify consumption. Register `instructionLoader` when a material repository-local loader path and symbol exist and cannot be derived. Adapter or other reliable evidence may make that binding unnecessary.
 
-Trace every material invocation or configuration path. Within scope, remove superseded inline, embedded, copied, or otherwise independent durable instructions from every field and verify provenance at the closest practical runtime boundary. Verify build or deployment inclusion when packaged canonical or mirrored content is required. Deterministic inspection validates declared relationships and mirrors; it does not prove runtime consumption.
+Trace every material path. Within scope, remove superseded independent durable instructions from every material field and verify provenance near the runtime boundary, including build or deployment inclusion when required. Deterministic relationships and mirror checks do not prove runtime consumption.
 
-If the provenance chain cannot be established because required integration is missing, preserve the gap as a blocking unresolved requirement with explicit resolution criteria. When the relevant runtime implementation cannot be inspected, report the evidence limitation rather than claiming either connection or disconnection. Do not describe the agent as aligned, complete, or production-ready while a material provenance gap remains.
+If the chain cannot be established because integration is missing, preserve a blocking unresolved requirement with explicit criteria. If implementation cannot be inspected, report the evidence limitation rather than connection or disconnection. Do not claim completeness or production readiness while a material provenance gap remains.
 
 ## Register tools and skills
 
-Read `skill-design.md` before creating or materially changing the Agent Skill artifact itself. This section governs only the agent's model-visible capability relationship.
+Read `skill-design.md` before changing an Agent Skill artifact. Manifest-register a capability only when a qualifying repository-local implementation exists and format version `1` can bind it.
 
-Manifest-register a tool or skill only when a qualifying repository-local implementation artifact exists and the version `1` capability contract can bind it.
+Establish the runtime-facing name, purpose, use conditions, inputs, outputs, preconditions, limitations, side effects, authorization, failure behavior, and registration before describing a capability. Never invent fields, defaults, authentication, retries, limits, guarantees, or errors.
 
-Before describing a capability, establish its runtime-facing name, purpose, use conditions, inputs, outputs, important preconditions, limitations, side effects, authorization, failure behavior, and registration. Never invent parameters, defaults, response fields, authentication, retries, rate limits, provider guarantees, or error semantics.
+Give each registered capability a stable agent-scoped ID, exact runtime name, concise agent-specific description, implementation binding, applicable registration or schema bindings, and complete instruction guidance. Distinguish overlaps by use condition.
 
-Give each registered capability a stable agent-scoped ID, exact runtime-facing name, concise vendor-independent agent-specific description, implementation binding, registration/schema bindings when applicable, and complete instruction guidance. Distinguish overlapping capabilities by use condition.
-
-A provider-hosted or external model-visible capability belongs in canonical instruction even without a qualifying local artifact. Put integration-only behavior and project-specific limitations in runtime guidance. Do not fabricate a manifest entry or treat related-application evidence as adapter evidence or a binding.
+Provider-hosted or external model-visible capabilities belong in canonical instruction even without a local manifest artifact. Integration-only behavior belongs in runtime guidance. Never fabricate a manifest or cross-repository binding.
 
 ## Schemas
 
-Treat executable and model-facing schemas as one semantic contract:
+Treat executable and model-facing schemas as one semantic contract. Preserve requiredness, optionality, nullability, literals, alternatives, meanings, and material constraints; show the model fields it needs; bind material executable schemas to real paths and symbols; allow transformations only with semantic equivalence; omit internal fields and hidden reasoning.
 
-- preserve requiredness, optionality, nullability, literals, enums, alternatives, field meaning, and material constraints
-- include model-facing representations in the instruction when the model must understand the contract
-- bind material executable input and output schemas to existing repository-local paths and symbols
-- allow runtime transformation while requiring semantic equivalence
-- omit unsupported or internal fields and never expose hidden reasoning
-
-When existing executable and model-facing contracts differ, no surface automatically wins. Inspect implementation, tests, context, developer intent, and runtime transformation; clarify if the intended contract remains materially ambiguous.
+When representations differ, inspect implementation, tests, context, intent, and transformation. No surface automatically wins; clarify unresolved material differences.
 
 ## Runtime variables
 
-Use runtime variables only for genuinely runtime-varying values. Use `{{VARIABLE_NAME}}` placeholders with uppercase ASCII letters, numbers, and underscores.
+Use `{{VARIABLE_NAME}}` only for runtime-varying values. Declare every referenced variable, reference every declaration, and require every value at resolution; an empty string is supplied. Version `1` has no invented optional, default, null, undefined, or `n/a` semantics.
 
-Declare every referenced variable, reference every declared variable, require every value at resolution time, and treat an empty string as a valid supplied value. Version `1` has no invented optional, default, null, undefined, or `n/a` semantics.
-
-Describe what each value means where the model uses it and bind a real provider when the relationship exists. Keep actual values private and transient; never persist them in canonical files, diagnostics, logs, or reports. Variables must not hide unfinished design.
+Explain each value where used and bind a real provider when it exists. Keep values private and transient. Variables cannot hide unfinished design.
 
 ## Mirrors
 
-A declared mirror is an exact Git-tracked textual copy of canonical `instruction.md` after the repository format's BOM and line-ending normalization. It lives outside `/moldea/**`, is a regular file, has one owning agent, and performs no transformation, templating, wrapping, or generation.
+A declared mirror is an exact Git-tracked textual copy of canonical `instruction.md` after format normalization. It is a regular file outside `/moldea/**`, has one owning agent, and performs no transformation or wrapping.
 
-Edit the canonical instruction first and synchronize every mirror in the same coherent developer change. Never edit a mirror independently. Prefer direct canonical consumption when the runtime supports it.
+Edit canonical instruction first and synchronize every mirror in the same change. Never edit a mirror independently. Prefer direct canonical consumption.
 
 ## Unresolved requirements
 
-Create a project- or agent-owned unresolved requirement only when missing or uncertain information or functionality materially affects current truth or declared behavior.
+Create a project- or agent-owned requirement only for missing or uncertain information or functionality that materially affects current truth or declared behavior. It has a stable ID, precise category, `blocking`, `warning`, or `informational` effect, current-state description, explicit resolution criteria, useful existing related paths, and an optional external reference.
 
-Every requirement has:
+Use `blocking` for unsafe or materially incomplete behavior, `warning` for a gap with safe coherent behavior, and `informational` for visibility without outcome impact. Record it under its manifest owner. Instruction prose may communicate the limitation but is not the requirement; related paths provide traceability only.
 
-- a stable ID
-- a precise category
-- effect `blocking`, `warning`, or `informational`
-- a current-state description
-- explicit human-readable resolution criteria
-- only useful existing related repository references
-- an optional external reference when useful
-
-Use `blocking` for unsafe or materially incomplete behavior, `warning` for a relevant gap with safe coherent current behavior, and `informational` for visibility without outcome impact.
-
-Record the requirement in `moldea.yaml` under the project or agent that owns the gap. An instruction may communicate the limitation to the model, but instruction prose is not a registered requirement. Related paths provide traceability only; they do not create context, binding, composition, or automatic resolution.
-
-Do not use requirements as a roadmap or backlog. Do not create one to avoid an answerable developer clarification. Never remove one because a related file changed; verify every stated resolution criterion first.
+Requirements are not a roadmap. Do not create one to avoid an answerable question or remove one because a related file changed; establish every criterion first.
 
 ## Verify agent readiness
 
-After writes, run project-native checks for changed executable behavior when applicable, rerun deterministic `inspect --json`, and semantically review purpose, completeness, scope, contracts, canonical instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state.
+After writes, run relevant project checks, rerun `inspect --json`, and review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state.
 
-Do not call an agent production-ready when behavior lacks reliable support, a material contract is hidden or contradictory, deterministic validation fails in the affected system, or a blocking unresolved requirement affects the claimed responsibility.
+Do not claim production readiness when behavior lacks support, a material contract is hidden or contradictory, affected validation fails, or a blocking requirement remains.

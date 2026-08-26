@@ -102,7 +102,7 @@ Adapter evidence establishes detectable implementation, not intent. Core invalid
 
 ## Report truthfully
 
-Keep the report proportional to the operation. State the selected operation, activation path, scope, material evidence and limitations, deterministic status, semantic conclusions, changed and intentionally unchanged surfaces, unresolved requirements or conflicts, and checks run or omitted when relevant.
+Keep the report proportional to the operation. State the selected operation, activation path, scope, material evidence and limitations, deterministic status, semantic conclusions, changed and intentionally unchanged surfaces, unresolved requirements or conflicts, and checks run or omitted when relevant. For each material evidence limitation, name the unavailable fact and one concrete safe prerequisite that would resolve it.
 
 Every write-capable result identifies `Canonical state` as changed, unchanged with a reason, or blocked with the focused question. Every read-only result explicitly states that no repository files changed. Report only completed, independently attributable checks and workspace-proven changes; never generalize a component validator into whole-system validity.
 

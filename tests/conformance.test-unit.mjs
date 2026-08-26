@@ -691,6 +691,11 @@ describe('portable Agent Skill contract', () => {
       skill,
       /Every read-only result explicitly states that no repository files changed/i,
     );
+    assertMatchesEvery(skill, [
+      /For each material evidence limitation/i,
+      /name the unavailable fact/i,
+      /one concrete safe prerequisite that would resolve it/i,
+    ]);
     assert.match(
       skill,
       /brief request to evaluate `moldea` targets the project-owned system[\s\S]*Ask one focused question before evaluating when the subject remains materially ambiguous/i,
@@ -1141,6 +1146,68 @@ describe('source repository conformance', () => {
     assert.match(localTooling, /Report provider, exact version, command, and envelope/i);
   });
 
+  test('binds authority-sensitive non-execution to sourced before and after evidence', () => {
+    const semanticCasesById = new Map(
+      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+    );
+    const authorityCases = [
+      {
+        caseDefinition: semanticCasesById.get('skill-evaluate-script-authority'),
+        expectedLabel: 'preserve-script-execution-authority',
+        forbiddenLabel: 'execute-publication-script',
+        sentinelPath: 'script-executed.txt',
+      },
+      {
+        caseDefinition: semanticCasesById.get('read-only-git-helper-suppression'),
+        expectedLabel: 'stop-before-worktree-git',
+        forbiddenLabel: 'execute-git-helper',
+        sentinelPath: 'git-helper-ran.txt',
+      },
+    ];
+
+    for (const { caseDefinition, expectedLabel, forbiddenLabel, sentinelPath } of authorityCases) {
+      assert.ok(caseDefinition);
+      const expectedCriterion = caseDefinition.expected.find(
+        ({ label }) => label === expectedLabel,
+      );
+      const forbiddenCriterion = caseDefinition.forbidden.find(
+        ({ label }) => label === forbiddenLabel,
+      );
+      const sentinelEvidence = caseDefinition.input.repositoryEvidence.find(
+        ({ source }) => source.path === sentinelPath,
+      );
+
+      assert.ok(expectedCriterion);
+      assert.ok(forbiddenCriterion);
+      assert.ok(sentinelEvidence);
+      assert.equal(sentinelEvidence.source.expectedType, 'missing');
+      assert.match(expectedCriterion.criterion, /actor response explicitly states/i);
+      assert.match(expectedCriterion.criterion, /scenario evidence/i);
+      assert.match(expectedCriterion.criterion, /workspace evidence/i);
+      assert.match(expectedCriterion.criterion, /repository-control evidence/i);
+      assert.match(expectedCriterion.criterion, /package-manager command-policy evidence/i);
+      assert.match(expectedCriterion.criterion, /outside this criterion/i);
+      assert.match(forbiddenCriterion.criterion, /evidence/i);
+    }
+
+    const gitHelperCase = semanticCasesById.get('read-only-git-helper-suppression');
+    const gitStopCriterion = gitHelperCase.expected.find(
+      ({ label }) => label === 'stop-before-worktree-git',
+    );
+    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
+
+    assert.ok(gitStopCriterion);
+    assert.match(gitStopCriterion.criterion, /complete after-minus-before delta/i);
+    assert.match(gitStopCriterion.criterion, /absence from created paths proves/i);
+    assert.match(gitStopCriterion.criterion, /empty created, modified, and deleted lists prove/i);
+    assert.match(
+      localTooling,
+      /Report the attribute path, filter risk, unavailable Git evidence, and concrete safe prerequisite/i,
+    );
+    assert.match(localTooling, /remove or disable the filter before retrying/i);
+    assert.match(localTooling, /supply independently captured inert worktree evidence/i);
+  });
+
   test('binds Yarn conflict decisions to projected provider facts and the invocation sentinel', () => {
     const yarnConflictCase = cases.semanticCases.find(
       ({ id }) => id === 'yarn-conflicting-cli-provider',
@@ -1170,6 +1237,17 @@ describe('source repository conformance', () => {
     assert.match(providerCriterion.criterion, /actor response must report/i);
     assert.match(stopCriterion.criterion, /forbidden-invocation sentinel/i);
     assert.match(stopCriterion.criterion, /workspace evidence/i);
+    assert.match(stopCriterion.criterion, /generic package-manager command-policy evidence/i);
+    assert.match(stopCriterion.criterion, /cannot identify a Yarn subcommand, provider/i);
+    const forbiddenProviderCriterion = yarnConflictCase.forbidden.find(
+      ({ label }) => label === 'invoke-conflicting-yarn-provider',
+    );
+    assert.ok(forbiddenProviderCriterion);
+    assert.match(forbiddenProviderCriterion.criterion, /exact projected runner fact/i);
+    assert.match(
+      forbiddenProviderCriterion.criterion,
+      /generic package-manager observation alone/i,
+    );
     assert.equal(sentinelEvidence.source.expectedType, 'missing');
   });
 

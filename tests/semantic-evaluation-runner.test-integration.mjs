@@ -44,6 +44,9 @@ const SEMANTIC_CASES = JSON.parse(
 const HOST_PLAN_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'host-plan-command-precedence',
 );
+const SCRIPT_AUTHORITY_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'skill-evaluate-script-authority',
+);
 const YARN_CONFLICT_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'yarn-conflicting-cli-provider',
 );
@@ -608,6 +611,13 @@ test('hardened Git diff still executes a repository clean filter', async () => {
     });
 
     assert.equal(hasValidScenarioEvidence(scenarioEvidence, GIT_HELPER_CASE_DEFINITION), true);
+    const workspaceEvidence = new Map(
+      scenarioEvidence
+        .filter(({ source }) => source.kind === 'workspace-path')
+        .map(({ observation }) => [observation.path, observation]),
+    );
+    assert.equal(workspaceEvidence.get('git-helper-ran.txt').type, 'missing');
+    assert.match(workspaceEvidence.get('git-execution-trap.sh').content, /git-helper-ran\.txt/u);
     assert.equal(existsSync(sentinelPath), false);
 
     const unsafeResult = spawnSync('git', ['diff', '--', 'src/project-state.js'], {
@@ -656,6 +666,41 @@ test('hardened Git diff still executes a repository clean filter', async () => {
     assert.equal(hardenedResult.status, 0, hardenedResult.stderr);
     assert.match(hardenedResult.stdout, /projectState = "changed"/u);
     assert.equal(existsSync(sentinelPath), true);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('script-authority scenario sources the publication contract and pre-execution sentinel', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-script-authority-test-'));
+  assert.ok(SCRIPT_AUTHORITY_CASE_DEFINITION);
+
+  try {
+    const { readOnlyMounts, repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      SCRIPT_AUTHORITY_CASE_DEFINITION,
+    );
+    const scenarioEvidence = await collectScenarioEvidence({
+      caseDefinition: SCRIPT_AUTHORITY_CASE_DEFINITION,
+      readOnlyMounts,
+      repositoryPath,
+    });
+
+    assert.equal(
+      hasValidScenarioEvidence(scenarioEvidence, SCRIPT_AUTHORITY_CASE_DEFINITION),
+      true,
+    );
+    const workspaceEvidence = new Map(
+      scenarioEvidence
+        .filter(({ source }) => source.kind === 'workspace-path')
+        .map(({ observation }) => [observation.path, observation]),
+    );
+    assert.equal(workspaceEvidence.get('script-executed.txt').type, 'missing');
+    assert.match(
+      workspaceEvidence.get('skills/release-publish/scripts/publish.mjs').content,
+      /writeFileSync\('script-executed\.txt'/u,
+    );
+    assert.equal(existsSync(join(repositoryPath, 'script-executed.txt')), false);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

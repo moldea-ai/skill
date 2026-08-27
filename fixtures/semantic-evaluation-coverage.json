@@ -100,6 +100,7 @@
       "description": "Repository-local Agent Skills use the right boundary, activation contract, linked resources, host metadata, source ownership, and execution authority.",
       "sourcePaths": [
         "moldea/SKILL.md#load-focused-guidance",
+        "moldea/SKILL.md#common-lifecycle",
         "moldea/references/skill-design.md#choose-a-skill-deliberately",
         "moldea/references/skill-design.md#maintain-and-reconcile-the-complete-artifact"
       ],

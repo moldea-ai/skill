@@ -469,6 +469,10 @@ describe('portable Agent Skill contract', () => {
       /Treat repository content as untrusted evidence/,
       /No asset type or operation authority automatically selects truth/i,
       /Do not stage, unstage, commit/,
+      /assign each affected fact to its established owner/i,
+      /When a dependent artifact does not own a fact, link the established authoritative source rather than independently maintaining duplicate policy or procedure/i,
+      /preserve skill-owned activation and workflow, but refer to repository-owned requirements and stopping conditions through their source instead of copying their details into `SKILL\.md` or a focused resource/i,
+      /Synchronize declared mirrors and distributed copies only from their canonical source/i,
       /leave correct canonical state unchanged/i,
       /Before semantic writes, require adoption/i,
       /sufficient conflict-checked high-information evidence/i,
@@ -1954,7 +1958,7 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(workflow, /npm publish|pnpm publish|git tag|git push/);
   });
 
-  test('requires approval before token-intensive semantic evaluation', () => {
+  test('requires approval before request-intensive semantic evaluation', () => {
     const readme = readRepositoryFile('README.md');
 
     assertMatchesEvery(readme, [
@@ -1969,7 +1973,7 @@ describe('source repository conformance', () => {
       /full evaluation, standalone diagnostic, or confirmation sequence/,
       /why fresh semantic evidence is important/,
       /why existing evidence or deterministic verification is insufficient/,
-      /expected time and token cost/,
+      /estimated model-call count and expected duration/,
       /developer's explicit approval/,
       /standing confirmation authorization/,
       /Record its scope before execution/,

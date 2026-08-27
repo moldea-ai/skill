@@ -88,8 +88,8 @@ Governing specifications and deterministic CLI, Core, or adapter results still c
 2. Gather high-information evidence for the question. Treat discovery as a candidate queue; read material accessible sources before conclusions, absence claims, requests, or plans.
 3. Use compatible local tooling when the operation requires it. Inspect executable package-manager configuration as file data before invoking the manager.
 4. Keep observed current fact, developer-confirmed truth, intended resulting state, planned work, accepted rationale, history, unresolved state, and investigative inference distinct.
-5. Before editing, inspect affected canonical relationships, requirement criteria, mirrors, generated surfaces, consumers, implementation, and related-repository boundaries.
-6. Apply the smallest coherent authorized change. Synchronize affected representations, preserve unrelated work, and leave correct canonical state unchanged.
+5. Before editing, assign each affected fact to its established owner and inspect affected canonical relationships, requirement criteria, mirrors, generated surfaces, consumers, implementation, and related-repository boundaries.
+6. Apply the smallest coherent authorized change. When a dependent artifact does not own a fact, link the established authoritative source rather than independently maintaining duplicate policy or procedure. For Agent Skills, preserve skill-owned activation and workflow, but refer to repository-owned requirements and stopping conditions through their source instead of copying their details into `SKILL.md` or a focused resource. Synchronize declared mirrors and distributed copies only from their canonical source. Preserve unrelated work and leave correct canonical state unchanged.
 7. Run relevant project-native checks for changed executable behavior when authorized.
 8. After writes, rerun `inspect --json` separately and review diagnostics, mirrors, requirements, semantic readiness, and unrelated invalidity.
 

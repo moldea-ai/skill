@@ -5,8 +5,14 @@ import { join, relative } from 'node:path';
 import test from 'node:test';
 
 import {
+  CODEX_EVALUATION_HOST_FAILURE_KINDS,
+  isRetryableCodexEvaluationHostError,
+} from '../tooling/codex-evaluation-host/index.mjs';
+
+import {
   appendSemanticCandidateConfirmation,
   appendSemanticCandidateInitialResult,
+  attachSemanticActiveTrialActorEvidence,
   assessJudgeOutput,
   buildActorPrompt,
   buildJudgePrompt,
@@ -15,6 +21,7 @@ import {
   createPortableSkillSemanticDigest,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
+  createSemanticActiveTrial,
   createSemanticEvaluationCandidate,
   createSemanticEvaluationHostContract,
   createSemanticEvaluationRecord,
@@ -26,8 +33,8 @@ import {
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
   recordSemanticCandidateCheckpoint,
+  runSemanticCaseTrial,
   shouldFailSemanticEvaluation,
-  shouldStopSemanticEvaluation,
   validateSemanticCandidateCompatibility,
   validateSemanticCandidateCheckpointCompatibility,
   validateSemanticCaseDefinition,
@@ -228,8 +235,14 @@ const createCaseResult = (caseDefinition, passed) => ({
   id: caseDefinition.id,
   judgeHost: JUDGE_HOST,
   observed: passed ? getSemanticCriterionLabels(caseDefinition.expected) : [],
+  operationalRetries: {
+    actorFailureCount: 0,
+    judgeFailureCount: 0,
+    lastFailure: null,
+  },
   passed,
   rationale: passed ? 'The expected behavior was demonstrated.' : 'Expected evidence was missing.',
+  readOnlyMountControlEvidence: [],
   repositoryControlEvidence: {
     after: REPOSITORY_CONTROL_STATE,
     before: REPOSITORY_CONTROL_STATE,
@@ -250,6 +263,21 @@ const createCaseResult = (caseDefinition, passed) => ({
   },
 });
 
+const createActorEvidence = (caseDefinition) => {
+  const result = createCaseResult(caseDefinition, true);
+  return {
+    actorHost: result.actorHost,
+    actorCommandPolicyEvidence: result.actorCommandPolicyEvidence,
+    actorExecutionEvidence: result.actorExecutionEvidence,
+    actorResponse: result.actorResponse,
+    readOnlyMountControlEvidence: result.readOnlyMountControlEvidence,
+    repositoryControlEvidence: result.repositoryControlEvidence,
+    scenarioEvidence: result.scenarioEvidence,
+    skillArtifactEvidence: result.skillArtifactEvidence,
+    workspaceChanges: result.workspaceChanges,
+  };
+};
+
 test('actor prompt contains only the user scenario', () => {
   const actorPrompt = buildActorPrompt(CASE_DEFINITION);
 
@@ -258,9 +286,8 @@ test('actor prompt contains only the user scenario', () => {
   assert.doesNotMatch(actorPrompt, /expected secret behavior|forbidden secret behavior/);
 });
 
-test('semantic evaluation arguments separate runs, diagnostics, confirmations, and verification', () => {
+test('semantic evaluation arguments separate runs, diagnostics, and verification', () => {
   assert.deepEqual(parseSemanticEvaluationArguments(['--record']), {
-    confirmationCaseId: undefined,
     isPreflightRequested: false,
     isRecordRequested: true,
     isRecordCheckpointRequested: false,
@@ -268,25 +295,13 @@ test('semantic evaluation arguments separate runs, diagnostics, confirmations, a
     isVerifyAttemptsRequested: false,
     requestedCaseId: undefined,
   });
-  assert.deepEqual(
-    parseSemanticEvaluationArguments(['--confirm', 'blind-evaluation', '--record']),
-    {
-      confirmationCaseId: 'blind-evaluation',
-      isPreflightRequested: false,
-      isRecordRequested: true,
-      isRecordCheckpointRequested: false,
-      isRestartRequested: false,
-      isVerifyAttemptsRequested: false,
-      requestedCaseId: undefined,
-    },
-  );
   assert.throws(
     () => parseSemanticEvaluationArguments(['--case', 'blind-evaluation', '--record']),
     /diagnostic-only/,
   );
   assert.throws(
-    () => parseSemanticEvaluationArguments(['--confirm', 'blind-evaluation']),
-    /requires only --record/,
+    () => parseSemanticEvaluationArguments(['--confirm', 'blind-evaluation', '--record']),
+    /Unsupported semantic evaluation option/,
   );
   assert.throws(
     () => parseSemanticEvaluationArguments(['--stop-on-failure']),
@@ -298,13 +313,7 @@ test('semantic evaluation arguments separate runs, diagnostics, confirmations, a
   );
 });
 
-test('bounded semantic evaluation stops only after a failed case', () => {
-  assert.equal(shouldStopSemanticEvaluation({ isRecordRequested: true, passed: false }), true);
-  assert.equal(shouldStopSemanticEvaluation({ isRecordRequested: true, passed: true }), false);
-  assert.equal(shouldStopSemanticEvaluation({ isRecordRequested: false, passed: false }), false);
-});
-
-test('a recovered confirmation exits cleanly while the incomplete full suite stays pending', () => {
+test('a recovered case cannot make an incomplete recorded suite exit cleanly', () => {
   const caseDefinitions = [CASE_DEFINITION, SECOND_CASE_DEFINITION];
   let candidate = createSemanticEvaluationCandidate({
     actorHost: ACTOR_HOST,
@@ -338,17 +347,6 @@ test('a recovered confirmation exits cleanly while the incomplete full suite sta
     shouldFailSemanticEvaluation({
       candidate,
       caseDefinitions,
-      confirmationCaseId: CASE_DEFINITION.id,
-      hasFailures: false,
-      isRecordRequested: true,
-    }),
-    false,
-  );
-  assert.equal(
-    shouldFailSemanticEvaluation({
-      candidate,
-      caseDefinitions,
-      confirmationCaseId: undefined,
       hasFailures: false,
       isRecordRequested: true,
     }),
@@ -512,6 +510,21 @@ test('semantic host output does not derive execution evidence from the final res
   );
 });
 
+test('semantic host output classifies provider error events as retryable operational failures', () => {
+  assert.throws(
+    () =>
+      parseSemanticEvaluationHostOutput(
+        `${JSON.stringify({ type: 'turn.failed' })}\n`,
+        ACTOR_EXECUTION_EVIDENCE_OPTIONS,
+      ),
+    (error) => {
+      assert.equal(isRetryableCodexEvaluationHostError(error), true);
+      assert.equal(error.kind, CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed);
+      return true;
+    },
+  );
+});
+
 test('semantic host output rejects unbounded evidence without retaining oversized commands', () => {
   const commandEvents = Array.from({ length: 129 }, (_, index) => ({
     item: {
@@ -623,6 +636,7 @@ test('judge prompt enforces bidirectional source attribution after actor executi
       before: REPOSITORY_CONTROL_STATE,
       violations: [],
     },
+    [],
     {
       completedCommandCount: 2,
       indeterminateCommandCount: 1,
@@ -656,6 +670,8 @@ test('judge prompt enforces bidirectional source attribution after actor executi
     /runner-owned execution evidence cannot prove what the actor reported/i,
   );
   assert.match(judgePrompt, /Runner-owned actor command-policy evidence/);
+  assert.match(judgePrompt, /Runner-owned related read-only mount control evidence/);
+  assert.match(judgePrompt, /full-tree digests before and after\s+actor execution/);
   assert.match(judgePrompt, /packageManagerExecution "not-observed"/);
   assert.match(
     judgePrompt,
@@ -1156,6 +1172,28 @@ test('checkpoint recording validates exact evidence before persistence', async (
   );
   assert.deepEqual(recordedEvidence, []);
 
+  await assert.rejects(
+    recordSemanticCandidateCheckpoint({
+      candidateEvidenceText: `${JSON.stringify(
+        {
+          ...candidate,
+          activeTrial: createSemanticActiveTrial(CASE_DEFINITION, null, '2026-08-27T16:00:00.000Z'),
+        },
+        null,
+        2,
+      )}\n`,
+      currentBoundary: {
+        artifactDigest: ARTIFACT_DIGEST,
+        caseDefinitions,
+        cli: CLI_IDENTITY,
+        coverageDigest: COVERAGE_DIGEST,
+      },
+      recordAttempt,
+    }),
+    /active model stage/,
+  );
+  assert.deepEqual(recordedEvidence, []);
+
   const attempt = await recordSemanticCandidateCheckpoint({
     candidateEvidenceText,
     currentBoundary: {
@@ -1168,6 +1206,86 @@ test('checkpoint recording validates exact evidence before persistence', async (
   });
   assert.deepEqual(attempt, { attemptId: 'recorded-attempt' });
   assert.deepEqual(recordedEvidence, [candidateEvidenceText]);
+});
+
+test('semantic trials persist retries and every actor-judge stage boundary', async () => {
+  const persistedTrials = [];
+  const timestamps = [
+    '2026-08-27T16:00:00.000Z',
+    '2026-08-27T16:00:01.000Z',
+    '2026-08-27T16:00:02.000Z',
+  ];
+  let stageIndex = 0;
+
+  const { activeTrial, result } = await runSemanticCaseTrial({
+    activeTrial: null,
+    actorCommand: ['actor'],
+    caseDefinition: CASE_DEFINITION,
+    cli: CLI_IDENTITY,
+    evaluateActor: async () => createActorEvidence(CASE_DEFINITION),
+    evaluateJudge: async () => createCaseResult(CASE_DEFINITION, true),
+    judgeCommand: ['judge'],
+    now: () => timestamps.shift(),
+    persistActiveTrial: async (trial) => {
+      persistedTrials.push(structuredClone(trial));
+    },
+    runOperationalStage: async ({ initialFailureCount, onRetry, operation }) => {
+      stageIndex += 1;
+      if (stageIndex === 1) {
+        await onRetry({
+          category: CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
+          failedAt: '2026-08-27T16:00:00.500Z',
+          failureCount: initialFailureCount + 1,
+          retryDelayMs: 5_000,
+        });
+      }
+      return operation();
+    },
+    writeStatus: () => {},
+  });
+
+  assert.deepEqual(
+    persistedTrials.map(({ phase }) => phase),
+    ['actor-pending', 'actor-pending', 'judge-pending', 'trial-complete'],
+  );
+  assert.equal(activeTrial.operationalRetries.actorFailureCount, 1);
+  assert.equal(activeTrial.operationalRetries.judgeFailureCount, 0);
+  assert.deepEqual(result.operationalRetries, activeTrial.operationalRetries);
+  assert.equal(result.caseDefinitionDigest, createSemanticCaseDefinitionDigest(CASE_DEFINITION));
+});
+
+test('semantic trials resume the judge from persisted actor evidence without another actor call', async () => {
+  const actorEvidence = createActorEvidence(CASE_DEFINITION);
+  const activeTrial = attachSemanticActiveTrialActorEvidence(
+    createSemanticActiveTrial(CASE_DEFINITION, null, '2026-08-27T16:00:00.000Z'),
+    actorEvidence,
+    '2026-08-27T16:01:00.000Z',
+  );
+  let actorCallCount = 0;
+  let judgeCallCount = 0;
+
+  const completed = await runSemanticCaseTrial({
+    activeTrial,
+    actorCommand: ['actor'],
+    caseDefinition: CASE_DEFINITION,
+    cli: CLI_IDENTITY,
+    evaluateActor: async () => {
+      actorCallCount += 1;
+      return actorEvidence;
+    },
+    evaluateJudge: async (_caseDefinition, persistedActorEvidence) => {
+      judgeCallCount += 1;
+      assert.deepEqual(persistedActorEvidence, actorEvidence);
+      return createCaseResult(CASE_DEFINITION, true);
+    },
+    judgeCommand: ['judge'],
+    now: () => '2026-08-27T16:02:00.000Z',
+    persistActiveTrial: async () => {},
+  });
+
+  assert.equal(actorCallCount, 0);
+  assert.equal(judgeCallCount, 1);
+  assert.equal(completed.activeTrial.phase, 'trial-complete');
 });
 
 test('semantic candidates retain failures and require two passing confirmations', () => {
@@ -1243,8 +1361,8 @@ test('semantic candidates retain failures and require two passing confirmations'
     caseDefinitions,
     generatedAt: '2026-08-16T12:03:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 17);
-  assert.equal(record.schemaVersion, 5);
+  assert.equal(record.evaluationProtocolVersion, 18);
+  assert.equal(record.schemaVersion, 6);
   assert.equal(record.actorHost, undefined);
   assert.equal(record.host, undefined);
   assert.equal(record.judgeHost, undefined);
@@ -1571,7 +1689,11 @@ test('semantic candidate validation rejects indeterminate package-manager non-ex
   );
 
   assert.throws(
-    () => validateSemanticResultRecording({ candidate: confirmationCandidate, caseDefinitions }),
+    () =>
+      validateSemanticResultRecording({
+        candidate: confirmationCandidate,
+        caseDefinitions,
+      }),
     /invalid confirmation evidence/,
   );
   assert.throws(
@@ -1644,10 +1766,7 @@ test('uses the published CLI for compatibility-sensitive runtime states', () => 
     getSemanticToolingSource('plan-runtime-inventory-insufficient-evidence'),
     'published-package',
   );
-  assert.equal(
-    getSemanticToolingSource('runtime-publication-unavailable'),
-    'published-package',
-  );
+  assert.equal(getSemanticToolingSource('runtime-publication-unavailable'), 'published-package');
   assert.equal(getSemanticToolingSource('runtime-publication-malformed'), 'published-package');
   assert.equal(
     getSemanticToolingSource('installed-adapter-without-published-target'),

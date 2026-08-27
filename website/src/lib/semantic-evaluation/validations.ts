@@ -56,6 +56,22 @@ const SemanticAttemptTrialSchema = z.object({
   rationale: z.string().trim().min(1),
 });
 
+const SemanticAttemptEvidenceReferenceBaseSchema = z.object({
+  kind: z.literal('candidate'),
+  path: z.literal('evidence.json'),
+  sha256: Sha256Schema,
+});
+const SemanticAttemptEvidenceReferenceSchema = z.discriminatedUnion('schemaVersion', [
+  SemanticAttemptEvidenceReferenceBaseSchema.extend({
+    evaluationProtocolVersion: z.union([z.literal(16), z.literal(17)]),
+    schemaVersion: z.literal(5),
+  }),
+  SemanticAttemptEvidenceReferenceBaseSchema.extend({
+    evaluationProtocolVersion: z.literal(18),
+    schemaVersion: z.literal(6),
+  }),
+]);
+
 export const SemanticAttemptRecordSchema = z.object({
   artifactDigest: Sha256Schema,
   attemptId: z.string().trim().min(1),
@@ -71,13 +87,7 @@ export const SemanticAttemptRecordSchema = z.object({
   cli: SemanticCliIdentitySchema,
   coverageDigest: Sha256Schema,
   createdAt: z.iso.datetime(),
-  evidence: z.object({
-    evaluationProtocolVersion: z.union([z.literal(16), z.literal(17)]),
-    kind: z.literal('candidate'),
-    path: z.literal('evidence.json'),
-    schemaVersion: z.literal(5),
-    sha256: Sha256Schema,
-  }),
+  evidence: SemanticAttemptEvidenceReferenceSchema,
   failedCaseCount: z.number().int().nonnegative(),
   hostContract: SemanticHostContractSchema,
   passedCaseCount: z.number().int().nonnegative(),

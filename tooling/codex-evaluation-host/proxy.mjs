@@ -130,10 +130,7 @@ export const runCodexEvaluationProxy = async () => {
 
   await new Promise((resolvePromise, rejectPromise) => {
     server.once('error', rejectPromise);
-    server.listen(socketPath, () => {
-      process.stdout.write('ready\n');
-      resolvePromise();
-    });
+    server.listen(socketPath, resolvePromise);
   });
 
   await new Promise((resolvePromise) => {
@@ -145,6 +142,7 @@ export const runCodexEvaluationProxy = async () => {
     };
     process.once('SIGINT', close);
     process.once('SIGTERM', close);
+    process.stdout.write('ready\n');
   });
 };
 

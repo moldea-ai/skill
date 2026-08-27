@@ -14,8 +14,9 @@ import { hasValidActorCommandPolicyEvidence } from './actor-command-policy-evide
 const ATTEMPT_EVIDENCE_FILENAME = 'evidence.json';
 const ATTEMPT_RECORD_FILENAME = 'attempt.json';
 const ATTEMPT_SCHEMA_VERSION = 4;
-const EVIDENCE_SCHEMA_VERSION = 5;
-const HISTORICAL_EVIDENCE_PROTOCOL_VERSIONS = new Set([16]);
+const EVIDENCE_SCHEMA_VERSION = 6;
+const HISTORICAL_EVIDENCE_SCHEMA_VERSION = 5;
+const HISTORICAL_EVIDENCE_PROTOCOL_VERSIONS = new Set([16, 17]);
 const LATEST_SCHEMA_VERSION = 1;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
@@ -27,9 +28,11 @@ const STOP_REASON_VALUES = new Set([
   'operator-recorded',
 ]);
 
-const isRecordedEvidenceProtocolVersion = (protocolVersion) =>
-  protocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
-  HISTORICAL_EVIDENCE_PROTOCOL_VERSIONS.has(protocolVersion);
+const hasSupportedRecordedEvidenceContract = (evidence) =>
+  (evidence.schemaVersion === EVIDENCE_SCHEMA_VERSION &&
+    evidence.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION) ||
+  (evidence.schemaVersion === HISTORICAL_EVIDENCE_SCHEMA_VERSION &&
+    HISTORICAL_EVIDENCE_PROTOCOL_VERSIONS.has(evidence.evaluationProtocolVersion));
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
@@ -235,11 +238,11 @@ export const createSemanticAttemptRecord = ({
   if (!isPlainRecord(evidence) || evidenceKind !== 'candidate') {
     throw new Error('Semantic attempt evidence has an unsupported source.');
   }
-  if (evidence.schemaVersion !== EVIDENCE_SCHEMA_VERSION) {
-    throw new Error('Semantic attempt evidence has an unsupported schema.');
+  if (!hasSupportedRecordedEvidenceContract(evidence)) {
+    throw new Error('Semantic attempt evidence has an unsupported schema and protocol contract.');
   }
-  if (!isRecordedEvidenceProtocolVersion(evidence.evaluationProtocolVersion)) {
-    throw new Error('Semantic attempt evidence has an unsupported protocol.');
+  if (evidence.schemaVersion === EVIDENCE_SCHEMA_VERSION && evidence.activeTrial !== null) {
+    throw new Error('Semantic attempt evidence cannot contain an active model stage.');
   }
   if (!Number.isInteger(totalCaseCount) || totalCaseCount < 1) {
     throw new Error('Semantic attempt total case count must be positive.');

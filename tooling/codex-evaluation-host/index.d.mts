@@ -4,6 +4,26 @@ export const CODEX_EVALUATION_NPM_VERSION: '11.12.1';
 export const CODEX_EVALUATION_REASONING_EFFORT: 'medium';
 export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS: readonly string[];
 export const CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS: number;
+export const CODEX_EVALUATION_HOST_FAILURE_KINDS: {
+  readonly Aborted: 'aborted';
+  readonly ExecutionFailed: 'execution-failed';
+  readonly OutputLimit: 'output-limit';
+  readonly ProxyUnavailable: 'proxy-unavailable';
+  readonly SpawnFailed: 'spawn-failed';
+  readonly TimedOut: 'timed-out';
+};
+
+export type ICodexEvaluationHostFailureKind =
+  (typeof CODEX_EVALUATION_HOST_FAILURE_KINDS)[keyof typeof CODEX_EVALUATION_HOST_FAILURE_KINDS];
+
+export class CodexEvaluationHostError extends Error {
+  public readonly kind: ICodexEvaluationHostFailureKind;
+  public constructor(
+    kind: ICodexEvaluationHostFailureKind,
+    message: string,
+    options?: ErrorOptions,
+  );
+}
 
 export type ICodexEvaluationHostConfiguration = {
   allowedEgressHosts: string[];
@@ -57,6 +77,7 @@ export const identifyCodexEvaluationHostConfiguration: (
 ) => ICodexEvaluationHostConfiguration;
 export const identifyConfiguredModel: (command: readonly string[]) => string;
 export const identifyConfiguredReasoningEffort: (command: readonly string[]) => string;
+export const isRetryableCodexEvaluationHostError: (error: unknown) => boolean;
 export const parseCodexEvaluationHostCommand: (
   variableName: string,
   fallback?: readonly string[],
@@ -78,5 +99,8 @@ export const runCodexEvaluationHost: (options: {
 export const validateCodexEvaluationHostCommand: (command: readonly string[]) => void;
 
 export const isPublicIpAddress: (address: string) => boolean;
-export const parseConnectAuthority: (authority: string) => { host: string; port: number };
+export const parseConnectAuthority: (authority: string) => {
+  host: string;
+  port: number;
+};
 export const runCodexEvaluationProxy: () => Promise<void>;

@@ -11,9 +11,12 @@ import {
   buildCodexEvaluationBwrapArguments,
   buildCodexEvaluationHostCommand,
   CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
+  CODEX_EVALUATION_HOST_FAILURE_KINDS,
+  CodexEvaluationHostError,
   identifyCodexEvaluationHostConfiguration,
   identifyConfiguredModel,
   identifyConfiguredReasoningEffort,
+  isRetryableCodexEvaluationHostError,
   resolveCodeModeHostPath,
   stopCodexEvaluationProxyProcess,
   validateCodexEvaluationHostCommand,
@@ -33,6 +36,37 @@ const BASE_HOST_COMMAND = [
 ];
 const SAFE_HOST_COMMAND = buildCodexEvaluationHostCommand(BASE_HOST_COMMAND);
 
+test('host failures expose stable retryable and terminal categories', () => {
+  assert.equal(
+    isRetryableCodexEvaluationHostError(
+      new CodexEvaluationHostError(
+        CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
+        'Provider request failed.',
+      ),
+    ),
+    true,
+  );
+  assert.equal(
+    isRetryableCodexEvaluationHostError(
+      new CodexEvaluationHostError(
+        CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
+        'Provider request timed out.',
+      ),
+    ),
+    true,
+  );
+  assert.equal(
+    isRetryableCodexEvaluationHostError(
+      new CodexEvaluationHostError(
+        CODEX_EVALUATION_HOST_FAILURE_KINDS.OutputLimit,
+        'Host output exceeded its limit.',
+      ),
+    ),
+    false,
+  );
+  assert.equal(isRetryableCodexEvaluationHostError(new Error('Unknown failure.')), false);
+});
+
 test('host configuration resolves every non-secret execution setting', () => {
   const originalAllowedHosts = process.env.MOLDEA_EVAL_ALLOWED_HOSTS;
   const originalBaseUrl = process.env.OPENAI_BASE_URL;
@@ -48,21 +82,27 @@ test('host configuration resolves every non-secret execution setting', () => {
     process.env.SSL_CERT_FILE = certificateFile;
     process.env.MOLDEA_EVAL_HOST_TIMEOUT_MS = '240000';
 
-    assert.deepEqual(identifyCodexEvaluationHostConfiguration({ defaultHostTimeoutMs: 300_000 }), {
-      allowedEgressHosts: [
-        'api.openai.com',
-        'auth.openai.com',
-        'chatgpt.com',
-        'gateway.example.com',
-        'registry.example.com',
-      ],
-      hostTimeoutMs: 240_000,
-      modelEndpoint: {
-        origin: 'https://gateway.example.com',
-        sha256: '2467c53b1babc443bf5bd26d6e2bf571499a5e6324bae883d466c67157b51c25',
+    assert.deepEqual(
+      identifyCodexEvaluationHostConfiguration({
+        defaultHostTimeoutMs: 300_000,
+      }),
+      {
+        allowedEgressHosts: [
+          'api.openai.com',
+          'auth.openai.com',
+          'chatgpt.com',
+          'gateway.example.com',
+          'registry.example.com',
+        ],
+        hostTimeoutMs: 240_000,
+        modelEndpoint: {
+          origin: 'https://gateway.example.com',
+          sha256: '2467c53b1babc443bf5bd26d6e2bf571499a5e6324bae883d466c67157b51c25',
+        },
+        sslCertificateFileSha256:
+          'abffccc2e499fcbd8f543b252e1e7a008c00d333648e38d7d18ea0dad19c2884',
       },
-      sslCertificateFileSha256: 'abffccc2e499fcbd8f543b252e1e7a008c00d333648e38d7d18ea0dad19c2884',
-    });
+    );
   } finally {
     if (originalAllowedHosts === undefined) delete process.env.MOLDEA_EVAL_ALLOWED_HOSTS;
     else process.env.MOLDEA_EVAL_ALLOWED_HOSTS = originalAllowedHosts;
@@ -88,7 +128,9 @@ test('host configuration accepts a workflow-owned default timeout', () => {
       CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
     );
     assert.equal(
-      identifyCodexEvaluationHostConfiguration({ defaultHostTimeoutMs: 300_000 }).hostTimeoutMs,
+      identifyCodexEvaluationHostConfiguration({
+        defaultHostTimeoutMs: 300_000,
+      }).hostTimeoutMs,
       300_000,
     );
     assert.throws(

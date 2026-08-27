@@ -9,6 +9,15 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
+/** Waits for relay shutdown while accepting the reset produced by forced socket destruction. */
+const waitForClientShutdown = (clientSocket) =>
+  new Promise((resolvePromise, rejectPromise) => {
+    clientSocket.once('error', (error) => {
+      if (error.code !== 'ECONNRESET') rejectPromise(error);
+    });
+    clientSocket.once('close', resolvePromise);
+  });
+
 test('relay closes promptly while a client connection is active', async () => {
   const temporaryDirectory = mkdtempSync(join(tmpdir(), 'moldea-proxy-shutdown-test-'));
   const socketPath = join(temporaryDirectory, 'proxy.sock');
@@ -31,7 +40,7 @@ test('relay closes promptly while a client connection is active', async () => {
     assert.equal(readyOutput.toString('utf8'), 'ready\n');
     clientSocket = connect(socketPath);
     await once(clientSocket, 'connect');
-    const clientClosePromise = once(clientSocket, 'close');
+    const clientClosePromise = waitForClientShutdown(clientSocket);
     const proxyClosePromise = once(proxyProcess, 'close');
 
     proxyProcess.kill('SIGTERM');

@@ -30,6 +30,23 @@ export interface ISemanticAttemptCliIdentity {
   version: string;
 }
 
+// immutable evidence reference for one supported schema and protocol pair
+export type ISemanticAttemptEvidenceReference =
+  | {
+      evaluationProtocolVersion: 16 | 17;
+      kind: 'candidate';
+      path: 'evidence.json';
+      schemaVersion: 5;
+      sha256: string;
+    }
+  | {
+      evaluationProtocolVersion: 18;
+      kind: 'candidate';
+      path: 'evidence.json';
+      schemaVersion: 6;
+      sha256: string;
+    };
+
 // one initial or confirmation evaluation for a semantic case
 export interface ISemanticAttemptTrial {
   actorCommandPolicyEvidence: ISemanticAttemptCommandPolicyEvidence;
@@ -61,13 +78,7 @@ export interface ISemanticAttemptRecord {
   cli: ISemanticAttemptCliIdentity;
   coverageDigest: string;
   createdAt: string;
-  evidence: {
-    evaluationProtocolVersion: 16 | 17;
-    kind: 'candidate';
-    path: 'evidence.json';
-    schemaVersion: 5;
-    sha256: string;
-  };
+  evidence: ISemanticAttemptEvidenceReference;
   failedCaseCount: number;
   hostContract: ISemanticEvaluationHostContract;
   passedCaseCount: number;

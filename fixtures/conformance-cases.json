@@ -6,9 +6,7 @@
       "operation": "initialize",
       "input": {
         "packageManager": "npm@11.12.1",
-        "lockfiles": [
-          "package-lock.json"
-        ],
+        "lockfiles": ["package-lock.json"],
         "executable": {
           "manager": "npm",
           "version": "11.12.1"
@@ -19,14 +17,8 @@
           "executableResolves": true
         }
       },
-      "expected": [
-        "preserve-established-manager",
-        "install-exact-release-cli"
-      ],
-      "forbidden": [
-        "preserve-different-cli",
-        "treat-3.3.6-as-the-release-cli"
-      ]
+      "expected": ["preserve-established-manager", "install-exact-release-cli"],
+      "forbidden": ["preserve-different-cli", "treat-3.3.6-as-the-release-cli"]
     },
     {
       "id": "release-cli-missing-required-capability",
@@ -34,9 +26,7 @@
       "operation": "maintain-agent",
       "input": {
         "packageManager": "npm@11.12.1",
-        "lockfiles": [
-          "package-lock.json"
-        ],
+        "lockfiles": ["package-lock.json"],
         "executable": {
           "manager": "npm",
           "version": "11.12.1"
@@ -49,14 +39,8 @@
           "requiredCapability": "required-official-adapter-capability"
         }
       },
-      "expected": [
-        "preserve-established-manager",
-        "report-release-capability-defect"
-      ],
-      "forbidden": [
-        "select-another-cli",
-        "continue-with-missing-capability"
-      ]
+      "expected": ["preserve-established-manager", "report-release-capability-defect"],
+      "forbidden": ["select-another-cli", "continue-with-missing-capability"]
     },
     {
       "id": "evaluate-release-cli-missing-required-capability",
@@ -64,9 +48,7 @@
       "operation": "evaluate",
       "input": {
         "packageManager": "npm@11.12.1",
-        "lockfiles": [
-          "package-lock.json"
-        ],
+        "lockfiles": ["package-lock.json"],
         "executable": {
           "manager": "npm",
           "version": "11.12.1"
@@ -79,14 +61,8 @@
           "requiredCapability": "required-official-adapter-capability"
         }
       },
-      "expected": [
-        "preserve-established-manager",
-        "report-release-capability-defect"
-      ],
-      "forbidden": [
-        "replace-cli-during-evaluate",
-        "continue-with-missing-capability"
-      ]
+      "expected": ["preserve-established-manager", "report-release-capability-defect"],
+      "forbidden": ["replace-cli-during-evaluate", "continue-with-missing-capability"]
     },
     {
       "id": "no-evidence-default-npm",
@@ -105,14 +81,8 @@
           "executableResolves": true
         }
       },
-      "expected": [
-        "select-npm-and-verify-executable",
-        "preserve-existing-exact-cli"
-      ],
-      "forbidden": [
-        "select-another-manager",
-        "skip-version-verification"
-      ]
+      "expected": ["select-npm-and-verify-executable", "preserve-existing-exact-cli"],
+      "forbidden": ["select-another-manager", "skip-version-verification"]
     },
     {
       "id": "matching-package-manager-and-lockfile",
@@ -120,9 +90,7 @@
       "operation": "maintain",
       "input": {
         "packageManager": "pnpm@11.20.0",
-        "lockfiles": [
-          "pnpm-lock.yaml"
-        ],
+        "lockfiles": ["pnpm-lock.yaml"],
         "executable": {
           "manager": "pnpm",
           "version": "11.20.0"
@@ -133,14 +101,8 @@
           "executableResolves": true
         }
       },
-      "expected": [
-        "preserve-established-manager",
-        "preserve-existing-exact-cli"
-      ],
-      "forbidden": [
-        "switch-manager",
-        "switch-release-cli"
-      ]
+      "expected": ["preserve-established-manager", "preserve-existing-exact-cli"],
+      "forbidden": ["switch-manager", "switch-release-cli"]
     },
     {
       "id": "metadata-lockfile-conflict",
@@ -148,9 +110,7 @@
       "operation": "reconcile",
       "input": {
         "packageManager": "npm@11.12.1",
-        "lockfiles": [
-          "pnpm-lock.yaml"
-        ],
+        "lockfiles": ["pnpm-lock.yaml"],
         "executable": {
           "manager": "npm",
           "version": "11.12.1"
@@ -161,13 +121,8 @@
           "executableResolves": true
         }
       },
-      "expected": [
-        "stop-for-material-conflict"
-      ],
-      "forbidden": [
-        "delete-lockfile",
-        "guess-manager"
-      ]
+      "expected": ["stop-for-material-conflict"],
+      "forbidden": ["delete-lockfile", "guess-manager"]
     },
     {
       "id": "multiple-manager-lockfiles",
@@ -175,10 +130,7 @@
       "operation": "initialize",
       "input": {
         "packageManager": null,
-        "lockfiles": [
-          "package-lock.json",
-          "yarn.lock"
-        ],
+        "lockfiles": ["package-lock.json", "yarn.lock"],
         "executable": {
           "manager": "npm",
           "version": "11.12.1"
@@ -189,13 +141,8 @@
           "executableResolves": false
         }
       },
-      "expected": [
-        "stop-for-material-conflict"
-      ],
-      "forbidden": [
-        "default-to-npm",
-        "delete-lockfile"
-      ]
+      "expected": ["stop-for-material-conflict"],
+      "forbidden": ["default-to-npm", "delete-lockfile"]
     },
     {
       "id": "declared-executable-version-conflict",
@@ -203,9 +150,7 @@
       "operation": "maintain",
       "input": {
         "packageManager": "yarn@4.0.0",
-        "lockfiles": [
-          "yarn.lock"
-        ],
+        "lockfiles": ["yarn.lock"],
         "executable": {
           "manager": "yarn",
           "version": "4.18.0"
@@ -216,13 +161,8 @@
           "executableResolves": true
         }
       },
-      "expected": [
-        "stop-for-material-conflict"
-      ],
-      "forbidden": [
-        "rewrite-package-manager-metadata",
-        "continue-with-mismatch"
-      ]
+      "expected": ["stop-for-material-conflict"],
+      "forbidden": ["rewrite-package-manager-metadata", "continue-with-mismatch"]
     },
     {
       "id": "unsupported-established-manager",
@@ -241,13 +181,8 @@
           "executableResolves": false
         }
       },
-      "expected": [
-        "report-prerequisite-without-switching"
-      ],
-      "forbidden": [
-        "switch-to-npm",
-        "install-package-manager"
-      ]
+      "expected": ["report-prerequisite-without-switching"],
+      "forbidden": ["switch-to-npm", "install-package-manager"]
     },
     {
       "id": "out-of-range-executable",
@@ -255,9 +190,7 @@
       "operation": "reconcile",
       "input": {
         "packageManager": "yarn@5.0.0",
-        "lockfiles": [
-          "yarn.lock"
-        ],
+        "lockfiles": ["yarn.lock"],
         "executable": {
           "manager": "yarn",
           "version": "5.0.0"
@@ -268,13 +201,8 @@
           "executableResolves": true
         }
       },
-      "expected": [
-        "report-prerequisite-without-upgrade"
-      ],
-      "forbidden": [
-        "downgrade-package-manager",
-        "continue-outside-range"
-      ]
+      "expected": ["report-prerequisite-without-upgrade"],
+      "forbidden": ["downgrade-package-manager", "continue-outside-range"]
     },
     {
       "id": "floating-cli-with-release-install",
@@ -282,9 +210,7 @@
       "operation": "reconcile",
       "input": {
         "packageManager": "npm@11.12.1",
-        "lockfiles": [
-          "package-lock.json"
-        ],
+        "lockfiles": ["package-lock.json"],
         "executable": {
           "manager": "npm",
           "version": "11.12.1"
@@ -295,14 +221,8 @@
           "executableResolves": true
         }
       },
-      "expected": [
-        "preserve-established-manager",
-        "pin-exact-release-cli"
-      ],
-      "forbidden": [
-        "select-another-cli",
-        "retain-floating-declaration"
-      ]
+      "expected": ["preserve-established-manager", "pin-exact-release-cli"],
+      "forbidden": ["select-another-cli", "retain-floating-declaration"]
     },
     {
       "id": "missing-release-cli",
@@ -310,9 +230,7 @@
       "operation": "initialize",
       "input": {
         "packageManager": "npm@11.12.1",
-        "lockfiles": [
-          "package-lock.json"
-        ],
+        "lockfiles": ["package-lock.json"],
         "executable": {
           "manager": "npm",
           "version": "11.12.1"
@@ -323,14 +241,8 @@
           "executableResolves": false
         }
       },
-      "expected": [
-        "preserve-established-manager",
-        "install-exact-release-cli"
-      ],
-      "forbidden": [
-        "use-global-cli",
-        "install-prerelease"
-      ]
+      "expected": ["preserve-established-manager", "install-exact-release-cli"],
+      "forbidden": ["use-global-cli", "install-prerelease"]
     },
     {
       "id": "evaluate-missing-cli-read-only",
@@ -338,9 +250,7 @@
       "operation": "evaluate",
       "input": {
         "packageManager": "npm@11.12.1",
-        "lockfiles": [
-          "package-lock.json"
-        ],
+        "lockfiles": ["package-lock.json"],
         "executable": {
           "manager": "npm",
           "version": "11.12.1"
@@ -351,14 +261,8 @@
           "executableResolves": false
         }
       },
-      "expected": [
-        "preserve-established-manager",
-        "report-read-only-remediation"
-      ],
-      "forbidden": [
-        "create-package-json",
-        "install-cli"
-      ]
+      "expected": ["preserve-established-manager", "report-read-only-remediation"],
+      "forbidden": ["create-package-json", "install-cli"]
     },
     {
       "id": "plan-missing-cli-without-tooling-change",
@@ -377,14 +281,8 @@
           "executableResolves": false
         }
       },
-      "expected": [
-        "continue-plan-without-tooling"
-      ],
-      "forbidden": [
-        "select-package-manager",
-        "create-package-json",
-        "install-cli"
-      ]
+      "expected": ["continue-plan-without-tooling"],
+      "forbidden": ["select-package-manager", "create-package-json", "install-cli"]
     },
     {
       "id": "validate-missing-cli-read-only",
@@ -392,9 +290,7 @@
       "operation": "validate",
       "input": {
         "packageManager": "npm@11.12.1",
-        "lockfiles": [
-          "package-lock.json"
-        ],
+        "lockfiles": ["package-lock.json"],
         "executable": {
           "manager": "npm",
           "version": "11.12.1"
@@ -405,14 +301,8 @@
           "executableResolves": false
         }
       },
-      "expected": [
-        "preserve-established-manager",
-        "report-read-only-remediation"
-      ],
-      "forbidden": [
-        "change-dependency-state",
-        "install-cli"
-      ]
+      "expected": ["preserve-established-manager", "report-read-only-remediation"],
+      "forbidden": ["change-dependency-state", "install-cli"]
     },
     {
       "id": "existing-cli-with-executable-manager-config",
@@ -420,30 +310,20 @@
       "operation": "maintain",
       "input": {
         "packageManager": "pnpm@11.20.0",
-        "lockfiles": [
-          "pnpm-lock.yaml"
-        ],
+        "lockfiles": ["pnpm-lock.yaml"],
         "executable": {
           "manager": "pnpm",
           "version": "11.20.0"
         },
-        "repositoryExecutableConfig": [
-          "pnpmfile"
-        ],
+        "repositoryExecutableConfig": ["pnpmfile"],
         "cli": {
           "declaration": "5.0.0",
           "installedVersion": "5.0.0",
           "executableResolves": true
         }
       },
-      "expected": [
-        "preserve-established-manager",
-        "preserve-existing-exact-cli"
-      ],
-      "forbidden": [
-        "execute-repository-hook",
-        "run-package-manager-install"
-      ]
+      "expected": ["preserve-established-manager", "preserve-existing-exact-cli"],
+      "forbidden": ["execute-repository-hook", "run-package-manager-install"]
     },
     {
       "id": "pnpm-executable-hook-config",
@@ -451,29 +331,20 @@
       "operation": "initialize",
       "input": {
         "packageManager": "pnpm@11.20.0",
-        "lockfiles": [
-          "pnpm-lock.yaml"
-        ],
+        "lockfiles": ["pnpm-lock.yaml"],
         "executable": {
           "manager": "pnpm",
           "version": "11.20.0"
         },
-        "repositoryExecutableConfig": [
-          "pnpmfile"
-        ],
+        "repositoryExecutableConfig": ["pnpmfile"],
         "cli": {
           "declaration": null,
           "installedVersion": null,
           "executableResolves": false
         }
       },
-      "expected": [
-        "stop-for-executable-package-manager-config"
-      ],
-      "forbidden": [
-        "execute-repository-hook",
-        "run-package-manager-install"
-      ]
+      "expected": ["stop-for-executable-package-manager-config"],
+      "forbidden": ["execute-repository-hook", "run-package-manager-install"]
     },
     {
       "id": "yarn-third-party-plugin-config",
@@ -481,29 +352,20 @@
       "operation": "initialize",
       "input": {
         "packageManager": "yarn@4.18.0",
-        "lockfiles": [
-          "yarn.lock"
-        ],
+        "lockfiles": ["yarn.lock"],
         "executable": {
           "manager": "yarn",
           "version": "4.18.0"
         },
-        "repositoryExecutableConfig": [
-          "third-party-yarn-plugin"
-        ],
+        "repositoryExecutableConfig": ["third-party-yarn-plugin"],
         "cli": {
           "declaration": null,
           "installedVersion": null,
           "executableResolves": false
         }
       },
-      "expected": [
-        "stop-for-executable-package-manager-config"
-      ],
-      "forbidden": [
-        "execute-repository-plugin",
-        "run-package-manager-install"
-      ]
+      "expected": ["stop-for-executable-package-manager-config"],
+      "forbidden": ["execute-repository-plugin", "run-package-manager-install"]
     }
   ],
   "cliEnvelopeCases": [
@@ -525,13 +387,8 @@
           "error": null
         }
       },
-      "expected": [
-        "interpret-result"
-      ],
-      "forbidden": [
-        "reject-supported-envelope",
-        "reinterpret-fields"
-      ]
+      "expected": ["interpret-result"],
+      "forbidden": ["reject-supported-envelope", "reinterpret-fields"]
     },
     {
       "id": "inspect-invalid",
@@ -553,13 +410,8 @@
           "error": null
         }
       },
-      "expected": [
-        "interpret-structural-diagnostics"
-      ],
-      "forbidden": [
-        "treat-as-operational-failure",
-        "discard-diagnostics"
-      ]
+      "expected": ["interpret-structural-diagnostics"],
+      "forbidden": ["treat-as-operational-failure", "discard-diagnostics"]
     },
     {
       "id": "composition-valid",
@@ -579,13 +431,8 @@
           "error": null
         }
       },
-      "expected": [
-        "interpret-result"
-      ],
-      "forbidden": [
-        "ignore-composition-result",
-        "reinterpret-fields"
-      ]
+      "expected": ["interpret-result"],
+      "forbidden": ["ignore-composition-result", "reinterpret-fields"]
     },
     {
       "id": "schema-mismatch",
@@ -605,13 +452,8 @@
           "error": null
         }
       },
-      "expected": [
-        "stop-without-heuristics"
-      ],
-      "forbidden": [
-        "infer-schema-fields",
-        "interpret-result"
-      ]
+      "expected": ["stop-without-heuristics"],
+      "forbidden": ["infer-schema-fields", "interpret-result"]
     },
     {
       "id": "version-mismatch",
@@ -631,13 +473,8 @@
           "error": null
         }
       },
-      "expected": [
-        "stop-without-heuristics"
-      ],
-      "forbidden": [
-        "trust-mismatched-binary",
-        "interpret-result"
-      ]
+      "expected": ["stop-without-heuristics"],
+      "forbidden": ["trust-mismatched-binary", "interpret-result"]
     },
     {
       "id": "different-cli-version",
@@ -657,13 +494,8 @@
           "error": null
         }
       },
-      "expected": [
-        "stop-without-heuristics"
-      ],
-      "forbidden": [
-        "accept-different-cli-version",
-        "interpret-result"
-      ]
+      "expected": ["stop-without-heuristics"],
+      "forbidden": ["accept-different-cli-version", "interpret-result"]
     },
     {
       "id": "command-mismatch",
@@ -683,13 +515,8 @@
           "error": null
         }
       },
-      "expected": [
-        "stop-without-heuristics"
-      ],
-      "forbidden": [
-        "reinterpret-command",
-        "interpret-result"
-      ]
+      "expected": ["stop-without-heuristics"],
+      "forbidden": ["reinterpret-command", "interpret-result"]
     },
     {
       "id": "composition-invalid",
@@ -709,13 +536,8 @@
           "error": null
         }
       },
-      "expected": [
-        "stop-without-heuristics"
-      ],
-      "forbidden": [
-        "accept-composition-invalid",
-        "interpret-result"
-      ]
+      "expected": ["stop-without-heuristics"],
+      "forbidden": ["accept-composition-invalid", "interpret-result"]
     },
     {
       "id": "operational-error",
@@ -738,13 +560,8 @@
           }
         }
       },
-      "expected": [
-        "report-separately-from-invalidity"
-      ],
-      "forbidden": [
-        "treat-as-structural-invalidity",
-        "interpret-result"
-      ]
+      "expected": ["report-separately-from-invalidity"],
+      "forbidden": ["treat-as-structural-invalidity", "interpret-result"]
     },
     {
       "id": "malformed-json",
@@ -757,13 +574,8 @@
         "exitCode": 0,
         "output": "not-json"
       },
-      "expected": [
-        "stop-without-heuristics"
-      ],
-      "forbidden": [
-        "parse-human-output",
-        "infer-result"
-      ]
+      "expected": ["stop-without-heuristics"],
+      "forbidden": ["parse-human-output", "infer-result"]
     }
   ],
   "readmeMarkerCases": [
@@ -774,14 +586,8 @@
       "input": {
         "readme": "# Example\n\nRepository overview.\n"
       },
-      "expected": [
-        "report-missing",
-        "add-one-block"
-      ],
-      "forbidden": [
-        "claim-synchronized-during-evaluate",
-        "replace-unowned-content"
-      ]
+      "expected": ["report-missing", "add-one-block"],
+      "forbidden": ["claim-synchronized-during-evaluate", "replace-unowned-content"]
     },
     {
       "id": "one-valid-pair",
@@ -790,14 +596,8 @@
       "input": {
         "readme": "# Example\n\n<!-- moldea:start -->\nOwned text.\n<!-- moldea:end -->\n\nUnowned text.\n"
       },
-      "expected": [
-        "assess-content",
-        "replace-owned-content-only"
-      ],
-      "forbidden": [
-        "replace-whole-readme",
-        "create-second-block"
-      ]
+      "expected": ["assess-content", "replace-owned-content-only"],
+      "forbidden": ["replace-whole-readme", "create-second-block"]
     },
     {
       "id": "duplicate-markers",
@@ -806,14 +606,8 @@
       "input": {
         "readme": "<!-- moldea:start -->\nOne\n<!-- moldea:end -->\n<!-- moldea:start -->\nTwo\n<!-- moldea:end -->\n"
       },
-      "expected": [
-        "report-ownership-conflict",
-        "stop-for-developer-resolution"
-      ],
-      "forbidden": [
-        "choose-first-block",
-        "choose-last-block"
-      ]
+      "expected": ["report-ownership-conflict", "stop-for-developer-resolution"],
+      "forbidden": ["choose-first-block", "choose-last-block"]
     },
     {
       "id": "missing-start",
@@ -822,14 +616,8 @@
       "input": {
         "readme": "# Example\n<!-- moldea:end -->\n"
       },
-      "expected": [
-        "report-ownership-conflict",
-        "stop-for-developer-resolution"
-      ],
-      "forbidden": [
-        "insert-assumed-start",
-        "delete-marker"
-      ]
+      "expected": ["report-ownership-conflict", "stop-for-developer-resolution"],
+      "forbidden": ["insert-assumed-start", "delete-marker"]
     },
     {
       "id": "missing-end",
@@ -838,14 +626,8 @@
       "input": {
         "readme": "# Example\n<!-- moldea:start -->\n"
       },
-      "expected": [
-        "report-ownership-conflict",
-        "stop-for-developer-resolution"
-      ],
-      "forbidden": [
-        "append-assumed-end",
-        "delete-marker"
-      ]
+      "expected": ["report-ownership-conflict", "stop-for-developer-resolution"],
+      "forbidden": ["append-assumed-end", "delete-marker"]
     },
     {
       "id": "reversed-markers",
@@ -854,14 +636,8 @@
       "input": {
         "readme": "<!-- moldea:end -->\nText\n<!-- moldea:start -->\n"
       },
-      "expected": [
-        "report-ownership-conflict",
-        "stop-for-developer-resolution"
-      ],
-      "forbidden": [
-        "reorder-markers",
-        "replace-intervening-content"
-      ]
+      "expected": ["report-ownership-conflict", "stop-for-developer-resolution"],
+      "forbidden": ["reorder-markers", "replace-intervening-content"]
     },
     {
       "id": "nested-markers",
@@ -870,14 +646,8 @@
       "input": {
         "readme": "<!-- moldea:start -->\nOuter\n<!-- moldea:start -->\nInner\n<!-- moldea:end -->\n<!-- moldea:end -->\n"
       },
-      "expected": [
-        "report-ownership-conflict",
-        "stop-for-developer-resolution"
-      ],
-      "forbidden": [
-        "flatten-markers",
-        "choose-inner-block"
-      ]
+      "expected": ["report-ownership-conflict", "stop-for-developer-resolution"],
+      "forbidden": ["flatten-markers", "choose-inner-block"]
     }
   ],
   "semanticCases": [
@@ -1961,7 +1731,7 @@
             "source": {
               "kind": "related-path",
               "mount": "/related-application",
-              "path": "src/refund-agent.js",
+              "path": "src/refund-agent.ts",
               "expectedType": "file"
             }
           },
@@ -3528,7 +3298,7 @@
             "claim": "Repository source uses the OpenAI Responses API.",
             "source": {
               "kind": "workspace-path",
-              "path": "src/refund-agent.js",
+              "path": "src/refund-agent.ts",
               "expectedType": "file"
             }
           }
@@ -3586,7 +3356,7 @@
             "claim": "Repository source uses the OpenAI Responses API.",
             "source": {
               "kind": "workspace-path",
-              "path": "src/refund-agent.js",
+              "path": "src/refund-agent.ts",
               "expectedType": "file"
             }
           }
@@ -3648,7 +3418,7 @@
             "claim": "Repository source uses the OpenAI Responses API.",
             "source": {
               "kind": "workspace-path",
-              "path": "src/refund-agent.js",
+              "path": "src/refund-agent.ts",
               "expectedType": "file"
             }
           }
@@ -3768,7 +3538,7 @@
             "claim": "Repository source uses the published OpenAI Responses API target.",
             "source": {
               "kind": "workspace-path",
-              "path": "src/refund-agent.js",
+              "path": "src/refund-agent.ts",
               "expectedType": "file"
             }
           }
@@ -3827,7 +3597,7 @@
             "source": {
               "kind": "related-path",
               "mount": "/related-application",
-              "path": "src/refund-agent.js",
+              "path": "src/refund-agent.ts",
               "expectedType": "file"
             }
           },
@@ -3857,7 +3627,7 @@
         },
         {
           "label": "treat-missing-local-evidence-as-limitation",
-          "criterion": "The actor reports that canonical inspection cannot observe the external implementation while still using the reliable related-application evidence that is available."
+          "criterion": "The actor keeps canonical inspection results separate from related-application evidence and does not claim that canonical inspection observes the external implementation."
         },
         {
           "label": "represent-application-capabilities-semantically",

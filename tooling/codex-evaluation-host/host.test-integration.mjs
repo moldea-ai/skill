@@ -8,6 +8,8 @@ import { join } from 'node:path';
 import test from 'node:test';
 
 import {
+  CODEX_EVALUATION_HOST_FAILURE_KINDS,
+  CodexEvaluationHostError,
   buildCodexEvaluationBwrapArguments,
   buildCodexEvaluationHostCommand,
   prepareCodexEvaluationHome,
@@ -209,7 +211,9 @@ test('Bubblewrap keeps the workspace writable except for evaluator-owned control
   const repositoryPath = join(evaluationRoot, 'repository');
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(join(repositoryPath, '.git'), { recursive: true });
-  mkdirSync(join(repositoryPath, '.agents', 'skills', 'moldea'), { recursive: true });
+  mkdirSync(join(repositoryPath, '.agents', 'skills', 'moldea'), {
+    recursive: true,
+  });
   mkdirSync(sandboxHome);
   writeFileSync(join(repositoryPath, '.git', 'config'), 'protected');
   writeFileSync(join(repositoryPath, '.agents', 'skills', 'moldea', 'SKILL.md'), 'protected');
@@ -312,7 +316,10 @@ test('shared host closes its relay after successful and failed executions', asyn
         prompt: 'test failure',
         sandboxHome,
       }),
-      /Evaluation host failed with exit code 7: host failure/,
+      (error) =>
+        error instanceof CodexEvaluationHostError &&
+        error.kind === CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed &&
+        /Evaluation host failed with exit code 7: host failure/.test(error.message),
     );
   } finally {
     if (originalPath === undefined) delete process.env.PATH;
@@ -350,7 +357,10 @@ test('shared host cancellation stops the outer Bubblewrap execution', async () =
         sandboxHome,
         signal: abortController.signal,
       }),
-      /execution was aborted/,
+      (error) =>
+        error instanceof CodexEvaluationHostError &&
+        error.kind === CODEX_EVALUATION_HOST_FAILURE_KINDS.Aborted &&
+        /execution was aborted/.test(error.message),
     );
   } finally {
     clearTimeout(abortTimeout);
@@ -387,7 +397,10 @@ test('shared host enforces a workflow-owned default timeout', async () => {
         prompt: 'test timeout',
         sandboxHome,
       }),
-      /Evaluation host exceeded 50 milliseconds/,
+      (error) =>
+        error instanceof CodexEvaluationHostError &&
+        error.kind === CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut &&
+        /Evaluation host exceeded 50 milliseconds/.test(error.message),
     );
   } finally {
     if (originalPath === undefined) delete process.env.PATH;

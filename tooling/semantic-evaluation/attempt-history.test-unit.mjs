@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
+import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
+
 import { createSemanticAttemptRecord } from './attempt-history.mjs';
 
 const SHA256 = 'a'.repeat(64);
@@ -34,12 +36,13 @@ const createTrial = (id, passed, evaluatedAt) => ({
 });
 
 const createEvidence = (results, confirmations = []) => ({
+  activeTrial: null,
   artifactDigest: SHA256,
   caseSuiteDigest: 'b'.repeat(64),
   cli: { name: '@moldea.ai/cli', version: '5.0.0' },
   confirmations,
   coverageDigest: 'c'.repeat(64),
-  evaluationProtocolVersion: 17,
+  evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt: '2026-08-25T00:00:00.000Z',
   confirmations: confirmations.map((confirmation) => ({
     actorCommandPolicyEvidence: COMMAND_POLICY_EVIDENCE,
@@ -54,7 +57,7 @@ const createEvidence = (results, confirmations = []) => ({
     judgeHost: HOST,
     ...result,
   })),
-  schemaVersion: 5,
+  schemaVersion: 6,
   updatedAt: '2026-08-25T01:00:00.000Z',
 });
 
@@ -234,7 +237,13 @@ test('semantic attempt summaries reject missing or incompatible trial evidence',
         ...options,
         evidence: {
           ...createEvidence([trial]),
-          results: [{ ...trial, actorHost: HOST, judgeHost: { ...HOST, model: 'other' } }],
+          results: [
+            {
+              ...trial,
+              actorHost: HOST,
+              judgeHost: { ...HOST, model: 'other' },
+            },
+          ],
         },
       }),
     /invalid trial host provenance/,
@@ -252,7 +261,7 @@ test('semantic attempt summaries reject missing or incompatible trial evidence',
   );
 });
 
-test('semantic attempt summaries retain the previous protocol and reject unsupported contracts', () => {
+test('semantic attempt summaries retain historical contracts and reject unsupported contracts', () => {
   const trial = createTrial('passing-case', true, '2026-08-25T01:00:00.000Z');
   const options = {
     evidenceKind: 'candidate',
@@ -273,7 +282,11 @@ test('semantic attempt summaries retain the previous protocol and reject unsuppo
   assert.doesNotThrow(() =>
     createSemanticAttemptRecord({
       ...options,
-      evidence: { ...createEvidence([trial]), evaluationProtocolVersion: 16 },
+      evidence: {
+        ...createEvidence([trial]),
+        evaluationProtocolVersion: 16,
+        schemaVersion: 5,
+      },
     }),
   );
   assert.throws(
@@ -282,6 +295,17 @@ test('semantic attempt summaries retain the previous protocol and reject unsuppo
         ...options,
         evidence: { ...createEvidence([trial]), evaluationProtocolVersion: 15 },
       }),
-    /unsupported protocol/,
+    /unsupported schema and protocol contract/,
+  );
+  assert.throws(
+    () =>
+      createSemanticAttemptRecord({
+        ...options,
+        evidence: {
+          ...createEvidence([trial]),
+          activeTrial: { phase: 'actor-pending' },
+        },
+      }),
+    /cannot contain an active model stage/,
   );
 });

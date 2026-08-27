@@ -130,8 +130,14 @@ const createSemanticTrial = ({ caseDefinition, evaluatedAt, host }) => {
     id: caseDefinition.id,
     judgeHost: host,
     observed: ['satisfy-release-behavior'],
+    operationalRetries: {
+      actorFailureCount: 0,
+      judgeFailureCount: 0,
+      lastFailure: null,
+    },
     passed: true,
     rationale: 'The required release behavior was observed.',
+    readOnlyMountControlEvidence: [],
     repositoryControlEvidence: createRepositoryControlEvidence(repositoryState, repositoryState),
     scenarioEvidence: [
       {
@@ -158,6 +164,7 @@ const createPublicSemanticCase = (trial) => ({
   judgeHost: trial.judgeHost,
   passed: trial.passed,
   rationale: trial.rationale,
+  readOnlyMountControlEvidence: trial.readOnlyMountControlEvidence,
   repositoryControlEvidence: trial.repositoryControlEvidence,
   scenarioEvidence: trial.scenarioEvidence,
 });
@@ -218,7 +225,10 @@ const seedReleaseManifests = (root) => {
     `${JSON.stringify({
       lockfileVersion: 3,
       packages: {
-        '': { devDependencies: { '@moldea.ai/cli': '4.0.0' }, version: '3.1.0' },
+        '': {
+          devDependencies: { '@moldea.ai/cli': '4.0.0' },
+          version: '3.1.0',
+        },
         'node_modules/@moldea.ai/cli': {
           integrity: 'sha512-release-integrity',
           version: '4.0.0',
@@ -313,7 +323,10 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       claims: [
         {
           description: 'Release evidence retains exact per-trial semantic host provenance.',
-          evidence: semanticCases.map(({ id }) => ({ id, kind: 'semantic-case' })),
+          evidence: semanticCases.map(({ id }) => ({
+            id,
+            kind: 'semantic-case',
+          })),
           id: 'release-host-provenance',
           rationale: 'Both release cases exercise one stable host contract across CLI versions.',
           sourcePaths: ['moldea/SKILL.md'],
@@ -355,6 +368,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       }),
     );
     const semanticCandidate = {
+      activeTrial: null,
       artifactDigest: skillDigest,
       caseSuiteDigest: createSemanticCaseSuiteDigest(semanticCases),
       cli: createSemanticCliIdentity(temporaryRoot),
@@ -364,7 +378,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       generatedAt: semanticGeneratedAt,
       hostContract: semanticHostContract,
       results: semanticResults,
-      schemaVersion: 5,
+      schemaVersion: 6,
       updatedAt: semanticGeneratedAt,
     };
     const semanticCandidateText = `${JSON.stringify(semanticCandidate, null, 2)}\n`;
@@ -401,7 +415,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
         evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
         hostContract: semanticHostContract,
         results: semanticResults,
-        schemaVersion: 5,
+        schemaVersion: 6,
         semanticAttemptId: semanticAttempt.attemptId,
       })}\n`,
     );

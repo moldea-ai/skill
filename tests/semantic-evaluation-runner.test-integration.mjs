@@ -112,6 +112,9 @@ const DEDICATED_REPOSITORY_CASE_DEFINITIONS = SEMANTIC_CASES.filter(({ id }) =>
     id,
   ),
 );
+const DEDICATED_RUNTIME_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'dedicated-repository-runtime-selection',
+);
 
 test('actor repository materializes host instructions before the clean baseline', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-instructions-test-'));
@@ -583,9 +586,9 @@ test('dedicated repository scenarios expose the declared related application mou
       assert.equal(readOnlyMounts.length, 1);
       assert.equal(readOnlyMounts[0].target, '/related-application');
       assert.equal(existsSync(join(readOnlyMounts[0].source, 'package.json')), true);
-      assert.equal(existsSync(join(readOnlyMounts[0].source, 'src', 'refund-agent.js')), true);
+      assert.equal(existsSync(join(readOnlyMounts[0].source, 'src', 'refund-agent.ts')), true);
       assert.match(
-        readFileSync(join(readOnlyMounts[0].source, 'src', 'refund-agent.js'), 'utf8'),
+        readFileSync(join(readOnlyMounts[0].source, 'src', 'refund-agent.ts'), 'utf8'),
         /web_search_preview/u,
       );
     } finally {
@@ -745,6 +748,61 @@ test('release-review fixture delegates changelog discovery to its verifier', asy
 
     assert.equal(verifyRelease({ manager: 'npm', repositoryRoot: repositoryPath }), true);
     assert.equal(verifyRelease({ manager: 'unknown', repositoryRoot: repositoryPath }), false);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('dedicated runtime scenario exposes the verified public compatibility target', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-runtime-publication-test-'));
+  assert.ok(DEDICATED_RUNTIME_CASE_DEFINITION);
+
+  try {
+    const sandboxHome = join(evaluationRoot, 'actor-home');
+    const actorToolDirectory = join(evaluationRoot, 'actor-tools');
+    const actorToolMounts = await prepareSemanticEvaluationHome(
+      sandboxHome,
+      DEDICATED_RUNTIME_CASE_DEFINITION,
+      actorToolDirectory,
+    );
+    const publicationResult = spawnSync(
+      process.execPath,
+      [join(actorToolDirectory, 'curl'), 'https://packages.moldea.ai/compatibility/runtimes.json'],
+      { encoding: 'utf8' },
+    );
+
+    assert.equal(publicationResult.status, 0, publicationResult.stderr);
+    assert.deepEqual(actorToolMounts, [
+      { source: actorToolDirectory, target: '/home/evaluator/bin' },
+    ]);
+    const openAiPublication = JSON.parse(publicationResult.stdout).adapters.openai;
+    assert.equal(openAiPublication.compatibleCoreRange, '^2.0.0');
+    assert.equal(openAiPublication.implementation.versionRange, '^2.0.0');
+    assert.equal(openAiPublication.runtimeGuidance.expectation, 'recommended');
+    assert.equal(openAiPublication.targets.length, 1);
+    assert.equal(openAiPublication.targets[0].id, 'typescript-responses-api-7');
+    assert.equal(openAiPublication.targets[0].language, 'typescript');
+    assert.equal(openAiPublication.targets[0].lastVerifiedAt, '2026-08-17');
+    assert.equal(openAiPublication.targets[0].maturity, 'experimental');
+    assert.deepEqual(openAiPublication.targets[0].packages, [
+      {
+        ecosystem: 'npm',
+        name: 'openai',
+        role: 'primary',
+        versionRange: '>=7.4.0 <8.0.0',
+      },
+    ]);
+    assert.deepEqual(
+      openAiPublication.targets[0].patterns.map(({ id }) => id),
+      [
+        'direct-instruction-loader',
+        'chat-completions',
+        'direct-responses-runtime-agent',
+        'dynamic-source-indirection',
+        'direct-tool-input-schema',
+        'static-function-tools',
+      ],
+    );
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }
@@ -1018,7 +1076,9 @@ test('pnpm PnP scenario resolves and executes the exact local CLI provider', asy
     );
 
     assert.equal(packageManifest.packageManager, 'pnpm@11.21.0');
-    assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': RELEASE_CLI_VERSION });
+    assert.deepEqual(packageManifest.devDependencies, {
+      '@moldea.ai/cli': RELEASE_CLI_VERSION,
+    });
     assert.equal(pnpCliManifest.version, RELEASE_CLI_VERSION);
     assert.equal(versionResult.status, 0, versionResult.stderr);
     assert.equal(versionResult.stdout, '11.21.0\n');
@@ -1068,7 +1128,11 @@ test('pnpm PnP scenario resolves and executes the exact local CLI provider', asy
         type: 'item.completed',
       },
       {
-        item: { id: 'response', text: 'PnP proof complete.', type: 'agent_message' },
+        item: {
+          id: 'response',
+          text: 'PnP proof complete.',
+          type: 'agent_message',
+        },
         type: 'item.completed',
       },
     ]
@@ -1116,7 +1180,9 @@ test('skill artifact evidence exposes bounded content and independent validation
   const skillRoot = join(evaluationRoot, 'skills', 'release-review');
   mkdirSync(join(skillRoot, 'references'), { recursive: true });
   mkdirSync(join(skillRoot, 'assets'));
-  mkdirSync(join(evaluationRoot, 'dist', 'skills', 'release-review'), { recursive: true });
+  mkdirSync(join(evaluationRoot, 'dist', 'skills', 'release-review'), {
+    recursive: true,
+  });
   writeFileSync(
     join(skillRoot, 'SKILL.md'),
     [
@@ -1346,7 +1412,9 @@ test('semantic actors execute the copied published CLI closure', async () => {
   mkdirSync(repositoryPath);
 
   try {
-    await seedSemanticTooling(repositoryPath, { id: 'adopted-relevance-no-change' });
+    await seedSemanticTooling(repositoryPath, {
+      id: 'adopted-relevance-no-change',
+    });
     const packageManifest = JSON.parse(readFileSync(join(repositoryPath, 'package.json'), 'utf8'));
     const cliManifest = JSON.parse(
       readFileSync(
@@ -1414,7 +1482,11 @@ test('semantic actors execute the copied published CLI closure', async () => {
         type: 'item.completed',
       },
       {
-        item: { id: 'response', text: 'CLI proof complete.', type: 'agent_message' },
+        item: {
+          id: 'response',
+          text: 'CLI proof complete.',
+          type: 'agent_message',
+        },
         type: 'item.completed',
       },
     ]
@@ -1425,7 +1497,9 @@ test('semantic actors execute the copied published CLI closure', async () => {
       jsonSchemaVersion: RELEASE_CLI_JSON_SCHEMA_VERSION,
     });
 
-    assert.deepEqual(packageManifest.devDependencies, { '@moldea.ai/cli': RELEASE_CLI_VERSION });
+    assert.deepEqual(packageManifest.devDependencies, {
+      '@moldea.ai/cli': RELEASE_CLI_VERSION,
+    });
     assert.equal(cliManifest.bin.moldea, './dist/moldea.js');
     assert.equal(versionResult.status, 0, versionResult.stderr);
     assert.equal(versionResult.stdout.trim(), RELEASE_CLI_VERSION);

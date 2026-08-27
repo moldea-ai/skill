@@ -3,6 +3,26 @@ export interface ISemanticCriterion {
   label: string;
 }
 
+export type ISemanticOperationalRetry = {
+  category: 'execution-failed' | 'proxy-unavailable' | 'timed-out';
+  failedAt: string;
+  failureCount: number;
+  retryDelayMs: number;
+};
+
+export const calculateSemanticOperationalRetryDelay: (
+  failureCount: number,
+  randomValue?: number,
+) => number;
+export const runSemanticOperationalStage: <T>(options: {
+  initialFailureCount?: number;
+  now?: () => string;
+  onRetry: (retry: ISemanticOperationalRetry) => Promise<void>;
+  operation: () => Promise<T>;
+  random?: () => number;
+  wait?: (delayMs: number) => Promise<void>;
+}) => Promise<T>;
+
 // release identity required to recognize safe Moldea CLI envelopes
 export interface ISemanticActorExecutionEvidenceOptions {
   cliVersion: string;
@@ -218,6 +238,19 @@ export interface ISemanticRepositoryControlEvidence {
   violations: ISemanticRepositoryControlViolation[];
 }
 
+// full-tree state for one evaluator-owned related read-only mount
+export interface ISemanticReadOnlyMountControlState {
+  mount: string;
+  treeDigest: string;
+}
+
+// independently captured before-and-after state for one related read-only mount
+export interface ISemanticReadOnlyMountControlEvidence {
+  after: ISemanticReadOnlyMountControlState;
+  before: ISemanticReadOnlyMountControlState;
+  violations: Array<'mount-changed' | 'tree-changed'>;
+}
+
 export const getSemanticCriterionLabels: (criteria: ISemanticCriterion[]) => string[];
 export const validateSemanticCaseDefinition: <T extends ISemanticCaseDefinition>(
   caseDefinition: T,
@@ -247,6 +280,15 @@ export const hasValidScenarioEvidence: (
   caseDefinition: ISemanticCaseDefinition,
 ) => boolean;
 export const createEvaluationTreeDigest: (root: string) => Promise<string>;
+export const captureReadOnlyMountControlState: (mount: {
+  source: string;
+  target: string;
+}) => Promise<ISemanticReadOnlyMountControlState>;
+export const createReadOnlyMountControlEvidence: (
+  before: ISemanticReadOnlyMountControlState,
+  after: ISemanticReadOnlyMountControlState,
+) => ISemanticReadOnlyMountControlEvidence;
+export const hasValidReadOnlyMountControlEvidence: (evidence: unknown) => boolean;
 export const captureRepositoryControlState: (
   repositoryPath: string,
 ) => Promise<ISemanticRepositoryControlState>;

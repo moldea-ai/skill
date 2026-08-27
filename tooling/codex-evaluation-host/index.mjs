@@ -2,6 +2,7 @@
 export {
   CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS,
   CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
+  CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CODEX_EVALUATION_MODEL,
   CODEX_EVALUATION_NPM_VERSION,
   CODEX_EVALUATION_REASONING_EFFORT,
@@ -9,12 +10,14 @@ export {
 
 // host execution
 export {
+  CodexEvaluationHostError,
   buildCodexEvaluationBwrapArguments,
   buildCodexEvaluationHostCommand,
   identifyCodexEvaluationHost,
   identifyCodexEvaluationHostConfiguration,
   identifyConfiguredModel,
   identifyConfiguredReasoningEffort,
+  isRetryableCodexEvaluationHostError,
   parseCodexEvaluationHostCommand,
   prepareCodexEvaluationHome,
   resolveCodeModeHostPath,
@@ -23,8 +26,4 @@ export {
 } from './host.mjs';
 
 // restricted proxy
-export {
-  isPublicIpAddress,
-  parseConnectAuthority,
-  runCodexEvaluationProxy,
-} from './proxy.mjs';
+export { isPublicIpAddress, parseConnectAuthority, runCodexEvaluationProxy } from './proxy.mjs';

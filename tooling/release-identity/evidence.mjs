@@ -118,16 +118,22 @@ const listQualificationProfiles = (repositoryRoot) => {
   const profilesRoot = join(repositoryRoot, 'qualification', 'profiles');
   const profiles = [];
 
-  for (const adapterEntry of readdirSync(profilesRoot, { withFileTypes: true })) {
+  for (const adapterEntry of readdirSync(profilesRoot, {
+    withFileTypes: true,
+  })) {
     if (!adapterEntry.isDirectory()) continue;
     const adapterRoot = join(profilesRoot, adapterEntry.name);
 
-    for (const implementationEntry of readdirSync(adapterRoot, { withFileTypes: true })) {
+    for (const implementationEntry of readdirSync(adapterRoot, {
+      withFileTypes: true,
+    })) {
       if (!implementationEntry.isDirectory()) continue;
       const profilePath = join(adapterRoot, implementationEntry.name, 'profile.yaml');
       if (!existsSync(profilePath)) continue;
 
-      const document = parseDocument(readFileSync(profilePath, 'utf8'), { uniqueKeys: true });
+      const document = parseDocument(readFileSync(profilePath, 'utf8'), {
+        uniqueKeys: true,
+      });
       if (document.errors.length > 0) {
         throw new Error(document.errors.map((error) => error.message).join('\n'));
       }
@@ -357,8 +363,8 @@ const inspectSemanticEvidence = (repositoryRoot) => {
     }
   }
 
-  if (semanticResult.schemaVersion !== 5) {
-    issues.push(`${RELEASE_PATHS.semanticResult} does not use semantic result schema 5.`);
+  if (semanticResult.schemaVersion !== 6) {
+    issues.push(`${RELEASE_PATHS.semanticResult} does not use semantic result schema 6.`);
   }
   if (JSON.stringify(semanticResult.hostContract) !== JSON.stringify(SEMANTIC_HOST_CONTRACT)) {
     issues.push(

@@ -25,14 +25,23 @@ export {
 // coverage
 export { createSemanticCoverageDigest, validateSemanticCoverage } from './coverage.mjs';
 
+// operational retry
+export {
+  calculateSemanticOperationalRetryDelay,
+  runSemanticOperationalStage,
+} from './operational-retry.mjs';
+
 // scenario evidence
 export { collectScenarioEvidence, hasValidScenarioEvidence } from './scenario-evidence.mjs';
 
 // repository control
 export {
+  captureReadOnlyMountControlState,
   captureRepositoryControlState,
   createEvaluationTreeDigest,
+  createReadOnlyMountControlEvidence,
   createRepositoryControlEvidence,
+  hasValidReadOnlyMountControlEvidence,
   hasValidRepositoryControlEvidence,
 } from './repository-control.mjs';
 

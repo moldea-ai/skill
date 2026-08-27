@@ -17,6 +17,20 @@ export const CODEX_EVALUATION_DEFAULT_ALLOWED_EGRESS_HOSTS = [
   'auth.openai.com',
   'chatgpt.com',
 ];
+// stable categories for evaluation-host failures
+export const CODEX_EVALUATION_HOST_FAILURE_KINDS = {
+  Aborted: 'aborted',
+  ExecutionFailed: 'execution-failed',
+  OutputLimit: 'output-limit',
+  ProxyUnavailable: 'proxy-unavailable',
+  SpawnFailed: 'spawn-failed',
+  TimedOut: 'timed-out',
+};
+const RETRYABLE_CODEX_EVALUATION_HOST_FAILURE_KINDS = new Set([
+  CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
+  CODEX_EVALUATION_HOST_FAILURE_KINDS.ProxyUnavailable,
+  CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
+]);
 const EGRESS_PROXY_PATH = fileURLToPath(new URL('./proxy.mjs', import.meta.url));
 const EGRESS_PROXY_PORT = 3128;
 const EGRESS_PROXY_SHUTDOWN_TIMEOUT_MS = 5_000;
@@ -31,6 +45,26 @@ const REQUIRED_CODEX_FLAGS = [
 const REQUIRED_CODEX_CONFIG = ['shell_environment_policy.inherit=none'];
 const SAFE_HOST_ENVIRONMENT_NAMES = ['OPENAI_API_KEY', 'OPENAI_BASE_URL', 'SSL_CERT_FILE'];
 const EXCLUDED_WORKSPACE_PATH_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+
+/** Identifies one controlled evaluation-host failure without exposing provider diagnostics. */
+export class CodexEvaluationHostError extends Error {
+  /**
+   * Creates a categorized evaluation-host failure.
+   * @param kind The stable failure category.
+   * @param message The actionable local diagnostic.
+   * @param options Optional native error options.
+   */
+  constructor(kind, message, options) {
+    super(message, options);
+    this.name = CodexEvaluationHostError.name;
+    this.kind = kind;
+  }
+}
+
+/** Checks whether an evaluation-host failure can recover without changing evaluator inputs. */
+export const isRetryableCodexEvaluationHostError = (error) =>
+  error instanceof CodexEvaluationHostError &&
+  RETRYABLE_CODEX_EVALUATION_HOST_FAILURE_KINDS.has(error.kind);
 
 /** Resolves safe workspace-relative paths for read-only sandbox overlays. */
 const resolveReadOnlyWorkspacePaths = (cwd, paths) =>
@@ -289,7 +323,9 @@ export const resolveCodeModeHostPath = (hostExecutable) => {
  * @returns The host identity recorded with evaluation evidence.
  */
 export const identifyCodexEvaluationHost = (command) => {
-  const versionResult = spawnSync(command[0], ['--version'], { encoding: 'utf8' });
+  const versionResult = spawnSync(command[0], ['--version'], {
+    encoding: 'utf8',
+  });
 
   return {
     model: identifyConfiguredModel(command),
@@ -377,6 +413,8 @@ const getAllowedEgressHosts = () => {
  * @throws
  * - If defaultHostTimeoutMs is not a positive integer and no environment override is present
  * - If MOLDEA_EVAL_HOST_TIMEOUT_MS is not a positive integer
+ * - If the proxy or host process cannot start
+ * - If execution is aborted, times out, exceeds the output limit, or exits unsuccessfully
  */
 export const identifyCodexEvaluationHostConfiguration = ({
   defaultHostTimeoutMs = CODEX_EVALUATION_DEFAULT_HOST_TIMEOUT_MS,
@@ -588,12 +626,18 @@ const runBubblewrapProcess = ({ argumentsList, prompt, signal, timeoutMs }) =>
     };
 
     const timeout = setTimeout(() => {
-      pendingError = new Error(`Evaluation host exceeded ${timeoutMs} milliseconds.`);
+      pendingError = new CodexEvaluationHostError(
+        CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
+        `Evaluation host exceeded ${timeoutMs} milliseconds.`,
+      );
       killSandbox();
     }, timeoutMs);
 
     const abortProcess = () => {
-      pendingError = new Error('Evaluation host execution was aborted.');
+      pendingError = new CodexEvaluationHostError(
+        CODEX_EVALUATION_HOST_FAILURE_KINDS.Aborted,
+        'Evaluation host execution was aborted.',
+      );
       killSandbox();
     };
 
@@ -609,7 +653,8 @@ const runBubblewrapProcess = ({ argumentsList, prompt, signal, timeoutMs }) =>
       if (pendingError !== null) return;
 
       if (outputBytes + chunk.byteLength > MAX_HOST_OUTPUT_BYTES) {
-        pendingError = new Error(
+        pendingError = new CodexEvaluationHostError(
+          CODEX_EVALUATION_HOST_FAILURE_KINDS.OutputLimit,
           `Evaluation host output exceeded ${MAX_HOST_OUTPUT_BYTES} bytes and was stopped.`,
         );
         killSandbox();
@@ -640,7 +685,17 @@ const runBubblewrapProcess = ({ argumentsList, prompt, signal, timeoutMs }) =>
         }
       }
     });
-    sandboxProcess.once('error', (error) => settle(() => rejectPromise(error)));
+    sandboxProcess.once('error', (error) =>
+      settle(() =>
+        rejectPromise(
+          new CodexEvaluationHostError(
+            CODEX_EVALUATION_HOST_FAILURE_KINDS.SpawnFailed,
+            'Evaluation host process could not start.',
+            { cause: error },
+          ),
+        ),
+      ),
+    );
     sandboxProcess.once('close', (status) => {
       settle(() => {
         if (pendingError !== null) {
@@ -652,7 +707,10 @@ const runBubblewrapProcess = ({ argumentsList, prompt, signal, timeoutMs }) =>
         const stderr = Buffer.concat(stderrChunks).toString('utf8');
         if (status !== 0) {
           rejectPromise(
-            new Error(`Evaluation host failed with exit code ${status}: ${stderr.trim()}`),
+            new CodexEvaluationHostError(
+              CODEX_EVALUATION_HOST_FAILURE_KINDS.ExecutionFailed,
+              `Evaluation host failed with exit code ${status}: ${stderr.trim()}`,
+            ),
           );
           return;
         }
@@ -674,7 +732,13 @@ const runBubblewrapProcess = ({ argumentsList, prompt, signal, timeoutMs }) =>
 const waitForProxyReady = (proxyProcess) =>
   new Promise((resolvePromise, rejectPromise) => {
     const timeout = setTimeout(
-      () => rejectPromise(new Error('The evaluation egress proxy did not become ready.')),
+      () =>
+        rejectPromise(
+          new CodexEvaluationHostError(
+            CODEX_EVALUATION_HOST_FAILURE_KINDS.ProxyUnavailable,
+            'The evaluation egress proxy did not become ready.',
+          ),
+        ),
       5_000,
     );
     let stderr = '';
@@ -689,15 +753,33 @@ const waitForProxyReady = (proxyProcess) =>
       if (!stdout.includes('\n')) return;
       clearTimeout(timeout);
       if (stdout.trim() === 'ready') resolvePromise();
-      else rejectPromise(new Error(`Unexpected evaluation proxy response: ${stdout.trim()}`));
+      else {
+        rejectPromise(
+          new CodexEvaluationHostError(
+            CODEX_EVALUATION_HOST_FAILURE_KINDS.ProxyUnavailable,
+            `Unexpected evaluation proxy response: ${stdout.trim()}`,
+          ),
+        );
+      }
     });
     proxyProcess.once('error', (error) => {
       clearTimeout(timeout);
-      rejectPromise(error);
+      rejectPromise(
+        new CodexEvaluationHostError(
+          CODEX_EVALUATION_HOST_FAILURE_KINDS.ProxyUnavailable,
+          'The evaluation egress proxy could not start.',
+          { cause: error },
+        ),
+      );
     });
     proxyProcess.once('exit', (status) => {
       clearTimeout(timeout);
-      rejectPromise(new Error(`Evaluation egress proxy exited with ${status}: ${stderr.trim()}`));
+      rejectPromise(
+        new CodexEvaluationHostError(
+          CODEX_EVALUATION_HOST_FAILURE_KINDS.ProxyUnavailable,
+          `Evaluation egress proxy exited with ${status}: ${stderr.trim()}`,
+        ),
+      );
     });
   });
 
@@ -769,7 +851,9 @@ export const runCodexEvaluationHost = async ({
   }
   const hostExecutable = resolveExecutablePath(command[0]);
   const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);
-  const hostConfiguration = identifyCodexEvaluationHostConfiguration({ defaultHostTimeoutMs });
+  const hostConfiguration = identifyCodexEvaluationHostConfiguration({
+    defaultHostTimeoutMs,
+  });
   const proxyProcess = spawn(process.execPath, [EGRESS_PROXY_PATH], {
     env: {
       MOLDEA_EVAL_ALLOWED_HOSTS: hostConfiguration.allowedEgressHosts.join(','),

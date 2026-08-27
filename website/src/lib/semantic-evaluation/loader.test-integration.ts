@@ -66,6 +66,7 @@ const createCandidate = (
   failedCaseId: string | null,
   updatedAt: string,
 ): Record<string, unknown> => ({
+  activeTrial: null,
   artifactDigest: createPortableSkillDigest(root),
   caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
   cli: createSemanticCliIdentity(root),
@@ -99,9 +100,10 @@ const createCandidate = (
       rationale: passed
         ? 'The recorded response satisfies every declared criterion.'
         : 'The recorded response misses one declared criterion.',
+      readOnlyMountControlEvidence: [],
     };
   }),
-  schemaVersion: 5,
+  schemaVersion: 6,
   updatedAt,
 });
 

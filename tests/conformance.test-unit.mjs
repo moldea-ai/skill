@@ -1476,9 +1476,7 @@ describe('source repository conformance', () => {
 
   test('keeps published maturity separate from local CLI composition', () => {
     const skill = readRepositoryFile('moldea/SKILL.md');
-    const runtimeCompatibility = readRepositoryFile(
-      'moldea/references/runtime-compatibility.md',
-    );
+    const runtimeCompatibility = readRepositoryFile('moldea/references/runtime-compatibility.md');
     const semanticCasesById = new Map(
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
     );
@@ -1630,7 +1628,7 @@ describe('source repository conformance', () => {
 
       const portableSkillDigest = createPortableSkillDigest();
       const coverage = JSON.parse(readRepositoryFile('fixtures/semantic-evaluation-coverage.json'));
-      assert.equal(result.schemaVersion, 5);
+      assert.equal(result.schemaVersion, 6);
       assert.deepEqual(result.confirmationPolicy, {
         requiredPassingConfirmations: 2,
         version: 1,
@@ -1992,20 +1990,21 @@ describe('source repository conformance', () => {
     assertMatchesEvery(readme, [
       /Semantic evaluation is intentionally lengthy/,
       /54 cases/,
-      /108 model calls/,
+      /108 model requests/,
       /bounded confirmation sequence/,
-      /up to four calls/,
+      /up to four requests/,
+      /theoretical full-run maximum is 324 requests/,
+      /Operational retries are additional/,
       /local CLI composition/,
       /public technical and maturity publication/,
       /significant number of model tokens/,
-      /full evaluation, standalone diagnostic, or confirmation sequence/,
+      /full evaluation or standalone diagnostic/,
       /why fresh semantic evidence is important/,
       /why existing evidence or deterministic verification is insufficient/,
-      /estimated model-call count and expected duration/,
+      /estimated model-request count and expected duration/,
       /developer's explicit approval/,
-      /standing confirmation authorization/,
-      /Record its scope before execution/,
-      /never authorizes a restart, source correction, changed evidence boundary, or additional candidate/,
+      /includes its automatic bounded confirmations, compatible checkpoint resume, and operational retries/,
+      /never authorizes a restart, source correction, changed evidence boundary, or additional evaluation/,
     ]);
   });
 
@@ -2028,19 +2027,23 @@ describe('source repository conformance', () => {
 
     assertMatchesEvery(readme, [
       /\.semantic-evaluation-candidate\.json/,
-      /checkpoint schema `5`/,
+      /checkpoint schema `6`/,
       /Each trial separately records the exact actor and judge Codex CLI versions/,
       /confirmation policy `1`/,
       /skips completed successful or recovered cases/,
-      /failed initial trial is never replaced or silently retried/,
+      /failed initial trial is never replaced/,
       /--record --restart/,
-      /--confirm <case-id> --record/,
-      /Both must pass/,
+      /both must pass/i,
       /Either confirmation failure is terminal/,
-      /resume the remaining cases after recovery without another approval interruption/,
-      /does not spend another model call after recovery is impossible/,
-      /actor response, runner-owned execution facts, workspace evidence, repository controls, judge rationale/,
-      /recommended next action, and available options/,
+      /automatically runs its bounded confirmation sequence/,
+      /operational retries require no additional authorization/i,
+      /retries the same stage indefinitely with capped exponential backoff and jitter/i,
+      /completed actor response is persisted before the judge starts/i,
+      /do not change the skill until the evidence establishes that the evaluator is not the cause/i,
+      /list every evaluation test the correction can affect/i,
+      /run each listed evaluation test three consecutive times/i,
+      /repeat the same diagnosis, similar-case audit, impacted-test listing, correction, and three-pass verification recursively/i,
+      /do not count toward the three completed runs/i,
       /original failure remains intact/,
       /--record-checkpoint/,
       /eval:semantic:verify/,

@@ -5,6 +5,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
+import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
+
 import {
   loadSemanticEvaluationAttempts,
   recordSemanticEvaluationAttempt,
@@ -12,12 +14,13 @@ import {
 } from './attempt-history.mjs';
 
 const createEvidence = (id, passed, updatedAt) => ({
+  activeTrial: null,
   artifactDigest: 'a'.repeat(64),
   caseSuiteDigest: 'b'.repeat(64),
   cli: { name: '@moldea.ai/cli', version: '5.0.0' },
   confirmations: [],
   coverageDigest: 'c'.repeat(64),
-  evaluationProtocolVersion: 17,
+  evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
   generatedAt: updatedAt,
   hostContract: {
     model: 'gpt-5.6-sol',
@@ -54,7 +57,7 @@ const createEvidence = (id, passed, updatedAt) => ({
         : 'The required behavior was missing.',
     },
   ],
-  schemaVersion: 5,
+  schemaVersion: 6,
   updatedAt,
 });
 

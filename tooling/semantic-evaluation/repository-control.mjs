@@ -17,7 +17,9 @@ export const createEvaluationTreeDigest = async (root) => {
   const entries = [];
 
   const visit = async (directoryPath) => {
-    const directoryEntries = await readdir(directoryPath, { withFileTypes: true });
+    const directoryEntries = await readdir(directoryPath, {
+      withFileTypes: true,
+    });
     directoryEntries.sort((left, right) => left.name.localeCompare(right.name));
     for (const entry of directoryEntries) {
       if (entry.isDirectory() && EXCLUDED_DIRECTORY_NAMES.has(entry.name)) continue;
@@ -49,6 +51,67 @@ export const createEvaluationTreeDigest = async (root) => {
 
   await visit(root);
   return createHash('sha256').update(JSON.stringify(entries)).digest('hex');
+};
+
+/**
+ * Captures one related read-only mount without retaining its host path.
+ * @param {{ source: string, target: string }} mount The host source and sandbox target.
+ * @returns {Promise<{ mount: string, treeDigest: string }>} The privacy-safe mount state.
+ */
+export const captureReadOnlyMountControlState = async ({ source, target }) => {
+  if (
+    typeof source !== 'string' ||
+    source.length === 0 ||
+    typeof target !== 'string' ||
+    !target.startsWith('/')
+  ) {
+    throw new Error('Read-only mount control state requires a source and absolute target.');
+  }
+
+  return {
+    mount: target,
+    treeDigest: await createEvaluationTreeDigest(source),
+  };
+};
+
+/**
+ * Compares one related read-only mount before and after actor execution.
+ * @param {{ mount: string, treeDigest: string }} before The pre-actor mount state.
+ * @param {{ mount: string, treeDigest: string }} after The post-actor mount state.
+ * @returns {{ after: { mount: string, treeDigest: string }, before: { mount: string, treeDigest: string }, violations: string[] }} The control evidence.
+ */
+export const createReadOnlyMountControlEvidence = (before, after) => {
+  const violations = [];
+  if (before.mount !== after.mount) violations.push('mount-changed');
+  if (before.treeDigest !== after.treeDigest) violations.push('tree-changed');
+  return { after, before, violations };
+};
+
+/**
+ * Validates related read-only mount evidence without trusting its violation list.
+ * @param {unknown} evidence The persisted control evidence.
+ * @returns {boolean} Whether the evidence is internally valid.
+ */
+export const hasValidReadOnlyMountControlEvidence = (evidence) => {
+  const isValidState = (state) =>
+    isPlainRecord(state) &&
+    hasExactKeys(state, ['mount', 'treeDigest']) &&
+    typeof state.mount === 'string' &&
+    state.mount.startsWith('/') &&
+    SHA256_PATTERN.test(state.treeDigest);
+
+  return (
+    isPlainRecord(evidence) &&
+    hasExactKeys(evidence, ['after', 'before', 'violations']) &&
+    isValidState(evidence.before) &&
+    isValidState(evidence.after) &&
+    Array.isArray(evidence.violations) &&
+    evidence.violations.every((violation) =>
+      ['mount-changed', 'tree-changed'].includes(violation),
+    ) &&
+    JSON.stringify(evidence) ===
+      JSON.stringify(createReadOnlyMountControlEvidence(evidence.before, evidence.after))
+  );
 };
 
 /** Runs one read-only Git metadata command with optional locking disabled. */

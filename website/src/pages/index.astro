@@ -251,40 +251,38 @@ const qualificationProjectCount = model.qualification.profiles.reduce(
           />
         </p>
       </div>
-      <div class="surface-card overflow-hidden p-3 sm:p-4">
-        <ol class="grid gap-2">
-          {
+      <ol class="grid gap-2">
+        {
+          [
+            ['01', 'You ask naturally', 'No command vocabulary or separate dashboard.'],
             [
-              ['01', 'You ask naturally', 'No command vocabulary or separate dashboard.'],
-              [
-                '02',
-                'The agent selects the operation',
-                'Read-only stays read-only; writes stay scoped.',
-              ],
-              [
-                '03',
-                'Evidence is gathered',
-                'Code, contracts, context, and intent keep distinct roles.',
-              ],
-              [
-                '04',
-                'The smallest result ships',
-                'Changed and intentionally unchanged surfaces are reported.',
-              ],
-            ].map(([number, title, description]) => (
-              <li class="rounded-xl border bg-background p-4">
-                <div class="flex gap-4">
-                  <span class="font-mono text-xs font-bold text-muted-foreground">{number}</span>
-                  <div>
-                    <p class="font-semibold">{title}</p>
-                    <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
-                  </div>
+              '02',
+              'The agent selects the operation',
+              'Read-only stays read-only; writes stay scoped.',
+            ],
+            [
+              '03',
+              'Evidence is gathered',
+              'Code, contracts, context, and intent keep distinct roles.',
+            ],
+            [
+              '04',
+              'The smallest result ships',
+              'Changed and intentionally unchanged surfaces are reported.',
+            ],
+          ].map(([number, title, description]) => (
+            <li class="rounded-xl border bg-background p-4">
+              <div class="flex gap-4">
+                <span class="font-mono text-xs font-bold text-muted-foreground">{number}</span>
+                <div>
+                  <p class="font-semibold">{title}</p>
+                  <p class="mt-1 text-sm leading-6 text-muted-foreground">{description}</p>
                 </div>
-              </li>
-            ))
-          }
-        </ol>
-      </div>
+              </div>
+            </li>
+          ))
+        }
+      </ol>
     </div>
   </section>
 

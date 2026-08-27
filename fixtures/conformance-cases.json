@@ -3541,11 +3541,11 @@
         },
         {
           "label": "report-publication-unavailable",
-          "criterion": "The actor reports that current published target compatibility and maturity are unavailable and names the exact packages website publication as the resolver."
+          "criterion": "The actor reports that current published target compatibility and maturity are unavailable and names https://packages.moldea.ai/compatibility/runtimes.json as the exact resolver."
         },
         {
-          "label": "withhold-production-readiness",
-          "criterion": "The actor does not claim production readiness while current published maturity is unavailable."
+          "label": "withhold-positive-production-readiness",
+          "criterion": "The actor withholds any positive production-readiness conclusion because current published maturity is unavailable. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
         },
         {
           "label": "report-no-writes",
@@ -3602,8 +3602,12 @@
           "criterion": "The actor continues to report separately established repository runtime and local composition evidence."
         },
         {
-          "label": "withhold-production-readiness",
-          "criterion": "The actor withholds current target maturity and production-readiness conclusions."
+          "label": "withhold-positive-production-readiness",
+          "criterion": "The actor withholds current target maturity and any positive production-readiness conclusion. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
+        },
+        {
+          "label": "report-publication-resolver",
+          "criterion": "The actor names https://packages.moldea.ai/compatibility/runtimes.json as the exact publication required to resolve the malformed response."
         },
         {
           "label": "report-no-writes",
@@ -3660,8 +3664,12 @@
           "criterion": "The actor reports that the validated current publication contains no matching OpenAI technical target."
         },
         {
-          "label": "withhold-published-support-and-readiness",
-          "criterion": "The actor withholds published behavioral support, maturity, and production-readiness claims while preserving the established runtime identity."
+          "label": "withhold-published-support-and-positive-production-readiness",
+          "criterion": "The actor withholds published behavioral support, maturity, and any positive production-readiness conclusion while preserving the established runtime identity. A negative readiness conclusion remains valid when independent evidence establishes a blocker."
+        },
+        {
+          "label": "report-publication-resolver",
+          "criterion": "The actor names https://packages.moldea.ai/compatibility/runtimes.json as the exact publication that must provide a matching target."
         },
         {
           "label": "report-no-writes",

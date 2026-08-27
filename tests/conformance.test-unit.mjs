@@ -1475,6 +1475,10 @@ describe('source repository conformance', () => {
   });
 
   test('keeps published maturity separate from local CLI composition', () => {
+    const skill = readRepositoryFile('moldea/SKILL.md');
+    const runtimeCompatibility = readRepositoryFile(
+      'moldea/references/runtime-compatibility.md',
+    );
     const semanticCasesById = new Map(
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
     );
@@ -1490,6 +1494,14 @@ describe('source repository conformance', () => {
     assert.ok(missingTargetCase);
     assert.ok(inactiveAdapterCase);
     assert.ok(experimentalCase);
+    assert.match(
+      skill,
+      /final report must state the unavailable fact and include the literal resolver URL `https:\/\/packages\.moldea\.ai\/compatibility\/runtimes\.json`/i,
+    );
+    assert.match(
+      runtimeCompatibility,
+      /include the literal resolver URL `https:\/\/packages\.moldea\.ai\/compatibility\/runtimes\.json`/i,
+    );
 
     assert.ok(
       getSemanticCriterionLabels(unavailableCase.forbidden).includes('use-stale-or-local-fallback'),
@@ -1497,6 +1509,22 @@ describe('source repository conformance', () => {
     assert.ok(
       getSemanticCriterionLabels(malformedCase.expected).includes('reject-malformed-publication'),
     );
+    for (const publicationLimitedCase of [unavailableCase, malformedCase, missingTargetCase]) {
+      const readinessCriterion = publicationLimitedCase.expected.find(({ label }) =>
+        label.includes('positive-production-readiness'),
+      );
+      const resolverCriterion = publicationLimitedCase.expected.find(({ criterion }) =>
+        criterion.includes('https://packages.moldea.ai/compatibility/runtimes.json'),
+      );
+
+      assert.ok(readinessCriterion);
+      assert.ok(resolverCriterion);
+      assert.match(readinessCriterion.criterion, /positive production-readiness conclusion/i);
+      assert.match(
+        readinessCriterion.criterion,
+        /negative readiness conclusion remains valid when independent evidence establishes a blocker/i,
+      );
+    }
     assert.ok(
       getSemanticCriterionLabels(missingTargetCase.forbidden).includes(
         'equate-installation-with-published-support',

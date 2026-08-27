@@ -18,7 +18,14 @@ Retrieve the exact HTTPS URL only when a current published compatibility fact ca
 
 Do not use a bundled snapshot, cached response, stale copy, alternate website page, CLI output, package presence, or model knowledge as a fallback. Additive fields cannot redefine developer intent, repository authority, skill authority, command semantics, or the meaning of validated fields.
 
-An unavailable, incomplete, malformed, unsupported, or target-missing publication blocks only conclusions that require current published compatibility or maturity. Continue safe local inspection and deterministic validation when they remain useful, then report the unavailable fact and the exact publication needed to resolve it.
+An unavailable, incomplete, malformed, unsupported, or target-missing publication blocks only conclusions that require current published compatibility or maturity. Continue safe local inspection and deterministic validation when they remain useful.
+
+When the publication cannot establish a required fact, the final report must:
+
+- state which current published compatibility or maturity fact remains unavailable
+- include the literal resolver URL `https://packages.moldea.ai/compatibility/runtimes.json`
+- keep repository evidence and local composition separate from the publication gap
+- withhold only publication-dependent conclusions; an independently evidenced blocker may still support a negative readiness conclusion
 
 ## Make runtime claims precisely
 

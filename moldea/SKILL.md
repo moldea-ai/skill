@@ -97,6 +97,8 @@ Governing specifications and deterministic CLI, Core, or adapter results still c
 
 Use the repository-local CLI as mechanical authority for Git inventory, snapshots, format and placeholder validation, paths, mirrors, Core diagnostics, adapter invocation, and installed executable composition. Use the packages website publication for current technical runtime targets and maturity. Do not recreate those mechanics or transfer website-owned compatibility claims into the CLI.
 
+When that publication is unavailable, invalid, unsupported, or missing the required target, the final report must state the unavailable fact and include the literal resolver URL `https://packages.moldea.ai/compatibility/runtimes.json`.
+
 Interpret command JSON only after an independently completed process has the expected exit code and a compatible envelope containing schema `2`, CLI `5.0.0`, the invoked command, and a valid status/payload combination. Structural `invalid` is completed diagnostic evidence, not successful validation; `error` is operational failure. A failed, incomplete, malformed, unsupported, or contradictory result supports no deterministic conclusion.
 
 Adapter evidence establishes detectable implementation, not intent. Core invalidity can prevent adapters from running, so empty evidence may mean unavailable evidence. External implementation can likewise make dedicated-repository evidence partial.

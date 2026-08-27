@@ -5,7 +5,7 @@ description: >-
 license: MIT
 metadata:
   # prettier-ignore
-  version: '3.1.0'
+  version: '4.0.0'
 ---
 
 # moldea
@@ -26,9 +26,9 @@ Agent-system planning applies only when the developer asks how an AI-enabled obj
 
 ## Release compatibility
 
-Skill release `3.1.0` supports exactly:
+Skill release `4.0.0` supports exactly:
 
-- `@moldea.ai/cli: 4.0.1`
+- `@moldea.ai/cli: 5.0.0`
 - CLI JSON schema: `2`
 - Node.js: `^22.11.0 || ^24.11.0`
 - npm: `>=10.9.0 <12.0.0`
@@ -72,6 +72,7 @@ An unexplained same-scope conflict over consequential policy, permission, approv
 ## Load focused guidance
 
 - Read `references/local-tooling.md` before any Git, package-manager, deterministic CLI, or tooling-establishment command.
+- Read `references/runtime-compatibility.md` before runtime or adapter selection, target maturity or production-readiness claims, or interpreting published runtime compatibility.
 - Read `references/context-gathering.md` before initialization, agent-system planning, consequential project-context work, Agent Skill creation or material maintenance, agent creation, semantic evaluation, or reconciliation.
 - Read `references/agent-system-planning.md` before planning an AI- or agent-enabled system, decomposing agent responsibilities, or recommending orchestration.
 - Read `references/continuous-maintenance.md` before initialization, knowledge- or relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
@@ -94,9 +95,9 @@ Governing specifications and deterministic CLI, Core, or adapter results still c
 
 ## Deterministic boundary
 
-Use the repository-local CLI as mechanical authority for Git inventory, snapshots, format and placeholder validation, paths, mirrors, Core diagnostics, adapter invocation, and compatibility. Do not recreate those mechanics.
+Use the repository-local CLI as mechanical authority for Git inventory, snapshots, format and placeholder validation, paths, mirrors, Core diagnostics, adapter invocation, and installed executable composition. Use the packages website publication for current technical runtime targets and maturity. Do not recreate those mechanics or transfer website-owned compatibility claims into the CLI.
 
-Interpret command JSON only after an independently completed process has the expected exit code and a compatible envelope containing schema `2`, CLI `4.0.1`, the invoked command, and a valid status/payload combination. Structural `invalid` is completed diagnostic evidence, not successful validation; `error` is operational failure. A failed, incomplete, malformed, unsupported, or contradictory result supports no deterministic conclusion.
+Interpret command JSON only after an independently completed process has the expected exit code and a compatible envelope containing schema `2`, CLI `5.0.0`, the invoked command, and a valid status/payload combination. Structural `invalid` is completed diagnostic evidence, not successful validation; `error` is operational failure. A failed, incomplete, malformed, unsupported, or contradictory result supports no deterministic conclusion.
 
 Adapter evidence establishes detectable implementation, not intent. Core invalidity can prevent adapters from running, so empty evidence may mean unavailable evidence. External implementation can likewise make dedicated-repository evidence partial.
 

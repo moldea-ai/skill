@@ -58,6 +58,7 @@ const REFERENCE_FILES = [
   'continuous-maintenance.md',
   'evaluate-and-reconcile.md',
   'local-tooling.md',
+  'runtime-compatibility.md',
   'skill-design.md',
 ];
 const ALLOWED_FRONTMATTER_KEYS = new Set([
@@ -91,8 +92,8 @@ const REQUIRED_EVALUATION_CASE_IDS = {
   ],
   cliEnvelopeCases: [
     'command-mismatch',
-    'compatibility-invalid',
-    'compatibility-valid',
+    'composition-invalid',
+    'composition-valid',
     'different-cli-version',
     'inspect-invalid',
     'inspect-valid',
@@ -125,10 +126,12 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'evaluate-clean-working-tree',
     'evaluate-dirty-working-tree',
     'evaluate-unborn-repository',
+    'experimental-target-not-production-ready',
     'host-plan-command-precedence',
     'initialize-insufficient-context',
     'initialize-partial-context',
     'initialize-sufficient-context',
+    'installed-adapter-without-published-target',
     'plan-existing-project-one-agent',
     'plan-justified-multi-agent',
     'plan-material-ambiguity',
@@ -137,6 +140,7 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'pnpm-hook-install-blocked',
     'pnpm-pnp-local-cli-provider',
     'provider-hosted-capability',
+    'published-supported-target-not-installed',
     'read-only-git-helper-suppression',
     'reconcile-material-ambiguity',
     'routing-description-dynamic-wiring',
@@ -145,6 +149,8 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'routing-description-reconciliation',
     'routing-description-separate-properties',
     'routing-description-shared-property',
+    'runtime-publication-malformed',
+    'runtime-publication-unavailable',
     'skill-boundary-surface-selection',
     'skill-create-progressive-disclosure',
     'skill-evaluate-read-only',
@@ -795,7 +801,7 @@ describe('portable Agent Skill contract', () => {
       /Run each CLI invocation independently, without shell-chaining it/i,
       new RegExp('`schemaVersion` is integer `' + RELEASE_CLI_JSON_SCHEMA_VERSION + '`'),
       /`command` equals the command invoked/,
-      /`compatibility` never uses `invalid`/,
+      /`composition` never uses `invalid`/,
       /Complete structural `invalid` is diagnostic evidence, not successful validation or operational failure/i,
     ]);
   });
@@ -853,8 +859,8 @@ describe('portable Agent Skill contract', () => {
     assertMatchesEvery(agentDesign, [
       /declares one `runtime\.id`/,
       /primary model-invocation boundary/,
-      /compact inventory/,
-      /Inventory establishes availability, not integration identity/i,
+      /Use `composition --json` when installed adapter inventory matters/,
+      /Composition establishes availability, not integration identity/i,
       /map every material unknown invocation, instruction-loading, capability, schema, routing, or variable fact/i,
       /smallest reliable resolving artifact, established owner, and required proof/i,
       /Source-owned target documentation, closed wiring, provider configuration, or integration tests/i,
@@ -1464,6 +1470,46 @@ describe('source repository conformance', () => {
     assert.ok(planningForbidden.includes('invent-provider-limits-patterns-or-maturity'));
   });
 
+  test('keeps published maturity separate from local CLI composition', () => {
+    const semanticCasesById = new Map(
+      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+    );
+
+    const unavailableCase = semanticCasesById.get('runtime-publication-unavailable');
+    const malformedCase = semanticCasesById.get('runtime-publication-malformed');
+    const missingTargetCase = semanticCasesById.get('installed-adapter-without-published-target');
+    const inactiveAdapterCase = semanticCasesById.get('published-supported-target-not-installed');
+    const experimentalCase = semanticCasesById.get('experimental-target-not-production-ready');
+
+    assert.ok(unavailableCase);
+    assert.ok(malformedCase);
+    assert.ok(missingTargetCase);
+    assert.ok(inactiveAdapterCase);
+    assert.ok(experimentalCase);
+
+    assert.ok(
+      getSemanticCriterionLabels(unavailableCase.forbidden).includes('use-stale-or-local-fallback'),
+    );
+    assert.ok(
+      getSemanticCriterionLabels(malformedCase.expected).includes('reject-malformed-publication'),
+    );
+    assert.ok(
+      getSemanticCriterionLabels(missingTargetCase.forbidden).includes(
+        'equate-installation-with-published-support',
+      ),
+    );
+    assert.ok(
+      getSemanticCriterionLabels(inactiveAdapterCase.expected).includes(
+        'distinguish-published-support-from-local-availability',
+      ),
+    );
+    assert.ok(
+      getSemanticCriterionLabels(experimentalCase.forbidden).includes(
+        'promote-experimental-to-supported',
+      ),
+    );
+  });
+
   test('judges observable skill validation and permits deterministic orchestration', () => {
     const semanticCasesById = new Map(
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
@@ -1756,24 +1802,24 @@ describe('source repository conformance', () => {
         'MOLDEA_RUNTIME_ADAPTER_UNAVAILABLE',
       );
 
-      const compatibility = spawnSync(SEMANTIC_CLI_PATH, ['compatibility', '--json'], {
+      const composition = spawnSync(SEMANTIC_CLI_PATH, ['composition', '--json'], {
         cwd: repositoryPath,
         encoding: 'utf8',
       });
-      const compatibilityEnvelope = JSON.parse(compatibility.stdout);
-      assert.equal(compatibility.status, 0);
-      assert.equal(compatibilityEnvelope.cliVersion, RELEASE_CLI_VERSION);
-      assert.equal(compatibilityEnvelope.schemaVersion, RELEASE_CLI_JSON_SCHEMA_VERSION);
-      assert.equal(compatibilityEnvelope.status, 'valid');
+      const compositionEnvelope = JSON.parse(composition.stdout);
+      assert.equal(composition.status, 0);
+      assert.equal(compositionEnvelope.cliVersion, RELEASE_CLI_VERSION);
+      assert.equal(compositionEnvelope.schemaVersion, RELEASE_CLI_JSON_SCHEMA_VERSION);
+      assert.equal(compositionEnvelope.status, 'valid');
       assert.deepEqual(
-        compatibilityEnvelope.result.packages,
+        compositionEnvelope.result.packages,
         Object.entries(SEMANTIC_CLI_MANIFEST.dependencies)
           .filter(([name]) => name.startsWith('@moldea.ai/'))
           .map(([name, version]) => ({ name, version }))
           .sort(({ name: left }, { name: right }) => left.localeCompare(right)),
       );
       assert.deepEqual(
-        compatibilityEnvelope.result.adapters.map(({ id }) => id),
+        compositionEnvelope.result.adapters.map(({ id }) => id),
         [
           'custom',
           ...Object.keys(SEMANTIC_CLI_MANIFEST.dependencies)
@@ -1781,14 +1827,14 @@ describe('source repository conformance', () => {
             .map((name) => name.slice('@moldea.ai/adapter-'.length)),
         ].sort((left, right) => left.localeCompare(right)),
       );
-      const customCompatibility = compatibilityEnvelope.result.adapters.find(
+      const customComposition = compositionEnvelope.result.adapters.find(
         ({ id }) => id === 'custom',
       );
-      assert.deepEqual(customCompatibility.repositoryFormatVersions, [1]);
-      const googleGenAiCompatibility = compatibilityEnvelope.result.adapters.find(
+      assert.deepEqual(customComposition.repositoryFormatVersions, [1]);
+      const googleGenAiComposition = compositionEnvelope.result.adapters.find(
         ({ id }) => id === 'google-genai',
       );
-      assert.deepEqual(googleGenAiCompatibility.repositoryFormatVersions, [1]);
+      assert.deepEqual(googleGenAiComposition.repositoryFormatVersions, [1]);
     } finally {
       rmSync(repositoryPath, { force: true, recursive: true });
     }
@@ -1913,12 +1959,12 @@ describe('source repository conformance', () => {
 
     assertMatchesEvery(readme, [
       /Semantic evaluation is intentionally lengthy/,
-      /49 cases/,
-      /98 model calls/,
+      /54 cases/,
+      /108 model calls/,
       /bounded confirmation sequence/,
       /up to four calls/,
-      /adapter availability/,
-      /behavioral support/,
+      /local CLI composition/,
+      /public technical and maturity publication/,
       /significant number of model tokens/,
       /full evaluation, standalone diagnostic, or confirmation sequence/,
       /why fresh semantic evidence is important/,

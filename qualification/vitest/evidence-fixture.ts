@@ -159,7 +159,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
       repositoryFilesystemValid: true,
       memoryRepositoryEquivalent: true,
       coreValid: true,
-      cliCompatibilityValid: true,
+      cliCompositionValid: true,
       cliIdentityValid: true,
       cliPackageInventoryValid: true,
       cliAdapterInventoryValid: true,
@@ -173,7 +173,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     },
     details: {
       direct: {},
-      cliCompatibility: {},
+      cliComposition: {},
       cliValidate: {},
       cliInspect: {},
       typecheck: {
@@ -234,7 +234,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     `case:${CASE_ID}:result`,
   ];
   const result = QualificationAttemptResultSchema.parse({
-    protocolVersion: 4,
+    protocolVersion: 5,
     attemptId: options.attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },

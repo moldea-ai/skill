@@ -110,20 +110,20 @@ const parseCliJsonSchemaVersion = (stdout, requestedVersion) => {
     envelope = JSON.parse(stdout);
   } catch (error) {
     throw new Error(
-      `Unable to parse ${CLI_PACKAGE_NAME}@${requestedVersion} compatibility output.`,
+      `Unable to parse ${CLI_PACKAGE_NAME}@${requestedVersion} composition output.`,
       { cause: error },
     );
   }
 
   if (
     envelope?.cliVersion !== requestedVersion ||
-    envelope?.command !== 'compatibility' ||
+    envelope?.command !== 'composition' ||
     envelope?.status !== 'valid' ||
     !Number.isInteger(envelope?.schemaVersion) ||
     envelope.schemaVersion < 1
   ) {
     throw new Error(
-      `${CLI_PACKAGE_NAME}@${requestedVersion} returned an invalid compatibility envelope.`,
+      `${CLI_PACKAGE_NAME}@${requestedVersion} returned an invalid composition envelope.`,
     );
   }
 
@@ -186,7 +186,7 @@ export const resolvePublishedCliManifest = (version) => {
         `--package=${CLI_PACKAGE_NAME}@${version}`,
         '--',
         'moldea',
-        'compatibility',
+        'composition',
         '--json',
         '--no-color',
       ],
@@ -204,7 +204,7 @@ export const resolvePublishedCliManifest = (version) => {
     if (probe.status !== 0) {
       throw new Error(
         [
-          `Unable to probe ${CLI_PACKAGE_NAME}@${version} compatibility output.`,
+          `Unable to probe ${CLI_PACKAGE_NAME}@${version} composition output.`,
           probe.stdout,
           probe.stderr,
         ]

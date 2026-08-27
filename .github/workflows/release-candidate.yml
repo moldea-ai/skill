@@ -50,6 +50,9 @@ jobs:
       - name: Install candidate dependencies
         run: pnpm --dir packages install --frozen-lockfile
 
+      - name: Build and validate packages website
+        run: pnpm --dir packages website:build
+
       - name: Build and pack exact candidate closure
         run: |
           candidate_directory="${{ runner.temp }}/cli-candidate-packages"
@@ -57,7 +60,8 @@ jobs:
           git -C packages rev-parse HEAD > "$candidate_directory/packages-commit.txt"
           node tooling/package-candidate/pack.mjs \
             --workspace packages \
-            --output "$candidate_directory"
+            --output "$candidate_directory" \
+            --runtime-compatibility-publication packages/apps/website/dist/compatibility/runtimes.json
 
       - name: Upload candidate closure
         uses: actions/upload-artifact@v7

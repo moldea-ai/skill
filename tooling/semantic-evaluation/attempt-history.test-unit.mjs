@@ -36,10 +36,10 @@ const createTrial = (id, passed, evaluatedAt) => ({
 const createEvidence = (results, confirmations = []) => ({
   artifactDigest: SHA256,
   caseSuiteDigest: 'b'.repeat(64),
-  cli: { name: '@moldea.ai/cli', version: '4.0.1' },
+  cli: { name: '@moldea.ai/cli', version: '5.0.0' },
   confirmations,
   coverageDigest: 'c'.repeat(64),
-  evaluationProtocolVersion: 16,
+  evaluationProtocolVersion: 17,
   generatedAt: '2026-08-25T00:00:00.000Z',
   confirmations: confirmations.map((confirmation) => ({
     actorCommandPolicyEvidence: COMMAND_POLICY_EVIDENCE,
@@ -252,7 +252,7 @@ test('semantic attempt summaries reject missing or incompatible trial evidence',
   );
 });
 
-test('semantic attempt summaries reject superseded evidence contracts', () => {
+test('semantic attempt summaries retain the previous protocol and reject unsupported contracts', () => {
   const trial = createTrial('passing-case', true, '2026-08-25T01:00:00.000Z');
   const options = {
     evidenceKind: 'candidate',
@@ -269,6 +269,12 @@ test('semantic attempt summaries reject superseded evidence contracts', () => {
         evidence: { ...createEvidence([trial]), schemaVersion: 4 },
       }),
     /unsupported schema/,
+  );
+  assert.doesNotThrow(() =>
+    createSemanticAttemptRecord({
+      ...options,
+      evidence: { ...createEvidence([trial]), evaluationProtocolVersion: 16 },
+    }),
   );
   assert.throws(
     () =>

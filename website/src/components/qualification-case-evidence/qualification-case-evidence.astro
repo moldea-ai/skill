@@ -33,6 +33,12 @@ const getTokenTotal = (
   usage === null ? null : usage.inputTokens + usage.cachedInputTokens + usage.outputTokens;
 const actorTokenTotal = getTokenTotal(result.actorUsage);
 const judgeTokenTotal = getTokenTotal(result.judgeUsage);
+const isCliCompositionValid = (
+  verification: IQualificationAttemptCaseModel['deterministicBefore'],
+): boolean =>
+  'cliCompositionValid' in verification
+    ? verification.cliCompositionValid
+    : verification.cliCompatibilityValid;
 ---
 
 <article class="surface-card min-w-0 overflow-hidden">
@@ -104,9 +110,9 @@ const judgeTokenTotal = getTokenTotal(result.judgeUsage);
                   </dd>
                 </div>
                 <div class="flex justify-between gap-3">
-                  <dt>CLI compatibility</dt>
+                  <dt>CLI composition</dt>
                   <dd class="font-mono text-foreground">
-                    {verification.cliCompatibilityValid ? 'passed' : 'failed'}
+                    {isCliCompositionValid(verification) ? 'passed' : 'failed'}
                   </dd>
                 </div>
                 <div class="flex justify-between gap-3">

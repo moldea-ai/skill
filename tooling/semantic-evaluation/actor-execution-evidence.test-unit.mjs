@@ -368,7 +368,7 @@ test('projects the same Moldea fact from every approved repository-local invocat
     '/opt/node node_modules/@moldea.ai/cli/dist/moldea.js',
     'pnpm node .pnp/node_modules/@moldea.ai/cli/dist/moldea.js',
   ];
-  for (const operation of ['compatibility', 'inspect', 'validate']) {
+  for (const operation of ['composition', 'inspect', 'validate']) {
     const output = JSON.stringify({
       cliVersion: '4.0.1',
       command: operation,
@@ -494,10 +494,10 @@ test('rejects composed and near-match Moldea commands even when their output is 
   }
 });
 
-test('projects valid compatibility envelopes but rejects impossible invalid ones', () => {
-  const compatibilityEnvelope = {
+test('projects valid composition envelopes but rejects impossible invalid ones', () => {
+  const compositionEnvelope = {
     cliVersion: '4.0.1',
-    command: 'compatibility',
+    command: 'composition',
     error: null,
     result: {
       adapters: [{ id: 'custom', privateConfiguration: 'must never be retained' }],
@@ -507,16 +507,16 @@ test('projects valid compatibility envelopes but rejects impossible invalid ones
   };
   const validEvidence = projectActorExecutionEvidenceEvent(
     createCompletedCommandEvent({
-      command: createMoldeaCommand('compatibility'),
-      output: JSON.stringify(compatibilityEnvelope),
+      command: createMoldeaCommand('composition'),
+      output: JSON.stringify(compositionEnvelope),
     }),
     PROJECTION_OPTIONS,
   );
   const invalidEvidence = projectActorExecutionEvidenceEvent(
     createCompletedCommandEvent({
-      command: createMoldeaCommand('compatibility'),
+      command: createMoldeaCommand('composition'),
       exitCode: 1,
-      output: JSON.stringify({ ...compatibilityEnvelope, status: 'invalid' }),
+      output: JSON.stringify({ ...compositionEnvelope, status: 'invalid' }),
       status: 'failed',
     }),
     PROJECTION_OPTIONS,
@@ -525,7 +525,7 @@ test('projects valid compatibility envelopes but rejects impossible invalid ones
   assert.deepEqual(validEvidence.item.outputEvidence.facts, [
     {
       cliVersion: '4.0.1',
-      command: 'compatibility',
+      command: 'composition',
       errorPresent: false,
       kind: 'moldea-cli-envelope',
       resultPresent: true,

@@ -1,8 +1,15 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, join } from 'node:path';
+import { basename, join, resolve } from 'node:path';
 import test from 'node:test';
 
 import {
@@ -147,6 +154,14 @@ test('rejects duplicate identities and non-exact CLI source dependencies', () =>
 test('builds and packs only the resolved dynamic closure', () => {
   const workspaceRoot = createWorkspace();
   const artifactDirectory = join(workspaceRoot, 'artifacts');
+  const runtimeCompatibilityPublicationPath = resolve(
+    import.meta.dirname,
+    '..',
+    '..',
+    'fixtures',
+    'tooling',
+    'runtime-compatibility-publication.json',
+  );
   const commands = [];
 
   try {
@@ -167,6 +182,7 @@ test('builds and packs only the resolved dynamic closure', () => {
         );
         return { artifacts: new Map(), cliVersion: '3.2.0' };
       },
+      runtimeCompatibilityPublicationPath,
       workspaceRoot,
     });
 
@@ -179,6 +195,14 @@ test('builds and packs only the resolved dynamic closure', () => {
     assert.equal(commands.filter(({ args }) => args[0] === '--filter').length, 5);
     assert.equal(commands.filter(({ args }) => args[0] === 'pack').length, 4);
     assert.deepEqual(commands[0].args, ['--filter', '@moldea.ai/repository', 'build']);
+    assert.equal(result.runtimeCompatibilityPublicationArtifact, 'runtime-compatibility-publication.json');
+    assert.equal(
+      readFileSync(
+        join(artifactDirectory, result.runtimeCompatibilityPublicationArtifact),
+        'utf8',
+      ),
+      readFileSync(runtimeCompatibilityPublicationPath, 'utf8'),
+    );
   } finally {
     rmSync(workspaceRoot, { force: true, recursive: true });
   }

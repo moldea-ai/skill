@@ -62,7 +62,7 @@ export interface ISemanticAttemptRecord {
   coverageDigest: string;
   createdAt: string;
   evidence: {
-    evaluationProtocolVersion: 16;
+    evaluationProtocolVersion: 16 | 17;
     kind: 'candidate';
     path: 'evidence.json';
     schemaVersion: 5;

@@ -185,6 +185,26 @@ export const SEMANTIC_CASE_PRESENTATION = {
     groupId: 'planning',
     title: 'Separates availability from behavioral fit',
   },
+  'runtime-publication-unavailable': {
+    groupId: 'planning',
+    title: 'Withholds maturity when publication is unavailable',
+  },
+  'runtime-publication-malformed': {
+    groupId: 'planning',
+    title: 'Rejects a malformed runtime publication',
+  },
+  'installed-adapter-without-published-target': {
+    groupId: 'planning',
+    title: 'Separates an installed adapter from published support',
+  },
+  'published-supported-target-not-installed': {
+    groupId: 'planning',
+    title: 'Separates published support from local availability',
+  },
+  'experimental-target-not-production-ready': {
+    groupId: 'planning',
+    title: 'Keeps experimental targets out of production claims',
+  },
   'dedicated-repository-runtime-selection': {
     groupId: 'planning',
     title: 'Selects a runtime from repository evidence',

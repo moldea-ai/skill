@@ -15,6 +15,7 @@ const ATTEMPT_EVIDENCE_FILENAME = 'evidence.json';
 const ATTEMPT_RECORD_FILENAME = 'attempt.json';
 const ATTEMPT_SCHEMA_VERSION = 4;
 const EVIDENCE_SCHEMA_VERSION = 5;
+const HISTORICAL_EVIDENCE_PROTOCOL_VERSIONS = new Set([16]);
 const LATEST_SCHEMA_VERSION = 1;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
@@ -25,6 +26,10 @@ const STOP_REASON_VALUES = new Set([
   'confirmations-passed',
   'operator-recorded',
 ]);
+
+const isRecordedEvidenceProtocolVersion = (protocolVersion) =>
+  protocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
+  HISTORICAL_EVIDENCE_PROTOCOL_VERSIONS.has(protocolVersion);
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
@@ -233,7 +238,7 @@ export const createSemanticAttemptRecord = ({
   if (evidence.schemaVersion !== EVIDENCE_SCHEMA_VERSION) {
     throw new Error('Semantic attempt evidence has an unsupported schema.');
   }
-  if (evidence.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION) {
+  if (!isRecordedEvidenceProtocolVersion(evidence.evaluationProtocolVersion)) {
     throw new Error('Semantic attempt evidence has an unsupported protocol.');
   }
   if (!Number.isInteger(totalCaseCount) || totalCaseCount < 1) {
@@ -356,6 +361,9 @@ export const recordSemanticEvaluationAttempt = async ({
   totalCaseCount,
 }) => {
   const evidence = JSON.parse(evidenceText);
+  if (evidence.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION) {
+    throw new Error('Only current-protocol semantic evidence can be recorded.');
+  }
   const evidenceSha256 = createSha256(evidenceText);
   const attempt = createSemanticAttemptRecord({
     evidence,

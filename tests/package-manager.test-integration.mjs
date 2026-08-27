@@ -20,11 +20,21 @@ import {
   createCandidateRegistry,
   loadCandidateArtifacts,
 } from '../tooling/package-candidate/index.mjs';
+import {
+  parseRuntimeCompatibilityPublication,
+  RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
+} from '../tooling/runtime-compatibility-publication/index.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const LIFECYCLE_FIXTURE_PATH = join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'lifecycle-cli');
 const LIFECYCLE_FIXTURE_MANIFEST = JSON.parse(
   readFileSync(join(LIFECYCLE_FIXTURE_PATH, 'package.json'), 'utf8'),
+);
+const RUNTIME_COMPATIBILITY_PUBLICATION_FIXTURE_PATH = join(
+  REPOSITORY_ROOT,
+  'fixtures',
+  'tooling',
+  'runtime-compatibility-publication.json',
 );
 const ROOT_PACKAGE_MANIFEST = JSON.parse(
   readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf8'),
@@ -415,17 +425,23 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
       env: gitEnvironment,
     });
     let versionOutput;
-    let compatibilityExecution;
+    let compositionExecution;
     let inspectionExecution;
+    let validationExecution;
 
     if (MANAGER === 'yarn') {
       versionOutput = await run(EXECUTABLE, ['exec', 'moldea', '--version'], {
         cwd: clientDirectory,
         env: managerEnvironment,
       });
-      compatibilityExecution = await runDetailed(
+      compositionExecution = await runDetailed(
         EXECUTABLE,
-        ['exec', 'moldea', 'compatibility', '--json'],
+        ['exec', 'moldea', 'composition', '--json'],
+        { cwd: clientDirectory, env: managerEnvironment },
+      );
+      validationExecution = await runDetailed(
+        EXECUTABLE,
+        ['exec', 'moldea', 'validate', '--json'],
         { cwd: clientDirectory, env: managerEnvironment },
       );
       inspectionExecution = await runDetailed(EXECUTABLE, ['exec', 'moldea', 'inspect', '--json'], {
@@ -437,7 +453,11 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
         cwd: clientDirectory,
         env: managerEnvironment,
       });
-      compatibilityExecution = await runDetailed(binaryPath, ['compatibility', '--json'], {
+      compositionExecution = await runDetailed(binaryPath, ['composition', '--json'], {
+        cwd: clientDirectory,
+        env: managerEnvironment,
+      });
+      validationExecution = await runDetailed(binaryPath, ['validate', '--json'], {
         cwd: clientDirectory,
         env: managerEnvironment,
       });
@@ -450,36 +470,49 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
     assert.ok(isPathWithin(clientDirectory, cliPackage.packageRoot));
     assert.equal(cliPackage.manifest.version, cliVersion);
     assert.equal(versionOutput, cliVersion);
-    assert.equal(compatibilityExecution.stderr, '');
+    assert.equal(compositionExecution.stderr, '');
+    assert.equal(validationExecution.stderr, '');
     assert.equal(inspectionExecution.stderr, '');
     assert.equal(
-      `${compatibilityExecution.stdout}${inspectionExecution.stdout}`.includes('\u001b['),
+      `${compositionExecution.stdout}${validationExecution.stdout}${inspectionExecution.stdout}`.includes(
+        '\u001b[',
+      ),
       false,
     );
 
-    const compatibilityEnvelope = JSON.parse(compatibilityExecution.stdout);
+    const compositionEnvelope = JSON.parse(compositionExecution.stdout);
+    const validationEnvelope = JSON.parse(validationExecution.stdout);
     const inspectionEnvelope = JSON.parse(inspectionExecution.stdout);
     const expectedPackages = Object.entries(cliPackage.manifest.dependencies ?? {})
       .filter(([packageName]) => packageName.startsWith('@moldea.ai/'))
       .map(([name, version]) => ({ name, version }))
       .sort(({ name: left }, { name: right }) => left.localeCompare(right));
-    const adapterIds = compatibilityEnvelope.result.adapters.map(({ id }) => id);
+    const adapterIds = compositionEnvelope.result.adapters.map(({ id }) => id);
 
-    assert.equal(compatibilityEnvelope.cliVersion, cliVersion);
-    assert.equal(compatibilityEnvelope.command, 'compatibility');
+    assert.equal(compositionEnvelope.cliVersion, cliVersion);
+    assert.equal(compositionEnvelope.command, 'composition');
     assert.equal(
-      compatibilityEnvelope.schemaVersion,
+      compositionEnvelope.schemaVersion,
       ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion,
     );
-    assert.equal(compatibilityEnvelope.status, 'valid');
-    assert.deepEqual(compatibilityEnvelope.result.packages, expectedPackages);
+    assert.equal(compositionEnvelope.status, 'valid');
+    assert.deepEqual(compositionEnvelope.result.packages, expectedPackages);
     assert.ok(adapterIds.includes('custom'));
     assert.ok(adapterIds.includes('anthropic'));
     assert.ok(adapterIds.includes('google-genai'));
     assert.equal(adapterIds.includes('openai'), hasOpenAiAdapter);
-    for (const adapter of compatibilityEnvelope.result.adapters) {
+    for (const adapter of compositionEnvelope.result.adapters) {
       assert.deepEqual(adapter.repositoryFormatVersions, [1]);
     }
+    assert.equal(validationEnvelope.cliVersion, cliVersion);
+    assert.equal(validationEnvelope.command, 'validate');
+    assert.equal(
+      validationEnvelope.schemaVersion,
+      ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion,
+    );
+    assert.equal(validationEnvelope.status, 'valid');
+    assert.deepEqual(validationEnvelope.result.diagnostics, []);
+    assert.equal(validationEnvelope.result.formatVersion, 1);
     assert.equal(inspectionEnvelope.cliVersion, cliVersion);
     assert.equal(inspectionEnvelope.command, 'inspect');
     assert.equal(
@@ -626,6 +659,9 @@ test('supported package-manager command exact-pins the CLI and suppresses lifecy
 });
 
 test('supported package manager installs and executes the published CLI closure', async () => {
+  parseRuntimeCompatibilityPublication(
+    readFileSync(RUNTIME_COMPATIBILITY_PUBLICATION_FIXTURE_PATH, 'utf8'),
+  );
   await exerciseRealCli({
     cliVersion: PUBLISHED_CLI_VERSION,
     registryUrl: NPM_REGISTRY_URL,
@@ -643,7 +679,17 @@ test(
       CANDIDATE_ARTIFACT_DIRECTORY,
       'MOLDEA_CLI_ARTIFACT_DIRECTORY is required for candidate conformance.',
     );
-    const { artifacts, cliVersion } = loadCandidateArtifacts(resolve(CANDIDATE_ARTIFACT_DIRECTORY));
+    const candidateArtifactDirectory = resolve(CANDIDATE_ARTIFACT_DIRECTORY);
+    parseRuntimeCompatibilityPublication(
+      readFileSync(
+        join(
+          candidateArtifactDirectory,
+          RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
+        ),
+        'utf8',
+      ),
+    );
+    const { artifacts, cliVersion } = loadCandidateArtifacts(candidateArtifactDirectory);
     const { registryUrl, server } = await createCandidateRegistry(artifacts);
 
     try {

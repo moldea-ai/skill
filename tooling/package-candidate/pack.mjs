@@ -10,13 +10,18 @@ import { packSourceWorkspaceCandidate } from './workspace.mjs';
  */
 export const parsePackArguments = (argumentsList) => {
   let artifactDirectory;
+  let runtimeCompatibilityPublicationPath;
   let workspaceRoot;
   const selectedRootPackageNames = [];
 
   for (let index = 0; index < argumentsList.length; index += 1) {
     const argument = argumentsList[index];
     const optionValue = argumentsList[index + 1];
-    if (!['--output', '--root', '--workspace'].includes(argument)) {
+    if (
+      !['--output', '--root', '--runtime-compatibility-publication', '--workspace'].includes(
+        argument,
+      )
+    ) {
       throw new Error(`Unknown candidate packer option: ${argument}`);
     }
     if (!optionValue || optionValue.startsWith('--')) {
@@ -27,11 +32,22 @@ export const parsePackArguments = (argumentsList) => {
     if (argument === '--output') artifactDirectory = resolve(optionValue);
     if (argument === '--workspace') workspaceRoot = resolve(optionValue);
     if (argument === '--root') selectedRootPackageNames.push(optionValue);
+    if (argument === '--runtime-compatibility-publication') {
+      runtimeCompatibilityPublicationPath = resolve(optionValue);
+    }
   }
 
   if (!workspaceRoot) throw new Error('--workspace is required.');
   if (!artifactDirectory) throw new Error('--output is required.');
-  return { artifactDirectory, selectedRootPackageNames, workspaceRoot };
+  if (!runtimeCompatibilityPublicationPath) {
+    throw new Error('--runtime-compatibility-publication is required.');
+  }
+  return {
+    artifactDirectory,
+    runtimeCompatibilityPublicationPath,
+    selectedRootPackageNames,
+    workspaceRoot,
+  };
 };
 
 /** Packs the dependency-first source closure and prints a machine-readable summary. */
@@ -43,6 +59,8 @@ const main = () => {
       {
         buildPackageNames: result.buildPackageNames,
         cliVersion: result.cliVersion,
+        runtimeCompatibilityPublicationArtifact:
+          result.runtimeCompatibilityPublicationArtifact,
         runtimePackageNames: result.runtimePackageNames,
       },
       null,

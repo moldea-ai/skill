@@ -82,24 +82,26 @@ test('updateCliRelease synchronizes a complete copied release tree', () => {
     assert.equal(identity.cliJsonSchemaVersion, nextCliJsonSchemaVersion);
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), []);
     for (const relativePath of CLI_VERSION_TEXT_PATHS) {
+      const previousIdentityPattern = new RegExp(
+        `(?<![<>=^~])${currentIdentity.cliVersion.replaceAll('.', '\\.')}\\b`,
+        'u',
+      );
       assert.equal(
-        readFileSync(join(temporaryRoot, relativePath), 'utf8').includes(
-          currentIdentity.cliVersion,
-        ),
+        previousIdentityPattern.test(readFileSync(join(temporaryRoot, relativePath), 'utf8')),
         false,
       );
     }
 
-    const compatibility = spawnSync(
+    const composition = spawnSync(
       process.execPath,
-      [join(temporaryRoot, SEMANTIC_CLI_EXECUTABLE_PATH), 'compatibility', '--json'],
+      [join(temporaryRoot, SEMANTIC_CLI_EXECUTABLE_PATH), 'composition', '--json'],
       { cwd: temporaryRoot, encoding: 'utf8' },
     );
-    const compatibilityEnvelope = JSON.parse(compatibility.stdout);
-    assert.equal(compatibility.status, 0, compatibility.stderr);
-    assert.equal(compatibilityEnvelope.schemaVersion, nextCliJsonSchemaVersion);
+    const compositionEnvelope = JSON.parse(composition.stdout);
+    assert.equal(composition.status, 0, composition.stderr);
+    assert.equal(compositionEnvelope.schemaVersion, nextCliJsonSchemaVersion);
     assert.ok(
-      compatibilityEnvelope.result.adapters.some(({ id }) => id === 'future'),
+      compositionEnvelope.result.adapters.some(({ id }) => id === 'future'),
       'The synthetic CLI must derive newly published adapters from its dependency inventory.',
     );
   } finally {

@@ -12,7 +12,7 @@ The current skill release supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`
-- `@moldea.ai/cli 4.0.1`
+- `@moldea.ai/cli 5.0.0`
 - CLI JSON schema `2`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
@@ -36,7 +36,9 @@ In a pnpm Plug'n'Play repository, provider verification does not require `node_m
 
 In a Yarn 4 repository, declaration, installed identity and exported binary, and effective provider are separate ordered checks. Evidence accepted at an earlier stage remains part of the report when a later provider conflict stops execution. The coding agent never resolves or invokes the binary after that conflict.
 
-The coding agent then uses `inspect --json` for complete deterministic evidence, `validate --json` for structural validation, or `compatibility --json` when installed package composition, available adapter IDs, repository-format versions, or Node.js and Git requirements can change the conclusion. The compatibility command does not publish target maturity or behavioral support claims.
+The coding agent then uses `inspect --json` for complete deterministic evidence, `validate --json` for structural validation, or `composition --json` when installed package composition, available adapter IDs, repository-format versions, or Node.js and Git requirements can change the conclusion. The CLI does not own target maturity or published behavioral support claims.
+
+When current runtime-target compatibility or maturity matters, the coding agent validates the untrusted publication at [`https://packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json). The packages website owns that publication, including `experimental` and `supported` target maturity, so those states can change independently of the CLI. An unavailable or invalid publication blocks only claims that depend on current published compatibility; it does not prevent safe local inspection or deterministic validation.
 
 When supplemental Git evidence is necessary, no Git subcommand is presumed harmless. Before worktree-aware Git, the coding agent establishes the candidate repository root through inert filesystem traversal and reads every repository and Git-directory attribute source. Any filter rule or incomplete attribute inspection blocks that Git path because repository clean filters cannot be neutralized universally from the command line. After the preflight passes, command-specific controls disable system and global attributes, filesystem monitors, pagers, external diff programs, text conversion, LFS, and submodule recursion. After every command, especially a failure, the agent checks the workspace and helper sentinels before claiming no writes. If those controls cannot make the inspection safe, it reports the limitation instead of executing repository code.
 

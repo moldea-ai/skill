@@ -332,7 +332,7 @@ export const DeterministicVerificationSchema = z.strictObject({
   repositoryFilesystemValid: z.boolean(),
   memoryRepositoryEquivalent: z.boolean(),
   coreValid: z.boolean(),
-  cliCompatibilityValid: z.boolean(),
+  cliCompositionValid: z.boolean(),
   cliIdentityValid: z.boolean(),
   cliPackageInventoryValid: z.boolean(),
   cliAdapterInventoryValid: z.boolean(),
@@ -352,7 +352,7 @@ export const DeterministicVerificationArtifactSchema = z.strictObject({
   summary: DeterministicVerificationSchema,
   details: z.strictObject({
     direct: z.unknown(),
-    cliCompatibility: z.unknown(),
+    cliComposition: z.unknown(),
     cliValidate: z.unknown(),
     cliInspect: z.unknown(),
     typecheck: z.strictObject({
@@ -366,6 +366,31 @@ export const DeterministicVerificationArtifactSchema = z.strictObject({
 export type IDeterministicVerificationArtifact = z.infer<
   typeof DeterministicVerificationArtifactSchema
 >;
+
+// protocol 3 and 4 deterministic artifacts retained only for immutable history verification
+const HistoricalDeterministicVerificationSchema = DeterministicVerificationSchema.omit({
+  cliCompositionValid: true,
+}).extend({
+  cliCompatibilityValid: z.boolean(),
+});
+export const QualificationHistoricalDeterministicVerificationArtifactSchema = z.strictObject({
+  summary: HistoricalDeterministicVerificationSchema,
+  details: z.strictObject({
+    direct: z.unknown(),
+    cliCompatibility: z.unknown(),
+    cliValidate: z.unknown(),
+    cliInspect: z.unknown(),
+    typecheck: z.strictObject({
+      exitCode: z.number().int(),
+      stdout: z.string(),
+      stderr: z.string(),
+    }),
+  }),
+});
+
+export type IQualificationRecordedDeterministicVerificationArtifact =
+  | z.infer<typeof QualificationHistoricalDeterministicVerificationArtifactSchema>
+  | IDeterministicVerificationArtifact;
 
 // one exact filesystem observation used for preservation and mutation assertions
 export const WorkspaceFileStateSchema = z.strictObject({
@@ -567,9 +592,15 @@ const QualificationTerraAttemptResultDraftSchema = QualificationAttemptResultDra
   provenance: QualificationTerraProvenanceSchema,
 });
 
+// protocol 4 Sol draft retained exclusively for immutable history verification
+const QualificationPreviousAttemptResultDraftSchema = QualificationAttemptResultDraftSchema.extend({
+  protocolVersion: z.literal(4),
+});
+
 const validateQualificationAttemptResult = (
   result:
     | z.infer<typeof QualificationAttemptResultDraftSchema>
+    | z.infer<typeof QualificationPreviousAttemptResultDraftSchema>
     | z.infer<typeof QualificationTerraAttemptResultDraftSchema>,
   context: z.RefinementCtx,
 ): void => {
@@ -630,9 +661,14 @@ export const QualificationAttemptResultSchema = QualificationAttemptResultDraftS
 const QualificationTerraAttemptResultSchema =
   QualificationTerraAttemptResultDraftSchema.superRefine(validateQualificationAttemptResult);
 
-// complete readable history across the frozen Terra and current Sol protocols
+// protocol 4 Sol attempt retained exclusively for immutable history verification
+const QualificationPreviousAttemptResultSchema =
+  QualificationPreviousAttemptResultDraftSchema.superRefine(validateQualificationAttemptResult);
+
+// complete readable history across frozen Terra and Sol protocols plus the current contract
 export const QualificationRecordedAttemptResultSchema = z.union([
   QualificationTerraAttemptResultSchema,
+  QualificationPreviousAttemptResultSchema,
   QualificationAttemptResultSchema,
 ]);
 
@@ -658,8 +694,14 @@ const QualificationTerraLatestResultSchema = QualificationLatestResultSchema.ext
   protocolVersion: z.literal(3),
 });
 
+// protocol 4 pointer retained exclusively for immutable history verification
+const QualificationPreviousLatestResultSchema = QualificationLatestResultSchema.extend({
+  protocolVersion: z.literal(4),
+});
+
 export const QualificationRecordedLatestResultSchema = z.union([
   QualificationTerraLatestResultSchema,
+  QualificationPreviousLatestResultSchema,
   QualificationLatestResultSchema,
 ]);
 

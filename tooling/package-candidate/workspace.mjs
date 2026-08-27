@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+
+import {
+  parseRuntimeCompatibilityPublication,
+  RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
+} from '../runtime-compatibility-publication/index.mjs';
 
 import { loadCandidateArtifacts } from './artifacts.mjs';
 
@@ -249,6 +254,7 @@ export const packSourceWorkspaceCandidate = ({
   artifactDirectory,
   executeCommand = executePnpmCommand,
   loadArtifacts = loadCandidateArtifacts,
+  runtimeCompatibilityPublicationPath,
   selectedRootPackageNames = [],
   workspaceRoot,
 }) => {
@@ -256,6 +262,19 @@ export const packSourceWorkspaceCandidate = ({
   const existingTarballs = readdirSync(artifactDirectory).filter((name) => name.endsWith('.tgz'));
   if (existingTarballs.length > 0) {
     throw new Error('Candidate artifact directory must not contain existing tarballs.');
+  }
+  const publicationArtifactPath = join(
+    artifactDirectory,
+    RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
+  );
+  if (existsSync(publicationArtifactPath)) {
+    throw new Error('Candidate artifact directory must not contain a runtime publication.');
+  }
+  if (runtimeCompatibilityPublicationPath !== undefined) {
+    parseRuntimeCompatibilityPublication(
+      readFileSync(runtimeCompatibilityPublicationPath, 'utf8'),
+    );
+    copyFileSync(runtimeCompatibilityPublicationPath, publicationArtifactPath);
   }
 
   const { buildClosure, runtimeClosure } = createSourceCandidatePlan(
@@ -289,6 +308,10 @@ export const packSourceWorkspaceCandidate = ({
   return {
     ...candidate,
     buildPackageNames: buildClosure.map(({ name }) => name),
+    runtimeCompatibilityPublicationArtifact:
+      runtimeCompatibilityPublicationPath === undefined
+        ? null
+        : RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
     runtimePackageNames: runtimeClosure.map(({ name }) => name),
   };
 };

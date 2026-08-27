@@ -143,6 +143,35 @@ const listArtifactPaths = (directory: string): string[] => {
 const calculateDigest = (path: string): string =>
   createHash('sha256').update(readFileSync(path)).digest('hex');
 
+const createDeterministicArtifact = (
+  cliEvidenceKind: 'compatibility' | 'composition',
+): Record<string, unknown> => ({
+  summary: {
+    passed: true,
+    inspectionStatus: 'valid',
+    repositoryFilesystemValid: true,
+    memoryRepositoryEquivalent: true,
+    coreValid: true,
+    ...(cliEvidenceKind === 'composition'
+      ? { cliCompositionValid: true }
+      : { cliCompatibilityValid: true }),
+    cliIdentityValid: true,
+    cliPackageInventoryValid: true,
+    cliAdapterInventoryValid: true,
+    cliEnvelopeValid: true,
+    cliValidateStatus: 'valid',
+    cliInspectStatus: 'valid',
+    typecheckPassed: true,
+    repositoryUnchanged: true,
+    failures: [],
+    durationMs: 12,
+    futureField: 'accepted',
+  },
+  details: {
+    futureField: 'accepted',
+  },
+});
+
 const createAttempt = (
   root: string,
   options: {
@@ -159,31 +188,7 @@ const createAttempt = (
   );
   const caseStatus = options.status === 'passed' ? 'passed' : 'failed';
   const isJudgeSkipped = options.judgeSkipped === true;
-  const deterministic = {
-    passed: true,
-    inspectionStatus: 'valid',
-    repositoryFilesystemValid: true,
-    memoryRepositoryEquivalent: true,
-    coreValid: true,
-    cliCompatibilityValid: true,
-    cliIdentityValid: true,
-    cliPackageInventoryValid: true,
-    cliAdapterInventoryValid: true,
-    cliEnvelopeValid: true,
-    cliValidateStatus: 'valid',
-    cliInspectStatus: 'valid',
-    typecheckPassed: true,
-    repositoryUnchanged: true,
-    failures: [],
-    durationMs: 12,
-    futureField: 'accepted',
-  };
-  const deterministicArtifact = {
-    summary: deterministic,
-    details: {
-      futureField: 'accepted',
-    },
-  };
+  const deterministicArtifact = createDeterministicArtifact('composition');
   const artifactValues: Record<string, unknown> = {
     'baseline.json': {
       required: false,
@@ -275,7 +280,7 @@ const createAttempt = (
     ]),
   );
   writeJson(attemptDirectory, 'attempt.json', {
-    protocolVersion: 4,
+    protocolVersion: 5,
     attemptId: options.attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -422,7 +427,7 @@ const writeLatest = (
   lastPassingAttemptId: string | null,
 ): void => {
   writeJson(root, 'qualification/results/custom/custom/latest.json', {
-    protocolVersion: 4,
+    protocolVersion: 5,
     adapterId: 'custom',
     implementationId: 'custom',
     latestAttemptId,
@@ -519,6 +524,18 @@ describe('loadQualificationWebsiteModel', () => {
       'qualification/results/custom/custom/attempts/attempt-terra/attempt.json',
       attempt,
     );
+    replaceAttemptArtifact(
+      root,
+      'attempt-terra',
+      'cases/evaluate-project/deterministic-after.json',
+      createDeterministicArtifact('compatibility'),
+    );
+    replaceAttemptArtifact(
+      root,
+      'attempt-terra',
+      'cases/evaluate-project/deterministic-before.json',
+      createDeterministicArtifact('compatibility'),
+    );
     writeJson(root, 'qualification/results/custom/custom/latest.json', {
       protocolVersion: 3,
       adapterId: 'custom',
@@ -534,6 +551,25 @@ describe('loadQualificationWebsiteModel', () => {
     expect(profile?.attempts[0]?.result.provenance.model).toBe('gpt-5.6-terra');
     expect(profile?.currentLatest).toBeNull();
     expect(profile?.currentLastPassing).toBeNull();
+  });
+
+  test('rejects a current attempt that uses the historical deterministic artifact shape', () => {
+    const root = createTemporaryRoot();
+    seedProfile(root);
+    createAttempt(root, {
+      attemptId: 'attempt-current',
+      createdAt: '2026-08-20T10:00:00.000Z',
+      status: 'passed',
+    });
+    writeLatest(root, 'attempt-current', 'passed', 'attempt-current');
+    replaceAttemptArtifact(
+      root,
+      'attempt-current',
+      'cases/evaluate-project/deterministic-after.json',
+      createDeterministicArtifact('compatibility'),
+    );
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
   });
 
   test('keeps a prior passing baseline when the latest attempt fails', () => {

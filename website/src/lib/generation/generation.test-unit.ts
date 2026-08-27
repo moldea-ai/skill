@@ -20,7 +20,7 @@ vi.mock('../qualification/index.ts', () => {
             lastPassingAttemptId: 'attempt-pass',
             latestAttemptId: 'attempt-pass',
             latestStatus: 'passed',
-            protocolVersion: 4,
+            protocolVersion: 5,
             updatedAt: '2026-08-22T12:00:00.000Z',
           },
           probes: [],
@@ -108,7 +108,7 @@ describe('createWebsiteModel', () => {
     const model = createWebsiteModel();
 
     expect(model.skill.name).toBe('moldea');
-    expect(model.skill.version).toBe('3.1.0');
+    expect(model.skill.version).toBe('4.0.0');
     expect(model.skill.description.length).toBeGreaterThan(0);
     expect(new Set(model.routes).size).toBe(model.routes.length);
     expect(model.documents.length).toBeGreaterThanOrEqual(18);

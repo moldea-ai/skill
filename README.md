@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or explore the complete documentation at [`skill.moldea.ai`](https://skill.moldea.ai).
 
-The current release is `3.1.0`. Install the latest version from `main` in the current project with:
+The current release is `4.0.0`. Install the latest version from `main` in the current project with:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v3.1.0"
+npx skills add "moldea-ai/skill#v4.0.0"
 ```
 
 Both sources install the portable skill as `moldea`. They do not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
@@ -50,7 +50,7 @@ npx skills add moldea-ai/skill
 This source follows `main`. To install the current release reproducibly, use its immutable tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v3.1.0"
+npx skills add "moldea-ai/skill#v4.0.0"
 ```
 
 The `skills` CLI supports Agent Skills-compatible hosts including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and many others. Host detection and installation location are handled by the installer; the portable skill itself remains vendor-neutral.
@@ -79,10 +79,10 @@ Refresh a branch-tracking global installation with:
 npx skills add moldea-ai/skill -g
 ```
 
-A release-pinned installation remains on its immutable tag. To update it, replace `v3.1.0` in the following command with the desired newer published tag:
+A release-pinned installation remains on its immutable tag. To update it, replace `v4.0.0` in the following command with the desired newer published tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v3.1.0"
+npx skills add "moldea-ai/skill#v4.0.0"
 ```
 
 Add `-g` to the tagged command only when updating a global installation.
@@ -104,15 +104,15 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 - an established supported package manager, or npm when none is established
 - this skill release's exact repository-local `@moldea.ai/cli` development dependency
 
-Release `3.1.0` supports:
+Release `4.0.0` supports:
 
-- `@moldea.ai/cli 4.0.1`
+- `@moldea.ai/cli 5.0.0`
 - CLI JSON schema `2`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
 - Yarn `>=4.0.0 <5.0.0`
 
-CLI `4.0.1` is part of this skill release's identity. Another CLI version belongs to another skill release and is not treated as interchangeable.
+CLI `5.0.0` is part of this skill release's identity. Another CLI version belongs to another skill release and is not treated as interchangeable.
 
 Write-capable workflows inspect executable package-manager configuration as file data before any package-manager process. A pnpmfile, hook, or Yarn `plugins[].path` declaration counts as executable configuration even when its code remains unread and unrun. Repository-supplied executable configuration blocks manager execution. The report retains every independent blocker even when another clarification also pauses the workflow. It names the exact path, blocked operation, unavailable evidence, and safe prerequisite: remove or disable the extension and retry, or independently verify and invoke an already declared and installed exact local CLI without the manager. It never recommends bypassing or executing the hidden extension merely to continue. For pnpm Plug'n'Play, the coding agent resolves the exact package through `pnpapi`, validates its relative binary and package containment, then invokes that binary through a separate `pnpm node` process. When an accessible repository-specific request asks for local CLI proof, it performs these checks and reports the accepted provider, version, command, and envelope instead of returning only a procedure. Result-dependent safety checks and deterministic CLI commands run as separate processes so each accepted result remains independently attributable. `evaluate` is strictly read-only and reports missing or mismatched tooling instead of installing it. Agent-system `plan` is also read-only and may run before adoption or local tooling exists. The skill never falls back to a global CLI or transient CLI download.
 
@@ -153,7 +153,7 @@ To design an AI-enabled system before implementation or `moldea` adoption, ask:
 Plan an agent system for personalized ecommerce promotions and decide what should remain ordinary software.
 ```
 
-Planning starts from the objective and bounded repository discovery across high-information surfaces, a root inventory, and relevant source, documentation, configuration, and tests. Discovery only queues candidate evidence. Before a repository-specific conclusion, absence claim, responsibility allocation, or topology, the coding agent opens every accessible material candidate and maps its path to the fact and responsibility it establishes. The recommendation preserves, combines, or reliably replaces every responsibility. Incompatible private context, permission, trust, or failure boundaries remain separate unless deterministic software replaces one. Repository-established data authority, readers, writers, persistence, model contracts, deterministic enforcement, and approval scope remain explicit. An unresolved authority or topology decision takes priority over downstream configuration questions. If runtime identity is explicitly requested and the exact local CLI is safely available, planning runs `compatibility --json`, treats its inventory only as availability evidence, and leaves runtime selection open without behavioral evidence. Every recommendation includes an implementation sequence. Planning changes no repository, dependency, Git, or external state and does not create a canonical plan artifact.
+Planning starts from the objective and bounded repository discovery across high-information surfaces, a root inventory, and relevant source, documentation, configuration, and tests. Discovery only queues candidate evidence. Before a repository-specific conclusion, absence claim, responsibility allocation, or topology, the coding agent opens every accessible material candidate and maps its path to the fact and responsibility it establishes. The recommendation preserves, combines, or reliably replaces every responsibility. Incompatible private context, permission, trust, or failure boundaries remain separate unless deterministic software replaces one. Repository-established data authority, readers, writers, persistence, model contracts, deterministic enforcement, and approval scope remain explicit. An unresolved authority or topology decision takes priority over downstream configuration questions. If runtime identity is explicitly requested and the exact local CLI is safely available, planning runs `composition --json` for installed availability and validates the packages website publication for current technical targets and maturity. Repository evidence must still establish the actual runtime and behavioral fit. Every recommendation includes an implementation sequence. Planning changes no repository, dependency, Git, or external state and does not create a canonical plan artifact.
 
 ## Natural-language operations
 
@@ -194,6 +194,7 @@ moldea/
 │   ├── continuous-maintenance.md
 │   ├── evaluate-and-reconcile.md
 │   ├── local-tooling.md
+│   ├── runtime-compatibility.md
 │   └── skill-design.md
 └── agents/
     └── openai.yaml
@@ -209,7 +210,7 @@ moldea/
 - `CNAME` declares `skill.moldea.ai` as the GitHub Pages custom domain.
 - `tests/` contains deterministic metadata, packaging, published-package, candidate-release, reference, and semantic-contract checks.
 - `tooling/` contains shared development-only Codex evaluation isolation, sourced scenario and repository-control evidence, semantic coverage validation, source and published package-candidate construction, and exact release-identity management.
-- `fixtures/` contains development-only conformance cases, the semantic coverage map, append-only semantic attempt history, the current passing result when one exists, a hostile lifecycle-script fixture, and a narrow synthetic compatibility fixture.
+- `fixtures/` contains development-only conformance cases, the semantic coverage map, append-only semantic attempt history, the current passing result when one exists, a hostile lifecycle-script fixture, a narrow synthetic composition fixture, and a narrow runtime-compatibility publication fixture.
 - `qualification/` contains the isolated local adapter-support qualification runner, transparent mock projects, checkpoints, and committed result history.
 - `.github/workflows/pages.yml` verifies and deploys the documentation website, then submits its sitemap to Google Search Console after successful push deployments.
 - `.github/workflows/conformance.yml` runs portable conformance across supported Node.js lines and representative minimum/latest package-manager versions.
@@ -281,13 +282,13 @@ Search Console submission requires the `GOOGLE_SEARCH_CONSOLE_CREDENTIALS` Actio
 
 The complete integration suite requires Bubblewrap and derives the published CLI version from the root exact dependency. Portable CI jobs provision Bubblewrap, load Ubuntu's packaged Bubblewrap AppArmor profile, and run the complete suite. The package-manager matrices run the focused package-manager integration boundary across npm `10.9.0` and `11.19.0`, pnpm `11.20.0` and `11.21.0`, and Yarn `4.0.0` and `4.18.0` against that one release CLI without repeating unrelated sandbox checks. The independent release-candidate workflow can exercise a newly packed exact CLI before the skill adopts it. Yarn versions with a minimum-release-age gate use their command-scoped override only inside the isolated conformance install so newly published exact package versions remain testable.
 
-The ordinary package-manager integration suite first serves the adversarial lifecycle fixture through an isolated local registry with faithful package metadata. That fixture intentionally contains lifecycle scripts and remains the security proof for exact pinning and lifecycle suppression. A separate mandatory path installs the selected exact published CLI from npm, proves local executable provenance, and executes deterministic `compatibility --json` and `inspect --json` checks against a custom-runtime project.
+The ordinary package-manager integration suite first serves the adversarial lifecycle fixture through an isolated local registry with faithful package metadata. That fixture intentionally contains lifecycle scripts and remains the security proof for exact pinning and lifecycle suppression. A separate mandatory path installs the selected exact published CLI from npm, proves local executable provenance, and executes deterministic `composition --json`, `validate --json`, and `inspect --json` checks against a custom-runtime project. It validates a narrow checked-in runtime publication without network access.
 
-When `MOLDEA_CLI_ARTIFACT_DIRECTORY` identifies a packed candidate closure rooted at `@moldea.ai/cli`, the same suite derives package identities, versions, and internal dependency composition from the packed manifests. It rejects missing, duplicate, unreachable, mismatched, and non-exact CLI dependencies before building a scoped loopback registry and running the shared real-CLI checks. Set `MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS=1` at the release boundary so a missing artifact directory fails instead of skipping that candidate-only case. The manual Release Candidate workflow accepts an exact `moldea-ai/packages` ref, records the resolved commit, discovers the current source package graph, builds local build dependencies in dependency-first order, packs the complete reachable runtime closure, and runs this path across every supported package-manager version without publishing or tagging either repository.
+When `MOLDEA_CLI_ARTIFACT_DIRECTORY` identifies a packed candidate closure rooted at `@moldea.ai/cli`, the same suite derives package identities, versions, and internal dependency composition from the packed manifests. It rejects missing, duplicate, unreachable, mismatched, and non-exact CLI dependencies before building a scoped loopback registry and running the shared real-CLI checks. Set `MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS=1` at the release boundary so a missing artifact directory fails instead of skipping that candidate-only case. The manual Release Candidate workflow accepts an exact `moldea-ai/packages` ref, records the resolved commit, builds the packages website, validates its generated runtime publication against the Skill contract, discovers the current source package graph, builds local package dependencies in dependency-first order, packs the complete reachable runtime closure, and runs this path across every supported package-manager version without publishing or tagging either repository.
 
 `fixtures/conformance-cases.json` contains package-manager, CLI-envelope, README-marker, planning, Agent Skill, runtime, security, and semantic forward-evaluation scenarios. Deterministic tests execute the mechanical decisions and validate every semantic case's evidence, requested operation, expected outcomes, and forbidden outcomes. CI also installs the portable artifact into an isolated Agent Skills home and compares the installed tree byte-for-byte with `moldea/`.
 
-Semantic evaluation is intentionally lengthy and can consume a significant number of model tokens because every trial runs separate actor and judge processes. The current suite contains 49 cases and makes up to 98 model calls when every initial trial passes. A bounded confirmation sequence adds up to four calls for one failed case. Its runtime-selection cases treat the compact CLI inventory only as adapter availability and require separate reliable evidence for behavioral support. Do not start a full evaluation, standalone diagnostic, or confirmation sequence without first explaining why fresh semantic evidence is important, why existing evidence or deterministic verification is insufficient, and the expected time and token cost. Obtain the developer's explicit approval for that exact paid operation before running it. The developer may instead grant standing confirmation authorization for a compatible candidate, including automatic resume after recovery. Record its scope before execution. It never authorizes a restart, source correction, changed evidence boundary, or additional candidate.
+Semantic evaluation is intentionally lengthy and can consume a significant number of model tokens because every trial runs separate actor and judge processes. The suite contains 54 cases and uses up to 108 model calls when every case passes initially. One bounded confirmation sequence can add up to four calls. Its runtime-selection cases keep repository evidence, local CLI composition, and the public technical and maturity publication separate. Do not start a full evaluation, standalone diagnostic, or confirmation sequence without first explaining why fresh semantic evidence is important, why existing evidence or deterministic verification is insufficient, and the expected time and token cost. Obtain the developer's explicit approval for that exact paid operation before running it. The developer may instead grant standing confirmation authorization for a compatible candidate, including automatic resume after recovery. Record its scope before execution. It never authorizes a restart, source correction, changed evidence boundary, or additional candidate.
 
 Semantic behavior is evaluated through an Agent Skills-capable host and recorded against the exact portable artifact digest. Before any model execution, validate the complete coverage and scenario boundary for free:
 
@@ -295,13 +296,13 @@ Semantic behavior is evaluated through an Agent Skills-capable host and recorded
 npm run eval:semantic:preflight
 ```
 
-The preflight materializes all 49 repositories, verifies every sourced evidence declaration, confirms each actor prompt is exactly the natural developer direction, and proves that evidence collection preserves protected repository controls. The runner always pins both the actor and judge to the frontier assurance model at `medium` reasoning effort (`gpt-5.6-sol`); caller-provided host commands must not select their own model or reasoning effort. This fixed configuration avoids per-run model and effort decisions. To refresh the paid evidence after preflight, provide a non-interactive host command that accepts the evaluation prompt on standard input and returns Codex JSONL events, then run:
+The preflight materializes all 54 repositories, verifies every sourced evidence declaration, confirms each actor prompt is exactly the natural developer direction, and proves that evidence collection preserves protected repository controls. The runner always pins both the actor and judge to the frontier assurance model at `medium` reasoning effort (`gpt-5.6-sol`); caller-provided host commands must not select their own model or reasoning effort. This fixed configuration avoids per-run model and effort decisions. To refresh the paid evidence after preflight, provide a non-interactive host command that accepts the evaluation prompt on standard input and returns Codex JSONL events, then run:
 
 ```bash
 MOLDEA_EVAL_ACTOR_COMMAND_JSON='["codex","exec","--ignore-user-config","--ignore-rules","--ephemeral","--skip-git-repo-check","--dangerously-bypass-approvals-and-sandbox","-c","shell_environment_policy.inherit=none","-"]' npm run eval:semantic -- --record
 ```
 
-Recording writes `fixtures/.semantic-evaluation-candidate.json` atomically after every completed trial. The ignored candidate uses checkpoint schema `5` and is bound to semantic protocol `16`, confirmation policy `1`, the exact portable artifact digest, release CLI version and registry integrity, package-lock digest, complete semantic case-suite digest, semantic coverage digest, and the fixed Codex, `gpt-5.6-sol`, medium host contract. Each trial separately records the exact actor and judge Codex CLI versions. A routine Codex CLI update can resume the same compatible candidate without repeating completed work, while a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. Repeating the same full command skips completed successful or recovered cases and evaluates only cases without an initial trial. A failed initial trial is never replaced or silently retried.
+Recording writes `fixtures/.semantic-evaluation-candidate.json` atomically after every completed trial. The ignored candidate uses checkpoint schema `5` and is bound to semantic protocol `17`, confirmation policy `1`, the exact portable artifact digest, release CLI version and registry integrity, package-lock digest, complete semantic case-suite digest, semantic coverage digest, and the fixed Codex, `gpt-5.6-sol`, medium host contract. Each trial separately records the exact actor and judge Codex CLI versions. A routine Codex CLI update can resume the same compatible candidate without repeating completed work, while a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. Repeating the same full command skips completed successful or recovered cases and evaluates only cases without an initial trial. A failed initial trial is never replaced or silently retried.
 
 Every recorded full run stops after its first failed initial case, writes the checkpoint first, publishes an immutable failed attempt under `fixtures/semantic-evaluation-results/attempts/`, and exits nonzero. The operator must inspect the actor response, runner-owned execution facts, workspace evidence, and judge rationale before choosing a next action. The full command does not authorize a confirmation or later resume unless the developer has separately granted standing confirmation and compatible-resume authorization.
 
@@ -358,7 +359,7 @@ The skill uses independent semantic versioning. Every release must:
 - use an immutable `v<version>` tag
 - preserve semantically identical `moldea/` content across every official distribution channel
 
-Release `3.1.0` will use the immutable `v3.1.0` tag.
+Release `4.0.0` will use the immutable `v4.0.0` tag.
 
 ## License
 

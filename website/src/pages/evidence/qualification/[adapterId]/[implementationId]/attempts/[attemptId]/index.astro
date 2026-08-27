@@ -228,7 +228,13 @@ const pageDescription =
               <div>
                 <dt class="text-muted-foreground">Assurance generation</dt>
                 <dd class="mt-1">
-                  {result.protocolVersion === 4 ? 'Current Sol' : 'Historical Terra'}
+                  {
+                    result.protocolVersion === 5
+                      ? 'Current Sol'
+                      : result.protocolVersion === 4
+                        ? 'Historical Sol'
+                        : 'Historical Terra'
+                  }
                 </dd>
               </div>
             </dl>

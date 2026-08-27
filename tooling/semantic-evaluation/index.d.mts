@@ -19,7 +19,7 @@ export type ISemanticActorExecutionOutputFact =
   | {
       kind: 'moldea-cli-envelope';
       cliVersion: string;
-      command: 'compatibility' | 'inspect' | 'validate';
+      command: 'composition' | 'inspect' | 'validate';
       errorPresent: boolean;
       resultPresent: boolean;
       schemaVersion: number;

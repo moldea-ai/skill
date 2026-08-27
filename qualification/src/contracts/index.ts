@@ -27,6 +27,7 @@ export type {
   IModelUsage,
   IQualificationExecutionEnvironment,
   IQualificationModelStageEvidence,
+  IQualificationRecordedDeterministicVerificationArtifact,
   IWorkspaceAssertionResult,
   IWorkspaceFileState,
 } from './types.ts';
@@ -39,6 +40,7 @@ export {
   JudgeOutputSchema,
   ModelUsageSchema,
   QualificationExecutionEnvironmentSchema,
+  QualificationHistoricalDeterministicVerificationArtifactSchema,
   QualificationModelStageEvidenceSchema,
   WorkspaceAssertionResultSchema,
   WorkspaceFileStateSchema,

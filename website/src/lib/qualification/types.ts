@@ -3,7 +3,8 @@ import { posix } from 'node:path';
 import { z } from 'zod';
 
 const QUALIFICATION_PROTOCOL_VERSION = 1;
-const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 4;
+const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 5;
+const QUALIFICATION_PREVIOUS_EVIDENCE_PROTOCOL_VERSION = 4;
 const QUALIFICATION_TERRA_EVIDENCE_PROTOCOL_VERSION = 3;
 const StableIdSchema = z
   .string()
@@ -145,6 +146,10 @@ export const QualificationLatestResultSchema = z.discriminatedUnion('protocolVer
     ...QualificationLatestResultShape,
   }),
   z.object({
+    protocolVersion: z.literal(QUALIFICATION_PREVIOUS_EVIDENCE_PROTOCOL_VERSION),
+    ...QualificationLatestResultShape,
+  }),
+  z.object({
     protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
     ...QualificationLatestResultShape,
   }),
@@ -255,6 +260,11 @@ export const QualificationAttemptResultSchema = z.discriminatedUnion('protocolVe
     provenance: QualificationTerraProvenanceSchema,
   }),
   z.object({
+    protocolVersion: z.literal(QUALIFICATION_PREVIOUS_EVIDENCE_PROTOCOL_VERSION),
+    ...QualificationAttemptResultShape,
+    provenance: QualificationCurrentProvenanceSchema,
+  }),
+  z.object({
     protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
     ...QualificationAttemptResultShape,
     provenance: QualificationCurrentProvenanceSchema,
@@ -279,13 +289,12 @@ export const QualificationSourceStateResultSchema = z.object({
   skillRepositoryDirty: z.boolean(),
   failures: z.array(z.string()),
 });
-export const DeterministicVerificationSchema = z.object({
+const DeterministicVerificationShape = {
   passed: z.boolean(),
   inspectionStatus: z.enum(['invalid', 'valid']),
   repositoryFilesystemValid: z.boolean(),
   memoryRepositoryEquivalent: z.boolean(),
   coreValid: z.boolean(),
-  cliCompatibilityValid: z.boolean(),
   cliIdentityValid: z.boolean(),
   cliPackageInventoryValid: z.boolean(),
   cliAdapterInventoryValid: z.boolean(),
@@ -296,10 +305,22 @@ export const DeterministicVerificationSchema = z.object({
   repositoryUnchanged: z.boolean(),
   failures: z.array(z.string()),
   durationMs: z.number().int().nonnegative(),
+};
+export const HistoricalDeterministicVerificationSchema = z.object({
+  ...DeterministicVerificationShape,
+  cliCompatibilityValid: z.boolean(),
+});
+export const CurrentDeterministicVerificationSchema = z.object({
+  ...DeterministicVerificationShape,
+  cliCompositionValid: z.boolean(),
 });
 // additive producer artifact carrying the stable summary and inspectable diagnostics
-export const DeterministicVerificationArtifactSchema = z.object({
-  summary: DeterministicVerificationSchema,
+export const HistoricalDeterministicVerificationArtifactSchema = z.object({
+  summary: HistoricalDeterministicVerificationSchema,
+  details: z.object({}),
+});
+export const CurrentDeterministicVerificationArtifactSchema = z.object({
+  summary: CurrentDeterministicVerificationSchema,
   details: z.object({}),
 });
 export const WorkspaceAssertionResultSchema = z.object({
@@ -365,7 +386,9 @@ export type IQualificationLatestResult = z.infer<typeof QualificationLatestResul
 export type IQualificationAttemptResult = z.infer<typeof QualificationAttemptResultSchema>;
 export type IQualificationCoverageResult = z.infer<typeof QualificationCoverageResultSchema>;
 export type IQualificationSourceStateResult = z.infer<typeof QualificationSourceStateResultSchema>;
-export type IDeterministicVerification = z.infer<typeof DeterministicVerificationSchema>;
+export type IDeterministicVerification =
+  | z.infer<typeof HistoricalDeterministicVerificationSchema>
+  | z.infer<typeof CurrentDeterministicVerificationSchema>;
 export type IWorkspaceAssertionResult = z.infer<typeof WorkspaceAssertionResultSchema>;
 export type IActorOutput = z.infer<typeof ActorOutputSchema>;
 export type IJudgeOutput = z.infer<typeof JudgeOutputSchema>;

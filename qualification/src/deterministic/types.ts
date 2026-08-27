@@ -5,7 +5,7 @@ export type IDeterministicVerificationArtifact = {
   summary: IDeterministicVerification;
   details: {
     direct: unknown;
-    cliCompatibility: unknown;
+    cliComposition: unknown;
     cliValidate: unknown;
     cliInspect: unknown;
     typecheck: {

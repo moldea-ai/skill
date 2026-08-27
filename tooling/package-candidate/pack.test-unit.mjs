@@ -12,6 +12,8 @@ test('parses required paths and repeatable selected roots', () => {
       './packages',
       '--output',
       './artifacts',
+      '--runtime-compatibility-publication',
+      './packages/apps/website/dist/compatibility/runtimes.json',
       '--root',
       '@moldea.ai/adapter-next',
       '--root',
@@ -19,6 +21,9 @@ test('parses required paths and repeatable selected roots', () => {
     ]),
     {
       artifactDirectory: resolve('./artifacts'),
+      runtimeCompatibilityPublicationPath: resolve(
+        './packages/apps/website/dist/compatibility/runtimes.json',
+      ),
       selectedRootPackageNames: [
         '@moldea.ai/adapter-next',
         '@moldea.ai/adapter-other',
@@ -33,6 +38,16 @@ test('rejects missing values, required paths, and unknown options', () => {
   assert.throws(
     () => parsePackArguments(['--workspace', './packages']),
     /--output is required/,
+  );
+  assert.throws(
+    () =>
+      parsePackArguments([
+        '--workspace',
+        './packages',
+        '--output',
+        './artifacts',
+      ]),
+    /--runtime-compatibility-publication is required/,
   );
   assert.throws(() => parsePackArguments(['--workspace']), /requires a value/);
   assert.throws(

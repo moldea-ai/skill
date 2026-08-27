@@ -1,7 +1,7 @@
 import { posix } from 'node:path';
 
 const COMMAND_COMPLETED_STATUSES = new Set(['completed', 'failed']);
-const MOLDEA_COMMANDS = new Set(['compatibility', 'inspect', 'validate']);
+const MOLDEA_COMMANDS = new Set(['composition', 'inspect', 'validate']);
 const MOLDEA_STATUSES = new Set(['error', 'invalid', 'valid']);
 const OUTPUT_DISPOSITIONS = new Set(['empty', 'projected', 'too-large', 'unrecognized']);
 const YARN_CLI_PACKAGE_NAME = '@moldea.ai/cli';
@@ -141,7 +141,7 @@ const hasConsistentMoldeaEnvelope = (envelope, exitCode, options) => {
   }
   if (envelope.status === 'invalid') {
     return (
-      envelope.command !== 'compatibility' &&
+      envelope.command !== 'composition' &&
       exitCode === 1 &&
       envelope.result !== null &&
       envelope.error === null
@@ -307,7 +307,7 @@ const hasValidMoldeaEnvelopeFact = (fact, exitCode, options) =>
   typeof fact.errorPresent === 'boolean' &&
   ((fact.status === 'valid' && exitCode === 0 && fact.resultPresent && !fact.errorPresent) ||
     (fact.status === 'invalid' &&
-      fact.command !== 'compatibility' &&
+      fact.command !== 'composition' &&
       exitCode === 1 &&
       fact.resultPresent &&
       !fact.errorPresent) ||

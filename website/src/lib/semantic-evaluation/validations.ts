@@ -72,7 +72,7 @@ export const SemanticAttemptRecordSchema = z.object({
   coverageDigest: Sha256Schema,
   createdAt: z.iso.datetime(),
   evidence: z.object({
-    evaluationProtocolVersion: z.literal(16),
+    evaluationProtocolVersion: z.union([z.literal(16), z.literal(17)]),
     kind: z.literal('candidate'),
     path: z.literal('evidence.json'),
     schemaVersion: z.literal(5),

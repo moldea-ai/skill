@@ -117,6 +117,13 @@ const INITIALIZATION_CONTEXT_CASE_IDS = new Set([
   'initialize-partial-context',
   'initialize-sufficient-context',
 ]);
+const RUNTIME_COMPATIBILITY_PUBLICATION_CASE_IDS = new Set([
+  'experimental-target-not-production-ready',
+  'installed-adapter-without-published-target',
+  'published-supported-target-not-installed',
+  'runtime-publication-malformed',
+  'runtime-publication-unavailable',
+]);
 // semantic cases that use scenario-specific setup instead of the adopted npm fixture
 const CUSTOM_SETUP_CASE_IDS = new Set([
   'host-plan-command-precedence',
@@ -1307,6 +1314,90 @@ export const prepareSemanticEvaluationHome = async (
   actorToolDirectory,
 ) => {
   await prepareCodexEvaluationHome(sandboxHome);
+  if (RUNTIME_COMPATIBILITY_PUBLICATION_CASE_IDS.has(caseDefinition.id)) {
+    if (typeof actorToolDirectory !== 'string' || actorToolDirectory.length === 0) {
+      throw new Error(
+        'The runtime compatibility scenario requires an evaluator-owned tool directory.',
+      );
+    }
+
+    const publicationTargets =
+      caseDefinition.id === 'installed-adapter-without-published-target'
+        ? []
+        : [
+            {
+              id:
+                caseDefinition.id === 'published-supported-target-not-installed'
+                  ? 'typescript-future-runtime-1'
+                  : 'typescript-responses-api-7',
+              kind: 'package',
+              language: 'typescript',
+              lastVerifiedAt: '2026-08-26',
+              maturity:
+                caseDefinition.id === 'published-supported-target-not-installed'
+                  ? 'supported'
+                  : 'experimental',
+              packages: [
+                {
+                  ecosystem: 'npm',
+                  name:
+                    caseDefinition.id === 'published-supported-target-not-installed'
+                      ? 'future-runtime'
+                      : 'openai',
+                  role: 'primary',
+                  versionRange: '^1.0.0',
+                },
+              ],
+            },
+          ];
+    const adapterId =
+      caseDefinition.id === 'published-supported-target-not-installed' ? 'future' : 'openai';
+    const publication = {
+      adapters: {
+        [adapterId]: {
+          implementation: {
+            distribution: 'public',
+            kind: 'package',
+            package: `@moldea.ai/adapter-${adapterId}`,
+          },
+          implementationStatus: 'available',
+          supportedRepositoryFormatVersions: [1],
+          targets: publicationTargets,
+        },
+      },
+      matrixVersion: 2,
+      schemaVersion: 1,
+    };
+    const response =
+      caseDefinition.id === 'runtime-publication-malformed'
+        ? '{'
+        : `${JSON.stringify(publication)}\n`;
+
+    await mkdir(actorToolDirectory, { recursive: true });
+    await copyFile(join(sandboxHome, 'bin', 'npm'), join(actorToolDirectory, 'npm'));
+    const curlProbePath = join(actorToolDirectory, 'curl');
+    await writeFile(
+      curlProbePath,
+      [
+        '#!/opt/node',
+        "const expectedUrl = 'https://packages.moldea.ai/compatibility/runtimes.json';",
+        'const argumentsList = process.argv.slice(2);',
+        'if (!argumentsList.includes(expectedUrl)) {',
+        "  process.stderr.write('The evaluation curl probe supports only the runtime compatibility publication.\\n');",
+        '  process.exitCode = 2;',
+        `} else if (${JSON.stringify(caseDefinition.id)} === 'runtime-publication-unavailable') {`,
+        "  process.stderr.write('The runtime compatibility publication is unavailable.\\n');",
+        '  process.exitCode = 22;',
+        '} else {',
+        `  process.stdout.write(${JSON.stringify(response)});`,
+        '}',
+        '',
+      ].join('\n'),
+      'utf8',
+    );
+    await chmod(curlProbePath, 0o755);
+    return [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
+  }
   if (caseDefinition.id === 'pnpm-pnp-local-cli-provider') {
     if (typeof actorToolDirectory !== 'string' || actorToolDirectory.length === 0) {
       throw new Error(
@@ -1539,6 +1630,33 @@ const seedInventoryOnlyRuntimeEvidence = async (repositoryPath) => {
     repositoryPath,
     'docs/runtime-candidates.md',
     '# Runtime candidates\n\nDeployment configuration names the OpenAI adapter package as a candidate. This repository does not establish an approved provider integration or adapter contract.\n',
+  );
+};
+
+/** Seeds repository-owned OpenAI Responses API evidence for compatibility scenarios. */
+const seedOpenAiRuntimeEvidence = async (repositoryPath) => {
+  await seedRefundAgent(
+    repositoryPath,
+    'Use the OpenAI Responses API runtime to assess refund requests.',
+    { runtimeId: 'openai', withMirrors: false },
+  );
+  const packageManifestPath = join(repositoryPath, 'package.json');
+  const packageManifest = JSON.parse(await readFile(packageManifestPath, 'utf8'));
+  packageManifest.dependencies = { ...(packageManifest.dependencies ?? {}), openai: '7.4.0' };
+  await writeScenarioFile(
+    repositoryPath,
+    'package.json',
+    `${JSON.stringify(packageManifest, null, 2)}\n`,
+  );
+  await writeScenarioFile(
+    repositoryPath,
+    'src/refund-agent.js',
+    [
+      "import OpenAI from 'openai';",
+      'const client = new OpenAI();',
+      'export const runRefundAgent = (input) => client.responses.create({ input });',
+      '',
+    ].join('\n'),
   );
 };
 
@@ -1941,6 +2059,12 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
       );
       await seedInventoryOnlyRuntimeEvidence(repositoryPath);
       break;
+    case 'experimental-target-not-production-ready':
+    case 'installed-adapter-without-published-target':
+    case 'runtime-publication-malformed':
+    case 'runtime-publication-unavailable':
+      await seedOpenAiRuntimeEvidence(repositoryPath);
+      break;
     case 'adopted-relevance-no-change':
       await writeScenarioFile(
         repositoryPath,
@@ -2035,6 +2159,18 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
         repositoryPath,
         'runtime/provider.json',
         '{"providerHostedCapabilities":{"webSearch":true}}\n',
+      );
+      break;
+    case 'published-supported-target-not-installed':
+      await seedRefundAgent(
+        repositoryPath,
+        'Use the project-specific runtime until an established official runtime is executable.',
+        { runtimeId: 'custom', withMirrors: false },
+      );
+      await writeScenarioFile(
+        repositoryPath,
+        'docs/future-runtime.md',
+        '# Future runtime candidate\n\nThe team is evaluating `future-runtime`, but it is not installed or wired in this repository.\n',
       );
       break;
     case 'plan-runtime-inventory-insufficient-evidence':

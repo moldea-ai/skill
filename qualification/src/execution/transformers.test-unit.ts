@@ -23,7 +23,7 @@ const createCandidatePackage = (name: string, version: string, marker: string) =
 describe('qualification result transformation', () => {
   test('permits a dirty passing dry-run draft without making it publishable', () => {
     const checkpoint = QualificationAttemptCheckpointSchema.parse({
-      protocolVersion: 4,
+      protocolVersion: 5,
       attemptId: 'dry-run-attempt',
       parentAttemptId: null,
       selection: { adapterId: 'custom', implementationId: 'custom' },

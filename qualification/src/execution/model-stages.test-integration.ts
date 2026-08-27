@@ -82,7 +82,7 @@ const deterministicAfter: IDeterministicVerification = {
   repositoryFilesystemValid: true,
   memoryRepositoryEquivalent: true,
   coreValid: true,
-  cliCompatibilityValid: true,
+  cliCompositionValid: true,
   cliIdentityValid: true,
   cliPackageInventoryValid: true,
   cliAdapterInventoryValid: true,

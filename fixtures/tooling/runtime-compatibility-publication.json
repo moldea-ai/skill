@@ -1,0 +1,56 @@
+{
+  "adapters": {
+    "custom": {
+      "implementation": {
+        "distribution": "public",
+        "kind": "built-in",
+        "package": "@moldea.ai/core"
+      },
+      "implementationStatus": "available",
+      "runtimeGuidance": {
+        "expectation": "recommended"
+      },
+      "supportedRepositoryFormatVersions": [1],
+      "targets": [
+        {
+          "id": "custom",
+          "kind": "custom",
+          "language": "project-defined",
+          "lastVerifiedAt": "2026-08-26",
+          "maturity": "supported"
+        }
+      ]
+    },
+    "openai": {
+      "implementation": {
+        "distribution": "public",
+        "kind": "package",
+        "package": "@moldea.ai/adapter-openai"
+      },
+      "implementationStatus": "available",
+      "runtimeGuidance": {
+        "expectation": "optional"
+      },
+      "supportedRepositoryFormatVersions": [1],
+      "targets": [
+        {
+          "id": "typescript-responses-api-7",
+          "kind": "package",
+          "language": "typescript",
+          "lastVerifiedAt": "2026-08-26",
+          "maturity": "experimental",
+          "packages": [
+            {
+              "ecosystem": "npm",
+              "name": "openai",
+              "role": "primary",
+              "versionRange": "^7.0.0"
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "matrixVersion": 2,
+  "schemaVersion": 1
+}

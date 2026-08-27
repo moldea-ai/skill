@@ -1243,7 +1243,7 @@ test('semantic candidates retain failures and require two passing confirmations'
     caseDefinitions,
     generatedAt: '2026-08-16T12:03:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 16);
+  assert.equal(record.evaluationProtocolVersion, 17);
   assert.equal(record.schemaVersion, 5);
   assert.equal(record.actorHost, undefined);
   assert.equal(record.host, undefined);
@@ -1642,6 +1642,23 @@ test('uses the published CLI for compatibility-sensitive runtime states', () => 
   assert.equal(getSemanticToolingSource('initialize-sufficient-context'), 'published-package');
   assert.equal(
     getSemanticToolingSource('plan-runtime-inventory-insufficient-evidence'),
+    'published-package',
+  );
+  assert.equal(
+    getSemanticToolingSource('runtime-publication-unavailable'),
+    'published-package',
+  );
+  assert.equal(getSemanticToolingSource('runtime-publication-malformed'), 'published-package');
+  assert.equal(
+    getSemanticToolingSource('installed-adapter-without-published-target'),
+    'published-package',
+  );
+  assert.equal(
+    getSemanticToolingSource('published-supported-target-not-installed'),
+    'published-package',
+  );
+  assert.equal(
+    getSemanticToolingSource('experimental-target-not-production-ready'),
     'published-package',
   );
   assert.equal(getSemanticToolingSource('pnpm-pnp-local-cli-provider'), 'scenario-specific');

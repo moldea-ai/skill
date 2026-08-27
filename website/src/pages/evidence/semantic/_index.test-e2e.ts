@@ -11,11 +11,12 @@ test('explains current semantic evidence through keyboard-accessible disclosure'
   await page.goto(toPublicPath('/evidence/semantic/'));
 
   await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
-  await expect(page.getByText('0/49 scenarios', { exact: true })).toBeVisible();
+  await expect(page.getByText('0/54 scenarios', { exact: true })).toBeVisible();
   await expect(page.getByText('No recorded attempt', { exact: true })).toBeVisible();
   await expect(
-    page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
+    page.getByRole('heading', { level: 2, name: 'Every recorded outcome remains available.' }),
   ).toBeVisible();
+  await expect(page.getByRole('link', { name: /Inspect attempt/u })).toHaveCount(2);
   await expect(page.getByRole('link', { name: 'Read the methodology' })).toHaveAttribute(
     'href',
     toPublicPath('/docs/semantic-evaluation/'),

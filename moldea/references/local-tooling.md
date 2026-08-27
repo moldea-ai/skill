@@ -4,11 +4,11 @@ Read this reference after the skill entrypoint and before any Git, package-manag
 
 ## Compatibility contract
 
-Release `3.1.0` supports:
+Release `4.0.0` supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`
-- `@moldea.ai/cli 4.0.1`
+- `@moldea.ai/cli 5.0.0`
 - CLI JSON schema `2`
 - npm `>=10.9.0 <12.0.0`
 - pnpm `>=11.20.0 <12.0.0`
@@ -42,19 +42,19 @@ After the file-only gate passes, verify the selected executable with `npm --vers
 Release tooling state requires all of the following:
 
 - `@moldea.ai/cli` is a root `devDependency` declared as one exact semantic version, not a range, tag, URL, workspace protocol, alias, or other floating specifier.
-- the declared version is exactly `4.0.1`
+- the declared version is exactly `5.0.0`
 - the installed repository-local package manifest reports the same exact version
 - the established manager resolves the repository-local `moldea` executable from that root package
 - the machine envelope reports the same exact `cliVersion` and schema `2`
 
-Preserve the exact version `4.0.1`. Another installed version belongs to another skill release. If the exact release CLI lacks a required official adapter or machine capability, report the release defect rather than selecting another version.
+Preserve the exact version `5.0.0`. Another installed version belongs to another skill release. If the exact release CLI lacks a required official adapter or machine capability, report the release defect rather than selecting another version.
 
 Inspect the manager-specific manifest and executable directly; Git or `rg` omission does not prove absence.
 
 During a write-capable workflow:
 
-- if the installed repository-local CLI is exactly `4.0.1` but the declaration floats, pin `4.0.1` exactly and update the ordinary lockfile
-- if the exact release CLI is absent or another version is installed, verify published registry metadata for `4.0.1`, install that version exactly, and update the ordinary lockfile
+- if the installed repository-local CLI is exactly `5.0.0` but the declaration floats, pin `5.0.0` exactly and update the ordinary lockfile
+- if the exact release CLI is absent or another version is installed, verify published registry metadata for `5.0.0`, install that version exactly, and update the ordinary lockfile
 - if installed and declared state conflict in a way that cannot be established reliably, stop and report the prerequisite instead of guessing
 
 During `plan`, `evaluate`, or `validate`, do not create manifests, change dependencies or lockfiles, or install packages. Report the state and relevant write-capable remediation.
@@ -72,7 +72,7 @@ pnpm add --workspace-root --save-dev --save-exact --ignore-scripts @moldea.ai/cl
 yarn add --dev --exact --mode=skip-build @moldea.ai/cli@<resolved-version>
 ```
 
-Use pnpm `--workspace-root` only for a root workspace. Yarn uses `skip-build`; npm and pnpm use `ignore-scripts`. Replace the placeholder with the exact version `4.0.1`, never a range.
+Use pnpm `--workspace-root` only for a root workspace. Yarn uses `skip-build`; npm and pnpm use `ignore-scripts`. Replace the placeholder with the exact version `5.0.0`, never a range.
 
 The file-only gate precedes command selection. Lifecycle-script suppression does not neutralize repository-supplied extensions and cannot bypass the manager prohibition.
 
@@ -99,20 +99,20 @@ Retain cumulative proof of the root declaration, installed identity and version,
 
 When repository evidence is accessible, perform safe provider and CLI checks even for an explanation; otherwise provide a procedure. Report provider, exact version, command, and envelope. Version alone does not prove provider.
 
-`inspect --json` is primary. Use `compatibility --json` only when package composition, adapter IDs, formats, or runtime requirements matter; it proves no behavioral claims. Use `validate --json` for narrower structure.
+`inspect --json` is primary. Use `composition --json` only when installed package composition, adapter IDs, formats, or runtime requirements matter; it proves no behavioral or maturity claims. Use `validate --json` for narrower structure. Load `runtime-compatibility.md` separately when current published target compatibility matters.
 
 ## Verify the machine envelope
 
 Run each CLI invocation independently, without shell-chaining it to manager checks, project verification, mirror comparison, Git inspection, or another CLI command. After completion, validate the version `2` envelope before reading `result`:
 
 - `schemaVersion` is integer `2`
-- `cliVersion` is exactly `4.0.1` and equals the declared and installed CLI version
+- `cliVersion` is exactly `5.0.0` and equals the declared and installed CLI version
 - `command` equals the command invoked
 - `status` is `valid`, `invalid`, or `error`
 - `valid` has non-null `result` and null `error`
 - `invalid` is accepted only for `inspect` or `validate`, has non-null `result`, and has null `error`
 - `error` has null `result` and a non-null safe error object
-- `compatibility` never uses `invalid`
+- `composition` never uses `invalid`
 
 Expected handled exit codes are `0` for `valid`, `1` for `invalid`, `2` or `3` for `error`, `130` for `SIGINT`, and `143` for `SIGTERM`. A package-manager launcher can fail before the CLI starts; distinguish that from a CLI envelope.
 

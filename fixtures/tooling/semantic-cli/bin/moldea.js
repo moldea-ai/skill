@@ -15,7 +15,7 @@ const AVAILABLE_ADAPTER_IDS = [
     .filter((name) => name.startsWith(ADAPTER_PACKAGE_PREFIX))
     .map((name) => name.slice(ADAPTER_PACKAGE_PREFIX.length)),
 ].sort((left, right) => left.localeCompare(right));
-const COMPATIBILITY_PACKAGES = Object.entries(CLI_DEPENDENCIES)
+const COMPOSITION_PACKAGES = Object.entries(CLI_DEPENDENCIES)
   .filter(([name]) => name.startsWith('@moldea.ai/'))
   .map(([name, version]) => ({ name, version }))
   .sort(({ name: left }, { name: right }) => left.localeCompare(right));
@@ -92,11 +92,11 @@ const readIndexedAgents = (manifestContent) => {
 };
 
 /** Lists the active adapters represented by the synthetic CLI package closure. */
-const readCompatibilityAdapters = () =>
+const readCompositionAdapters = () =>
   AVAILABLE_ADAPTER_IDS.map((id) => ({ id, repositoryFormatVersions: [1] }));
 
 /** Lists the complete package composition represented by the adapter inventory. */
-const readCompatibilityPackages = () => COMPATIBILITY_PACKAGES;
+const readCompositionPackages = () => COMPOSITION_PACKAGES;
 
 if (command === '--version') {
   process.stdout.write(`${CLI_VERSION}\n`);
@@ -104,8 +104,8 @@ if (command === '--version') {
   const manifest = readTextAsset('/moldea/moldea.yaml');
   const project = readTextAsset('/moldea/project.md');
   const agents = readIndexedAgents(manifest.content);
-  const compatibilityAdapters = readCompatibilityAdapters();
-  const availableAdapterIds = new Set(compatibilityAdapters.map(({ id }) => id));
+  const compositionAdapters = readCompositionAdapters();
+  const availableAdapterIds = new Set(compositionAdapters.map(({ id }) => id));
   const unavailableAgent = agents.find(({ declaration }) => {
     return !availableAdapterIds.has(declaration.runtime.id);
   });
@@ -171,17 +171,17 @@ if (command === '--version') {
     })}\n`,
   );
   if (unavailableAgent) process.exitCode = 1;
-} else if (command === 'compatibility' && process.argv.includes('--json')) {
-  const adapters = readCompatibilityAdapters();
+} else if (command === 'composition' && process.argv.includes('--json')) {
+  const adapters = readCompositionAdapters();
   process.stdout.write(
     `${JSON.stringify({
       cliVersion: CLI_VERSION,
-      command: 'compatibility',
+      command: 'composition',
       error: null,
       result: {
         minimumGitVersion: '2.30.0',
         supportedNodeRange: '^22.11.0 || ^24.11.0',
-        packages: readCompatibilityPackages(),
+        packages: readCompositionPackages(),
         repositoryFormatVersions: [1],
         adapters,
       },

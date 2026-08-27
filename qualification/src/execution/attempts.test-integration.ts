@@ -66,7 +66,7 @@ const createIncompleteAttemptFixture = async (options: {
     'utf8',
   );
   const result = QualificationAttemptResultDraftSchema.parse({
-    protocolVersion: 4,
+    protocolVersion: 5,
     attemptId: options.attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -203,7 +203,7 @@ describe('qualification attempt discovery', () => {
     await writeFile(path.join(attemptsRoot, unreadableAttemptId, 'checkpoint.json'), '{', 'utf8');
     const invalidAttemptId = '20260820T000004000Z-custom-custom-invalid';
     await writeJsonFileAtomically(path.join(attemptsRoot, invalidAttemptId, 'checkpoint.json'), {
-      protocolVersion: 4,
+      protocolVersion: 5,
     });
     const mismatchedAttemptId = '20260820T000005000Z-custom-custom-mismatched';
     await writeJsonFileAtomically(
@@ -219,14 +219,14 @@ describe('qualification attempt discovery', () => {
       attemptId: mismatchedAttemptId,
       kind: 'invalid-checkpoint',
       message: `Checkpoint attempt id ${validAttemptId} does not match its directory and was preserved without changes.`,
-      protocolVersion: 4,
+      protocolVersion: 5,
     });
     expect(inspection.unavailableAttempts[1]?.attemptId).toBe(invalidAttemptId);
     expect(inspection.unavailableAttempts[1]?.kind).toBe('invalid-checkpoint');
     expect(inspection.unavailableAttempts[1]?.message).toContain(
       'Checkpoint is invalid and was preserved without changes.',
     );
-    expect(inspection.unavailableAttempts[1]?.protocolVersion).toBe(4);
+    expect(inspection.unavailableAttempts[1]?.protocolVersion).toBe(5);
     expect(inspection.unavailableAttempts.slice(2)).toStrictEqual([
       {
         attemptId: unreadableAttemptId,
@@ -238,7 +238,7 @@ describe('qualification attempt discovery', () => {
         attemptId: legacyAttemptId,
         kind: 'unsupported-protocol',
         message:
-          'Checkpoint protocol version 3 is not supported by protocol version 4 and was preserved without changes.',
+          'Checkpoint protocol version 3 is not supported by protocol version 5 and was preserved without changes.',
         protocolVersion: 3,
       },
     ]);

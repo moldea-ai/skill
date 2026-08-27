@@ -53,7 +53,7 @@ Before a semantic write, the coding agent directly establishes adoption, inspect
 
 ## Deterministic local tooling
 
-When an operation needs mechanical repository evidence, the coding agent verifies the exact repository-local `@moldea.ai/cli` dependency and executable before invoking it. The CLI owns Git inventory, repository snapshots, format parsing, path and placeholder validation, mirrors, diagnostics, runtime-adapter evidence, and compatibility data.
+When an operation needs mechanical repository evidence, the coding agent verifies the exact repository-local `@moldea.ai/cli` dependency and executable before invoking it. The CLI owns Git inventory, repository snapshots, format parsing, path and placeholder validation, mirrors, diagnostics, and the installed package and adapter composition. The packages website publication owns current technical targets and maturity.
 
 The developer should not need to run these commands. This boundary exists so the coding agent does not guess deterministic mechanics.
 

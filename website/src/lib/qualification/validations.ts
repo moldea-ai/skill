@@ -44,13 +44,17 @@ const assertPassingDeterministicEvidence = (
   expectedInspectionStatus: 'invalid' | 'valid',
   label: string,
 ): void => {
+  const isCliCompositionValid =
+    'cliCompositionValid' in verification
+      ? verification.cliCompositionValid
+      : verification.cliCompatibilityValid;
   if (
     !verification.passed ||
     verification.inspectionStatus !== expectedInspectionStatus ||
     !verification.repositoryFilesystemValid ||
     !verification.memoryRepositoryEquivalent ||
     !verification.coreValid ||
-    !verification.cliCompatibilityValid ||
+    !isCliCompositionValid ||
     !verification.cliIdentityValid ||
     !verification.cliPackageInventoryValid ||
     !verification.cliAdapterInventoryValid ||

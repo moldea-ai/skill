@@ -55,7 +55,8 @@
       "sourcePaths": [
         "moldea/SKILL.md#select-the-operation",
         "moldea/references/agent-system-planning.md#plan-from-the-objective",
-        "moldea/references/agent-system-planning.md#minimize-and-justify-agents"
+        "moldea/references/agent-system-planning.md#minimize-and-justify-agents",
+        "moldea/references/runtime-compatibility.md#keep-the-evidence-boundaries-separate"
       ],
       "evidence": [
         { "kind": "semantic-case", "id": "host-plan-command-precedence" },
@@ -65,6 +66,11 @@
         { "kind": "semantic-case", "id": "plan-material-ambiguity" },
         { "kind": "semantic-case", "id": "plan-runtime-inventory-insufficient-evidence" },
         { "kind": "semantic-case", "id": "available-runtime-insufficient-behavioral-evidence" },
+        { "kind": "semantic-case", "id": "runtime-publication-unavailable" },
+        { "kind": "semantic-case", "id": "runtime-publication-malformed" },
+        { "kind": "semantic-case", "id": "installed-adapter-without-published-target" },
+        { "kind": "semantic-case", "id": "published-supported-target-not-installed" },
+        { "kind": "semantic-case", "id": "experimental-target-not-production-ready" },
         { "kind": "semantic-case", "id": "dedicated-repository-runtime-selection" },
         { "kind": "semantic-case", "id": "unavailable-runtime-selection" }
       ],

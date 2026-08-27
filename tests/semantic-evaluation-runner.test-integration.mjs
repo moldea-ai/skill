@@ -1359,20 +1359,20 @@ test('semantic actors execute the copied published CLI closure', async () => {
       cwd: repositoryPath,
       encoding: 'utf8',
     });
-    const compatibilityResult = spawnSync(binaryPath, ['compatibility', '--json'], {
+    const compositionResult = spawnSync(binaryPath, ['composition', '--json'], {
       cwd: repositoryPath,
       encoding: 'utf8',
     });
-    const compatibilityEnvelope = JSON.parse(compatibilityResult.stdout);
-    const directCommand = 'node_modules/.bin/moldea compatibility --json';
+    const compositionEnvelope = JSON.parse(compositionResult.stdout);
+    const directCommand = 'node_modules/.bin/moldea composition --json';
     const invocationCases = [
       {
-        args: ['compatibility', '--json'],
+        args: ['composition', '--json'],
         command: directCommand,
         executable: 'node_modules/.bin/moldea',
       },
       {
-        args: ['node_modules/.bin/moldea', 'compatibility', '--json'],
+        args: ['node_modules/.bin/moldea', 'composition', '--json'],
         command: `node ${directCommand}`,
         executable: 'node',
       },
@@ -1429,7 +1429,7 @@ test('semantic actors execute the copied published CLI closure', async () => {
     assert.equal(cliManifest.bin.moldea, './dist/moldea.js');
     assert.equal(versionResult.status, 0, versionResult.stderr);
     assert.equal(versionResult.stdout.trim(), RELEASE_CLI_VERSION);
-    assert.equal(compatibilityResult.status, 0, compatibilityResult.stderr);
+    assert.equal(compositionResult.status, 0, compositionResult.stderr);
     for (const invocationResult of invocationResults) {
       assert.equal(invocationResult.status, 0, invocationResult.stderr);
     }
@@ -1437,7 +1437,7 @@ test('semantic actors execute the copied published CLI closure', async () => {
       assert.deepEqual(evidence.item.outputEvidence.facts, [
         {
           cliVersion: RELEASE_CLI_VERSION,
-          command: 'compatibility',
+          command: 'composition',
           errorPresent: false,
           kind: 'moldea-cli-envelope',
           resultPresent: true,
@@ -1456,22 +1456,22 @@ test('semantic actors execute the copied published CLI closure', async () => {
       /node_modules|\/bin\/bash|\| cat/u,
     );
     assert.equal(
-      compatibilityEnvelope.schemaVersion,
+      compositionEnvelope.schemaVersion,
       ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion,
     );
     assert.deepEqual(
-      compatibilityEnvelope.result.packages,
+      compositionEnvelope.result.packages,
       Object.entries(cliManifest.dependencies)
         .filter(([name]) => name.startsWith('@moldea.ai/'))
         .map(([name, version]) => ({ name, version }))
         .sort(({ name: left }, { name: right }) => left.localeCompare(right)),
     );
-    for (const adapter of compatibilityEnvelope.result.adapters) {
+    for (const adapter of compositionEnvelope.result.adapters) {
       assert.deepEqual(Object.keys(adapter).sort(), ['id', 'repositoryFormatVersions']);
     }
-    const openAiAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'openai');
+    const openAiAdapter = compositionEnvelope.result.adapters.find(({ id }) => id === 'openai');
     assert.deepEqual(openAiAdapter.repositoryFormatVersions, [1]);
-    const googleGenAiAdapter = compatibilityEnvelope.result.adapters.find(
+    const googleGenAiAdapter = compositionEnvelope.result.adapters.find(
       ({ id }) => id === 'google-genai',
     );
     assert.deepEqual(googleGenAiAdapter.repositoryFormatVersions, [1]);

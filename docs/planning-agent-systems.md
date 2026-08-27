@@ -16,7 +16,7 @@ Plan an agent system for personalized ecommerce promotions. Decide which respons
 
 The operation is read-only. It does not initialize `moldea`, install tooling, create a canonical plan file, or begin implementation.
 
-Runtime selection remains optional unless you request it or it materially changes the recommendation. When you explicitly request runtime identity and a safe exact repository-local CLI is already available, the coding agent runs `compatibility --json`. Its inventory proves only which adapters are available, so the plan leaves runtime selection open unless source-owned target documentation and repository behavioral evidence establish a fit.
+Runtime selection remains optional unless you request it or it materially changes the recommendation. When you explicitly request runtime identity and a safe exact repository-local CLI is already available, the coding agent runs `composition --json`. Its inventory proves only which adapters are installed. Current technical targets and maturity come from the validated packages website publication, while repository evidence must still establish the actual runtime and behavioral fit.
 
 ## Establish the outcome
 

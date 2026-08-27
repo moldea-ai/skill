@@ -4,7 +4,7 @@ Read this reference before `evaluate`, `reconcile`, or a scoped semantic alignme
 
 ## Build the evidence scope
 
-Both operations use supported local tooling, `inspect --json`, material compatibility data, canonical state, Agent Skill source and resources, implementation, executable contracts, tests, runtime integration, adapter evidence, developer intent, and unresolved state.
+Both operations use supported local tooling, `inspect --json`, material local composition and published runtime compatibility data, canonical state, Agent Skill source and resources, implementation, executable contracts, tests, runtime integration, adapter evidence, developer intent, and unresolved state.
 
 Resolve the subject before collecting target evidence:
 
@@ -25,7 +25,7 @@ An explicit agent, Agent Skill, capability, domain, path, runtime, change, or co
 `evaluate` changes no repository, dependency, lockfile, mirror, or Git state.
 
 1. Run root-local `inspect --json` and verify its completed machine envelope before interpreting it.
-2. Run root-local `compatibility --json` only when compatibility can change a conclusion.
+2. Run root-local `composition --json` only when installed executable composition can change a conclusion. Load `runtime-compatibility.md` and retrieve its publication only when current technical compatibility or maturity can change a conclusion.
 3. Preserve Core and adapter diagnostics with their actual meaning.
 4. Compare affected surfaces in both directions; no asset type automatically wins.
 5. Limit findings to structural and semantic Moldea alignment unless registered behavior makes another concern relevant.

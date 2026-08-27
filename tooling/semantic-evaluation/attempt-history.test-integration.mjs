@@ -14,10 +14,10 @@ import {
 const createEvidence = (id, passed, updatedAt) => ({
   artifactDigest: 'a'.repeat(64),
   caseSuiteDigest: 'b'.repeat(64),
-  cli: { name: '@moldea.ai/cli', version: '4.0.1' },
+  cli: { name: '@moldea.ai/cli', version: '5.0.0' },
   confirmations: [],
   coverageDigest: 'c'.repeat(64),
-  evaluationProtocolVersion: 16,
+  evaluationProtocolVersion: 17,
   generatedAt: updatedAt,
   hostContract: {
     model: 'gpt-5.6-sol',
@@ -122,6 +122,34 @@ test('semantic attempt recording is append-only and maintains independent latest
         totalCaseCount: 2,
       }),
       /already exists with different recording metadata/,
+    );
+  } finally {
+    await rm(resultsRoot, { force: true, recursive: true });
+  }
+});
+
+test('semantic attempt recording rejects historical evidence protocols', async () => {
+  const resultsRoot = await mkdtemp(join(tmpdir(), 'moldea-semantic-attempts-'));
+  try {
+    const historicalEvidence = `${JSON.stringify(
+      {
+        ...createEvidence('historical-case', true, '2026-08-25T00:00:00.000Z'),
+        evaluationProtocolVersion: 16,
+      },
+      null,
+      2,
+    )}\n`;
+
+    await assert.rejects(
+      recordSemanticEvaluationAttempt({
+        evidenceKind: 'candidate',
+        evidenceText: historicalEvidence,
+        recordedAt: '2026-08-25T00:00:01.000Z',
+        resultsRoot,
+        stopReason: 'complete',
+        totalCaseCount: 1,
+      }),
+      /Only current-protocol semantic evidence can be recorded/,
     );
   } finally {
     await rm(resultsRoot, { force: true, recursive: true });

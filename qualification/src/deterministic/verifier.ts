@@ -31,7 +31,7 @@ const DirectVerificationSchema = z.strictObject({
 const CliEnvelopeSchema = z.strictObject({
   schemaVersion: z.number().int().positive(),
   cliVersion: z.string(),
-  command: z.enum(['compatibility', 'inspect', 'validate']),
+  command: z.enum(['composition', 'inspect', 'validate']),
   status: z.enum(['error', 'invalid', 'valid']),
   result: z.unknown().nullable(),
   error: z.unknown().nullable(),
@@ -40,7 +40,7 @@ const CliEnvelopeSchema = z.strictObject({
 const parseCliOutput = (output: string): z.infer<typeof CliEnvelopeSchema> =>
   CliEnvelopeSchema.parse(JSON.parse(output) as unknown);
 
-const CompatibilityResultSchema = z.object({
+const CompositionResultSchema = z.object({
   adapters: z.array(
     z.object({
       id: z.string(),
@@ -53,7 +53,7 @@ const CompatibilityResultSchema = z.object({
 
 const hasValidEnvelope = (options: {
   candidate: ICandidateClosure;
-  command: 'compatibility' | 'inspect' | 'validate';
+  command: 'composition' | 'inspect' | 'validate';
   envelope: z.infer<typeof CliEnvelopeSchema>;
   exitCode: number;
 }): boolean => {
@@ -66,7 +66,7 @@ const hasValidEnvelope = (options: {
     options.envelope.result !== null &&
     options.envelope.error === null &&
     options.exitCode === expectedExitCode &&
-    (options.command !== 'compatibility' || options.envelope.status === 'valid')
+    (options.command !== 'composition' || options.envelope.status === 'valid')
   );
 };
 
@@ -138,10 +138,10 @@ export const verifyDeterministicProject = async (options: {
   const typeScriptInstallation = await inspectProjectTypeScriptInstallation(
     options.workspaceDirectory,
   );
-  const [compatibilityResult, validateResult, inspectResult, typecheckResult] = await Promise.all([
+  const [compositionResult, validateResult, inspectResult, typecheckResult] = await Promise.all([
     executeProcess({
       command: process.execPath,
-      args: [cliExecutablePath, 'compatibility', '--json', '--no-color'],
+      args: [cliExecutablePath, 'composition', '--json', '--no-color'],
       cwd: options.workspaceDirectory,
       signal: options.signal,
     }),
@@ -186,7 +186,7 @@ export const verifyDeterministicProject = async (options: {
       signal: options.signal,
     }),
   ]);
-  const cliCompatibility = parseCliOutput(compatibilityResult.stdout);
+  const cliComposition = parseCliOutput(compositionResult.stdout);
   const cliValidate = parseCliOutput(validateResult.stdout);
   const cliInspect = parseCliOutput(inspectResult.stdout);
   const expectedCoreValidity = options.expectedInspectionStatus === 'valid';
@@ -197,15 +197,15 @@ export const verifyDeterministicProject = async (options: {
   });
   const repositoryUnchanged =
     JSON.stringify(projectStateBefore) === JSON.stringify(projectStateAfter);
-  const compatibilityResultPayload = CompatibilityResultSchema.safeParse(cliCompatibility.result);
+  const compositionResultPayload = CompositionResultSchema.safeParse(cliComposition.result);
   const cliIdentityValid = [
-    ['compatibility', cliCompatibility, compatibilityResult.exitCode],
+    ['composition', cliComposition, compositionResult.exitCode],
     ['validate', cliValidate, validateResult.exitCode],
     ['inspect', cliInspect, inspectResult.exitCode],
   ].every(([command, envelope, exitCode]) =>
     hasValidEnvelope({
       candidate: options.candidate,
-      command: command as 'compatibility' | 'inspect' | 'validate',
+      command: command as 'composition' | 'inspect' | 'validate',
       envelope: envelope as z.infer<typeof CliEnvelopeSchema>,
       exitCode: exitCode as number,
     }),
@@ -214,21 +214,21 @@ export const verifyDeterministicProject = async (options: {
     .filter(({ name }) => name !== '@moldea.ai/cli')
     .map(({ name, version }) => ({ name, version }))
     .sort(({ name: left }, { name: right }) => left.localeCompare(right, 'en'));
-  const actualPackages = compatibilityResultPayload.success
-    ? [...compatibilityResultPayload.data.packages].sort(({ name: left }, { name: right }) =>
+  const actualPackages = compositionResultPayload.success
+    ? [...compositionResultPayload.data.packages].sort(({ name: left }, { name: right }) =>
         left.localeCompare(right, 'en'),
       )
     : [];
   const cliPackageInventoryValid =
-    compatibilityResultPayload.success &&
+    compositionResultPayload.success &&
     JSON.stringify(actualPackages) === JSON.stringify(expectedPackages);
-  const selectedAdapter = compatibilityResultPayload.success
-    ? compatibilityResultPayload.data.adapters.find(({ id }) => id === options.adapterId)
+  const selectedAdapter = compositionResultPayload.success
+    ? compositionResultPayload.data.adapters.find(({ id }) => id === options.adapterId)
     : undefined;
   const expectedRepositoryFormatVersions =
     direct.filesystem.formatVersion === null
-      ? compatibilityResultPayload.success
-        ? compatibilityResultPayload.data.repositoryFormatVersions
+      ? compositionResultPayload.success
+        ? compositionResultPayload.data.repositoryFormatVersions
         : []
       : [direct.filesystem.formatVersion];
   const cliAdapterInventoryValid =
@@ -277,8 +277,8 @@ export const verifyDeterministicProject = async (options: {
     failures.push(`Installed CLI did not expose adapter ${options.adapterId} for this format.`);
   }
 
-  if (cliCompatibility.status !== 'valid') {
-    failures.push('Installed CLI compatibility did not report valid.');
+  if (cliComposition.status !== 'valid') {
+    failures.push('Installed CLI composition did not report valid.');
   }
 
   if (cliValidate.status !== options.expectedInspectionStatus) {
@@ -305,8 +305,8 @@ export const verifyDeterministicProject = async (options: {
     repositoryFilesystemValid: direct.filesystem.valid === expectedCoreValidity,
     memoryRepositoryEquivalent: direct.equivalent,
     coreValid: direct.filesystem.valid === expectedCoreValidity,
-    cliCompatibilityValid:
-      cliCompatibility.status === 'valid' && cliPackageInventoryValid && cliAdapterInventoryValid,
+    cliCompositionValid:
+      cliComposition.status === 'valid' && cliPackageInventoryValid && cliAdapterInventoryValid,
     cliIdentityValid,
     cliPackageInventoryValid,
     cliAdapterInventoryValid,
@@ -323,7 +323,7 @@ export const verifyDeterministicProject = async (options: {
     summary,
     details: {
       direct,
-      cliCompatibility,
+      cliComposition,
       cliValidate,
       cliInspect,
       typecheck: {

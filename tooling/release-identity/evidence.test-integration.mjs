@@ -787,7 +787,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       temporaryRoot,
       'qualification/results/external/external-stream/latest.json',
       `${JSON.stringify({
-        protocolVersion: 4,
+        protocolVersion: 5,
         adapterId: 'external',
         implementationId: 'external-stream',
         latestAttemptId: externalAttemptId,

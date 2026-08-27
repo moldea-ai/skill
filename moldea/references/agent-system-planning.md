@@ -12,7 +12,7 @@ Generic implementation, architecture, migration, refactor, deployment, and host-
 
 Planning may precede adoption and changes no repository, dependency, Git, protected instruction, generated artifact, or external system. It creates no canonical plan, cache, or planning database.
 
-Use an available compatible root-local CLI read-only. If runtime identity is requested and provider proof is available, run `compatibility --json`; inventory proves availability only. Never create metadata, select a manager, install tooling, or use global or transient launchers to plan. Without compatible tooling, continue from evidence and disclose the limitation.
+Use an available compatible root-local CLI read-only. If runtime identity is requested and provider proof is available, run `composition --json`; its inventory proves availability only. Load `runtime-compatibility.md` and retrieve the current public publication when target support or maturity matters. Never create metadata, select a manager, install tooling, or use global or transient launchers to plan. Without compatible tooling, continue from evidence and disclose the limitation.
 
 ## Plan from the objective
 
@@ -52,7 +52,7 @@ Describe the principal inputs, outputs, events, service and tool contracts, and 
 
 ## Treat runtime compatibility honestly
 
-Runtime selection is optional unless requested or material. CLI inventory establishes adapter availability, not behavioral support. Without reliable adapter documentation and repository evidence, state runtime requirements or considerations and leave the final `runtime.id` for later design and implementation.
+Runtime selection is optional unless requested or material. CLI composition establishes adapter availability, while the validated packages website publication establishes current technical targets and maturity. Neither establishes repository use or behavioral fit. Without sufficient repository evidence, state runtime requirements or considerations and leave the final `runtime.id` for later design and implementation.
 
 ## Produce one actionable recommendation
 

@@ -3,7 +3,7 @@ import path from 'node:path';
 import { z } from 'zod';
 
 import { QualificationBaselineCheckSchema } from '../baseline/types.ts';
-import { QualificationCoverageResultSchema } from '../coverage/index.ts';
+import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import {
   ActorOutputSchema,
   DeterministicVerificationArtifactSchema,
@@ -11,6 +11,7 @@ import {
   QualificationCaseResultSchema,
   QualificationCaseScenarioSchema,
   QualificationExecutionErrorSchema,
+  QualificationHistoricalDeterministicVerificationArtifactSchema,
   QualificationJudgeSkippedSchema,
   QualificationModelStageEvidenceSchema,
   QualificationProbesSchema,
@@ -18,7 +19,7 @@ import {
   QualificationSourceStateResultSchema,
   WorkspaceAssertionResultSchema,
   type IActorOutput,
-  type IDeterministicVerificationArtifact,
+  type IQualificationRecordedDeterministicVerificationArtifact,
   type IJudgeOutput,
   type IQualificationRecordedAttemptResult,
   type IQualificationCaseResult,
@@ -27,6 +28,7 @@ import {
   type IQualificationStageCheckpoint,
   type IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
+import { QualificationCoverageResultSchema } from '../coverage/index.ts';
 import {
   calculateDirectoryFingerprint,
   readJsonFile,
@@ -132,6 +134,13 @@ const readOptionalArtifact = async <TResult>(
   return (await hasPath(artifactPath)) ? readJsonFile(artifactPath, schema) : null;
 };
 
+const getRecordedDeterministicArtifactSchema = (
+  protocolVersion: IQualificationRecordedAttemptResult['protocolVersion'],
+): IBoundarySchema<IQualificationRecordedDeterministicVerificationArtifact> =>
+  protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION
+    ? DeterministicVerificationArtifactSchema
+    : QualificationHistoricalDeterministicVerificationArtifactSchema;
+
 /** Validates every JSON and JSON Lines artifact against its protocol-owned syntax and schema. */
 const validateArtifactSchemas = async (
   attemptDirectory: string,
@@ -171,7 +180,10 @@ const validateArtifactSchemas = async (
     } else if (/^cases\/[^/]+\/judge-output\.json$/u.test(relativePath)) {
       await readJsonFile(artifactPath, JudgeOutputSchema);
     } else if (/^cases\/[^/]+\/deterministic-(?:after|before)\.json$/u.test(relativePath)) {
-      await readJsonFile(artifactPath, DeterministicVerificationArtifactSchema);
+      await readJsonFile(
+        artifactPath,
+        getRecordedDeterministicArtifactSchema(result.protocolVersion),
+      );
     } else if (/^cases\/[^/]+\/workspace-assertions\.json$/u.test(relativePath)) {
       await readJsonFile(artifactPath, WorkspaceAssertionResultSchema);
     } else if (/^cases\/[^/]+\/judge-skipped\.json$/u.test(relativePath)) {
@@ -189,7 +201,7 @@ const validateArtifactSchemas = async (
 };
 
 const assertPassingDeterministicEvidence = (
-  artifact: IDeterministicVerificationArtifact,
+  artifact: IQualificationRecordedDeterministicVerificationArtifact,
   expectedInspectionStatus: 'invalid' | 'valid',
   label: string,
 ): void => {
@@ -201,7 +213,9 @@ const assertPassingDeterministicEvidence = (
     !verification.repositoryFilesystemValid ||
     !verification.memoryRepositoryEquivalent ||
     !verification.coreValid ||
-    !verification.cliCompatibilityValid ||
+    !('cliCompositionValid' in verification
+      ? verification.cliCompositionValid
+      : verification.cliCompatibilityValid) ||
     !verification.cliIdentityValid ||
     !verification.cliPackageInventoryValid ||
     !verification.cliAdapterInventoryValid ||
@@ -432,13 +446,13 @@ const assertPassingCaseEvidence = async (options: {
       options.attemptDirectory,
       options.result,
       expectedPaths.deterministicAfter,
-      DeterministicVerificationArtifactSchema,
+      getRecordedDeterministicArtifactSchema(options.result.protocolVersion),
     ),
     requireArtifact(
       options.attemptDirectory,
       options.result,
       expectedPaths.deterministicBefore,
-      DeterministicVerificationArtifactSchema,
+      getRecordedDeterministicArtifactSchema(options.result.protocolVersion),
     ),
     requireArtifact(
       options.attemptDirectory,

@@ -430,7 +430,11 @@ const breadcrumbs = [
                     </td>
                     <td class="px-4 py-3 align-top">
                       <span class="font-mono text-xs">
-                        {result.protocolVersion === 4 ? 'Current Sol' : 'Historical Terra'}
+                        {result.protocolVersion === 5
+                          ? 'Current Sol'
+                          : result.protocolVersion === 4
+                            ? 'Historical Sol'
+                            : 'Historical Terra'}
                       </span>
                     </td>
                     <td class="px-4 py-3 align-top">

@@ -3,7 +3,8 @@ import { basename, join } from 'node:path';
 
 import {
   ActorOutputSchema,
-  DeterministicVerificationArtifactSchema,
+  CurrentDeterministicVerificationArtifactSchema,
+  HistoricalDeterministicVerificationArtifactSchema,
   JudgeOutputSchema,
   QualificationAttemptResultSchema,
   QualificationBaselineCheckSchema,
@@ -157,9 +158,22 @@ const readAttemptArtifact = <Output>(
 const readDeterministicArtifactSummary = (
   attemptDirectory: string,
   relativePath: string,
-): IDeterministicVerification =>
-  readAttemptArtifact(attemptDirectory, relativePath, DeterministicVerificationArtifactSchema)
-    .summary;
+  protocolVersion: ReturnType<typeof QualificationAttemptResultSchema.parse>['protocolVersion'],
+): IDeterministicVerification => {
+  if (protocolVersion === 5) {
+    return readAttemptArtifact(
+      attemptDirectory,
+      relativePath,
+      CurrentDeterministicVerificationArtifactSchema,
+    ).summary;
+  }
+
+  return readAttemptArtifact(
+    attemptDirectory,
+    relativePath,
+    HistoricalDeterministicVerificationArtifactSchema,
+  ).summary;
+};
 
 const loadAttemptCase = (
   repositoryRoot: string,
@@ -167,6 +181,9 @@ const loadAttemptCase = (
   result: ReturnType<typeof QualificationAttemptResultSchema.parse>['cases'][number],
   artifacts: IQualificationArtifactModel[],
   profileCase: IQualificationProfileCaseModel,
+  qualificationProtocolVersion: ReturnType<
+    typeof QualificationAttemptResultSchema.parse
+  >['protocolVersion'],
 ): IQualificationAttemptCaseModel => {
   const referencedPaths = [
     result.deterministicBeforePath,
@@ -219,10 +236,12 @@ const loadAttemptCase = (
     deterministicAfter: readDeterministicArtifactSummary(
       attemptDirectory,
       result.deterministicAfterPath,
+      qualificationProtocolVersion,
     ),
     deterministicBefore: readDeterministicArtifactSummary(
       attemptDirectory,
       result.deterministicBeforePath,
+      qualificationProtocolVersion,
     ),
     judge:
       result.judgeOutputPath === null
@@ -327,7 +346,14 @@ const loadAttempt = (
       throw new Error(`Qualification attempt ${result.attemptId} references an unknown case.`);
     }
 
-    return loadAttemptCase(repositoryRoot, attemptDirectory, caseResult, artifacts, profileCase);
+    return loadAttemptCase(
+      repositoryRoot,
+      attemptDirectory,
+      caseResult,
+      artifacts,
+      profileCase,
+      result.protocolVersion,
+    );
   });
 
   assertUnique(
@@ -493,7 +519,7 @@ const loadProfile = (
     new Map(cases.map((profileCase) => [profileCase.id, profileCase])),
     probes.probes.map(({ matrixPath }) => matrixPath),
   );
-  const currentAttempts = attempts.filter(({ result }) => result.protocolVersion === 4);
+  const currentAttempts = attempts.filter(({ result }) => result.protocolVersion === 5);
 
   return {
     adapterId: profile.adapterId,

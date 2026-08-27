@@ -148,14 +148,14 @@ No dependency or lockfile change is required.
    - Require a clean committed source boundary before running Codex.
 
 7. **Run one exact non-recording PnP diagnostic after fresh authorization.**
-   - Explain the expected cost and obtain explicit authorization for two Terra calls.
+   - Report the two-call estimate and expected duration, then obtain explicit authorization.
    - Run only `pnpm-pnp-local-cli-provider` with `--case` and without `--record`.
    - Inspect the actor response, commands, workspace, projected path and envelope facts, exit code, and judge rationale.
    - Require the actor to execute the safe PnP proof and require the judge to observe all three unchanged criteria from independent evidence.
    - If it fails, stop. Do not retry, alter the portable skill, or start the full suite automatically.
 
 8. **Run a fresh official semantic candidate after separate authorization.**
-   - After the diagnostic passes, explain the expected cost and obtain explicit authorization for up to 96 Terra calls.
+   - After the diagnostic passes, report the estimate of up to 96 Terra calls and the expected duration, then obtain explicit authorization.
    - Confirm clean committed source, protocol 13, the exact portable and case-suite digests, CLI `4.0.1`, model `gpt-5.6-terra`, medium reasoning, and five-minute timeout.
    - Use `--record --restart`. Restart may remove only the ignored terminal protocol-12 checkpoint; it must preserve all six published attempts.
    - Start all 48 cases from the beginning because protocol-12 trials lack the result evidence required by protocol 13.

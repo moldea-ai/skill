@@ -555,7 +555,7 @@ export const buildCodexEvaluationBwrapArguments = ({
     '--setenv',
     'PATH',
     includeWorkspaceBinaryDirectory
-      ? '/mnt/node_modules/.bin:/home/evaluator/bin:/opt:/usr/bin:/bin'
+      ? '/home/evaluator/bin:/mnt/node_modules/.bin:/opt:/usr/bin:/bin'
       : '/home/evaluator/bin:/opt:/usr/bin:/bin',
     '--setenv',
     'TMPDIR',

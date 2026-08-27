@@ -17,6 +17,7 @@ const ATTEMPT_SCHEMA_VERSION = 4;
 const EVIDENCE_SCHEMA_VERSION = 6;
 const HISTORICAL_EVIDENCE_SCHEMA_VERSION = 5;
 const HISTORICAL_EVIDENCE_PROTOCOL_VERSIONS = new Set([16, 17]);
+const HISTORICAL_CURRENT_SCHEMA_PROTOCOL_VERSIONS = new Set([18, 19]);
 const LATEST_SCHEMA_VERSION = 1;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
@@ -30,7 +31,8 @@ const STOP_REASON_VALUES = new Set([
 
 const hasSupportedRecordedEvidenceContract = (evidence) =>
   (evidence.schemaVersion === EVIDENCE_SCHEMA_VERSION &&
-    evidence.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION) ||
+    (evidence.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
+      HISTORICAL_CURRENT_SCHEMA_PROTOCOL_VERSIONS.has(evidence.evaluationProtocolVersion))) ||
   (evidence.schemaVersion === HISTORICAL_EVIDENCE_SCHEMA_VERSION &&
     HISTORICAL_EVIDENCE_PROTOCOL_VERSIONS.has(evidence.evaluationProtocolVersion));
 

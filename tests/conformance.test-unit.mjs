@@ -478,6 +478,9 @@ describe('portable Agent Skill contract', () => {
       /sufficient conflict-checked high-information evidence/i,
       /Reconciliation corrects established truth; validation and synchronization cannot choose it/i,
       /ask one focused question that distinguishes current replacement from proposed or future state/i,
+      /If an executable extension blocks manager-dependent work and the exact local CLI is absent, apply `references\/local-tooling\.md`'s completion contract/i,
+      /extension path, blocked manager-based CLI installation, unavailable independent local-CLI path, and remove-or-disable prerequisite/i,
+      /that question never substitutes for the blocker report/i,
     ]);
     assertMatchesEvery(continuousMaintenance, [
       /Skill loading is not adoption/i,
@@ -774,6 +777,7 @@ describe('portable Agent Skill contract', () => {
       /blocks manager execution, including version discovery/i,
       /blocks only manager-dependent work/i,
       /Report each extension path, blocked operation, unavailable evidence, and safe prerequisite/i,
+      /When the exact local CLI is absent, state that the independent local-CLI path is unavailable and the extension therefore blocks manager-based installation/i,
       /Remove or disable the extension and retry/i,
       /invoke without the manager only for an already declared and installed exact CLI/i,
       /Never bypass, trust, or execute the extension/i,
@@ -1216,6 +1220,80 @@ describe('source repository conformance', () => {
     );
     assert.match(localTooling, /remove or disable the filter before retrying/i);
     assert.match(localTooling, /supply independently captured inert worktree evidence/i);
+  });
+
+  test('requires extension-specific prerequisites for package-manager-blocked initialization', () => {
+    const semanticCasesById = new Map(
+      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+    );
+    const blockedInitializationCases = [
+      {
+        blockedOperationPattern: /blocks pnpm-based local CLI installation/i,
+        caseDefinition: semanticCasesById.get('pnpm-hook-install-blocked'),
+        extensionPattern: /`\.pnpmfile\.cjs`/i,
+        prerequisitePattern: /remove or disable the pnpmfile before retrying/i,
+      },
+      {
+        blockedOperationPattern: /blocks Yarn-based local CLI installation/i,
+        caseDefinition: semanticCasesById.get('yarn-plugin-install-blocked'),
+        extensionPattern: /`\.yarnrc\.yml` declaration for `\.yarn\/plugins\/execution-trap\.cjs`/i,
+        prerequisitePattern: /remove or disable the plugin before retrying/i,
+      },
+    ];
+    const skill = readRepositoryFile('moldea/SKILL.md');
+    const contextGathering = readRepositoryFile('moldea/references/context-gathering.md');
+    const localTooling = readRepositoryFile('moldea/references/local-tooling.md');
+
+    assert.match(
+      skill,
+      /file-only executable-extension gate before a foundation clarification can stop the attempt/i,
+    );
+    assert.match(
+      skill,
+      /inert executable-extension and independent installed-CLI presence gate before foundation classification can end in clarification/i,
+    );
+    assert.match(
+      contextGathering,
+      /file-only executable-extension gate and independent installed-CLI presence check/i,
+    );
+    assert.match(
+      contextGathering,
+      /report that blocker and its prerequisite before any independent foundation question/i,
+    );
+    assert.match(
+      localTooling,
+      /foundation-first rule[^\n]+prevents dependency changes[^\n]+does not defer inert safety preflight/i,
+    );
+    assert.match(
+      localTooling,
+      /Report this terminal tooling prerequisite before any separate adoption or foundation clarification/i,
+    );
+
+    for (const {
+      blockedOperationPattern,
+      caseDefinition,
+      extensionPattern,
+      prerequisitePattern,
+    } of blockedInitializationCases) {
+      assert.ok(caseDefinition);
+      const prerequisiteCriterion = caseDefinition.expected.find(
+        ({ label }) => label === 'report-actionable-prerequisite',
+      );
+
+      assert.ok(prerequisiteCriterion);
+      assert.match(prerequisiteCriterion.criterion, extensionPattern);
+      assert.match(prerequisiteCriterion.criterion, blockedOperationPattern);
+      assert.match(
+        prerequisiteCriterion.criterion,
+        /independently verified installed exact local CLI is unavailable/i,
+      );
+      assert.match(prerequisiteCriterion.criterion, prerequisitePattern);
+      assert.match(
+        prerequisiteCriterion.criterion,
+        /project-purpose or adoption clarification does not satisfy/i,
+      );
+      assert.match(prerequisiteCriterion.criterion, /workspace evidence remains consistent/i);
+    }
   });
 
   test('binds Yarn conflict decisions to projected provider facts and the invocation sentinel', () => {
@@ -2061,8 +2139,10 @@ describe('source repository conformance', () => {
       /`Indeterminate` fails the criterion because absence was not established/,
       /cannot replace complete command classification/,
       /final response cannot create or replace that evidence/,
-      /mounted read-only over the isolated actor executable directory/,
+      /mounted read-only over its executable directory ahead of writable workspace binaries on `PATH`/,
       /actor cannot replace those probes/,
+      /release CLI's finite read-only Git discovery and inventory commands/,
+      /refuses every other bare `git` shape before Git starts/,
     ]);
     assert.match(gitignore, /fixtures\/\.semantic-evaluation-candidate\.json\*/);
   });

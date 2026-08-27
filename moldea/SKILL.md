@@ -49,7 +49,7 @@ Complete this gate before gathering target evidence or running commands:
 Supported operations are:
 
 - **Plan:** recommend the smallest robust agent-and-software system for an explicitly AI-enabled objective. Allow zero agents; do not adopt Moldea or establish tooling merely to plan.
-- **Initialize:** establish local tooling, project understanding, `/moldea/moldea.yaml`, `/moldea/project.md`, and the owned README awareness block. Do not create an agent automatically.
+- **Initialize:** establish local tooling, project understanding, `/moldea/moldea.yaml`, `/moldea/project.md`, and the owned README awareness block. Complete the file-only executable-extension gate before a foundation clarification can stop the attempt; report any tooling blocker and prerequisite before an independent context question. Do not create an agent automatically.
 - **Maintain:** reconsider and, when required, synchronize affected project truth, decisions, runtime guidance, agents, Agent Skills, relationships, contracts, requirements, mirrors, README guidance, or implementation.
 - **Evaluate:** assess the resolved subject structurally and semantically without writes or dependency establishment.
 - **Reconcile:** use the evaluation evidence model, establish intended state, and apply the smallest authorized coherent correction.
@@ -85,13 +85,14 @@ Governing specifications and deterministic CLI, Core, or adapter results still c
 ## Common lifecycle
 
 1. Establish scope, applicable coding instructions, adoption, operation, subject, and write authority.
-2. Gather high-information evidence for the question. Treat discovery as a candidate queue; read material accessible sources before conclusions, absence claims, requests, or plans.
-3. Use compatible local tooling when the operation requires it. Inspect executable package-manager configuration as file data before invoking the manager.
-4. Keep observed current fact, developer-confirmed truth, intended resulting state, planned work, accepted rationale, history, unresolved state, and investigative inference distinct.
-5. Before editing, assign each affected fact to its established owner and inspect affected canonical relationships, requirement criteria, mirrors, generated surfaces, consumers, implementation, and related-repository boundaries.
-6. Apply the smallest coherent authorized change. When a dependent artifact does not own a fact, link the established authoritative source rather than independently maintaining duplicate policy or procedure. For Agent Skills, preserve skill-owned activation and workflow, but refer to repository-owned requirements and stopping conditions through their source instead of copying their details into `SKILL.md` or a focused resource. Synchronize declared mirrors and distributed copies only from their canonical source. Preserve unrelated work and leave correct canonical state unchanged.
-7. Run relevant project-native checks for changed executable behavior when authorized.
-8. After writes, rerun `inspect --json` separately and review diagnostics, mirrors, requirements, semantic readiness, and unrelated invalidity.
+2. For Initialize, complete `references/local-tooling.md`'s inert executable-extension and independent installed-CLI presence gate before foundation classification can end in clarification. This safety preflight does not authorize a package-manager command or dependency change.
+3. Gather high-information evidence for the question. Treat discovery as a candidate queue; read material accessible sources before conclusions, absence claims, requests, or plans.
+4. Use compatible local tooling when the operation requires it. Inspect executable package-manager configuration as file data before invoking the manager. If an executable extension blocks manager-dependent work and the exact local CLI is absent, apply `references/local-tooling.md`'s completion contract by reporting the extension path, blocked manager-based CLI installation, unavailable independent local-CLI path, and remove-or-disable prerequisite before asking any independent focused question; that question never substitutes for the blocker report.
+5. Keep observed current fact, developer-confirmed truth, intended resulting state, planned work, accepted rationale, history, unresolved state, and investigative inference distinct.
+6. Before editing, assign each affected fact to its established owner and inspect affected canonical relationships, requirement criteria, mirrors, generated surfaces, consumers, implementation, and related-repository boundaries.
+7. Apply the smallest coherent authorized change. When a dependent artifact does not own a fact, link the established authoritative source rather than independently maintaining duplicate policy or procedure. For Agent Skills, preserve skill-owned activation and workflow, but refer to repository-owned requirements and stopping conditions through their source instead of copying their details into `SKILL.md` or a focused resource. Synchronize declared mirrors and distributed copies only from their canonical source. Preserve unrelated work and leave correct canonical state unchanged.
+8. Run relevant project-native checks for changed executable behavior when authorized.
+9. After writes, rerun `inspect --json` separately and review diagnostics, mirrors, requirements, semantic readiness, and unrelated invalidity.
 
 ## Deterministic boundary
 

@@ -29,6 +29,7 @@ const SAFE_STATIC_EXECUTABLES = new Set([
   'jq',
   'ls',
   'moldea',
+  'printf',
   'pwd',
   'readlink',
   'realpath',
@@ -66,6 +67,13 @@ const OPAQUE_EXECUTABLES = new Set([
 const PACKAGE_MANAGER_ENTRYPOINT_PATTERN =
   /^(?:corepack|npm-cli|npx-cli|pnpm|pnpx|yarn|yarnpkg)(?:\.[cm]?js)?$/u;
 const ASSIGNMENT_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*=.*/u;
+const SAFE_AWK_PROGRAMS = new Set([
+  '/^<!-- moldea:(start|end) -->$/{print NR \":\" $0}',
+  '$0==\"<!-- moldea:start -->\" || $0==\"<!-- moldea:end -->\" {print NR \":\" $0}',
+]);
+const SHELL_CONTROL_PREFIXES = new Set(['do', 'elif', 'else', 'if', 'then']);
+const SHELL_CONTROL_TERMINATORS = new Set(['done', 'fi']);
+const SHELL_VARIABLE_NAME_PATTERN = /^[A-Za-z_][A-Za-z0-9_]*$/u;
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
@@ -79,14 +87,74 @@ const hasExactKeys = (record, expectedKeys) => {
   );
 };
 
-/** Removes only the fixed shell wrapper emitted by the Codex command host. */
+/** Reconstructs one shell-escaped argv word without evaluating its content. */
+const decodeFixedShellWord = (input) => {
+  let output = '';
+  let quote = null;
+  let hasWord = false;
+
+  for (let index = 0; index < input.length; index += 1) {
+    const character = input[index];
+    const nextCharacter = input[index + 1];
+
+    if (quote === "'") {
+      if (character === quote) quote = null;
+      else output += character;
+      hasWord = true;
+      continue;
+    }
+    if (quote === '"') {
+      if (character === quote) {
+        quote = null;
+      } else if (character === '\\') {
+        if (nextCharacter === undefined) return null;
+        if (nextCharacter === '\n') {
+          index += 1;
+        } else if ('$`"\\'.includes(nextCharacter)) {
+          output += nextCharacter;
+          index += 1;
+        } else {
+          output += character;
+        }
+      } else if (character === '$' || character === '`') {
+        return null;
+      } else {
+        output += character;
+      }
+      hasWord = true;
+      continue;
+    }
+
+    if (character === "'" || character === '"') {
+      quote = character;
+      hasWord = true;
+      continue;
+    }
+    if (character === '\\') {
+      if (nextCharacter === undefined) return null;
+      output += nextCharacter;
+      hasWord = true;
+      index += 1;
+      continue;
+    }
+    if (character === '$' || character === '`') return null;
+    if (/\s/u.test(character)) {
+      return hasWord && input.slice(index).trim() === '' ? output : null;
+    }
+    if (';&|<>(){}'.includes(character)) return null;
+    output += character;
+    hasWord = true;
+  }
+
+  return quote === null && hasWord ? output : null;
+};
+
+/** Removes only a fixed shell wrapper emitted by the Codex command host. */
 const unwrapCodexShellCommand = (command) => {
   for (const executable of ['/bin/bash', 'bash']) {
-    for (const quote of ["'", '"']) {
-      const prefix = `${executable} -lc ${quote}`;
-      if (command.startsWith(prefix) && command.endsWith(quote)) {
-        return command.slice(prefix.length, -1);
-      }
+    const prefix = `${executable} -lc `;
+    if (command.startsWith(prefix)) {
+      return decodeFixedShellWord(command.slice(prefix.length));
     }
   }
 
@@ -173,7 +241,7 @@ const tokenizeStaticShellList = (command) => {
       continue;
     }
     if (/\s/u.test(character)) {
-      if (character === '\n' && commands.at(-1).length > 0) {
+      if (character === '\n' && (hasCurrentWord || commands.at(-1).length > 0)) {
         if (!pushCommand()) return null;
       } else {
         pushWord();
@@ -210,8 +278,28 @@ const isPackageManagerExecutable = (word) => {
   );
 };
 
+/** Removes only static shell control syntax while preserving conditions and branch commands. */
+const normalizeStaticShellCommand = (words) => {
+  if (words.length === 1 && SHELL_CONTROL_TERMINATORS.has(words[0].text)) return [];
+  if (
+    words[0]?.text === 'for' &&
+    SHELL_VARIABLE_NAME_PATTERN.test(words[1]?.text ?? '') &&
+    words[2]?.text === 'in' &&
+    words.length > 3 &&
+    words.slice(1).every(({ hasExecutableExpansion }) => !hasExecutableExpansion)
+  ) {
+    return [];
+  }
+
+  let firstExecutableIndex = 0;
+  while (SHELL_CONTROL_PREFIXES.has(words[firstExecutableIndex]?.text)) {
+    firstExecutableIndex += 1;
+  }
+  return words.slice(firstExecutableIndex);
+};
+
 /** Classifies a command after static wrapper and assignment prefixes. */
-const classifyStaticCommand = (words) => {
+const classifyStaticCommand = (words, options = {}) => {
   let index = 0;
   let hasAssignmentPrefix = false;
   while (ASSIGNMENT_PATTERN.test(words[index]?.text ?? '')) {
@@ -252,14 +340,20 @@ const classifyStaticCommand = (words) => {
     const remainingWords = words.slice(index + 1);
     if (remainingWords[0]?.text === '--') remainingWords.shift();
     if (remainingWords[0]?.text.startsWith('-')) return 'indeterminate';
-    let hasEnvironmentAssignment = false;
+    const environmentAssignments = [];
     while (ASSIGNMENT_PATTERN.test(remainingWords[0]?.text ?? '')) {
-      hasEnvironmentAssignment = true;
-      remainingWords.shift();
+      environmentAssignments.push(remainingWords.shift().text);
     }
     if (remainingWords.length === 0) return 'not-observed';
-    const nestedClassification = classifyStaticCommand(remainingWords);
-    return nestedClassification === 'observed' || !hasEnvironmentAssignment
+    const hasGitAttributeIsolation =
+      environmentAssignments.length === 1 && environmentAssignments[0] === 'GIT_ATTR_NOSYSTEM=1';
+    const nestedClassification = classifyStaticCommand(remainingWords, {
+      ...options,
+      hasGitAttributeIsolation,
+    });
+    return nestedClassification === 'observed' ||
+      environmentAssignments.length === 0 ||
+      hasGitAttributeIsolation
       ? nestedClassification
       : 'indeterminate';
   }
@@ -280,8 +374,21 @@ const classifyStaticCommand = (words) => {
       ? 'indeterminate'
       : 'not-observed';
   }
+  if (executableName === 'awk') {
+    const [program, ...fileOperands] = words.slice(index + 1);
+    return program !== undefined &&
+      SAFE_AWK_PROGRAMS.has(program.text) &&
+      !program.hasExecutableExpansion &&
+      fileOperands.length > 0 &&
+      fileOperands.every(
+        (fileOperand) => !fileOperand.hasExecutableExpansion && !fileOperand.text.startsWith('-'),
+      )
+      ? 'not-observed'
+      : 'indeterminate';
+  }
   if (executableName === 'git') {
-    return 'indeterminate';
+    if (!options.hasGitCommandPolicyBoundary) return 'indeterminate';
+    return 'not-observed';
   }
   if (executableName === 'rg') {
     return words.slice(index + 1).some(({ text }) => text === '--pre' || text.startsWith('--pre='))
@@ -311,19 +418,23 @@ const classifyStaticCommand = (words) => {
 };
 
 /** Classifies one complete shell command without retaining its content. */
-const classifyCompletedCommand = (command) => {
+const classifyCompletedCommand = (command, options) => {
   if (Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) return 'indeterminate';
   const directCommand = unwrapCodexShellCommand(command);
+  if (directCommand === null) return 'indeterminate';
   const commands = tokenizeStaticShellList(directCommand);
   if (commands === null) return 'indeterminate';
 
-  const classifications = commands.map(classifyStaticCommand);
+  const classifications = commands
+    .map(normalizeStaticShellCommand)
+    .filter((words) => words.length > 0)
+    .map((words) => classifyStaticCommand(words, options));
   if (classifications.includes('observed')) return 'observed';
   return classifications.includes('indeterminate') ? 'indeterminate' : 'not-observed';
 };
 
 /** Selects one command-policy classification from a completed Codex JSONL event. */
-export const classifyActorCommandPolicyEvent = (event) => {
+export const classifyActorCommandPolicyEvent = (event, options = {}) => {
   if (
     !isPlainRecord(event) ||
     event.type !== 'item.completed' ||
@@ -336,7 +447,9 @@ export const classifyActorCommandPolicyEvent = (event) => {
     throw new Error('A completed Codex command event did not include its command policy input.');
   }
 
-  return classifyCompletedCommand(event.item.command);
+  return classifyCompletedCommand(event.item.command, {
+    hasGitCommandPolicyBoundary: options?.hasGitCommandPolicyBoundary === true,
+  });
 };
 
 /** Creates the bounded aggregate persisted after raw command text is discarded. */

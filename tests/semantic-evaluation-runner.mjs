@@ -58,6 +58,7 @@ import {
   hasValidReadOnlyMountControlEvidence,
   hasValidRepositoryControlEvidence,
   hasValidScenarioEvidence,
+  prepareGitCommandPolicyBoundary,
   projectActorExecutionEvidenceEvent,
   recordSemanticEvaluationAttempt,
   runSemanticOperationalStage,
@@ -1317,7 +1318,9 @@ export const parseSemanticEvaluationHostOutput = (output, options) => {
         throw new Error('Codex actor execution evidence exceeded its item limit.');
       }
     }
-    const commandPolicyClassification = classifyActorCommandPolicyEvent(event);
+    const commandPolicyClassification = classifyActorCommandPolicyEvent(event, {
+      hasGitCommandPolicyBoundary: options.hasGitCommandPolicyBoundary === true,
+    });
     if (commandPolicyClassification !== null) {
       actorCommandPolicyClassifications.push(commandPolicyClassification);
     }
@@ -1697,6 +1700,16 @@ const seedYarnConflictingCliProvider = async (repositoryPath) => {
   await symlink(relative(binDirectory, conflictingBinPath), moldeaLinkPath);
 };
 
+/** Copies the evaluator-owned base commands into a scenario-specific command mount. */
+const prepareSemanticActorToolDirectory = async (sandboxHome, actorToolDirectory) => {
+  await mkdir(actorToolDirectory, { recursive: true });
+  await Promise.all(
+    ['git', 'npm'].map((executableName) =>
+      copyFile(join(sandboxHome, 'bin', executableName), join(actorToolDirectory, executableName)),
+    ),
+  );
+};
+
 /**
  * Prepares evaluator-owned commands needed by one actor scenario.
  * @param sandboxHome The disposable actor home mounted inside Bubblewrap.
@@ -1709,14 +1722,14 @@ export const prepareSemanticEvaluationHome = async (
   caseDefinition,
   actorToolDirectory,
 ) => {
+  if (typeof actorToolDirectory !== 'string' || actorToolDirectory.length === 0) {
+    throw new Error('Semantic evaluation requires an evaluator-owned actor tool directory.');
+  }
   await prepareCodexEvaluationHome(sandboxHome);
+  await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'));
+  await prepareSemanticActorToolDirectory(sandboxHome, actorToolDirectory);
+  const actorToolMounts = [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
   if (RUNTIME_COMPATIBILITY_PUBLICATION_CASE_IDS.has(caseDefinition.id)) {
-    if (typeof actorToolDirectory !== 'string' || actorToolDirectory.length === 0) {
-      throw new Error(
-        'The runtime compatibility scenario requires an evaluator-owned tool directory.',
-      );
-    }
-
     const isFutureTarget = caseDefinition.id === 'published-supported-target-not-installed';
     const publicationTargets =
       caseDefinition.id === 'installed-adapter-without-published-target'
@@ -1774,8 +1787,6 @@ export const prepareSemanticEvaluationHome = async (
         ? '{'
         : `${JSON.stringify(publication)}\n`;
 
-    await mkdir(actorToolDirectory, { recursive: true });
-    await copyFile(join(sandboxHome, 'bin', 'npm'), join(actorToolDirectory, 'npm'));
     const curlProbePath = join(actorToolDirectory, 'curl');
     await writeFile(
       curlProbePath,
@@ -1797,17 +1808,9 @@ export const prepareSemanticEvaluationHome = async (
       'utf8',
     );
     await chmod(curlProbePath, 0o755);
-    return [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
+    return actorToolMounts;
   }
   if (caseDefinition.id === 'pnpm-pnp-local-cli-provider') {
-    if (typeof actorToolDirectory !== 'string' || actorToolDirectory.length === 0) {
-      throw new Error(
-        'The pnpm Plug and Play scenario requires an evaluator-owned tool directory.',
-      );
-    }
-
-    await mkdir(actorToolDirectory, { recursive: true });
-    await copyFile(join(sandboxHome, 'bin', 'npm'), join(actorToolDirectory, 'npm'));
     const pnpmProbePath = join(actorToolDirectory, 'pnpm');
     await writeFile(
       pnpmProbePath,
@@ -1834,15 +1837,10 @@ export const prepareSemanticEvaluationHome = async (
       'utf8',
     );
     await chmod(pnpmProbePath, 0o755);
-    return [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
+    return actorToolMounts;
   }
-  if (caseDefinition.id !== 'yarn-conflicting-cli-provider') return [];
-  if (typeof actorToolDirectory !== 'string' || actorToolDirectory.length === 0) {
-    throw new Error('The Yarn conflict scenario requires an evaluator-owned tool directory.');
-  }
+  if (caseDefinition.id !== 'yarn-conflicting-cli-provider') return actorToolMounts;
 
-  await mkdir(actorToolDirectory, { recursive: true });
-  await copyFile(join(sandboxHome, 'bin', 'npm'), join(actorToolDirectory, 'npm'));
   const yarnProbePath = join(actorToolDirectory, 'yarn');
   await writeFile(
     yarnProbePath,
@@ -1890,7 +1888,7 @@ export const prepareSemanticEvaluationHome = async (
     'utf8',
   );
   await chmod(yarnProbePath, 0o755);
-  return [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
+  return actorToolMounts;
 };
 
 /** Seeds an installed pnpm Plug and Play CLI provider without a root node_modules directory. */
@@ -3661,6 +3659,7 @@ const evaluateActorStage = async (caseDefinition, actorCommand, cli) => {
     });
     const actorExecutionEvidenceOptions = {
       cliVersion: cli.version,
+      hasGitCommandPolicyBoundary: true,
       jsonSchemaVersion: cli.jsonSchemaVersion,
     };
     const {

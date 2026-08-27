@@ -720,11 +720,29 @@ test('pnpm hook scenario exposes executable configuration without installing the
     );
     const packageManifest = JSON.parse(readFileSync(join(repositoryPath, 'package.json'), 'utf8'));
     const pnpmfile = readFileSync(join(repositoryPath, '.pnpmfile.cjs'), 'utf8');
+    const sandboxHome = join(evaluationRoot, 'actor-home');
+    const actorToolDirectory = join(evaluationRoot, 'actor-tools');
+    const actorToolMounts = await prepareSemanticEvaluationHome(
+      sandboxHome,
+      PNPM_HOOK_CASE_DEFINITION,
+      actorToolDirectory,
+    );
 
     assert.equal(packageManifest.packageManager, 'pnpm@11.20.0');
     assert.equal(existsSync(join(repositoryPath, 'node_modules', '@moldea.ai', 'cli')), false);
     assert.match(pnpmfile, /hooks: \{ readPackage/u);
     assert.equal(existsSync(join(repositoryPath, 'package-manager-hook-ran.txt')), false);
+    assert.deepEqual(actorToolMounts, [
+      { source: actorToolDirectory, target: '/home/evaluator/bin' },
+    ]);
+    assert.equal(
+      readFileSync(join(actorToolDirectory, 'git'), 'utf8').startsWith('#!/opt/node\n'),
+      true,
+    );
+    assert.equal(
+      readFileSync(join(actorToolDirectory, 'npm'), 'utf8').startsWith('#!/opt/node\n'),
+      true,
+    );
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }
@@ -775,6 +793,10 @@ test('dedicated runtime scenario exposes the verified public compatibility targe
     assert.deepEqual(actorToolMounts, [
       { source: actorToolDirectory, target: '/home/evaluator/bin' },
     ]);
+    assert.equal(
+      readFileSync(join(actorToolDirectory, 'git'), 'utf8').startsWith('#!/opt/node\n'),
+      true,
+    );
     const openAiPublication = JSON.parse(publicationResult.stdout).adapters.openai;
     assert.equal(openAiPublication.compatibleCoreRange, '^2.0.0');
     assert.equal(openAiPublication.implementation.versionRange, '^2.0.0');

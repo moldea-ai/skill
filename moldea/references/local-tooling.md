@@ -33,7 +33,9 @@ Before any npm, pnpm, Yarn, Corepack, or related command, inspect pnpmfiles, hoo
 
 Inspect these extensions only as file data with direct inert readers; do not load or parse them through Node.js, a package manager, a repository executable, or a project script. Once one is established, stop executable discovery for manager-dependent work; finish only the minimum inert file inspection needed to identify independent prerequisites, then report every established blocker before asking the focused question that can resolve the remaining ambiguity.
 
-This gate blocks only manager-dependent work. Report each extension path, blocked operation, unavailable evidence, and safe prerequisite. Remove or disable the extension and retry; invoke without the manager only for an already declared and installed exact CLI. Never bypass, trust, or execute the extension.
+For Initialize, complete this file-only extension gate and the independent installed-CLI presence check before foundation classification can end the attempt in clarification. The foundation-first rule in `context-gathering.md` prevents dependency changes before sufficient context; it does not defer inert safety preflight or allow a project-purpose question to replace an established tooling blocker.
+
+This gate blocks only manager-dependent work. Report each extension path, blocked operation, unavailable evidence, and safe prerequisite. When the exact local CLI is absent, state that the independent local-CLI path is unavailable and the extension therefore blocks manager-based installation. Remove or disable the extension and retry; invoke without the manager only for an already declared and installed exact CLI. Report this terminal tooling prerequisite before any separate adoption or foundation clarification. Never bypass, trust, or execute the extension.
 
 After the file-only gate passes, verify the selected executable with `npm --version`, `pnpm --version`, or `yarn --version`. It must satisfy the release range and exactly match concrete `packageManager` metadata. Do not silently install or upgrade Node.js or a manager.
 

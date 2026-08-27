@@ -474,6 +474,53 @@ test('semantic host output separates final response from runner-owned execution 
   );
 });
 
+test('semantic host output accepts approved and boundary-refused Git policy evidence', () => {
+  const output = [
+    {
+      item: {
+        aggregated_output: '',
+        command:
+          'env GIT_ATTR_NOSYSTEM=1 git -c core.fsmonitor=false -c core.pager=cat -c core.attributesFile=/dev/null -c filter.lfs.clean= -c filter.lfs.process= -c filter.lfs.smudge= -c filter.lfs.required=false --no-pager status --porcelain=v2 -z --ignore-submodules=all',
+        exit_code: 0,
+        id: 'item-1',
+        status: 'completed',
+        type: 'command_execution',
+      },
+      type: 'item.completed',
+    },
+    {
+      item: {
+        aggregated_output: 'Git command blocked: command shape is not evaluator-approved.\n',
+        command: "git -c alias.pm='!pnpm --version' pm",
+        exit_code: 2,
+        id: 'item-2',
+        status: 'completed',
+        type: 'command_execution',
+      },
+      type: 'item.completed',
+    },
+    {
+      item: { id: 'item-3', text: 'No package-manager command ran.', type: 'agent_message' },
+      type: 'item.completed',
+    },
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+
+  const result = parseSemanticEvaluationHostOutput(output, {
+    ...ACTOR_EXECUTION_EVIDENCE_OPTIONS,
+    hasGitCommandPolicyBoundary: true,
+  });
+
+  assert.deepEqual(result.actorCommandPolicyEvidence, {
+    completedCommandCount: 2,
+    indeterminateCommandCount: 0,
+    packageManagerExecution: 'not-observed',
+    packageManagerInvocationCount: 0,
+  });
+  assert.equal(result.response, 'No package-manager command ran.');
+});
+
 test('semantic host output does not derive execution evidence from the final response', () => {
   const output = JSON.stringify({
     item: {
@@ -1361,7 +1408,7 @@ test('semantic candidates retain failures and require two passing confirmations'
     caseDefinitions,
     generatedAt: '2026-08-16T12:03:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 18);
+  assert.equal(record.evaluationProtocolVersion, 20);
   assert.equal(record.schemaVersion, 6);
   assert.equal(record.actorHost, undefined);
   assert.equal(record.host, undefined);

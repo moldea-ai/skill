@@ -89,6 +89,8 @@ Agent Skill work additionally requires the requested reusable outcome, expected 
 
 ## Initialize context first
 
+Before foundation classification can end in clarification, complete `local-tooling.md`'s file-only executable-extension gate and independent installed-CLI presence check. This inert safety preflight does not authorize a package-manager command or dependency change. If it establishes a tooling blocker, report that blocker and its prerequisite before any independent foundation question.
+
 Classify the project foundation before changing dependency state. Missing or unverified tooling never makes available evidence empty and does not authorize installation before the foundation supports writes.
 
 Project names, generic labels, placeholders, empty exports, and brief or generic package metadata may guide clarification but cannot establish a sufficient foundation alone:

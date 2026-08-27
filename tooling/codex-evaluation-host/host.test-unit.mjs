@@ -321,7 +321,7 @@ test('sandbox can expose the project-local binary directory and mount the worksp
   });
 
   assert.ok(
-    argumentsList.includes('/mnt/node_modules/.bin:/home/evaluator/bin:/opt:/usr/bin:/bin'),
+    argumentsList.includes('/home/evaluator/bin:/mnt/node_modules/.bin:/opt:/usr/bin:/bin'),
   );
   assert.ok(
     argumentsList.some(

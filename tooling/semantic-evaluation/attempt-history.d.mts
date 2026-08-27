@@ -40,7 +40,7 @@ export type ISemanticAttemptEvidenceReference =
       sha256: string;
     }
   | {
-      evaluationProtocolVersion: 18;
+      evaluationProtocolVersion: 18 | 19 | 20;
       kind: 'candidate';
       path: 'evidence.json';
       schemaVersion: 6;

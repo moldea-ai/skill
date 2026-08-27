@@ -59,6 +59,42 @@ test('sandbox npm probe reports the fixture version and rejects execution comman
   }
 });
 
+test('evaluator commands precede writable workspace binaries on sandbox PATH', () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-path-precedence-test-'));
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const workspaceBinDirectory = join(repositoryPath, 'node_modules', '.bin');
+  const sandboxHome = join(evaluationRoot, 'home');
+  const evaluatorBinDirectory = join(sandboxHome, 'bin');
+  mkdirSync(workspaceBinDirectory, { recursive: true });
+  mkdirSync(evaluatorBinDirectory, { recursive: true });
+
+  const executableName = 'path-precedence-probe';
+  const workspaceExecutablePath = join(workspaceBinDirectory, executableName);
+  const evaluatorExecutablePath = join(evaluatorBinDirectory, executableName);
+  writeFileSync(workspaceExecutablePath, '#!/bin/sh\nexit 10\n', 'utf8');
+  writeFileSync(evaluatorExecutablePath, '#!/bin/sh\nexit 0\n', 'utf8');
+  chmodSync(workspaceExecutablePath, 0o755);
+  chmodSync(evaluatorExecutablePath, 0o755);
+
+  try {
+    const result = spawnSync(
+      'bwrap',
+      buildCodexEvaluationBwrapArguments({
+        command: ['codex', '-c', executableName],
+        cwd: repositoryPath,
+        hostExecutable: realpathSync('/bin/sh'),
+        includeWorkspaceBinaryDirectory: true,
+        nodeExecutable: process.execPath,
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 2_000 },
+    );
+    assert.equal(result.status, 0, result.stderr);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
 test('Bubblewrap exposes the Codex code-mode companion beside the host executable', () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-code-mode-host-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');

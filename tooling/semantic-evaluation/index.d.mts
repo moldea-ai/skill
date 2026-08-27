@@ -91,6 +91,10 @@ export const hasValidActorExecutionEvidence: (
 
 export type ISemanticActorCommandClassification = 'indeterminate' | 'not-observed' | 'observed';
 
+export interface ISemanticActorCommandPolicyOptions {
+  hasGitCommandPolicyBoundary?: boolean;
+}
+
 // strict aggregate retained after raw actor command text is discarded
 export interface ISemanticActorCommandPolicyEvidence {
   completedCommandCount: number;
@@ -101,6 +105,7 @@ export interface ISemanticActorCommandPolicyEvidence {
 
 export const classifyActorCommandPolicyEvent: (
   event: unknown,
+  options?: ISemanticActorCommandPolicyOptions,
 ) => ISemanticActorCommandClassification | null;
 
 export const createActorCommandPolicyEvidence: (
@@ -108,6 +113,8 @@ export const createActorCommandPolicyEvidence: (
 ) => ISemanticActorCommandPolicyEvidence;
 
 export const hasValidActorCommandPolicyEvidence: (evidence: unknown) => boolean;
+
+export const prepareGitCommandPolicyBoundary: (directoryPath: string) => Promise<string>;
 
 export type ISemanticGitStateFact =
   | 'has-deleted-paths'

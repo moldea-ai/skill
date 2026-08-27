@@ -87,9 +87,13 @@ describe('SemanticAttemptRecordSchema', () => {
     [5, 16, true],
     [5, 17, true],
     [5, 18, false],
+    [5, 19, false],
+    [5, 20, false],
     [6, 16, false],
     [6, 17, false],
     [6, 18, true],
+    [6, 19, true],
+    [6, 20, true],
   ])(
     'schema %d with protocol %d has validity %s',
     (schemaVersion, evaluationProtocolVersion, expectedValidity) => {

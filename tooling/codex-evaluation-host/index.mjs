@@ -25,5 +25,11 @@ export {
   validateCodexEvaluationHostCommand,
 } from './host.mjs';
 
+// operational retry
+export {
+  calculateCodexEvaluationOperationalRetryDelay,
+  runCodexEvaluationOperationalStage,
+} from './operational-retry.mjs';
+
 // restricted proxy
 export { isPublicIpAddress, parseConnectAuthority, runCodexEvaluationProxy } from './proxy.mjs';

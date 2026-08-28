@@ -34,6 +34,7 @@ import {
   identifyCodexEvaluationHost,
   parseCodexEvaluationHostCommand,
   prepareCodexEvaluationHome,
+  runCodexEvaluationOperationalStage,
   runCodexEvaluationHost,
 } from '../tooling/codex-evaluation-host/index.mjs';
 import {
@@ -61,7 +62,6 @@ import {
   prepareGitCommandPolicyBoundary,
   projectActorExecutionEvidenceEvent,
   recordSemanticEvaluationAttempt,
-  runSemanticOperationalStage,
   validateSemanticCoverage,
   validateSemanticCaseDefinition,
   verifySemanticEvaluationAttempts,
@@ -3777,7 +3777,7 @@ export const runSemanticCaseTrial = async ({
   judgeCommand,
   now = () => new Date().toISOString(),
   persistActiveTrial = async () => {},
-  runOperationalStage = runSemanticOperationalStage,
+  runOperationalStage = runCodexEvaluationOperationalStage,
   writeStatus = (message) => process.stderr.write(message),
 }) => {
   let currentTrial = activeTrial;

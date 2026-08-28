@@ -16,6 +16,14 @@ export const CODEX_EVALUATION_HOST_FAILURE_KINDS: {
 export type ICodexEvaluationHostFailureKind =
   (typeof CODEX_EVALUATION_HOST_FAILURE_KINDS)[keyof typeof CODEX_EVALUATION_HOST_FAILURE_KINDS];
 
+// safe retry evidence shared by evaluation workflows
+export type ICodexEvaluationOperationalRetry = {
+  category: 'execution-failed' | 'proxy-unavailable' | 'timed-out';
+  failedAt: string;
+  failureCount: number;
+  retryDelayMs: number;
+};
+
 export class CodexEvaluationHostError extends Error {
   public readonly kind: ICodexEvaluationHostFailureKind;
   public constructor(
@@ -97,6 +105,20 @@ export const runCodexEvaluationHost: (options: {
   workspaceAccess?: ICodexEvaluationWorkspaceAccess;
 }) => Promise<string>;
 export const validateCodexEvaluationHostCommand: (command: readonly string[]) => void;
+
+export const calculateCodexEvaluationOperationalRetryDelay: (
+  failureCount: number,
+  randomValue?: number,
+) => number;
+export const runCodexEvaluationOperationalStage: <T>(options: {
+  initialFailureCount?: number;
+  now?: () => string;
+  onRetry: (retry: ICodexEvaluationOperationalRetry) => Promise<void>;
+  operation: () => Promise<T>;
+  random?: () => number;
+  signal?: AbortSignal;
+  wait?: (delayMs: number, signal?: AbortSignal) => Promise<void>;
+}) => Promise<T>;
 
 export const isPublicIpAddress: (address: string) => boolean;
 export const parseConnectAuthority: (authority: string) => {

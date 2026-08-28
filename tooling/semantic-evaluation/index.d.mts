@@ -3,26 +3,6 @@ export interface ISemanticCriterion {
   label: string;
 }
 
-export type ISemanticOperationalRetry = {
-  category: 'execution-failed' | 'proxy-unavailable' | 'timed-out';
-  failedAt: string;
-  failureCount: number;
-  retryDelayMs: number;
-};
-
-export const calculateSemanticOperationalRetryDelay: (
-  failureCount: number,
-  randomValue?: number,
-) => number;
-export const runSemanticOperationalStage: <T>(options: {
-  initialFailureCount?: number;
-  now?: () => string;
-  onRetry: (retry: ISemanticOperationalRetry) => Promise<void>;
-  operation: () => Promise<T>;
-  random?: () => number;
-  wait?: (delayMs: number) => Promise<void>;
-}) => Promise<T>;
-
 // release identity required to recognize safe Moldea CLI envelopes
 export interface ISemanticActorExecutionEvidenceOptions {
   cliVersion: string;

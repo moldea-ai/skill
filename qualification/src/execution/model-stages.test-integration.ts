@@ -40,7 +40,7 @@ import {
 } from './model-stages.ts';
 
 const scenario = {
-  version: 1,
+  version: 2,
   id: 'test-case',
   title: 'Test case',
   purpose: 'Exercise model-stage judge validation.',
@@ -74,8 +74,21 @@ const scenario = {
     allowedChangePathPatterns: [],
     mustChangePathPatterns: [],
   },
-  judgeRequirements: [{ id: 'required-check', description: 'The required check passes.' }],
+  judgeRequirements: [
+    {
+      id: 'required-check',
+      description: 'The required check passes.',
+      evaluation: { kind: 'judge', evidenceSources: ['current-workspace'] },
+    },
+  ],
 } satisfies IQualificationCaseScenario;
+
+const emptyCommandPolicy = {
+  completedCommandCount: 0,
+  credentialExposure: { status: 'not-observed', observedCount: 0 },
+  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+  sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+} as const;
 
 const incompleteJudgeOutput: IJudgeOutput = {
   verdict: 'pass',
@@ -211,7 +224,7 @@ describe('qualification model stages', () => {
       runtimeDirectory,
     };
 
-    const result = await executeActorModelStage({
+    const actorStageOptions: Parameters<typeof executeActorModelStage>[0] = {
       adapterId: 'vercel-ai-sdk',
       approvePaidExecution: () => Promise.reject(new Error('Dry runs must not request approval.')),
       attemptDirectory: temporaryRoot,
@@ -245,7 +258,8 @@ describe('qualification model stages', () => {
       trialId: 'initial',
       useCache: false,
       verifyExecutionInputs: () => Promise.resolve(),
-    });
+    } satisfies Parameters<typeof executeActorModelStage>[0];
+    const result = await executeActorModelStage(actorStageOptions);
 
     expect(result.output.changedFiles).toStrictEqual([
       'moldea/moldea.yaml',
@@ -307,6 +321,7 @@ describe('qualification model stages', () => {
           output: incompleteJudgeOutput,
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
@@ -314,10 +329,10 @@ describe('qualification model stages', () => {
 
     await expect(
       executeJudgeModelStage({
+        actorCommandPolicy: emptyCommandPolicy,
         actorOutput: {
           outcome: 'completed',
           summary: 'Completed the task.',
-          commands: [],
           changedFiles: [],
           observations: [],
           unresolved: [],
@@ -383,6 +398,7 @@ describe('qualification model stages', () => {
         sourceAttemptId: 'attempt',
         cacheSourceAttemptId: null,
         trialId: 'initial',
+        commandPolicy: emptyCommandPolicy,
       }),
     ]);
 
@@ -448,13 +464,13 @@ describe('qualification model stages', () => {
           output: {
             outcome: 'completed',
             summary: 'Changed the candidate runtime.',
-            commands: [],
             changedFiles: [],
             observations: [],
             unresolved: [],
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         };
       },
@@ -573,19 +589,19 @@ describe('qualification model stages', () => {
           output: {
             outcome: 'completed',
             summary: 'Completed after retry.',
-            commands: [],
             changedFiles: [],
             observations: [],
             unresolved: [],
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         };
       },
     });
 
-    const result = await executeActorModelStage({
+    const actorStageOptions: Parameters<typeof executeActorModelStage>[0] = {
       adapterId: 'custom',
       approvePaidExecution: () => Promise.resolve(),
       attemptDirectory: temporaryRoot,
@@ -649,12 +665,34 @@ describe('qualification model stages', () => {
       trialId: 'initial',
       useCache: false,
       verifyExecutionInputs: () => Promise.resolve(),
-    });
+    };
+    const result = await executeActorModelStage(actorStageOptions);
 
     expect(result.output.summary).toBe('Completed after retry.');
     expect(observedStates).toStrictEqual(['pristine\n', 'pristine\n']);
     expect(retryFailureCounts).toStrictEqual([1]);
     expect(retryDelays).toStrictEqual([5_000]);
+
+    await expect(
+      executeActorModelStage({
+        ...actorStageOptions,
+        attemptId: 'exhausted-attempt',
+        host: new FakeCodexHost({
+          actor: () =>
+            Promise.reject(
+              new CodexEvaluationHostError(
+                CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
+                'Provider detail that must not be retained.',
+              ),
+            ),
+        }),
+        initialOperationalFailureCount: 1,
+        onOperationalRetry: () =>
+          Promise.reject(new Error('Retry exhaustion must not schedule another call.')),
+      }),
+    ).rejects.toThrow(
+      'Codex evaluation timed-out failure exhausted 1 operational retry after 2 failures.',
+    );
   });
 
   test('recreates the independent judge workspace before retrying a safe host failure', async () => {
@@ -732,16 +770,17 @@ describe('qualification model stages', () => {
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         };
       },
     });
 
     const result = await executeJudgeModelStage({
+      actorCommandPolicy: emptyCommandPolicy,
       actorOutput: {
         outcome: 'completed',
         summary: 'Completed the test task.',
-        commands: [],
         changedFiles: [],
         observations: [],
         unresolved: [],
@@ -922,13 +961,13 @@ describe('qualification model stages', () => {
           output: {
             outcome: input.scenario.expectedActorOutcome,
             summary: 'Completed the initial trial.',
-            commands: [],
             changedFiles: [],
             observations: [],
             unresolved: [],
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
@@ -947,6 +986,7 @@ describe('qualification model stages', () => {
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
@@ -962,6 +1002,7 @@ describe('qualification model stages', () => {
     });
     const sourceJudge = await executeJudgeModelStage({
       ...commonOptions,
+      actorCommandPolicy: emptyCommandPolicy,
       actorOutput: sourceActor.output,
       attemptId: 'source-attempt',
       caseArtifactDirectory: sourceArtifactDirectory,
@@ -994,6 +1035,7 @@ describe('qualification model stages', () => {
     });
     const cachedJudge = await executeJudgeModelStage({
       ...commonOptions,
+      actorCommandPolicy: emptyCommandPolicy,
       actorOutput: cachedActor.output,
       attemptId: 'current-attempt',
       caseArtifactDirectory: cachedArtifactDirectory,
@@ -1013,13 +1055,13 @@ describe('qualification model stages', () => {
           output: {
             outcome: input.scenario.expectedActorOutcome,
             summary: 'Completed the fresh confirmation.',
-            commands: [],
             changedFiles: [],
             observations: [],
             unresolved: [],
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
@@ -1038,6 +1080,7 @@ describe('qualification model stages', () => {
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
@@ -1053,6 +1096,7 @@ describe('qualification model stages', () => {
     });
     const confirmationJudge = await executeJudgeModelStage({
       ...commonOptions,
+      actorCommandPolicy: emptyCommandPolicy,
       actorOutput: confirmationActor.output,
       attemptId: 'current-attempt',
       caseArtifactDirectory: confirmationArtifactDirectory,
@@ -1121,7 +1165,6 @@ describe('qualification model stages', () => {
       writeJsonFileAtomically(path.join(caseArtifactDirectory, 'actor-output.json'), {
         outcome: 'completed',
         summary: 'Completed the task.',
-        commands: [],
         changedFiles: ['project.txt'],
         observations: [],
         unresolved: [],
@@ -1135,6 +1178,7 @@ describe('qualification model stages', () => {
         cacheKey: '0'.repeat(64),
         sourceAttemptId: 'attempt',
         cacheSourceAttemptId: null,
+        commandPolicy: emptyCommandPolicy,
       }),
     ]);
     await writeFile(path.join(workspaceDirectory, 'project.txt'), 'interrupted state\n', 'utf8');

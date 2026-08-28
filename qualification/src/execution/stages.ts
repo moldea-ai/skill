@@ -1,3 +1,4 @@
+import { QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT } from '../constants/index.ts';
 import {
   QualificationStageCheckpointSchema,
   type IQualificationAttemptCheckpoint,
@@ -14,13 +15,25 @@ const QUALIFICATION_TRIAL_STAGE_NAMES = [
   'judge',
 ] as const;
 
-/** Returns the maximum six planned trial calls for every selected profile case. */
-export const getQualificationMaximumPlannedTrialCallCount = (caseCount: number): number => {
+/** Returns the planned actor and judge calls for every selected profile case. */
+export const getQualificationPlannedCallCount = (
+  caseCount: number,
+  includeConfirmations = true,
+): number => {
   if (!Number.isSafeInteger(caseCount) || caseCount < 0) {
     throw new Error('Qualification case count must be a non-negative integer.');
   }
 
-  return caseCount * 6;
+  return caseCount * (includeConfirmations ? 6 : 2);
+};
+
+/** Returns the hard paid-call ceiling after bounded operational retries. */
+export const getQualificationMaximumCallCount = (plannedCallCount: number): number => {
+  if (!Number.isSafeInteger(plannedCallCount) || plannedCallCount < 0) {
+    throw new Error('Qualification planned call count must be a non-negative integer.');
+  }
+
+  return plannedCallCount * (QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT + 1);
 };
 
 /** Returns the deterministic stage ids owned by one initial or confirmation trial. */
@@ -33,15 +46,22 @@ export const createQualificationTrialStageIds = (
   );
 
 /** Returns the exact protocol 6 stage inventory for the selected cases. */
-export const createQualificationStageIds = (caseIds: readonly string[]): string[] => [
+export const createQualificationStageIds = (
+  caseIds: readonly string[],
+  includeConfirmations = true,
+): string[] => [
   'source-state',
   'coverage',
   'candidate',
   'baseline',
   ...caseIds.flatMap((caseId) => [
     ...createQualificationTrialStageIds(caseId, 'initial'),
-    ...createQualificationTrialStageIds(caseId, 'confirmation-1'),
-    ...createQualificationTrialStageIds(caseId, 'confirmation-2'),
+    ...(includeConfirmations
+      ? [
+          ...createQualificationTrialStageIds(caseId, 'confirmation-1'),
+          ...createQualificationTrialStageIds(caseId, 'confirmation-2'),
+        ]
+      : []),
     `case:${caseId}:result`,
   ]),
 ];

@@ -13,6 +13,13 @@ import {
   writeJudgeCache,
 } from './cache.ts';
 
+const emptyCommandPolicy = {
+  completedCommandCount: 0,
+  credentialExposure: { status: 'not-observed', observedCount: 0 },
+  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+  sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+} as const;
+
 const pathExists = async (candidatePath: string): Promise<boolean> => {
   try {
     await access(candidatePath);
@@ -96,13 +103,14 @@ describe('qualification model cache', () => {
       output: {
         outcome: 'completed',
         summary: 'Completed the cached task.',
-        commands: ['moldea validate'],
         changedFiles: ['project.txt'],
         observations: ['The project is valid.'],
         unresolved: [],
       },
       durationMs: 4,
-      events: '{"type":"completed"}\n',
+      commandPolicy: emptyCommandPolicy,
+      events:
+        '{"eventType":"command.completed","exitCode":0,"outputByteCount":0,"status":"completed"}\n',
       usage: { inputTokens: 8, cachedInputTokens: 2, outputTokens: 4 },
       workspaceDirectory,
       cacheRoot,
@@ -129,11 +137,13 @@ describe('qualification model cache', () => {
     expect(hit).toMatchObject({
       metadata: {
         cacheKey,
+        commandPolicy: emptyCommandPolicy,
         role: 'actor',
         sourceAttemptId: 'source-attempt',
       },
       output: { outcome: 'completed', changedFiles: ['project.txt'] },
-      events: '{"type":"completed"}\n',
+      events:
+        '{"eventType":"command.completed","exitCode":0,"outputByteCount":0,"status":"completed"}\n',
     });
     expect(await readFile(path.join(workspaceDirectory, 'project.txt'), 'utf8')).toBe(
       'cached project\n',
@@ -172,13 +182,14 @@ describe('qualification model cache', () => {
       output: {
         outcome: 'completed',
         summary: 'Completed the cached task.',
-        commands: [],
         changedFiles: ['project.txt'],
         observations: [],
         unresolved: [],
       },
       durationMs: 4,
-      events: '{"type":"completed"}\n',
+      commandPolicy: emptyCommandPolicy,
+      events:
+        '{"eventType":"command.completed","exitCode":0,"outputByteCount":0,"status":"completed"}\n',
       usage: null,
       workspaceDirectory,
       cacheRoot,
@@ -217,6 +228,7 @@ describe('qualification model cache', () => {
         failures: [],
       },
       durationMs: 2,
+      commandPolicy: emptyCommandPolicy,
       events: '',
       usage: null,
       cacheRoot,

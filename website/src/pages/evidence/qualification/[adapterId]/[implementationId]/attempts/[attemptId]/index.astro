@@ -55,6 +55,20 @@ const pageDescription =
     : result.status === 'failed'
       ? `Immutable failed qualification evidence for ${profile.adapterId}/${profile.implementationId}.`
       : `Immutable qualification evidence from an execution-error attempt for ${profile.adapterId}/${profile.implementationId}.`;
+const profileCasesById = new Map(profile.cases.map((profileCase) => [profileCase.id, profileCase]));
+const getProfileCase = (caseId: string) => {
+  const profileCase = profileCasesById.get(caseId);
+
+  if (profileCase === undefined) {
+    throw new Error(`Qualification profile case ${caseId} is unavailable.`);
+  }
+
+  return profileCase;
+};
+const getArtifactLabel = (artifactPath: string): string =>
+  result.protocolVersion === 6 && artifactPath.endsWith('-events.jsonl')
+    ? `${artifactPath} (projected execution evidence)`
+    : artifactPath;
 ---
 
 <BaseLayout
@@ -180,7 +194,14 @@ const pageDescription =
         </p>
       </div>
       <div class="mt-7 grid gap-5">
-        {attempt.cases.map((caseEvidence) => <QualificationCaseEvidence evidence={caseEvidence} />)}
+        {
+          attempt.cases.map((caseEvidence) => (
+            <QualificationCaseEvidence
+              evidence={caseEvidence}
+              scenario={getProfileCase(caseEvidence.result.caseId).scenario}
+            />
+          ))
+        }
       </div>
     </section>
 
@@ -189,7 +210,7 @@ const pageDescription =
         <summary
           class="cursor-pointer font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         >
-          Technical provenance and raw artifacts
+          Technical provenance and committed artifacts
         </summary>
 
         <div class="mt-6 grid gap-7 border-t border-border pt-6">
@@ -264,8 +285,15 @@ const pageDescription =
               id="attempt-artifacts-title"
               class="text-xl font-semibold"
             >
-              Raw committed artifacts
+              Committed artifacts
             </h2>
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">
+              {
+                result.protocolVersion === 6
+                  ? 'Event JSONL downloads contain bounded projected execution evidence without command text or command output.'
+                  : 'This historical protocol retains its original artifact format.'
+              }
+            </p>
             <ul class="mt-4 grid gap-2 sm:grid-cols-2">
               {
                 attempt.artifacts.map((artifact) => (
@@ -276,7 +304,7 @@ const pageDescription =
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      <span class="break-all">{artifact.path}</span>
+                      <span class="break-all">{getArtifactLabel(artifact.path)}</span>
                       <ExternalLink
                         class="size-3.5 shrink-0"
                         aria-hidden="true"

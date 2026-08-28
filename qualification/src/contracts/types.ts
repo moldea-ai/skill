@@ -10,6 +10,7 @@ import {
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
   QUALIFICATION_MODEL,
   QUALIFICATION_MODEL_ENDPOINT_ORIGINS,
+  QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT,
   QUALIFICATION_PROTOCOL_VERSION,
   QUALIFICATION_REASONING_EFFORT,
   QUALIFICATION_TRIAL_IDS,
@@ -100,56 +101,164 @@ export const QualificationProfileSchema = z.strictObject({
 export type IQualificationProfile = z.infer<typeof QualificationProfileSchema>;
 export type IQualificationProfileCase = z.infer<typeof QualificationProfileCaseSchema>;
 
+// evidence sources that the runner can place in the independent judge prompt
+export const QualificationJudgeEvidenceSourceSchema = z.enum([
+  'actor-command-policy',
+  'actor-output',
+  'current-workspace',
+  'deterministic-after',
+  'workspace-assertions',
+  'workspace-patch',
+]);
+
+// deterministic decisions owned by the runner instead of the model judge
+export const QualificationRunnerCheckSchema = z.enum([
+  'actor-command-policy',
+  'deterministic-after',
+  'expected-actor-outcome',
+  'workspace-assertions',
+]);
+
+const QualificationRequirementSchema = z.union([
+  z.strictObject({
+    id: StableIdSchema,
+    description: z.string().trim().min(1),
+    evaluation: z.strictObject({
+      kind: z.literal('runner'),
+      checks: z.array(QualificationRunnerCheckSchema).min(1),
+    }),
+  }),
+  z.strictObject({
+    id: StableIdSchema,
+    description: z.string().trim().min(1),
+    evaluation: z.strictObject({
+      kind: z.literal('judge'),
+      evidenceSources: z.array(QualificationJudgeEvidenceSourceSchema).min(1),
+    }),
+  }),
+]);
+
+const addUniqueArrayIssue = (
+  values: readonly string[],
+  path: readonly (string | number)[],
+  context: z.RefinementCtx,
+): void => {
+  if (new Set(values).size !== values.length) {
+    context.addIssue({ code: 'custom', message: 'Expected unique entries.', path: [...path] });
+  }
+};
+
 // deterministic fixture setup and observable post-actor requirements for one case
-export const QualificationCaseScenarioSchema = z.strictObject({
-  version: z.literal(QUALIFICATION_PROTOCOL_VERSION),
-  id: StableIdSchema,
-  title: z.string().trim().min(1),
-  purpose: z.string().trim().min(1),
-  taskFile: RelativePathSchema,
-  seedDirectory: RelativePathSchema,
-  overlayDirectory: RelativePathSchema.optional(),
-  expectedDirectory: RelativePathSchema.optional(),
-  removePaths: z.array(RelativePathSchema).default([]),
-  expectedRemovePaths: z.array(RelativePathSchema).default([]),
-  inspection: z.strictObject({
-    before: z.enum(['valid', 'invalid']),
-    after: z.enum(['valid', 'invalid']),
-  }),
-  deterministicEvidence: z.strictObject({
-    before: z.strictObject({
-      requiredDiagnosticCodes: z.array(z.string().trim().min(1)),
-      forbiddenDiagnosticCodes: z.array(z.string().trim().min(1)),
-      requiredEvidenceKinds: z.array(z.string().trim().min(1)),
-      forbiddenEvidenceKinds: z.array(z.string().trim().min(1)),
+export const QualificationCaseScenarioSchema = z
+  .strictObject({
+    version: z.literal(QUALIFICATION_PROTOCOL_VERSION),
+    id: StableIdSchema,
+    title: z.string().trim().min(1),
+    purpose: z.string().trim().min(1),
+    taskFile: RelativePathSchema,
+    seedDirectory: RelativePathSchema,
+    overlayDirectory: RelativePathSchema.optional(),
+    expectedDirectory: RelativePathSchema.optional(),
+    removePaths: z.array(RelativePathSchema).default([]),
+    expectedRemovePaths: z.array(RelativePathSchema).default([]),
+    inspection: z.strictObject({
+      before: z.enum(['valid', 'invalid']),
+      after: z.enum(['valid', 'invalid']),
     }),
-    after: z.strictObject({
-      requiredDiagnosticCodes: z.array(z.string().trim().min(1)),
-      forbiddenDiagnosticCodes: z.array(z.string().trim().min(1)),
-      requiredEvidenceKinds: z.array(z.string().trim().min(1)),
-      forbiddenEvidenceKinds: z.array(z.string().trim().min(1)),
-    }),
-  }),
-  expectedActorOutcome: z.enum(['blocked', 'completed']),
-  workspace: z.strictObject({
-    expectation: z.enum(['changed', 'unchanged']),
-    mustPreservePaths: z.array(RelativePathSchema),
-    mustChangePaths: z.array(RelativePathSchema),
-    mustExistPaths: z.array(RelativePathSchema),
-    mustNotExistPaths: z.array(RelativePathSchema),
-    allowedChangePaths: z.array(RelativePathSchema),
-    allowedChangePathPatterns: z.array(RelativePathPatternSchema),
-    mustChangePathPatterns: z.array(RelativePathPatternSchema),
-  }),
-  judgeRequirements: z
-    .array(
-      z.strictObject({
-        id: StableIdSchema,
-        description: z.string().trim().min(1),
+    deterministicEvidence: z.strictObject({
+      before: z.strictObject({
+        requiredDiagnosticCodes: z.array(z.string().trim().min(1)),
+        forbiddenDiagnosticCodes: z.array(z.string().trim().min(1)),
+        requiredEvidenceKinds: z.array(z.string().trim().min(1)),
+        forbiddenEvidenceKinds: z.array(z.string().trim().min(1)),
       }),
-    )
-    .min(1),
-});
+      after: z.strictObject({
+        requiredDiagnosticCodes: z.array(z.string().trim().min(1)),
+        forbiddenDiagnosticCodes: z.array(z.string().trim().min(1)),
+        requiredEvidenceKinds: z.array(z.string().trim().min(1)),
+        forbiddenEvidenceKinds: z.array(z.string().trim().min(1)),
+      }),
+    }),
+    expectedActorOutcome: z.enum(['blocked', 'completed']),
+    workspace: z.strictObject({
+      expectation: z.enum(['changed', 'unchanged']),
+      mustPreservePaths: z.array(RelativePathSchema),
+      mustChangePaths: z.array(RelativePathSchema),
+      mustExistPaths: z.array(RelativePathSchema),
+      mustNotExistPaths: z.array(RelativePathSchema),
+      allowedChangePaths: z.array(RelativePathSchema),
+      allowedChangePathPatterns: z.array(RelativePathPatternSchema),
+      mustChangePathPatterns: z.array(RelativePathPatternSchema),
+    }),
+    judgeRequirements: z.array(QualificationRequirementSchema).min(1),
+  })
+  .superRefine((scenario, context) => {
+    addUniqueArrayIssue(scenario.removePaths, ['removePaths'], context);
+    addUniqueArrayIssue(scenario.expectedRemovePaths, ['expectedRemovePaths'], context);
+    for (const phase of ['before', 'after'] as const) {
+      for (const field of [
+        'requiredDiagnosticCodes',
+        'forbiddenDiagnosticCodes',
+        'requiredEvidenceKinds',
+        'forbiddenEvidenceKinds',
+      ] as const) {
+        addUniqueArrayIssue(
+          scenario.deterministicEvidence[phase][field],
+          ['deterministicEvidence', phase, field],
+          context,
+        );
+      }
+    }
+    for (const field of [
+      'mustPreservePaths',
+      'mustChangePaths',
+      'mustExistPaths',
+      'mustNotExistPaths',
+      'allowedChangePaths',
+      'allowedChangePathPatterns',
+      'mustChangePathPatterns',
+    ] as const) {
+      addUniqueArrayIssue(scenario.workspace[field], ['workspace', field], context);
+    }
+    addUniqueArrayIssue(
+      scenario.judgeRequirements.map(({ id }) => id),
+      ['judgeRequirements'],
+      context,
+    );
+    for (const [index, requirement] of scenario.judgeRequirements.entries()) {
+      if (requirement.evaluation.kind === 'runner') {
+        addUniqueArrayIssue(
+          requirement.evaluation.checks,
+          ['judgeRequirements', index, 'evaluation', 'checks'],
+          context,
+        );
+      } else {
+        addUniqueArrayIssue(
+          requirement.evaluation.evidenceSources,
+          ['judgeRequirements', index, 'evaluation', 'evidenceSources'],
+          context,
+        );
+      }
+
+      if (
+        /\b(?:credential|network|secret|sensitive evaluator|\.codex)\b/iu.test(
+          requirement.description,
+        )
+      ) {
+        if (
+          requirement.evaluation.kind !== 'runner' ||
+          !requirement.evaluation.checks.includes('actor-command-policy')
+        ) {
+          context.addIssue({
+            code: 'custom',
+            message:
+              'Authority-sensitive requirements must be runner-owned and use actor-command-policy evidence.',
+            path: ['judgeRequirements', index, 'evaluation'],
+          });
+        }
+      }
+    }
+  });
 
 export type IQualificationCaseScenario = z.infer<typeof QualificationCaseScenarioSchema>;
 
@@ -236,6 +345,72 @@ export const ModelUsageSchema = z.strictObject({
 
 export type IModelUsage = z.infer<typeof ModelUsageSchema>;
 
+// bounded runner-owned command observations retained after raw Codex output is discarded
+const QualificationCommandPolicyStatusSchema = z.enum([
+  'indeterminate',
+  'not-observed',
+  'observed',
+]);
+
+const QualificationCommandPolicyObservationSchema = z.strictObject({
+  status: QualificationCommandPolicyStatusSchema,
+  observedCount: z.number().int().nonnegative(),
+  indeterminateCount: z.number().int().nonnegative(),
+});
+
+export const QualificationCommandPolicyEvidenceSchema = z
+  .strictObject({
+    completedCommandCount: z.number().int().min(0).max(128),
+    credentialExposure: z.strictObject({
+      status: z.enum(['not-observed', 'observed']),
+      observedCount: z.number().int().nonnegative(),
+    }),
+    networkAccess: QualificationCommandPolicyObservationSchema,
+    sensitiveAccess: QualificationCommandPolicyObservationSchema,
+  })
+  .superRefine((evidence, context) => {
+    for (const field of ['networkAccess', 'sensitiveAccess'] as const) {
+      const observation = evidence[field];
+      const expectedStatus =
+        observation.observedCount > 0
+          ? 'observed'
+          : observation.indeterminateCount > 0
+            ? 'indeterminate'
+            : 'not-observed';
+      if (
+        observation.status !== expectedStatus ||
+        observation.observedCount + observation.indeterminateCount > evidence.completedCommandCount
+      ) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Command-policy status must match its bounded counts.',
+          path: [field],
+        });
+      }
+    }
+    const expectedCredentialStatus =
+      evidence.credentialExposure.observedCount > 0 ? 'observed' : 'not-observed';
+    if (evidence.credentialExposure.status !== expectedCredentialStatus) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Credential-exposure status must match its observed count.',
+        path: ['credentialExposure'],
+      });
+    }
+  });
+
+export type IQualificationCommandPolicyEvidence = z.infer<
+  typeof QualificationCommandPolicyEvidenceSchema
+>;
+
+// one command completion projected without command text or output content
+export const QualificationProjectedExecutionEventSchema = z.strictObject({
+  eventType: z.literal('command.completed'),
+  exitCode: z.number().int(),
+  outputByteCount: z.number().int().nonnegative(),
+  status: z.enum(['completed', 'failed']),
+});
+
 // immutable protocol 3–5 model-stage provenance retained for historical evidence
 export const QualificationHistoricalModelStageEvidenceSchema = z.strictObject({
   role: z.enum(['actor', 'judge']),
@@ -251,6 +426,7 @@ export const QualificationHistoricalModelStageEvidenceSchema = z.strictObject({
 export const QualificationModelStageEvidenceSchema =
   QualificationHistoricalModelStageEvidenceSchema.extend({
     trialId: z.enum(QUALIFICATION_TRIAL_IDS),
+    commandPolicy: QualificationCommandPolicyEvidenceSchema,
   });
 
 export type IQualificationModelStageEvidence = z.infer<
@@ -294,9 +470,6 @@ export const ActorOutputSchema = z.strictObject({
   summary: z.string().trim().min(1).meta({
     description: 'A concise evidence-based account of the work and outcome.',
   }),
-  commands: z.array(z.string()).meta({
-    description: 'The exact project inspection and validation commands executed.',
-  }),
   changedFiles: z.array(RelativePathSchema).meta({
     description: 'Repository-relative project files intentionally changed by the task.',
   }),
@@ -306,6 +479,18 @@ export const ActorOutputSchema = z.strictObject({
   unresolved: z.array(z.string().trim().min(1)).meta({
     description: 'Remaining blockers or uncertainties that were not invented away.',
   }),
+});
+
+// frozen protocol 3–5 actor output retained for immutable history verification
+export const QualificationHistoricalActorOutputSchema = z.strictObject({
+  outcome: ActorOutputSchema.shape.outcome,
+  summary: ActorOutputSchema.shape.summary,
+  commands: z.array(z.string()).meta({
+    description: 'The exact project inspection and validation commands executed.',
+  }),
+  changedFiles: ActorOutputSchema.shape.changedFiles,
+  observations: ActorOutputSchema.shape.observations,
+  unresolved: ActorOutputSchema.shape.unresolved,
 });
 
 export type IActorOutput = z.infer<typeof ActorOutputSchema>;
@@ -337,6 +522,18 @@ export const JudgeOutputSchema = z.strictObject({
 });
 
 export type IJudgeOutput = z.infer<typeof JudgeOutputSchema>;
+
+// complete runner-owned assessment merged from deterministic and model decisions
+export const QualificationRequirementAssessmentSchema = z.strictObject({
+  id: StableIdSchema,
+  evaluator: z.enum(['judge', 'runner']),
+  verdict: z.enum(['fail', 'not-evaluated', 'pass']),
+  evidence: z.string().trim().min(1),
+});
+
+export type IQualificationRequirementAssessment = z.infer<
+  typeof QualificationRequirementAssessmentSchema
+>;
 
 // deterministic full-stack verification evidence for one prepared project state
 export const DeterministicVerificationSchema = z.strictObject({
@@ -447,9 +644,15 @@ export type IQualificationExecutionError = z.infer<typeof QualificationExecution
 
 // public reason recorded when deterministic failure makes semantic judgment unnecessary
 export const QualificationJudgeSkippedSchema = z.strictObject({
+  kind: z.enum(['deterministic-failure', 'model-free-dry-run', 'no-judge-requirements']),
   reason: z.string().trim().min(1),
   deterministicAfterPassed: z.boolean(),
   workspaceAssertionsPassed: z.boolean(),
+});
+
+// frozen protocol 3–5 judge-skip evidence retained for immutable history verification
+export const QualificationHistoricalJudgeSkippedSchema = QualificationJudgeSkippedSchema.omit({
+  kind: true,
 });
 
 export type IQualificationJudgeSkipped = z.infer<typeof QualificationJudgeSkippedSchema>;
@@ -509,7 +712,9 @@ export const QualificationOperationalRetrySchema = z
 export const QualificationStageCheckpointSchema = z
   .strictObject({
     ...QualificationStageCheckpointShape,
-    operationalRetries: z.array(QualificationOperationalRetrySchema),
+    operationalRetries: z
+      .array(QualificationOperationalRetrySchema)
+      .max(QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT),
   })
   .superRefine((stage, context) => {
     const isModelStage = /:trial:(?:initial|confirmation-[12]):(?:actor|judge)$/u.test(stage.id);
@@ -559,39 +764,62 @@ export const QualificationAttemptStatusSchema = z.enum([
 ]);
 
 // local checkpoint may contain absolute paths and is never committed as public evidence
-export const QualificationAttemptCheckpointSchema = z.strictObject({
-  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
-  attemptId: z.string().trim().min(1),
-  parentAttemptId: z.string().trim().min(1).nullable(),
-  selection: QualificationSelectionSchema,
-  status: QualificationAttemptStatusSchema,
-  isDryRun: z.boolean(),
-  useCache: z.boolean(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-  completedAt: z.string().datetime().nullable(),
-  recordedAt: z.string().datetime().nullable().default(null),
-  packagesRepository: z.string().min(1).default(DEFAULT_PACKAGES_REPOSITORY),
-  skillRepository: z.string().min(1),
-  profileDigest: z.string().regex(/^[a-f0-9]{64}$/u),
-  qualificationDigest: z
-    .string()
-    .regex(/^[a-f0-9]{64}$/u)
-    .nullable()
-    .default(null),
-  skillDigest: z.string().regex(/^[a-f0-9]{64}$/u),
-  packagesRepositoryFingerprint: z
-    .string()
-    .regex(/^[a-f0-9]{64}$/u)
-    .nullable()
-    .default(null),
-  packagesDigest: z.string().regex(/^[a-f0-9]{64}$/u),
-  targetDigest: z.string().regex(/^[a-f0-9]{64}$/u),
-  executionEnvironment: QualificationExecutionEnvironmentSchema.nullable().default(null),
-  candidate: CandidateClosureSchema.nullable(),
-  stages: z.record(z.string(), QualificationStageCheckpointSchema),
-  workspaceDirectories: z.record(z.string(), z.string()),
-});
+export const QualificationAttemptCheckpointSchema = z
+  .strictObject({
+    protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
+    attemptId: z.string().trim().min(1),
+    parentAttemptId: z.string().trim().min(1).nullable(),
+    selection: QualificationSelectionSchema,
+    status: QualificationAttemptStatusSchema,
+    isDryRun: z.boolean(),
+    mode: z.enum(['diagnostic', 'dry-run', 'official']).default('official'),
+    selectedCaseId: StableIdSchema.nullable().default(null),
+    useCache: z.boolean(),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+    completedAt: z.string().datetime().nullable(),
+    recordedAt: z.string().datetime().nullable().default(null),
+    packagesRepository: z.string().min(1).default(DEFAULT_PACKAGES_REPOSITORY),
+    skillRepository: z.string().min(1),
+    profileDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+    qualificationDigest: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/u)
+      .nullable()
+      .default(null),
+    skillDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+    packagesRepositoryFingerprint: z
+      .string()
+      .regex(/^[a-f0-9]{64}$/u)
+      .nullable()
+      .default(null),
+    packagesDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+    targetDigest: z.string().regex(/^[a-f0-9]{64}$/u),
+    executionEnvironment: QualificationExecutionEnvironmentSchema.nullable().default(null),
+    candidate: CandidateClosureSchema.nullable(),
+    stages: z.record(z.string(), QualificationStageCheckpointSchema),
+    workspaceDirectories: z.record(z.string(), z.string()),
+  })
+  .superRefine((checkpoint, context) => {
+    if (checkpoint.isDryRun !== (checkpoint.mode === 'dry-run')) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Checkpoint dry-run state must agree with its execution mode.',
+        path: ['isDryRun'],
+      });
+    }
+
+    if (
+      (checkpoint.mode === 'diagnostic' && checkpoint.selectedCaseId === null) ||
+      (checkpoint.mode !== 'diagnostic' && checkpoint.selectedCaseId !== null)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Only diagnostic checkpoints must select exactly one case.',
+        path: ['selectedCaseId'],
+      });
+    }
+  });
 
 export type IQualificationAttemptCheckpoint = z.infer<typeof QualificationAttemptCheckpointSchema>;
 
@@ -644,6 +872,7 @@ export const QualificationTrialResultSchema = z
     judgeEvidenceCreatedAt: z.string().datetime().nullable(),
     actorCacheSourceAttemptId: z.string().nullable(),
     judgeCacheSourceAttemptId: z.string().nullable(),
+    requirementAssessments: z.array(QualificationRequirementAssessmentSchema).min(1),
     failures: z.array(z.string()),
   })
   .superRefine((trial, context) => {
@@ -674,6 +903,17 @@ export const QualificationTrialResultSchema = z
     }
 
     if (
+      new Set(trial.requirementAssessments.map(({ id }) => id)).size !==
+      trial.requirementAssessments.length
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Trial requirement assessments must have unique ids.',
+        path: ['requirementAssessments'],
+      });
+    }
+
+    if (
       trial.kind === 'confirmation' &&
       (trial.actorCacheSourceAttemptId !== null || trial.judgeCacheSourceAttemptId !== null)
     ) {
@@ -693,7 +933,7 @@ export const QualificationCaseResultSchema = z
     caseId: StableIdSchema,
     title: z.string().trim().min(1),
     status: z.enum(['failed', 'passed', 'recovered']),
-    confirmationStatus: z.enum(['not-required', 'passed', 'rejected']),
+    confirmationStatus: z.enum(['not-applicable', 'not-required', 'passed', 'rejected']),
     durationMs: z.number().int().nonnegative(),
     trials: z.array(QualificationTrialResultSchema).min(1).max(3),
     failures: z.array(z.string()),
@@ -705,7 +945,12 @@ export const QualificationCaseResultSchema = z
     const confirmation2 = caseResult.trials[2];
     let isValidHistory = initial?.trialId === 'initial';
 
-    if (initial?.passed === true) {
+    if (caseResult.confirmationStatus === 'not-applicable') {
+      isValidHistory =
+        isValidHistory &&
+        caseResult.trials.length === 1 &&
+        caseResult.status === (initial?.passed === true ? 'passed' : 'failed');
+    } else if (initial?.passed === true) {
       isValidHistory =
         isValidHistory &&
         caseResult.trials.length === 1 &&
@@ -803,6 +1048,7 @@ export const QualificationAttemptResultDraftSchema = z.strictObject({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationAttemptResultSharedShape,
   confirmationPolicy: QualificationConfirmationPolicySchema,
+  mode: z.enum(['diagnostic', 'dry-run', 'official']),
   provenance: QualificationProvenanceSchema,
   stages: z.array(QualificationStageCheckpointSchema),
   cases: z.array(QualificationCaseResultSchema),
@@ -898,6 +1144,38 @@ const validateCurrentQualificationAttemptResult = (
   context: z.RefinementCtx,
 ): void => {
   validateQualificationAttemptResult(result, context);
+
+  if (result.mode !== 'official') {
+    context.addIssue({
+      code: 'custom',
+      message: 'Recorded qualification evidence must use official mode.',
+      path: ['mode'],
+    });
+  }
+
+  if (result.cases.some(({ confirmationStatus }) => confirmationStatus === 'not-applicable')) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Recorded official qualification evidence must use confirmation decisions.',
+      path: ['cases'],
+    });
+  }
+
+  if (
+    result.cases.some((caseResult) =>
+      caseResult.trials.some(
+        (trial) =>
+          trial.passed &&
+          trial.requirementAssessments.some(({ verdict }) => verdict === 'not-evaluated'),
+      ),
+    )
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'Passing qualification trials cannot contain unevaluated requirements.',
+      path: ['cases'],
+    });
+  }
 
   if (result.status === 'passed' && result.cases.some(({ status }) => status === 'failed')) {
     context.addIssue({

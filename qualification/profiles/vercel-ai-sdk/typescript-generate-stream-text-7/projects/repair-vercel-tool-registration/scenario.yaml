@@ -1,4 +1,4 @@
-version: 1
+version: 2
 id: repair-vercel-tool-registration
 title: Repair Vercel tool registration
 purpose: Verify precise diagnostic-driven repair of closed tools-map identity.
@@ -44,9 +44,21 @@ workspace:
 judgeRequirements:
   - id: uses-exact-diagnostic
     description: The actor explains that TOOL_NAME_MISMATCH proves the bound registration exists under a different closed map key.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
   - id: repairs-canonical-name
     description: The manifest tool name becomes lookup_order, matching source without changing the valid runtime implementation.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
   - id: preserves-binding-closure
     description: Implementation, registration, input-schema, output-schema, instruction-loader, and output-schema bindings remain exact and evidenced.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
   - id: validates-project
     description: The mismatch disappears, tool-registration evidence appears, and every deterministic layer passes without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

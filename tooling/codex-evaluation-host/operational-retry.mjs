@@ -3,6 +3,28 @@ import { isRetryableCodexEvaluationHostError } from './host.mjs';
 const INITIAL_OPERATIONAL_RETRY_DELAY_MS = 5_000;
 const MAXIMUM_OPERATIONAL_RETRY_DELAY_MS = 60_000;
 
+/** Identifies a retryable host failure that exhausted a caller-owned retry budget. */
+export class CodexEvaluationOperationalRetryExhaustedError extends Error {
+  /**
+   * Creates a safe retry-exhaustion error.
+   * @param category The stable retryable host failure category.
+   * @param failureCount The total consecutive failure count, including the terminal failure.
+   * @param maximumRetryCount The maximum additional calls allowed after the initial call.
+   * @param options Optional native error options.
+   */
+  constructor(category, failureCount, maximumRetryCount, options) {
+    super(
+      `Codex evaluation ${category} failure exhausted ${maximumRetryCount} operational ` +
+        `${maximumRetryCount === 1 ? 'retry' : 'retries'} after ${failureCount} failures.`,
+      options,
+    );
+    this.name = CodexEvaluationOperationalRetryExhaustedError.name;
+    this.category = category;
+    this.failureCount = failureCount;
+    this.maximumRetryCount = maximumRetryCount;
+  }
+}
+
 /** Calculates a capped exponential delay with bounded jitter for one operational retry. */
 export const calculateCodexEvaluationOperationalRetryDelay = (
   failureCount,
@@ -48,6 +70,7 @@ const waitForCodexEvaluationOperationalRetry = (delayMs, signal) =>
  */
 export const runCodexEvaluationOperationalStage = async ({
   initialFailureCount = 0,
+  maximumRetryCount,
   now = () => new Date().toISOString(),
   onRetry,
   operation,
@@ -58,6 +81,19 @@ export const runCodexEvaluationOperationalStage = async ({
   if (!Number.isSafeInteger(initialFailureCount) || initialFailureCount < 0) {
     throw new Error(
       'Codex evaluation operational retry initialFailureCount must be a non-negative integer.',
+    );
+  }
+  if (
+    maximumRetryCount !== undefined &&
+    (!Number.isSafeInteger(maximumRetryCount) || maximumRetryCount < 0)
+  ) {
+    throw new Error(
+      'Codex evaluation operational retry maximumRetryCount must be a non-negative integer.',
+    );
+  }
+  if (maximumRetryCount !== undefined && initialFailureCount > maximumRetryCount) {
+    throw new Error(
+      'Codex evaluation operational retry initialFailureCount exceeds maximumRetryCount.',
     );
   }
 
@@ -73,6 +109,14 @@ export const runCodexEvaluationOperationalStage = async ({
       if (!isRetryableCodexEvaluationHostError(error)) throw error;
 
       failureCount += 1;
+      if (maximumRetryCount !== undefined && failureCount > maximumRetryCount) {
+        throw new CodexEvaluationOperationalRetryExhaustedError(
+          error.kind,
+          failureCount,
+          maximumRetryCount,
+          { cause: error },
+        );
+      }
       const retryDelayMs = calculateCodexEvaluationOperationalRetryDelay(failureCount, random());
       await onRetry({
         category: error.kind,

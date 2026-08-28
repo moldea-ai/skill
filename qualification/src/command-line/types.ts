@@ -1,6 +1,16 @@
 import type { IQualificationSelection } from '../contracts/index.ts';
 
 export type IQualificationCommand =
+  | {
+      kind: 'diagnose';
+      selection: IQualificationSelection;
+      caseId: string;
+      packagesRepository?: string;
+      skillRepository?: string;
+      useCache: boolean;
+      hasConfirmedPaidExecution: boolean;
+      isJson: boolean;
+    }
   | { kind: 'list'; isJson: boolean }
   | {
       kind: 'record';

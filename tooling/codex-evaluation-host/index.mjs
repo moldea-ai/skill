@@ -28,8 +28,12 @@ export {
 // operational retry
 export {
   calculateCodexEvaluationOperationalRetryDelay,
+  CodexEvaluationOperationalRetryExhaustedError,
   runCodexEvaluationOperationalStage,
 } from './operational-retry.mjs';
+
+// execution evidence
+export { projectCodexEvaluationExecutionEvidence } from './execution-evidence.mjs';
 
 // restricted proxy
 export { isPublicIpAddress, parseConnectAuthority, runCodexEvaluationProxy } from './proxy.mjs';

@@ -6,17 +6,13 @@ import { z } from 'zod';
 import {
   identifyCodexEvaluationHost,
   prepareCodexEvaluationHome,
+  projectCodexEvaluationExecutionEvidence,
   runCodexEvaluationHost,
   type ICodexEvaluationWorkspaceAccess,
 } from '../../../tooling/codex-evaluation-host/index.mjs';
 
 import { QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS } from '../constants/index.ts';
-import {
-  ModelUsageSchema,
-  type IActorOutput,
-  type IJudgeOutput,
-  type IModelUsage,
-} from '../contracts/index.ts';
+import { type IActorOutput, type IJudgeOutput } from '../contracts/index.ts';
 import { writeJsonFileAtomically } from '../filesystem/index.ts';
 import type {
   IActorExecutionInput,
@@ -29,55 +25,6 @@ import { createCodexExecCommand } from './utilities.ts';
 
 const SANDBOX_OUTPUT_PATH = '/home/evaluator/output.json';
 const SANDBOX_SCHEMA_PATH = '/home/evaluator/output.schema.json';
-
-const extractUsageCandidate = (candidate: unknown): IModelUsage | null => {
-  if (typeof candidate !== 'object' || candidate === null) {
-    return null;
-  }
-
-  const record = candidate as Readonly<Record<string, unknown>>;
-  const usageResult = ModelUsageSchema.safeParse({
-    inputTokens: record['input_tokens'] ?? record['inputTokens'],
-    cachedInputTokens: record['cached_input_tokens'] ?? record['cachedInputTokens'] ?? 0,
-    outputTokens: record['output_tokens'] ?? record['outputTokens'],
-  });
-
-  if (usageResult.success) {
-    return usageResult.data;
-  }
-
-  for (const nestedValue of Object.values(record)) {
-    const nestedUsage = extractUsageCandidate(nestedValue);
-
-    if (nestedUsage !== null) {
-      return nestedUsage;
-    }
-  }
-
-  return null;
-};
-
-const extractLatestUsage = (events: string): IModelUsage | null => {
-  let latestUsage: IModelUsage | null = null;
-
-  for (const eventLine of events.split('\n')) {
-    if (eventLine.trim() === '') {
-      continue;
-    }
-
-    try {
-      const usage = extractUsageCandidate(JSON.parse(eventLine) as unknown);
-
-      if (usage !== null) {
-        latestUsage = usage;
-      }
-    } catch {
-      continue;
-    }
-  }
-
-  return latestUsage;
-};
 
 /** Production Codex CLI host fixed to the evaluation model and structured-output protocol. */
 export class CodexCliHost implements ICodexHost {
@@ -127,7 +74,7 @@ export class CodexCliHost implements ICodexHost {
         schemaPath: SANDBOX_SCHEMA_PATH,
       });
       const startedAt = performance.now();
-      const events = await runCodexEvaluationHost({
+      const rawEvents = await runCodexEvaluationHost({
         command,
         cwd: input.workspaceDirectory,
         defaultHostTimeoutMs: QUALIFICATION_DEFAULT_HOST_TIMEOUT_MS,
@@ -138,12 +85,14 @@ export class CodexCliHost implements ICodexHost {
         workspaceAccess,
       });
       const output = input.schema.parse(JSON.parse(await readFile(outputPath, 'utf8')) as unknown);
+      const executionEvidence = projectCodexEvaluationExecutionEvidence(rawEvents);
 
       return {
         output,
-        usage: extractLatestUsage(events),
+        usage: executionEvidence.usage,
         durationMs: Math.max(0, Math.round(performance.now() - startedAt)),
-        events,
+        events: executionEvidence.projectedEvents,
+        commandPolicy: executionEvidence.commandPolicy,
       };
     } finally {
       await rm(executionRoot, { force: true, recursive: true });

@@ -81,17 +81,20 @@ import {
   completeQualificationStage,
   createQualificationStageIds,
   createQualificationTrialStageIds,
-  getQualificationMaximumPlannedTrialCallCount,
+  getQualificationMaximumCallCount,
+  getQualificationPlannedCallCount,
   isQualificationStageComplete,
   setQualificationStageCacheKey,
   startQualificationStage,
 } from './stages.ts';
 import { createQualificationAttemptResult } from './transformers.ts';
 import {
+  createRunnerRequirementAssessments,
   haveCandidateClosuresChanged,
   haveQualificationExecutionInputsChanged,
   haveQualificationInputsChanged,
   inspectQualificationSourceState,
+  mergeQualificationRequirementAssessments,
 } from './validations.ts';
 import type {
   IQualificationExecutionProvenance,
@@ -209,6 +212,25 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
     options.packagesRepository ?? DEFAULT_PACKAGES_REPOSITORY,
   );
   const target = await resolveQualificationTarget(options.selection, packagesRepository);
+  const mode = options.mode ?? (options.isDryRun === true ? 'dry-run' : 'official');
+  const selectedCaseId = mode === 'diagnostic' ? options.caseId : undefined;
+
+  if (mode === 'diagnostic' && selectedCaseId === undefined) {
+    throw new Error('A diagnostic qualification attempt requires a case id.');
+  }
+  if (mode !== 'diagnostic' && options.caseId !== undefined) {
+    throw new Error('Only a diagnostic qualification attempt can select one case.');
+  }
+  if (
+    selectedCaseId !== undefined &&
+    !target.profile.cases.some(({ id }) => id === selectedCaseId)
+  ) {
+    throw new Error(`Qualification profile does not contain case ${selectedCaseId}.`);
+  }
+  const selectedCases =
+    selectedCaseId === undefined
+      ? target.profile.cases
+      : target.profile.cases.filter(({ id }) => id === selectedCaseId);
   const skillRepository = path.resolve(options.skillRepository ?? DEFAULT_SKILL_REPOSITORY);
 
   if (!(await pathExists(path.join(skillRepository, 'SKILL.md')))) {
@@ -227,7 +249,9 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
     attemptId,
     parentAttemptId: options.parentAttemptId ?? null,
     selection: options.selection,
-    isDryRun: options.isDryRun ?? false,
+    isDryRun: mode === 'dry-run',
+    mode,
+    selectedCaseId: selectedCaseId ?? null,
     useCache: options.useCache ?? true,
     packagesRepository,
     skillRepository,
@@ -238,7 +262,10 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
     packagesDigest: inputState.packagesDigest,
     targetDigest: target.targetDigest,
     executionEnvironment,
-    stageIds: createQualificationStageIds(target.profile.cases.map(({ id }) => id)),
+    stageIds: createQualificationStageIds(
+      selectedCases.map(({ id }) => id),
+      mode !== 'diagnostic',
+    ),
   });
 
   return { attemptDirectory, checkpoint, isResume: false };
@@ -255,7 +282,17 @@ export const runQualification = async (
     checkpoint.selection,
     checkpoint.packagesRepository,
   );
-  const stageIds = createQualificationStageIds(target.profile.cases.map(({ id }) => id));
+  const selectedProfileCases =
+    checkpoint.selectedCaseId === null
+      ? target.profile.cases
+      : target.profile.cases.filter(({ id }) => id === checkpoint.selectedCaseId);
+  if (selectedProfileCases.length === 0) {
+    throw new Error(`Qualification profile does not contain case ${checkpoint.selectedCaseId}.`);
+  }
+  const stageIds = createQualificationStageIds(
+    selectedProfileCases.map(({ id }) => id),
+    checkpoint.mode !== 'diagnostic',
+  );
   const publicDirectory = path.join(attemptDirectory, 'public');
   const internalDirectory = path.join(attemptDirectory, 'internal');
   const resultsRoot = options.resultsRoot ?? QUALIFICATION_RESULTS_ROOT;
@@ -323,7 +360,7 @@ export const runQualification = async (
   let baselineAttemptId: string | null = provenance.baselineAttemptId;
   let activeStageId: string | null = null;
   const verifyExecutionInputs = async (): Promise<void> => {
-    if (checkpoint.isDryRun) {
+    if (checkpoint.mode === 'dry-run') {
       return;
     }
 
@@ -346,7 +383,7 @@ export const runQualification = async (
       );
     }
 
-    if (checkpoint.selection.adapterId !== 'custom') {
+    if (checkpoint.mode === 'official' && checkpoint.selection.adapterId !== 'custom') {
       if (checkpoint.candidate === null) {
         throw new Error('Qualification candidate identity is unavailable for baseline validation.');
       }
@@ -371,7 +408,7 @@ export const runQualification = async (
   };
   let hasApprovedPaidExecution = false;
   const approvePaidExecution = async (): Promise<void> => {
-    if (checkpoint.isDryRun || hasApprovedPaidExecution) {
+    if (checkpoint.mode === 'dry-run' || hasApprovedPaidExecution) {
       return;
     }
 
@@ -381,9 +418,16 @@ export const runQualification = async (
           ? false
           : await options.requestPaidExecutionApproval({
               model: executionEnvironment.model,
-              maximumPlannedTrialCallCount: getQualificationMaximumPlannedTrialCallCount(
-                target.profile.cases.length,
-              ),
+              ...(() => {
+                const plannedCallCount = getQualificationPlannedCallCount(
+                  selectedProfileCases.length,
+                  checkpoint.mode !== 'diagnostic',
+                );
+                return {
+                  plannedCallCount,
+                  maximumCallCount: getQualificationMaximumCallCount(plannedCallCount),
+                };
+              })(),
               reasoningEffort: executionEnvironment.reasoningEffort,
             });
 
@@ -450,16 +494,19 @@ export const runQualification = async (
           'Qualification stopped before candidate construction because official evidence requires clean source inputs and the trusted execution-host boundary.',
       });
 
-      const recordedResult = await recordQualificationResult(
-        {
-          artifactDirectory: publicDirectory,
-          result: finalState.result,
-          sanitizationContext: resultSanitizationContext,
-        },
-        resultsRoot,
-      );
+      const wasRecorded = checkpoint.mode === 'official';
+      const result = wasRecorded
+        ? await recordQualificationResult(
+            {
+              artifactDirectory: publicDirectory,
+              result: finalState.result,
+              sanitizationContext: resultSanitizationContext,
+            },
+            resultsRoot,
+          )
+        : finalState.result;
 
-      return { attemptDirectory, result: recordedResult, wasRecorded: true };
+      return { attemptDirectory, result, wasRecorded };
     }
 
     const coverageStageId = 'coverage';
@@ -497,7 +544,7 @@ export const runQualification = async (
         summary:
           'Qualification failed because the profile does not cover the current matrix claims.',
       });
-      const wasRecorded = !checkpoint.isDryRun;
+      const wasRecorded = checkpoint.mode === 'official';
       let result = finalState.result;
 
       if (wasRecorded) {
@@ -574,7 +621,7 @@ export const runQualification = async (
           const baselineResult = await inspectQualificationBaseline({
             candidate,
             executionEnvironment,
-            isDryRun: checkpoint.isDryRun,
+            isDryRun: checkpoint.mode !== 'official',
             packagesState,
             qualificationDigest,
             resultsRoot,
@@ -604,7 +651,7 @@ export const runQualification = async (
         status: 'failed',
         summary: `Qualification stopped because its Custom baseline is unavailable or incompatible: ${baseline.failures.join(' ')}`,
       });
-      const wasRecorded = !checkpoint.isDryRun;
+      const wasRecorded = checkpoint.mode === 'official';
       let result = finalState.result;
 
       if (wasRecorded) {
@@ -899,7 +946,25 @@ export const runQualification = async (
 
       const judgeStageId = `case:${profileCase.id}:trial:${trialId}:judge`;
       const judgeWorkspaceDirectory = path.join(internalTrialDirectory, 'judge-workspace');
-      const shouldSkipJudge = !deterministicAfter.summary.passed || !workspaceAssertions.passed;
+      const runnerAssessments = createRunnerRequirementAssessments({
+        actorCommandPolicy: actorResult.evidence.commandPolicy,
+        actorOutput: actorResult.output,
+        deterministicAfter: deterministicAfter.summary,
+        scenario: project.scenario,
+        workspaceAssertions,
+      });
+      const hasFailedRunnerRequirement = runnerAssessments.some(
+        ({ verdict }) => verdict === 'fail',
+      );
+      const hasJudgeRequirements = project.scenario.judgeRequirements.some(
+        (requirement) => requirement.evaluation.kind === 'judge',
+      );
+      const shouldSkipJudge =
+        checkpoint.isDryRun ||
+        !deterministicAfter.summary.passed ||
+        !workspaceAssertions.passed ||
+        hasFailedRunnerRequirement ||
+        !hasJudgeRequirements;
       const judgeSkippedPath = path.join(trialArtifactDirectory, 'judge-skipped.json');
       const judgeResult = shouldSkipJudge
         ? await (async () => {
@@ -913,8 +978,16 @@ export const runQualification = async (
               await writeJsonFileAtomically(
                 judgeSkippedPath,
                 QualificationJudgeSkippedSchema.parse({
-                  reason:
-                    'The judge was skipped because deterministic postchecks or workspace assertions already failed.',
+                  kind: checkpoint.isDryRun
+                    ? 'model-free-dry-run'
+                    : hasJudgeRequirements
+                      ? 'deterministic-failure'
+                      : 'no-judge-requirements',
+                  reason: checkpoint.isDryRun
+                    ? 'The model-free dry run does not evaluate semantic judge requirements.'
+                    : hasJudgeRequirements
+                      ? 'The judge was skipped because runner-owned evidence already failed.'
+                      : 'The scenario has no model-owned judge requirements.',
                   deterministicAfterPassed: deterministicAfter.summary.passed,
                   workspaceAssertionsPassed: workspaceAssertions.passed,
                 }),
@@ -944,6 +1017,7 @@ export const runQualification = async (
               const initialOperationalFailureCount =
                 checkpoint.stages[judgeStageId]?.operationalRetries.length ?? 0;
               const result = await executeJudgeModelStage({
+                actorCommandPolicy: actorResult.evidence.commandPolicy,
                 actorOutput: actorResult.output,
                 adapterId: target.selection.adapterId,
                 approvePaidExecution,
@@ -1013,10 +1087,15 @@ export const runQualification = async (
               return result;
             })();
 
-      const failedJudgeRequirements =
-        judgeResult?.output.requirements
-          .filter(({ verdict }) => verdict === 'fail')
-          .map(({ evidence, id }) => `Judge requirement ${id} failed: ${evidence}`) ?? [];
+      const requirementAssessments = mergeQualificationRequirementAssessments({
+        judgeOutput: judgeResult?.output ?? null,
+        runnerAssessments,
+        scenario: project.scenario,
+        isJudgeEvaluated: judgeResult !== null,
+      });
+      const failedRequirements = requirementAssessments
+        .filter(({ verdict }) => verdict === 'fail')
+        .map(({ evidence, id }) => `Requirement ${id} failed: ${evidence}`);
       const actorOutcomeFailures =
         actorResult.output.outcome === project.scenario.expectedActorOutcome
           ? []
@@ -1027,7 +1106,7 @@ export const runQualification = async (
         ...actorOutcomeFailures,
         ...deterministicAfter.summary.failures,
         ...workspaceAssertions.failures,
-        ...failedJudgeRequirements,
+        ...failedRequirements,
         ...(judgeResult?.output.verdict === 'fail' ? judgeResult.output.failures : []),
       ];
       const confirmationIndex =
@@ -1054,6 +1133,7 @@ export const runQualification = async (
             judgeEvidenceCreatedAt: judgeResult?.evidence.createdAt ?? null,
             actorCacheSourceAttemptId: actorResult.evidence.cacheSourceAttemptId,
             judgeCacheSourceAttemptId: judgeResult?.evidence.cacheSourceAttemptId ?? null,
+            requirementAssessments,
             failures,
           },
           {
@@ -1078,7 +1158,7 @@ export const runQualification = async (
       return trialResult;
     };
 
-    for (const profileCase of target.profile.cases) {
+    for (const profileCase of selectedProfileCases) {
       const resultStageId = `case:${profileCase.id}:result`;
       const caseArtifactDirectory = path.join(publicDirectory, 'cases', profileCase.id);
       const caseResultPath = path.join(caseArtifactDirectory, 'case-result.json');
@@ -1094,7 +1174,10 @@ export const runQualification = async (
       let status: IQualificationCaseResult['status'];
       let confirmationStatus: IQualificationCaseResult['confirmationStatus'];
 
-      if (trials[0]?.passed) {
+      if (checkpoint.mode === 'diagnostic') {
+        status = trials[0]?.passed ? 'passed' : 'failed';
+        confirmationStatus = 'not-applicable';
+      } else if (trials[0]?.passed) {
         checkpoint = await skipQualificationStageGroup(attemptDirectory, checkpoint, [
           ...createQualificationTrialStageIds(profileCase.id, 'confirmation-1'),
           ...createQualificationTrialStageIds(profileCase.id, 'confirmation-2'),
@@ -1154,13 +1237,22 @@ export const runQualification = async (
       provenance,
       stageIds,
       status: hasFailedCase ? 'failed' : 'passed',
-      summary: hasFailedCase
-        ? 'Qualification stopped after a confirmation established a failed case.'
-        : recoveredCaseCount > 0
-          ? `Qualification passed with ${recoveredCaseCount} recovered case(s).`
-          : 'Qualification passed every deterministic and semantic case.',
+      summary:
+        checkpoint.mode === 'dry-run'
+          ? hasFailedCase
+            ? 'Model-free dry-run preflight failed runner-owned checks.'
+            : 'Model-free dry-run preflight passed; semantic judge requirements remain not evaluated.'
+          : checkpoint.mode === 'diagnostic'
+            ? hasFailedCase
+              ? 'The diagnostic case failed its initial trial without confirmation.'
+              : 'The diagnostic case passed its initial trial without producing release evidence.'
+            : hasFailedCase
+              ? 'Qualification stopped after a confirmation established a failed case.'
+              : recoveredCaseCount > 0
+                ? `Qualification passed with ${recoveredCaseCount} recovered case(s).`
+                : 'Qualification passed every deterministic and semantic case.',
     });
-    const wasRecorded = !checkpoint.isDryRun;
+    const wasRecorded = checkpoint.mode === 'official';
     let result = finalState.result;
 
     if (wasRecorded) {
@@ -1226,7 +1318,7 @@ export const runQualification = async (
           : 'Qualification was interrupted and can be resumed from its last atomic checkpoint.'
         : `Qualification stopped with an execution error: ${safeError}`,
     });
-    const wasRecorded = !checkpoint.isDryRun && !isInterrupted;
+    const wasRecorded = checkpoint.mode === 'official' && !isInterrupted;
     let result = finalState.result;
 
     if (wasRecorded) {

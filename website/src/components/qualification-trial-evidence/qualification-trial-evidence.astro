@@ -2,7 +2,10 @@
 import { ExternalLink } from '@lucide/astro';
 import { prettifyTime } from 'web-utils-kit';
 
-import type { IQualificationAttemptTrialModel } from '../../lib/qualification/index.ts';
+import type {
+  IQualificationAttemptTrialModel,
+  IQualificationProfileCaseModel,
+} from '../../lib/qualification/index.ts';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import EvidenceText from '../evidence-text/evidence-text.astro';
 
@@ -10,9 +13,10 @@ interface Props {
   caseId: string;
   evidence: IQualificationAttemptTrialModel;
   index: number;
+  scenario: IQualificationProfileCaseModel['scenario'];
 }
 
-const { caseId, evidence, index } = Astro.props;
+const { caseId, evidence, index, scenario } = Astro.props;
 const { actor, deterministicAfter, deterministicBefore, judge, judgeSkipped, result } = evidence;
 const isCurrentTrial = 'trialId' in result;
 const trialId = isCurrentTrial ? result.trialId : 'initial';
@@ -39,6 +43,25 @@ const isCliCompositionValid = (
   'cliCompositionValid' in verification
     ? verification.cliCompositionValid
     : verification.cliCompatibilityValid;
+const requirementsById = new Map(
+  scenario.judgeRequirements.map((requirement) => [requirement.id, requirement]),
+);
+const requirementAssessments = isCurrentTrial ? result.requirementAssessments : null;
+const getRequirementSourceLabel = (requirementId: string): string => {
+  const requirement = requirementsById.get(requirementId);
+
+  if (requirement === undefined) {
+    return 'Unavailable';
+  }
+
+  return requirement.evaluation.kind === 'runner'
+    ? requirement.evaluation.checks.join(', ')
+    : requirement.evaluation.evidenceSources.join(', ');
+};
+const getArtifactLabel = (artifactPath: string): string =>
+  isCurrentTrial && artifactPath.endsWith('-events.jsonl')
+    ? `${artifactPath} (projected execution evidence)`
+    : artifactPath;
 ---
 
 <article
@@ -286,7 +309,7 @@ const isCliCompositionValid = (
   </div>
 
   {
-    judge !== null && (
+    requirementAssessments !== null ? (
       <section
         class="mt-4"
         aria-labelledby={`${headingId}-requirements`}
@@ -296,15 +319,35 @@ const isCliCompositionValid = (
           class="font-semibold"
         >
           <span class="sr-only">{trialLabel}: </span>
-          Judge requirements
+          Requirement assessments
         </h6>
         <ul class="mt-3 grid gap-3 lg:grid-cols-2">
-          {judge.requirements.map((requirement) => (
+          {requirementAssessments.map((requirement) => (
             <li class="min-w-0 rounded-lg border border-border p-3 sm:p-4">
               <div class="flex flex-wrap items-center gap-2">
                 <code class="text-xs font-semibold break-all">{requirement.id}</code>
-                <EvidenceStatus status={requirement.verdict === 'pass' ? 'passed' : 'failed'} />
+                <EvidenceStatus
+                  status={
+                    requirement.verdict === 'pass'
+                      ? 'passed'
+                      : requirement.verdict === 'not-evaluated'
+                        ? 'skipped'
+                        : 'failed'
+                  }
+                />
               </div>
+              <dl class="mt-2 grid gap-1 text-xs text-muted-foreground">
+                <div>
+                  <dt class="inline">Owner: </dt>
+                  <dd class="inline font-mono text-foreground">{requirement.evaluator}</dd>
+                </div>
+                <div>
+                  <dt class="inline">Source: </dt>
+                  <dd class="inline font-mono text-foreground">
+                    {getRequirementSourceLabel(requirement.id)}
+                  </dd>
+                </div>
+              </dl>
               <p class="mt-2 text-sm leading-6 text-muted-foreground">
                 <EvidenceText text={requirement.evidence} />
               </p>
@@ -312,6 +355,34 @@ const isCliCompositionValid = (
           ))}
         </ul>
       </section>
+    ) : (
+      judge !== null && (
+        <section
+          class="mt-4"
+          aria-labelledby={`${headingId}-requirements`}
+        >
+          <h6
+            id={`${headingId}-requirements`}
+            class="font-semibold"
+          >
+            <span class="sr-only">{trialLabel}: </span>
+            Historical judge requirements
+          </h6>
+          <ul class="mt-3 grid gap-3 lg:grid-cols-2">
+            {judge.requirements.map((requirement) => (
+              <li class="min-w-0 rounded-lg border border-border p-3 sm:p-4">
+                <div class="flex flex-wrap items-center gap-2">
+                  <code class="text-xs font-semibold break-all">{requirement.id}</code>
+                  <EvidenceStatus status={requirement.verdict === 'pass' ? 'passed' : 'failed'} />
+                </div>
+                <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                  <EvidenceText text={requirement.evidence} />
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
     )
   }
 
@@ -319,7 +390,7 @@ const isCliCompositionValid = (
     <summary
       class="min-h-12 cursor-pointer px-4 py-3 font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
     >
-      Operational retries ({retryCount}) and raw trial artifacts
+      Operational retries ({retryCount}) and committed trial artifacts
     </summary>
     <div class="grid gap-5 border-t border-border p-4">
       {
@@ -354,7 +425,7 @@ const isCliCompositionValid = (
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <span class="break-all">{artifact.path}</span>
+                <span class="break-all">{getArtifactLabel(artifact.path)}</span>
                 <ExternalLink
                   class="size-3.5 shrink-0"
                   aria-hidden="true"

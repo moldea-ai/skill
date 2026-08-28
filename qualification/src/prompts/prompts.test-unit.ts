@@ -10,7 +10,7 @@ import type {
 import { buildActorPrompt, buildJudgePrompt } from './index.ts';
 
 const scenario: IQualificationCaseScenario = {
-  version: 1,
+  version: 2,
   id: 'maintain-dirty-project',
   title: 'Maintain a dirty project',
   purpose: 'Verify conservative project maintenance.',
@@ -50,6 +50,7 @@ const scenario: IQualificationCaseScenario = {
     {
       id: 'preserves-unrelated-work',
       description: 'The unrelated dirty state remains byte-identical.',
+      evaluation: { kind: 'judge', evidenceSources: ['current-workspace'] },
     },
   ],
 };
@@ -57,7 +58,6 @@ const scenario: IQualificationCaseScenario = {
 const actorOutput: IActorOutput = {
   outcome: 'completed',
   summary: 'Completed the requested project change.',
-  commands: ['moldea validate'],
   changedFiles: ['moldea/moldea.yaml'],
   observations: [],
   unresolved: [],
@@ -106,6 +106,12 @@ describe('qualification prompts', () => {
 
   test('gives the independent judge the declared requirements and installed skill path', () => {
     const prompt = buildJudgePrompt({
+      actorCommandPolicy: {
+        completedCommandCount: 0,
+        credentialExposure: { status: 'not-observed', observedCount: 0 },
+        networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+        sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+      },
       actorOutput,
       adapterId: 'custom',
       deterministicAfter: deterministicVerification,

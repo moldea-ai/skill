@@ -3,6 +3,8 @@ import { basename, join } from 'node:path';
 
 import {
   ActorOutputSchema,
+  HistoricalActorOutputSchema,
+  HistoricalQualificationJudgeSkippedSchema,
   CurrentDeterministicVerificationArtifactSchema,
   HistoricalDeterministicVerificationArtifactSchema,
   JudgeOutputSchema,
@@ -16,6 +18,7 @@ import {
   QualificationJudgeSkippedSchema,
   QualificationModelStageEvidenceSchema,
   QualificationProbesSchema,
+  QualificationProjectedExecutionEventSchema,
   QualificationProfileSchema,
   QualificationScenarioSchema,
   QualificationSourceStateResultSchema,
@@ -297,7 +300,12 @@ const loadHistoricalAttemptCase = (
   }
 
   const trialEvidence = {
-    actor: readAttemptArtifact(attemptDirectory, result.actorOutputPath, ActorOutputSchema),
+    actor: readAttemptArtifact(
+      attemptDirectory,
+      result.actorOutputPath,
+      HistoricalActorOutputSchema,
+    ),
+    actorCommandPolicy: null,
     artifacts: artifacts.filter(({ path }) => path.startsWith(casePrefix)),
     deterministicAfter: readDeterministicArtifactSummary(
       attemptDirectory,
@@ -319,7 +327,7 @@ const loadHistoricalAttemptCase = (
         : readAttemptArtifact(
             attemptDirectory,
             result.judgeSkippedPath,
-            QualificationJudgeSkippedSchema,
+            HistoricalQualificationJudgeSkippedSchema,
           ),
     result,
     retries: { actor: [], judge: [] },
@@ -458,6 +466,7 @@ const loadCurrentAttemptCase = (
     }
     const trialEvidence = {
       actor: readAttemptArtifact(attemptDirectory, trial.actorOutputPath, ActorOutputSchema),
+      actorCommandPolicy: actorEvidence.commandPolicy,
       artifacts: artifacts.filter(({ path }) =>
         path.startsWith(
           `${getRepositoryRelativePath(repositoryRoot, join(caseDirectory, 'trials', trial.trialId))}/`,
@@ -554,6 +563,16 @@ const loadAttempt = (
   }
 
   const artifacts = verifyArtifactDigests(repositoryRoot, attemptDirectory, result.artifactDigests);
+  if (result.protocolVersion === 6) {
+    for (const artifact of artifacts.filter(({ path }) => path.endsWith('-events.jsonl'))) {
+      const eventPath = join(repositoryRoot, artifact.path);
+      for (const eventLine of readFileSync(eventPath, 'utf8').split('\n')) {
+        if (eventLine.trim() !== '') {
+          QualificationProjectedExecutionEventSchema.parse(JSON.parse(eventLine) as unknown);
+        }
+      }
+    }
+  }
   const coverage = readOptionalArtifact(
     attemptDirectory,
     'coverage.json',

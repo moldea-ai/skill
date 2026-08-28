@@ -1,4 +1,4 @@
-version: 1
+version: 2
 adapterId: vercel-ai-sdk
 implementationId: typescript-generate-stream-text-7
 title: Vercel AI SDK direct generation qualification

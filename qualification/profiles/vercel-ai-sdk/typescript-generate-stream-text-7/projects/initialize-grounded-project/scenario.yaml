@@ -1,4 +1,4 @@
-version: 1
+version: 2
 id: initialize-grounded-project
 title: Initialize a grounded project
 purpose: Verify minimal evidence-backed adoption without speculative runtime state.
@@ -34,9 +34,21 @@ workspace:
 judgeRequirements:
   - id: grounds-project
     description: The project context states the invoice-review purpose and non-authorizing result from source evidence.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
   - id: keeps-foundation-minimal
     description: Initialization creates only the manifest, project context, and README awareness block without inventing an SDK agent or runtime relationship.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
   - id: preserves-existing-work
     description: Existing README content and implementation remain intact.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
   - id: validates-project
     description: Every deterministic layer accepts the final project without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

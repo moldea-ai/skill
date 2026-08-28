@@ -15,10 +15,14 @@ import {
   QualificationCaseScenarioSchema,
   QualificationExecutionErrorSchema,
   QualificationHistoricalCaseResultSchema,
+  QualificationHistoricalActorOutputSchema,
   QualificationHistoricalDeterministicVerificationArtifactSchema,
+  QualificationHistoricalJudgeSkippedSchema,
   QualificationHistoricalModelStageEvidenceSchema,
   QualificationJudgeSkippedSchema,
   QualificationModelStageEvidenceSchema,
+  QualificationProjectedExecutionEventSchema,
+  QualificationRequirementAssessmentSchema,
   QualificationProbesSchema,
   QualificationProfileSchema,
   QualificationSourceStateResultSchema,
@@ -172,7 +176,8 @@ const validateArtifactSchemas = async (
 
       for (const eventLine of source.split('\n')) {
         if (eventLine.trim() !== '') {
-          JSON.parse(eventLine) as unknown;
+          const event = JSON.parse(eventLine) as unknown;
+          if (isCurrentProtocol) QualificationProjectedExecutionEventSchema.parse(event);
         }
       }
       continue;
@@ -200,7 +205,10 @@ const validateArtifactSchemas = async (
         )) ||
       (!isCurrentProtocol && /^cases\/[^/]+\/actor-output\.json$/u.test(relativePath))
     ) {
-      await readJsonFile(artifactPath, ActorOutputSchema);
+      await readJsonFile(
+        artifactPath,
+        isCurrentProtocol ? ActorOutputSchema : QualificationHistoricalActorOutputSchema,
+      );
     } else if (
       (isCurrentProtocol &&
         /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/judge-output\.json$/u.test(
@@ -236,7 +244,12 @@ const validateArtifactSchemas = async (
         )) ||
       (!isCurrentProtocol && /^cases\/[^/]+\/judge-skipped\.json$/u.test(relativePath))
     ) {
-      await readJsonFile(artifactPath, QualificationJudgeSkippedSchema);
+      await readJsonFile(
+        artifactPath,
+        isCurrentProtocol
+          ? QualificationJudgeSkippedSchema
+          : QualificationHistoricalJudgeSkippedSchema,
+      );
     } else if (/^cases\/[^/]+\/case-result\.json$/u.test(relativePath)) {
       if (isCurrentProtocol) {
         await readJsonFile(artifactPath, QualificationCaseResultSchema);
@@ -487,6 +500,26 @@ const assertJudgeEvidence = (judge: IJudgeOutput, scenario: IQualificationCaseSc
   }
 };
 
+const assertCurrentJudgeEvidence = (
+  judge: IJudgeOutput,
+  scenario: IQualificationCaseScenario,
+): void => {
+  const expectedIds = scenario.judgeRequirements
+    .filter((requirement) => requirement.evaluation.kind === 'judge')
+    .map(({ id }) => id);
+  const actualIds = judge.requirements.map(({ id }) => id);
+  requireUniqueMembers(actualIds, `Case ${scenario.id} judge requirement ids`);
+  const hasFailedRequirement = judge.requirements.some(({ verdict }) => verdict === 'fail');
+
+  if (
+    !haveSameMembers(actualIds, expectedIds) ||
+    (judge.verdict === 'pass' && (hasFailedRequirement || judge.failures.length > 0)) ||
+    (judge.verdict === 'fail' && judge.failures.length === 0)
+  ) {
+    throw new Error(`Case ${scenario.id} has contradictory current judge evidence.`);
+  }
+};
+
 const assertJudgeOutput = (judge: IJudgeOutput, scenario: IQualificationCaseScenario): void => {
   assertJudgeEvidence(judge, scenario);
 
@@ -542,7 +575,7 @@ const assertHistoricalPassingCaseEvidence = async (options: {
       options.attemptDirectory,
       options.result,
       expectedPaths.actorOutput,
-      ActorOutputSchema,
+      QualificationHistoricalActorOutputSchema,
     ),
     requireArtifact(
       options.attemptDirectory,
@@ -609,7 +642,7 @@ const assertHistoricalPassingCaseEvidence = async (options: {
   assertPassingWorkspaceEvidence(actor, assertions, scenario);
   assertJudgeOutput(judge, scenario);
 
-  const expectedActorOutputSchema = z.toJSONSchema(ActorOutputSchema);
+  const expectedActorOutputSchema = z.toJSONSchema(QualificationHistoricalActorOutputSchema);
   const expectedJudgeOutputSchema = z.toJSONSchema(JudgeOutputSchema);
   const [actorOutputSchema, judgeOutputSchema] = await Promise.all([
     requireArtifact(
@@ -827,6 +860,7 @@ const deriveTrialFailures = (options: {
   deterministicAfter: IQualificationRecordedDeterministicVerificationArtifact;
   judge: IJudgeOutput | null;
   scenario: IQualificationCaseScenario;
+  requirementAssessments: IQualificationTrialResult['requirementAssessments'];
   workspaceAssertions: IWorkspaceAssertionResult;
 }): string[] => [
   ...(options.actor.outcome === options.scenario.expectedActorOutcome
@@ -836,11 +870,76 @@ const deriveTrialFailures = (options: {
       ]),
   ...options.deterministicAfter.summary.failures,
   ...options.workspaceAssertions.failures,
-  ...(options.judge?.requirements
+  ...options.requirementAssessments
     .filter(({ verdict }) => verdict === 'fail')
-    .map(({ evidence, id }) => `Judge requirement ${id} failed: ${evidence}`) ?? []),
+    .map(({ evidence, id }) => `Requirement ${id} failed: ${evidence}`),
   ...(options.judge?.verdict === 'fail' ? options.judge.failures : []),
 ];
+
+const hasPassingActorCommandPolicy = (
+  evidence: IQualificationModelStageEvidence['commandPolicy'],
+): boolean =>
+  evidence.credentialExposure.status === 'not-observed' &&
+  evidence.networkAccess.status === 'not-observed' &&
+  evidence.sensitiveAccess.status === 'not-observed';
+
+const deriveRequirementAssessments = (options: {
+  actor: IActorOutput;
+  actorEvidence: IQualificationModelStageEvidence;
+  deterministicAfter: IQualificationRecordedDeterministicVerificationArtifact;
+  judge: IJudgeOutput | null;
+  scenario: IQualificationCaseScenario;
+  workspaceAssertions: IWorkspaceAssertionResult;
+}): IQualificationTrialResult['requirementAssessments'] => {
+  const judgeById = new Map(
+    options.judge?.requirements.map((requirement) => [requirement.id, requirement]),
+  );
+
+  return z.array(QualificationRequirementAssessmentSchema).parse(
+    options.scenario.judgeRequirements.map((requirement) => {
+      if (requirement.evaluation.kind === 'judge') {
+        const decision = judgeById.get(requirement.id);
+        return decision === undefined
+          ? {
+              id: requirement.id,
+              evaluator: 'judge' as const,
+              verdict: 'not-evaluated' as const,
+              evidence: 'The skipped judge stage did not evaluate this semantic requirement.',
+            }
+          : { ...decision, evaluator: 'judge' as const };
+      }
+
+      const checkResults = requirement.evaluation.checks.map((check) => {
+        switch (check) {
+          case 'actor-command-policy':
+            return {
+              check,
+              passed: hasPassingActorCommandPolicy(options.actorEvidence.commandPolicy),
+            };
+          case 'deterministic-after':
+            return { check, passed: options.deterministicAfter.summary.passed };
+          case 'expected-actor-outcome':
+            return {
+              check,
+              passed: options.actor.outcome === options.scenario.expectedActorOutcome,
+            };
+          case 'workspace-assertions':
+            return { check, passed: options.workspaceAssertions.passed };
+        }
+      });
+      const failedChecks = checkResults.filter(({ passed }) => !passed).map(({ check }) => check);
+      return {
+        id: requirement.id,
+        evaluator: 'runner' as const,
+        verdict: failedChecks.length === 0 ? ('pass' as const) : ('fail' as const),
+        evidence:
+          failedChecks.length === 0
+            ? `Runner checks passed: ${requirement.evaluation.checks.join(', ')}.`
+            : `Runner checks failed: ${failedChecks.join(', ')}.`,
+      };
+    }),
+  );
+};
 
 const assertCurrentTrialEvidence = async (options: {
   attemptDirectory: string;
@@ -937,7 +1036,23 @@ const assertCurrentTrialEvidence = async (options: {
   );
   assertWorkspaceEvidence(actor, assertions, options.scenario);
 
-  const shouldSkipJudge = !deterministicAfter.summary.passed || !assertions.passed;
+  const hasJudgeRequirements = options.scenario.judgeRequirements.some(
+    (requirement) => requirement.evaluation.kind === 'judge',
+  );
+  const runnerAssessments = deriveRequirementAssessments({
+    actor,
+    actorEvidence,
+    deterministicAfter,
+    judge: null,
+    scenario: options.scenario,
+    workspaceAssertions: assertions,
+  }).filter(({ evaluator }) => evaluator === 'runner');
+  const hasFailedRunnerRequirement = runnerAssessments.some(({ verdict }) => verdict === 'fail');
+  const shouldSkipJudge =
+    !deterministicAfter.summary.passed ||
+    !assertions.passed ||
+    hasFailedRunnerRequirement ||
+    !hasJudgeRequirements;
   let judge: IJudgeOutput | null = null;
   let judgeEvidence: IQualificationModelStageEvidence | null = null;
 
@@ -962,7 +1077,9 @@ const assertCurrentTrialEvidence = async (options: {
         QualificationModelStageEvidenceSchema,
       ),
     ]);
-    const expectedIds = options.scenario.judgeRequirements.map(({ id }) => id);
+    const expectedIds = options.scenario.judgeRequirements
+      .filter((requirement) => requirement.evaluation.kind === 'judge')
+      .map(({ id }) => id);
     const actualIds = judge.requirements.map(({ id }) => id);
     requireUniqueMembers(actualIds, `Case ${options.caseId} judge requirement ids`);
 
@@ -971,7 +1088,7 @@ const assertCurrentTrialEvidence = async (options: {
         `Case ${options.caseId} trial ${options.trial.trialId} has incomplete judge requirements.`,
       );
     }
-    assertJudgeEvidence(judge, options.scenario);
+    assertCurrentJudgeEvidence(judge, options.scenario);
   } else {
     const judgeSkipped = await requireArtifact(
       options.attemptDirectory,
@@ -982,6 +1099,8 @@ const assertCurrentTrialEvidence = async (options: {
 
     if (
       !shouldSkipJudge ||
+      judgeSkipped.kind !==
+        (!hasJudgeRequirements ? 'no-judge-requirements' : 'deterministic-failure') ||
       judgeSkipped.deterministicAfterPassed !== deterministicAfter.summary.passed ||
       judgeSkipped.workspaceAssertionsPassed !== assertions.passed
     ) {
@@ -991,15 +1110,26 @@ const assertCurrentTrialEvidence = async (options: {
     }
   }
 
-  const derivedFailures = deriveTrialFailures({
+  const derivedRequirementAssessments = deriveRequirementAssessments({
     actor,
+    actorEvidence,
     deterministicAfter,
     judge,
     scenario: options.scenario,
     workspaceAssertions: assertions,
   });
+  const derivedFailures = deriveTrialFailures({
+    actor,
+    deterministicAfter,
+    judge,
+    requirementAssessments: derivedRequirementAssessments,
+    scenario: options.scenario,
+    workspaceAssertions: assertions,
+  });
 
   if (
+    JSON.stringify(options.trial.requirementAssessments) !==
+      JSON.stringify(derivedRequirementAssessments) ||
     options.trial.passed !== (derivedFailures.length === 0) ||
     JSON.stringify(options.trial.failures) !== JSON.stringify(derivedFailures)
   ) {
@@ -1009,10 +1139,10 @@ const assertCurrentTrialEvidence = async (options: {
   }
 
   if (options.trial.passed) {
-    if (judge === null) {
+    if (judge === null && hasJudgeRequirements) {
       throw new Error(`Passing trial ${options.trial.trialId} is missing judge evidence.`);
     }
-    assertJudgeOutput(judge, options.scenario);
+    if (judge !== null) assertCurrentJudgeEvidence(judge, options.scenario);
   }
 
   const [actorOutputSchema, judgeOutputSchema] = await Promise.all([
@@ -1358,7 +1488,7 @@ const validateCurrentTerminalAttempt = async (
   }
 };
 
-/** Validates one passing attempt against the exact profile, scenario, and artifact contracts. */
+/** Validates one historical pass against its immutable artifacts and stable profile identities. */
 const validateHistoricalPassingAttempt = async (
   attemptDirectory: string,
   result: IQualificationRecordedAttemptResult,
@@ -1377,10 +1507,9 @@ const validateHistoricalPassingAttempt = async (
 
   if (
     profile.adapterId !== result.selection.adapterId ||
-    profile.implementationId !== result.selection.implementationId ||
-    result.provenance.profileDigest !== (await calculateDirectoryFingerprint(profileDirectory))
+    profile.implementationId !== result.selection.implementationId
   ) {
-    throw new Error('Passing qualification evidence does not match its current profile.');
+    throw new Error('Passing qualification evidence does not match its profile identity.');
   }
 
   const profileCaseIds = profile.cases.map(({ id }) => id);

@@ -50,7 +50,7 @@ describe('qualification project input integrity', () => {
         scenarioFile: 'scenario.yaml',
       },
       scenario: {
-        version: 1,
+        version: 2,
         id: 'input-integrity',
         title: 'Input integrity',
         purpose: 'Verify runner-owned project inputs.',
@@ -85,7 +85,11 @@ describe('qualification project input integrity', () => {
           mustChangePathPatterns: [],
         },
         judgeRequirements: [
-          { id: 'preserve-inputs', description: 'Runner-owned inputs remain unchanged.' },
+          {
+            id: 'preserve-inputs',
+            description: 'Runner-owned inputs remain unchanged.',
+            evaluation: { kind: 'runner', checks: ['workspace-assertions'] },
+          },
         ],
       },
       scenarioDirectory: temporaryRoot,
@@ -141,7 +145,7 @@ describe('qualification project input integrity', () => {
         scenarioFile: 'scenario.yaml',
       },
       scenario: {
-        version: 1,
+        version: 2,
         id: 'runtime-path',
         title: 'Runtime path',
         purpose: 'Verify descriptive runtime paths.',
@@ -176,7 +180,11 @@ describe('qualification project input integrity', () => {
           mustChangePathPatterns: ['moldea/runtimes/**/*.md'],
         },
         judgeRequirements: [
-          { id: 'runtime-guidance', description: 'Runtime guidance is grounded.' },
+          {
+            id: 'runtime-guidance',
+            description: 'Runtime guidance is grounded.',
+            evaluation: { kind: 'judge', evidenceSources: ['current-workspace'] },
+          },
         ],
       },
       scenarioDirectory: temporaryRoot,
@@ -207,7 +215,6 @@ describe('qualification project input integrity', () => {
     const actorOutput = {
       outcome: 'completed' as const,
       summary: 'Added descriptive runtime guidance.',
-      commands: [],
       changedFiles,
       observations: [],
       unresolved: [],

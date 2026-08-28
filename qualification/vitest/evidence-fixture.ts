@@ -30,6 +30,12 @@ const JUDGE_CREATED_AT = '2026-08-20T10:00:20.000Z';
 const ACTOR_CREATED_AT = '2026-08-20T10:00:10.000Z';
 const CLAIM_ID = 'qualification.support-gate';
 const WORKSPACE_FAILURE = 'Unexpected changed path unexpected.md.';
+const EMPTY_COMMAND_POLICY = {
+  completedCommandCount: 0,
+  credentialExposure: { status: 'not-observed', observedCount: 0 },
+  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+  sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+} as const;
 
 const createStage = (
   id: string,
@@ -77,11 +83,23 @@ const createTrialResult = (
     judgeEvidenceCreatedAt: isJudgeSkipped ? null : JUDGE_CREATED_AT,
     actorCacheSourceAttemptId: null,
     judgeCacheSourceAttemptId: null,
+    requirementAssessments: [
+      {
+        id: 'complete-evidence',
+        evaluator: 'judge',
+        verdict: isJudgeSkipped ? 'not-evaluated' : passed ? 'pass' : 'fail',
+        evidence: isJudgeSkipped
+          ? 'The skipped judge stage did not evaluate this semantic requirement.'
+          : passed
+            ? 'The deterministic and workspace evidence passed.'
+            : 'Fixture failure.',
+      },
+    ],
     failures: passed
       ? []
       : isJudgeSkipped
         ? [WORKSPACE_FAILURE]
-        : ['Judge requirement complete-evidence failed: Fixture failure.', 'Fixture failure.'],
+        : ['Requirement complete-evidence failed: Fixture failure.', 'Fixture failure.'],
   });
 };
 
@@ -108,7 +126,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     writeTextFileAtomically(
       path.join(profileDirectory, 'profile.yaml'),
       [
-        'version: 1',
+        'version: 2',
         'adapterId: custom',
         'implementationId: custom',
         'title: Custom qualification fixture',
@@ -124,7 +142,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     writeTextFileAtomically(
       path.join(profileDirectory, 'probes', 'claims.yaml'),
       [
-        'version: 1',
+        'version: 2',
         'adapterId: custom',
         'implementationId: custom',
         'probes:',
@@ -140,7 +158,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     writeTextFileAtomically(
       path.join(projectDirectory, 'scenario.yaml'),
       [
-        'version: 1',
+        'version: 2',
         `id: ${CASE_ID}`,
         `title: ${CASE_TITLE}`,
         'purpose: Verify complete passing evidence.',
@@ -177,6 +195,10 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
         'judgeRequirements:',
         '  - id: complete-evidence',
         '    description: Every fixture contract passed.',
+        '    evaluation:',
+        '      kind: judge',
+        '      evidenceSources:',
+        '        - current-workspace',
         '',
       ].join('\n'),
     ),
@@ -186,7 +208,6 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
   const actorOutput = {
     outcome: 'completed' as const,
     summary: 'Created grounded runtime guidance for the fixture.',
-    commands: [],
     changedFiles: ['moldea/runtimes/release-case.md'],
     observations: ['The runtime guidance is referenced by the fixture manifest.'],
     unresolved: [],
@@ -290,6 +311,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
   const result = QualificationAttemptResultSchema.parse({
     protocolVersion: 6,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
+    mode: 'official',
     attemptId: options.attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -378,8 +400,8 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     const judgeWrites = isJudgeSkipped
       ? [
           writeJsonFileAtomically(path.join(trialRoot, 'judge-skipped.json'), {
-            reason:
-              'The judge was skipped because deterministic postchecks or workspace assertions already failed.',
+            kind: 'deterministic-failure',
+            reason: 'The judge was skipped because runner-owned evidence already failed.',
             deterministicAfterPassed: true,
             workspaceAssertionsPassed: false,
           }),
@@ -395,6 +417,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
             cacheKey: judgeCacheKey,
             sourceAttemptId: options.attemptId,
             cacheSourceAttemptId: null,
+            commandPolicy: EMPTY_COMMAND_POLICY,
           }),
           writeTextFileAtomically(path.join(trialRoot, 'judge-events.jsonl'), ''),
           writeJsonFileAtomically(
@@ -415,6 +438,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
         cacheKey: actorCacheKey,
         sourceAttemptId: options.attemptId,
         cacheSourceAttemptId: null,
+        commandPolicy: EMPTY_COMMAND_POLICY,
       }),
       writeTextFileAtomically(path.join(trialRoot, 'actor-events.jsonl'), ''),
       writeJsonFileAtomically(

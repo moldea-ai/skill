@@ -42,7 +42,7 @@ try {
     ),
     writeTextFileAtomically(
       join(fixtureRoot, 'qualification', 'cases', 'cases.yaml'),
-      `version: 1
+      `version: 2
 cases:
   - id: release-case
     title: Release case

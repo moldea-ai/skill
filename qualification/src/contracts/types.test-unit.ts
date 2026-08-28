@@ -11,7 +11,7 @@ import {
 } from './types.ts';
 
 const createScenario = (pathPattern: string) => ({
-  version: 1,
+  version: 2,
   id: 'path-pattern',
   title: 'Path pattern',
   purpose: 'Validate a workspace path pattern.',
@@ -45,7 +45,13 @@ const createScenario = (pathPattern: string) => ({
     allowedChangePathPatterns: [pathPattern],
     mustChangePathPatterns: [pathPattern],
   },
-  judgeRequirements: [{ id: 'path-contract', description: 'The path contract is valid.' }],
+  judgeRequirements: [
+    {
+      id: 'path-contract',
+      description: 'The path contract is valid.',
+      evaluation: { kind: 'runner', checks: ['workspace-assertions'] },
+    },
+  ],
 });
 
 test.each(['moldea/runtimes/*.md', 'moldea/runtimes/**/*.md'])(
@@ -68,6 +74,70 @@ test.each([
   expect(QualificationCaseScenarioSchema.safeParse(createScenario(pathPattern)).success).toBe(
     false,
   );
+});
+
+test('rejects duplicate scenario sets and requirement declarations before execution', () => {
+  const scenario = createScenario('moldea/runtimes/*.md');
+
+  expect(
+    QualificationCaseScenarioSchema.safeParse({
+      ...scenario,
+      workspace: {
+        ...scenario.workspace,
+        allowedChangePathPatterns: ['moldea/runtimes/*.md', 'moldea/runtimes/*.md'],
+      },
+    }).success,
+  ).toBe(false);
+  expect(
+    QualificationCaseScenarioSchema.safeParse({
+      ...scenario,
+      judgeRequirements: [...scenario.judgeRequirements, { ...scenario.judgeRequirements[0] }],
+    }).success,
+  ).toBe(false);
+  expect(
+    QualificationCaseScenarioSchema.safeParse({
+      ...scenario,
+      judgeRequirements: [
+        {
+          id: 'duplicate-evidence',
+          description: 'The semantic evidence agrees.',
+          evaluation: {
+            kind: 'judge',
+            evidenceSources: ['actor-output', 'actor-output'],
+          },
+        },
+      ],
+    }).success,
+  ).toBe(false);
+});
+
+test('requires command-policy evidence for authority-sensitive requirements', () => {
+  const scenario = createScenario('moldea/runtimes/*.md');
+
+  expect(
+    QualificationCaseScenarioSchema.safeParse({
+      ...scenario,
+      judgeRequirements: [
+        {
+          id: 'network-boundary',
+          description: 'The actor did not use network access or expose a credential.',
+          evaluation: { kind: 'judge', evidenceSources: ['actor-output'] },
+        },
+      ],
+    }).success,
+  ).toBe(false);
+  expect(
+    QualificationCaseScenarioSchema.safeParse({
+      ...scenario,
+      judgeRequirements: [
+        {
+          id: 'network-boundary',
+          description: 'The actor did not use network access or expose a credential.',
+          evaluation: { kind: 'runner', checks: ['actor-command-policy'] },
+        },
+      ],
+    }).success,
+  ).toBe(true);
 });
 
 const createTrial = (
@@ -98,6 +168,14 @@ const createTrial = (
     judgeEvidenceCreatedAt: '2026-08-27T16:00:01.000Z',
     actorCacheSourceAttemptId: null,
     judgeCacheSourceAttemptId: null,
+    requirementAssessments: [
+      {
+        id: 'test-requirement',
+        evaluator: 'judge',
+        verdict: passed ? 'pass' : 'fail',
+        evidence: passed ? 'The requirement passed.' : 'The requirement failed.',
+      },
+    ],
     failures: passed ? [] : [`${trialId} failed.`],
   });
 };

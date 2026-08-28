@@ -28,6 +28,30 @@ describe('parseQualificationCommand', () => {
     });
   });
 
+  test('parses one explicit paid diagnostic case', () => {
+    expect(
+      parseQualificationCommand([
+        'diagnose',
+        '--adapter',
+        'custom',
+        '--implementation',
+        'custom',
+        '--case',
+        'stop-on-material-ambiguity',
+        '--no-cache',
+        '--confirm-paid-execution',
+        '--json',
+      ]),
+    ).toStrictEqual({
+      kind: 'diagnose',
+      selection: { adapterId: 'custom', implementationId: 'custom' },
+      caseId: 'stop-on-material-ambiguity',
+      useCache: false,
+      hasConfirmedPaidExecution: true,
+      isJson: true,
+    });
+  });
+
   test.each([
     [['list', '--json'], { kind: 'list', isJson: true }],
     [['status', '--all'], { kind: 'status', isAll: true, isJson: false }],
@@ -60,6 +84,10 @@ describe('parseQualificationCommand', () => {
 
   test.each([
     [['run', '--adapter', 'custom'], 'Required option is missing: --implementation'],
+    [
+      ['diagnose', '--adapter', 'custom', '--implementation', 'custom'],
+      'Required option is missing: --case',
+    ],
     [['run', '--adapter', 'custom', '--adapter', 'custom'], 'Duplicate option: --adapter'],
     [['verify', '--dry-run'], 'Option --dry-run is not valid for this command'],
     [['list', '--unknown'], 'Unknown qualification option: --unknown'],

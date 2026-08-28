@@ -3,6 +3,7 @@ import type { IQualificationCommand } from './types.ts';
 const VALUE_OPTIONS = new Set([
   '--adapter',
   '--attempt',
+  '--case',
   '--implementation',
   '--packages-repository',
   '--skill-repository',
@@ -142,6 +143,37 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
           ? { skillRepository: requireValue(options, '--skill-repository') }
           : {}),
         isDryRun: options.booleans.has('--dry-run'),
+        useCache: !options.booleans.has('--no-cache'),
+        hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
+        isJson,
+      };
+    case 'diagnose':
+      rejectOptions(
+        options,
+        new Set([
+          '--adapter',
+          '--case',
+          '--confirm-paid-execution',
+          '--implementation',
+          '--json',
+          '--no-cache',
+          '--packages-repository',
+          '--skill-repository',
+        ]),
+      );
+      return {
+        kind: 'diagnose',
+        selection: {
+          adapterId: requireValue(options, '--adapter'),
+          implementationId: requireValue(options, '--implementation'),
+        },
+        caseId: requireValue(options, '--case'),
+        ...(options.values.has('--packages-repository')
+          ? { packagesRepository: requireValue(options, '--packages-repository') }
+          : {}),
+        ...(options.values.has('--skill-repository')
+          ? { skillRepository: requireValue(options, '--skill-repository') }
+          : {}),
         useCache: !options.booleans.has('--no-cache'),
         hasConfirmedPaidExecution: options.booleans.has('--confirm-paid-execution'),
         isJson,

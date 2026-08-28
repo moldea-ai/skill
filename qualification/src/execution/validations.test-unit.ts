@@ -24,7 +24,7 @@ const createRepositoryState = (isDirty: boolean): IGitRepositoryState => ({
 });
 
 const scenario = {
-  version: 1,
+  version: 2,
   id: 'test-case',
   title: 'Test case',
   purpose: 'Exercise exact judge requirements.',
@@ -59,8 +59,16 @@ const scenario = {
     mustChangePathPatterns: [],
   },
   judgeRequirements: [
-    { id: 'requirement-one', description: 'The first requirement passes.' },
-    { id: 'requirement-two', description: 'The second requirement passes.' },
+    {
+      id: 'requirement-one',
+      description: 'The first requirement passes.',
+      evaluation: { kind: 'judge', evidenceSources: ['current-workspace'] },
+    },
+    {
+      id: 'requirement-two',
+      description: 'The second requirement passes.',
+      evaluation: { kind: 'judge', evidenceSources: ['current-workspace'] },
+    },
   ],
 } satisfies IQualificationCaseScenario;
 

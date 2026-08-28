@@ -32,15 +32,17 @@ describe('qualification command runner', () => {
       attemptId: 'attempt-json',
       selection: { adapterId: 'custom', implementationId: 'custom' },
       status: 'passed',
+      mode: 'dry-run',
       summary: 'Qualification passed with one recovered case.',
-      cases: [{ status: 'recovered' }],
+      cases: [{ status: 'recovered', trials: [] }],
       stages: [{ operationalRetries: [retry] }],
-    } as IQualificationAttemptResult;
+    } as unknown as IQualificationAttemptResult;
     executionMocks.runQualification.mockImplementation(
       async (options: IRunQualificationOptions) => {
         await expect(
           options.requestPaidExecutionApproval?.({
-            maximumPlannedTrialCallCount: 60,
+            plannedCallCount: 60,
+            maximumCallCount: 120,
             model: 'gpt-5.6-sol',
             reasoningEffort: 'medium',
           }),
@@ -78,6 +80,8 @@ describe('qualification command runner', () => {
     const stderr = stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join('');
     expect(JSON.parse(stdout)).toStrictEqual({
       attemptDirectory: '/attempts/attempt-json',
+      preflightPassed: true,
+      unevaluatedRequirementIds: [],
       result,
       wasRecorded: false,
     });
@@ -85,5 +89,65 @@ describe('qualification command runner', () => {
       'Qualification evaluate-aligned-project initial judge retry 1: timed-out; waiting 5000 ms.\n',
     );
     expect(stdout).not.toContain('retry 1');
+  });
+
+  test('runs a selected diagnostic case with the two-call and four-call approval boundary', async () => {
+    const result = {
+      attemptId: 'attempt-diagnostic',
+      selection: { adapterId: 'custom', implementationId: 'custom' },
+      status: 'passed',
+      mode: 'diagnostic',
+      summary: 'Diagnostic case passed.',
+      cases: [
+        {
+          status: 'passed',
+          trials: [{ requirementAssessments: [] }],
+        },
+      ],
+      stages: [],
+    } as unknown as IQualificationAttemptResult;
+    executionMocks.runQualification.mockImplementation(
+      async (options: IRunQualificationOptions) => {
+        expect(options).toMatchObject({
+          caseId: 'stop-on-material-ambiguity',
+          mode: 'diagnostic',
+          selection: { adapterId: 'custom', implementationId: 'custom' },
+          useCache: false,
+        });
+        await expect(
+          options.requestPaidExecutionApproval?.({
+            plannedCallCount: 2,
+            maximumCallCount: 4,
+            model: 'gpt-5.6-sol',
+            reasoningEffort: 'medium',
+          }),
+        ).resolves.toBe(true);
+        return {
+          attemptDirectory: '/attempts/attempt-diagnostic',
+          result,
+          wasRecorded: false,
+        };
+      },
+    );
+    const stdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    await expect(
+      executeQualificationCommand({
+        kind: 'diagnose',
+        selection: { adapterId: 'custom', implementationId: 'custom' },
+        caseId: 'stop-on-material-ambiguity',
+        useCache: false,
+        hasConfirmedPaidExecution: true,
+        isJson: true,
+      }),
+    ).resolves.toBe(0);
+
+    expect(
+      JSON.parse(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join('')),
+    ).toStrictEqual({
+      attemptDirectory: '/attempts/attempt-diagnostic',
+      result,
+      wasRecorded: false,
+    });
   });
 });

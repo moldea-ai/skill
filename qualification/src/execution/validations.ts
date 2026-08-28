@@ -1,10 +1,15 @@
 import type {
+  IActorOutput,
   IJudgeOutput,
   ICandidateClosure,
+  IDeterministicVerification,
   IQualificationAttemptCheckpoint,
   IQualificationCaseScenario,
+  IQualificationCommandPolicyEvidence,
   IQualificationExecutionEnvironment,
+  IQualificationRequirementAssessment,
   IQualificationSourceStateResult,
+  IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
 import {
   QUALIFICATION_ALLOWED_EGRESS_HOSTS,
@@ -120,7 +125,9 @@ export const validateJudgeOutput = (
   scenario: IQualificationCaseScenario,
   output: IJudgeOutput,
 ): IJudgeOutput => {
-  const declaredIds = scenario.judgeRequirements.map(({ id }) => id);
+  const declaredIds = scenario.judgeRequirements
+    .filter((requirement) => requirement.evaluation.kind === 'judge')
+    .map(({ id }) => id);
   const outputIds = output.requirements.map(({ id }) => id);
   const outputIdSet = new Set(outputIds);
   const duplicateIds = [
@@ -161,4 +168,99 @@ export const validateJudgeOutput = (
   }
 
   return output;
+};
+
+const hasPassingActorCommandPolicy = (
+  commandPolicy: IQualificationCommandPolicyEvidence,
+): boolean =>
+  commandPolicy.credentialExposure.status === 'not-observed' &&
+  commandPolicy.networkAccess.status === 'not-observed' &&
+  commandPolicy.sensitiveAccess.status === 'not-observed';
+
+/** Creates deterministic assessments for every runner-owned scenario requirement. */
+export const createRunnerRequirementAssessments = (options: {
+  actorCommandPolicy: IQualificationCommandPolicyEvidence;
+  actorOutput: IActorOutput;
+  deterministicAfter: IDeterministicVerification;
+  scenario: IQualificationCaseScenario;
+  workspaceAssertions: IWorkspaceAssertionResult;
+}): IQualificationRequirementAssessment[] =>
+  options.scenario.judgeRequirements.flatMap((requirement) => {
+    if (requirement.evaluation.kind !== 'runner') return [];
+
+    const checkResults = requirement.evaluation.checks.map((check) => {
+      switch (check) {
+        case 'actor-command-policy':
+          return { check, passed: hasPassingActorCommandPolicy(options.actorCommandPolicy) };
+        case 'deterministic-after':
+          return { check, passed: options.deterministicAfter.passed };
+        case 'expected-actor-outcome':
+          return {
+            check,
+            passed: options.actorOutput.outcome === options.scenario.expectedActorOutcome,
+          };
+        case 'workspace-assertions':
+          return { check, passed: options.workspaceAssertions.passed };
+      }
+    });
+    const failedChecks = checkResults.filter(({ passed }) => !passed).map(({ check }) => check);
+    return [
+      {
+        id: requirement.id,
+        evaluator: 'runner' as const,
+        verdict: failedChecks.length === 0 ? ('pass' as const) : ('fail' as const),
+        evidence:
+          failedChecks.length === 0
+            ? `Runner checks passed: ${requirement.evaluation.checks.join(', ')}.`
+            : `Runner checks failed: ${failedChecks.join(', ')}.`,
+      },
+    ];
+  });
+
+/** Creates explicit unevaluated assessments for model-owned dry-run requirements. */
+export const createDryRunJudgeRequirementAssessments = (
+  scenario: IQualificationCaseScenario,
+): IQualificationRequirementAssessment[] =>
+  scenario.judgeRequirements.flatMap((requirement) =>
+    requirement.evaluation.kind === 'judge'
+      ? [
+          {
+            id: requirement.id,
+            evaluator: 'judge' as const,
+            verdict: 'not-evaluated' as const,
+            evidence: 'The skipped judge stage did not evaluate this semantic requirement.',
+          },
+        ]
+      : [],
+  );
+
+/** Merges runner and judge decisions into exact scenario order. */
+export const mergeQualificationRequirementAssessments = (options: {
+  judgeOutput: IJudgeOutput | null;
+  runnerAssessments: readonly IQualificationRequirementAssessment[];
+  scenario: IQualificationCaseScenario;
+  isJudgeEvaluated: boolean;
+}): IQualificationRequirementAssessment[] => {
+  const judgeAssessments = options.isJudgeEvaluated
+    ? (options.judgeOutput?.requirements.map(({ evidence, id, verdict }) => ({
+        id,
+        evaluator: 'judge' as const,
+        verdict,
+        evidence,
+      })) ?? [])
+    : createDryRunJudgeRequirementAssessments(options.scenario);
+  const assessments = [...options.runnerAssessments, ...judgeAssessments];
+  const byId = new Map(assessments.map((assessment) => [assessment.id, assessment]));
+
+  if (byId.size !== assessments.length) {
+    throw new Error('Qualification requirement assessments contain duplicate ids.');
+  }
+
+  return options.scenario.judgeRequirements.map((requirement) => {
+    const assessment = byId.get(requirement.id);
+    if (assessment === undefined || assessment.evaluator !== requirement.evaluation.kind) {
+      throw new Error(`Qualification requirement ${requirement.id} is missing its evaluator.`);
+    }
+    return assessment;
+  });
 };

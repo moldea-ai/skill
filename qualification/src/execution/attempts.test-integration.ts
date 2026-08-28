@@ -26,13 +26,17 @@ const createIncompleteAttemptFixture = async (options: {
   attemptDirectory: string;
   attemptId: string;
   hasMalformedArtifact?: boolean;
+  mode?: 'diagnostic' | 'official';
 }): Promise<void> => {
+  const mode = options.mode ?? 'official';
   const checkpoint = await createAttemptCheckpoint({
     attemptDirectory: options.attemptDirectory,
     attemptId: options.attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
     isDryRun: false,
+    mode,
+    selectedCaseId: mode === 'diagnostic' ? 'evaluate-aligned-project' : null,
     useCache: true,
     packagesRepository: '/packages',
     skillRepository: '/skill',
@@ -69,6 +73,7 @@ const createIncompleteAttemptFixture = async (options: {
   const result = QualificationAttemptResultDraftSchema.parse({
     protocolVersion: 6,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
+    mode,
     attemptId: options.attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -149,6 +154,22 @@ describe('qualification incomplete attempt recording', () => {
     ).rejects.toThrow();
     expect((await readAttemptCheckpoint(attemptDirectory)).recordedAt).not.toBeNull();
   });
+
+  test('rejects diagnostic attempts before public recording', async () => {
+    const attemptId = `test-diagnostic-${randomUUID()}`;
+    attemptDirectory = getLocalAttemptDirectory(attemptId);
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-diagnostic-result-'));
+    await createIncompleteAttemptFixture({
+      attemptDirectory,
+      attemptId,
+      mode: 'diagnostic',
+    });
+
+    await expect(
+      recordIncompleteAttempt(attemptId, path.join(temporaryRoot, 'results')),
+    ).rejects.toThrow('diagnostic attempts cannot be recorded as public evidence.');
+    expect((await readAttemptCheckpoint(attemptDirectory)).recordedAt).toBeNull();
+  });
 });
 
 describe('qualification attempt discovery', () => {
@@ -171,6 +192,8 @@ describe('qualification attempt discovery', () => {
       parentAttemptId: null,
       selection: { adapterId: 'custom', implementationId: 'custom' },
       isDryRun: true,
+      mode: 'dry-run',
+      selectedCaseId: null,
       useCache: false,
       packagesRepository: '/packages',
       skillRepository: '/skill',

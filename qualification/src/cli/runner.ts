@@ -40,7 +40,7 @@ const createPaidExecutionApprovalRequester =
       );
     }
 
-    return confirmPaidQualificationExecution(request.maximumPlannedTrialCallCount);
+    return confirmPaidQualificationExecution(request.plannedCallCount, request.maximumCallCount);
   };
 
 const createHost = (isDryRun: boolean): ICodexHost =>
@@ -63,9 +63,22 @@ const presentRunOutcome = (
   outcome: Awaited<ReturnType<typeof runQualification>>,
   isJson: boolean,
 ): number => {
+  const unevaluatedRequirementIds = outcome.result.cases.flatMap((caseResult) =>
+    caseResult.trials.flatMap((trial) =>
+      trial.requirementAssessments
+        .filter(({ verdict }) => verdict === 'not-evaluated')
+        .map(({ id }) => id),
+    ),
+  );
   presentQualificationOutput(
     {
       attemptDirectory: outcome.attemptDirectory,
+      ...(outcome.result.mode === 'dry-run'
+        ? {
+            preflightPassed: outcome.result.status === 'passed',
+            unevaluatedRequirementIds,
+          }
+        : {}),
       result: outcome.result,
       wasRecorded: outcome.wasRecorded,
     },
@@ -86,6 +99,25 @@ export const executeQualificationCommand = async (
   signal?: AbortSignal,
 ): Promise<number> => {
   switch (command.kind) {
+    case 'diagnose': {
+      const outcome = await runQualification({
+        host: createHost(false),
+        selection: command.selection,
+        caseId: command.caseId,
+        mode: 'diagnostic',
+        ...(command.packagesRepository === undefined
+          ? {}
+          : { packagesRepository: command.packagesRepository }),
+        ...(command.skillRepository === undefined
+          ? {}
+          : { skillRepository: command.skillRepository }),
+        useCache: command.useCache,
+        requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
+        onProgress: reportQualificationProgress,
+        signal,
+      });
+      return presentRunOutcome(outcome, command.isJson);
+    }
     case 'list': {
       const implementations = await listQualificationImplementations();
       presentQualificationOutput(
@@ -138,6 +170,7 @@ export const executeQualificationCommand = async (
           ? {}
           : { skillRepository: command.skillRepository }),
         isDryRun: command.isDryRun,
+        mode: command.isDryRun ? 'dry-run' : 'official',
         useCache: command.useCache,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         onProgress: reportQualificationProgress,
@@ -149,7 +182,7 @@ export const executeQualificationCommand = async (
       const checkpoint = await readAttemptCheckpoint(getLocalAttemptDirectory(command.attemptId));
 
       const outcome = await runQualification({
-        host: createHost(checkpoint.isDryRun),
+        host: createHost(checkpoint.mode === 'dry-run'),
         resumeAttemptId: checkpoint.attemptId,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
         onProgress: reportQualificationProgress,
@@ -168,8 +201,10 @@ export const executeQualificationCommand = async (
       }
 
       const outcome = await runQualification({
-        host: createHost(checkpoint.isDryRun),
+        host: createHost(checkpoint.mode === 'dry-run'),
         selection: checkpoint.selection,
+        ...(checkpoint.selectedCaseId === null ? {} : { caseId: checkpoint.selectedCaseId }),
+        mode: checkpoint.mode,
         packagesRepository: checkpoint.packagesRepository,
         skillRepository: checkpoint.skillRepository,
         isDryRun: checkpoint.isDryRun,

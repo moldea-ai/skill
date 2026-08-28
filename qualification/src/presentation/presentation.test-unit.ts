@@ -44,8 +44,9 @@ describe('qualification status presentation', () => {
       attemptId: 'attempt-recovered',
       selection: { adapterId: 'custom', implementationId: 'custom' },
       status: 'passed',
+      mode: 'official',
       summary: 'Qualification passed with one recovered case.',
-      cases: [{ status: 'recovered' }],
+      cases: [{ status: 'recovered', trials: [] }],
       stages: [
         {
           operationalRetries: [
@@ -58,11 +59,11 @@ describe('qualification status presentation', () => {
           ],
         },
       ],
-    } as IQualificationAttemptResult;
+    } as unknown as IQualificationAttemptResult;
 
     expect(formatQualificationResult(result, '/attempts/attempt-recovered', false)).toBe(
       [
-        'custom/custom: passed',
+        'custom/custom (official): passed',
         'Qualification passed with one recovered case.',
         'Recovered cases: 1',
         'Operational retries: 1',

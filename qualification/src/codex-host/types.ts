@@ -4,6 +4,7 @@ import type {
   IActorOutput,
   IJudgeOutput,
   IModelUsage,
+  IQualificationCommandPolicyEvidence,
   IQualificationCaseScenario,
 } from '../contracts/index.ts';
 
@@ -20,6 +21,7 @@ export type ICodexRoleExecutionResult<TResult> = {
   usage: IModelUsage | null;
   durationMs: number;
   events: string;
+  commandPolicy: IQualificationCommandPolicyEvidence;
 };
 
 export type IActorExecutionInput = ICodexRoleExecutionInput<IActorOutput> & {

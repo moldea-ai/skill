@@ -15,6 +15,8 @@ import type { IGitRepositoryState } from '../repository-state/index.ts';
 export type IRunQualificationOptions = {
   host: ICodexHost;
   selection?: IQualificationSelection;
+  caseId?: string;
+  mode?: 'diagnostic' | 'dry-run' | 'official';
   packagesRepository?: string;
   skillRepository?: string;
   isDryRun?: boolean;
@@ -30,7 +32,8 @@ export type IRunQualificationOptions = {
 
 // exact cost boundary presented immediately before the first uncached model call
 export type IQualificationPaidExecutionRequest = {
-  maximumPlannedTrialCallCount: number;
+  maximumCallCount: number;
+  plannedCallCount: number;
   model: IQualificationExecutionEnvironment['model'];
   reasoningEffort: IQualificationExecutionEnvironment['reasoningEffort'];
 };

@@ -24,6 +24,48 @@ export type ICodexEvaluationOperationalRetry = {
   retryDelayMs: number;
 };
 
+export type ICodexEvaluationCommandPolicyStatus = 'indeterminate' | 'not-observed' | 'observed';
+
+export type ICodexEvaluationCommandPolicyEvidence = {
+  completedCommandCount: number;
+  credentialExposure: {
+    status: 'not-observed' | 'observed';
+    observedCount: number;
+  };
+  networkAccess: {
+    status: ICodexEvaluationCommandPolicyStatus;
+    observedCount: number;
+    indeterminateCount: number;
+  };
+  sensitiveAccess: {
+    status: ICodexEvaluationCommandPolicyStatus;
+    observedCount: number;
+    indeterminateCount: number;
+  };
+};
+
+export type ICodexEvaluationExecutionEvidence = {
+  commandPolicy: ICodexEvaluationCommandPolicyEvidence;
+  projectedEvents: string;
+  usage: {
+    inputTokens: number;
+    cachedInputTokens: number;
+    outputTokens: number;
+  } | null;
+};
+
+export class CodexEvaluationOperationalRetryExhaustedError extends Error {
+  public readonly category: 'execution-failed' | 'proxy-unavailable' | 'timed-out';
+  public readonly failureCount: number;
+  public readonly maximumRetryCount: number;
+  public constructor(
+    category: 'execution-failed' | 'proxy-unavailable' | 'timed-out',
+    failureCount: number,
+    maximumRetryCount: number,
+    options?: ErrorOptions,
+  );
+}
+
 export class CodexEvaluationHostError extends Error {
   public readonly kind: ICodexEvaluationHostFailureKind;
   public constructor(
@@ -110,8 +152,12 @@ export const calculateCodexEvaluationOperationalRetryDelay: (
   failureCount: number,
   randomValue?: number,
 ) => number;
+export const projectCodexEvaluationExecutionEvidence: (
+  source: string,
+) => ICodexEvaluationExecutionEvidence;
 export const runCodexEvaluationOperationalStage: <T>(options: {
   initialFailureCount?: number;
+  maximumRetryCount?: number;
   now?: () => string;
   onRetry: (retry: ICodexEvaluationOperationalRetry) => Promise<void>;
   operation: () => Promise<T>;

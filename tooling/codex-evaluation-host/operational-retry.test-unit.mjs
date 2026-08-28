@@ -5,6 +5,7 @@ import test from 'node:test';
 import { CODEX_EVALUATION_HOST_FAILURE_KINDS, CodexEvaluationHostError } from './host.mjs';
 import {
   calculateCodexEvaluationOperationalRetryDelay,
+  CodexEvaluationOperationalRetryExhaustedError,
   runCodexEvaluationOperationalStage,
 } from './operational-retry.mjs';
 
@@ -32,6 +33,55 @@ test('operational stage rejects invalid persisted retry accounting', async () =>
     }),
     /initialFailureCount must be a non-negative integer/,
   );
+  await assert.rejects(
+    runCodexEvaluationOperationalStage({
+      maximumRetryCount: -1,
+      onRetry: async () => {},
+      operation: async () => 'unreachable',
+    }),
+    /maximumRetryCount must be a non-negative integer/,
+  );
+  await assert.rejects(
+    runCodexEvaluationOperationalStage({
+      initialFailureCount: 2,
+      maximumRetryCount: 1,
+      onRetry: async () => {},
+      operation: async () => 'unreachable',
+    }),
+    /initialFailureCount exceeds maximumRetryCount/,
+  );
+});
+
+test('operational stage enforces a caller-owned retry limit without changing the default', async () => {
+  let operationCount = 0;
+  let retryCount = 0;
+
+  await assert.rejects(
+    runCodexEvaluationOperationalStage({
+      maximumRetryCount: 1,
+      onRetry: async () => {
+        retryCount += 1;
+      },
+      operation: async () => {
+        operationCount += 1;
+        throw new CodexEvaluationHostError(
+          CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
+          'Provider request timed out.',
+        );
+      },
+      wait: async () => {},
+    }),
+    (error) => {
+      assert.ok(error instanceof CodexEvaluationOperationalRetryExhaustedError);
+      assert.equal(error.category, CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut);
+      assert.equal(error.failureCount, 2);
+      assert.equal(error.maximumRetryCount, 1);
+      return true;
+    },
+  );
+
+  assert.equal(operationCount, 2);
+  assert.equal(retryCount, 1);
 });
 
 test('operational stage persists every retry before waiting and returns success', async () => {

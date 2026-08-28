@@ -245,7 +245,7 @@ const seedReleaseManifests = (root) => {
     root,
     'qualification/profiles/custom/custom/profile.yaml',
     [
-      'version: 1',
+      'version: 2',
       'adapterId: custom',
       'implementationId: custom',
       'title: Custom qualification',
@@ -262,7 +262,7 @@ const seedReleaseManifests = (root) => {
     root,
     'qualification/cases/cases.yaml',
     [
-      'version: 1',
+      'version: 2',
       'cases:',
       '  - id: release-case',
       '    title: Release case',
@@ -694,7 +694,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       temporaryRoot,
       'qualification/profiles/external/external-stream/profile.yaml',
       [
-        'version: 1',
+        'version: 2',
         'adapterId: external',
         'implementationId: external-stream',
         'title: External qualification',
@@ -711,7 +711,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       temporaryRoot,
       'qualification/profiles/external/external-stream/probes/claims.yaml',
       [
-        'version: 1',
+        'version: 2',
         'adapterId: external',
         'implementationId: external-stream',
         'probes:',

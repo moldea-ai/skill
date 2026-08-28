@@ -1,4 +1,4 @@
-version: 1
+version: 2
 id: maintain-dirty-project
 title: Maintain a dirty project
 purpose: Verify a focused context change while preserving unrelated tracked and untracked work.
@@ -50,9 +50,21 @@ workspace:
 judgeRequirements:
   - id: adds-context
     description: The billing context is canonical, registered globally, and assigned to the support agent with an explicit affected path.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
   - id: updates-instruction
     description: The agent instruction explains when the new billing context should be used while preserving its required opening identity.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
   - id: preserves-dirty-state
     description: The unrelated project agent policy, tracked operator note, and untracked local observation remain byte-for-byte unchanged.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
   - id: validates-project
     description: Repository FS, Repository memory, Core, CLI, and project typechecking all confirm the final project without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

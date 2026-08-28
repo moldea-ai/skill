@@ -1,4 +1,4 @@
-version: 1
+version: 2
 id: preserve-vercel-static-boundary
 title: Preserve the Vercel static boundary
 purpose: Verify conservative canonical state for unsupported request indirection and prepareStep behavior.
@@ -41,11 +41,26 @@ workspace:
 judgeRequirements:
   - id: identifies-unsupported-form
     description: The actor explains that an indirect request object and prepareStep prevent direct runtime-pattern and instruction-loader proof.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
   - id: records-focused-guidance
     description: The manifest references the sole new runtime-guidance file under /moldea/runtimes/**/*.md, which describes the repository-specific wrapper and the supported direct object-literal alternative without claiming provider behavior.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
   - id: records-unresolved-boundary
     description: An unresolved warning names the static-analysis boundary, related source, and concrete direct-pattern resolution.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
   - id: avoids-inference
     description: The actor adds no instruction-loader, input-schema, output-schema, tool, provider, model, routing, handoff, or subagent relationship.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
   - id: validates-project
     description: Every deterministic layer accepts the project, runtime-pattern evidence remains absent, and source remains unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

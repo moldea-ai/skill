@@ -9,6 +9,18 @@ import { inspectQualificationCoverage } from '../coverage/index.ts';
 import { ensureDirectory } from '../filesystem/index.ts';
 import { resolveQualificationTarget } from './loader.ts';
 
+test.each([
+  ['custom', 'custom', 8],
+  ['vercel-ai-sdk', 'typescript-generate-stream-text-7', 10],
+] as const)(
+  'preflights every %s/%s scenario before execution',
+  async (adapterId, implementationId, expectedCaseCount) => {
+    const target = await resolveQualificationTarget({ adapterId, implementationId });
+
+    expect(target.profile.cases).toHaveLength(expectedCaseCount);
+  },
+);
+
 describe('Custom qualification profile', () => {
   test('matches the matrix and covers every declared semantic case and claim', async () => {
     const target = await resolveQualificationTarget({

@@ -1,16 +1,20 @@
 ---
 import { prettifyTime } from 'web-utils-kit';
 
-import type { IQualificationAttemptCaseModel } from '../../lib/qualification/index.ts';
+import type {
+  IQualificationAttemptCaseModel,
+  IQualificationProfileCaseModel,
+} from '../../lib/qualification/index.ts';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import EvidenceText from '../evidence-text/evidence-text.astro';
 import QualificationTrialEvidence from '../qualification-trial-evidence/qualification-trial-evidence.astro';
 
 interface Props {
   evidence: IQualificationAttemptCaseModel;
+  scenario: IQualificationProfileCaseModel['scenario'];
 }
 
-const { evidence } = Astro.props;
+const { evidence, scenario } = Astro.props;
 const { result, trials } = evidence;
 const confirmationStatus = 'confirmationStatus' in result ? result.confirmationStatus : null;
 ---
@@ -83,6 +87,7 @@ const confirmationStatus = 'confirmationStatus' in result ? result.confirmationS
               caseId={result.caseId}
               evidence={trial}
               index={index}
+              scenario={scenario}
             />
           </li>
         ))

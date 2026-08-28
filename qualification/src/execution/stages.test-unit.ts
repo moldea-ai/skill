@@ -3,12 +3,32 @@ import { describe, expect, test } from 'vitest';
 
 import {
   createQualificationStageIds,
-  getQualificationMaximumPlannedTrialCallCount,
+  getQualificationMaximumCallCount,
+  getQualificationPlannedCallCount,
 } from './stages.ts';
 
 describe('qualification stage planning', () => {
   test('derives the exact Custom maximum of forty-eight planned trial calls from eight cases', () => {
-    expect(getQualificationMaximumPlannedTrialCallCount(8)).toBe(48);
+    expect(getQualificationPlannedCallCount(8)).toBe(48);
+    expect(getQualificationMaximumCallCount(48)).toBe(96);
+  });
+
+  test('bounds one diagnostic initial trial at two planned and four maximum calls', () => {
+    expect(getQualificationPlannedCallCount(1, false)).toBe(2);
+    expect(getQualificationMaximumCallCount(2)).toBe(4);
+    expect(createQualificationStageIds(['release-case'], false)).toStrictEqual([
+      'source-state',
+      'coverage',
+      'candidate',
+      'baseline',
+      'case:release-case:trial:initial:prepare',
+      'case:release-case:trial:initial:deterministic-before',
+      'case:release-case:trial:initial:actor',
+      'case:release-case:trial:initial:deterministic-after',
+      'case:release-case:trial:initial:assertions',
+      'case:release-case:trial:initial:judge',
+      'case:release-case:result',
+    ]);
   });
 
   test('plans every trial stage before the terminal case result', () => {

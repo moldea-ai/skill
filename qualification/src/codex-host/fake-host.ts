@@ -30,7 +30,6 @@ export class FakeCodexHost implements ICodexHost {
       output: {
         outcome: input.scenario.expectedActorOutcome,
         summary: `Applied the transparent expected dry-run state for ${input.caseId}.`,
-        commands: [],
         changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
         observations: ['No paid model execution occurred.'],
         unresolved: [],
@@ -38,6 +37,12 @@ export class FakeCodexHost implements ICodexHost {
       usage: null,
       durationMs: 0,
       events: '',
+      commandPolicy: {
+        completedCommandCount: 0,
+        credentialExposure: { status: 'not-observed', observedCount: 0 },
+        networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+        sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+      },
     });
   }
 
@@ -48,20 +53,6 @@ export class FakeCodexHost implements ICodexHost {
       return this.__options.judge(input);
     }
 
-    return Promise.resolve({
-      output: {
-        verdict: 'pass',
-        summary: `Dry-run evidence satisfied the declared requirements for ${input.caseId}.`,
-        requirements: input.scenario.judgeRequirements.map(({ id }) => ({
-          id,
-          verdict: 'pass',
-          evidence: 'The transparent expected fixture state and deterministic checks passed.',
-        })),
-        failures: [],
-      },
-      usage: null,
-      durationMs: 0,
-      events: '',
-    });
+    throw new Error('The model-free qualification host cannot perform semantic judgment.');
   }
 }

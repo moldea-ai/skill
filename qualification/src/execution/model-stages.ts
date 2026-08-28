@@ -19,16 +19,21 @@ import {
   ActorOutputSchema,
   JudgeOutputSchema,
   QualificationModelStageEvidenceSchema,
+  QualificationProjectedExecutionEventSchema,
   type IActorOutput,
   type ICandidateClosure,
   type IDeterministicVerification,
   type IJudgeOutput,
   type IModelUsage,
+  type IQualificationCommandPolicyEvidence,
   type IQualificationExecutionEnvironment,
   type IQualificationTrialResult,
   type IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
-import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
+import {
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+  QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT,
+} from '../constants/index.ts';
 import {
   calculateDirectoryFingerprint,
   readJsonFile,
@@ -99,6 +104,16 @@ const getProjectFingerprint = (project: IPreparedQualificationProject): Promise<
     excludedRelativePathPrefixes: [MOUNTED_SKILL_RELATIVE_PATH],
   });
 
+/** Validates the complete safe JSONL projection before it reaches durable storage. */
+const validateProjectedEvents = (events: string): string => {
+  for (const eventLine of events.split('\n')) {
+    if (eventLine.trim() !== '') {
+      QualificationProjectedExecutionEventSchema.parse(JSON.parse(eventLine) as unknown);
+    }
+  }
+  return events;
+};
+
 const writeModelArtifacts = async <TOutput>(options: {
   context: ISharedModelStageOptions;
   evidence: IModelStageEvidence;
@@ -113,6 +128,7 @@ const writeModelArtifacts = async <TOutput>(options: {
     skillRepository: options.context.skillRepository,
     workspaceDirectory: options.context.project.workspaceDirectory,
   };
+  const projectedEvents = validateProjectedEvents(options.events);
 
   await Promise.all([
     writeJsonFileAtomically(
@@ -125,7 +141,7 @@ const writeModelArtifacts = async <TOutput>(options: {
     ),
     writeTextFileAtomically(
       path.join(options.context.caseArtifactDirectory, `${options.role}-events.jsonl`),
-      sanitizeEvidenceText(options.events, sanitizationContext),
+      sanitizeEvidenceText(projectedEvents, sanitizationContext),
     ),
     writeTextFileAtomically(
       path.join(options.context.caseArtifactDirectory, `${options.role}-prompt.md`),
@@ -182,6 +198,7 @@ export const executeActorModelStage = async (
   let createdAt: string;
   let sourceAttemptId: string;
   let cacheSourceAttemptId: string | null;
+  let commandPolicy: IQualificationCommandPolicyEvidence;
 
   if (cacheHit !== null) {
     output = cacheHit.output;
@@ -191,9 +208,11 @@ export const executeActorModelStage = async (
     createdAt = cacheHit.metadata.createdAt;
     sourceAttemptId = cacheHit.metadata.sourceAttemptId;
     cacheSourceAttemptId = cacheHit.metadata.sourceAttemptId;
+    commandPolicy = cacheHit.metadata.commandPolicy;
   } else {
     const execution = await runCodexEvaluationOperationalStage({
       initialFailureCount: options.initialOperationalFailureCount ?? 0,
+      maximumRetryCount: QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT,
       ...(options.operationalRetry?.now === undefined ? {} : { now: options.operationalRetry.now }),
       onRetry: options.onOperationalRetry ?? (() => Promise.resolve()),
       operation: async () => {
@@ -235,13 +254,21 @@ export const executeActorModelStage = async (
         : { wait: options.operationalRetry.wait }),
     });
 
-    output = execution.output;
+    output = ActorOutputSchema.parse(
+      sanitizeEvidenceValue(execution.output, {
+        attemptDirectory: options.attemptDirectory,
+        packagesRepository: options.packagesRepository,
+        skillRepository: options.skillRepository,
+        workspaceDirectory: options.project.workspaceDirectory,
+      }),
+    );
     usage = execution.usage;
     durationMs = execution.durationMs;
     events = execution.events;
     createdAt = new Date().toISOString();
     sourceAttemptId = options.attemptId;
     cacheSourceAttemptId = null;
+    commandPolicy = execution.commandPolicy;
   }
 
   await assertQualificationProjectInputIntegrity(options.project);
@@ -252,6 +279,7 @@ export const executeActorModelStage = async (
       sourceAttemptId: options.attemptId,
       output,
       durationMs,
+      commandPolicy,
       events,
       usage,
       workspaceDirectory: options.project.workspaceDirectory,
@@ -270,6 +298,7 @@ export const executeActorModelStage = async (
     sourceAttemptId,
     cacheSourceAttemptId,
     trialId: options.trialId,
+    commandPolicy,
   }) as IActorStageResult['evidence'];
   await writeModelArtifacts({ context: options, evidence, events, output, prompt, role: 'actor' });
 
@@ -304,6 +333,7 @@ export const restoreActorModelStage = async (options: {
 /** Executes or exactly restores the independent judge model stage. */
 export const executeJudgeModelStage = async (
   options: ISharedModelStageOptions & {
+    actorCommandPolicy: IQualificationCommandPolicyEvidence;
     actorOutput: IActorOutput;
     deterministicAfter: IDeterministicVerification;
     judgeWorkspaceDirectory: string;
@@ -319,6 +349,7 @@ export const executeJudgeModelStage = async (
   }
 
   const prompt = buildJudgePrompt({
+    actorCommandPolicy: options.actorCommandPolicy,
     actorOutput: options.actorOutput,
     adapterId: options.adapterId,
     deterministicAfter: options.deterministicAfter,
@@ -353,6 +384,7 @@ export const executeJudgeModelStage = async (
   let createdAt: string;
   let sourceAttemptId: string;
   let cacheSourceAttemptId: string | null;
+  let commandPolicy: IQualificationCommandPolicyEvidence;
 
   if (cacheHit !== null) {
     output = validateJudgeOutput(options.project.scenario, cacheHit.output);
@@ -362,9 +394,11 @@ export const executeJudgeModelStage = async (
     createdAt = cacheHit.metadata.createdAt;
     sourceAttemptId = cacheHit.metadata.sourceAttemptId;
     cacheSourceAttemptId = cacheHit.metadata.sourceAttemptId;
+    commandPolicy = cacheHit.metadata.commandPolicy;
   } else {
     const execution = await runCodexEvaluationOperationalStage({
       initialFailureCount: options.initialOperationalFailureCount ?? 0,
+      maximumRetryCount: QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT,
       ...(options.operationalRetry?.now === undefined ? {} : { now: options.operationalRetry.now }),
       onRetry: options.onOperationalRetry ?? (() => Promise.resolve()),
       operation: async () => {
@@ -411,13 +445,24 @@ export const executeJudgeModelStage = async (
         ? {}
         : { wait: options.operationalRetry.wait }),
     });
-    output = validateJudgeOutput(options.project.scenario, execution.output);
+    output = validateJudgeOutput(
+      options.project.scenario,
+      JudgeOutputSchema.parse(
+        sanitizeEvidenceValue(execution.output, {
+          attemptDirectory: options.attemptDirectory,
+          packagesRepository: options.packagesRepository,
+          skillRepository: options.skillRepository,
+          workspaceDirectory: options.project.workspaceDirectory,
+        }),
+      ),
+    );
     usage = execution.usage;
     durationMs = execution.durationMs;
     events = execution.events;
     createdAt = new Date().toISOString();
     sourceAttemptId = options.attemptId;
     cacheSourceAttemptId = null;
+    commandPolicy = execution.commandPolicy;
 
     if (options.useCache && !options.isDryRun) {
       await writeJudgeCache({
@@ -425,6 +470,7 @@ export const executeJudgeModelStage = async (
         sourceAttemptId: options.attemptId,
         output,
         durationMs,
+        commandPolicy,
         events,
         usage,
         ...(options.cacheRoot === undefined ? {} : { cacheRoot: options.cacheRoot }),
@@ -441,6 +487,7 @@ export const executeJudgeModelStage = async (
     sourceAttemptId,
     cacheSourceAttemptId,
     trialId: options.trialId,
+    commandPolicy,
   }) as IJudgeStageResult['evidence'];
   await writeModelArtifacts({ context: options, evidence, events, output, prompt, role: 'judge' });
 

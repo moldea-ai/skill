@@ -1,4 +1,4 @@
-version: 1
+version: 2
 id: create-grounded-agent
 title: Create a grounded agent
 purpose: Verify evidence-backed agent creation across canonical and executable boundaries.
@@ -49,9 +49,21 @@ workspace:
 judgeRequirements:
   - id: grounds-behavior
     description: The canonical description and instruction reflect order classification, human review, and the explicit lack of refund authority.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
   - id: binds-implementation
     description: The manifest binds the order-triage agent to the existing createOrderTriageAgent export and affected source.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
   - id: defines-runtime-guidance
     description: The manifest references the sole new runtime-guidance file under /moldea/runtimes/**/*.md, which explains that the runtime-owned loader supplies the canonical instruction path and content to the factory without inventing provider behavior.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
   - id: validates-project
     description: Repository FS, Repository memory, Core, CLI, and project typechecking accept the completed agent without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

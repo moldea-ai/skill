@@ -2,6 +2,7 @@ import type {
   IActorOutput,
   IDeterministicVerification,
   IQualificationCaseScenario,
+  IQualificationCommandPolicyEvidence,
   IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
 
@@ -25,6 +26,7 @@ Execution rules:
 
 /** Builds the independent read-only judge prompt with deterministic evidence and requirements. */
 export const buildJudgePrompt = (options: {
+  actorCommandPolicy: IQualificationCommandPolicyEvidence;
   actorOutput: IActorOutput;
   adapterId: string;
   deterministicAfter: IDeterministicVerification;
@@ -32,7 +34,12 @@ export const buildJudgePrompt = (options: {
   scenario: IQualificationCaseScenario;
   task: string;
   workspaceAssertions: IWorkspaceAssertionResult;
-}): string => `You are the independent judge for a moldea adapter qualification case.
+}): string => {
+  const judgeRequirements = options.scenario.judgeRequirements.filter(
+    (requirement) => requirement.evaluation.kind === 'judge',
+  );
+
+  return `You are the independent judge for a moldea adapter qualification case.
 
 Target adapter: ${options.adapterId}
 Target implementation: ${options.implementationId}
@@ -45,13 +52,20 @@ Project task:
 ${options.task.trim()}
 
 Required judgments:
-${options.scenario.judgeRequirements
-  .map(({ id, description }) => `- ${id}: ${description}`)
+${judgeRequirements
+  .map(
+    ({ id, description, evaluation }) =>
+      `- ${id}: ${description}\n  Evidence sources: ${evaluation.kind === 'judge' ? evaluation.evidenceSources.join(', ') : ''}`,
+  )
   .join('\n')}
 
 Actor report (claims are not evidence by themselves):
 
 ${JSON.stringify(options.actorOutput, null, 2)}
+
+Runner-owned actor command policy:
+
+${JSON.stringify(options.actorCommandPolicy, null, 2)}
 
 Deterministic post-actor summary:
 
@@ -61,5 +75,6 @@ Workspace assertions:
 
 ${JSON.stringify(options.workspaceAssertions, null, 2)}
 
-Judge every declared requirement. A pass requires the actual repository state, deterministic evidence, and diff to agree. Return only the structured result required by the output schema.
+Judge only the requirements listed above. Use only their declared evidence sources. A pass requires the actual repository state, runner-owned evidence, and diff to agree. Return only the structured result required by the output schema.
 `;
+};

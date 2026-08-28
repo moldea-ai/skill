@@ -50,6 +50,7 @@ export const createQualificationAttemptResult = (options: {
   QualificationAttemptResultDraftSchema.parse({
     protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
+    mode: options.checkpoint.mode,
     attemptId: options.checkpoint.attemptId,
     parentAttemptId: options.checkpoint.parentAttemptId,
     selection: options.checkpoint.selection,

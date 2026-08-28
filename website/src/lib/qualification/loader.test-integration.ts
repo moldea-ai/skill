@@ -42,7 +42,7 @@ const seedProfile = (root: string): void => {
   writeText(
     root,
     'qualification/cases/cases.yaml',
-    `version: 1
+    `version: 2
 cases:
   - id: evaluate-project
     title: Evaluate project
@@ -59,7 +59,7 @@ cases:
   writeText(
     root,
     'qualification/profiles/custom/custom/profile.yaml',
-    `version: 1
+    `version: 2
 adapterId: custom
 implementationId: custom
 title: Custom qualification
@@ -74,7 +74,7 @@ cases:
   writeText(
     root,
     'qualification/profiles/custom/custom/probes/claims.yaml',
-    `version: 1
+    `version: 2
 adapterId: custom
 implementationId: custom
 probes:
@@ -89,7 +89,7 @@ probes:
   writeText(
     root,
     'qualification/profiles/custom/custom/projects/evaluate-project/scenario.yaml',
-    `version: 1
+    `version: 2
 id: evaluate-project
 title: Evaluate project
 purpose: Confirm the project remains aligned.
@@ -120,6 +120,10 @@ workspace:
 judgeRequirements:
   - id: validates-project
     description: The complete project remains valid.
+    evaluation:
+      kind: judge
+      evidenceSources:
+        - current-workspace
 `,
   );
   writeText(
@@ -458,7 +462,7 @@ const seedCurrentQualificationAttempt = async (root: string, attemptId: string):
   writeText(
     root,
     'qualification/cases/cases.yaml',
-    `version: 1
+    `version: 2
 cases:
   - id: release-case
     title: Release case
@@ -500,10 +504,7 @@ cases:
 };
 
 const convertCurrentAttemptToFailed = (root: string, attemptId: string): void => {
-  const failures = [
-    'Judge requirement complete-evidence failed: Fixture failure.',
-    'Fixture failure.',
-  ];
+  const failures = ['Requirement complete-evidence failed: Fixture failure.', 'Fixture failure.'];
   const attempt = readAttemptFixture(root, attemptId);
   const caseResult = attempt.cases[0];
   const trials = caseResult?.['trials'];
@@ -519,6 +520,14 @@ const convertCurrentAttemptToFailed = (root: string, attemptId: string): void =>
 
   const terminalTrial = trials[2] as Record<string, unknown>;
   terminalTrial['passed'] = false;
+  terminalTrial['requirementAssessments'] = [
+    {
+      id: 'complete-evidence',
+      evaluator: 'judge',
+      verdict: 'fail',
+      evidence: 'Fixture failure.',
+    },
+  ];
   terminalTrial['failures'] = failures;
   caseResult['status'] = 'failed';
   caseResult['confirmationStatus'] = 'rejected';
@@ -665,7 +674,7 @@ describe('loadQualificationWebsiteModel', () => {
     writeText(
       root,
       'qualification/cases/cases.yaml',
-      `version: 1
+      `version: 2
 cases:
   - id: release-case
     title: Release case
@@ -813,6 +822,30 @@ cases:
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
       'Qualification case release-case trial initial contradicts trial-result.json.',
     );
+  });
+
+  test('rejects raw command text added to current projected execution evidence', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-raw-command';
+    const relativePath = 'cases/release-case/trials/initial/actor-events.jsonl';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    const attemptDirectory = join(root, 'qualification/results/custom/custom/attempts', attemptId);
+    writeText(
+      attemptDirectory,
+      relativePath,
+      `${JSON.stringify({
+        eventType: 'command.completed',
+        exitCode: 0,
+        outputByteCount: 0,
+        status: 'completed',
+        command: 'moldea validate',
+      })}\n`,
+    );
+    const attempt = readAttemptFixture(root, attemptId);
+    attempt.artifactDigests[relativePath] = calculateDigest(join(attemptDirectory, relativePath));
+    writeJson(attemptDirectory, 'attempt.json', attempt);
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow(/unrecognized_keys/u);
   });
 
   test('rejects current retry evidence outside the bounded backoff range', async () => {
@@ -1137,7 +1170,7 @@ cases:
     writeText(
       root,
       'qualification/profiles/custom/custom/profile.yaml',
-      `version: 2
+      `version: 1
 adapterId: custom
 implementationId: custom
 title: Custom qualification

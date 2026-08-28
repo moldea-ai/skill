@@ -29,6 +29,13 @@ import { executeProcess } from '../process/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
 import { runQualification } from './executor.ts';
 
+const emptyCommandPolicy = {
+  completedCommandCount: 0,
+  credentialExposure: { status: 'not-observed', observedCount: 0 },
+  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+  sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+} as const;
+
 describe('qualification execution', () => {
   let temporaryAttemptDirectory: string | null = null;
   let temporaryRoot: string | null = null;
@@ -187,13 +194,13 @@ describe('qualification execution', () => {
           output: {
             outcome: input.scenario.expectedActorOutcome,
             summary: `Completed ${input.caseId}.`,
-            commands: [],
             changedFiles: input.scenario.workspace.allowedChangePaths,
             observations: [],
             unresolved: [],
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
@@ -212,6 +219,7 @@ describe('qualification execution', () => {
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
@@ -231,7 +239,7 @@ describe('qualification execution', () => {
     expect(interruptedOutcome.result.status).toBe('incomplete');
     expect(interruptedOutcome.wasRecorded).toBe(false);
     expect(initialActorCalls).toBe(2);
-    expect(initialJudgeCalls).toBe(1);
+    expect(initialJudgeCalls).toBe(0);
     expect(
       interruptedOutcome.result.stages.find(
         ({ id }) => id === 'case:evaluate-aligned-project:result',
@@ -252,13 +260,13 @@ describe('qualification execution', () => {
           output: {
             outcome: input.scenario.expectedActorOutcome,
             summary: `Completed ${input.caseId}.`,
-            commands: [],
             changedFiles: input.scenario.workspace.allowedChangePaths,
             observations: [],
             unresolved: [],
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
@@ -277,6 +285,7 @@ describe('qualification execution', () => {
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
@@ -290,7 +299,7 @@ describe('qualification execution', () => {
     expect(resumedOutcome.result.status).toBe('passed');
     expect(resumedOutcome.wasRecorded).toBe(false);
     expect(resumedActorCalls).toBe(7);
-    expect(resumedJudgeCalls).toBe(7);
+    expect(resumedJudgeCalls).toBe(0);
 
     await rm(interruptedOutcome.attemptDirectory, { force: true, recursive: true });
     await copyDirectory(attemptBackup, interruptedOutcome.attemptDirectory);
@@ -308,7 +317,7 @@ describe('qualification execution', () => {
     );
   }, 120_000);
 
-  test('resumes retry backoff with contiguous counts without repeating completed model stages', async () => {
+  test('resumes a pending actor retry without repeating completed model stages', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-retry-resume-'));
     const skillRepository = path.join(temporaryRoot, 'skill-repository');
     const resultsRoot = path.join(temporaryRoot, 'results');
@@ -339,30 +348,18 @@ describe('qualification execution', () => {
     let initialActorCalls = 0;
     let initialJudgeCalls = 0;
     const interruptedHost = new FakeCodexHost({
-      actor: (input) => {
+      actor: () => {
         initialActorCalls += 1;
-        return Promise.resolve({
-          output: {
-            outcome: input.scenario.expectedActorOutcome,
-            summary: `Completed ${input.caseId}.`,
-            commands: [],
-            changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
-            observations: [],
-            unresolved: [],
-          },
-          usage: null,
-          durationMs: 0,
-          events: '',
-        });
-      },
-      judge: () => {
-        initialJudgeCalls += 1;
         return Promise.reject(
           new CodexEvaluationHostError(
             CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
-            'Retryable judge timeout.',
+            'Retryable actor timeout.',
           ),
         );
+      },
+      judge: () => {
+        initialJudgeCalls += 1;
+        return Promise.reject(new Error('Dry-run judge must not execute.'));
       },
     });
     const interruptedOutcome = await runQualification({
@@ -383,16 +380,16 @@ describe('qualification execution', () => {
       signal: abortController.signal,
     });
     temporaryAttemptDirectory = interruptedOutcome.attemptDirectory;
-    const judgeStageId = 'case:evaluate-aligned-project:trial:initial:judge';
-    const interruptedJudgeStage = interruptedOutcome.result.stages.find(
-      ({ id }) => id === judgeStageId,
+    const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
+    const interruptedActorStage = interruptedOutcome.result.stages.find(
+      ({ id }) => id === actorStageId,
     );
 
     expect(interruptedOutcome.result.status).toBe('incomplete');
     expect(interruptedOutcome.wasRecorded).toBe(false);
     expect(initialActorCalls).toBe(1);
-    expect(initialJudgeCalls).toBe(1);
-    expect(interruptedJudgeStage).toMatchObject({
+    expect(initialJudgeCalls).toBe(0);
+    expect(interruptedActorStage).toMatchObject({
       status: 'pending',
       operationalRetries: [
         {
@@ -404,7 +401,7 @@ describe('qualification execution', () => {
     });
 
     const resumedActorCallsByCase = new Map<string, number>();
-    const resumedJudgeCallsByCase = new Map<string, number>();
+    let resumedJudgeCalls = 0;
     const resumedHost = new FakeCodexHost({
       actor: (input) => {
         resumedActorCallsByCase.set(
@@ -415,44 +412,19 @@ describe('qualification execution', () => {
           output: {
             outcome: input.scenario.expectedActorOutcome,
             summary: `Completed ${input.caseId}.`,
-            commands: [],
             changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
             observations: [],
             unresolved: [],
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
-      judge: (input) => {
-        const callCount = (resumedJudgeCallsByCase.get(input.caseId) ?? 0) + 1;
-        resumedJudgeCallsByCase.set(input.caseId, callCount);
-
-        if (input.caseId === 'evaluate-aligned-project' && callCount === 1) {
-          return Promise.reject(
-            new CodexEvaluationHostError(
-              CODEX_EVALUATION_HOST_FAILURE_KINDS.ProxyUnavailable,
-              'Retryable judge proxy failure.',
-            ),
-          );
-        }
-
-        return Promise.resolve({
-          output: {
-            verdict: 'pass',
-            summary: `Accepted ${input.caseId}.`,
-            requirements: input.scenario.judgeRequirements.map(({ id }) => ({
-              id,
-              verdict: 'pass' as const,
-              evidence: 'The deterministic fixture evidence passed.',
-            })),
-            failures: [],
-          },
-          usage: null,
-          durationMs: 0,
-          events: '',
-        });
+      judge: () => {
+        resumedJudgeCalls += 1;
+        return Promise.reject(new Error('Dry-run judge must not execute.'));
       },
     });
     const resumedOutcome = await runQualification({
@@ -465,20 +437,17 @@ describe('qualification execution', () => {
       },
       resultsRoot,
     });
-    const resumedJudgeStage = resumedOutcome.result.stages.find(({ id }) => id === judgeStageId);
+    const resumedActorStage = resumedOutcome.result.stages.find(({ id }) => id === actorStageId);
 
     expect(resumedOutcome.result.status).toBe('passed');
-    expect(resumedActorCallsByCase.get('evaluate-aligned-project') ?? 0).toBe(0);
-    expect(resumedJudgeCallsByCase.get('evaluate-aligned-project')).toBe(2);
+    expect(resumedActorCallsByCase.get('evaluate-aligned-project')).toBe(1);
+    expect(resumedJudgeCalls).toBe(0);
     expect(
-      resumedJudgeStage?.operationalRetries.map(({ failureCount, retryDelayMs }) => ({
+      resumedActorStage?.operationalRetries.map(({ failureCount, retryDelayMs }) => ({
         failureCount,
         retryDelayMs,
       })),
-    ).toStrictEqual([
-      { failureCount: 1, retryDelayMs: 5_000 },
-      { failureCount: 2, retryDelayMs: 10_000 },
-    ]);
+    ).toStrictEqual([{ failureCount: 1, retryDelayMs: 5_000 }]);
     expect(
       resumedOutcome.result.stages
         .filter(({ id }) => id.includes('evaluate-aligned-project:trial:confirmation-'))
@@ -486,7 +455,7 @@ describe('qualification execution', () => {
     ).toBe(true);
   }, 120_000);
 
-  test('resumes a cache-derived initial failure with two fresh confirmations', async () => {
+  test('resumes a cache-derived dry-run actor stage without invoking a judge', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-cache-resume-'));
     const skillRepository = path.join(temporaryRoot, 'skill-repository');
     const resultsRoot = path.join(temporaryRoot, 'results');
@@ -523,33 +492,19 @@ describe('qualification execution', () => {
           output: {
             outcome: input.scenario.expectedActorOutcome,
             summary: `Completed ${input.caseId}.`,
-            commands: [],
             changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
             observations: [],
             unresolved: [],
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
-      judge: (input) => {
+      judge: () => {
         interruptedJudgeCalls += 1;
-        return Promise.resolve({
-          output: {
-            verdict: 'fail',
-            summary: 'The cached initial decision failed.',
-            requirements: input.scenario.judgeRequirements.map(({ id }) => ({
-              id,
-              verdict: 'fail' as const,
-              evidence: 'The initial trial intentionally failed.',
-            })),
-            failures: ['The initial trial intentionally failed.'],
-          },
-          usage: null,
-          durationMs: 0,
-          events: '',
-        });
+        return Promise.reject(new Error('Dry-run judge must not execute.'));
       },
     });
     const interruptedOutcome = await runQualification({
@@ -565,6 +520,7 @@ describe('qualification execution', () => {
           progress.status === 'completed'
         ) {
           abortController.abort(new Error('Stop after the initial cached trial.'));
+          abortController.signal.throwIfAborted();
         } else if (abortController.signal.aborted) {
           abortController.signal.throwIfAborted();
         }
@@ -576,7 +532,7 @@ describe('qualification execution', () => {
 
     expect(interruptedOutcome.result.status).toBe('incomplete');
     expect(interruptedActorCalls).toBe(1);
-    expect(interruptedJudgeCalls).toBe(1);
+    expect(interruptedJudgeCalls).toBe(0);
 
     const sourceAttemptId = 'cached-source-attempt';
     const caseRoot = path.join(
@@ -588,14 +544,9 @@ describe('qualification execution', () => {
       'initial',
     );
     const actorEvidencePath = path.join(caseRoot, 'actor-evidence.json');
-    const judgeEvidencePath = path.join(caseRoot, 'judge-evidence.json');
     const trialResultPath = path.join(caseRoot, 'trial-result.json');
     const actorEvidence = await readJsonFile(
       actorEvidencePath,
-      QualificationModelStageEvidenceSchema,
-    );
-    const judgeEvidence = await readJsonFile(
-      judgeEvidencePath,
       QualificationModelStageEvidenceSchema,
     );
     const trialResult = await readJsonFile(trialResultPath, QualificationTrialResultSchema);
@@ -605,25 +556,17 @@ describe('qualification execution', () => {
         sourceAttemptId,
         cacheSourceAttemptId: sourceAttemptId,
       }),
-      writeJsonFileAtomically(judgeEvidencePath, {
-        ...judgeEvidence,
-        sourceAttemptId,
-        cacheSourceAttemptId: sourceAttemptId,
-      }),
       writeJsonFileAtomically(trialResultPath, {
         ...trialResult,
         actorCacheSourceAttemptId: sourceAttemptId,
-        judgeCacheSourceAttemptId: sourceAttemptId,
       }),
     ]);
     const checkpoint = await readAttemptCheckpoint(interruptedOutcome.attemptDirectory);
     const actorStageId = 'case:evaluate-aligned-project:trial:initial:actor';
-    const judgeStageId = 'case:evaluate-aligned-project:trial:initial:judge';
     const actorStage = checkpoint.stages[actorStageId];
-    const judgeStage = checkpoint.stages[judgeStageId];
 
-    if (actorStage === undefined || judgeStage === undefined) {
-      throw new Error('Missing completed initial model stages.');
+    if (actorStage === undefined) {
+      throw new Error('Missing completed initial actor stage.');
     }
 
     await writeAttemptCheckpoint(interruptedOutcome.attemptDirectory, {
@@ -635,16 +578,11 @@ describe('qualification execution', () => {
           status: 'cached',
           cacheSourceAttemptId: sourceAttemptId,
         },
-        [judgeStageId]: {
-          ...judgeStage,
-          status: 'cached',
-          cacheSourceAttemptId: sourceAttemptId,
-        },
       },
     });
 
     const resumedActorCallsByCase = new Map<string, number>();
-    const resumedJudgeCallsByCase = new Map<string, number>();
+    let resumedJudgeCalls = 0;
     const resumedHost = new FakeCodexHost({
       actor: (input) => {
         resumedActorCallsByCase.set(
@@ -655,36 +593,19 @@ describe('qualification execution', () => {
           output: {
             outcome: input.scenario.expectedActorOutcome,
             summary: `Completed ${input.caseId}.`,
-            commands: [],
             changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
             observations: [],
             unresolved: [],
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },
-      judge: (input) => {
-        resumedJudgeCallsByCase.set(
-          input.caseId,
-          (resumedJudgeCallsByCase.get(input.caseId) ?? 0) + 1,
-        );
-        return Promise.resolve({
-          output: {
-            verdict: 'pass',
-            summary: `Accepted ${input.caseId}.`,
-            requirements: input.scenario.judgeRequirements.map(({ id }) => ({
-              id,
-              verdict: 'pass' as const,
-              evidence: 'The deterministic fixture evidence passed.',
-            })),
-            failures: [],
-          },
-          usage: null,
-          durationMs: 0,
-          events: '',
-        });
+      judge: () => {
+        resumedJudgeCalls += 1;
+        return Promise.reject(new Error('Dry-run judge must not execute.'));
       },
     });
     const resumedOutcome = await runQualification({
@@ -692,16 +613,16 @@ describe('qualification execution', () => {
       resumeAttemptId: interruptedOutcome.result.attemptId,
       resultsRoot,
     });
-    const recoveredCase = resumedOutcome.result.cases[0];
+    const resumedCase = resumedOutcome.result.cases[0];
 
     expect(resumedOutcome.result.status).toBe('passed');
-    expect(recoveredCase).toMatchObject({
+    expect(resumedCase).toMatchObject({
       caseId: 'evaluate-aligned-project',
-      confirmationStatus: 'passed',
-      status: 'recovered',
+      confirmationStatus: 'not-required',
+      status: 'passed',
     });
     expect(
-      recoveredCase?.trials.map(
+      resumedCase?.trials.map(
         ({ actorCacheSourceAttemptId, judgeCacheSourceAttemptId, trialId }) => ({
           actorCacheSourceAttemptId,
           judgeCacheSourceAttemptId,
@@ -711,22 +632,12 @@ describe('qualification execution', () => {
     ).toStrictEqual([
       {
         actorCacheSourceAttemptId: sourceAttemptId,
-        judgeCacheSourceAttemptId: sourceAttemptId,
+        judgeCacheSourceAttemptId: null,
         trialId: 'initial',
       },
-      {
-        actorCacheSourceAttemptId: null,
-        judgeCacheSourceAttemptId: null,
-        trialId: 'confirmation-1',
-      },
-      {
-        actorCacheSourceAttemptId: null,
-        judgeCacheSourceAttemptId: null,
-        trialId: 'confirmation-2',
-      },
     ]);
-    expect(resumedActorCallsByCase.get('evaluate-aligned-project')).toBe(2);
-    expect(resumedJudgeCallsByCase.get('evaluate-aligned-project')).toBe(2);
+    expect(resumedActorCallsByCase.get('evaluate-aligned-project')).toBeUndefined();
+    expect(resumedJudgeCalls).toBe(0);
     expect(resumedOutcome.result.stages.find(({ id }) => id === actorStageId)).toMatchObject({
       status: 'cached',
       cacheSourceAttemptId: sourceAttemptId,
@@ -734,15 +645,11 @@ describe('qualification execution', () => {
     expect(
       resumedOutcome.result.stages
         .filter(({ id }) => id.includes('evaluate-aligned-project:trial:confirmation-'))
-        .filter(({ id }) => id.endsWith(':actor') || id.endsWith(':judge'))
-        .every(
-          ({ cacheSourceAttemptId, status }) =>
-            cacheSourceAttemptId === null && status === 'passed',
-        ),
+        .every(({ status }) => status === 'skipped'),
     ).toBe(true);
   }, 120_000);
 
-  test('recovers one initial semantic failure only after two fresh passing confirmations', async () => {
+  test('marks model-owned dry-run requirements as not evaluated without calling a judge', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-recovery-'));
     const skillRepository = path.join(temporaryRoot, 'skill-repository');
     const resultsRoot = path.join(temporaryRoot, 'results');
@@ -769,32 +676,11 @@ describe('qualification execution', () => {
       cwd: skillRepository,
     });
 
-    const judgeCallsByCase = new Map<string, number>();
+    let judgeCalls = 0;
     const host = new FakeCodexHost({
-      judge: (input) => {
-        const callCount = (judgeCallsByCase.get(input.caseId) ?? 0) + 1;
-        judgeCallsByCase.set(input.caseId, callCount);
-        const isInitialFailure = input.caseId === 'evaluate-aligned-project' && callCount === 1;
-
-        return Promise.resolve({
-          output: {
-            verdict: isInitialFailure ? ('fail' as const) : ('pass' as const),
-            summary: isInitialFailure
-              ? 'The initial semantic decision failed.'
-              : `Accepted ${input.caseId}.`,
-            requirements: input.scenario.judgeRequirements.map(({ id }) => ({
-              id,
-              verdict: isInitialFailure ? ('fail' as const) : ('pass' as const),
-              evidence: isInitialFailure
-                ? 'The initial trial intentionally failed.'
-                : 'The deterministic fixture evidence passed.',
-            })),
-            failures: isInitialFailure ? ['The initial trial intentionally failed.'] : [],
-          },
-          usage: null,
-          durationMs: 0,
-          events: '',
-        });
+      judge: () => {
+        judgeCalls += 1;
+        return Promise.reject(new Error('Dry-run judge must not execute.'));
       },
     });
     const outcome = await runQualification({
@@ -805,134 +691,28 @@ describe('qualification execution', () => {
       resultsRoot,
     });
     temporaryAttemptDirectory = outcome.attemptDirectory;
-    const recoveredCase = outcome.result.cases[0];
+    const firstCase = outcome.result.cases[0];
 
     expect(outcome.result.status).toBe('passed');
     expect(outcome.wasRecorded).toBe(false);
-    expect(recoveredCase).toMatchObject({
+    expect(judgeCalls).toBe(0);
+    expect(firstCase).toMatchObject({
       caseId: 'evaluate-aligned-project',
-      status: 'recovered',
-      confirmationStatus: 'passed',
+      status: 'passed',
+      confirmationStatus: 'not-required',
       failures: [],
     });
-    expect(recoveredCase?.trials.map(({ trialId, passed }) => ({ trialId, passed }))).toStrictEqual(
-      [
-        { trialId: 'initial', passed: false },
-        { trialId: 'confirmation-1', passed: true },
-        { trialId: 'confirmation-2', passed: true },
-      ],
-    );
     expect(
-      recoveredCase?.trials
-        .slice(1)
-        .every(
-          ({ actorCacheSourceAttemptId, judgeCacheSourceAttemptId }) =>
-            actorCacheSourceAttemptId === null && judgeCacheSourceAttemptId === null,
-        ),
+      firstCase?.trials[0]?.requirementAssessments.some(
+        ({ evaluator, verdict }) => evaluator === 'judge' && verdict === 'not-evaluated',
+      ),
     ).toBe(true);
-    expect(judgeCallsByCase.get('evaluate-aligned-project')).toBe(3);
     expect(
       outcome.result.stages
         .filter(({ id }) => id.includes('evaluate-aligned-project:trial:confirmation-'))
-        .every(({ status }) => status === 'passed'),
+        .every(({ status }) => status === 'skipped'),
     ).toBe(true);
   }, 120_000);
-
-  test.each([
-    ['confirmation-1', 2, [false, false]],
-    ['confirmation-2', 3, [false, true, false]],
-  ] as const)(
-    'rejects recovery when %s produces the terminal semantic failure',
-    async (terminalTrialId, terminalJudgeCall, expectedTrialResults) => {
-      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-rejection-'));
-      const skillRepository = path.join(temporaryRoot, 'skill-repository');
-      const resultsRoot = path.join(temporaryRoot, 'results');
-      await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
-      await executeProcess({
-        command: 'git',
-        args: ['init', '--initial-branch=main'],
-        cwd: skillRepository,
-      });
-      await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
-      await executeProcess({
-        command: 'git',
-        args: [
-          '-c',
-          'commit.gpgsign=false',
-          '-c',
-          'user.name=Moldea Qualification',
-          '-c',
-          'user.email=qualification@moldea.local',
-          'commit',
-          '-m',
-          `test: establish ${terminalTrialId} fixture`,
-        ],
-        cwd: skillRepository,
-      });
-
-      let judgeCalls = 0;
-      const host = new FakeCodexHost({
-        judge: (input) => {
-          judgeCalls += 1;
-          const hasFailed = judgeCalls === 1 || judgeCalls === terminalJudgeCall;
-
-          return Promise.resolve({
-            output: {
-              verdict: hasFailed ? ('fail' as const) : ('pass' as const),
-              summary: hasFailed
-                ? 'The semantic decision failed.'
-                : 'The semantic decision passed.',
-              requirements: input.scenario.judgeRequirements.map(({ id }) => ({
-                id,
-                verdict: hasFailed ? ('fail' as const) : ('pass' as const),
-                evidence: hasFailed
-                  ? 'The trial intentionally failed.'
-                  : 'The deterministic fixture evidence passed.',
-              })),
-              failures: hasFailed ? ['The trial intentionally failed.'] : [],
-            },
-            usage: null,
-            durationMs: 0,
-            events: '',
-          });
-        },
-      });
-      const outcome = await runQualification({
-        host,
-        selection: { adapterId: 'custom', implementationId: 'custom' },
-        skillRepository,
-        isDryRun: true,
-        resultsRoot,
-      });
-      temporaryAttemptDirectory = outcome.attemptDirectory;
-      const failedCase = outcome.result.cases[0];
-
-      expect(outcome.result.status).toBe('failed');
-      expect(failedCase).toMatchObject({
-        caseId: 'evaluate-aligned-project',
-        status: 'failed',
-        confirmationStatus: 'rejected',
-      });
-      expect(failedCase?.trials.map(({ passed }) => passed)).toStrictEqual(expectedTrialResults);
-      expect(failedCase?.trials.at(-1)?.trialId).toBe(terminalTrialId);
-      expect(judgeCalls).toBe(terminalJudgeCall);
-      expect(outcome.result.cases).toHaveLength(1);
-      expect(
-        outcome.result.stages
-          .filter(({ id }) => id.includes('evaluate-aligned-project:trial:confirmation-2'))
-          .every(
-            ({ status }) =>
-              status === (terminalTrialId === 'confirmation-1' ? 'skipped' : 'passed'),
-          ),
-      ).toBe(true);
-      expect(
-        outcome.result.stages
-          .filter(({ id }) => id.startsWith('case:repair-broken-adapter:'))
-          .every(({ status }) => status === 'pending'),
-      ).toBe(true);
-    },
-    120_000,
-  );
 
   test('skips every judge call after deterministic or workspace failure', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-judge-skip-'));
@@ -970,13 +750,13 @@ describe('qualification execution', () => {
           output: {
             outcome: input.scenario.expectedActorOutcome,
             summary: `Intentionally failed ${input.caseId}.`,
-            commands: [],
             changedFiles: ['README.md'],
             observations: [],
             unresolved: [],
           },
           usage: null,
           durationMs: 0,
+          commandPolicy: emptyCommandPolicy,
           events: '',
         });
       },

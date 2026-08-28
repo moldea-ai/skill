@@ -2,7 +2,7 @@ import { posix } from 'node:path';
 
 import { z } from 'zod';
 
-const QUALIFICATION_PROTOCOL_VERSION = 1;
+const QUALIFICATION_PROTOCOL_VERSION = 2;
 const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 6;
 const QUALIFICATION_HISTORICAL_SOL_EVIDENCE_PROTOCOL_VERSION = 5;
 const QUALIFICATION_PREVIOUS_EVIDENCE_PROTOCOL_VERSION = 4;
@@ -143,6 +143,36 @@ export const QualificationScenarioSchema = z.object({
       z.object({
         id: StableIdSchema,
         description: z.string().trim().min(1),
+        evaluation: z.union([
+          z.object({
+            kind: z.literal('runner'),
+            checks: z
+              .array(
+                z.enum([
+                  'actor-command-policy',
+                  'deterministic-after',
+                  'expected-actor-outcome',
+                  'workspace-assertions',
+                ]),
+              )
+              .min(1),
+          }),
+          z.object({
+            kind: z.literal('judge'),
+            evidenceSources: z
+              .array(
+                z.enum([
+                  'actor-command-policy',
+                  'actor-output',
+                  'current-workspace',
+                  'deterministic-after',
+                  'workspace-assertions',
+                  'workspace-patch',
+                ]),
+              )
+              .min(1),
+          }),
+        ]),
       }),
     )
     .min(1),
@@ -268,6 +298,16 @@ export const QualificationTrialResultSchema = z
     judgeEvidenceCreatedAt: z.iso.datetime().nullable(),
     actorCacheSourceAttemptId: z.string().nullable(),
     judgeCacheSourceAttemptId: z.string().nullable(),
+    requirementAssessments: z
+      .array(
+        z.object({
+          id: StableIdSchema,
+          evaluator: z.enum(['judge', 'runner']),
+          verdict: z.enum(['fail', 'not-evaluated', 'pass']),
+          evidence: z.string().trim().min(1),
+        }),
+      )
+      .min(1),
     failures: z.array(z.string()),
   })
   .superRefine((trial, context) => {
@@ -303,7 +343,7 @@ export const QualificationCurrentCaseResultSchema = z
     caseId: StableIdSchema,
     title: z.string().trim().min(1),
     status: z.enum(['failed', 'passed', 'recovered']),
-    confirmationStatus: z.enum(['not-required', 'passed', 'rejected']),
+    confirmationStatus: z.enum(['not-applicable', 'not-required', 'passed', 'rejected']),
     durationMs: z.number().int().nonnegative(),
     trials: z.array(QualificationTrialResultSchema).min(1).max(3),
     failures: z.array(z.string()),
@@ -386,7 +426,7 @@ const QualificationOperationalRetrySchema = z
     }
   });
 const QualificationCurrentStageSchema = QualificationHistoricalStageSchema.extend({
-  operationalRetries: z.array(QualificationOperationalRetrySchema),
+  operationalRetries: z.array(QualificationOperationalRetrySchema).max(1),
 }).superRefine((stage, context) => {
   const isModelStage = /:trial:(?:initial|confirmation-[12]):(?:actor|judge)$/u.test(stage.id);
 
@@ -440,6 +480,7 @@ export const QualificationAttemptResultSchema = z.discriminatedUnion('protocolVe
       version: z.literal(1),
       requiredPassingConfirmations: z.literal(2),
     }),
+    mode: z.literal('official'),
     stages: z.array(QualificationCurrentStageSchema),
     cases: z.array(QualificationCurrentCaseResultSchema),
     provenance: QualificationCurrentProvenanceSchema,
@@ -519,13 +560,17 @@ export const WorkspaceAssertionResultSchema = z.object({
   ),
   changedPaths: z.array(RelativePathSchema),
 });
-export const ActorOutputSchema = z.object({
+const ActorOutputShape = {
   outcome: z.enum(['blocked', 'completed']),
   summary: z.string().trim().min(1),
-  commands: z.array(z.string()),
   changedFiles: z.array(RelativePathSchema),
   observations: z.array(z.string().trim().min(1)),
   unresolved: z.array(z.string().trim().min(1)),
+};
+export const ActorOutputSchema = z.strictObject(ActorOutputShape);
+export const HistoricalActorOutputSchema = z.object({
+  ...ActorOutputShape,
+  commands: z.array(z.string()),
 });
 export const JudgeOutputSchema = z.object({
   verdict: z.enum(['fail', 'pass']),
@@ -551,12 +596,64 @@ export const QualificationBaselineCheckSchema = z.object({
   failures: z.array(z.string()),
 });
 export const QualificationJudgeSkippedSchema = z.object({
+  kind: z.enum(['deterministic-failure', 'model-free-dry-run', 'no-judge-requirements']),
   reason: z.string().trim().min(1),
   deterministicAfterPassed: z.boolean(),
   workspaceAssertionsPassed: z.boolean(),
 });
+export const HistoricalQualificationJudgeSkippedSchema = QualificationJudgeSkippedSchema.omit({
+  kind: true,
+});
+const QualificationCommandPolicyEvidenceSchema = z
+  .strictObject({
+    completedCommandCount: z.number().int().min(0).max(128),
+    credentialExposure: z.strictObject({
+      status: z.enum(['not-observed', 'observed']),
+      observedCount: z.number().int().nonnegative(),
+    }),
+    networkAccess: z.strictObject({
+      status: z.enum(['indeterminate', 'not-observed', 'observed']),
+      observedCount: z.number().int().nonnegative(),
+      indeterminateCount: z.number().int().nonnegative(),
+    }),
+    sensitiveAccess: z.strictObject({
+      status: z.enum(['indeterminate', 'not-observed', 'observed']),
+      observedCount: z.number().int().nonnegative(),
+      indeterminateCount: z.number().int().nonnegative(),
+    }),
+  })
+  .superRefine((evidence, context) => {
+    for (const field of ['networkAccess', 'sensitiveAccess'] as const) {
+      const observation = evidence[field];
+      const expectedStatus =
+        observation.observedCount > 0
+          ? 'observed'
+          : observation.indeterminateCount > 0
+            ? 'indeterminate'
+            : 'not-observed';
+      if (
+        observation.status !== expectedStatus ||
+        observation.observedCount + observation.indeterminateCount > evidence.completedCommandCount
+      ) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Command-policy status must match its bounded counts.',
+          path: [field],
+        });
+      }
+    }
+    const expectedCredentialStatus =
+      evidence.credentialExposure.observedCount > 0 ? 'observed' : 'not-observed';
+    if (evidence.credentialExposure.status !== expectedCredentialStatus) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Credential-exposure status must match its observed count.',
+        path: ['credentialExposure'],
+      });
+    }
+  });
 // current trial-scoped model provenance consumed independently by the website
-export const QualificationModelStageEvidenceSchema = z.object({
+export const QualificationModelStageEvidenceSchema = z.strictObject({
   role: z.enum(['actor', 'judge']),
   trialId: z.enum(['initial', 'confirmation-1', 'confirmation-2']),
   createdAt: z.iso.datetime(),
@@ -565,6 +662,13 @@ export const QualificationModelStageEvidenceSchema = z.object({
   cacheKey: Sha256Schema,
   sourceAttemptId: z.string().trim().min(1),
   cacheSourceAttemptId: z.string().trim().min(1).nullable(),
+  commandPolicy: QualificationCommandPolicyEvidenceSchema,
+});
+export const QualificationProjectedExecutionEventSchema = z.strictObject({
+  eventType: z.literal('command.completed'),
+  exitCode: z.number().int(),
+  outputByteCount: z.number().int().nonnegative(),
+  status: z.enum(['completed', 'failed']),
 });
 
 export type IQualificationStatus = z.infer<typeof AttemptStatusSchema>;
@@ -587,11 +691,14 @@ export type IJudgeOutput = z.infer<typeof JudgeOutputSchema>;
 export type IQualificationExecutionError = z.infer<typeof QualificationExecutionErrorSchema>;
 export type IQualificationBaselineCheck = z.infer<typeof QualificationBaselineCheckSchema>;
 export type IQualificationJudgeSkipped = z.infer<typeof QualificationJudgeSkippedSchema>;
+export type IQualificationHistoricalJudgeSkipped = z.infer<
+  typeof HistoricalQualificationJudgeSkippedSchema
+>;
 export type IQualificationModelStageEvidence = z.infer<
   typeof QualificationModelStageEvidenceSchema
 >;
 
-// one raw committed artifact linked from public evidence pages
+// one committed artifact linked from public evidence pages
 export interface IQualificationArtifactModel {
   path: string;
   rawUrl: string;
@@ -620,7 +727,7 @@ export interface IQualificationAttemptTrialModel {
   deterministicAfter: IDeterministicVerification;
   deterministicBefore: IDeterministicVerification;
   judge: IJudgeOutput | null;
-  judgeSkipped: IQualificationJudgeSkipped | null;
+  judgeSkipped: IQualificationHistoricalJudgeSkipped | IQualificationJudgeSkipped | null;
   result: IQualificationHistoricalCaseResult | IQualificationTrialResult;
   retries: {
     actor: IQualificationOperationalRetry[];

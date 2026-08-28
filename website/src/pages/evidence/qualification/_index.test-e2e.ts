@@ -63,7 +63,7 @@ test('describes the Custom profile and any current immutable attempt', async ({ 
       page.waitForURL(/\/attempts\/[^/]+\/$/u),
       historicalAttemptRow.getByRole('link').click(),
     ]);
-    await page.getByText('Technical provenance and raw artifacts', { exact: true }).click();
+    await page.getByText('Technical provenance and committed artifacts', { exact: true }).click();
     await expect(page.getByText('Historical Terra', { exact: true })).toBeVisible();
     return;
   }
@@ -132,7 +132,7 @@ test('presents the Vercel qualification history transparently', async ({ page })
       page.waitForURL(/\/attempts\/[^/]+\/$/u),
       historicalAttemptRow.getByRole('link').click(),
     ]);
-    await page.getByText('Technical provenance and raw artifacts', { exact: true }).click();
+    await page.getByText('Technical provenance and committed artifacts', { exact: true }).click();
     await expect(page.getByText('Historical Terra', { exact: true })).toBeVisible();
     return;
   }
@@ -242,7 +242,7 @@ test(
       await expect(initialTrial.getByText('Unexpected changed path unexpected.md.')).toHaveCount(2);
       await expect(
         initialTrial.getByText(
-          'The judge was skipped because deterministic postchecks or workspace assertions already failed.',
+          'The judge was skipped because runner-owned evidence already failed.',
         ),
       ).toBeVisible();
       await expect(initialTrial.getByText('skipped', { exact: true })).toBeVisible();
@@ -259,7 +259,7 @@ test(
 
       await expect(caseEvidence.getByText('Fresh evidence', { exact: true })).toHaveCount(5);
       const retryDisclosure = initialTrial.getByText(
-        'Operational retries (1) and raw trial artifacts',
+        'Operational retries (1) and committed trial artifacts',
         { exact: true },
       );
       await retryDisclosure.focus();

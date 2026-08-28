@@ -185,8 +185,8 @@ export const recordIncompleteAttempt = async (
     throw new Error(`Attempt ${attemptId} is ${checkpoint.status}, not incomplete.`);
   }
 
-  if (checkpoint.isDryRun) {
-    throw new Error('Dry-run attempts cannot be recorded as public evidence.');
+  if (checkpoint.mode !== 'official') {
+    throw new Error(`${checkpoint.mode} attempts cannot be recorded as public evidence.`);
   }
 
   const result = await readJsonFile(

@@ -2,18 +2,23 @@
 export type {
   IQualificationCaseCatalog,
   IQualificationCaseScenario,
+  IQualificationCommandPolicyEvidence,
   IQualificationProbes,
   IQualificationProfile,
   IQualificationProfileCase,
   IQualificationSelection,
+  IQualificationRequirementAssessment,
 } from './types.ts';
 export {
   QualificationCaseCatalogSchema,
   QualificationCaseScenarioSchema,
+  QualificationCommandPolicyEvidenceSchema,
+  QualificationJudgeEvidenceSourceSchema,
   QualificationProbesSchema,
   QualificationProfileCaseSchema,
   QualificationProfileSchema,
   QualificationSelectionSchema,
+  QualificationRunnerCheckSchema,
 } from './types.ts';
 
 // candidate and execution contracts
@@ -34,6 +39,7 @@ export type {
 } from './types.ts';
 export {
   ActorOutputSchema,
+  QualificationHistoricalActorOutputSchema,
   CandidateClosureSchema,
   CandidatePackageSchema,
   DeterministicVerificationArtifactSchema,
@@ -42,8 +48,10 @@ export {
   ModelUsageSchema,
   QualificationExecutionEnvironmentSchema,
   QualificationHistoricalDeterministicVerificationArtifactSchema,
+  QualificationHistoricalJudgeSkippedSchema,
   QualificationHistoricalModelStageEvidenceSchema,
   QualificationModelStageEvidenceSchema,
+  QualificationProjectedExecutionEventSchema,
   WorkspaceAssertionResultSchema,
   WorkspaceFileStateSchema,
 } from './types.ts';
@@ -81,6 +89,7 @@ export {
   QualificationRecordedAttemptResultSchema,
   QualificationRecordedLatestResultSchema,
   QualificationJudgeSkippedSchema,
+  QualificationRequirementAssessmentSchema,
   QualificationProvenanceSchema,
   QualificationSourceStateResultSchema,
   QualificationStageCheckpointSchema,

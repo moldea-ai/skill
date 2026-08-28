@@ -10,7 +10,10 @@ import {
   QualificationLatestResultSchema,
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
-import { QUALIFICATION_CONFIRMATION_POLICY } from '../constants/index.ts';
+import {
+  QUALIFICATION_CONFIRMATION_POLICY,
+  QUALIFICATION_RESULTS_ROOT,
+} from '../constants/index.ts';
 import {
   calculateFileSha256,
   ensureDirectory,
@@ -66,6 +69,7 @@ const createResult = (
   QualificationAttemptResultSchema.parse({
     protocolVersion: 6,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
+    mode: 'official',
     attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -111,6 +115,14 @@ describe('qualification result recording', () => {
     if (temporaryRoot !== null) {
       await rm(temporaryRoot, { force: true, recursive: true });
     }
+  });
+
+  test('keeps committed protocol 3 history verifiable after definition evolution', async () => {
+    const verification = await verifyQualificationResults(QUALIFICATION_RESULTS_ROOT);
+
+    expect(verification.passed).toBe(true);
+    expect(verification.attempts).toBeGreaterThan(0);
+    expect(verification.issues).toStrictEqual([]);
   });
 
   test('preserves history, latest status, last passing attempt, and artifact integrity', async () => {
@@ -451,7 +463,6 @@ describe('qualification result recording', () => {
       writeJsonFileAtomically(actorOutputPath, {
         outcome: 'completed',
         summary: 'Changed an unrelated source file.',
-        commands: [],
         changedFiles: [unrelatedEntry.path],
         observations: [],
         unresolved: [],
@@ -619,7 +630,6 @@ describe('qualification result recording', () => {
       `${JSON.stringify({
         outcome: 'blocked',
         summary: 'Stopped without changing the workspace.',
-        commands: [],
         changedFiles: [],
         observations: [`Credential sk-${'c'.repeat(24)} at /attempt/workspace/file.ts.`],
         unresolved: [],
@@ -635,7 +645,12 @@ describe('qualification result recording', () => {
         'initial',
         'actor-events.jsonl',
       ),
-      `${JSON.stringify({ authorization: `Bearer ${'a'.repeat(24)}`, path: '/packages/project' })}\n`,
+      `${JSON.stringify({
+        eventType: 'command.completed',
+        exitCode: 0,
+        outputByteCount: 0,
+        status: 'completed',
+      })}\n`,
       'utf8',
     );
 
@@ -676,7 +691,6 @@ describe('qualification result recording', () => {
         {
           outcome: 'blocked',
           summary: 'Stopped without changing the workspace.',
-          commands: [],
           changedFiles: [],
           observations: ['Credential <redacted-token> at <attempt>/workspace/file.ts.'],
           unresolved: [],
@@ -698,7 +712,12 @@ describe('qualification result recording', () => {
         'utf8',
       ),
     ).toBe(
-      `${JSON.stringify({ authorization: '<redacted-credential>', path: '<packages-repository>/project' })}\n`,
+      `${JSON.stringify({
+        eventType: 'command.completed',
+        exitCode: 0,
+        outputByteCount: 0,
+        status: 'completed',
+      })}\n`,
     );
     expect(await verifyQualificationResults(resultsRoot)).toMatchObject({ passed: true });
   });

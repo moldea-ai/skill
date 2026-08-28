@@ -89,10 +89,21 @@ export const formatQualificationResult = (
     (total, stage) => total + stage.operationalRetries.length,
     0,
   );
+  const unevaluatedRequirements = result.cases.flatMap((caseResult) =>
+    caseResult.trials.flatMap((trial) =>
+      trial.requirementAssessments.filter(({ verdict }) => verdict === 'not-evaluated'),
+    ),
+  );
 
   return [
-    `${result.selection.adapterId}/${result.selection.implementationId}: ${result.status}`,
+    `${result.selection.adapterId}/${result.selection.implementationId} (${result.mode}): ${result.status}`,
     result.summary,
+    ...(result.mode === 'dry-run'
+      ? [
+          `Preflight passed: ${result.status === 'passed' ? 'yes' : 'no'}`,
+          `Semantic requirements not evaluated: ${unevaluatedRequirements.length}`,
+        ]
+      : []),
     `Recovered cases: ${recoveredCaseCount}`,
     `Operational retries: ${operationalRetryCount}`,
     `Attempt: ${result.attemptId}`,

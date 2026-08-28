@@ -9,6 +9,7 @@ import type {
   IQualificationBaselineCheck,
   IQualificationCoverageResult,
   IQualificationExecutionError,
+  IQualificationHistoricalJudgeSkipped,
   IQualificationJudgeSkipped,
   IQualificationModelStageEvidence,
   IQualificationProfileCaseModel,
@@ -218,6 +219,10 @@ const deriveCurrentTrialFailures = (options: {
   deterministicAfter: IDeterministicVerification;
   judge: IJudgeOutput | null;
   profileCase: IQualificationProfileCaseModel;
+  requirementAssessments: Extract<
+    IQualificationAttemptResult,
+    { protocolVersion: 6 }
+  >['cases'][number]['trials'][number]['requirementAssessments'];
   workspaceAssertions: IWorkspaceAssertionResult;
 }): string[] => [
   ...(options.actor.outcome === options.profileCase.scenario.expectedActorOutcome
@@ -227,27 +232,30 @@ const deriveCurrentTrialFailures = (options: {
       ]),
   ...options.deterministicAfter.failures,
   ...options.workspaceAssertions.failures,
-  ...(options.judge?.requirements
+  ...options.requirementAssessments
     .filter(({ verdict }) => verdict === 'fail')
-    .map(({ evidence, id }) => `Judge requirement ${id} failed: ${evidence}`) ?? []),
+    .map(({ evidence, id }) => `Requirement ${id} failed: ${evidence}`),
   ...(options.judge?.verdict === 'fail' ? options.judge.failures : []),
 ];
 
 /** Validates one historical case or current trial against its scenario and evidence artifacts. */
 export const assertQualificationCaseEvidence = (options: {
   actor: IActorOutput;
+  actorCommandPolicy: IQualificationModelStageEvidence['commandPolicy'] | null;
   deterministicAfter: IDeterministicVerification;
   deterministicBefore: IDeterministicVerification;
   judge: IJudgeOutput | null;
-  judgeSkipped: IQualificationJudgeSkipped | null;
+  judgeSkipped: IQualificationHistoricalJudgeSkipped | IQualificationJudgeSkipped | null;
   profileCase: IQualificationProfileCaseModel;
   result: IQualificationAttemptTrialModel['result'];
   workspaceAssertions: IWorkspaceAssertionResult;
 }): void => {
   const { actor, deterministicAfter, deterministicBefore, judge, profileCase, result } = options;
-  const expectedRequirementIds = profileCase.scenario.judgeRequirements.map(({ id }) => id);
-  const actualRequirementIds = judge?.requirements.map(({ id }) => id) ?? [];
   const isCurrentTrial = 'trialId' in result;
+  const expectedRequirementIds = profileCase.scenario.judgeRequirements
+    .filter((requirement) => !isCurrentTrial || requirement.evaluation.kind === 'judge')
+    .map(({ id }) => id);
+  const actualRequirementIds = judge?.requirements.map(({ id }) => id) ?? [];
   const caseId = profileCase.id;
 
   if (!isCurrentTrial && result.title !== profileCase.title) {
@@ -303,25 +311,93 @@ export const assertQualificationCaseEvidence = (options: {
   );
   assertWorkspaceEvidence(actor, options.workspaceAssertions, profileCase);
 
+  const hasJudgeRequirements = profileCase.scenario.judgeRequirements.some(
+    (requirement) => requirement.evaluation.kind === 'judge',
+  );
+  const hasFailedRunnerRequirement =
+    isCurrentTrial &&
+    result.requirementAssessments.some(
+      ({ evaluator, verdict }) => evaluator === 'runner' && verdict === 'fail',
+    );
+  const shouldSkipCurrentJudge =
+    !deterministicAfter.passed ||
+    !options.workspaceAssertions.passed ||
+    hasFailedRunnerRequirement ||
+    !hasJudgeRequirements;
+
   if (
     result.judgeStatus === 'skipped' &&
     (options.judgeSkipped?.deterministicAfterPassed !== deterministicAfter.passed ||
       options.judgeSkipped.workspaceAssertionsPassed !== options.workspaceAssertions.passed ||
-      (deterministicAfter.passed && options.workspaceAssertions.passed))
+      (isCurrentTrial && !shouldSkipCurrentJudge) ||
+      (isCurrentTrial &&
+        (!('kind' in options.judgeSkipped) ||
+          options.judgeSkipped.kind !==
+            (!hasJudgeRequirements ? 'no-judge-requirements' : 'deterministic-failure'))))
   ) {
     throw new Error(`Qualification case ${caseId} has contradictory judge skip evidence.`);
   }
 
   if (isCurrentTrial) {
+    const judgeById = new Map(
+      judge?.requirements.map((requirement) => [requirement.id, requirement]),
+    );
+    const derivedAssessments = profileCase.scenario.judgeRequirements.map((requirement) => {
+      if (requirement.evaluation.kind === 'judge') {
+        const decision = judgeById.get(requirement.id);
+        return decision === undefined
+          ? {
+              id: requirement.id,
+              evaluator: 'judge' as const,
+              verdict: 'not-evaluated' as const,
+              evidence: 'The skipped judge stage did not evaluate this semantic requirement.',
+            }
+          : {
+              id: decision.id,
+              evaluator: 'judge' as const,
+              verdict: decision.verdict,
+              evidence: decision.evidence,
+            };
+      }
+
+      const commandPolicyPassed =
+        options.actorCommandPolicy !== null &&
+        options.actorCommandPolicy.credentialExposure.status === 'not-observed' &&
+        options.actorCommandPolicy.networkAccess.status === 'not-observed' &&
+        options.actorCommandPolicy.sensitiveAccess.status === 'not-observed';
+      const failedChecks = requirement.evaluation.checks.filter((check) => {
+        switch (check) {
+          case 'actor-command-policy':
+            return !commandPolicyPassed;
+          case 'deterministic-after':
+            return !deterministicAfter.passed;
+          case 'expected-actor-outcome':
+            return actor.outcome !== profileCase.scenario.expectedActorOutcome;
+          case 'workspace-assertions':
+            return !options.workspaceAssertions.passed;
+        }
+      });
+      return {
+        id: requirement.id,
+        evaluator: 'runner' as const,
+        verdict: failedChecks.length === 0 ? ('pass' as const) : ('fail' as const),
+        evidence:
+          failedChecks.length === 0
+            ? `Runner checks passed: ${requirement.evaluation.checks.join(', ')}.`
+            : `Runner checks failed: ${failedChecks.join(', ')}.`,
+      };
+    });
     const derivedFailures = deriveCurrentTrialFailures({
       actor,
       deterministicAfter,
       judge,
       profileCase,
+      requirementAssessments: derivedAssessments,
       workspaceAssertions: options.workspaceAssertions,
     });
 
     if (
+      JSON.stringify(result.requirementAssessments) !== JSON.stringify(derivedAssessments) ||
       result.passed !== (derivedFailures.length === 0) ||
       JSON.stringify(result.failures) !== JSON.stringify(derivedFailures)
     ) {
@@ -339,8 +415,8 @@ export const assertQualificationCaseEvidence = (options: {
     actor.outcome !== profileCase.scenario.expectedActorOutcome ||
     !options.workspaceAssertions.passed ||
     options.workspaceAssertions.failures.length > 0 ||
-    judge?.verdict !== 'pass' ||
-    result.judgeStatus !== 'completed' ||
+    (expectedRequirementIds.length > 0 && judge?.verdict !== 'pass') ||
+    (expectedRequirementIds.length > 0 && result.judgeStatus !== 'completed') ||
     result.failures.length > 0
   ) {
     throw new Error(`Passing qualification case ${caseId} has contradictory evidence.`);

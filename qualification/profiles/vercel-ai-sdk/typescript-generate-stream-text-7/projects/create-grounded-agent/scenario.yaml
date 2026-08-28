@@ -1,4 +1,4 @@
-version: 1
+version: 2
 id: create-grounded-agent
 title: Create a grounded agent
 purpose: Verify evidence-backed canonical creation across every supported Vercel binding.
@@ -51,11 +51,26 @@ workspace:
 judgeRequirements:
   - id: grounds-behavior
     description: Canonical assets reflect classification, human review, and the explicit absence of refund authority.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
   - id: binds-direct-wrapper
     description: The manifest binds the existing direct generateText wrapper, loader, and Output.object schema without inventing an input schema.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
   - id: binds-function-tool
     description: The classify_order name and implementation, registration, input-schema, and output-schema symbols match the existing closed function tool.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
   - id: avoids-redundant-guidance
     description: No runtime guide is added because the integration uses supported direct patterns without repository-specific wrapper behavior.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
   - id: validates-project
     description: Every deterministic layer accepts the completed project without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

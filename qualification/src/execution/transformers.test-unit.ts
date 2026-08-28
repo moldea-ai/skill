@@ -29,6 +29,7 @@ describe('qualification result transformation', () => {
       selection: { adapterId: 'custom', implementationId: 'custom' },
       status: 'running',
       isDryRun: true,
+      mode: 'dry-run',
       useCache: false,
       createdAt: '2026-08-20T10:00:00.000Z',
       updatedAt: '2026-08-20T10:00:00.000Z',

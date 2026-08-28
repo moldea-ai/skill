@@ -10,6 +10,8 @@ import {
 import {
   ActorOutputSchema,
   JudgeOutputSchema,
+  QualificationCommandPolicyEvidenceSchema,
+  QualificationProjectedExecutionEventSchema,
   type IActorOutput,
   type IJudgeOutput,
 } from '../contracts/index.ts';
@@ -34,6 +36,7 @@ const ModelCacheMetadataSchema = z.strictObject({
   sourceAttemptId: z.string().min(1),
   createdAt: z.string().datetime(),
   durationMs: z.number().int().nonnegative(),
+  commandPolicy: QualificationCommandPolicyEvidenceSchema,
   eventsSha256: z.string().regex(/^[a-f0-9]{64}$/u),
   outputSha256: z.string().regex(/^[a-f0-9]{64}$/u),
   usage: z
@@ -78,6 +81,16 @@ const canonicalize = (input: unknown): ICanonicalJson => {
 };
 
 const getDefaultCacheRoot = (): string => path.join(LOCAL_QUALIFICATION_ROOT, 'cache');
+
+/** Validates a complete safe projected event stream before cache use. */
+const validateProjectedEvents = (events: string): string => {
+  for (const eventLine of events.split('\n')) {
+    if (eventLine.trim() !== '') {
+      QualificationProjectedExecutionEventSchema.parse(JSON.parse(eventLine) as unknown);
+    }
+  }
+  return events;
+};
 
 const getCacheDirectory = (cacheRoot: string, cacheKey: string): string =>
   path.join(cacheRoot, cacheKey);
@@ -135,7 +148,7 @@ export const readActorCache = async (
     const eventsPath = path.join(cacheDirectory, 'events.jsonl');
     workspaceSnapshotDirectory = path.join(cacheDirectory, 'workspace');
     output = await readJsonFile(outputPath, ActorOutputSchema);
-    events = await readFile(eventsPath, 'utf8');
+    events = validateProjectedEvents(await readFile(eventsPath, 'utf8'));
     const [outputSha256, eventsSha256, workspaceFingerprint] = await Promise.all([
       calculateFileSha256(outputPath),
       calculateFileSha256(eventsPath),
@@ -163,6 +176,7 @@ export const writeActorCache = async (options: {
   sourceAttemptId: string;
   output: IActorOutput;
   durationMs: number;
+  commandPolicy: IModelCacheMetadata['commandPolicy'];
   events: string;
   usage: IModelCacheMetadata['usage'];
   workspaceDirectory: string;
@@ -183,7 +197,7 @@ export const writeActorCache = async (options: {
     const eventsPath = path.join(stagingDirectory, 'events.jsonl');
     const workspaceSnapshotDirectory = path.join(stagingDirectory, 'workspace');
     await writeJsonFileAtomically(outputPath, options.output);
-    await writeFile(eventsPath, options.events, 'utf8');
+    await writeFile(eventsPath, validateProjectedEvents(options.events), 'utf8');
     await captureQualificationWorkspaceSnapshot(
       options.workspaceDirectory,
       workspaceSnapshotDirectory,
@@ -200,6 +214,7 @@ export const writeActorCache = async (options: {
       sourceAttemptId: options.sourceAttemptId,
       createdAt: new Date().toISOString(),
       durationMs: options.durationMs,
+      commandPolicy: options.commandPolicy,
       eventsSha256,
       outputSha256,
       usage: options.usage,
@@ -227,7 +242,7 @@ export const readJudgeCache = async (
     const outputPath = path.join(cacheDirectory, 'output.json');
     const eventsPath = path.join(cacheDirectory, 'events.jsonl');
     const output = await readJsonFile(outputPath, JudgeOutputSchema);
-    const events = await readFile(eventsPath, 'utf8');
+    const events = validateProjectedEvents(await readFile(eventsPath, 'utf8'));
     const [outputSha256, eventsSha256] = await Promise.all([
       calculateFileSha256(outputPath),
       calculateFileSha256(eventsPath),
@@ -253,6 +268,7 @@ export const writeJudgeCache = async (options: {
   sourceAttemptId: string;
   output: IJudgeOutput;
   durationMs: number;
+  commandPolicy: IModelCacheMetadata['commandPolicy'];
   events: string;
   usage: IModelCacheMetadata['usage'];
   cacheRoot?: string;
@@ -271,7 +287,7 @@ export const writeJudgeCache = async (options: {
     const outputPath = path.join(stagingDirectory, 'output.json');
     const eventsPath = path.join(stagingDirectory, 'events.jsonl');
     await writeJsonFileAtomically(outputPath, options.output);
-    await writeFile(eventsPath, options.events, 'utf8');
+    await writeFile(eventsPath, validateProjectedEvents(options.events), 'utf8');
     const [outputSha256, eventsSha256] = await Promise.all([
       calculateFileSha256(outputPath),
       calculateFileSha256(eventsPath),
@@ -283,6 +299,7 @@ export const writeJudgeCache = async (options: {
       sourceAttemptId: options.sourceAttemptId,
       createdAt: new Date().toISOString(),
       durationMs: options.durationMs,
+      commandPolicy: options.commandPolicy,
       eventsSha256,
       outputSha256,
       usage: options.usage,

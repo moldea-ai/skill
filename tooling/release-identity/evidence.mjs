@@ -316,7 +316,9 @@ const hasValidWorkspaceEvidence = (actor, assertions, scenario) => {
 };
 
 const hasValidJudgeEvidence = (judge, scenario) => {
-  const expectedRequirementIds = scenario.judgeRequirements.map(({ id }) => id);
+  const expectedRequirementIds = scenario.judgeRequirements
+    .filter((requirement) => requirement.evaluation.kind === 'judge')
+    .map(({ id }) => id);
   const actualRequirementIds = judge.requirements.map(({ id }) => id);
   const hasFailedRequirement = judge.requirements.some(({ verdict }) => verdict === 'fail');
   return (
@@ -328,11 +330,71 @@ const hasValidJudgeEvidence = (judge, scenario) => {
   );
 };
 
+const hasPassingActorCommandPolicy = (commandPolicy) =>
+  commandPolicy.credentialExposure.status === 'not-observed' &&
+  commandPolicy.networkAccess.status === 'not-observed' &&
+  commandPolicy.sensitiveAccess.status === 'not-observed';
+
+const deriveQualificationRequirementAssessments = (
+  actor,
+  actorEvidence,
+  deterministicAfter,
+  assertions,
+  judge,
+  scenario,
+) => {
+  const judgeById = new Map(
+    judge?.requirements.map((requirement) => [requirement.id, requirement]),
+  );
+
+  return scenario.judgeRequirements.map((requirement) => {
+    if (requirement.evaluation.kind === 'judge') {
+      const decision = judgeById.get(requirement.id);
+      return decision === undefined
+        ? {
+            id: requirement.id,
+            evaluator: 'judge',
+            verdict: 'not-evaluated',
+            evidence: 'The skipped judge stage did not evaluate this semantic requirement.',
+          }
+        : {
+            id: decision.id,
+            evaluator: 'judge',
+            verdict: decision.verdict,
+            evidence: decision.evidence,
+          };
+    }
+
+    const failedChecks = requirement.evaluation.checks.filter((check) => {
+      switch (check) {
+        case 'actor-command-policy':
+          return !hasPassingActorCommandPolicy(actorEvidence.commandPolicy);
+        case 'deterministic-after':
+          return !deterministicAfter.summary.passed;
+        case 'expected-actor-outcome':
+          return actor.outcome !== scenario.expectedActorOutcome;
+        case 'workspace-assertions':
+          return !assertions.passed;
+      }
+    });
+    return {
+      id: requirement.id,
+      evaluator: 'runner',
+      verdict: failedChecks.length === 0 ? 'pass' : 'fail',
+      evidence:
+        failedChecks.length === 0
+          ? `Runner checks passed: ${requirement.evaluation.checks.join(', ')}.`
+          : `Runner checks failed: ${failedChecks.join(', ')}.`,
+    };
+  });
+};
+
 const deriveQualificationTrialFailures = (
   actor,
   deterministicAfter,
   assertions,
   judge,
+  requirementAssessments,
   scenario,
 ) => [
   ...(actor.outcome === scenario.expectedActorOutcome
@@ -342,9 +404,9 @@ const deriveQualificationTrialFailures = (
       ]),
   ...deterministicAfter.summary.failures,
   ...assertions.failures,
-  ...(judge?.requirements
+  ...requirementAssessments
     .filter(({ verdict }) => verdict === 'fail')
-    .map(({ evidence, id }) => `Judge requirement ${id} failed: ${evidence}`) ?? []),
+    .map(({ evidence, id }) => `Requirement ${id} failed: ${evidence}`),
   ...(judge?.verdict === 'fail' ? judge.failures : []),
 ];
 
@@ -455,6 +517,9 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
         const assertions = WorkspaceAssertionResultSchema.parse(
           readJson(join(attemptDirectory, `${trialRoot}/workspace-assertions.json`)),
         );
+        const hasJudgeRequirements = scenario.judgeRequirements.some(
+          (requirement) => requirement.evaluation.kind === 'judge',
+        );
         const judgeEvidence =
           trial.judgeStatus === 'completed'
             ? QualificationModelStageEvidenceSchema.parse(
@@ -489,11 +554,20 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
           `case:${caseId}:trial:${trial.trialId}:deterministic-after`,
         );
         const assertionsStage = stages.get(`case:${caseId}:trial:${trial.trialId}:assertions`);
+        const derivedRequirementAssessments = deriveQualificationRequirementAssessments(
+          actor,
+          actorEvidence,
+          deterministicAfter,
+          assertions,
+          judge,
+          scenario,
+        );
         const derivedFailures = deriveQualificationTrialFailures(
           actor,
           deterministicAfter,
           assertions,
           judge,
+          derivedRequirementAssessments,
           scenario,
         );
         return (
@@ -511,13 +585,16 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
           hasValidModelEvidence(attempt, trial, 'actor', actorStage, actorEvidence) &&
           (judge === null
             ? judgeSkipped !== null &&
-              (!deterministicAfter.summary.passed || !assertions.passed) &&
+              !hasJudgeRequirements &&
+              judgeSkipped.kind === 'no-judge-requirements' &&
               judgeSkipped.deterministicAfterPassed === deterministicAfter.summary.passed &&
               judgeSkipped.workspaceAssertionsPassed === assertions.passed &&
               judgeStage?.status === 'skipped'
             : judgeEvidence !== null &&
               hasValidJudgeEvidence(judge, scenario) &&
               hasValidModelEvidence(attempt, trial, 'judge', judgeStage, judgeEvidence)) &&
+          JSON.stringify(trial.requirementAssessments) ===
+            JSON.stringify(derivedRequirementAssessments) &&
           trial.passed === (derivedFailures.length === 0) &&
           JSON.stringify(trial.failures) === JSON.stringify(derivedFailures)
         );

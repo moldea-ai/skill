@@ -1,4 +1,4 @@
-version: 1
+version: 2
 id: maintain-dirty-project
 title: Maintain a dirty project
 purpose: Verify a focused context change while preserving SDK wiring and unrelated work.
@@ -50,9 +50,21 @@ workspace:
 judgeRequirements:
   - id: adds-context
     description: Billing context is canonical, globally registered, assigned to support, and related to the exact billing source.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
   - id: preserves-sdk-wiring
     description: The direct streamText wrapper, instruction loader, and Output.object relationship remain unchanged and evidenced.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
   - id: preserves-dirty-state
     description: Unrelated project policy, tracked operator note, and untracked local observation remain byte-for-byte unchanged.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
   - id: validates-project
     description: Every deterministic layer accepts the final project without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

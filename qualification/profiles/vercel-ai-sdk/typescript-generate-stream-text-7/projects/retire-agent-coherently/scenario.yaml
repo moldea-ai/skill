@@ -1,4 +1,4 @@
-version: 1
+version: 2
 id: retire-agent-coherently
 title: Retire an agent coherently
 purpose: Verify that removing a wrapper removes its complete canonical surface.
@@ -42,9 +42,21 @@ workspace:
 judgeRequirements:
   - id: removes-obsolete-declaration
     description: The final manifest no longer declares the removed agent or any Vercel wrapper, loader, or output-schema binding.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
   - id: removes-orphaned-assets
     description: Obsolete description and instruction files are deleted rather than left as misleading canonical state.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
   - id: preserves-surviving-context
     description: Project context and unrelated source remain byte-for-byte unchanged.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
   - id: validates-project
     description: Every deterministic layer accepts the reconciled project without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

@@ -107,6 +107,8 @@ export const createAttemptCheckpoint = async (options: {
   parentAttemptId: string | null;
   selection: IQualificationSelection;
   isDryRun: boolean;
+  mode: 'diagnostic' | 'dry-run' | 'official';
+  selectedCaseId: string | null;
   useCache: boolean;
   packagesRepository: string;
   skillRepository: string;
@@ -127,6 +129,8 @@ export const createAttemptCheckpoint = async (options: {
     selection: options.selection,
     status: 'running',
     isDryRun: options.isDryRun,
+    mode: options.mode,
+    selectedCaseId: options.selectedCaseId,
     useCache: options.useCache,
     createdAt: timestamp,
     updatedAt: timestamp,

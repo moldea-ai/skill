@@ -1,4 +1,4 @@
-version: 1
+version: 2
 id: reconcile-drift-and-boundaries
 title: Reconcile drift and boundaries
 purpose: Verify stale-reference repair and conservative unresolved reporting for dynamic code.
@@ -46,9 +46,21 @@ workspace:
 judgeRequirements:
   - id: repairs-binding
     description: The stale runtime-agent reference is updated to the existing supportAssistant export and no obsolete source is recreated.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
   - id: records-boundary
     description: Dynamic tool registration is recorded as an unresolved warning with a concrete resolution and related source instead of an invented binding.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
   - id: preserves-source
     description: Both pre-existing implementation files and the canonical agent assets remain unchanged.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
   - id: validates-project
     description: The initially invalid project becomes valid through Repository FS, Repository memory, Core, CLI, and project typechecking without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

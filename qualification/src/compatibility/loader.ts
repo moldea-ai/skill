@@ -9,11 +9,16 @@ import {
 } from '../constants/index.ts';
 import {
   QualificationCaseCatalogSchema,
+  QualificationCaseScenarioSchema,
   QualificationProfileSchema,
   QualificationSelectionSchema,
   type IQualificationSelection,
 } from '../contracts/index.ts';
-import { calculateDirectoryFingerprint, readYamlFile } from '../filesystem/index.ts';
+import {
+  calculateDirectoryFingerprint,
+  readYamlFile,
+  resolveContainedPath,
+} from '../filesystem/index.ts';
 import { calculateCompatibilityBehaviorDigest } from '../execution/fingerprints.ts';
 import {
   RuntimeCompatibilityMatrixSchema,
@@ -193,6 +198,20 @@ export const resolveQualificationTarget = async (
       throw new Error(`Qualification profile references uncataloged case ${caseId}.`);
     }
   }
+
+  await Promise.all(
+    profile.cases.map(async (profileCase) => {
+      const projectDirectory = resolveContainedPath(profileDirectory, profileCase.projectDirectory);
+      const scenario = await readYamlFile(
+        resolveContainedPath(projectDirectory, profileCase.scenarioFile),
+        QualificationCaseScenarioSchema,
+      );
+
+      if (scenario.id !== profileCase.id) {
+        throw new Error(`Scenario identity does not match profile case ${profileCase.id}.`);
+      }
+    }),
+  );
 
   return {
     selection,

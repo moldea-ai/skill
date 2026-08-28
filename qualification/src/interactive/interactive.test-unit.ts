@@ -16,11 +16,19 @@ describe('paid qualification confirmation', () => {
     promptMocks.confirm.mockResolvedValue(true);
   });
 
-  test.each([48, 60])('warns about the %d-call paid execution boundary', async (callCount) => {
-    await expect(confirmPaidQualificationExecution(callCount)).resolves.toBe(true);
-    expect(promptMocks.confirm).toHaveBeenCalledWith({
-      message: `This attempt can make up to ${callCount} planned paid frontier-model calls (gpt-5.6-sol, medium reasoning effort). Operational retries after transient provider, network, or timeout failures can add calls. Continue?`,
-      default: false,
-    });
-  });
+  test.each([
+    [48, 96],
+    [60, 120],
+  ])(
+    'warns about the %d-call paid execution boundary',
+    async (plannedCallCount, maximumCallCount) => {
+      await expect(
+        confirmPaidQualificationExecution(plannedCallCount, maximumCallCount),
+      ).resolves.toBe(true);
+      expect(promptMocks.confirm).toHaveBeenCalledWith({
+        message: `This attempt plans up to ${plannedCallCount} paid frontier-model calls and can make at most ${maximumCallCount} calls including bounded operational retries (gpt-5.6-sol, medium reasoning effort). Continue?`,
+        default: false,
+      });
+    },
+  );
 });

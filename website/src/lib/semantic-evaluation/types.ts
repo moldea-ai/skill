@@ -4,6 +4,8 @@ import type {
   ISemanticCriterion as ISemanticCriterionContract,
 } from '../../../../tooling/semantic-evaluation/index.mjs';
 
+import type { IEvaluationReplayModel } from '../evaluation-replay/index.ts';
+
 import type { SEMANTIC_CASE_PRESENTATION, SEMANTIC_EVALUATION_GROUPS } from './constants.ts';
 import type { ISemanticAttemptRecord, ISemanticLatestResult } from './validations.ts';
 
@@ -38,14 +40,6 @@ export interface ISemanticAttemptTrialModel {
   rationale: string;
 }
 
-// normalized case history used by static attempt pages
-export interface ISemanticAttemptCaseModel {
-  confirmationStatus: 'not-required' | 'passed' | 'rejected' | 'required';
-  id: string;
-  status: 'failed' | 'passed' | 'recovered';
-  trials: ISemanticAttemptTrialModel[];
-}
-
 // semantic contracts consumed directly from the repository-owned evaluator
 export type ISemanticCriterion = ISemanticCriterionContract;
 export type ISemanticCaseDefinition = ISemanticCaseContract;
@@ -53,12 +47,15 @@ export type ISemanticCaseDefinition = ISemanticCaseContract;
 // current case state derived from the latest immutable attempt
 export interface ISemanticEvaluationCaseModel {
   confirmationStatus: ISemanticAttemptRecord['cases'][number]['confirmationStatus'] | null;
+  developerDirection: string | null;
   evaluatedAt: string | null;
   expectedCriteria: ISemanticCriterion[];
   forbiddenCriteria: ISemanticCriterion[];
-  groupId: ISemanticEvaluationGroupId;
-  id: ISemanticEvaluationCaseId;
+  groupId: ISemanticEvaluationGroupId | null;
+  hasCurrentCaseDefinition: boolean;
+  id: string;
   rationale: string | null;
+  replay: IEvaluationReplayModel | null;
   scenario: string;
   status: ISemanticEvaluationCaseStatus;
   title: string;
@@ -75,7 +72,7 @@ export interface ISemanticEvaluationGroupModel {
 
 // one immutable attempt with public routes to its summary and exact evidence
 export interface ISemanticAttemptModel {
-  cases: ISemanticAttemptCaseModel[];
+  cases: ISemanticEvaluationCaseModel[];
   rawAttemptUrl: string;
   rawEvidenceUrl: string;
   result: ISemanticAttemptRecord;

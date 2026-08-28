@@ -1,0 +1,15 @@
+---
+import { renderMarkdownFragment } from '../../lib/content/markdown.ts';
+
+interface Props {
+  markdown: string;
+}
+
+const { markdown } = Astro.props;
+const html = await renderMarkdownFragment(markdown);
+---
+
+<div
+  class="prose-moldea prose-moldea-wrap-code replay-markdown min-w-0"
+  set:html={html}
+/>

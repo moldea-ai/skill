@@ -56,7 +56,30 @@ vi.mock('../semantic-evaluation/index.ts', () => {
       failedCaseCount: 0,
       groups: [
         {
-          cases: [],
+          cases: [
+            {
+              expectedCriteria: [{ criterion: 'Expected criterion.', label: 'expected' }],
+              forbiddenCriteria: [],
+              hasCurrentCaseDefinition: true,
+              id: 'semantic-case',
+              replay: {
+                trials: [
+                  {
+                    steps: [
+                      {
+                        content: 'REPLAY_TRANSCRIPT_SENTINEL',
+                        kind: 'message',
+                        role: 'coding-agent',
+                        source: 'recorded',
+                      },
+                    ],
+                  },
+                ],
+              },
+              scenario: 'A bounded scenario.',
+              title: 'Semantic case',
+            },
+          ],
           description: 'Adoption behavior.',
           id: 'adoption',
           title: 'Adoption and initialization',
@@ -140,6 +163,9 @@ describe('createWebsiteModel', () => {
     expect(model.routes).toContain('/evidence/semantic/');
     expect(model.routes).toContain('/evidence/qualification/');
     expect(model.searchRecords.some(({ route }) => route === '/evidence/')).toBe(true);
+    expect(JSON.stringify(model.semanticEvaluation)).toContain('REPLAY_TRANSCRIPT_SENTINEL');
+    expect(JSON.stringify(model.searchRecords)).not.toContain('REPLAY_TRANSCRIPT_SENTINEL');
+    expect(model.llmsText).not.toContain('REPLAY_TRANSCRIPT_SENTINEL');
   });
 
   test('keeps distribution and product-name presentation in generated LLM guidance', () => {

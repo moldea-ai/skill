@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 import {
   createPortableSkillDigest,
+  createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
   createSemanticCoverageDigest,
   loadVerifiedSemanticEvaluationAttempts,
@@ -19,12 +20,10 @@ import {
   SEMANTIC_EVALUATION_METHODOLOGY_ROUTE,
   SEMANTIC_EVALUATION_ROUTE,
 } from './constants.ts';
+import { createSemanticEvaluationReplay } from './replay-transformers.ts';
 import type {
-  ISemanticAttemptCaseModel,
   ISemanticAttemptModel,
-  ISemanticAttemptTrialModel,
   ISemanticCaseDefinition,
-  ISemanticEvaluationCaseId,
   ISemanticEvaluationCaseModel,
   ISemanticEvaluationGroupId,
   ISemanticEvaluationWebsiteModel,
@@ -32,7 +31,10 @@ import type {
 import {
   SemanticAttemptRecordSchema,
   SemanticLatestResultSchema,
+  SemanticReplayCandidateSchema,
+  hasValidSemanticReplayExecutionEvidence,
   type ISemanticAttemptRecord,
+  type ISemanticReplayCandidate,
 } from './validations.ts';
 
 const CONFORMANCE_CASES_PATH = 'fixtures/conformance-cases.json';
@@ -50,13 +52,6 @@ const isOfficialSemanticHost = (host: {
   host.reasoningEffort === 'medium' &&
   (host.version === undefined ||
     (host.version.trim().length > 0 && host.version !== 'unavailable'));
-
-const createAttemptCases = (attempt: ISemanticAttemptRecord): ISemanticAttemptCaseModel[] => {
-  return attempt.cases.map((attemptCase) => ({
-    ...attemptCase,
-    trials: attemptCase.trials.map((trial): ISemanticAttemptTrialModel => ({ ...trial })),
-  }));
-};
 
 const readJson = (path: string): unknown => {
   try {
@@ -124,10 +119,86 @@ const hasCurrentAttemptIdentity = (
   return !hasInputMismatch;
 };
 
-const createAttemptModel = (attempt: ISemanticAttemptRecord): ISemanticAttemptModel => {
-  const attemptPath = `${SEMANTIC_ATTEMPTS_PATH}/attempts/${attempt.attemptId}`;
+const createCaseModel = (
+  caseDefinition: ISemanticCaseDefinition | null,
+  attemptCase: ISemanticAttemptRecord['cases'][number] | null,
+  replayCandidate: ISemanticReplayCandidate | null,
+): ISemanticEvaluationCaseModel => {
+  const id = attemptCase?.id ?? caseDefinition?.id;
+  if (id === undefined) {
+    throw new Error('Semantic case model requires a current definition or an immutable trial.');
+  }
+  const presentation = SEMANTIC_CASE_PRESENTATION[id as keyof typeof SEMANTIC_CASE_PRESENTATION];
+  const latestTrial = attemptCase?.trials.at(-1);
+  if (attemptCase === null && presentation === undefined) {
+    throw new Error(`Semantic case ${id} has no public presentation model.`);
+  }
+  if ((attemptCase === null) !== (replayCandidate === null)) {
+    throw new Error(`Semantic case ${id} has incomplete replay inputs.`);
+  }
+
+  const replayProjection =
+    attemptCase === null || replayCandidate === null
+      ? null
+      : createSemanticEvaluationReplay(caseDefinition, attemptCase, replayCandidate);
+  const hasCurrentCaseDefinition =
+    caseDefinition !== null &&
+    (replayProjection === null ||
+      replayProjection.caseDefinitionDigest === createSemanticCaseDefinitionDigest(caseDefinition));
+  const activeCaseDefinition = hasCurrentCaseDefinition ? caseDefinition : null;
+  const operation = activeCaseDefinition?.operation.trim() ?? '';
+  const scenario = activeCaseDefinition?.scenario;
   return {
-    cases: createAttemptCases(attempt),
+    confirmationStatus: attemptCase?.confirmationStatus ?? null,
+    developerDirection:
+      replayProjection?.developerDirection ??
+      activeCaseDefinition?.input.developerDirection ??
+      null,
+    evaluatedAt: latestTrial?.evaluatedAt ?? null,
+    expectedCriteria: activeCaseDefinition?.expected ?? [],
+    forbiddenCriteria: activeCaseDefinition?.forbidden ?? [],
+    groupId: hasCurrentCaseDefinition ? (presentation?.groupId ?? null) : null,
+    hasCurrentCaseDefinition,
+    id,
+    rationale: latestTrial?.rationale ?? null,
+    replay: replayProjection?.replay ?? null,
+    scenario:
+      activeCaseDefinition === null
+        ? 'This immutable attempt used a case definition that is no longer current.'
+        : operation
+          ? `${scenario} Requested operation: ${operation}.`
+          : (scenario ?? ''),
+    status: attemptCase?.status ?? 'pending',
+    title: hasCurrentCaseDefinition ? (presentation?.title ?? id) : id,
+    trials: attemptCase?.trials.map((trial) => ({ ...trial })) ?? [],
+  };
+};
+
+const createAttemptModel = (
+  attempt: ISemanticAttemptRecord,
+  caseDefinitions: ISemanticCaseDefinition[],
+  repositoryRoot: string,
+): ISemanticAttemptModel => {
+  const attemptPath = `${SEMANTIC_ATTEMPTS_PATH}/attempts/${attempt.attemptId}`;
+  const rawReplayCandidate = readJson(join(repositoryRoot, attemptPath, 'evidence.json'));
+  if (
+    !hasValidSemanticReplayExecutionEvidence(rawReplayCandidate, {
+      cliVersion: attempt.cli.version,
+      jsonSchemaVersion: attempt.cli.jsonSchemaVersion,
+    })
+  ) {
+    throw new Error(
+      `Semantic attempt ${attempt.attemptId} contains unsupported actor execution evidence.`,
+    );
+  }
+  const replayCandidate = SemanticReplayCandidateSchema.parse(rawReplayCandidate);
+  const cases = attempt.cases.map((attemptCase) => {
+    const caseDefinition = caseDefinitions.find(({ id }) => id === attemptCase.id) ?? null;
+    return createCaseModel(caseDefinition, attemptCase, replayCandidate);
+  });
+
+  return {
+    cases,
     rawAttemptUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${attemptPath}/attempt.json`,
     rawEvidenceUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${attemptPath}/evidence.json`,
     result: attempt,
@@ -135,36 +206,13 @@ const createAttemptModel = (attempt: ISemanticAttemptRecord): ISemanticAttemptMo
   };
 };
 
-const createCaseModel = (
-  caseDefinition: ISemanticCaseDefinition,
-  latestAttempt: ISemanticAttemptModel | null,
-): ISemanticEvaluationCaseModel => {
-  const id = caseDefinition.id as ISemanticEvaluationCaseId;
-  const presentation = SEMANTIC_CASE_PRESENTATION[id];
-  const attemptCase = latestAttempt?.cases.find(({ id: attemptCaseId }) => attemptCaseId === id);
-  const latestTrial = attemptCase?.trials.at(-1);
-  if (presentation === undefined) {
-    throw new Error(`Semantic case ${id} has no public presentation model.`);
-  }
-
-  const operation = caseDefinition.operation.trim();
-  const scenario = caseDefinition.scenario;
-  return {
-    confirmationStatus: attemptCase?.confirmationStatus ?? null,
-    evaluatedAt: latestTrial?.evaluatedAt ?? null,
-    expectedCriteria: caseDefinition.expected,
-    forbiddenCriteria: caseDefinition.forbidden,
-    groupId: presentation.groupId,
-    id,
-    rationale: latestTrial?.rationale ?? null,
-    scenario: operation ? `${scenario} Requested operation: ${operation}.` : scenario,
-    status: attemptCase?.status ?? 'pending',
-    title: presentation.title,
-    trials: attemptCase?.trials ?? [],
-  };
-};
-
-/** Loads complete immutable semantic history and validates the latest release-bound attempt. */
+/**
+ * Loads complete immutable semantic history and validates the latest release-bound attempt.
+ * @param repositoryRoot Repository root containing semantic cases and immutable evidence.
+ * @returns The complete semantic website model.
+ * @throws
+ * - If semantic cases, history, replay evidence, or presentation metadata are malformed or inconsistent
+ */
 export const loadSemanticEvaluationWebsiteModel = (
   repositoryRoot: string,
 ): ISemanticEvaluationWebsiteModel => {
@@ -178,7 +226,9 @@ export const loadSemanticEvaluationWebsiteModel = (
   );
   const latestPointer =
     loadedHistory.latest === null ? null : SemanticLatestResultSchema.parse(loadedHistory.latest);
-  const attemptModels = attempts.map(createAttemptModel);
+  const attemptModels = attempts.map((attempt) =>
+    createAttemptModel(attempt, caseDefinitions, repositoryRoot),
+  );
   const latest =
     latestPointer === null
       ? null
@@ -201,9 +251,14 @@ export const loadSemanticEvaluationWebsiteModel = (
     throw new Error('Semantic last-passing pointer does not resolve to an immutable attempt.');
   }
 
-  const cases = caseDefinitions.map((caseDefinition) =>
-    createCaseModel(caseDefinition, hasCurrentEvaluation ? latest : null),
-  );
+  const cases = caseDefinitions.map((caseDefinition) => {
+    if (!hasCurrentEvaluation) return createCaseModel(caseDefinition, null, null);
+
+    return (
+      latest.cases.find(({ id }) => id === caseDefinition.id) ??
+      createCaseModel(caseDefinition, null, null)
+    );
+  });
   const groups = (
     Object.entries(SEMANTIC_EVALUATION_GROUPS) as Array<
       [ISemanticEvaluationGroupId, (typeof SEMANTIC_EVALUATION_GROUPS)[ISemanticEvaluationGroupId]]

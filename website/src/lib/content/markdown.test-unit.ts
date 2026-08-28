@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
-import { renderMarkdown } from './markdown.ts';
+import { renderMarkdown, renderMarkdownFragment } from './markdown.ts';
 
 describe('renderMarkdown', () => {
   test('removes the page-owned title and returns stable outline headings', async () => {
@@ -63,5 +63,21 @@ describe('renderMarkdown', () => {
     expect(rendered.html).toContain(
       '<div class="table-scroll" tabindex="0" role="region" aria-label="Scrollable table"><table>',
     );
+  });
+
+  test('renders compact recorded fragments without broken evaluator workspace links', async () => {
+    const html = await renderMarkdownFragment(
+      'Use **moldea** with [the agent](/mnt/src/agent.ts:4) and [the fixture](/related-application/src/fixture.ts:1). Existing `moldea` code remains intact. See the [public docs](https://example.com/docs).',
+    );
+
+    expect(html).toContain('<strong><code>moldea</code></strong>');
+    expect(html).toContain('the agent');
+    expect(html).toContain('the fixture');
+    expect(html).not.toContain('href="/mnt/');
+    expect(html).not.toContain('href="/related-application/');
+    expect(html).toContain(
+      '<a href="https://example.com/docs" target="_blank" rel="noopener noreferrer">public docs</a>',
+    );
+    expect(html.match(/<code>moldea<\/code>/gu)).toHaveLength(2);
   });
 });

@@ -4,7 +4,7 @@ import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 
 import EvidenceStatus from '../../../../../components/evidence-status/evidence-status.astro';
-import EvidenceText from '../../../../../components/evidence-text/evidence-text.astro';
+import SemanticEvaluationCase from '../../../../../components/semantic-evaluation-case/semantic-evaluation-case.astro';
 import BaseLayout from '../../../../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../../../../lib/generation/generation.ts';
 import type { ISemanticAttemptModel } from '../../../../../lib/semantic-evaluation/index.ts';
@@ -58,8 +58,9 @@ const breadcrumbs = [
       </h1>
       <p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
         This page presents the attempt without converting failures or pending scenarios into passes.
-        The exact actor responses, commands, workspace evidence, and judge rationales remain in the
-        raw evidence artifact.
+        Open a completed scenario for an evidence-grounded replay of the developer request, recorded
+        agent response, safe command facts, changed paths, independent judge rationale, and verdict.
+        The exact source artifact remains available for technical inspection.
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
@@ -128,95 +129,12 @@ const breadcrumbs = [
       </div>
       <div class="mt-7 grid gap-3">
         {
-          attempt.cases.map((attemptCase) => (
-            <article class="surface-card min-w-0 overflow-hidden p-5 sm:p-6">
-              <div class="flex flex-wrap items-center gap-3">
-                <EvidenceStatus status={attemptCase.status} />
-                <h3 class="font-mono text-sm font-semibold break-all">{attemptCase.id}</h3>
-              </div>
-              <p class="mt-3 text-sm text-muted-foreground">
-                Confirmation status: {attemptCase.confirmationStatus}. Trials recorded:{' '}
-                {attemptCase.trials.length}.
-              </p>
-              <ol class="mt-5 grid gap-3">
-                {attemptCase.trials.map((trial) => (
-                  <li class="rounded-xl border border-border bg-muted/30 p-4">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <EvidenceStatus status={trial.passed ? 'passed' : 'failed'} />
-                      <span class="font-mono text-xs font-bold text-muted-foreground">
-                        {trial.kind === 'initial'
-                          ? 'Initial trial'
-                          : `Confirmation ${trial.confirmationIndex}`}
-                      </span>
-                    </div>
-                    <p class="mt-3 text-sm leading-6 text-muted-foreground">
-                      <EvidenceText text={trial.rationale} />
-                    </p>
-                    <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2">
-                      <div>
-                        <dt class="text-muted-foreground">Actor host</dt>
-                        <dd class="mt-1 font-mono text-xs break-all">{trial.actorHost.version}</dd>
-                      </div>
-                      <div>
-                        <dt class="text-muted-foreground">Judge host</dt>
-                        <dd class="mt-1 font-mono text-xs break-all">{trial.judgeHost.version}</dd>
-                      </div>
-                      <div>
-                        <dt class="text-muted-foreground">Package-manager execution</dt>
-                        <dd class="mt-1 font-mono text-xs break-all">
-                          {trial.actorCommandPolicyEvidence.packageManagerExecution}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt class="text-muted-foreground">Command-policy coverage</dt>
-                        <dd class="mt-1">
-                          {trial.actorCommandPolicyEvidence.completedCommandCount} completed,{' '}
-                          {trial.actorCommandPolicyEvidence.indeterminateCommandCount}{' '}
-                          indeterminate,{' '}
-                          {trial.actorCommandPolicyEvidence.packageManagerInvocationCount}{' '}
-                          package-manager invocations
-                        </dd>
-                      </div>
-                      <div>
-                        <dt class="text-muted-foreground">Expected labels observed</dt>
-                        <dd class="mt-1">
-                          {trial.observed.length === 0 ? (
-                            'None'
-                          ) : (
-                            <ul class="grid gap-1">
-                              {trial.observed.map((label) => (
-                                <li>
-                                  <code class="text-xs break-all">{label}</code>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </dd>
-                      </div>
-                      <div>
-                        <dt class="text-muted-foreground">Forbidden labels triggered</dt>
-                        <dd class="mt-1">
-                          {trial.forbidden.length === 0 ? (
-                            'None'
-                          ) : (
-                            <ul class="grid gap-1">
-                              {trial.forbidden.map((label) => (
-                                <li>
-                                  <code class="text-xs break-all">{label}</code>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </dd>
-                      </div>
-                    </dl>
-                    <p class="mt-3 font-mono text-xs text-muted-foreground">
-                      Evaluated <time datetime={trial.evaluatedAt}>{trial.evaluatedAt}</time>
-                    </p>
-                  </li>
-                ))}
-              </ol>
-            </article>
+          attempt.cases.map((evaluationCase, index) => (
+            <SemanticEvaluationCase
+              evaluationCase={evaluationCase}
+              number={index + 1}
+              showTrialProvenance
+            />
           ))
         }
       </div>

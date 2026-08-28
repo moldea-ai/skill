@@ -49,6 +49,43 @@ const renderMaturityBadges = (html: string): string => {
   );
 };
 
+/** Removes recorded local links that cannot resolve on the public website. */
+const unwrapRecordedLocalLinks = (html: string): string =>
+  html.replaceAll(/<a href="(?!(?:[a-z][a-z\d+.-]*:|\/\/))[^" ]*">([\s\S]*?)<\/a>/giu, '$1');
+
+/** Applies the public product-name treatment outside existing code elements. */
+const renderProductNamesAsCode = (html: string): string => {
+  let codeDepth = 0;
+
+  return html.replaceAll(/<[^>]+>|[^<]+/g, (token) => {
+    if (/^<code(?:\s|>)/u.test(token)) codeDepth += 1;
+    if (/^<\/code>/u.test(token)) codeDepth -= 1;
+    if (token.startsWith('<') || codeDepth > 0) return token;
+
+    return token.replaceAll(/\bmoldea\b/giu, '<code>moldea</code>');
+  });
+};
+
+/** Processes Markdown with optional heading ids for full documents. */
+const processMarkdown = async (source: string, shouldSlugHeadings: boolean): Promise<string> => {
+  const processor = unified().use(remarkParse).use(remarkGfm).use(remarkRehype);
+  if (shouldSlugHeadings) processor.use(rehypeSlug);
+
+  const file = await processor
+    .use(rehypeSanitize, { ...defaultSchema, clobberPrefix: '' })
+    .use(rehypeShiki, {
+      defaultColor: false,
+      themes: {
+        dark: 'github-dark-default',
+        light: 'github-light-default',
+      },
+    })
+    .use(rehypeStringify)
+    .process(source);
+
+  return String(file);
+};
+
 const getHeadings = (html: string): IRenderedMarkdownHeading[] => {
   return [...html.matchAll(/<h([23]) id="([^"]+)">([\s\S]*?)<\/h\1>/g)].map(
     (match): IRenderedMarkdownHeading => ({
@@ -69,24 +106,25 @@ const getHeadings = (html: string): IRenderedMarkdownHeading[] => {
  */
 export const renderMarkdown = async (markdown: string): Promise<IRenderedMarkdown> => {
   const source = markdown.replace(/^# .+\n+/u, '');
-  const file = await unified()
-    .use(remarkParse)
-    .use(remarkGfm)
-    .use(remarkRehype)
-    .use(rehypeSlug)
-    .use(rehypeSanitize, { ...defaultSchema, clobberPrefix: '' })
-    .use(rehypeShiki, {
-      defaultColor: false,
-      themes: {
-        dark: 'github-dark-default',
-        light: 'github-light-default',
-      },
-    })
-    .use(rehypeStringify)
-    .process(source);
+  const renderedHtml = await processMarkdown(source, true);
   const html = renderMaturityBadges(
-    wrapTables(markExternalLinks(prefixInternalLinks(String(file)))),
+    wrapTables(markExternalLinks(prefixInternalLinks(renderedHtml))),
   );
 
   return { headings: getHeadings(html), html };
+};
+
+/**
+ * Renders one recorded Markdown fragment without document-owned heading ids.
+ * @param markdown Recorded Markdown source.
+ * @returns Sanitized HTML suitable for an embedded message surface.
+ * @throws
+ * - INVALID_BASE_PATH: The website base path contains unsupported URL characters.
+ */
+export const renderMarkdownFragment = async (markdown: string): Promise<string> => {
+  const renderedHtml = await processMarkdown(markdown, false);
+
+  return renderProductNamesAsCode(
+    wrapTables(markExternalLinks(prefixInternalLinks(unwrapRecordedLocalLinks(renderedHtml)))),
+  );
 };

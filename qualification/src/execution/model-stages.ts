@@ -3,6 +3,11 @@ import path from 'node:path';
 import { z } from 'zod';
 
 import {
+  runCodexEvaluationOperationalStage,
+  type ICodexEvaluationOperationalRetry,
+} from '../../../tooling/codex-evaluation-host/index.mjs';
+
+import {
   calculateModelCacheKey,
   readActorCache,
   readJudgeCache,
@@ -20,6 +25,7 @@ import {
   type IJudgeOutput,
   type IModelUsage,
   type IQualificationExecutionEnvironment,
+  type IQualificationTrialResult,
   type IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
 import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
@@ -43,6 +49,7 @@ import { buildActorPrompt, buildJudgePrompt } from '../prompts/index.ts';
 import { sanitizeEvidenceText, sanitizeEvidenceValue } from '../result/index.ts';
 import { validateJudgeOutput } from './validations.ts';
 import { prepareJudgeWorkspace } from './workspaces.ts';
+import type { IQualificationOperationalRetryOptions } from './types.ts';
 
 export type IModelStageEvidence = z.infer<typeof QualificationModelStageEvidenceSchema>;
 
@@ -62,6 +69,7 @@ type ISharedModelStageOptions = {
   attemptId: string;
   attemptDirectory: string;
   candidate: ICandidateClosure;
+  cacheRoot?: string;
   caseArtifactDirectory: string;
   executionEnvironment: IQualificationExecutionEnvironment;
   host: ICodexHost;
@@ -76,7 +84,12 @@ type ISharedModelStageOptions = {
   targetDigest: string;
   skillRepository: string;
   task: string;
+  trialId: IQualificationTrialResult['trialId'];
   useCache: boolean;
+  initialOperationalFailureCount?: number;
+  onCacheKey?: (cacheKey: string) => Promise<void>;
+  onOperationalRetry?: (retry: ICodexEvaluationOperationalRetry) => Promise<void>;
+  operationalRetry?: IQualificationOperationalRetryOptions;
   verifyExecutionInputs: () => Promise<void>;
 };
 
@@ -127,9 +140,16 @@ const writeModelArtifacts = async <TOutput>(options: {
 
 /** Executes or exactly restores the actor model stage and captures its post-actor workspace. */
 export const executeActorModelStage = async (
-  options: ISharedModelStageOptions & { snapshotDirectory: string },
+  options: ISharedModelStageOptions & {
+    restorePreActorState?: () => Promise<void>;
+    snapshotDirectory: string;
+  },
 ): Promise<IActorStageResult> => {
-  if (!options.isDryRun) {
+  if (options.trialId !== 'initial' && options.useCache) {
+    throw new Error('Confirmation actor stages cannot use cross-attempt model caches.');
+  }
+
+  if (!options.isDryRun && options.useCache) {
     await options.verifyExecutionInputs();
   }
 
@@ -146,12 +166,14 @@ export const executeActorModelStage = async (
     skillDigest: options.skillDigest,
     targetDigest: options.targetDigest,
     caseId: options.project.scenario.id,
+    trialId: options.trialId,
     projectFingerprint: await getProjectFingerprint(options.project),
     prompt,
   });
+  await options.onCacheKey?.(cacheKey);
   const cacheHit =
-    options.useCache && !options.isDryRun
-      ? await readActorCache(cacheKey, options.project.workspaceDirectory)
+    options.useCache && (options.initialOperationalFailureCount ?? 0) === 0 && !options.isDryRun
+      ? await readActorCache(cacheKey, options.project.workspaceDirectory, options.cacheRoot)
       : null;
   let output: IActorOutput;
   let usage: IModelUsage | null;
@@ -170,28 +192,48 @@ export const executeActorModelStage = async (
     sourceAttemptId = cacheHit.metadata.sourceAttemptId;
     cacheSourceAttemptId = cacheHit.metadata.sourceAttemptId;
   } else {
-    let dryRunChangedFiles: string[] | undefined;
+    const execution = await runCodexEvaluationOperationalStage({
+      initialFailureCount: options.initialOperationalFailureCount ?? 0,
+      ...(options.operationalRetry?.now === undefined ? {} : { now: options.operationalRetry.now }),
+      onRetry: options.onOperationalRetry ?? (() => Promise.resolve()),
+      operation: async () => {
+        if (!options.isDryRun) {
+          await options.verifyExecutionInputs();
+        }
+        await options.restorePreActorState?.();
+        let dryRunChangedFiles: string[] | undefined;
 
-    if (options.isDryRun) {
-      await applyExpectedDryRunState(options.project);
-      dryRunChangedFiles = (await inspectWorkspaceAssertions(options.project)).changedPaths;
-    } else {
-      await options.approvePaidExecution();
-    }
+        if (options.isDryRun) {
+          await applyExpectedDryRunState(options.project);
+          dryRunChangedFiles = (await inspectWorkspaceAssertions(options.project)).changedPaths;
+        } else {
+          await options.approvePaidExecution();
+        }
 
-    const execution = await options.host.runActor({
-      caseId: options.project.scenario.id,
-      ...(dryRunChangedFiles === undefined ? {} : { dryRunChangedFiles }),
-      prompt,
-      scenario: options.project.scenario,
-      schema: ActorOutputSchema,
-      signal: options.signal,
-      workspaceDirectory: options.project.workspaceDirectory,
+        const actorExecution = await options.host.runActor({
+          caseId: options.project.scenario.id,
+          ...(dryRunChangedFiles === undefined ? {} : { dryRunChangedFiles }),
+          prompt,
+          scenario: options.project.scenario,
+          schema: ActorOutputSchema,
+          signal: options.signal,
+          workspaceDirectory: options.project.workspaceDirectory,
+        });
+
+        if (!options.isDryRun) {
+          await options.verifyExecutionInputs();
+        }
+
+        return actorExecution;
+      },
+      ...(options.operationalRetry?.random === undefined
+        ? {}
+        : { random: options.operationalRetry.random }),
+      ...(options.signal === undefined ? {} : { signal: options.signal }),
+      ...(options.operationalRetry?.wait === undefined
+        ? {}
+        : { wait: options.operationalRetry.wait }),
     });
-
-    if (!options.isDryRun) {
-      await options.verifyExecutionInputs();
-    }
 
     output = execution.output;
     usage = execution.usage;
@@ -213,6 +255,7 @@ export const executeActorModelStage = async (
       events,
       usage,
       workspaceDirectory: options.project.workspaceDirectory,
+      ...(options.cacheRoot === undefined ? {} : { cacheRoot: options.cacheRoot }),
     });
   }
 
@@ -226,6 +269,7 @@ export const executeActorModelStage = async (
     cacheKey,
     sourceAttemptId,
     cacheSourceAttemptId,
+    trialId: options.trialId,
   }) as IActorStageResult['evidence'];
   await writeModelArtifacts({ context: options, evidence, events, output, prompt, role: 'actor' });
 
@@ -266,7 +310,11 @@ export const executeJudgeModelStage = async (
     workspaceAssertions: IWorkspaceAssertionResult;
   },
 ): Promise<IJudgeStageResult> => {
-  if (!options.isDryRun) {
+  if (options.trialId !== 'initial' && options.useCache) {
+    throw new Error('Confirmation judge stages cannot use cross-attempt model caches.');
+  }
+
+  if (!options.isDryRun && options.useCache) {
     await options.verifyExecutionInputs();
   }
 
@@ -289,10 +337,15 @@ export const executeJudgeModelStage = async (
     skillDigest: options.skillDigest,
     targetDigest: options.targetDigest,
     caseId: options.project.scenario.id,
+    trialId: options.trialId,
     projectFingerprint: await getProjectFingerprint(options.project),
     prompt,
   });
-  const cacheHit = options.useCache && !options.isDryRun ? await readJudgeCache(cacheKey) : null;
+  await options.onCacheKey?.(cacheKey);
+  const cacheHit =
+    options.useCache && (options.initialOperationalFailureCount ?? 0) === 0 && !options.isDryRun
+      ? await readJudgeCache(cacheKey, options.cacheRoot)
+      : null;
   let output: IJudgeOutput;
   let usage: IModelUsage | null;
   let durationMs: number;
@@ -310,35 +363,54 @@ export const executeJudgeModelStage = async (
     sourceAttemptId = cacheHit.metadata.sourceAttemptId;
     cacheSourceAttemptId = cacheHit.metadata.sourceAttemptId;
   } else {
-    const judgeWorkspaceFingerprint = await prepareJudgeWorkspace(
-      options.project.workspaceDirectory,
-      options.judgeWorkspaceDirectory,
-    );
+    const execution = await runCodexEvaluationOperationalStage({
+      initialFailureCount: options.initialOperationalFailureCount ?? 0,
+      ...(options.operationalRetry?.now === undefined ? {} : { now: options.operationalRetry.now }),
+      onRetry: options.onOperationalRetry ?? (() => Promise.resolve()),
+      operation: async () => {
+        if (!options.isDryRun) {
+          await options.verifyExecutionInputs();
+        }
+        const judgeWorkspaceFingerprint = await prepareJudgeWorkspace(
+          options.project.workspaceDirectory,
+          options.judgeWorkspaceDirectory,
+        );
 
-    if (!options.isDryRun) {
-      await options.approvePaidExecution();
-    }
+        if (!options.isDryRun) {
+          await options.approvePaidExecution();
+        }
 
-    const execution = await options.host.runJudge({
-      caseId: options.project.scenario.id,
-      prompt,
-      scenario: options.project.scenario,
-      schema: JudgeOutputSchema,
-      signal: options.signal,
-      workspaceDirectory: options.judgeWorkspaceDirectory,
+        const judgeExecution = await options.host.runJudge({
+          caseId: options.project.scenario.id,
+          prompt,
+          scenario: options.project.scenario,
+          schema: JudgeOutputSchema,
+          signal: options.signal,
+          workspaceDirectory: options.judgeWorkspaceDirectory,
+        });
+
+        if (!options.isDryRun) {
+          await options.verifyExecutionInputs();
+        }
+
+        const postJudgeWorkspaceFingerprint = await calculateDirectoryFingerprint(
+          options.judgeWorkspaceDirectory,
+        );
+
+        if (postJudgeWorkspaceFingerprint !== judgeWorkspaceFingerprint) {
+          throw new Error('The read-only judge modified its independent workspace.');
+        }
+
+        return judgeExecution;
+      },
+      ...(options.operationalRetry?.random === undefined
+        ? {}
+        : { random: options.operationalRetry.random }),
+      ...(options.signal === undefined ? {} : { signal: options.signal }),
+      ...(options.operationalRetry?.wait === undefined
+        ? {}
+        : { wait: options.operationalRetry.wait }),
     });
-
-    if (!options.isDryRun) {
-      await options.verifyExecutionInputs();
-    }
-
-    const postJudgeWorkspaceFingerprint = await calculateDirectoryFingerprint(
-      options.judgeWorkspaceDirectory,
-    );
-
-    if (postJudgeWorkspaceFingerprint !== judgeWorkspaceFingerprint) {
-      throw new Error('The read-only judge modified its independent workspace.');
-    }
     output = validateJudgeOutput(options.project.scenario, execution.output);
     usage = execution.usage;
     durationMs = execution.durationMs;
@@ -355,6 +427,7 @@ export const executeJudgeModelStage = async (
         durationMs,
         events,
         usage,
+        ...(options.cacheRoot === undefined ? {} : { cacheRoot: options.cacheRoot }),
       });
     }
   }
@@ -367,6 +440,7 @@ export const executeJudgeModelStage = async (
     cacheKey,
     sourceAttemptId,
     cacheSourceAttemptId,
+    trialId: options.trialId,
   }) as IJudgeStageResult['evidence'];
   await writeModelArtifacts({ context: options, evidence, events, output, prompt, role: 'judge' });
 

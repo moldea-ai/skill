@@ -2,12 +2,19 @@ import path from 'node:path';
 import { z } from 'zod';
 
 import {
+  QUALIFICATION_CONFIRMATION_POLICY,
+  QUALIFICATION_TRIAL_IDS,
+} from '../src/constants/index.ts';
+import {
   ActorOutputSchema,
   JudgeOutputSchema,
   QualificationAttemptResultSchema,
+  QualificationTrialResultSchema,
   type IQualificationAttemptResult,
   type IQualificationProvenance,
+  type IQualificationTrialResult,
 } from '../src/contracts/index.ts';
+import { createQualificationStageIds } from '../src/execution/stages.ts';
 import {
   calculateDirectoryFingerprint,
   ensureDirectory,
@@ -22,25 +29,69 @@ const COMPLETED_AT = '2026-08-20T10:01:00.000Z';
 const JUDGE_CREATED_AT = '2026-08-20T10:00:20.000Z';
 const ACTOR_CREATED_AT = '2026-08-20T10:00:10.000Z';
 const CLAIM_ID = 'qualification.support-gate';
+const WORKSPACE_FAILURE = 'Unexpected changed path unexpected.md.';
 
 const createStage = (
   id: string,
+  status: IQualificationAttemptResult['stages'][number]['status'],
   cacheKey: string | null = null,
+  operationalRetries: IQualificationAttemptResult['stages'][number]['operationalRetries'] = [],
 ): IQualificationAttemptResult['stages'][number] => ({
   id,
-  status: 'passed',
-  startedAt: CREATED_AT,
-  completedAt: COMPLETED_AT,
-  durationMs: 1_000,
+  status,
+  startedAt: status === 'pending' ? null : CREATED_AT,
+  completedAt: status === 'pending' ? null : COMPLETED_AT,
+  durationMs: status === 'pending' ? null : status === 'skipped' ? 0 : 1_000,
   cacheKey,
   cacheSourceAttemptId: null,
   error: null,
+  operationalRetries,
 });
 
-/** Seeds one complete passing Custom profile and its engine-verifiable public evidence. */
+const createTrialResult = (
+  trialId: IQualificationTrialResult['trialId'],
+  passed: boolean,
+  isJudgeSkipped = false,
+): IQualificationTrialResult => {
+  const trialRoot = `cases/${CASE_ID}/trials/${trialId}`;
+  const confirmationIndex =
+    trialId === 'initial' ? null : Number(trialId.slice('confirmation-'.length));
+
+  return QualificationTrialResultSchema.parse({
+    trialId,
+    kind: trialId === 'initial' ? 'initial' : 'confirmation',
+    confirmationIndex,
+    passed,
+    durationMs: 1_000,
+    deterministicBeforePath: `${trialRoot}/deterministic-before.json`,
+    deterministicAfterPath: `${trialRoot}/deterministic-after.json`,
+    actorOutputPath: `${trialRoot}/actor-output.json`,
+    judgeStatus: isJudgeSkipped ? 'skipped' : 'completed',
+    judgeOutputPath: isJudgeSkipped ? null : `${trialRoot}/judge-output.json`,
+    judgeSkippedPath: isJudgeSkipped ? `${trialRoot}/judge-skipped.json` : null,
+    workspaceAssertionsPath: `${trialRoot}/workspace-assertions.json`,
+    patchPath: `${trialRoot}/workspace.patch`,
+    actorUsage: null,
+    judgeUsage: null,
+    actorEvidenceCreatedAt: ACTOR_CREATED_AT,
+    judgeEvidenceCreatedAt: isJudgeSkipped ? null : JUDGE_CREATED_AT,
+    actorCacheSourceAttemptId: null,
+    judgeCacheSourceAttemptId: null,
+    failures: passed
+      ? []
+      : isJudgeSkipped
+        ? [WORKSPACE_FAILURE]
+        : ['Judge requirement complete-evidence failed: Fixture failure.', 'Fixture failure.'],
+  });
+};
+
+/** Seeds one complete protocol 6 Custom profile and its engine-verifiable public evidence. */
 export const seedPassingQualificationEvidenceFixture = async (options: {
   artifactDirectory: string;
   attemptId: string;
+  hasOperationalRetry?: boolean;
+  hasSkippedInitialJudge?: boolean;
+  isRecovered?: boolean;
   packages?: IQualificationProvenance['packages'];
   packagesRepositoryCommit?: string;
   packagesRepositoryFingerprint?: string;
@@ -140,18 +191,6 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     observations: ['The runtime guidance is referenced by the fixture manifest.'],
     unresolved: [],
   };
-  const judgeOutput = {
-    verdict: 'pass' as const,
-    summary: 'Every declared fixture requirement passed.',
-    requirements: [
-      {
-        id: 'complete-evidence',
-        verdict: 'pass' as const,
-        evidence: 'The deterministic and workspace evidence passed.',
-      },
-    ],
-    failures: [],
-  };
   const deterministicArtifact = {
     summary: {
       passed: true,
@@ -176,11 +215,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
       cliComposition: {},
       cliValidate: {},
       cliInspect: {},
-      typecheck: {
-        exitCode: 0,
-        stdout: '',
-        stderr: '',
-      },
+      typecheck: { exitCode: 0, stdout: '', stderr: '' },
     },
   };
   const runtimeGuidanceEntry = {
@@ -196,45 +231,65 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     after: [runtimeGuidanceEntry],
     changedPaths: [runtimeGuidanceEntry.path],
   };
-  const actorCacheKey = '1'.repeat(64);
-  const judgeCacheKey = '2'.repeat(64);
-  const caseRoot = `cases/${CASE_ID}`;
+  const failedWorkspaceAssertions = {
+    passed: false,
+    failures: [WORKSPACE_FAILURE],
+    before: [],
+    after: [
+      {
+        ...runtimeGuidanceEntry,
+        path: 'unexpected.md',
+      },
+    ],
+    changedPaths: ['unexpected.md'],
+  };
+  const passingJudgeOutput = {
+    verdict: 'pass' as const,
+    summary: 'Every declared fixture requirement passed.',
+    requirements: [
+      {
+        id: 'complete-evidence',
+        verdict: 'pass' as const,
+        evidence: 'The deterministic and workspace evidence passed.',
+      },
+    ],
+    failures: [],
+  };
+  const failingJudgeOutput = {
+    verdict: 'fail' as const,
+    summary: 'The original trial failed.',
+    requirements: [
+      {
+        id: 'complete-evidence',
+        verdict: 'fail' as const,
+        evidence: 'Fixture failure.',
+      },
+    ],
+    failures: ['Fixture failure.'],
+  };
+  const trials = options.isRecovered
+    ? [
+        createTrialResult('initial', false, options.hasSkippedInitialJudge),
+        createTrialResult('confirmation-1', true),
+        createTrialResult('confirmation-2', true),
+      ]
+    : [createTrialResult('initial', true)];
   const caseResult: IQualificationAttemptResult['cases'][number] = {
     caseId: CASE_ID,
     title: CASE_TITLE,
-    status: 'passed',
-    durationMs: 1_000,
-    deterministicBeforePath: `${caseRoot}/deterministic-before.json`,
-    deterministicAfterPath: `${caseRoot}/deterministic-after.json`,
-    actorOutputPath: `${caseRoot}/actor-output.json`,
-    judgeStatus: 'completed',
-    judgeOutputPath: `${caseRoot}/judge-output.json`,
-    judgeSkippedPath: null,
-    workspaceAssertionsPath: `${caseRoot}/workspace-assertions.json`,
-    patchPath: `${caseRoot}/workspace.patch`,
-    actorUsage: null,
-    judgeUsage: null,
-    actorEvidenceCreatedAt: ACTOR_CREATED_AT,
-    judgeEvidenceCreatedAt: JUDGE_CREATED_AT,
-    actorCacheSourceAttemptId: null,
-    judgeCacheSourceAttemptId: null,
+    status: options.isRecovered ? 'recovered' : 'passed',
+    confirmationStatus: options.isRecovered ? 'passed' : 'not-required',
+    durationMs: trials.reduce((total, trial) => total + trial.durationMs, 0),
+    trials,
     failures: [],
   };
-  const stageIds = [
-    'source-state',
-    'coverage',
-    'candidate',
-    'baseline',
-    `case:${CASE_ID}:prepare`,
-    `case:${CASE_ID}:deterministic-before`,
-    `case:${CASE_ID}:actor`,
-    `case:${CASE_ID}:deterministic-after`,
-    `case:${CASE_ID}:assertions`,
-    `case:${CASE_ID}:judge`,
-    `case:${CASE_ID}:result`,
-  ];
+  const actorCacheKey = '1'.repeat(64);
+  const judgeCacheKey = '2'.repeat(64);
+  const stageIds = createQualificationStageIds([CASE_ID]);
+  const executedTrialIds = new Set(trials.map(({ trialId }) => trialId));
   const result = QualificationAttemptResultSchema.parse({
-    protocolVersion: 5,
+    protocolVersion: 6,
+    confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     attemptId: options.attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -242,7 +297,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     createdAt: CREATED_AT,
     completedAt: COMPLETED_AT,
     evidenceGeneratedAt: ACTOR_CREATED_AT,
-    summary: 'Qualification passed.',
+    summary: options.isRecovered ? 'Qualification recovered.' : 'Qualification passed.',
     provenance: {
       model: 'gpt-5.6-sol',
       reasoningEffort: 'medium',
@@ -268,18 +323,124 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
       baselineAttemptId: null,
       packages: options.packages ?? [],
     },
-    stages: stageIds.map((stageId) =>
-      createStage(
+    stages: stageIds.map((stageId) => {
+      const trialId = QUALIFICATION_TRIAL_IDS.find((candidateTrialId) =>
+        stageId.includes(`:trial:${candidateTrialId}:`),
+      );
+      const isSkipped = trialId !== undefined && !executedTrialIds.has(trialId);
+      const isSkippedJudge =
+        options.hasSkippedInitialJudge && stageId === `case:${CASE_ID}:trial:initial:judge`;
+      const isFailedAssertion =
+        options.hasSkippedInitialJudge && stageId === `case:${CASE_ID}:trial:initial:assertions`;
+      const cacheKey = stageId.endsWith(':actor')
+        ? actorCacheKey
+        : stageId.endsWith(':judge') && !isSkippedJudge
+          ? judgeCacheKey
+          : null;
+      const operationalRetries =
+        options.hasOperationalRetry && stageId === `case:${CASE_ID}:trial:initial:actor`
+          ? [
+              {
+                category: 'timed-out' as const,
+                failedAt: '2026-08-20T10:00:05.000Z',
+                failureCount: 1,
+                retryDelayMs: 5_000,
+              },
+            ]
+          : [];
+      return createStage(
         stageId,
-        stageId.endsWith(':actor')
-          ? actorCacheKey
-          : stageId.endsWith(':judge')
-            ? judgeCacheKey
-            : null,
-      ),
-    ),
+        isSkipped || isSkippedJudge ? 'skipped' : isFailedAssertion ? 'failed' : 'passed',
+        isSkipped || isSkippedJudge ? null : cacheKey,
+        operationalRetries,
+      );
+    }),
     cases: [caseResult],
     artifactDigests: {},
+  });
+
+  const trialWrites = trials.flatMap((trial) => {
+    const trialRoot = path.join(
+      options.artifactDirectory,
+      'cases',
+      CASE_ID,
+      'trials',
+      trial.trialId,
+    );
+    const isJudgeSkipped = trial.trialId === 'initial' && options.hasSkippedInitialJudge;
+    const trialActorOutput = isJudgeSkipped
+      ? { ...actorOutput, changedFiles: ['unexpected.md'] }
+      : actorOutput;
+    const trialWorkspaceAssertions = isJudgeSkipped
+      ? failedWorkspaceAssertions
+      : workspaceAssertions;
+    const judgeOutput = trial.passed ? passingJudgeOutput : failingJudgeOutput;
+    const judgeWrites = isJudgeSkipped
+      ? [
+          writeJsonFileAtomically(path.join(trialRoot, 'judge-skipped.json'), {
+            reason:
+              'The judge was skipped because deterministic postchecks or workspace assertions already failed.',
+            deterministicAfterPassed: true,
+            workspaceAssertionsPassed: false,
+          }),
+        ]
+      : [
+          writeJsonFileAtomically(path.join(trialRoot, 'judge-output.json'), judgeOutput),
+          writeJsonFileAtomically(path.join(trialRoot, 'judge-evidence.json'), {
+            role: 'judge',
+            trialId: trial.trialId,
+            createdAt: JUDGE_CREATED_AT,
+            durationMs: 1,
+            usage: null,
+            cacheKey: judgeCacheKey,
+            sourceAttemptId: options.attemptId,
+            cacheSourceAttemptId: null,
+          }),
+          writeTextFileAtomically(path.join(trialRoot, 'judge-events.jsonl'), ''),
+          writeJsonFileAtomically(
+            path.join(trialRoot, 'judge-output.schema.json'),
+            z.toJSONSchema(JudgeOutputSchema),
+          ),
+          writeTextFileAtomically(path.join(trialRoot, 'judge-prompt.md'), 'Judge prompt.\n'),
+        ];
+
+    return [
+      writeJsonFileAtomically(path.join(trialRoot, 'actor-output.json'), trialActorOutput),
+      writeJsonFileAtomically(path.join(trialRoot, 'actor-evidence.json'), {
+        role: 'actor',
+        trialId: trial.trialId,
+        createdAt: ACTOR_CREATED_AT,
+        durationMs: 1,
+        usage: null,
+        cacheKey: actorCacheKey,
+        sourceAttemptId: options.attemptId,
+        cacheSourceAttemptId: null,
+      }),
+      writeTextFileAtomically(path.join(trialRoot, 'actor-events.jsonl'), ''),
+      writeJsonFileAtomically(
+        path.join(trialRoot, 'actor-output.schema.json'),
+        z.toJSONSchema(ActorOutputSchema),
+      ),
+      writeTextFileAtomically(path.join(trialRoot, 'actor-prompt.md'), 'Actor prompt.\n'),
+      writeJsonFileAtomically(
+        path.join(trialRoot, 'deterministic-after.json'),
+        deterministicArtifact,
+      ),
+      writeJsonFileAtomically(
+        path.join(trialRoot, 'deterministic-before.json'),
+        deterministicArtifact,
+      ),
+      ...judgeWrites,
+      writeJsonFileAtomically(path.join(trialRoot, 'trial-result.json'), trial),
+      writeJsonFileAtomically(
+        path.join(trialRoot, 'workspace-assertions.json'),
+        trialWorkspaceAssertions,
+      ),
+      writeTextFileAtomically(
+        path.join(trialRoot, 'workspace.patch'),
+        'Added moldea/runtimes/release-case.md.\n',
+      ),
+    ];
   });
 
   await Promise.all([
@@ -308,75 +469,10 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
       failures: [],
     }),
     writeJsonFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'actor-output.json'),
-      actorOutput,
-    ),
-    writeJsonFileAtomically(path.join(options.artifactDirectory, caseRoot, 'actor-evidence.json'), {
-      role: 'actor',
-      createdAt: ACTOR_CREATED_AT,
-      durationMs: 1,
-      usage: null,
-      cacheKey: actorCacheKey,
-      sourceAttemptId: options.attemptId,
-      cacheSourceAttemptId: null,
-    }),
-    writeTextFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'actor-events.jsonl'),
-      '',
-    ),
-    writeJsonFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'actor-output.schema.json'),
-      z.toJSONSchema(ActorOutputSchema),
-    ),
-    writeTextFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'actor-prompt.md'),
-      'Actor prompt.\n',
-    ),
-    writeJsonFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'case-result.json'),
+      path.join(options.artifactDirectory, 'cases', CASE_ID, 'case-result.json'),
       caseResult,
     ),
-    writeJsonFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'deterministic-after.json'),
-      deterministicArtifact,
-    ),
-    writeJsonFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'deterministic-before.json'),
-      deterministicArtifact,
-    ),
-    writeJsonFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'judge-output.json'),
-      judgeOutput,
-    ),
-    writeJsonFileAtomically(path.join(options.artifactDirectory, caseRoot, 'judge-evidence.json'), {
-      role: 'judge',
-      createdAt: JUDGE_CREATED_AT,
-      durationMs: 1,
-      usage: null,
-      cacheKey: judgeCacheKey,
-      sourceAttemptId: options.attemptId,
-      cacheSourceAttemptId: null,
-    }),
-    writeTextFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'judge-events.jsonl'),
-      '',
-    ),
-    writeJsonFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'judge-output.schema.json'),
-      z.toJSONSchema(JudgeOutputSchema),
-    ),
-    writeTextFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'judge-prompt.md'),
-      'Judge prompt.\n',
-    ),
-    writeJsonFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'workspace-assertions.json'),
-      workspaceAssertions,
-    ),
-    writeTextFileAtomically(
-      path.join(options.artifactDirectory, caseRoot, 'workspace.patch'),
-      'Added moldea/runtimes/release-case.md.\n',
-    ),
+    ...trialWrites,
   ]);
 
   return result;

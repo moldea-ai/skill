@@ -1,5 +1,8 @@
 import { createPublicCandidatePackage } from '../candidate-closure/index.ts';
-import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
+import {
+  QUALIFICATION_CONFIRMATION_POLICY,
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+} from '../constants/index.ts';
 import {
   QualificationAttemptResultDraftSchema,
   type ICandidateClosure,
@@ -22,8 +25,10 @@ const calculateEvidenceGeneratedAt = (
   caseResults: readonly IQualificationCaseResult[],
 ): string | null => {
   const evidenceTimestamps = caseResults.flatMap((caseResult) =>
-    [caseResult.actorEvidenceCreatedAt, caseResult.judgeEvidenceCreatedAt].filter(
-      (timestamp): timestamp is string => timestamp !== null,
+    caseResult.trials.flatMap((trial) =>
+      [trial.actorEvidenceCreatedAt, trial.judgeEvidenceCreatedAt].filter(
+        (timestamp): timestamp is string => timestamp !== null,
+      ),
     ),
   );
   return evidenceTimestamps.sort((left, right) => left.localeCompare(right, 'en')).at(0) ?? null;
@@ -44,6 +49,7 @@ export const createQualificationAttemptResult = (options: {
 }): IQualificationAttemptResult =>
   QualificationAttemptResultDraftSchema.parse({
     protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+    confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     attemptId: options.checkpoint.attemptId,
     parentAttemptId: options.checkpoint.parentAttemptId,
     selection: options.checkpoint.selection,

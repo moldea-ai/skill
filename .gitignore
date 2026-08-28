@@ -149,5 +149,6 @@ vite.config.ts.timestamp-*
 # Website generated state
 /website/.astro/
 /website/.generated/
+/website/.qualification-current-dist/
 /website/playwright-report/
 /website/test-results/

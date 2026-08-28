@@ -1,6 +1,7 @@
+import { createHash } from 'node:crypto';
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
+import { join, matchesGlob, resolve } from 'node:path';
 
 import { parseDocument } from 'yaml';
 
@@ -8,15 +9,25 @@ import { QualificationBaselineCheckSchema } from '../../qualification/src/baseli
 import { loadRuntimeCompatibilityMatrix } from '../../qualification/src/compatibility/index.ts';
 import {
   QualificationAttemptResultSchema,
+  ActorOutputSchema,
+  DeterministicVerificationArtifactSchema,
+  JudgeOutputSchema,
+  QualificationCaseScenarioSchema,
+  QualificationJudgeSkippedSchema,
   QualificationLatestResultSchema,
+  QualificationModelStageEvidenceSchema,
   QualificationProfileSchema,
   QualificationSourceStateResultSchema,
+  WorkspaceAssertionResultSchema,
 } from '../../qualification/src/contracts/index.ts';
 import {
   calculateCompatibilityBehaviorDigest,
   calculateQualificationDigest,
 } from '../../qualification/src/execution/fingerprints.ts';
-import { calculateDirectoryFingerprint } from '../../qualification/src/filesystem/index.ts';
+import {
+  calculateDirectoryFingerprint,
+  resolveContainedPath,
+} from '../../qualification/src/filesystem/index.ts';
 import { inspectGitRepositoryState } from '../../qualification/src/repository-state/index.ts';
 import { verifyQualificationResults } from '../../qualification/src/result/index.ts';
 import {
@@ -56,6 +67,14 @@ const SEMANTIC_HOST_CONTRACT = {
 };
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
+
+const readYaml = (path, schema) => {
+  const document = parseDocument(readFileSync(path, 'utf8'), { uniqueKeys: true });
+  if (document.errors.length > 0) {
+    throw new Error(document.errors.map((error) => error.message).join('\n'));
+  }
+  return schema.parse(document.toJS());
+};
 
 const hasSemanticHostIdentity = (host) =>
   host?.model === SEMANTIC_HOST_CONTRACT.model &&
@@ -131,18 +150,14 @@ const listQualificationProfiles = (repositoryRoot) => {
       const profilePath = join(adapterRoot, implementationEntry.name, 'profile.yaml');
       if (!existsSync(profilePath)) continue;
 
-      const document = parseDocument(readFileSync(profilePath, 'utf8'), {
-        uniqueKeys: true,
-      });
-      if (document.errors.length > 0) {
-        throw new Error(document.errors.map((error) => error.message).join('\n'));
-      }
-      const profile = QualificationProfileSchema.parse(document.toJS());
+      const profile = readYaml(profilePath, QualificationProfileSchema);
+      const profileDirectory = join(adapterRoot, implementationEntry.name);
       profiles.push({
         adapterId: profile.adapterId,
         caseIds: profile.cases.map(({ id }) => id),
+        cases: profile.cases,
         implementationId: profile.implementationId,
-        profileDirectory: join(adapterRoot, implementationEntry.name),
+        profileDirectory,
       });
     }
   }
@@ -156,48 +171,449 @@ const createQualificationStageIds = (caseIds) => [
   'candidate',
   'baseline',
   ...caseIds.flatMap((caseId) => [
-    `case:${caseId}:prepare`,
-    `case:${caseId}:deterministic-before`,
-    `case:${caseId}:actor`,
-    `case:${caseId}:deterministic-after`,
-    `case:${caseId}:assertions`,
-    `case:${caseId}:judge`,
+    ...['initial', 'confirmation-1', 'confirmation-2'].flatMap((trialId) => [
+      `case:${caseId}:trial:${trialId}:prepare`,
+      `case:${caseId}:trial:${trialId}:deterministic-before`,
+      `case:${caseId}:trial:${trialId}:actor`,
+      `case:${caseId}:trial:${trialId}:deterministic-after`,
+      `case:${caseId}:trial:${trialId}:assertions`,
+      `case:${caseId}:trial:${trialId}:judge`,
+    ]),
     `case:${caseId}:result`,
   ]),
 ];
 
-const hasCompletePassingQualificationCases = (attempt, caseIds) =>
-  attempt.cases.length === caseIds.length &&
-  caseIds.every((caseId, index) => {
+const getQualificationTrialRoot = (caseId, trialId) => `cases/${caseId}/trials/${trialId}`;
+
+const createQualificationTrialArtifactPaths = (caseId, trial) => {
+  const trialRoot = getQualificationTrialRoot(caseId, trial.trialId);
+  return [
+    `${trialRoot}/actor-evidence.json`,
+    `${trialRoot}/actor-events.jsonl`,
+    `${trialRoot}/actor-output.json`,
+    `${trialRoot}/actor-output.schema.json`,
+    `${trialRoot}/actor-prompt.md`,
+    `${trialRoot}/deterministic-after.json`,
+    `${trialRoot}/deterministic-before.json`,
+    ...(trial.judgeStatus === 'completed'
+      ? [
+          `${trialRoot}/judge-evidence.json`,
+          `${trialRoot}/judge-events.jsonl`,
+          `${trialRoot}/judge-output.json`,
+          `${trialRoot}/judge-output.schema.json`,
+          `${trialRoot}/judge-prompt.md`,
+        ]
+      : [`${trialRoot}/judge-skipped.json`]),
+    `${trialRoot}/trial-result.json`,
+    `${trialRoot}/workspace-assertions.json`,
+    `${trialRoot}/workspace.patch`,
+  ];
+};
+
+const haveSameMembers = (left, right) =>
+  JSON.stringify([...new Set(left)].sort()) === JSON.stringify([...new Set(right)].sort());
+
+const areWorkspaceEntriesEqual = (before, after) =>
+  before !== undefined &&
+  after !== undefined &&
+  before.kind === after.kind &&
+  before.mode === after.mode &&
+  before.sha256 === after.sha256;
+
+const calculateChangedPaths = (assertions) => {
+  const beforePaths = assertions.before.map(({ path }) => path);
+  const afterPaths = assertions.after.map(({ path }) => path);
+  if (
+    new Set(beforePaths).size !== beforePaths.length ||
+    new Set(afterPaths).size !== afterPaths.length
+  ) {
+    return null;
+  }
+  const beforeByPath = new Map(assertions.before.map((entry) => [entry.path, entry]));
+  const afterByPath = new Map(assertions.after.map((entry) => [entry.path, entry]));
+  return [...new Set([...beforeByPath.keys(), ...afterByPath.keys()])]
+    .filter((path) => !areWorkspaceEntriesEqual(beforeByPath.get(path), afterByPath.get(path)))
+    .sort((left, right) => left.localeCompare(right, 'en'));
+};
+
+const hasValidDeterministicEvidence = (artifact, expectedInspectionStatus) => {
+  const verification = artifact.summary;
+  const hasPassingState =
+    verification.inspectionStatus === expectedInspectionStatus &&
+    verification.repositoryFilesystemValid &&
+    verification.memoryRepositoryEquivalent &&
+    verification.coreValid &&
+    verification.cliCompositionValid &&
+    verification.cliIdentityValid &&
+    verification.cliPackageInventoryValid &&
+    verification.cliAdapterInventoryValid &&
+    verification.cliEnvelopeValid &&
+    verification.cliValidateStatus === expectedInspectionStatus &&
+    verification.cliInspectStatus === expectedInspectionStatus &&
+    verification.typecheckPassed &&
+    verification.repositoryUnchanged &&
+    verification.failures.length === 0;
+  return (
+    verification.passed === hasPassingState &&
+    (verification.passed || verification.failures.length > 0)
+  );
+};
+
+const containsWorkspacePath = (entries, expectedPath) =>
+  entries.some(({ path }) => path === expectedPath || path.startsWith(`${expectedPath}/`));
+
+const matchesWorkspaceContract = (candidatePath, exactPaths, pathPatterns) =>
+  exactPaths.includes(candidatePath) ||
+  pathPatterns.some((pathPattern) => matchesGlob(candidatePath, pathPattern));
+
+const hasValidWorkspaceEvidence = (actor, assertions, scenario) => {
+  const observedChangedPaths = calculateChangedPaths(assertions);
+  if (
+    observedChangedPaths === null ||
+    new Set(assertions.changedPaths).size !== assertions.changedPaths.length ||
+    new Set(actor.changedFiles).size !== actor.changedFiles.length ||
+    JSON.stringify(assertions.changedPaths) !== JSON.stringify(observedChangedPaths) ||
+    assertions.passed !== (assertions.failures.length === 0)
+  ) {
+    return false;
+  }
+
+  const beforeByPath = new Map(assertions.before.map((entry) => [entry.path, entry]));
+  const afterByPath = new Map(assertions.after.map((entry) => [entry.path, entry]));
+  const hasContractViolation =
+    actor.outcome !== scenario.expectedActorOutcome ||
+    !haveSameMembers(actor.changedFiles, assertions.changedPaths) ||
+    assertions.changedPaths.some(
+      (changedPath) =>
+        !matchesWorkspaceContract(
+          changedPath,
+          scenario.workspace.allowedChangePaths,
+          scenario.workspace.allowedChangePathPatterns,
+        ),
+    ) ||
+    scenario.workspace.mustChangePaths.some(
+      (requiredPath) => !assertions.changedPaths.includes(requiredPath),
+    ) ||
+    scenario.workspace.mustChangePathPatterns.some(
+      (requiredPattern) =>
+        !assertions.changedPaths.some((changedPath) =>
+          matchesWorkspaceContract(changedPath, [], [requiredPattern]),
+        ),
+    ) ||
+    scenario.workspace.mustPreservePaths.some(
+      (preservedPath) =>
+        !areWorkspaceEntriesEqual(beforeByPath.get(preservedPath), afterByPath.get(preservedPath)),
+    ) ||
+    scenario.workspace.mustExistPaths.some(
+      (expectedPath) => !containsWorkspacePath(assertions.after, expectedPath),
+    ) ||
+    scenario.workspace.mustNotExistPaths.some((expectedPath) =>
+      containsWorkspacePath(assertions.after, expectedPath),
+    ) ||
+    (scenario.workspace.expectation === 'unchanged' && assertions.changedPaths.length > 0) ||
+    (scenario.workspace.expectation === 'changed' && assertions.changedPaths.length === 0);
+  return assertions.passed !== hasContractViolation;
+};
+
+const hasValidJudgeEvidence = (judge, scenario) => {
+  const expectedRequirementIds = scenario.judgeRequirements.map(({ id }) => id);
+  const actualRequirementIds = judge.requirements.map(({ id }) => id);
+  const hasFailedRequirement = judge.requirements.some(({ verdict }) => verdict === 'fail');
+  return (
+    new Set(actualRequirementIds).size === actualRequirementIds.length &&
+    haveSameMembers(actualRequirementIds, expectedRequirementIds) &&
+    (judge.verdict === 'pass'
+      ? !hasFailedRequirement && judge.failures.length === 0
+      : judge.failures.length > 0)
+  );
+};
+
+const deriveQualificationTrialFailures = (
+  actor,
+  deterministicAfter,
+  assertions,
+  judge,
+  scenario,
+) => [
+  ...(actor.outcome === scenario.expectedActorOutcome
+    ? []
+    : [
+        `Actor outcome ${actor.outcome} did not match expected outcome ${scenario.expectedActorOutcome}.`,
+      ]),
+  ...deterministicAfter.summary.failures,
+  ...assertions.failures,
+  ...(judge?.requirements
+    .filter(({ verdict }) => verdict === 'fail')
+    .map(({ evidence, id }) => `Judge requirement ${id} failed: ${evidence}`) ?? []),
+  ...(judge?.verdict === 'fail' ? judge.failures : []),
+];
+
+const hasValidModelEvidence = (attempt, trial, role, stage, evidence) => {
+  const cacheSourceAttemptId =
+    role === 'actor' ? trial.actorCacheSourceAttemptId : trial.judgeCacheSourceAttemptId;
+  const createdAt = role === 'actor' ? trial.actorEvidenceCreatedAt : trial.judgeEvidenceCreatedAt;
+  const usage = role === 'actor' ? trial.actorUsage : trial.judgeUsage;
+  const isCached = cacheSourceAttemptId !== null;
+  return (
+    evidence.role === role &&
+    evidence.trialId === trial.trialId &&
+    evidence.createdAt === createdAt &&
+    JSON.stringify(evidence.usage) === JSON.stringify(usage) &&
+    evidence.cacheSourceAttemptId === cacheSourceAttemptId &&
+    evidence.sourceAttemptId === (cacheSourceAttemptId ?? attempt.attemptId) &&
+    stage?.cacheKey === evidence.cacheKey &&
+    stage.cacheSourceAttemptId === cacheSourceAttemptId &&
+    stage.status === (isCached ? 'cached' : 'passed') &&
+    (trial.kind !== 'confirmation' || !isCached)
+  );
+};
+
+const hasValidArtifactDigest = (attemptDirectory, attempt, relativePath) => {
+  const expectedDigest = attempt.artifactDigests[relativePath];
+  if (expectedDigest === undefined) return false;
+  const artifactPath = join(attemptDirectory, relativePath);
+  return (
+    existsSync(artifactPath) &&
+    createHash('sha256').update(readFileSync(artifactPath)).digest('hex') === expectedDigest
+  );
+};
+
+const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profileCases) => {
+  const caseIds = profileCases.map(({ id }) => id);
+  if (attempt.cases.length !== caseIds.length) return false;
+  const expectedArtifactPaths = ['baseline.json', 'coverage.json', 'source-state.json'];
+
+  const hasPassingCases = caseIds.every((caseId, index) => {
     const result = attempt.cases[index];
+    const scenario = profileCases[index]?.scenario;
+    const hasInitialPass =
+      result?.status === 'passed' &&
+      result.confirmationStatus === 'not-required' &&
+      result.trials.length === 1 &&
+      result.trials[0]?.trialId === 'initial' &&
+      result.trials[0].passed;
+    const hasRecoveredPass =
+      result?.status === 'recovered' &&
+      result.confirmationStatus === 'passed' &&
+      result.trials.length === 3 &&
+      result.trials[0]?.trialId === 'initial' &&
+      !result.trials[0].passed &&
+      result.trials[1]?.trialId === 'confirmation-1' &&
+      result.trials[1].passed &&
+      result.trials[2]?.trialId === 'confirmation-2' &&
+      result.trials[2].passed;
+
     if (
       result?.caseId !== caseId ||
-      result.status !== 'passed' ||
-      result.judgeStatus !== 'completed' ||
-      result.judgeOutputPath === null ||
-      result.judgeSkippedPath !== null ||
-      result.failures.length > 0
+      scenario?.id !== caseId ||
+      result.failures.length > 0 ||
+      (!hasInitialPass && !hasRecoveredPass)
     ) {
       return false;
     }
 
-    return [
-      result.deterministicBeforePath,
-      result.deterministicAfterPath,
-      result.actorOutputPath,
-      result.judgeOutputPath,
-      result.workspaceAssertionsPath,
-      result.patchPath,
-    ].every((artifactPath) => attempt.artifactDigests[artifactPath] !== undefined);
+    expectedArtifactPaths.push(`cases/${caseId}/case-result.json`);
+
+    return result.trials.every((trial) => {
+      const trialRoot = getQualificationTrialRoot(caseId, trial.trialId);
+      const expectedReferences =
+        trial.deterministicBeforePath === `${trialRoot}/deterministic-before.json` &&
+        trial.deterministicAfterPath === `${trialRoot}/deterministic-after.json` &&
+        trial.actorOutputPath === `${trialRoot}/actor-output.json` &&
+        trial.workspaceAssertionsPath === `${trialRoot}/workspace-assertions.json` &&
+        trial.patchPath === `${trialRoot}/workspace.patch` &&
+        (trial.judgeStatus === 'completed'
+          ? trial.judgeOutputPath === `${trialRoot}/judge-output.json` &&
+            trial.judgeSkippedPath === null
+          : trial.judgeOutputPath === null &&
+            trial.judgeSkippedPath === `${trialRoot}/judge-skipped.json`) &&
+        (trial.kind !== 'confirmation' ||
+          (trial.actorCacheSourceAttemptId === null && trial.judgeCacheSourceAttemptId === null));
+      const trialArtifactPaths = createQualificationTrialArtifactPaths(caseId, trial);
+      expectedArtifactPaths.push(...trialArtifactPaths);
+
+      if (!expectedReferences) return false;
+
+      try {
+        const recordedTrial = readJson(
+          join(attemptDirectory, 'cases', caseId, 'trials', trial.trialId, 'trial-result.json'),
+        );
+        const actorEvidence = QualificationModelStageEvidenceSchema.parse(
+          readJson(
+            join(attemptDirectory, 'cases', caseId, 'trials', trial.trialId, 'actor-evidence.json'),
+          ),
+        );
+        const actor = ActorOutputSchema.parse(
+          readJson(join(attemptDirectory, `${trialRoot}/actor-output.json`)),
+        );
+        const deterministicBefore = DeterministicVerificationArtifactSchema.parse(
+          readJson(join(attemptDirectory, `${trialRoot}/deterministic-before.json`)),
+        );
+        const deterministicAfter = DeterministicVerificationArtifactSchema.parse(
+          readJson(join(attemptDirectory, `${trialRoot}/deterministic-after.json`)),
+        );
+        const assertions = WorkspaceAssertionResultSchema.parse(
+          readJson(join(attemptDirectory, `${trialRoot}/workspace-assertions.json`)),
+        );
+        const judgeEvidence =
+          trial.judgeStatus === 'completed'
+            ? QualificationModelStageEvidenceSchema.parse(
+                readJson(
+                  join(
+                    attemptDirectory,
+                    'cases',
+                    caseId,
+                    'trials',
+                    trial.trialId,
+                    'judge-evidence.json',
+                  ),
+                ),
+              )
+            : null;
+        const judge =
+          trial.judgeStatus === 'completed'
+            ? JudgeOutputSchema.parse(
+                readJson(join(attemptDirectory, `${trialRoot}/judge-output.json`)),
+              )
+            : null;
+        const judgeSkipped =
+          trial.judgeStatus === 'skipped'
+            ? QualificationJudgeSkippedSchema.parse(
+                readJson(join(attemptDirectory, `${trialRoot}/judge-skipped.json`)),
+              )
+            : null;
+        const stages = new Map(attempt.stages.map((stage) => [stage.id, stage]));
+        const actorStage = stages.get(`case:${caseId}:trial:${trial.trialId}:actor`);
+        const judgeStage = stages.get(`case:${caseId}:trial:${trial.trialId}:judge`);
+        const deterministicAfterStage = stages.get(
+          `case:${caseId}:trial:${trial.trialId}:deterministic-after`,
+        );
+        const assertionsStage = stages.get(`case:${caseId}:trial:${trial.trialId}:assertions`);
+        const derivedFailures = deriveQualificationTrialFailures(
+          actor,
+          deterministicAfter,
+          assertions,
+          judge,
+          scenario,
+        );
+        return (
+          JSON.stringify(recordedTrial) === JSON.stringify(trial) &&
+          trialArtifactPaths.every((artifactPath) =>
+            hasValidArtifactDigest(attemptDirectory, attempt, artifactPath),
+          ) &&
+          deterministicBefore.summary.passed &&
+          hasValidDeterministicEvidence(deterministicBefore, scenario.inspection.before) &&
+          hasValidDeterministicEvidence(deterministicAfter, scenario.inspection.after) &&
+          hasValidWorkspaceEvidence(actor, assertions, scenario) &&
+          deterministicAfterStage?.status ===
+            (deterministicAfter.summary.passed ? 'passed' : 'failed') &&
+          assertionsStage?.status === (assertions.passed ? 'passed' : 'failed') &&
+          hasValidModelEvidence(attempt, trial, 'actor', actorStage, actorEvidence) &&
+          (judge === null
+            ? judgeSkipped !== null &&
+              (!deterministicAfter.summary.passed || !assertions.passed) &&
+              judgeSkipped.deterministicAfterPassed === deterministicAfter.summary.passed &&
+              judgeSkipped.workspaceAssertionsPassed === assertions.passed &&
+              judgeStage?.status === 'skipped'
+            : judgeEvidence !== null &&
+              hasValidJudgeEvidence(judge, scenario) &&
+              hasValidModelEvidence(attempt, trial, 'judge', judgeStage, judgeEvidence)) &&
+          trial.passed === (derivedFailures.length === 0) &&
+          JSON.stringify(trial.failures) === JSON.stringify(derivedFailures)
+        );
+      } catch {
+        return false;
+      }
+    });
   });
+  const actualArtifactPaths = Object.keys(attempt.artifactDigests).sort((left, right) =>
+    left.localeCompare(right, 'en'),
+  );
+
+  return (
+    hasPassingCases &&
+    expectedArtifactPaths.every((artifactPath) =>
+      hasValidArtifactDigest(attemptDirectory, attempt, artifactPath),
+    ) &&
+    JSON.stringify(actualArtifactPaths) ===
+      JSON.stringify(expectedArtifactPaths.sort((left, right) => left.localeCompare(right, 'en')))
+  );
+};
 
 const hasCompletePassingQualificationStages = (attempt, caseIds) => {
   const expectedStageIds = createQualificationStageIds(caseIds);
+  if (
+    attempt.stages.length !== expectedStageIds.length ||
+    !expectedStageIds.every((stageId, index) => attempt.stages[index]?.id === stageId)
+  ) {
+    return false;
+  }
+
+  const stages = new Map(attempt.stages.map((stage) => [stage.id, stage]));
+  const hasCompletedState = (stage, allowedStatuses) =>
+    stage !== undefined &&
+    allowedStatuses.includes(stage.status) &&
+    stage.startedAt !== null &&
+    stage.completedAt !== null &&
+    stage.durationMs !== null &&
+    stage.error === null;
+  const hasValidNonModelState = (stage, allowedStatuses) =>
+    hasCompletedState(stage, allowedStatuses) &&
+    stage.cacheKey === null &&
+    stage.cacheSourceAttemptId === null &&
+    stage.operationalRetries.length === 0;
+  const hasValidModelState = (stage, isConfirmation) =>
+    hasCompletedState(stage, isConfirmation ? ['passed'] : ['cached', 'passed']) &&
+    stage.cacheKey !== null &&
+    (stage.status === 'cached'
+      ? stage.cacheSourceAttemptId !== null && stage.operationalRetries.length === 0
+      : stage.cacheSourceAttemptId === null);
+  const hasValidSkippedState = (stage) =>
+    hasValidNonModelState(stage, ['skipped']) && stage.durationMs === 0 && stage.error === null;
+  const controlsPass = ['source-state', 'coverage', 'candidate', 'baseline'].every((stageId) =>
+    hasValidNonModelState(stages.get(stageId), ['passed']),
+  );
+
   return (
-    attempt.stages.length === expectedStageIds.length &&
-    expectedStageIds.every((stageId, index) => {
-      const stage = attempt.stages[index];
-      return stage?.id === stageId && (stage.status === 'cached' || stage.status === 'passed');
+    controlsPass &&
+    attempt.cases.every((caseResult) => {
+      const executedTrialIds = new Set(caseResult.trials.map(({ trialId }) => trialId));
+      const trialsAreValid = ['initial', 'confirmation-1', 'confirmation-2'].every((trialId) => {
+        const stagePrefix = `case:${caseResult.caseId}:trial:${trialId}`;
+        if (!executedTrialIds.has(trialId)) {
+          return [
+            'prepare',
+            'deterministic-before',
+            'actor',
+            'deterministic-after',
+            'assertions',
+            'judge',
+          ].every((stageName) => hasValidSkippedState(stages.get(`${stagePrefix}:${stageName}`)));
+        }
+
+        const actor = stages.get(`${stagePrefix}:actor`);
+        const judge = stages.get(`${stagePrefix}:judge`);
+        const trial = caseResult.trials.find(({ trialId: candidateId }) => candidateId === trialId);
+        const isConfirmation = trialId !== 'initial';
+        return (
+          trial !== undefined &&
+          hasValidNonModelState(stages.get(`${stagePrefix}:prepare`), ['passed']) &&
+          hasValidNonModelState(stages.get(`${stagePrefix}:deterministic-before`), ['passed']) &&
+          hasValidModelState(actor, isConfirmation) &&
+          hasValidNonModelState(stages.get(`${stagePrefix}:deterministic-after`), [
+            'failed',
+            'passed',
+          ]) &&
+          hasValidNonModelState(stages.get(`${stagePrefix}:assertions`), ['failed', 'passed']) &&
+          (trial.judgeStatus === 'completed'
+            ? hasValidModelState(judge, isConfirmation)
+            : hasValidSkippedState(judge))
+        );
+      });
+      return (
+        trialsAreValid &&
+        hasValidNonModelState(stages.get(`case:${caseResult.caseId}:result`), ['passed'])
+      );
     })
   );
 };
@@ -605,6 +1021,7 @@ export const inspectReleaseEvidence = async (
   for (const {
     adapterId,
     caseIds,
+    cases,
     implementationId,
     profileDirectory,
   } of listQualificationProfiles(repositoryRoot)) {
@@ -709,7 +1126,29 @@ export const inspectReleaseEvidence = async (
     }
 
     const hasPassingStages = hasCompletePassingQualificationStages(attempt, caseIds);
-    const hasPassingCases = hasCompletePassingQualificationCases(attempt, caseIds);
+    let profileCases;
+    try {
+      profileCases = cases.map(({ id, projectDirectory, scenarioFile }) => ({
+        id,
+        scenario: readYaml(
+          resolveContainedPath(
+            resolveContainedPath(profileDirectory, projectDirectory),
+            scenarioFile,
+          ),
+          QualificationCaseScenarioSchema,
+        ),
+      }));
+    } catch (error) {
+      issues.push(
+        `${relativeLatestPath} references an invalid qualification scenario: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      continue;
+    }
+    const hasPassingCases = hasCompletePassingQualificationCases(
+      attemptDirectory,
+      attempt,
+      profileCases,
+    );
     if (!hasPassingStages) {
       issues.push(`${relativeLatestPath} does not contain every current passing stage.`);
     }

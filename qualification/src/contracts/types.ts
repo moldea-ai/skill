@@ -1,14 +1,18 @@
 import path from 'node:path';
 import { z } from 'zod';
 
+import { calculateCodexEvaluationOperationalRetryDelay } from '../../../tooling/codex-evaluation-host/index.mjs';
+
 import {
   DEFAULT_PACKAGES_REPOSITORY,
   QUALIFICATION_ALLOWED_EGRESS_HOSTS,
+  QUALIFICATION_CONFIRMATION_POLICY,
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
   QUALIFICATION_MODEL,
   QUALIFICATION_MODEL_ENDPOINT_ORIGINS,
   QUALIFICATION_PROTOCOL_VERSION,
   QUALIFICATION_REASONING_EFFORT,
+  QUALIFICATION_TRIAL_IDS,
 } from '../constants/index.ts';
 
 const StableIdSchema = z
@@ -232,8 +236,8 @@ export const ModelUsageSchema = z.strictObject({
 
 export type IModelUsage = z.infer<typeof ModelUsageSchema>;
 
-// immutable model-stage provenance committed beside actor and judge output
-export const QualificationModelStageEvidenceSchema = z.strictObject({
+// immutable protocol 3–5 model-stage provenance retained for historical evidence
+export const QualificationHistoricalModelStageEvidenceSchema = z.strictObject({
   role: z.enum(['actor', 'judge']),
   createdAt: z.string().datetime(),
   durationMs: z.number().int().nonnegative(),
@@ -243,8 +247,17 @@ export const QualificationModelStageEvidenceSchema = z.strictObject({
   cacheSourceAttemptId: z.string().trim().min(1).nullable(),
 });
 
+// current model-stage provenance includes the trial that produced the evidence
+export const QualificationModelStageEvidenceSchema =
+  QualificationHistoricalModelStageEvidenceSchema.extend({
+    trialId: z.enum(QUALIFICATION_TRIAL_IDS),
+  });
+
 export type IQualificationModelStageEvidence = z.infer<
   typeof QualificationModelStageEvidenceSchema
+>;
+export type IQualificationHistoricalModelStageEvidence = z.infer<
+  typeof QualificationHistoricalModelStageEvidenceSchema
 >;
 
 // exact local execution identity that must remain stable across resume boundaries
@@ -452,7 +465,7 @@ export const QualificationStageStatusSchema = z.enum([
   'skipped',
 ]);
 
-export const QualificationStageCheckpointSchema = z.strictObject({
+const QualificationStageCheckpointShape = {
   id: z.string().trim().min(1),
   status: QualificationStageStatusSchema,
   startedAt: z.string().datetime().nullable(),
@@ -464,9 +477,78 @@ export const QualificationStageCheckpointSchema = z.strictObject({
     .nullable(),
   cacheSourceAttemptId: z.string().nullable(),
   error: z.string().nullable(),
-});
+};
+
+// frozen protocol 3–5 checkpoint stage
+export const QualificationHistoricalStageCheckpointSchema = z.strictObject(
+  QualificationStageCheckpointShape,
+);
+
+// stable safe evidence for one retryable Codex host failure
+export const QualificationOperationalRetrySchema = z
+  .strictObject({
+    category: z.enum(['execution-failed', 'proxy-unavailable', 'timed-out']),
+    failedAt: z.string().datetime(),
+    failureCount: z.number().int().positive(),
+    retryDelayMs: z.number().int().nonnegative(),
+  })
+  .superRefine((retry, context) => {
+    const minimumDelayMs = calculateCodexEvaluationOperationalRetryDelay(retry.failureCount, 0);
+    const maximumDelayMs = calculateCodexEvaluationOperationalRetryDelay(retry.failureCount, 1);
+
+    if (retry.retryDelayMs < minimumDelayMs || retry.retryDelayMs > maximumDelayMs) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Operational retry delay does not match the bounded backoff policy.',
+        path: ['retryDelayMs'],
+      });
+    }
+  });
+
+// current checkpoint stage with append-only operational retry evidence
+export const QualificationStageCheckpointSchema = z
+  .strictObject({
+    ...QualificationStageCheckpointShape,
+    operationalRetries: z.array(QualificationOperationalRetrySchema),
+  })
+  .superRefine((stage, context) => {
+    const isModelStage = /:trial:(?:initial|confirmation-[12]):(?:actor|judge)$/u.test(stage.id);
+
+    for (const [index, retry] of stage.operationalRetries.entries()) {
+      if (retry.failureCount !== index + 1) {
+        context.addIssue({
+          code: 'custom',
+          message: 'Operational retry failure counts must be contiguous from one.',
+          path: ['operationalRetries', index, 'failureCount'],
+        });
+      }
+    }
+
+    if (stage.operationalRetries.length > 0 && !isModelStage) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Only actor and judge trial stages may record operational retries.',
+        path: ['operationalRetries'],
+      });
+    }
+
+    if (
+      stage.operationalRetries.length > 0 &&
+      (stage.status === 'cached' || stage.status === 'skipped')
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Cached and skipped stages cannot record operational retries.',
+        path: ['operationalRetries'],
+      });
+    }
+  });
 
 export type IQualificationStageCheckpoint = z.infer<typeof QualificationStageCheckpointSchema>;
+export type IQualificationOperationalRetry = z.infer<typeof QualificationOperationalRetrySchema>;
+export type IQualificationHistoricalStageCheckpoint = z.infer<
+  typeof QualificationHistoricalStageCheckpointSchema
+>;
 
 export const QualificationAttemptStatusSchema = z.enum([
   'errored',
@@ -513,8 +595,8 @@ export const QualificationAttemptCheckpointSchema = z.strictObject({
 
 export type IQualificationAttemptCheckpoint = z.infer<typeof QualificationAttemptCheckpointSchema>;
 
-// public per-case summary points to full committed artifacts without duplicating them
-export const QualificationCaseResultSchema = z.strictObject({
+// frozen protocol 3–5 per-case summary and flat artifact references
+export const QualificationHistoricalCaseResultSchema = z.strictObject({
   caseId: StableIdSchema,
   title: z.string().trim().min(1),
   status: z.enum(['errored', 'failed', 'passed']),
@@ -535,6 +617,135 @@ export const QualificationCaseResultSchema = z.strictObject({
   judgeCacheSourceAttemptId: z.string().nullable(),
   failures: z.array(z.string()),
 });
+
+export type IQualificationHistoricalCaseResult = z.infer<
+  typeof QualificationHistoricalCaseResultSchema
+>;
+
+// one protocol 6 initial or confirmation trial and its complete artifact references
+export const QualificationTrialResultSchema = z
+  .strictObject({
+    trialId: z.enum(QUALIFICATION_TRIAL_IDS),
+    kind: z.enum(['confirmation', 'initial']),
+    confirmationIndex: z.number().int().min(1).max(2).nullable(),
+    passed: z.boolean(),
+    durationMs: z.number().int().nonnegative(),
+    deterministicBeforePath: RelativePathSchema,
+    deterministicAfterPath: RelativePathSchema,
+    actorOutputPath: RelativePathSchema,
+    judgeStatus: z.enum(['completed', 'skipped']),
+    judgeOutputPath: RelativePathSchema.nullable(),
+    judgeSkippedPath: RelativePathSchema.nullable(),
+    workspaceAssertionsPath: RelativePathSchema,
+    patchPath: RelativePathSchema,
+    actorUsage: ModelUsageSchema.nullable(),
+    judgeUsage: ModelUsageSchema.nullable(),
+    actorEvidenceCreatedAt: z.string().datetime(),
+    judgeEvidenceCreatedAt: z.string().datetime().nullable(),
+    actorCacheSourceAttemptId: z.string().nullable(),
+    judgeCacheSourceAttemptId: z.string().nullable(),
+    failures: z.array(z.string()),
+  })
+  .superRefine((trial, context) => {
+    const expectedTrialId =
+      trial.kind === 'initial' ? 'initial' : `confirmation-${trial.confirmationIndex}`;
+
+    if (
+      (trial.kind === 'initial' && trial.confirmationIndex !== null) ||
+      (trial.kind === 'confirmation' && trial.confirmationIndex === null) ||
+      trial.trialId !== expectedTrialId
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Trial id, kind, and confirmation index must identify the same trial.',
+        path: ['trialId'],
+      });
+    }
+
+    if (
+      (trial.passed && trial.failures.length > 0) ||
+      (!trial.passed && trial.failures.length === 0)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Trial pass state must agree with its recorded failures.',
+        path: ['failures'],
+      });
+    }
+
+    if (
+      trial.kind === 'confirmation' &&
+      (trial.actorCacheSourceAttemptId !== null || trial.judgeCacheSourceAttemptId !== null)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Confirmation trials must contain fresh actor and judge evidence.',
+        path: ['actorCacheSourceAttemptId'],
+      });
+    }
+  });
+
+export type IQualificationTrialResult = z.infer<typeof QualificationTrialResultSchema>;
+
+// terminal protocol 6 case history preserving the original trial and every confirmation
+export const QualificationCaseResultSchema = z
+  .strictObject({
+    caseId: StableIdSchema,
+    title: z.string().trim().min(1),
+    status: z.enum(['failed', 'passed', 'recovered']),
+    confirmationStatus: z.enum(['not-required', 'passed', 'rejected']),
+    durationMs: z.number().int().nonnegative(),
+    trials: z.array(QualificationTrialResultSchema).min(1).max(3),
+    failures: z.array(z.string()),
+  })
+  .superRefine((caseResult, context) => {
+    const trialIds = caseResult.trials.map(({ trialId }) => trialId);
+    const initial = caseResult.trials[0];
+    const confirmation1 = caseResult.trials[1];
+    const confirmation2 = caseResult.trials[2];
+    let isValidHistory = initial?.trialId === 'initial';
+
+    if (initial?.passed === true) {
+      isValidHistory =
+        isValidHistory &&
+        caseResult.trials.length === 1 &&
+        caseResult.status === 'passed' &&
+        caseResult.confirmationStatus === 'not-required';
+    } else if (initial !== undefined) {
+      isValidHistory =
+        isValidHistory &&
+        confirmation1?.trialId === 'confirmation-1' &&
+        (confirmation1.passed
+          ? confirmation2?.trialId === 'confirmation-2' &&
+            caseResult.trials.length === 3 &&
+            (confirmation2.passed
+              ? caseResult.status === 'recovered' && caseResult.confirmationStatus === 'passed'
+              : caseResult.status === 'failed' && caseResult.confirmationStatus === 'rejected')
+          : caseResult.trials.length === 2 &&
+            caseResult.status === 'failed' &&
+            caseResult.confirmationStatus === 'rejected');
+    }
+
+    if (!isValidHistory || new Set(trialIds).size !== trialIds.length) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Case status must agree with its ordered initial and confirmation trials.',
+        path: ['trials'],
+      });
+    }
+
+    if (
+      ((caseResult.status === 'passed' || caseResult.status === 'recovered') &&
+        caseResult.failures.length > 0) ||
+      (caseResult.status === 'failed' && caseResult.failures.length === 0)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Case status must agree with its terminal failures.',
+        path: ['failures'],
+      });
+    }
+  });
 
 export type IQualificationCaseResult = z.infer<typeof QualificationCaseResultSchema>;
 
@@ -567,9 +778,7 @@ const QualificationTerraProvenanceSchema = QualificationProvenanceSchema.extend(
   model: z.literal('gpt-5.6-terra'),
 });
 
-// local result draft shared by dry runs and official result publication
-export const QualificationAttemptResultDraftSchema = z.strictObject({
-  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
+const QualificationAttemptResultSharedShape = {
   attemptId: z.string().trim().min(1),
   parentAttemptId: z.string().trim().min(1).nullable(),
   selection: QualificationSelectionSchema,
@@ -578,29 +787,61 @@ export const QualificationAttemptResultDraftSchema = z.strictObject({
   completedAt: z.string().datetime().nullable(),
   evidenceGeneratedAt: z.string().datetime().nullable(),
   summary: z.string().trim().min(1),
+  artifactDigests: z.record(RelativePathSchema, z.string().regex(/^[a-f0-9]{64}$/u)),
+};
+
+// fixed protocol 6 confirmation policy committed with every current attempt
+export const QualificationConfirmationPolicySchema = z.strictObject({
+  version: z.literal(QUALIFICATION_CONFIRMATION_POLICY.version),
+  requiredPassingConfirmations: z.literal(
+    QUALIFICATION_CONFIRMATION_POLICY.requiredPassingConfirmations,
+  ),
+});
+
+// local protocol 6 result draft shared by dry runs and official result publication
+export const QualificationAttemptResultDraftSchema = z.strictObject({
+  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
+  ...QualificationAttemptResultSharedShape,
+  confirmationPolicy: QualificationConfirmationPolicySchema,
   provenance: QualificationProvenanceSchema,
   stages: z.array(QualificationStageCheckpointSchema),
   cases: z.array(QualificationCaseResultSchema),
-  artifactDigests: z.record(RelativePathSchema, z.string().regex(/^[a-f0-9]{64}$/u)),
 });
 
 export type IQualificationAttemptResult = z.infer<typeof QualificationAttemptResultDraftSchema>;
 
+const QualificationHistoricalAttemptResultShape = {
+  ...QualificationAttemptResultSharedShape,
+  stages: z.array(QualificationHistoricalStageCheckpointSchema),
+  cases: z.array(QualificationHistoricalCaseResultSchema),
+};
+
 // protocol 3 Terra draft retained exclusively for immutable history verification
-const QualificationTerraAttemptResultDraftSchema = QualificationAttemptResultDraftSchema.extend({
+const QualificationTerraAttemptResultDraftSchema = z.strictObject({
   protocolVersion: z.literal(3),
+  ...QualificationHistoricalAttemptResultShape,
   provenance: QualificationTerraProvenanceSchema,
 });
 
 // protocol 4 Sol draft retained exclusively for immutable history verification
-const QualificationPreviousAttemptResultDraftSchema = QualificationAttemptResultDraftSchema.extend({
+const QualificationProtocol4AttemptResultDraftSchema = z.strictObject({
   protocolVersion: z.literal(4),
+  ...QualificationHistoricalAttemptResultShape,
+  provenance: QualificationProvenanceSchema,
+});
+
+// protocol 5 Sol draft retained exclusively for immutable history verification
+const QualificationProtocol5AttemptResultDraftSchema = z.strictObject({
+  protocolVersion: z.literal(5),
+  ...QualificationHistoricalAttemptResultShape,
+  provenance: QualificationProvenanceSchema,
 });
 
 const validateQualificationAttemptResult = (
   result:
     | z.infer<typeof QualificationAttemptResultDraftSchema>
-    | z.infer<typeof QualificationPreviousAttemptResultDraftSchema>
+    | z.infer<typeof QualificationProtocol5AttemptResultDraftSchema>
+    | z.infer<typeof QualificationProtocol4AttemptResultDraftSchema>
     | z.infer<typeof QualificationTerraAttemptResultDraftSchema>,
   context: z.RefinementCtx,
 ): void => {
@@ -652,23 +893,53 @@ const validateQualificationAttemptResult = (
   }
 };
 
+const validateCurrentQualificationAttemptResult = (
+  result: z.infer<typeof QualificationAttemptResultDraftSchema>,
+  context: z.RefinementCtx,
+): void => {
+  validateQualificationAttemptResult(result, context);
+
+  if (result.status === 'passed' && result.cases.some(({ status }) => status === 'failed')) {
+    context.addIssue({
+      code: 'custom',
+      message: 'A passing qualification attempt cannot contain a failed case.',
+      path: ['cases'],
+    });
+  }
+
+  if (
+    result.status === 'failed' &&
+    result.cases.length > 0 &&
+    !result.cases.some(({ status }) => status === 'failed')
+  ) {
+    context.addIssue({
+      code: 'custom',
+      message: 'A case-driven failed qualification attempt must contain a failed case.',
+      path: ['cases'],
+    });
+  }
+};
+
 // current committed attempt record used by the release workflow
 export const QualificationAttemptResultSchema = QualificationAttemptResultDraftSchema.superRefine(
-  validateQualificationAttemptResult,
+  validateCurrentQualificationAttemptResult,
 );
 
 // protocol 3 Terra attempt retained exclusively for immutable history verification
 const QualificationTerraAttemptResultSchema =
   QualificationTerraAttemptResultDraftSchema.superRefine(validateQualificationAttemptResult);
 
-// protocol 4 Sol attempt retained exclusively for immutable history verification
-const QualificationPreviousAttemptResultSchema =
-  QualificationPreviousAttemptResultDraftSchema.superRefine(validateQualificationAttemptResult);
+// protocol 4 and 5 Sol attempts retained exclusively for immutable history verification
+const QualificationProtocol4AttemptResultSchema =
+  QualificationProtocol4AttemptResultDraftSchema.superRefine(validateQualificationAttemptResult);
+const QualificationProtocol5AttemptResultSchema =
+  QualificationProtocol5AttemptResultDraftSchema.superRefine(validateQualificationAttemptResult);
 
-// complete readable history across frozen Terra and Sol protocols plus the current contract
+// complete readable history across frozen protocols 3–5 plus the current contract
 export const QualificationRecordedAttemptResultSchema = z.union([
   QualificationTerraAttemptResultSchema,
-  QualificationPreviousAttemptResultSchema,
+  QualificationProtocol4AttemptResultSchema,
+  QualificationProtocol5AttemptResultSchema,
   QualificationAttemptResultSchema,
 ]);
 
@@ -695,13 +966,19 @@ const QualificationTerraLatestResultSchema = QualificationLatestResultSchema.ext
 });
 
 // protocol 4 pointer retained exclusively for immutable history verification
-const QualificationPreviousLatestResultSchema = QualificationLatestResultSchema.extend({
+const QualificationProtocol4LatestResultSchema = QualificationLatestResultSchema.extend({
   protocolVersion: z.literal(4),
+});
+
+// protocol 5 pointer retained exclusively for immutable history verification
+const QualificationProtocol5LatestResultSchema = QualificationLatestResultSchema.extend({
+  protocolVersion: z.literal(5),
 });
 
 export const QualificationRecordedLatestResultSchema = z.union([
   QualificationTerraLatestResultSchema,
-  QualificationPreviousLatestResultSchema,
+  QualificationProtocol4LatestResultSchema,
+  QualificationProtocol5LatestResultSchema,
   QualificationLatestResultSchema,
 ]);
 

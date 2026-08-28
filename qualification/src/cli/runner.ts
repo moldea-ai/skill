@@ -5,6 +5,7 @@ import {
   getLocalAttemptDirectory,
   inspectLocalAttemptCheckpoints,
   type IQualificationPaidExecutionRequest,
+  type IQualificationProgress,
   recordIncompleteAttempt,
   runQualification,
 } from '../execution/index.ts';
@@ -39,11 +40,24 @@ const createPaidExecutionApprovalRequester =
       );
     }
 
-    return confirmPaidQualificationExecution(request.modelCallCount);
+    return confirmPaidQualificationExecution(request.maximumPlannedTrialCallCount);
   };
 
 const createHost = (isDryRun: boolean): ICodexHost =>
   isDryRun ? new FakeCodexHost() : new CodexCliHost();
+
+/** Reports checkpointed retry and confirmation progress without polluting JSON stdout. */
+const reportQualificationProgress = (progress: IQualificationProgress): void => {
+  if (progress.kind === 'operational-retry') {
+    process.stderr.write(
+      `Qualification ${progress.caseId} ${progress.trialId} ${progress.role} retry ${progress.retry.failureCount}: ${progress.retry.category}; waiting ${progress.retry.retryDelayMs} ms.\n`,
+    );
+    return;
+  }
+
+  const outcome = progress.status === 'started' ? 'started' : progress.passed ? 'passed' : 'failed';
+  process.stderr.write(`Qualification ${progress.caseId} ${progress.trialId} ${outcome}.\n`);
+};
 
 const presentRunOutcome = (
   outcome: Awaited<ReturnType<typeof runQualification>>,
@@ -126,6 +140,7 @@ export const executeQualificationCommand = async (
         isDryRun: command.isDryRun,
         useCache: command.useCache,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
+        onProgress: reportQualificationProgress,
         signal,
       });
       return presentRunOutcome(outcome, command.isJson);
@@ -137,6 +152,7 @@ export const executeQualificationCommand = async (
         host: createHost(checkpoint.isDryRun),
         resumeAttemptId: checkpoint.attemptId,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
+        onProgress: reportQualificationProgress,
         signal,
       });
       return presentRunOutcome(outcome, command.isJson);
@@ -160,6 +176,7 @@ export const executeQualificationCommand = async (
         useCache: checkpoint.useCache,
         parentAttemptId: checkpoint.attemptId,
         requestPaidExecutionApproval: createPaidExecutionApprovalRequester(command),
+        onProgress: reportQualificationProgress,
         signal,
       });
       return presentRunOutcome(outcome, command.isJson);

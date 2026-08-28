@@ -217,6 +217,7 @@ export const prepareQualificationProject = async (options: {
   skillRepository: string;
   skillState: IGitRepositoryState;
   signal?: AbortSignal | undefined;
+  workspaceDirectory?: string;
 }): Promise<IPreparedQualificationProject> => {
   const scenarioDirectory = resolveContainedPath(
     options.profileDirectory,
@@ -231,11 +232,9 @@ export const prepareQualificationProject = async (options: {
     throw new Error(`Scenario identity does not match profile case ${options.profileCase.id}.`);
   }
 
-  const workspaceDirectory = path.join(
-    options.attemptDirectory,
-    'workspaces',
-    options.profileCase.id,
-  );
+  const workspaceDirectory =
+    options.workspaceDirectory ??
+    path.join(options.attemptDirectory, 'workspaces', options.profileCase.id);
   await ensureDirectory(path.dirname(workspaceDirectory));
   await copyDirectory(
     resolveContainedPath(scenarioDirectory, scenario.seedDirectory),

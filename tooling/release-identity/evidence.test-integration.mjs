@@ -427,6 +427,8 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     const passingFixture = await seedPassingQualificationEvidenceFixture({
       artifactDirectory: qualificationArtifacts,
       attemptId,
+      hasOperationalRetry: true,
+      isRecovered: true,
       packages: createRecordedQualificationPackages(PUBLISHED_MOLDEA_MANIFESTS),
       packagesRepositoryCommit: packagesState.commit,
       packagesRepositoryFingerprint: packagesState.fingerprint,
@@ -573,20 +575,31 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       'attempt.json',
     );
     const exactAttempt = JSON.parse(readFileSync(attemptPath, 'utf8'));
+    const invalidRetryAttempt = structuredClone(exactAttempt);
+    const actorRetryStage = invalidRetryAttempt.stages.find(
+      ({ id }) => id === 'case:release-case:trial:initial:actor',
+    );
+    actorRetryStage.operationalRetries[0].retryDelayMs = 0;
+    writeFileSync(attemptPath, `${JSON.stringify(invalidRetryAttempt)}\n`, 'utf8');
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).some((issue) =>
+        issue.includes('Operational retry delay does not match the bounded backoff policy.'),
+      ),
+    );
+    writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
+
     const actorOutputPath = join(
       temporaryRoot,
       'qualification/results/custom/custom/attempts',
       attemptId,
-      'cases/release-case/actor-output.json',
+      'cases/release-case/trials/initial/actor-output.json',
     );
     const exactActorOutput = readFileSync(actorOutputPath, 'utf8');
     const malformedActorOutput = '{}\n';
     const malformedArtifactAttempt = structuredClone(exactAttempt);
-    malformedArtifactAttempt.artifactDigests['cases/release-case/actor-output.json'] = createHash(
-      'sha256',
-    )
-      .update(malformedActorOutput)
-      .digest('hex');
+    malformedArtifactAttempt.artifactDigests[
+      'cases/release-case/trials/initial/actor-output.json'
+    ] = createHash('sha256').update(malformedActorOutput).digest('hex');
     writeFileSync(actorOutputPath, malformedActorOutput, 'utf8');
     writeFileSync(attemptPath, `${JSON.stringify(malformedArtifactAttempt)}\n`, 'utf8');
     assert.ok(
@@ -597,6 +610,30 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       ),
     );
     writeFileSync(actorOutputPath, exactActorOutput, 'utf8');
+    writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
+
+    const deterministicAfterPath = join(
+      temporaryRoot,
+      'qualification/results/custom/custom/attempts',
+      attemptId,
+      'cases/release-case/trials/initial/deterministic-after.json',
+    );
+    const exactDeterministicAfter = readFileSync(deterministicAfterPath, 'utf8');
+    const contradictoryDeterministicAfter = JSON.parse(exactDeterministicAfter);
+    contradictoryDeterministicAfter.summary.coreValid = false;
+    const contradictoryDeterministicContent = `${JSON.stringify(contradictoryDeterministicAfter)}\n`;
+    const contradictoryAttempt = structuredClone(exactAttempt);
+    contradictoryAttempt.artifactDigests[
+      'cases/release-case/trials/initial/deterministic-after.json'
+    ] = createHash('sha256').update(contradictoryDeterministicContent).digest('hex');
+    writeFileSync(deterministicAfterPath, contradictoryDeterministicContent, 'utf8');
+    writeFileSync(attemptPath, `${JSON.stringify(contradictoryAttempt)}\n`, 'utf8');
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
+        'qualification/results/custom/custom/latest.json does not contain every current passing case artifact.',
+      ),
+    );
+    writeFileSync(deterministicAfterPath, exactDeterministicAfter, 'utf8');
     writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
 
     const staleTargetAttempt = structuredClone(exactAttempt);
@@ -785,23 +822,25 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     externalAttempt.artifactDigests['baseline.json'] = createHash('sha256')
       .update(externalBaselineContent)
       .digest('hex');
-    for (const role of ['actor', 'judge']) {
-      const relativeEvidencePath = `cases/release-case/${role}-evidence.json`;
-      const evidencePath = join(externalAttemptDirectory, relativeEvidencePath);
-      const evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
-      evidence.sourceAttemptId = externalAttemptId;
-      const evidenceContent = `${JSON.stringify(evidence, null, 2)}\n`;
-      writeFileSync(evidencePath, evidenceContent, 'utf8');
-      externalAttempt.artifactDigests[relativeEvidencePath] = createHash('sha256')
-        .update(evidenceContent)
-        .digest('hex');
+    for (const trialId of ['initial', 'confirmation-1', 'confirmation-2']) {
+      for (const role of ['actor', 'judge']) {
+        const relativeEvidencePath = `cases/release-case/trials/${trialId}/${role}-evidence.json`;
+        const evidencePath = join(externalAttemptDirectory, relativeEvidencePath);
+        const evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
+        evidence.sourceAttemptId = externalAttemptId;
+        const evidenceContent = `${JSON.stringify(evidence, null, 2)}\n`;
+        writeFileSync(evidencePath, evidenceContent, 'utf8');
+        externalAttempt.artifactDigests[relativeEvidencePath] = createHash('sha256')
+          .update(evidenceContent)
+          .digest('hex');
+      }
     }
     writeFileSync(externalAttemptPath, `${JSON.stringify(externalAttempt)}\n`, 'utf8');
     writeFile(
       temporaryRoot,
       'qualification/results/external/external-stream/latest.json',
       `${JSON.stringify({
-        protocolVersion: 5,
+        protocolVersion: 6,
         adapterId: 'external',
         implementationId: 'external-stream',
         latestAttemptId: externalAttemptId,

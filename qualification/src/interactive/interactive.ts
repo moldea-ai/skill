@@ -72,8 +72,10 @@ export const promptQualificationAction = async (): Promise<IInteractiveQualifica
 };
 
 /** Requires a default-deny approval immediately before any paid model stages can run. */
-export const confirmPaidQualificationExecution = async (modelCallCount: number): Promise<boolean> =>
+export const confirmPaidQualificationExecution = async (
+  maximumPlannedTrialCallCount: number,
+): Promise<boolean> =>
   confirm({
-    message: `This attempt can make up to ${modelCallCount} paid frontier-model calls (${QUALIFICATION_MODEL}, ${QUALIFICATION_REASONING_EFFORT} reasoning effort) and can take a long time. Continue?`,
+    message: `This attempt can make up to ${maximumPlannedTrialCallCount} planned paid frontier-model calls (${QUALIFICATION_MODEL}, ${QUALIFICATION_REASONING_EFFORT} reasoning effort). Operational retries after transient provider, network, or timeout failures can add calls. Continue?`,
     default: false,
   });

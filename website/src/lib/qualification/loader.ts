@@ -10,18 +10,24 @@ import {
   QualificationBaselineCheckSchema,
   QualificationCaseCatalogSchema,
   QualificationCoverageResultSchema,
+  QualificationCurrentCaseResultSchema,
   QualificationExecutionErrorSchema,
   QualificationLatestResultSchema,
   QualificationJudgeSkippedSchema,
+  QualificationModelStageEvidenceSchema,
   QualificationProbesSchema,
   QualificationProfileSchema,
   QualificationScenarioSchema,
   QualificationSourceStateResultSchema,
+  QualificationTrialResultSchema,
   WorkspaceAssertionResultSchema,
   type IDeterministicVerification,
   type IQualificationArtifactModel,
   type IQualificationAttemptCaseModel,
   type IQualificationAttemptModel,
+  type IQualificationAttemptResult,
+  type IQualificationCurrentCaseResult,
+  type IQualificationHistoricalCaseResult,
   type IQualificationProfileCaseModel,
   type IQualificationProfileModel,
   type IQualificationWebsiteModel,
@@ -40,12 +46,72 @@ import {
 import {
   assertQualificationAttemptEvidence,
   assertQualificationCaseEvidence,
+  assertQualificationTrialModelEvidence,
 } from './validations.ts';
 
 const QUALIFICATION_ROUTE = '/evidence/qualification/';
 
 type ICaseCatalogEntry = ReturnType<typeof QualificationCaseCatalogSchema.parse>['cases'][number];
 type IProfile = ReturnType<typeof QualificationProfileSchema.parse>;
+
+const createExpectedCurrentTrialArtifactPaths = (
+  caseId: string,
+  trial: IQualificationCurrentCaseResult['trials'][number],
+): string[] => {
+  const trialRoot = `cases/${caseId}/trials/${trial.trialId}`;
+  const judgePaths =
+    trial.judgeStatus === 'completed'
+      ? [
+          `${trialRoot}/judge-evidence.json`,
+          `${trialRoot}/judge-events.jsonl`,
+          `${trialRoot}/judge-output.json`,
+          `${trialRoot}/judge-output.schema.json`,
+          `${trialRoot}/judge-prompt.md`,
+        ]
+      : [`${trialRoot}/judge-skipped.json`];
+
+  return [
+    `${trialRoot}/actor-evidence.json`,
+    `${trialRoot}/actor-events.jsonl`,
+    `${trialRoot}/actor-output.json`,
+    `${trialRoot}/actor-output.schema.json`,
+    `${trialRoot}/actor-prompt.md`,
+    `${trialRoot}/deterministic-after.json`,
+    `${trialRoot}/deterministic-before.json`,
+    ...judgePaths,
+    `${trialRoot}/trial-result.json`,
+    `${trialRoot}/workspace-assertions.json`,
+    `${trialRoot}/workspace.patch`,
+  ];
+};
+
+const createExpectedCurrentArtifactPaths = (
+  caseResults: readonly IQualificationCurrentCaseResult[],
+): string[] =>
+  [
+    'baseline.json',
+    'coverage.json',
+    'source-state.json',
+    ...caseResults.flatMap((caseResult) => [
+      `cases/${caseResult.caseId}/case-result.json`,
+      ...caseResult.trials.flatMap((trial) =>
+        createExpectedCurrentTrialArtifactPaths(caseResult.caseId, trial),
+      ),
+    ]),
+  ].sort((left, right) => left.localeCompare(right, 'en'));
+
+const assertCurrentArtifactInventory = (
+  result: Extract<IQualificationAttemptResult, { protocolVersion: 6 }>,
+): void => {
+  const expectedPaths = createExpectedCurrentArtifactPaths(result.cases);
+  const actualPaths = Object.keys(result.artifactDigests).sort((left, right) =>
+    left.localeCompare(right, 'en'),
+  );
+
+  if (JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)) {
+    throw new Error('Qualification evidence has an incomplete protocol 6 artifact inventory.');
+  }
+};
 
 const requireFile = (path: string): void => {
   if (!existsSync(path)) throw new Error(`Required qualification source is missing: ${path}`);
@@ -160,7 +226,7 @@ const readDeterministicArtifactSummary = (
   relativePath: string,
   protocolVersion: ReturnType<typeof QualificationAttemptResultSchema.parse>['protocolVersion'],
 ): IDeterministicVerification => {
-  if (protocolVersion === 5) {
+  if (protocolVersion >= 5) {
     return readAttemptArtifact(
       attemptDirectory,
       relativePath,
@@ -175,10 +241,10 @@ const readDeterministicArtifactSummary = (
   ).summary;
 };
 
-const loadAttemptCase = (
+const loadHistoricalAttemptCase = (
   repositoryRoot: string,
   attemptDirectory: string,
-  result: ReturnType<typeof QualificationAttemptResultSchema.parse>['cases'][number],
+  result: IQualificationHistoricalCaseResult,
   artifacts: IQualificationArtifactModel[],
   profileCase: IQualificationProfileCaseModel,
   qualificationProtocolVersion: ReturnType<
@@ -230,7 +296,7 @@ const loadAttemptCase = (
     throw new Error(`Qualification case ${result.caseId} has inconsistent judge artifacts.`);
   }
 
-  const caseEvidence: IQualificationAttemptCaseModel = {
+  const trialEvidence = {
     actor: readAttemptArtifact(attemptDirectory, result.actorOutputPath, ActorOutputSchema),
     artifacts: artifacts.filter(({ path }) => path.startsWith(casePrefix)),
     deterministicAfter: readDeterministicArtifactSummary(
@@ -256,6 +322,7 @@ const loadAttemptCase = (
             QualificationJudgeSkippedSchema,
           ),
     result,
+    retries: { actor: [], judge: [] },
     workspaceAssertions: readAttemptArtifact(
       attemptDirectory,
       result.workspaceAssertionsPath,
@@ -263,9 +330,181 @@ const loadAttemptCase = (
     ),
   };
 
-  assertQualificationCaseEvidence({ ...caseEvidence, profileCase });
+  assertQualificationCaseEvidence({ ...trialEvidence, profileCase });
 
-  return caseEvidence;
+  return {
+    artifacts: trialEvidence.artifacts,
+    result,
+    trials: [trialEvidence],
+  };
+};
+
+const loadCurrentAttemptCase = (
+  repositoryRoot: string,
+  attemptDirectory: string,
+  attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 6 }>,
+  result: IQualificationCurrentCaseResult,
+  artifacts: IQualificationArtifactModel[],
+  profileCase: IQualificationProfileCaseModel,
+): IQualificationAttemptCaseModel => {
+  const caseDirectory = join(attemptDirectory, 'cases', result.caseId);
+  const casePrefix = `${getRepositoryRelativePath(repositoryRoot, caseDirectory)}/`;
+  const recordedCaseResult = readAttemptArtifact(
+    attemptDirectory,
+    `cases/${result.caseId}/case-result.json`,
+    QualificationCurrentCaseResultSchema,
+  );
+
+  if (JSON.stringify(recordedCaseResult) !== JSON.stringify(result)) {
+    throw new Error(`Qualification case ${result.caseId} contradicts case-result.json.`);
+  }
+
+  const stageById = new Map(attemptResult.stages.map((stage) => [stage.id, stage]));
+  const trials = result.trials.map((trial) => {
+    const trialRoot = `cases/${result.caseId}/trials/${trial.trialId}`;
+    const actorEvidencePath = `${trialRoot}/actor-evidence.json`;
+    const judgeEvidencePath = `${trialRoot}/judge-evidence.json`;
+    const trialResultPath = `${trialRoot}/trial-result.json`;
+    const referencedPaths = [
+      trial.deterministicBeforePath,
+      trial.deterministicAfterPath,
+      trial.actorOutputPath,
+      actorEvidencePath,
+      trialResultPath,
+      trial.workspaceAssertionsPath,
+      trial.patchPath,
+      ...(trial.judgeOutputPath === null ? [] : [trial.judgeOutputPath]),
+      ...(trial.judgeStatus === 'completed' ? [judgeEvidencePath] : []),
+      ...(trial.judgeSkippedPath === null ? [] : [trial.judgeSkippedPath]),
+    ];
+
+    if (
+      new Set(referencedPaths).size !== referencedPaths.length ||
+      referencedPaths.some((relativePath) => !relativePath.startsWith(`${trialRoot}/`))
+    ) {
+      throw new Error(
+        `Qualification case ${result.caseId} trial ${trial.trialId} has invalid artifact references.`,
+      );
+    }
+
+    for (const relativePath of referencedPaths) {
+      const artifactPath = resolveContainedPath(attemptDirectory, relativePath);
+      requireFile(artifactPath);
+
+      if (
+        !artifacts.some(
+          ({ path }) => path === getRepositoryRelativePath(repositoryRoot, artifactPath),
+        )
+      ) {
+        throw new Error(
+          `Qualification case ${result.caseId} trial ${trial.trialId} references an unrecorded artifact.`,
+        );
+      }
+    }
+
+    const recordedTrialResult = readAttemptArtifact(
+      attemptDirectory,
+      trialResultPath,
+      QualificationTrialResultSchema,
+    );
+
+    if (JSON.stringify(recordedTrialResult) !== JSON.stringify(trial)) {
+      throw new Error(
+        `Qualification case ${result.caseId} trial ${trial.trialId} contradicts trial-result.json.`,
+      );
+    }
+
+    const actorStage = stageById.get(`case:${result.caseId}:trial:${trial.trialId}:actor`);
+    const judgeStage = stageById.get(`case:${result.caseId}:trial:${trial.trialId}:judge`);
+    const actorEvidence = readAttemptArtifact(
+      attemptDirectory,
+      actorEvidencePath,
+      QualificationModelStageEvidenceSchema,
+    );
+    const judgeEvidence =
+      trial.judgeStatus === 'completed'
+        ? readAttemptArtifact(
+            attemptDirectory,
+            judgeEvidencePath,
+            QualificationModelStageEvidenceSchema,
+          )
+        : null;
+
+    if (
+      actorStage === undefined ||
+      (trial.judgeStatus === 'completed' && judgeStage === undefined)
+    ) {
+      throw new Error(
+        `Qualification case ${result.caseId} trial ${trial.trialId} is missing model-stage provenance.`,
+      );
+    }
+
+    assertQualificationTrialModelEvidence({
+      attemptId: attemptResult.attemptId,
+      evidence: actorEvidence,
+      role: 'actor',
+      stage: actorStage,
+      trial,
+    });
+
+    if (judgeEvidence !== null && judgeStage !== undefined) {
+      assertQualificationTrialModelEvidence({
+        attemptId: attemptResult.attemptId,
+        evidence: judgeEvidence,
+        role: 'judge',
+        stage: judgeStage,
+        trial,
+      });
+    }
+    const trialEvidence = {
+      actor: readAttemptArtifact(attemptDirectory, trial.actorOutputPath, ActorOutputSchema),
+      artifacts: artifacts.filter(({ path }) =>
+        path.startsWith(
+          `${getRepositoryRelativePath(repositoryRoot, join(caseDirectory, 'trials', trial.trialId))}/`,
+        ),
+      ),
+      deterministicAfter: readDeterministicArtifactSummary(
+        attemptDirectory,
+        trial.deterministicAfterPath,
+        6,
+      ),
+      deterministicBefore: readDeterministicArtifactSummary(
+        attemptDirectory,
+        trial.deterministicBeforePath,
+        6,
+      ),
+      judge:
+        trial.judgeOutputPath === null
+          ? null
+          : readAttemptArtifact(attemptDirectory, trial.judgeOutputPath, JudgeOutputSchema),
+      judgeSkipped:
+        trial.judgeSkippedPath === null
+          ? null
+          : readAttemptArtifact(
+              attemptDirectory,
+              trial.judgeSkippedPath,
+              QualificationJudgeSkippedSchema,
+            ),
+      result: trial,
+      retries: {
+        actor: actorStage?.operationalRetries ?? [],
+        judge: judgeStage?.operationalRetries ?? [],
+      },
+      workspaceAssertions: readAttemptArtifact(
+        attemptDirectory,
+        trial.workspaceAssertionsPath,
+        WorkspaceAssertionResultSchema,
+      ),
+    };
+    assertQualificationCaseEvidence({ ...trialEvidence, profileCase });
+    return trialEvidence;
+  });
+
+  return {
+    artifacts: artifacts.filter(({ path }) => path.startsWith(casePrefix)),
+    result,
+    trials,
+  };
 };
 
 const readOptionalArtifact = <Output>(
@@ -307,6 +546,13 @@ const loadAttempt = (
     }
   }
 
+  if (
+    result.protocolVersion === 6 &&
+    (result.status === 'passed' || (result.status === 'failed' && result.cases.length > 0))
+  ) {
+    assertCurrentArtifactInventory(result);
+  }
+
   const artifacts = verifyArtifactDigests(repositoryRoot, attemptDirectory, result.artifactDigests);
   const coverage = readOptionalArtifact(
     attemptDirectory,
@@ -339,22 +585,44 @@ const loadAttempt = (
   }
 
   const error = executionError ?? interruption;
-  const cases = result.cases.map((caseResult) => {
-    const profileCase = profileCases.get(caseResult.caseId);
+  const cases =
+    result.protocolVersion === 6
+      ? result.cases.map((caseResult) => {
+          const profileCase = profileCases.get(caseResult.caseId);
 
-    if (!profileCase) {
-      throw new Error(`Qualification attempt ${result.attemptId} references an unknown case.`);
-    }
+          if (!profileCase) {
+            throw new Error(
+              `Qualification attempt ${result.attemptId} references an unknown case.`,
+            );
+          }
 
-    return loadAttemptCase(
-      repositoryRoot,
-      attemptDirectory,
-      caseResult,
-      artifacts,
-      profileCase,
-      result.protocolVersion,
-    );
-  });
+          return loadCurrentAttemptCase(
+            repositoryRoot,
+            attemptDirectory,
+            result,
+            caseResult,
+            artifacts,
+            profileCase,
+          );
+        })
+      : result.cases.map((caseResult) => {
+          const profileCase = profileCases.get(caseResult.caseId);
+
+          if (!profileCase) {
+            throw new Error(
+              `Qualification attempt ${result.attemptId} references an unknown case.`,
+            );
+          }
+
+          return loadHistoricalAttemptCase(
+            repositoryRoot,
+            attemptDirectory,
+            caseResult,
+            artifacts,
+            profileCase,
+            result.protocolVersion,
+          );
+        });
 
   assertUnique(
     result.stages.map(({ id }) => id),
@@ -430,6 +698,7 @@ const loadAttempts = (
   if (
     latest.adapterId !== adapterId ||
     latest.implementationId !== implementationId ||
+    latest.protocolVersion !== expectedLatest?.protocolVersion ||
     latest.latestAttemptId !== expectedLatest?.attemptId ||
     latest.latestStatus !== expectedLatest.status ||
     latest.lastPassingAttemptId !== (expectedPassing?.attemptId ?? null)
@@ -519,7 +788,7 @@ const loadProfile = (
     new Map(cases.map((profileCase) => [profileCase.id, profileCase])),
     probes.probes.map(({ matrixPath }) => matrixPath),
   );
-  const currentAttempts = attempts.filter(({ result }) => result.protocolVersion === 5);
+  const currentAttempts = attempts.filter(({ result }) => result.protocolVersion === 6);
 
   return {
     adapterId: profile.adapterId,

@@ -346,6 +346,7 @@ export const verifyQualificationResults = async (
           if (
             latest.adapterId !== adapterEntry.name ||
             latest.implementationId !== implementationEntry.name ||
+            latest.protocolVersion !== expectedLatest?.protocolVersion ||
             latest.latestAttemptId !== expectedLatest?.attemptId ||
             latest.latestStatus !== expectedLatest?.status ||
             latest.lastPassingAttemptId !== (expectedPassing?.attemptId ?? null)

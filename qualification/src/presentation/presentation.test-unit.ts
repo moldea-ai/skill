@@ -1,7 +1,9 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
-import { formatQualificationStatus } from './presentation.ts';
+import type { IQualificationAttemptResult } from '../contracts/index.ts';
+
+import { formatQualificationResult, formatQualificationStatus } from './presentation.ts';
 
 describe('qualification status presentation', () => {
   test('reports preserved unavailable checkpoints separately from resumable attempts', () => {
@@ -33,6 +35,40 @@ describe('qualification status presentation', () => {
         '  malformed-attempt  protocol unknown  unreadable-checkpoint',
         'Committed latest results:',
         '  none',
+      ].join('\n'),
+    );
+  });
+
+  test('reports recovered cases and operational retries in a completed result', () => {
+    const result = {
+      attemptId: 'attempt-recovered',
+      selection: { adapterId: 'custom', implementationId: 'custom' },
+      status: 'passed',
+      summary: 'Qualification passed with one recovered case.',
+      cases: [{ status: 'recovered' }],
+      stages: [
+        {
+          operationalRetries: [
+            {
+              category: 'timed-out',
+              failedAt: '2026-08-28T12:00:00.000Z',
+              failureCount: 1,
+              retryDelayMs: 5_000,
+            },
+          ],
+        },
+      ],
+    } as IQualificationAttemptResult;
+
+    expect(formatQualificationResult(result, '/attempts/attempt-recovered', false)).toBe(
+      [
+        'custom/custom: passed',
+        'Qualification passed with one recovered case.',
+        'Recovered cases: 1',
+        'Operational retries: 1',
+        'Attempt: attempt-recovered',
+        'Checkpoint: /attempts/attempt-recovered',
+        'Committed: no',
       ].join('\n'),
     );
   });

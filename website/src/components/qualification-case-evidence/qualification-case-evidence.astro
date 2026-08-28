@@ -1,44 +1,18 @@
 ---
-import { ExternalLink } from '@lucide/astro';
 import { prettifyTime } from 'web-utils-kit';
 
 import type { IQualificationAttemptCaseModel } from '../../lib/qualification/index.ts';
-import EvidenceText from '../evidence-text/evidence-text.astro';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import EvidenceText from '../evidence-text/evidence-text.astro';
+import QualificationTrialEvidence from '../qualification-trial-evidence/qualification-trial-evidence.astro';
 
 interface Props {
   evidence: IQualificationAttemptCaseModel;
 }
 
 const { evidence } = Astro.props;
-const {
-  actor,
-  deterministicAfter,
-  deterministicBefore,
-  judge,
-  judgeSkipped,
-  result,
-  workspaceAssertions,
-} = evidence;
-const verificationRows: Array<{
-  label: string;
-  verification: IQualificationAttemptCaseModel['deterministicBefore'];
-}> = [
-  { label: 'Before actor', verification: deterministicBefore },
-  { label: 'After actor', verification: deterministicAfter },
-];
-const getTokenTotal = (
-  usage: IQualificationAttemptCaseModel['result']['actorUsage'],
-): number | null =>
-  usage === null ? null : usage.inputTokens + usage.cachedInputTokens + usage.outputTokens;
-const actorTokenTotal = getTokenTotal(result.actorUsage);
-const judgeTokenTotal = getTokenTotal(result.judgeUsage);
-const isCliCompositionValid = (
-  verification: IQualificationAttemptCaseModel['deterministicBefore'],
-): boolean =>
-  'cliCompositionValid' in verification
-    ? verification.cliCompositionValid
-    : verification.cliCompatibilityValid;
+const { result, trials } = evidence;
+const confirmationStatus = 'confirmationStatus' in result ? result.confirmationStatus : null;
 ---
 
 <article class="surface-card min-w-0 overflow-hidden">
@@ -55,6 +29,21 @@ const isCliCompositionValid = (
     </div>
     <h3 class="mt-4 text-2xl font-semibold tracking-tight">{result.title}</h3>
     {
+      confirmationStatus !== null && (
+        <p class="mt-3 text-sm text-muted-foreground">
+          Confirmation decision: <span class="font-mono text-foreground">{confirmationStatus}</span>
+        </p>
+      )
+    }
+    {
+      result.status === 'recovered' && (
+        <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
+          The initial trial failed. Two fresh passing confirmations recovered this case, and the
+          original failure remains visible below.
+        </p>
+      )
+    }
+    {
       result.failures.length > 0 && (
         <div class="mt-5 rounded-xl border border-destructive/30 bg-destructive/10 p-4">
           <p class="font-semibold text-foreground">Case failures</p>
@@ -70,251 +59,34 @@ const isCliCompositionValid = (
     }
   </header>
 
-  <div class="grid gap-6 p-5 sm:p-6">
-    <section aria-labelledby={`${result.caseId}-deterministic-title`}>
+  <section
+    class="grid gap-4 p-5 sm:p-6"
+    aria-labelledby={`${result.caseId}-trial-history-title`}
+  >
+    <div>
       <h4
-        id={`${result.caseId}-deterministic-title`}
+        id={`${result.caseId}-trial-history-title`}
         class="text-lg font-semibold"
       >
-        Deterministic verification
+        Ordered trial history
       </h4>
-      <div class="mt-3 grid gap-3 md:grid-cols-3">
-        {
-          verificationRows.map(({ label, verification }) => (
-            <div class="rounded-xl border border-border bg-muted/40 p-4">
-              <div class="flex flex-wrap items-center gap-2">
-                <p class="font-semibold">{label}</p>
-                <EvidenceStatus status={verification.passed ? 'passed' : 'failed'} />
-              </div>
-              <dl class="mt-3 grid gap-1 text-sm text-muted-foreground">
-                <div class="flex justify-between gap-3">
-                  <dt>Inspection</dt>
-                  <dd class="font-mono text-foreground">{verification.inspectionStatus}</dd>
-                </div>
-                <div class="flex justify-between gap-3">
-                  <dt>Repository FS</dt>
-                  <dd class="font-mono text-foreground">
-                    {verification.repositoryFilesystemValid ? 'passed' : 'failed'}
-                  </dd>
-                </div>
-                <div class="flex justify-between gap-3">
-                  <dt>Repository readers</dt>
-                  <dd class="font-mono text-foreground">
-                    {verification.memoryRepositoryEquivalent ? 'equivalent' : 'different'}
-                  </dd>
-                </div>
-                <div class="flex justify-between gap-3">
-                  <dt>Core</dt>
-                  <dd class="font-mono text-foreground">
-                    {verification.coreValid ? 'passed' : 'failed'}
-                  </dd>
-                </div>
-                <div class="flex justify-between gap-3">
-                  <dt>CLI composition</dt>
-                  <dd class="font-mono text-foreground">
-                    {isCliCompositionValid(verification) ? 'passed' : 'failed'}
-                  </dd>
-                </div>
-                <div class="flex justify-between gap-3">
-                  <dt>CLI validation</dt>
-                  <dd class="font-mono text-foreground">{verification.cliValidateStatus}</dd>
-                </div>
-                <div class="flex justify-between gap-3">
-                  <dt>CLI inspection</dt>
-                  <dd class="font-mono text-foreground">{verification.cliInspectStatus}</dd>
-                </div>
-                <div class="flex justify-between gap-3">
-                  <dt>Typecheck</dt>
-                  <dd class="font-mono text-foreground">
-                    {verification.typecheckPassed ? 'passed' : 'failed'}
-                  </dd>
-                </div>
-                <div class="flex justify-between gap-3">
-                  <dt>Read-only check</dt>
-                  <dd class="font-mono text-foreground">
-                    {verification.repositoryUnchanged ? 'passed' : 'failed'}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          ))
-        }
-        <div class="rounded-xl border border-border bg-muted/40 p-4">
-          <div class="flex flex-wrap items-center gap-2">
-            <p class="font-semibold">Workspace assertions</p>
-            <EvidenceStatus status={workspaceAssertions.passed ? 'passed' : 'failed'} />
-          </div>
-          <p class="mt-3 text-sm leading-6 text-muted-foreground">
-            {
-              workspaceAssertions.changedPaths.length === 0
-                ? 'No project-visible paths changed.'
-                : `${workspaceAssertions.changedPaths.length} project-visible path(s) changed.`
-            }
-          </p>
-          {
-            workspaceAssertions.changedPaths.length > 0 && (
-              <ul class="mt-2 space-y-1 text-xs">
-                {workspaceAssertions.changedPaths.map((path) => (
-                  <li>
-                    <code class="break-all">{path}</code>
-                  </li>
-                ))}
-              </ul>
-            )
-          }
-        </div>
-      </div>
-    </section>
-
-    <section
-      class="grid gap-3 md:grid-cols-2"
-      aria-label="Semantic actor and judge outcomes"
-    >
-      <div class="rounded-xl border border-border p-4 sm:p-5">
-        <div class="flex flex-wrap items-center gap-2">
-          <h4 class="font-semibold">Actor outcome</h4>
-          <span class="rounded-full border border-border bg-muted px-2 py-1 text-xs font-bold">
-            {actor.outcome}
-          </span>
-        </div>
-        <p class="mt-3 text-sm leading-6 text-muted-foreground">
-          <EvidenceText text={actor.summary} />
-        </p>
-        <dl class="mt-4 grid gap-2 text-sm">
-          <div class="flex flex-wrap justify-between gap-2">
-            <dt class="text-muted-foreground">Evidence created</dt>
-            <dd>
-              <time datetime={result.actorEvidenceCreatedAt}>{result.actorEvidenceCreatedAt}</time>
-            </dd>
-          </div>
-          <div class="flex flex-wrap justify-between gap-2">
-            <dt class="text-muted-foreground">Cache source</dt>
-            <dd class="font-mono text-xs">
-              {result.actorCacheSourceAttemptId ?? 'Fresh evidence'}
-            </dd>
-          </div>
-          <div class="flex flex-wrap justify-between gap-2">
-            <dt class="text-muted-foreground">Reported tokens</dt>
-            <dd>{actorTokenTotal ?? 'Unavailable'}</dd>
-          </div>
-        </dl>
-      </div>
-
+      <p class="mt-2 text-sm leading-6 text-muted-foreground">
+        Each trial owns a pristine project, actor evidence, deterministic checks, workspace
+        assertions, and an independent judge decision.
+      </p>
+    </div>
+    <ol class="grid gap-4">
       {
-        judge ? (
-          <div class="rounded-xl border border-border p-4 sm:p-5">
-            <div class="flex flex-wrap items-center gap-2">
-              <h4 class="font-semibold">Independent judge</h4>
-              <EvidenceStatus status={judge.verdict === 'pass' ? 'passed' : 'failed'} />
-            </div>
-            <p class="mt-3 text-sm leading-6 text-muted-foreground">
-              <EvidenceText text={judge.summary} />
-            </p>
-            <dl class="mt-4 grid gap-2 text-sm">
-              <div class="flex flex-wrap justify-between gap-2">
-                <dt class="text-muted-foreground">Evidence created</dt>
-                <dd>
-                  <time datetime={result.judgeEvidenceCreatedAt ?? undefined}>
-                    {result.judgeEvidenceCreatedAt ?? 'Unavailable'}
-                  </time>
-                </dd>
-              </div>
-              <div class="flex flex-wrap justify-between gap-2">
-                <dt class="text-muted-foreground">Cache source</dt>
-                <dd class="font-mono text-xs">
-                  {result.judgeCacheSourceAttemptId ?? 'Fresh evidence'}
-                </dd>
-              </div>
-              <div class="flex flex-wrap justify-between gap-2">
-                <dt class="text-muted-foreground">Reported tokens</dt>
-                <dd>{judgeTokenTotal ?? 'Unavailable'}</dd>
-              </div>
-            </dl>
-          </div>
-        ) : (
-          <div class="rounded-xl border border-warning/40 bg-warning/10 p-4 sm:p-5">
-            <div class="flex flex-wrap items-center gap-2">
-              <h4 class="font-semibold">Independent judge</h4>
-              <EvidenceStatus status="skipped" />
-            </div>
-            <p class="mt-3 text-sm leading-6 text-muted-foreground">
-              <EvidenceText text={judgeSkipped?.reason ?? 'The judge did not run for this case.'} />
-            </p>
-          </div>
-        )
+        trials.map((trial, index) => (
+          <li>
+            <QualificationTrialEvidence
+              caseId={result.caseId}
+              evidence={trial}
+              index={index}
+            />
+          </li>
+        ))
       }
-    </section>
-
-    {
-      judge && (
-        <section aria-labelledby={`${result.caseId}-requirements-title`}>
-          <h4
-            id={`${result.caseId}-requirements-title`}
-            class="text-lg font-semibold"
-          >
-            Judge requirements
-          </h4>
-          <div
-            class="table-scroll mt-3 overflow-x-auto rounded-xl border border-border"
-            tabindex="0"
-            role="region"
-            aria-label={`Scrollable judge requirements for ${result.caseId}`}
-          >
-            <table class="w-full min-w-[42rem] border-collapse text-left text-sm">
-              <thead class="bg-muted">
-                <tr>
-                  <th class="px-4 py-3 font-semibold">Requirement</th>
-                  <th class="px-4 py-3 font-semibold">Verdict</th>
-                  <th class="px-4 py-3 font-semibold">Evidence</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-border">
-                {judge.requirements.map((requirement) => (
-                  <tr>
-                    <td class="px-4 py-3 align-top">
-                      <code>{requirement.id}</code>
-                    </td>
-                    <td class="px-4 py-3 align-top">
-                      <EvidenceStatus
-                        status={requirement.verdict === 'pass' ? 'passed' : 'failed'}
-                      />
-                    </td>
-                    <td class="px-4 py-3 leading-6 text-muted-foreground">
-                      <EvidenceText text={requirement.evidence} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )
-    }
-
-    <details class="rounded-xl border border-border">
-      <summary class="min-h-12 cursor-pointer px-4 py-3 font-semibold">
-        Raw case artifacts ({evidence.artifacts.length})
-      </summary>
-      <ul class="grid gap-2 border-t border-border p-4 text-sm">
-        {
-          evidence.artifacts.map((artifact) => (
-            <li class="min-w-0">
-              <a
-                class="inline-flex max-w-full items-start gap-2 font-medium text-link hover:underline"
-                href={artifact.rawUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <code class="break-all">{artifact.path}</code>
-                <ExternalLink
-                  class="mt-0.5 size-3.5 shrink-0"
-                  aria-hidden="true"
-                />
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </details>
-  </div>
+    </ol>
+  </section>
 </article>

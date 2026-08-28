@@ -421,12 +421,15 @@ export const createRouteManifest = (
 
 /**
  * Builds the complete deterministic website model without writing generated output.
+ * @param qualificationRepositoryRoot Repository root used to load qualification evidence.
  * @returns The validated documentation, navigation, search, route, and LLM model.
  */
-export const createWebsiteModel = (): IWebsiteModel => {
+export const createWebsiteModel = (
+  qualificationRepositoryRoot: string = getRepositoryRoot(),
+): IWebsiteModel => {
   const repositoryRoot = getRepositoryRoot();
   const documents = discoverDocuments(repositoryRoot);
-  const qualification = loadQualificationWebsiteModel(repositoryRoot);
+  const qualification = loadQualificationWebsiteModel(qualificationRepositoryRoot);
   assertPublishableQualificationEvidence(qualification);
   const semanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
   const skill = readSkillMetadata(repositoryRoot);

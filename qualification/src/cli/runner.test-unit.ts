@@ -1,0 +1,89 @@
+// @vitest-environment node
+import { afterEach, describe, expect, test, vi } from 'vitest';
+
+import type { IQualificationAttemptResult } from '../contracts/index.ts';
+import type { IRunQualificationOptions } from '../execution/index.ts';
+
+const executionMocks = vi.hoisted(() => ({
+  runQualification: vi.fn(),
+}));
+
+vi.mock('../execution/index.ts', async () => {
+  const actual = await vi.importActual('../execution/index.ts');
+  return { ...actual, runQualification: executionMocks.runQualification };
+});
+
+import { executeQualificationCommand } from './runner.ts';
+
+describe('qualification command runner', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    executionMocks.runQualification.mockReset();
+  });
+
+  test('keeps retry progress on stderr while emitting parseable JSON on stdout', async () => {
+    const retry = {
+      category: 'timed-out' as const,
+      failedAt: '2026-08-28T12:00:00.000Z',
+      failureCount: 1,
+      retryDelayMs: 5_000,
+    };
+    const result = {
+      attemptId: 'attempt-json',
+      selection: { adapterId: 'custom', implementationId: 'custom' },
+      status: 'passed',
+      summary: 'Qualification passed with one recovered case.',
+      cases: [{ status: 'recovered' }],
+      stages: [{ operationalRetries: [retry] }],
+    } as IQualificationAttemptResult;
+    executionMocks.runQualification.mockImplementation(
+      async (options: IRunQualificationOptions) => {
+        await expect(
+          options.requestPaidExecutionApproval?.({
+            maximumPlannedTrialCallCount: 60,
+            model: 'gpt-5.6-sol',
+            reasoningEffort: 'medium',
+          }),
+        ).resolves.toBe(true);
+        await options.onProgress?.({
+          kind: 'operational-retry',
+          caseId: 'evaluate-aligned-project',
+          retry,
+          role: 'judge',
+          stageId: 'case:evaluate-aligned-project:trial:initial:judge',
+          trialId: 'initial',
+        });
+        return {
+          attemptDirectory: '/attempts/attempt-json',
+          result,
+          wasRecorded: false,
+        };
+      },
+    );
+    const stdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const stderrWrite = vi.spyOn(process.stderr, 'write').mockImplementation(() => true);
+
+    await expect(
+      executeQualificationCommand({
+        kind: 'run',
+        selection: { adapterId: 'custom', implementationId: 'custom' },
+        isDryRun: true,
+        useCache: true,
+        hasConfirmedPaidExecution: true,
+        isJson: true,
+      }),
+    ).resolves.toBe(0);
+
+    const stdout = stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join('');
+    const stderr = stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join('');
+    expect(JSON.parse(stdout)).toStrictEqual({
+      attemptDirectory: '/attempts/attempt-json',
+      result,
+      wasRecorded: false,
+    });
+    expect(stderr).toBe(
+      'Qualification evaluate-aligned-project initial judge retry 1: timed-out; waiting 5000 ms.\n',
+    );
+    expect(stdout).not.toContain('retry 1');
+  });
+});

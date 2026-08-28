@@ -31,9 +31,9 @@ Matrix probes map every behavior-affecting compatibility claim to one or more pr
 
 Deterministic verification runs before and after the actor. It checks package provenance, repository-reader equivalence, Core and CLI behavior, project validity, project-local typechecking, dependency integrity, and workspace preservation.
 
-[Semantic evaluation](/docs/semantic-evaluation/) proves broad portable-skill behavior through controlled, sourced repository scenarios. Adapter qualification uses separate actor and judge processes with the same fixed frontier assurance model at `medium` reasoning effort (`gpt-5.6-sol`), but exercises transparent mock projects and exact published package compositions. In both workflows, the actor receives a natural project task rather than grading criteria, and the judge evaluates runner-owned evidence in a separate read-only workspace. Historical Terra attempts remain inspectable but cannot satisfy the current qualification gate.
+[Semantic evaluation](/docs/semantic-evaluation/) proves broad portable-skill behavior through controlled, sourced repository scenarios. Adapter qualification uses separate actor and judge processes with the same fixed frontier assurance model at `medium` reasoning effort (`gpt-5.6-sol`), but exercises transparent mock projects and exact published package compositions. In both workflows, the actor receives a natural project task rather than grading criteria, and the judge evaluates runner-owned evidence in a separate read-only workspace. Protocols 3–5 remain inspectable as historical Terra and Sol attempts, but only protocol 6 can satisfy the current qualification gate.
 
-A case passes only when its deterministic checks, workspace assertions, and semantic judgment all pass. No layer can override a failure in another layer.
+A case passes immediately only when its initial deterministic checks, workspace assertions, and semantic judgment all pass. A completed initial model-dependent failure starts two fresh confirmations. Both must pass to recover the case, while either confirmation failure is terminal and leaves the original failure visible. No layer can override a failure in another layer.
 
 ## Why the projects are demanding
 
@@ -64,11 +64,15 @@ The website publishes every valid terminal attempt, including failures and execu
 
 ## Checkpoints and cache integrity
 
-Local checkpoints are written atomically after each meaningful stage. Resume requires the exact skill, qualification engine, profile, packages checkout, candidate closure, model configuration, host boundary, and tool versions that created the attempt.
+Local checkpoints are written atomically after each meaningful stage and retryable host failure. Resume requires the exact skill, qualification engine, profile, packages checkout, candidate closure, model configuration, host boundary, and tool versions that created the attempt. It preserves completed trials and contiguous retry histories. Actor retries restore the pristine pre-actor project; judge retries recreate only the read-only judge workspace.
 
-Candidate and model caches are separate. A cache hit must validate its complete identity and artifact digests, restore the actor workspace exactly, and continue through deterministic checks and result verification. Result verification parses every protocol-owned artifact and reconciles passing stages and cases with the exact profile and scenario contracts. Dry runs never use model caches and never publish results.
+Candidate and model caches are separate. An initial-trial cache hit must validate its complete identity and artifact digests, restore the actor workspace exactly, and continue through deterministic checks and result verification. Confirmations never read or write cross-attempt model caches. Result verification parses every protocol-owned artifact and independently derives retries, trials, confirmations, cases, and the attempt verdict against the exact profile and scenario contracts. Dry runs never use model caches and never publish results.
+
+The runner retries only `execution-failed`, `proxy-unavailable`, and `timed-out` host failures. It records a safe category, timestamp, contiguous count, and delay, then waits with capped exponential backoff and bounded jitter until recovery or explicit cancellation. Those retries do not consume a trial. Output limits, spawn failures, malformed outputs, deterministic failures, input drift, and unknown errors stop instead.
 
 If post-actor deterministic checks or workspace assertions already prove that a case failed, the judge stage is recorded as skipped and no judge call is made. This saves a call without changing the outcome or allowing cached evidence to bypass verification.
+
+The maximum planned paid workload is 48 calls for the eight-case Custom profile and 60 for the ten-case Vercel AI SDK profile. Those figures cover an actor and judge for every initial and possible confirmation trial. Short-circuiting and skipped judges reduce the total; operational retries are additional.
 
 ## Supported maturity eligibility
 

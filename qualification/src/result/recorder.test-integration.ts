@@ -10,6 +10,7 @@ import {
   QualificationLatestResultSchema,
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
+import { QUALIFICATION_CONFIRMATION_POLICY } from '../constants/index.ts';
 import {
   calculateFileSha256,
   ensureDirectory,
@@ -63,7 +64,8 @@ const createResult = (
   status: 'errored' | 'failed' | 'incomplete' | 'passed',
 ): IQualificationAttemptResult =>
   QualificationAttemptResultSchema.parse({
-    protocolVersion: 5,
+    protocolVersion: 6,
+    confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     attemptId,
     parentAttemptId: null,
     selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -143,8 +145,10 @@ describe('qualification result recording', () => {
       QualificationLatestResultSchema,
     );
 
-    expect(Object.keys(passing.artifactDigests)).toHaveLength(18);
-    expect(Object.keys(passing.artifactDigests)).toContain('cases/release-case/judge-output.json');
+    expect(Object.keys(passing.artifactDigests)).toHaveLength(19);
+    expect(Object.keys(passing.artifactDigests)).toContain(
+      'cases/release-case/trials/initial/judge-output.json',
+    );
     expect(latest).toMatchObject({
       latestAttemptId: 'attempt-failed',
       latestStatus: 'failed',
@@ -269,11 +273,49 @@ describe('qualification result recording', () => {
     });
   });
 
+  test('rejects a latest pointer whose protocol does not match its attempt', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    await ensureDirectory(artifactDirectory);
+    const passingResult = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'attempt-passed',
+      resultsRoot,
+    });
+    await recordQualificationResult(
+      {
+        artifactDirectory,
+        result: passingResult,
+        sanitizationContext,
+      },
+      resultsRoot,
+    );
+    const latestPath = path.join(resultsRoot, 'custom', 'custom', 'latest.json');
+    const latest = await readJsonFile(latestPath, QualificationLatestResultSchema);
+    await writeFile(
+      latestPath,
+      `${JSON.stringify({ ...latest, protocolVersion: 5 }, null, 2)}\n`,
+      'utf8',
+    );
+
+    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
+      passed: false,
+      attempts: 1,
+      issues: [
+        {
+          path: 'custom/custom/latest.json',
+          message: 'Latest pointer does not match recorded attempt history.',
+        },
+      ],
+    });
+  });
+
   test.each([
-    ['actor output', 'cases/release-case/actor-output.json'],
-    ['deterministic evidence', 'cases/release-case/deterministic-after.json'],
-    ['judge output', 'cases/release-case/judge-output.json'],
-    ['workspace assertions', 'cases/release-case/workspace-assertions.json'],
+    ['actor output', 'cases/release-case/trials/initial/actor-output.json'],
+    ['deterministic evidence', 'cases/release-case/trials/initial/deterministic-after.json'],
+    ['judge output', 'cases/release-case/trials/initial/judge-output.json'],
+    ['workspace assertions', 'cases/release-case/trials/initial/workspace-assertions.json'],
   ])(
     'rejects schema-invalid %s even when its digest is recomputed',
     async (_label, relativePath) => {
@@ -341,6 +383,8 @@ describe('qualification result recording', () => {
       attemptDirectory,
       'cases',
       'release-case',
+      'trials',
+      'initial',
       'deterministic-after.json',
     );
     await writeJsonFileAtomically(artifactPath, historicalDeterministicArtifact);
@@ -348,7 +392,8 @@ describe('qualification result recording', () => {
       ...recorded,
       artifactDigests: {
         ...recorded.artifactDigests,
-        'cases/release-case/deterministic-after.json': await calculateFileSha256(artifactPath),
+        'cases/release-case/trials/initial/deterministic-after.json':
+          await calculateFileSha256(artifactPath),
       },
     });
 
@@ -384,12 +429,16 @@ describe('qualification result recording', () => {
       attemptDirectory,
       'cases',
       'release-case',
+      'trials',
+      'initial',
       'actor-output.json',
     );
     const workspaceAssertionsPath = path.join(
       attemptDirectory,
       'cases',
       'release-case',
+      'trials',
+      'initial',
       'workspace-assertions.json',
     );
     const unrelatedEntry = {
@@ -419,8 +468,9 @@ describe('qualification result recording', () => {
       ...recorded,
       artifactDigests: {
         ...recorded.artifactDigests,
-        'cases/release-case/actor-output.json': await calculateFileSha256(actorOutputPath),
-        'cases/release-case/workspace-assertions.json':
+        'cases/release-case/trials/initial/actor-output.json':
+          await calculateFileSha256(actorOutputPath),
+        'cases/release-case/trials/initial/workspace-assertions.json':
           await calculateFileSha256(workspaceAssertionsPath),
       },
     });
@@ -431,6 +481,52 @@ describe('qualification result recording', () => {
     expect(verification.issues).toHaveLength(1);
     expect(verification.issues[0]?.message).toContain(
       'changed paths contradict its workspace contract',
+    );
+  });
+
+  test('rejects contradictory deterministic evidence retained by a recovered initial trial', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    await ensureDirectory(artifactDirectory);
+    const passingResult = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'attempt-recovered',
+      isRecovered: true,
+      resultsRoot,
+    });
+    const recorded = await recordQualificationResult(
+      { artifactDirectory, result: passingResult, sanitizationContext },
+      resultsRoot,
+    );
+    const attemptDirectory = path.join(
+      resultsRoot,
+      'custom',
+      'custom',
+      'attempts',
+      recorded.attemptId,
+    );
+    const relativePath = 'cases/release-case/trials/initial/deterministic-after.json';
+    const artifactPath = path.join(attemptDirectory, relativePath);
+    const artifact = JSON.parse(await readFile(artifactPath, 'utf8')) as {
+      summary: { coreValid: boolean };
+    };
+    artifact.summary.coreValid = false;
+    await writeJsonFileAtomically(artifactPath, artifact);
+    await writeJsonFileAtomically(path.join(attemptDirectory, 'attempt.json'), {
+      ...recorded,
+      artifactDigests: {
+        ...recorded.artifactDigests,
+        [relativePath]: await calculateFileSha256(artifactPath),
+      },
+    });
+
+    const verification = await verifyQualificationResults(resultsRoot);
+
+    expect(verification.passed).toBe(false);
+    expect(verification.issues).toHaveLength(1);
+    expect(verification.issues[0]?.message).toContain(
+      'contradictory release-case initial post-actor deterministic evidence',
     );
   });
 
@@ -445,7 +541,14 @@ describe('qualification result recording', () => {
       resultsRoot,
     });
     await writeJsonFileAtomically(
-      path.join(artifactDirectory, 'cases', 'release-case', 'actor-output.json'),
+      path.join(
+        artifactDirectory,
+        'cases',
+        'release-case',
+        'trials',
+        'initial',
+        'actor-output.json',
+      ),
       {},
     );
 
@@ -501,9 +604,18 @@ describe('qualification result recording', () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
-    await ensureDirectory(path.join(artifactDirectory, 'cases', 'sanitization'));
+    await ensureDirectory(
+      path.join(artifactDirectory, 'cases', 'sanitization', 'trials', 'initial'),
+    );
     await writeFile(
-      path.join(artifactDirectory, 'cases', 'sanitization', 'actor-output.json'),
+      path.join(
+        artifactDirectory,
+        'cases',
+        'sanitization',
+        'trials',
+        'initial',
+        'actor-output.json',
+      ),
       `${JSON.stringify({
         outcome: 'blocked',
         summary: 'Stopped without changing the workspace.',
@@ -515,7 +627,14 @@ describe('qualification result recording', () => {
       'utf8',
     );
     await writeFile(
-      path.join(artifactDirectory, 'cases', 'sanitization', 'actor-events.jsonl'),
+      path.join(
+        artifactDirectory,
+        'cases',
+        'sanitization',
+        'trials',
+        'initial',
+        'actor-events.jsonl',
+      ),
       `${JSON.stringify({ authorization: `Bearer ${'a'.repeat(24)}`, path: '/packages/project' })}\n`,
       'utf8',
     );
@@ -542,7 +661,14 @@ describe('qualification result recording', () => {
     expect(recorded.summary).toBe('Failure at <skill-repository>/SKILL.md with <redacted-token>.');
     expect(
       await readFile(
-        path.join(recordedDirectory, 'cases', 'sanitization', 'actor-output.json'),
+        path.join(
+          recordedDirectory,
+          'cases',
+          'sanitization',
+          'trials',
+          'initial',
+          'actor-output.json',
+        ),
         'utf8',
       ),
     ).toBe(
@@ -561,7 +687,14 @@ describe('qualification result recording', () => {
     );
     expect(
       await readFile(
-        path.join(recordedDirectory, 'cases', 'sanitization', 'actor-events.jsonl'),
+        path.join(
+          recordedDirectory,
+          'cases',
+          'sanitization',
+          'trials',
+          'initial',
+          'actor-events.jsonl',
+        ),
         'utf8',
       ),
     ).toBe(
@@ -667,7 +800,7 @@ describe('qualification result recording', () => {
       },
     };
     const latestResult = QualificationLatestResultSchema.parse({
-      protocolVersion: 5,
+      protocolVersion: 6,
       adapterId: 'custom',
       implementationId: 'custom',
       latestAttemptId: dirtyPassingResult.attemptId,

@@ -6,6 +6,7 @@ import {
   QualificationStageCheckpointSchema,
   type IQualificationAttemptCheckpoint,
   type IQualificationExecutionEnvironment,
+  type IQualificationOperationalRetry,
   type IQualificationSelection,
   type IQualificationStageCheckpoint,
 } from '../contracts/index.ts';
@@ -26,7 +27,78 @@ export const createPendingStage = (stageId: string): IQualificationStageCheckpoi
     cacheKey: null,
     cacheSourceAttemptId: null,
     error: null,
+    operationalRetries: [],
   });
+
+/** Appends one contiguous safe operational retry and persists it before backoff begins. */
+export const appendQualificationOperationalRetry = async (
+  attemptDirectory: string,
+  checkpoint: IQualificationAttemptCheckpoint,
+  stageId: string,
+  retry: IQualificationOperationalRetry,
+): Promise<IQualificationAttemptCheckpoint> => {
+  const stage = checkpoint.stages[stageId];
+
+  if (stage?.status !== 'running') {
+    throw new Error(`Qualification stage ${stageId} is not running.`);
+  }
+
+  const updatedStage = QualificationStageCheckpointSchema.parse({
+    ...stage,
+    operationalRetries: [...stage.operationalRetries, retry],
+  });
+  const updatedCheckpoint = QualificationAttemptCheckpointSchema.parse({
+    ...checkpoint,
+    stages: { ...checkpoint.stages, [stageId]: updatedStage },
+  });
+  await writeAttemptCheckpoint(attemptDirectory, updatedCheckpoint);
+  return updatedCheckpoint;
+};
+
+/** Atomically marks one never-needed confirmation stage group as skipped. */
+export const skipQualificationStageGroup = async (
+  attemptDirectory: string,
+  checkpoint: IQualificationAttemptCheckpoint,
+  stageIds: readonly string[],
+): Promise<IQualificationAttemptCheckpoint> => {
+  const stages = stageIds.map((stageId) => checkpoint.stages[stageId]);
+
+  if (stages.some((stage) => stage === undefined)) {
+    throw new Error('Cannot skip an unknown qualification stage group.');
+  }
+
+  if (stages.every((stage) => stage?.status === 'skipped')) {
+    return checkpoint;
+  }
+
+  if (stages.some((stage) => stage?.status !== 'pending')) {
+    throw new Error('Only a fully pending qualification stage group can be skipped.');
+  }
+
+  const completedAt = new Date().toISOString();
+  const updatedStages = Object.fromEntries(
+    stageIds.map((stageId) => [
+      stageId,
+      QualificationStageCheckpointSchema.parse({
+        ...checkpoint.stages[stageId],
+        status: 'skipped',
+        startedAt: completedAt,
+        completedAt,
+        durationMs: 0,
+        cacheKey: null,
+        cacheSourceAttemptId: null,
+        error: null,
+        operationalRetries: [],
+      }),
+    ]),
+  );
+  const updatedCheckpoint = QualificationAttemptCheckpointSchema.parse({
+    ...checkpoint,
+    stages: { ...checkpoint.stages, ...updatedStages },
+  });
+  await writeAttemptCheckpoint(attemptDirectory, updatedCheckpoint);
+  return updatedCheckpoint;
+};
 
 /** Creates the first atomic checkpoint for a new qualification attempt. */
 export const createAttemptCheckpoint = async (options: {
@@ -106,7 +178,11 @@ export const normalizeInterruptedCheckpoint = (
     Object.entries(checkpoint.stages).map(([stageId, stage]) => [
       stageId,
       stage.status === 'running'
-        ? createPendingStage(stageId)
+        ? QualificationStageCheckpointSchema.parse({
+            ...createPendingStage(stageId),
+            cacheKey: stage.cacheKey,
+            operationalRetries: stage.operationalRetries,
+          })
         : QualificationStageCheckpointSchema.parse(stage),
     ]),
   );

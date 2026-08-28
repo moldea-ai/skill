@@ -2,7 +2,6 @@
 import { ExternalLink } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import { prettifyTime } from 'web-utils-kit';
 
 import QualificationCaseEvidence from '../../../../../../../components/qualification-case-evidence/qualification-case-evidence.astro';
 import EvidenceStatus from '../../../../../../../components/evidence-status/evidence-status.astro';
@@ -42,9 +41,12 @@ const breadcrumbs = [
   { href: profile.route, label: profile.title },
   { label: result.attemptId },
 ];
-const passedCaseCount = result.cases.filter(({ status }) => status === 'passed').length;
-const totalDurationMs = result.stages.reduce(
-  (total, { durationMs }) => total + (durationMs ?? 0),
+const passedCaseCount = result.cases.filter(
+  ({ status }) => status === 'passed' || status === 'recovered',
+).length;
+const recoveredCaseCount = result.cases.filter(({ status }) => status === 'recovered').length;
+const operationalRetryCount = result.stages.reduce(
+  (total, stage) => total + ('operationalRetries' in stage ? stage.operationalRetries.length : 0),
   0,
 );
 const pageDescription =
@@ -112,14 +114,12 @@ const pageDescription =
         </p>
       </div>
       <div class="surface-card p-4">
-        <p class="text-sm text-muted-foreground">Source and host preflight</p>
-        <p class="mt-2 font-semibold">{attempt.sourceState?.passed ? 'Passed' : 'Unavailable'}</p>
+        <p class="text-sm text-muted-foreground">Recovered cases</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{recoveredCaseCount}</p>
       </div>
       <div class="surface-card p-4">
-        <p class="text-sm text-muted-foreground">Recorded stage time</p>
-        <p class="mt-2 font-mono text-2xl font-bold">
-          <time datetime={`PT${totalDurationMs / 1_000}S`}>{prettifyTime(totalDurationMs)}</time>
-        </p>
+        <p class="text-sm text-muted-foreground">Operational retries</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{operationalRetryCount}</p>
       </div>
     </section>
 
@@ -229,9 +229,9 @@ const pageDescription =
                 <dt class="text-muted-foreground">Assurance generation</dt>
                 <dd class="mt-1">
                   {
-                    result.protocolVersion === 5
+                    result.protocolVersion === 6
                       ? 'Current Sol'
-                      : result.protocolVersion === 4
+                      : result.protocolVersion === 5 || result.protocolVersion === 4
                         ? 'Historical Sol'
                         : 'Historical Terra'
                   }

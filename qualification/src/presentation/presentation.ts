@@ -83,14 +83,23 @@ export const formatQualificationResult = (
   result: IQualificationAttemptResult,
   attemptDirectory: string,
   wasRecorded: boolean,
-): string =>
-  [
+): string => {
+  const recoveredCaseCount = result.cases.filter(({ status }) => status === 'recovered').length;
+  const operationalRetryCount = result.stages.reduce(
+    (total, stage) => total + stage.operationalRetries.length,
+    0,
+  );
+
+  return [
     `${result.selection.adapterId}/${result.selection.implementationId}: ${result.status}`,
     result.summary,
+    `Recovered cases: ${recoveredCaseCount}`,
+    `Operational retries: ${operationalRetryCount}`,
     `Attempt: ${result.attemptId}`,
     `Checkpoint: ${attemptDirectory}`,
     `Committed: ${wasRecorded ? 'yes' : 'no'}`,
   ].join('\n');
+};
 
 /** Formats committed evidence verification failures with their exact paths. */
 export const formatVerificationResult = (

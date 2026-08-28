@@ -7,6 +7,9 @@ import { dirname, join, relative, sep } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 
+import { recordQualificationResult } from '../../../../qualification/src/result/index.ts';
+import { seedPassingQualificationEvidenceFixture } from '../../../../qualification/vitest/evidence-fixture.ts';
+
 import { assertPublishableQualificationEvidence, loadQualificationWebsiteModel } from './loader.ts';
 
 const SHA_A = 'a'.repeat(64);
@@ -16,6 +19,7 @@ const temporaryRoots: string[] = [];
 interface IAttemptFixture extends Record<string, unknown> {
   artifactDigests: Record<string, string>;
   cases: Array<Record<string, unknown>>;
+  stages: Array<Record<string, unknown>>;
 }
 
 const createTemporaryRoot = (): string => {
@@ -438,6 +442,130 @@ const writeLatest = (
   });
 };
 
+const seedCurrentQualificationAttempt = async (root: string, attemptId: string): Promise<void> => {
+  const resultsRoot = join(root, 'qualification', 'results');
+  const artifactDirectory = join(root, `.qualification-artifacts-${attemptId}`);
+  writeText(
+    root,
+    'qualification/profiles/custom/custom/projects/release-case/task.md',
+    '# Release case\n\nInspect the current evidence.\n',
+  );
+  writeText(
+    root,
+    'qualification/profiles/custom/custom/projects/release-case/README.md',
+    '# Release case\n\nThis fixture exercises protocol 6 evidence.\n',
+  );
+  writeText(
+    root,
+    'qualification/cases/cases.yaml',
+    `version: 1
+cases:
+  - id: release-case
+    title: Release case
+    layer: universal-baseline
+    description: Inspect complete current evidence.
+    challenge: Preserve every confirmation trial.
+`,
+  );
+  const result = await seedPassingQualificationEvidenceFixture({
+    artifactDirectory,
+    attemptId,
+    hasOperationalRetry: true,
+    isRecovered: true,
+    packages: [
+      {
+        name: '@moldea.ai/cli',
+        version: '4.0.0',
+        registryIntegrity: `sha512-${'c'.repeat(86)}`,
+        registryShasum: 'd'.repeat(40),
+        registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-4.0.0.tgz',
+        tarballName: 'cli-4.0.0.tgz',
+        sha256: SHA_A,
+      },
+    ],
+    resultsRoot,
+  });
+  await recordQualificationResult(
+    {
+      artifactDirectory,
+      result,
+      sanitizationContext: {
+        attemptDirectory: '/attempt',
+        packagesRepository: '/packages',
+        skillRepository: '/skill',
+      },
+    },
+    resultsRoot,
+  );
+};
+
+const convertCurrentAttemptToFailed = (root: string, attemptId: string): void => {
+  const failures = [
+    'Judge requirement complete-evidence failed: Fixture failure.',
+    'Fixture failure.',
+  ];
+  const attempt = readAttemptFixture(root, attemptId);
+  const caseResult = attempt.cases[0];
+  const trials = caseResult?.['trials'];
+
+  if (
+    !caseResult ||
+    !Array.isArray(trials) ||
+    typeof trials[2] !== 'object' ||
+    trials[2] === null
+  ) {
+    throw new Error('Missing current confirmation fixture.');
+  }
+
+  const terminalTrial = trials[2] as Record<string, unknown>;
+  terminalTrial['passed'] = false;
+  terminalTrial['failures'] = failures;
+  caseResult['status'] = 'failed';
+  caseResult['confirmationStatus'] = 'rejected';
+  caseResult['failures'] = failures;
+  replaceAttemptArtifact(
+    root,
+    attemptId,
+    'cases/release-case/trials/confirmation-2/judge-output.json',
+    {
+      verdict: 'fail',
+      summary: 'The confirmation failed.',
+      requirements: [
+        {
+          id: 'complete-evidence',
+          verdict: 'fail',
+          evidence: 'Fixture failure.',
+        },
+      ],
+      failures: ['Fixture failure.'],
+    },
+  );
+  replaceAttemptArtifact(
+    root,
+    attemptId,
+    'cases/release-case/trials/confirmation-2/trial-result.json',
+    terminalTrial,
+  );
+  replaceAttemptArtifact(root, attemptId, 'cases/release-case/case-result.json', caseResult);
+  const updatedAttempt = readAttemptFixture(root, attemptId);
+  updatedAttempt['status'] = 'failed';
+  updatedAttempt.cases = attempt.cases;
+  writeJson(
+    root,
+    `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
+    updatedAttempt,
+  );
+  writeJson(root, 'qualification/results/custom/custom/latest.json', {
+    protocolVersion: 6,
+    adapterId: 'custom',
+    implementationId: 'custom',
+    latestAttemptId: attemptId,
+    latestStatus: 'failed',
+    lastPassingAttemptId: null,
+    updatedAt: '2026-08-20T12:00:00.000Z',
+  });
+};
+
 afterEach(() => {
   for (const root of temporaryRoots.splice(0)) rmSync(root, { force: true, recursive: true });
 });
@@ -487,19 +615,228 @@ describe('loadQualificationWebsiteModel', () => {
       latestStatus: 'passed',
       lastPassingAttemptId: 'attempt-pass',
     });
-    expect(profile?.currentLatest?.result.attemptId).toBe('attempt-pass');
-    expect(profile?.currentLastPassing?.result.attemptId).toBe('attempt-pass');
+    expect(profile?.currentLatest).toBeNull();
+    expect(profile?.currentLastPassing).toBeNull();
     expect(profile?.attempts).toHaveLength(1);
     expect(profile?.attempts[0]?.route).toBe(
       '/evidence/qualification/custom/custom/attempts/attempt-pass/',
     );
-    expect(profile?.attempts[0]?.cases[0]).toMatchObject({
+    expect(profile?.attempts[0]?.cases[0]?.trials[0]).toMatchObject({
       actor: { outcome: 'completed' },
       deterministicAfter: { passed: true },
       judge: { verdict: 'pass' },
       workspaceAssertions: { passed: true },
     });
     expect(profile?.attempts[0]?.artifacts.length).toBeGreaterThan(8);
+  });
+
+  test('loads and independently validates ordered recovered confirmation evidence', async () => {
+    const root = createTemporaryRoot();
+    const resultsRoot = join(root, 'qualification', 'results');
+    const artifactDirectory = join(root, '.qualification-artifacts');
+    writeText(
+      root,
+      'qualification/profiles/custom/custom/projects/release-case/task.md',
+      '# Release case\n\nInspect the current evidence.\n',
+    );
+    writeText(
+      root,
+      'qualification/profiles/custom/custom/projects/release-case/README.md',
+      '# Release case\n\nThis fixture exercises recovered protocol 6 evidence.\n',
+    );
+    const result = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'attempt-recovered',
+      hasOperationalRetry: true,
+      isRecovered: true,
+      packages: [
+        {
+          name: '@moldea.ai/cli',
+          version: '4.0.0',
+          registryIntegrity: `sha512-${'c'.repeat(86)}`,
+          registryShasum: 'd'.repeat(40),
+          registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-4.0.0.tgz',
+          tarballName: 'cli-4.0.0.tgz',
+          sha256: SHA_A,
+        },
+      ],
+      resultsRoot,
+    });
+    writeText(
+      root,
+      'qualification/cases/cases.yaml',
+      `version: 1
+cases:
+  - id: release-case
+    title: Release case
+    layer: universal-baseline
+    description: Inspect complete current evidence.
+    challenge: Preserve every confirmation trial.
+`,
+    );
+    await recordQualificationResult(
+      {
+        artifactDirectory,
+        result,
+        sanitizationContext: {
+          attemptDirectory: '/attempt',
+          packagesRepository: '/packages',
+          skillRepository: '/skill',
+        },
+      },
+      resultsRoot,
+    );
+
+    const model = loadQualificationWebsiteModel(root);
+    const profile = model.profiles[0];
+    const recoveredCase = profile?.currentLatest?.cases[0];
+
+    expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
+    expect(profile?.currentLatest?.result).toMatchObject({
+      protocolVersion: 6,
+      status: 'passed',
+    });
+    expect(recoveredCase?.result).toMatchObject({
+      status: 'recovered',
+      confirmationStatus: 'passed',
+    });
+    expect(recoveredCase?.trials[0]?.retries.actor).toStrictEqual([
+      {
+        category: 'timed-out',
+        failedAt: '2026-08-20T10:00:05.000Z',
+        failureCount: 1,
+        retryDelayMs: 5_000,
+      },
+    ]);
+    expect(
+      recoveredCase?.trials.map(({ result: trial }) => ({
+        trialId: 'trialId' in trial ? trial.trialId : 'historical',
+        passed: 'passed' in trial ? trial.passed : trial.status === 'passed',
+        actorCacheSourceAttemptId: trial.actorCacheSourceAttemptId,
+        judgeCacheSourceAttemptId: trial.judgeCacheSourceAttemptId,
+      })),
+    ).toStrictEqual([
+      {
+        trialId: 'initial',
+        passed: false,
+        actorCacheSourceAttemptId: null,
+        judgeCacheSourceAttemptId: null,
+      },
+      {
+        trialId: 'confirmation-1',
+        passed: true,
+        actorCacheSourceAttemptId: null,
+        judgeCacheSourceAttemptId: null,
+      },
+      {
+        trialId: 'confirmation-2',
+        passed: true,
+        actorCacheSourceAttemptId: null,
+        judgeCacheSourceAttemptId: null,
+      },
+    ]);
+
+    const relativePath = 'cases/release-case/trials/initial/deterministic-after.json';
+    const artifactPath = join(
+      root,
+      'qualification/results/custom/custom/attempts/attempt-recovered',
+      relativePath,
+    );
+    const artifact = JSON.parse(readFileSync(artifactPath, 'utf8')) as {
+      summary: { coreValid: boolean };
+    };
+    artifact.summary.coreValid = false;
+    replaceAttemptArtifact(root, 'attempt-recovered', relativePath, artifact);
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow(
+      'Qualification case has contradictory post-actor deterministic evidence.',
+    );
+  });
+
+  test('rejects incomplete stage inventory in a current failed attempt', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-failed-stages';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    convertCurrentAttemptToFailed(root, attemptId);
+    expect(() => loadQualificationWebsiteModel(root)).not.toThrow();
+
+    const attempt = readAttemptFixture(root, attemptId);
+    attempt.stages = attempt.stages.filter(({ id }) => id !== 'case:release-case:result');
+    writeJson(
+      root,
+      `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
+      attempt,
+    );
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow(
+      `Failed qualification attempt ${attemptId} is incomplete.`,
+    );
+  });
+
+  test('rejects a current attempt with a self-consistent but incomplete artifact inventory', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-missing-artifact';
+    const relativePath = 'cases/release-case/trials/initial/actor-prompt.md';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    const attempt = readAttemptFixture(root, attemptId);
+    delete attempt.artifactDigests[relativePath];
+    rmSync(join(root, 'qualification/results/custom/custom/attempts', attemptId, relativePath));
+    writeJson(
+      root,
+      `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
+      attempt,
+    );
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow(
+      'Qualification evidence has an incomplete protocol 6 artifact inventory.',
+    );
+  });
+
+  test('rejects a current trial that contradicts its digested trial result artifact', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-trial-result';
+    const relativePath = 'cases/release-case/trials/initial/trial-result.json';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    const trialResultPath = join(
+      root,
+      'qualification/results/custom/custom/attempts',
+      attemptId,
+      relativePath,
+    );
+    const trialResult = JSON.parse(readFileSync(trialResultPath, 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    trialResult['durationMs'] = Number(trialResult['durationMs']) + 1;
+    replaceAttemptArtifact(root, attemptId, relativePath, trialResult);
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow(
+      'Qualification case release-case trial initial contradicts trial-result.json.',
+    );
+  });
+
+  test('rejects current retry evidence outside the bounded backoff range', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-retry-delay';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    const attempt = readAttemptFixture(root, attemptId);
+    const actorStage = attempt.stages.find(
+      ({ id }) => id === 'case:release-case:trial:initial:actor',
+    );
+    const operationalRetries = actorStage?.['operationalRetries'];
+
+    if (!Array.isArray(operationalRetries) || typeof operationalRetries[0] !== 'object') {
+      throw new Error('Missing operational retry fixture.');
+    }
+
+    (operationalRetries[0] as Record<string, unknown>)['retryDelayMs'] = 0;
+    writeJson(
+      root,
+      `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
+      attempt,
+    );
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
   });
 
   test('keeps Terra history visible without treating it as current assurance', () => {
@@ -635,7 +972,7 @@ describe('loadQualificationWebsiteModel', () => {
 
     const caseEvidence = loadQualificationWebsiteModel(root).profiles[0]?.attempts[0]?.cases[0];
 
-    expect(caseEvidence).toMatchObject({
+    expect(caseEvidence?.trials[0]).toMatchObject({
       judge: null,
       judgeSkipped: {
         deterministicAfterPassed: true,
@@ -653,6 +990,22 @@ describe('loadQualificationWebsiteModel', () => {
       status: 'passed',
     });
     writeLatest(root, 'missing-attempt', 'failed', null);
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow(
+      'Qualification latest pointer does not match attempt history.',
+    );
+  });
+
+  test('rejects a latest pointer whose protocol contradicts its attempt', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-protocol-mismatch';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    const latestPath = 'qualification/results/custom/custom/latest.json';
+    const latest = JSON.parse(readFileSync(join(root, latestPath), 'utf8')) as Record<
+      string,
+      unknown
+    >;
+    writeJson(root, latestPath, { ...latest, protocolVersion: 5 });
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
       'Qualification latest pointer does not match attempt history.',

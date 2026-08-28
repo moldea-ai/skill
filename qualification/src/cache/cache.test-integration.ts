@@ -49,6 +49,21 @@ describe('qualification model cache', () => {
     expect(changedKey).not.toBe(firstKey);
   });
 
+  test('binds model cache keys to the exact trial identity', () => {
+    const initialKey = calculateModelCacheKey({
+      role: 'actor',
+      caseId: 'evaluate-project',
+      trialId: 'initial',
+    });
+    const confirmationKey = calculateModelCacheKey({
+      role: 'actor',
+      caseId: 'evaluate-project',
+      trialId: 'confirmation-1',
+    });
+
+    expect(confirmationKey).not.toBe(initialKey);
+  });
+
   test('restores exact actor state and preserves immutable source provenance', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-cache-'));
     const cacheRoot = path.join(temporaryRoot, 'cache');

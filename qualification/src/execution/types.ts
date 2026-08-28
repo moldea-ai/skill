@@ -5,7 +5,9 @@ import type {
   IQualificationExecutionEnvironment,
   IQualificationProvenance,
   IQualificationSelection,
+  IQualificationTrialResult,
 } from '../contracts/index.ts';
+import type { ICodexEvaluationOperationalRetry } from '../../../tooling/codex-evaluation-host/index.mjs';
 import type { ICodexHost } from '../codex-host/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 
@@ -21,15 +23,42 @@ export type IRunQualificationOptions = {
   resumeAttemptId?: string;
   resultsRoot?: string;
   requestPaidExecutionApproval?: (request: IQualificationPaidExecutionRequest) => Promise<boolean>;
+  onProgress?: (progress: IQualificationProgress) => Promise<void> | void;
+  operationalRetry?: IQualificationOperationalRetryOptions;
   signal?: AbortSignal | undefined;
 };
 
 // exact cost boundary presented immediately before the first uncached model call
 export type IQualificationPaidExecutionRequest = {
+  maximumPlannedTrialCallCount: number;
   model: IQualificationExecutionEnvironment['model'];
-  modelCallCount: number;
   reasoningEffort: IQualificationExecutionEnvironment['reasoningEffort'];
 };
+
+// timing seams keep operational retry integration tests deterministic and fast
+export type IQualificationOperationalRetryOptions = {
+  now?: () => string;
+  random?: () => number;
+  wait?: (delayMs: number, signal?: AbortSignal) => Promise<void>;
+};
+
+// safe operator progress emitted independently from JSON stdout
+export type IQualificationProgress =
+  | {
+      kind: 'operational-retry';
+      caseId: string;
+      retry: ICodexEvaluationOperationalRetry;
+      role: 'actor' | 'judge';
+      stageId: string;
+      trialId: IQualificationTrialResult['trialId'];
+    }
+  | {
+      kind: 'trial';
+      caseId: string;
+      passed?: boolean;
+      status: 'completed' | 'started';
+      trialId: IQualificationTrialResult['trialId'];
+    };
 
 export type IQualificationRunOutcome = {
   attemptDirectory: string;

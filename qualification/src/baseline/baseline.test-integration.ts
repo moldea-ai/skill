@@ -129,6 +129,8 @@ describe('Custom qualification baseline', () => {
     const passingBaseline = await seedPassingQualificationEvidenceFixture({
       artifactDirectory,
       attemptId: 'custom-baseline',
+      hasOperationalRetry: true,
+      isRecovered: true,
       packages: [...candidate.packages, candidate.typeScriptPackage].map(
         createPublicCandidatePackage,
       ),

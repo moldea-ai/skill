@@ -312,16 +312,4 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.evaluatedAt).toBeNull();
     expect(model.pendingCaseCount).toBe(model.caseCount);
   });
-
-  test('publishes the repository empty state before protocol 21 evidence is recorded', () => {
-    const model = loadSemanticEvaluationWebsiteModel(REPOSITORY_ROOT);
-
-    expect(model.status).toBe('not-recorded');
-    expect(model.hasAttempt).toBe(false);
-    expect(model.passedCaseCount).toBe(0);
-    expect(model.pendingCaseCount).toBe(model.caseCount);
-    expect(model.attempts).toStrictEqual([]);
-    expect(model.latest).toBeNull();
-    expect(model.latestPointer).toBeNull();
-  });
 });

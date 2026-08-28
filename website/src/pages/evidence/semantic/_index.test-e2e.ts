@@ -11,15 +11,12 @@ test('explains current semantic evidence through keyboard-accessible disclosure'
   await page.goto(toPublicPath('/evidence/semantic/'));
 
   await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
-  await expect(page.getByText('0/54 scenarios', { exact: true })).toBeVisible();
-  await expect(page.getByText('No recorded attempt', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText('54/54 scenarios', { exact: true })).toBeVisible();
+  await expect(page.getByText('Passed', { exact: true }).first()).toBeVisible();
   await expect(
     page.getByRole('heading', { level: 2, name: 'Every recorded outcome remains available.' }),
   ).toBeVisible();
-  await expect(
-    page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
-  ).toBeVisible();
-  await expect(page.getByRole('link', { name: /Inspect attempt/u })).toHaveCount(0);
+  await expect(page.getByRole('link', { name: /Inspect attempt/u })).toHaveCount(1);
   await expect(page.getByRole('link', { name: 'Read the methodology' })).toHaveAttribute(
     'href',
     toPublicPath('/docs/semantic-evaluation/'),
@@ -34,9 +31,7 @@ test('explains current semantic evidence through keyboard-accessible disclosure'
   await summary.press('Enter');
   await expect(firstScenario.getByRole('heading', { name: 'What had to happen' })).toBeVisible();
   await expect(firstScenario.getByRole('heading', { name: 'What must not happen' })).toBeVisible();
-  await expect(
-    firstScenario.getByRole('heading', { name: 'Not evaluated in this attempt' }),
-  ).toBeVisible();
+  await expect(firstScenario.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
 });
 
 test('keeps semantic evidence accessible without JavaScript and at 320px', async ({ browser }) => {
@@ -51,9 +46,7 @@ test('keeps semantic evidence accessible without JavaScript and at 320px', async
 
     const firstScenario = noJavaScriptPage.locator('main details').first();
     await firstScenario.locator('summary').click();
-    await expect(
-      firstScenario.getByRole('heading', { name: 'Not evaluated in this attempt' }),
-    ).toBeVisible();
+    await expect(firstScenario.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
     const widths = await noJavaScriptPage.evaluate(() => ({
       client: document.documentElement.clientWidth,
       scroll: document.documentElement.scrollWidth,

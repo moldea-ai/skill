@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Created and registered the `order-triage` Moldea agent using the custom runtime. Added grounded description/instructions, bound `createOrderTriageAgent`, registered `/src/order-triage-agent.ts` as affected, and documented the runtime-owned instruction-loading boundary. TypeScript compilation and Moldea validation/inspection passed with zero diagnostics. Final Git diff contains only the intended Moldea files.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/order-triage-custom.md"
+  ],
+  "observations": [
+    "The agent classifies orders for human review and cannot approve refunds or perform financial mutations.",
+    "Moldea CLI 5.0.0 returned valid schema-2 envelopes for validation and inspection.",
+    "The custom runtime correctly produced no adapter evidence.",
+    "No tools, provider capabilities, schemas, or additional decision authority were declared.",
+    "Mounted inputs and unrelated files were unchanged."
+  ],
+  "unresolved": [
+    "The runtime-owned canonical-instruction loader implementation is outside this repository, so local validation proves the factory contract and canonical path request but cannot verify that external loader's behavior."
+  ]
+}

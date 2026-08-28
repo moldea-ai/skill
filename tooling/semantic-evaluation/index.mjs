@@ -22,9 +22,6 @@ export {
   hasValidActorCommandPolicyEvidence,
 } from './actor-command-policy-evidence.mjs';
 
-// Git command-policy boundary
-export { prepareGitCommandPolicyBoundary } from './git-command-policy-boundary.mjs';
-
 // coverage
 export { createSemanticCoverageDigest, validateSemanticCoverage } from './coverage.mjs';
 

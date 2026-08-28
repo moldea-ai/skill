@@ -245,6 +245,20 @@ test('sandbox uses an empty root, isolated network, and restricted relay', () =>
         argumentsList[index + 2] === '/opt/node',
     ),
   );
+  const writableHomeMountIndex = argumentsList.findIndex(
+    (part, index) =>
+      part === '--bind' &&
+      argumentsList[index + 1] === '/tmp/evaluation-home' &&
+      argumentsList[index + 2] === '/home/evaluator',
+  );
+  const readOnlyBinaryMountIndex = argumentsList.findIndex(
+    (part, index) =>
+      part === '--ro-bind' &&
+      argumentsList[index + 1] === '/tmp/evaluation-home/bin' &&
+      argumentsList[index + 2] === '/home/evaluator/bin',
+  );
+  assert.notEqual(writableHomeMountIndex, -1);
+  assert.ok(readOnlyBinaryMountIndex > writableHomeMountIndex);
   assert.ok(argumentsList.includes('/home/evaluator/bin:/opt:/usr/bin:/bin'));
 });
 
@@ -321,7 +335,15 @@ test('sandbox can expose the project-local binary directory and mount the worksp
   });
 
   assert.ok(
-    argumentsList.includes('/home/evaluator/bin:/mnt/node_modules/.bin:/opt:/usr/bin:/bin'),
+    argumentsList.includes('/home/evaluator/bin:/opt:/usr/bin:/bin:/mnt/node_modules/.bin'),
+  );
+  assert.ok(
+    argumentsList.some(
+      (part, index) =>
+        part === '--ro-bind' &&
+        argumentsList[index + 1] === '/tmp/evaluation/node_modules' &&
+        argumentsList[index + 2] === '/mnt/node_modules',
+    ),
   );
   assert.ok(
     argumentsList.some(

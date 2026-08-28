@@ -1,7 +1,15 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { chmodSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -29,12 +37,43 @@ const HOST_COMMAND = buildCodexEvaluationHostCommand([
   '-',
 ]);
 
-test('sandbox npm probe reports the fixture version and rejects execution commands', async () => {
+// exact helper-suppressed status shape accepted by the evaluator Git boundary
+const APPROVED_GIT_STATUS_ARGUMENTS = [
+  '-c',
+  'core.fsmonitor=false',
+  '-c',
+  'core.pager=cat',
+  '-c',
+  'core.attributesFile=/dev/null',
+  '-c',
+  'filter.lfs.clean=',
+  '-c',
+  'filter.lfs.process=',
+  '-c',
+  'filter.lfs.smudge=',
+  '-c',
+  'filter.lfs.required=false',
+  '--no-pager',
+  'status',
+  '--porcelain=v2',
+  '-z',
+  '--ignore-submodules=all',
+];
+
+const runSystemGit = (repositoryPath, argumentsList) => {
+  const result = spawnSync('/usr/bin/git', argumentsList, {
+    cwd: repositoryPath,
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, result.stderr);
+};
+
+test('sandbox npm probe is immutable, reports the fixture version, and rejects execution', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-npm-probe-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(repositoryPath);
-  mkdirSync(sandboxHome);
+  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
   await prepareCodexEvaluationHome(sandboxHome);
 
   try {
@@ -44,7 +83,9 @@ test('sandbox npm probe reports the fixture version and rejects execution comman
         command: [
           'codex',
           '-c',
-          'test "$(npm --version)" = "11.12.1" && ! npm install example-package',
+          'test "$(npm --version)" = "11.12.1" && ' +
+            "! sed -i '2c modified' /home/evaluator/bin/npm 2>/dev/null && " +
+            'test "$(npm --version)" = "11.12.1" && ! npm install example-package',
         ],
         cwd: repositoryPath,
         hostExecutable: realpathSync('/bin/sh'),
@@ -59,7 +100,75 @@ test('sandbox npm probe reports the fixture version and rejects execution comman
   }
 });
 
-test('evaluator commands precede writable workspace binaries on sandbox PATH', () => {
+test('qualification actor PATH enforces the Git boundary over repository helpers', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-qualification-git-boundary-test-'));
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  const fsmonitorSentinelPath = join(repositoryPath, 'git-fsmonitor-ran.txt');
+  const filterSentinelPath = join(repositoryPath, 'git-filter-ran.txt');
+  mkdirSync(repositoryPath);
+  mkdirSync(join(repositoryPath, 'node_modules'));
+  runSystemGit(repositoryPath, ['init', '--quiet']);
+  writeFileSync(
+    join(repositoryPath, 'git-fsmonitor.sh'),
+    '#!/bin/sh\nprintf "executed\\n" > git-fsmonitor-ran.txt\n',
+    'utf8',
+  );
+  writeFileSync(
+    join(repositoryPath, 'git-filter.sh'),
+    '#!/bin/sh\nprintf "executed\\n" > git-filter-ran.txt\ncat\n',
+    'utf8',
+  );
+  chmodSync(join(repositoryPath, 'git-fsmonitor.sh'), 0o755);
+  chmodSync(join(repositoryPath, 'git-filter.sh'), 0o755);
+  runSystemGit(repositoryPath, ['config', 'core.fsmonitor', './git-fsmonitor.sh']);
+  runSystemGit(repositoryPath, ['config', 'filter.execution-trap.clean', './git-filter.sh']);
+  await prepareCodexEvaluationHome(sandboxHome);
+
+  try {
+    const approvedResult = spawnSync(
+      'bwrap',
+      buildCodexEvaluationBwrapArguments({
+        command: [
+          'codex',
+          '-c',
+          `test "$(command -v git)" = "/home/evaluator/bin/git" && git ${APPROVED_GIT_STATUS_ARGUMENTS.join(' ')}`,
+        ],
+        cwd: repositoryPath,
+        hostExecutable: realpathSync('/bin/sh'),
+        includeWorkspaceBinaryDirectory: true,
+        nodeExecutable: process.execPath,
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 2_000 },
+    );
+
+    assert.equal(approvedResult.status, 0, approvedResult.stderr);
+    assert.equal(existsSync(fsmonitorSentinelPath), false);
+
+    writeFileSync(join(repositoryPath, '.gitattributes'), '*.js filter=execution-trap\n', 'utf8');
+    const blockedResult = spawnSync(
+      'bwrap',
+      buildCodexEvaluationBwrapArguments({
+        command: ['codex', '-c', `git ${APPROVED_GIT_STATUS_ARGUMENTS.join(' ')}`],
+        cwd: repositoryPath,
+        hostExecutable: realpathSync('/bin/sh'),
+        includeWorkspaceBinaryDirectory: true,
+        nodeExecutable: process.execPath,
+        sandboxHome,
+      }),
+      { encoding: 'utf8', timeout: 2_000 },
+    );
+
+    assert.equal(blockedResult.status, 2);
+    assert.match(blockedResult.stderr, /repository attribute safety was not established/u);
+    assert.equal(existsSync(filterSentinelPath), false);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('evaluator and system commands precede immutable workspace binaries on sandbox PATH', () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-path-precedence-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');
   const workspaceBinDirectory = join(repositoryPath, 'node_modules', '.bin');
@@ -71,16 +180,24 @@ test('evaluator commands precede writable workspace binaries on sandbox PATH', (
   const executableName = 'path-precedence-probe';
   const workspaceExecutablePath = join(workspaceBinDirectory, executableName);
   const evaluatorExecutablePath = join(evaluatorBinDirectory, executableName);
+  const workspaceSedPath = join(workspaceBinDirectory, 'sed');
   writeFileSync(workspaceExecutablePath, '#!/bin/sh\nexit 10\n', 'utf8');
   writeFileSync(evaluatorExecutablePath, '#!/bin/sh\nexit 0\n', 'utf8');
+  writeFileSync(workspaceSedPath, '#!/bin/sh\nexit 11\n', 'utf8');
   chmodSync(workspaceExecutablePath, 0o755);
   chmodSync(evaluatorExecutablePath, 0o755);
+  chmodSync(workspaceSedPath, 0o755);
 
   try {
     const result = spawnSync(
       'bwrap',
       buildCodexEvaluationBwrapArguments({
-        command: ['codex', '-c', executableName],
+        command: [
+          'codex',
+          '-c',
+          `${executableName} && sed --version >/dev/null && ` +
+            "! /usr/bin/sed -i '2c exit 0' /mnt/node_modules/.bin/sed 2>/dev/null",
+        ],
         cwd: repositoryPath,
         hostExecutable: realpathSync('/bin/sh'),
         includeWorkspaceBinaryDirectory: true,
@@ -100,7 +217,7 @@ test('Bubblewrap exposes the Codex code-mode companion beside the host executabl
   const repositoryPath = join(evaluationRoot, 'repository');
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(repositoryPath);
-  mkdirSync(sandboxHome);
+  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
 
   try {
     const result = spawnSync(
@@ -126,7 +243,7 @@ test('Bubblewrap exposes the exact host Node runtime through its isolated PATH',
   const repositoryPath = join(evaluationRoot, 'repository');
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(repositoryPath);
-  mkdirSync(sandboxHome);
+  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
 
   const probe = `
     const { spawnSync } = require('node:child_process');
@@ -163,7 +280,7 @@ test('Bubblewrap cannot observe host state or connect to host localhost', async 
   const hostMarkerRoot = mkdtempSync('/var/tmp/moldea-host-marker-');
   const hostMarkerPath = join(hostMarkerRoot, 'marker');
   mkdirSync(repositoryPath);
-  mkdirSync(sandboxHome);
+  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
   writeFileSync(hostMarkerPath, 'host-only');
 
   const server = createServer();
@@ -210,7 +327,7 @@ test('Bubblewrap exposes related repositories without write authority', () => {
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(repositoryPath);
   mkdirSync(relatedRepositoryPath);
-  mkdirSync(sandboxHome);
+  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
   writeFileSync(join(relatedRepositoryPath, 'marker'), 'related');
 
   const probe = `
@@ -250,7 +367,7 @@ test('Bubblewrap keeps the workspace writable except for evaluator-owned control
   mkdirSync(join(repositoryPath, '.agents', 'skills', 'moldea'), {
     recursive: true,
   });
-  mkdirSync(sandboxHome);
+  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
   writeFileSync(join(repositoryPath, '.git', 'config'), 'protected');
   writeFileSync(join(repositoryPath, '.agents', 'skills', 'moldea', 'SKILL.md'), 'protected');
   writeFileSync(join(repositoryPath, 'editable.txt'), 'before');
@@ -286,7 +403,7 @@ test('Bubblewrap can mount the primary evaluation workspace read-only for judges
   const repositoryPath = join(evaluationRoot, 'repository');
   const sandboxHome = join(evaluationRoot, 'home');
   mkdirSync(repositoryPath);
-  mkdirSync(sandboxHome);
+  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
   writeFileSync(join(repositoryPath, 'marker'), 'judge input');
 
   const probe = `
@@ -324,7 +441,7 @@ test('shared host closes its relay after successful and failed executions', asyn
   const companionPath = join(executableDirectory, 'codex-code-mode-host');
   mkdirSync(executableDirectory);
   mkdirSync(repositoryPath);
-  mkdirSync(sandboxHome);
+  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
   writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
   chmodSync(companionPath, 0o755);
   await prepareCodexEvaluationHome(sandboxHome);
@@ -373,7 +490,7 @@ test('shared host cancellation stops the outer Bubblewrap execution', async () =
   const companionPath = join(executableDirectory, 'codex-code-mode-host');
   mkdirSync(executableDirectory);
   mkdirSync(repositoryPath);
-  mkdirSync(sandboxHome);
+  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
   writeFileSync(codexPath, '#!/bin/sh\nsleep 10\n');
   writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
   chmodSync(codexPath, 0o755);
@@ -415,7 +532,7 @@ test('shared host enforces a workflow-owned default timeout', async () => {
   const companionPath = join(executableDirectory, 'codex-code-mode-host');
   mkdirSync(executableDirectory);
   mkdirSync(repositoryPath);
-  mkdirSync(sandboxHome);
+  mkdirSync(join(sandboxHome, 'bin'), { recursive: true });
   writeFileSync(codexPath, '#!/bin/sh\nsleep 10\n');
   writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
   chmodSync(codexPath, 0o755);

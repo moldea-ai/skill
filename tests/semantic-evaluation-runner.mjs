@@ -59,7 +59,6 @@ import {
   hasValidReadOnlyMountControlEvidence,
   hasValidRepositoryControlEvidence,
   hasValidScenarioEvidence,
-  prepareGitCommandPolicyBoundary,
   projectActorExecutionEvidenceEvent,
   recordSemanticEvaluationAttempt,
   validateSemanticCoverage,
@@ -1726,7 +1725,6 @@ export const prepareSemanticEvaluationHome = async (
     throw new Error('Semantic evaluation requires an evaluator-owned actor tool directory.');
   }
   await prepareCodexEvaluationHome(sandboxHome);
-  await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'));
   await prepareSemanticActorToolDirectory(sandboxHome, actorToolDirectory);
   const actorToolMounts = [{ source: actorToolDirectory, target: '/home/evaluator/bin' }];
   if (RUNTIME_COMPATIBILITY_PUBLICATION_CASE_IDS.has(caseDefinition.id)) {

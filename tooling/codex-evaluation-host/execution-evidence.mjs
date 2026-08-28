@@ -13,7 +13,6 @@ const NETWORK_EXECUTABLES = new Set([
   'https',
   'nc',
   'ncat',
-  'npm',
   'npx',
   'pnpm',
   'pnpx',
@@ -69,7 +68,6 @@ const SAFE_LOCAL_EXECUTABLES = new Set([
   'readlink',
   'realpath',
   'rg',
-  'sed',
   'sha256sum',
   'sort',
   'stat',
@@ -81,7 +79,93 @@ const SAFE_LOCAL_EXECUTABLES = new Set([
   'uniq',
   'wc',
 ]);
+const SAFE_WORKSPACE_EXECUTABLE_PATHS = new Map([
+  [
+    'moldea',
+    new Set([
+      'node_modules/.bin/moldea',
+      './node_modules/.bin/moldea',
+      '/mnt/node_modules/.bin/moldea',
+    ]),
+  ],
+  [
+    'tsc',
+    new Set(['node_modules/.bin/tsc', './node_modules/.bin/tsc', '/mnt/node_modules/.bin/tsc']),
+  ],
+]);
+const TRUSTED_SYSTEM_EXECUTABLE_DIRECTORIES = ['/bin', '/usr/bin'];
 const SAFE_GIT_SUBCOMMANDS = new Set(['diff', 'log', 'rev-parse', 'show', 'status', 'version']);
+const SAFE_GIT_CONFIG_ASSIGNMENTS = new Set([
+  'core.attributesFile=/dev/null',
+  'core.fsmonitor=false',
+  'core.pager=cat',
+  'diff.external=',
+  'filter.lfs.clean=',
+  'filter.lfs.process=',
+  'filter.lfs.required=false',
+  'filter.lfs.smudge=',
+]);
+const SAFE_NODE_INSPECTION_GLOBALS = new Set([
+  'JSON',
+  'console',
+  'const',
+  'false',
+  'if',
+  'null',
+  'process',
+  'require',
+  'true',
+  'typeof',
+  'undefined',
+]);
+const SAFE_NODE_INSPECTION_PROPERTIES = new Set([
+  'bin',
+  'exit',
+  'exitCode',
+  'join',
+  'log',
+  'moldea',
+  'name',
+  'parse',
+  'readFileSync',
+  'realpathSync',
+  'sep',
+  'startsWith',
+  'stdout',
+  'stringify',
+  'version',
+  'write',
+]);
+const SAFE_NODE_INSPECTION_STRINGS = new Set([
+  './dist/moldea.js',
+  './node_modules/.bin/moldea',
+  './node_modules/@moldea.ai/cli',
+  './node_modules/@moldea.ai/cli/package.json',
+  '@moldea.ai/cli',
+  'dist/moldea.js',
+  'fs',
+  'node:fs',
+  'node:path',
+  'node_modules/.bin/moldea',
+  'node_modules/@moldea.ai/cli',
+  'node_modules/@moldea.ai/cli/package.json',
+  'path',
+  'string',
+  'utf8',
+  '\n',
+]);
+const SAFE_NODE_MANIFEST_PATHS = new Set([
+  './node_modules/@moldea.ai/cli/package.json',
+  'node_modules/@moldea.ai/cli/package.json',
+]);
+const SAFE_NODE_REALPATH_PATHS = new Set([
+  './node_modules/.bin/moldea',
+  './node_modules/@moldea.ai/cli',
+  'node_modules/.bin/moldea',
+  'node_modules/@moldea.ai/cli',
+]);
+const SAFE_SED_PRINT_SCRIPT_PATTERN = /^\d+(?:,\d+)?p$/u;
+const EVALUATOR_HOME_PATH = '/home/evaluator';
 const NETWORK_GIT_SUBCOMMANDS = new Set([
   'clone',
   'fetch',
@@ -101,7 +185,7 @@ const CREDENTIAL_PATTERNS = [
   /-----BEGIN [^-]+-----[\s\S]*?-----END [^-]+-----/gu,
 ];
 const SENSITIVE_ACCESS_PATTERN =
-  /(?:^|[\s'"=])(?:~|\/home\/evaluator)?\/?\.codex\/(?:auth\.json|config\.toml)|\b(?:OPENAI_API_KEY|AUTHORIZATION|ACCESS_TOKEN|AUTH_TOKEN|PASSWORD|PRIVATE_KEY|SECRET)\b/iu;
+  /(?:^|[\s'"=])(?:\/home\/evaluator(?:\/|$)|(?:~|\/home\/evaluator)?\/?\.codex\/(?:auth\.json|config\.toml))|\b(?:OPENAI_API_KEY|AUTHORIZATION|ACCESS_TOKEN|AUTH_TOKEN|PASSWORD|PRIVATE_KEY|SECRET)\b/iu;
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
@@ -171,6 +255,10 @@ const unwrapCodexShellCommand = (command) => {
   return command;
 };
 
+/** Removes only fixed shell redirections that discard output or duplicate an existing stream. */
+const stripSafeShellRedirections = (command) =>
+  command.replace(/(^|\s)(?:[012]?>\/dev\/null|[12]>&[12])(?=$|\s)/gu, '$1');
+
 /** Splits a static shell list while rejecting syntax that can conceal execution. */
 const tokenizeStaticShellList = (command) => {
   const commands = [[]];
@@ -200,9 +288,15 @@ const tokenizeStaticShellList = (command) => {
         quote = null;
       } else if (character === '\\' && quote === '"') {
         if (nextCharacter === undefined) return null;
-        currentWord += nextCharacter;
-        hasCurrentWord = true;
-        index += 1;
+        if (nextCharacter === '\n') index += 1;
+        else if ('$`"\\'.includes(nextCharacter)) {
+          currentWord += nextCharacter;
+          hasCurrentWord = true;
+          index += 1;
+        } else {
+          currentWord += character;
+          hasCurrentWord = true;
+        }
       } else if (quote !== "'" && (character === '$' || character === '`')) return null;
       else {
         currentWord += character;
@@ -221,6 +315,36 @@ const tokenizeStaticShellList = (command) => {
       currentWord += nextCharacter;
       hasCurrentWord = true;
       index += 1;
+      continue;
+    }
+    if (character === '*' || character === '?') return null;
+    if (character === '[') {
+      const isSingleBracketCommand =
+        !hasCurrentWord &&
+        commands.at(-1).length === 0 &&
+        (nextCharacter === undefined || /\s/u.test(nextCharacter));
+      const isDoubleBracketCommand =
+        !hasCurrentWord &&
+        commands.at(-1).length === 0 &&
+        nextCharacter === '[' &&
+        (command[index + 2] === undefined || /\s/u.test(command[index + 2]));
+      if (!isSingleBracketCommand && !isDoubleBracketCommand) return null;
+      currentWord += isDoubleBracketCommand ? '[[' : '[';
+      hasCurrentWord = true;
+      if (isDoubleBracketCommand) index += 1;
+      continue;
+    }
+    if (character === ']') {
+      const isSingleBracketTerminator =
+        !hasCurrentWord && (nextCharacter === undefined || /\s/u.test(nextCharacter));
+      const isDoubleBracketTerminator =
+        !hasCurrentWord &&
+        nextCharacter === ']' &&
+        (command[index + 2] === undefined || /\s/u.test(command[index + 2]));
+      if (!isSingleBracketTerminator && !isDoubleBracketTerminator) return null;
+      currentWord += isDoubleBracketTerminator ? ']]' : ']';
+      hasCurrentWord = true;
+      if (isDoubleBracketTerminator) index += 1;
       continue;
     }
     if (
@@ -253,29 +377,435 @@ const tokenizeStaticShellList = (command) => {
   return commands.length > 0 ? commands : null;
 };
 
+/** Classifies decoded static words that resolve into or above evaluator-owned state. */
+const classifyDecodedSensitiveAccess = (commands) => {
+  const decodedCommand = commands.flat().join(' ');
+  if (SENSITIVE_ACCESS_PATTERN.test(decodedCommand)) return 'observed';
+
+  let hasIndeterminatePath = false;
+  for (const word of commands.flat()) {
+    const equalsIndex = word.indexOf('=');
+    const candidates = equalsIndex === -1 ? [word] : [word, word.slice(equalsIndex + 1)];
+    for (const candidate of candidates) {
+      let pathCandidate = candidate;
+      if (candidate === '~') pathCandidate = EVALUATOR_HOME_PATH;
+      else if (candidate.startsWith('~/')) {
+        pathCandidate = posix.join(EVALUATOR_HOME_PATH, candidate.slice(2));
+      } else if (!candidate.startsWith('/') && !candidate.startsWith('.')) continue;
+
+      const normalizedPath = posix.resolve('/mnt', pathCandidate);
+      if (
+        normalizedPath === EVALUATOR_HOME_PATH ||
+        normalizedPath.startsWith(`${EVALUATOR_HOME_PATH}/`)
+      ) {
+        return 'observed';
+      }
+      if (
+        normalizedPath === '/proc' ||
+        normalizedPath.startsWith('/proc/') ||
+        normalizedPath === '/' ||
+        EVALUATOR_HOME_PATH.startsWith(`${normalizedPath}/`)
+      ) {
+        hasIndeterminatePath = true;
+      }
+    }
+  }
+
+  return hasIndeterminatePath ? 'indeterminate' : null;
+};
+
 const getExecutableName = (word) => posix.basename(word).toLowerCase();
+
+/** Checks that a local executable resolves through an immutable sandbox mount. */
+const isTrustedLocalExecutable = (word, executable) => {
+  const workspacePaths = SAFE_WORKSPACE_EXECUTABLE_PATHS.get(executable);
+  if (workspacePaths !== undefined) return workspacePaths.has(word);
+  return (
+    word === executable ||
+    TRUSTED_SYSTEM_EXECUTABLE_DIRECTORIES.some(
+      (directory) => word === posix.join(directory, executable),
+    )
+  );
+};
+
+/** Returns a Git subcommand after validating the global options that precede it. */
+const identifyGitSubcommand = (words) => {
+  for (let index = 1; index < words.length; index += 1) {
+    const word = words[index];
+    if (word === '--') return words[index + 1] ?? null;
+    if (word === '-C') {
+      if (words[index + 1] === undefined) return null;
+      index += 1;
+      continue;
+    }
+    if (word === '-c') {
+      const assignment = words[index + 1];
+      if (assignment === undefined || !SAFE_GIT_CONFIG_ASSIGNMENTS.has(assignment)) return null;
+      index += 1;
+      continue;
+    }
+    if (word === '--no-pager' || word === '--literal-pathspecs') continue;
+    if (word.startsWith('-')) return null;
+    return word;
+  }
+
+  return null;
+};
+
+/** Checks the evaluator-owned npm probe's complete non-networking command contract. */
+const isSafeNpmProbeCommand = (words) =>
+  words[0] === 'npm' && words.length === 2 && ['--version', '-v'].includes(words[1]);
+
+/** Checks Node's complete built-in version command without accepting executable code. */
+const isSafeNodeVersionCommand = (words) =>
+  ['node', '/opt/node', '/usr/bin/node'].includes(words[0]) &&
+  words.length === 2 &&
+  ['--version', '-v'].includes(words[1]);
+
+/** Checks a non-executing sed invocation limited to a numeric print range. */
+const isSafeSedInspectionCommand = (words) => {
+  if (words.length < 3 || words[1] !== '-n' || !SAFE_SED_PRINT_SCRIPT_PATTERN.test(words[2])) {
+    return false;
+  }
+  const fileArguments = words.slice(3);
+  if (fileArguments[0] === '--') fileArguments.shift();
+  return fileArguments.every((word) => word !== '' && !word.startsWith('-'));
+};
+
+/** Tokenizes the intentionally small JavaScript subset used for local CLI identity checks. */
+const tokenizeSafeNodeInspectionProgram = (source) => {
+  const tokens = [];
+
+  for (let index = 0; index < source.length; index += 1) {
+    const character = source[index];
+    if (/\s/u.test(character)) continue;
+    if (character === '`' || character === '\\' || character === '[' || character === ']') {
+      return null;
+    }
+    if (character === '/' && ['/', '*'].includes(source[index + 1])) return null;
+
+    if (character === "'" || character === '"') {
+      let stringValue = '';
+      let isClosed = false;
+      for (index += 1; index < source.length; index += 1) {
+        const stringCharacter = source[index];
+        if (stringCharacter === character) {
+          isClosed = true;
+          break;
+        }
+        if (stringCharacter === '\\') {
+          const escapedCharacter = source[index + 1];
+          if (escapedCharacter === undefined || !['\\', "'", '"', 'n'].includes(escapedCharacter)) {
+            return null;
+          }
+          stringValue += escapedCharacter === 'n' ? '\n' : escapedCharacter;
+          index += 1;
+        } else stringValue += stringCharacter;
+      }
+      if (!isClosed) return null;
+      tokens.push({ kind: 'string', value: stringValue });
+      continue;
+    }
+
+    const identifierMatch = /^[A-Za-z_$][A-Za-z0-9_$]*/u.exec(source.slice(index));
+    if (identifierMatch !== null) {
+      tokens.push({ kind: 'identifier', value: identifierMatch[0] });
+      index += identifierMatch[0].length - 1;
+      continue;
+    }
+
+    const numberMatch = /^\d+(?:\.\d+)?/u.exec(source.slice(index));
+    if (numberMatch !== null) {
+      tokens.push({ kind: 'number', value: numberMatch[0] });
+      index += numberMatch[0].length - 1;
+      continue;
+    }
+
+    const operator = ['!==', '===', '=>', '?.', '||', '&&'].find((candidate) =>
+      source.startsWith(candidate, index),
+    );
+    if (operator !== undefined) {
+      tokens.push({ kind: 'operator', value: operator });
+      index += operator.length - 1;
+      continue;
+    }
+    if ('=;,.(){}?!:+-*/<>'.includes(character)) {
+      tokens.push({ kind: 'operator', value: character });
+      continue;
+    }
+    return null;
+  }
+
+  return tokens;
+};
+
+/** Selects unique const declarations and their complete initializer token sequences. */
+const identifySafeNodeInspectionDeclarations = (tokens) => {
+  const declarations = new Map();
+  const seenDeclaredIdentifiers = new Set();
+  let declarationNestingDepth = 0;
+  let isDeclaration = false;
+  let expectsDeclaredIdentifier = false;
+  let currentDeclaredIdentifier = null;
+  let currentInitializerStartIndex = null;
+
+  for (const [index, token] of tokens.entries()) {
+    if (token.kind === 'identifier' && token.value === 'const' && !isDeclaration) {
+      isDeclaration = true;
+      expectsDeclaredIdentifier = true;
+      continue;
+    }
+    if (!isDeclaration) continue;
+    if (['(', '[', '{'].includes(token.value)) {
+      declarationNestingDepth += 1;
+      continue;
+    }
+    if ([')', ']', '}'].includes(token.value)) {
+      declarationNestingDepth -= 1;
+      if (declarationNestingDepth < 0) return null;
+      continue;
+    }
+    if (declarationNestingDepth === 0 && token.value === ';') {
+      if (
+        expectsDeclaredIdentifier ||
+        currentDeclaredIdentifier === null ||
+        currentInitializerStartIndex === null ||
+        currentInitializerStartIndex === index
+      ) {
+        return null;
+      }
+      declarations.set(
+        currentDeclaredIdentifier,
+        tokens.slice(currentInitializerStartIndex, index),
+      );
+      isDeclaration = false;
+      currentDeclaredIdentifier = null;
+      currentInitializerStartIndex = null;
+      continue;
+    }
+    if (declarationNestingDepth === 0 && token.value === ',') {
+      if (
+        currentDeclaredIdentifier === null ||
+        currentInitializerStartIndex === null ||
+        currentInitializerStartIndex === index
+      ) {
+        return null;
+      }
+      declarations.set(
+        currentDeclaredIdentifier,
+        tokens.slice(currentInitializerStartIndex, index),
+      );
+      expectsDeclaredIdentifier = true;
+      currentDeclaredIdentifier = null;
+      currentInitializerStartIndex = null;
+      continue;
+    }
+    if (expectsDeclaredIdentifier) {
+      if (
+        token.kind !== 'identifier' ||
+        tokens[index + 1]?.value !== '=' ||
+        seenDeclaredIdentifiers.has(token.value)
+      ) {
+        return null;
+      }
+      seenDeclaredIdentifiers.add(token.value);
+      currentDeclaredIdentifier = token.value;
+      currentInitializerStartIndex = index + 2;
+      expectsDeclaredIdentifier = false;
+    }
+  }
+
+  return isDeclaration || declarationNestingDepth !== 0 ? null : declarations;
+};
+
+/** Checks whether one declaration resolves the fixed local CLI package root. */
+const hasSafeNodePackageRootDeclaration = (declarations, identifier) => {
+  const initializer = declarations.get(identifier);
+  return (
+    initializer?.length === 6 &&
+    initializer[0]?.kind === 'identifier' &&
+    ['.', '?.'].includes(initializer[1]?.value) &&
+    initializer[2]?.value === 'realpathSync' &&
+    initializer[3]?.value === '(' &&
+    initializer[4]?.kind === 'string' &&
+    ['./node_modules/@moldea.ai/cli', 'node_modules/@moldea.ai/cli'].includes(
+      initializer[4].value,
+    ) &&
+    initializer[5]?.value === ')'
+  );
+};
+
+/** Checks one path.join call used to resolve the fixed local CLI binary target. */
+const isSafeNodePackageBinaryJoinCall = (tokens, propertyIndex, declarations) => {
+  const packageRoot = tokens[propertyIndex + 2];
+  return (
+    tokens[propertyIndex + 1]?.value === '(' &&
+    packageRoot?.kind === 'identifier' &&
+    hasSafeNodePackageRootDeclaration(declarations, packageRoot.value) &&
+    tokens[propertyIndex + 3]?.value === ',' &&
+    tokens[propertyIndex + 4]?.kind === 'string' &&
+    ['./dist/moldea.js', 'dist/moldea.js'].includes(tokens[propertyIndex + 4].value) &&
+    tokens[propertyIndex + 5]?.value === ')'
+  );
+};
+
+/** Checks one fs.readFileSync call against the fixed CLI manifest contract. */
+const isSafeNodeManifestReadCall = (tokens, propertyIndex) =>
+  tokens[propertyIndex + 1]?.value === '(' &&
+  tokens[propertyIndex + 2]?.kind === 'string' &&
+  SAFE_NODE_MANIFEST_PATHS.has(tokens[propertyIndex + 2].value) &&
+  tokens[propertyIndex + 3]?.value === ',' &&
+  tokens[propertyIndex + 4]?.kind === 'string' &&
+  tokens[propertyIndex + 4].value === 'utf8' &&
+  tokens[propertyIndex + 5]?.value === ')';
+
+/** Checks one fs.realpathSync call against fixed package and binary paths. */
+const isSafeNodeRealpathCall = (tokens, propertyIndex, declarations) => {
+  if (tokens[propertyIndex + 1]?.value !== '(') return false;
+  const pathArgument = tokens[propertyIndex + 2];
+  if (
+    pathArgument?.kind === 'string' &&
+    SAFE_NODE_REALPATH_PATHS.has(pathArgument.value) &&
+    tokens[propertyIndex + 3]?.value === ')'
+  ) {
+    return true;
+  }
+
+  return (
+    pathArgument?.kind === 'identifier' &&
+    ['.', '?.'].includes(tokens[propertyIndex + 3]?.value) &&
+    tokens[propertyIndex + 4]?.value === 'join' &&
+    isSafeNodePackageBinaryJoinCall(tokens, propertyIndex + 4, declarations) &&
+    tokens[propertyIndex + 10]?.value === ')'
+  );
+};
+
+/** Checks a read-only inline Node program against the exact local CLI inspection surface. */
+const isSafeNodeInspectionProgram = (source) => {
+  const tokens = tokenizeSafeNodeInspectionProgram(source);
+  if (tokens === null || tokens.length === 0 || tokens.some(({ value }) => value === '=>')) {
+    return false;
+  }
+  const declarations = identifySafeNodeInspectionDeclarations(tokens);
+  if (declarations === null) return false;
+  const declaredIdentifiers = new Set(declarations.keys());
+
+  let hasCliInspectionPath = false;
+  for (const [index, token] of tokens.entries()) {
+    if (token.kind === 'string') {
+      const isVersion = /^\d+\.\d+\.\d+$/u.test(token.value);
+      if (!isVersion && !SAFE_NODE_INSPECTION_STRINGS.has(token.value)) return false;
+      if (token.value.includes('node_modules/@moldea.ai/cli')) hasCliInspectionPath = true;
+      continue;
+    }
+    if (token.kind !== 'identifier') continue;
+
+    const previousToken = tokens[index - 1];
+    const nextToken = tokens[index + 1];
+    if (previousToken?.value === '.' || previousToken?.value === '?.') {
+      if (!SAFE_NODE_INSPECTION_PROPERTIES.has(token.value)) return false;
+      if (token.value === 'readFileSync' && !isSafeNodeManifestReadCall(tokens, index))
+        return false;
+      if (token.value === 'realpathSync' && !isSafeNodeRealpathCall(tokens, index, declarations)) {
+        return false;
+      }
+      if (token.value === 'join' && !isSafeNodePackageBinaryJoinCall(tokens, index, declarations)) {
+        return false;
+      }
+      continue;
+    }
+    if (nextToken?.value === ':') continue;
+    if (!declaredIdentifiers.has(token.value) && !SAFE_NODE_INSPECTION_GLOBALS.has(token.value)) {
+      return false;
+    }
+    if (token.value === 'require') {
+      const requiredModule = tokens[index + 2];
+      if (
+        nextToken?.value !== '(' ||
+        requiredModule?.kind !== 'string' ||
+        tokens[index + 3]?.value !== ')' ||
+        ![
+          './node_modules/@moldea.ai/cli/package.json',
+          'fs',
+          'node:fs',
+          'node:path',
+          'node_modules/@moldea.ai/cli/package.json',
+          'path',
+        ].includes(requiredModule.value)
+      ) {
+        return false;
+      }
+    }
+  }
+
+  return hasCliInspectionPath;
+};
+
+/** Checks an inline Node invocation without accepting scripts, imports, or arbitrary code. */
+const isSafeNodeInspectionCommand = (words) =>
+  ['node', '/opt/node', '/usr/bin/node'].includes(words[0]) &&
+  words.length === 3 &&
+  ['--eval', '-e'].includes(words[1]) &&
+  isSafeNodeInspectionProgram(words[2]);
+
+/** Checks that Git resolves only through the evaluator's trusted executable search path. */
+const isTrustedGitExecutable = (word) => ['git', '/home/evaluator/bin/git'].includes(word);
 
 /** Classifies whether one static command can use a network boundary. */
 const classifyNetworkCommand = (words) => {
-  while (/^[A-Za-z_][A-Za-z0-9_]*=.*/u.test(words[0] ?? '')) words.shift();
+  const assignmentPrefixes = [];
+  while (/^[A-Za-z_][A-Za-z0-9_]*=.*/u.test(words[0] ?? '')) {
+    assignmentPrefixes.push(words.shift());
+  }
   if (words[0] === '!') words.shift();
   const executable = getExecutableName(words[0] ?? '');
   if (executable === '') return 'indeterminate';
+  if (executable === 'env') {
+    if (!isTrustedLocalExecutable(words[0], executable)) return 'indeterminate';
+    const remainingWords = words.slice(1);
+    if (remainingWords[0] === '--') remainingWords.shift();
+    return remainingWords[0] === 'GIT_ATTR_NOSYSTEM=1'
+      ? classifyNetworkCommand(remainingWords)
+      : 'indeterminate';
+  }
+  if (executable === 'npm')
+    return assignmentPrefixes.length === 0 && isSafeNpmProbeCommand(words)
+      ? 'not-observed'
+      : 'observed';
   if (NETWORK_EXECUTABLES.has(executable)) return 'observed';
+  if (
+    executable === 'node' &&
+    assignmentPrefixes.length === 0 &&
+    (isSafeNodeVersionCommand(words) || isSafeNodeInspectionCommand(words))
+  )
+    return 'not-observed';
   if (executable === 'git') {
-    const subcommand = words.find((word, index) => index > 0 && !word.startsWith('-'));
-    if (subcommand === undefined) return 'indeterminate';
+    const hasSafeAttributeIsolation =
+      assignmentPrefixes.length === 0 ||
+      (assignmentPrefixes.length === 1 && assignmentPrefixes[0] === 'GIT_ATTR_NOSYSTEM=1');
+    if (!hasSafeAttributeIsolation || !isTrustedGitExecutable(words[0])) return 'indeterminate';
+    if (words.length === 2 && words[1] === '--version') return 'not-observed';
+    const subcommand = identifyGitSubcommand(words);
+    if (subcommand === null) return 'indeterminate';
     if (NETWORK_GIT_SUBCOMMANDS.has(subcommand)) return 'observed';
     return SAFE_GIT_SUBCOMMANDS.has(subcommand) ? 'not-observed' : 'indeterminate';
   }
+  if (assignmentPrefixes.length > 0) return 'indeterminate';
   if (executable === 'find' && words.some((word) => /^-(?:exec|execdir|ok|okdir)$/u.test(word))) {
     return 'indeterminate';
   }
   if (executable === 'rg' && words.some((word) => word === '--pre' || word.startsWith('--pre='))) {
     return 'indeterminate';
   }
+  if (executable === 'sed') {
+    return isTrustedLocalExecutable(words[0], executable) && isSafeSedInspectionCommand(words)
+      ? 'not-observed'
+      : 'indeterminate';
+  }
   if (OPAQUE_EXECUTABLES.has(executable)) return 'indeterminate';
-  return SAFE_LOCAL_EXECUTABLES.has(executable) ? 'not-observed' : 'indeterminate';
+  return SAFE_LOCAL_EXECUTABLES.has(executable) && isTrustedLocalExecutable(words[0], executable)
+    ? 'not-observed'
+    : 'indeterminate';
 };
 
 /** Classifies one complete command without retaining its content. */
@@ -283,15 +813,20 @@ const classifyCommand = (command) => {
   if (Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
     return { networkAccess: 'indeterminate', sensitiveAccess: 'indeterminate' };
   }
-  const sensitiveAccess = SENSITIVE_ACCESS_PATTERN.test(command) ? 'observed' : null;
+  const rawSensitiveAccess = SENSITIVE_ACCESS_PATTERN.test(command) ? 'observed' : null;
   const directCommand = unwrapCodexShellCommand(command);
-  const commands = directCommand === null ? null : tokenizeStaticShellList(directCommand);
+  const commands =
+    directCommand === null
+      ? null
+      : tokenizeStaticShellList(stripSafeShellRedirections(directCommand));
   if (commands === null) {
     return {
       networkAccess: 'indeterminate',
-      sensitiveAccess: sensitiveAccess ?? 'indeterminate',
+      sensitiveAccess: rawSensitiveAccess ?? 'indeterminate',
     };
   }
+  const sensitiveAccess =
+    rawSensitiveAccess ?? classifyDecodedSensitiveAccess(commands) ?? undefined;
   const networkClassifications = commands.map((words) => classifyNetworkCommand([...words]));
   const networkAccess = networkClassifications.includes('observed')
     ? 'observed'

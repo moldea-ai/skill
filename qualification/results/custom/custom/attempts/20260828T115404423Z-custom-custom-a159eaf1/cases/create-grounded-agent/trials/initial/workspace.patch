@@ -1,0 +1,52 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index a5ba2f9..888f75f 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -4,3 +4,15 @@ context:
+   /moldea/project.md:
+     affectedBy:
+       - /src/**
++
++agents:
++  order-triage:
++    runtime:
++      id: custom
++      guidance: /moldea/runtimes/order-triage-custom.md
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: createOrderTriageAgent
++    affectedBy:
++      - /src/order-triage-agent.ts
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..0b9d22a
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review. It cannot approve refunds or perform financial mutations.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..cf0dbdd
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,5 @@
++# Order triage
++
++`order-triage` classifies orders for human review.
++
++Keep every result limited to classification for a human reviewer. Do not approve refunds, perform financial mutations, or claim authority to make those decisions.
+
+diff --git a/moldea/runtimes/order-triage-custom.md b/moldea/runtimes/order-triage-custom.md
+new file mode 100644
+index 0000000..04ecbf4
+--- /dev/null
++++ b/moldea/runtimes/order-triage-custom.md
+@@ -0,0 +1,5 @@
++# Order triage custom runtime
++
++`createOrderTriageAgent` is the runtime construction boundary. The custom runtime supplies its canonical-instruction loader; during construction, the factory requests `/moldea/agents/order-triage/instruction.md` and assigns the returned content to the agent's `instruction` field.
++
++The constructed agent has the ID `order-triage`, exposes `canApproveRefunds: false`, and uses the action `classify-for-human-review`. The loader implementation is runtime-owned and is not implemented in this repository.

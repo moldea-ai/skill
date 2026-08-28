@@ -94,8 +94,6 @@ export const createActorCommandPolicyEvidence: (
 
 export const hasValidActorCommandPolicyEvidence: (evidence: unknown) => boolean;
 
-export const prepareGitCommandPolicyBoundary: (directoryPath: string) => Promise<string>;
-
 export type ISemanticGitStateFact =
   | 'has-deleted-paths'
   | 'has-renamed-paths'

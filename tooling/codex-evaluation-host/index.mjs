@@ -35,5 +35,8 @@ export {
 // execution evidence
 export { projectCodexEvaluationExecutionEvidence } from './execution-evidence.mjs';
 
+// Git command-policy boundary
+export { prepareGitCommandPolicyBoundary } from './git-command-policy-boundary.mjs';
+
 // restricted proxy
 export { isPublicIpAddress, parseConnectAuthority, runCodexEvaluationProxy } from './proxy.mjs';

@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, patch, and deterministic post-actor evidence agree: the grounded order-triage agent is registered against the real custom-runtime factory, its affected source is declared, and the sole new runtime guidance accurately documents canonical instruction loading without adding unsupported behavior.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "`src/order-triage-agent.ts` implements `action: 'classify-for-human-review'` and `canApproveRefunds: false`. The new description and instruction state that the agent classifies orders for human review and cannot approve refunds or perform financial mutations; the Git patches contain those grounded statements."
+    },
+    {
+      "id": "binds-implementation",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` registers `agents.order-triage.bindings.runtimeAgent` with `/src/order-triage-agent.ts` and symbol `createOrderTriageAgent`, and lists that source under `affectedBy`. The export exists at that path. Deterministic post-actor validation and inspection are valid, and typechecking passed."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "verdict": "pass",
+      "evidence": "The manifest references `/moldea/runtimes/order-triage-custom.md`, the sole new file under `moldea/runtimes/**/*.md`. Its patch explains that the runtime-owned loader supplies `/moldea/agents/order-triage/instruction.md` content to the factory's `instruction` field, explicitly noting that the loader is outside this repository and making no provider-behavior claims."
+    }
+  ],
+  "failures": []
+}

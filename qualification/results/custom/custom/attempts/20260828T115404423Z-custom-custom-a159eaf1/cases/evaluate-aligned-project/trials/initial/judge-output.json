@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor’s alignment explanation agrees with the repository, deterministic results, and empty Git diff. The project is valid and unchanged; the only stated limitation—no evidence that runtime invocation consumes the canonical instruction—is genuine but does not contradict the required runtime-agent alignment.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "Actor-output identifies the registered `support` agent, its email-support description, custom runtime guidance, and explicit runtime binding. Current workspace confirms `moldea/moldea.yaml` registers `support` with runtime `custom`, guidance `/moldea/runtimes/custom.md`, and runtimeAgent binding `/src/support-agent.ts` symbol `supportAgent`; that source exports `supportAgent` with `id: 'support'` and `channel: 'email'`; the guidance explicitly describes preserving that exported record’s identifier and channel. Deterministic-after reports valid inspect/validate/composition results, passing typecheck, and an unchanged repository. Hardened status, unstaged diff, and staged diff were also empty."
+    }
+  ],
+  "failures": []
+}

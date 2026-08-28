@@ -155,6 +155,7 @@ export const calculateCodexEvaluationOperationalRetryDelay: (
 export const projectCodexEvaluationExecutionEvidence: (
   source: string,
 ) => ICodexEvaluationExecutionEvidence;
+export const prepareGitCommandPolicyBoundary: (directoryPath: string) => Promise<string>;
 export const runCodexEvaluationOperationalStage: <T>(options: {
   initialFailureCount?: number;
   maximumRetryCount?: number;

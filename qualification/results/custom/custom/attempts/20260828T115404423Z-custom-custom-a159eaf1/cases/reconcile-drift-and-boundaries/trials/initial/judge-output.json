@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, deterministic post-actor results, and workspace patch agree: the runtime-agent binding now targets the existing supportAssistant export, and dynamic tool registration is represented as an agent-level unresolved warning without an invented binding.",
+  "requirements": [
+    {
+      "id": "repairs-binding",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts#supportAssistant, matching the exported symbol in src/support-assistant.ts. Git status/diff shows src/support-agent.ts remains deleted and was not recreated. Workspace assertions show the actor changed only moldea/moldea.yaml. Deterministic validation, inspection, filesystem checks, and typechecking all passed."
+    },
+    {
+      "id": "records-boundary",
+      "verdict": "pass",
+      "evidence": "Current workspace: agents.support.unresolved.dynamic-tool-registration has effect warning, explains that static inspection cannot establish the dynamic registry connection, gives the concrete resolution of an integration test or closed runtime wiring path proving createToolRegistry supplies lookupAccount to supportAssistant, and relates /src/dynamic-tools.ts#createToolRegistry. The patch adds this unresolved requirement and adds no tool/capability binding. Deterministic validation and inspection report valid with no failures."
+    }
+  ],
+  "failures": []
+}

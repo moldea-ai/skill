@@ -2139,7 +2139,7 @@ describe('source repository conformance', () => {
       /`Indeterminate` fails the criterion because absence was not established/,
       /cannot replace complete command classification/,
       /final response cannot create or replace that evidence/,
-      /mounted read-only over its executable directory ahead of writable workspace binaries on `PATH`/,
+      /Every semantic actor receives an evaluator-owned Git boundary and npm probe ahead of immutable system executables on a `PATH` that excludes workspace binary directories/,
       /actor cannot replace those probes/,
       /release CLI's finite read-only Git discovery and inventory commands/,
       /refuses every other bare `git` shape before Git starts/,

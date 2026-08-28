@@ -6,6 +6,8 @@ import { homedir } from 'node:os';
 import { basename, delimiter, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { prepareGitCommandPolicyBoundary } from './git-command-policy-boundary.mjs';
+
 // fixed model contract shared by local evaluation workflows
 export const CODEX_EVALUATION_MODEL = 'gpt-5.6-sol';
 export const CODEX_EVALUATION_NPM_VERSION = '11.12.1';
@@ -339,7 +341,7 @@ export const identifyCodexEvaluationHost = (command) => {
 };
 
 /**
- * Prepares copied authentication state and a non-installing npm probe.
+ * Prepares copied authentication state and evaluator-owned command boundaries.
  * @param sandboxHome The disposable home mounted inside Bubblewrap.
  * @returns A promise that resolves after the home is ready.
  */
@@ -357,6 +359,7 @@ export const prepareCodexEvaluationHome = async (sandboxHome) => {
   const sandboxBinDirectory = join(sandboxHome, 'bin');
   const npmProbePath = join(sandboxBinDirectory, 'npm');
   await mkdir(sandboxBinDirectory, { recursive: true, mode: 0o700 });
+  await prepareGitCommandPolicyBoundary(sandboxBinDirectory);
   await writeFile(
     npmProbePath,
     [
@@ -450,7 +453,10 @@ export const buildCodexEvaluationBwrapArguments = ({
   statusFileDescriptor,
   workspaceAccess = 'read-write',
 }) => {
-  const workspaceOverlays = resolveReadOnlyWorkspacePaths(cwd, readOnlyWorkspacePaths);
+  const protectedWorkspacePaths = includeWorkspaceBinaryDirectory
+    ? [...new Set([...readOnlyWorkspacePaths, 'node_modules'])]
+    : readOnlyWorkspacePaths;
+  const workspaceOverlays = resolveReadOnlyWorkspacePaths(cwd, protectedWorkspacePaths);
 
   return [
     '--die-with-parent',
@@ -523,6 +529,9 @@ export const buildCodexEvaluationBwrapArguments = ({
     '--bind',
     sandboxHome,
     '/home/evaluator',
+    '--ro-bind',
+    join(sandboxHome, 'bin'),
+    '/home/evaluator/bin',
     workspaceAccess === 'read-only' ? '--ro-bind' : '--bind',
     cwd,
     '/mnt',
@@ -555,7 +564,7 @@ export const buildCodexEvaluationBwrapArguments = ({
     '--setenv',
     'PATH',
     includeWorkspaceBinaryDirectory
-      ? '/home/evaluator/bin:/mnt/node_modules/.bin:/opt:/usr/bin:/bin'
+      ? '/home/evaluator/bin:/opt:/usr/bin:/bin:/mnt/node_modules/.bin'
       : '/home/evaluator/bin:/opt:/usr/bin:/bin',
     '--setenv',
     'TMPDIR',

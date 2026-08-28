@@ -1,7 +1,7 @@
 {
-  "lastPassingAttemptId": null,
-  "latestAttemptId": "20260827T200127046Z-semantic-f58fa4a2",
-  "latestStatus": "failed",
+  "lastPassingAttemptId": "20260828T022329138Z-semantic-5a824ff0",
+  "latestAttemptId": "20260828T022329138Z-semantic-5a824ff0",
+  "latestStatus": "passed",
   "schemaVersion": 1,
-  "updatedAt": "2026-08-27T20:01:27.046Z"
+  "updatedAt": "2026-08-28T02:23:29.138Z"
 }

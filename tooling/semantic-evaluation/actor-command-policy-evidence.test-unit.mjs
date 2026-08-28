@@ -5,6 +5,7 @@ import test from 'node:test';
 import {
   classifyActorCommandPolicyEvent,
   createActorCommandPolicyEvidence,
+  hasPassingPackageManagerNonExecutionPolicy,
   hasValidActorCommandPolicyEvidence,
 } from './actor-command-policy-evidence.mjs';
 
@@ -205,6 +206,36 @@ test('derives and validates privacy-safe command-policy aggregates', () => {
       packageManagerExecution: 'not-observed',
     }),
     false,
+  );
+});
+
+test('applies the observed-only package-manager verdict', () => {
+  assert.equal(
+    hasPassingPackageManagerNonExecutionPolicy({
+      completedCommandCount: 1,
+      indeterminateCommandCount: 1,
+      packageManagerExecution: 'indeterminate',
+      packageManagerInvocationCount: 0,
+    }),
+    true,
+  );
+  assert.equal(
+    hasPassingPackageManagerNonExecutionPolicy({
+      completedCommandCount: 1,
+      indeterminateCommandCount: 0,
+      packageManagerExecution: 'observed',
+      packageManagerInvocationCount: 1,
+    }),
+    false,
+  );
+  assert.equal(
+    hasPassingPackageManagerNonExecutionPolicy({
+      completedCommandCount: 1,
+      indeterminateCommandCount: 0,
+      packageManagerExecution: 'not-observed',
+      packageManagerInvocationCount: 0,
+    }),
+    true,
   );
 });
 

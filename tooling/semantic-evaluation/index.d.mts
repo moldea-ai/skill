@@ -94,6 +94,8 @@ export const createActorCommandPolicyEvidence: (
 
 export const hasValidActorCommandPolicyEvidence: (evidence: unknown) => boolean;
 
+export const hasPassingPackageManagerNonExecutionPolicy: (evidence: unknown) => boolean;
+
 export type ISemanticGitStateFact =
   | 'has-deleted-paths'
   | 'has-renamed-paths'

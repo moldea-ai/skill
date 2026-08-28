@@ -227,7 +227,7 @@ export const loadSemanticEvaluationWebsiteModel = (
     cli: createSemanticCliIdentity(repositoryRoot),
     coverageDigest: currentCoverageDigest,
     coverageUrl: `${RAW_SOURCE_REPOSITORY_URL}/main/${SEMANTIC_COVERAGE_PATH}`,
-    evaluatedAt: latest?.result.updatedAt ?? null,
+    evaluatedAt: hasCurrentEvaluation ? latest.result.updatedAt : null,
     evaluationModel: 'gpt-5.6-sol',
     failedCaseCount: hasCurrentEvaluation ? latest.result.failedCaseCount : 0,
     groups,

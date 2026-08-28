@@ -2,7 +2,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
-import { projectCodexEvaluationExecutionEvidence } from './execution-evidence.mjs';
+import {
+  hasPassingCodexEvaluationCommandPolicy,
+  projectCodexEvaluationExecutionEvidence,
+} from './execution-evidence.mjs';
 
 const createCommandEvent = (command, aggregatedOutput = '', overrides = {}) =>
   JSON.stringify({
@@ -347,6 +350,36 @@ test('execution evidence rejects computed property access', () => {
       indeterminateCount: 1,
     },
   });
+});
+
+test('command-policy verdict treats uncertainty as diagnostic evidence', () => {
+  const indeterminateEvidence = projectCodexEvaluationExecutionEvidence(
+    createCommandEvent('unknown-tool inspect'),
+  ).commandPolicy;
+
+  assert.equal(indeterminateEvidence.networkAccess.status, 'indeterminate');
+  assert.equal(indeterminateEvidence.sensitiveAccess.status, 'indeterminate');
+  assert.equal(hasPassingCodexEvaluationCommandPolicy(indeterminateEvidence), true);
+});
+
+test('command-policy verdict fails every observed violation category', () => {
+  const baseEvidence = projectCodexEvaluationExecutionEvidence('').commandPolicy;
+  const observedCredentialEvidence = {
+    ...baseEvidence,
+    credentialExposure: { status: 'observed', observedCount: 1 },
+  };
+  const observedNetworkEvidence = {
+    ...baseEvidence,
+    networkAccess: { status: 'observed', observedCount: 1, indeterminateCount: 0 },
+  };
+  const observedSensitiveEvidence = {
+    ...baseEvidence,
+    sensitiveAccess: { status: 'observed', observedCount: 1, indeterminateCount: 0 },
+  };
+
+  assert.equal(hasPassingCodexEvaluationCommandPolicy(observedCredentialEvidence), false);
+  assert.equal(hasPassingCodexEvaluationCommandPolicy(observedNetworkEvidence), false);
+  assert.equal(hasPassingCodexEvaluationCommandPolicy(observedSensitiveEvidence), false);
 });
 
 test('execution evidence detects credentials outside command output without retaining them', () => {

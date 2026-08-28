@@ -2,6 +2,8 @@ import { access, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { z } from 'zod';
 
+import { hasPassingCodexEvaluationCommandPolicy } from '../../../tooling/codex-evaluation-host/index.mjs';
+
 import { QualificationBaselineCheckSchema } from '../baseline/types.ts';
 import {
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
@@ -45,7 +47,6 @@ import {
 } from '../contracts/index.ts';
 import { QualificationCoverageResultSchema } from '../coverage/index.ts';
 import {
-  calculateDirectoryFingerprint,
   readJsonFile,
   readYamlFile,
   resolveContainedPath,
@@ -876,13 +877,6 @@ const deriveTrialFailures = (options: {
   ...(options.judge?.verdict === 'fail' ? options.judge.failures : []),
 ];
 
-const hasPassingActorCommandPolicy = (
-  evidence: IQualificationModelStageEvidence['commandPolicy'],
-): boolean =>
-  evidence.credentialExposure.status === 'not-observed' &&
-  evidence.networkAccess.status === 'not-observed' &&
-  evidence.sensitiveAccess.status === 'not-observed';
-
 const deriveRequirementAssessments = (options: {
   actor: IActorOutput;
   actorEvidence: IQualificationModelStageEvidence;
@@ -914,7 +908,7 @@ const deriveRequirementAssessments = (options: {
           case 'actor-command-policy':
             return {
               check,
-              passed: hasPassingActorCommandPolicy(options.actorEvidence.commandPolicy),
+              passed: hasPassingCodexEvaluationCommandPolicy(options.actorEvidence.commandPolicy),
             };
           case 'deterministic-after':
             return { check, passed: options.deterministicAfter.summary.passed };
@@ -1318,10 +1312,10 @@ const validateCurrentTerminalAttempt = async (
     QualificationProfileSchema,
   );
 
+  // artifact verification validates recorded attempts; the release gate owns profile currency
   if (
     profile.adapterId !== result.selection.adapterId ||
-    profile.implementationId !== result.selection.implementationId ||
-    result.provenance.profileDigest !== (await calculateDirectoryFingerprint(profileDirectory))
+    profile.implementationId !== result.selection.implementationId
   ) {
     throw new Error('Qualification evidence does not match its current profile.');
   }

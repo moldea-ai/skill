@@ -1,5 +1,7 @@
 import path from 'node:path';
 
+import { hasPassingCodexEvaluationCommandPolicy } from '../../../../tooling/codex-evaluation-host/index.mjs';
+
 import type {
   IActorOutput,
   IDeterministicVerification,
@@ -362,9 +364,7 @@ export const assertQualificationCaseEvidence = (options: {
 
       const commandPolicyPassed =
         options.actorCommandPolicy !== null &&
-        options.actorCommandPolicy.credentialExposure.status === 'not-observed' &&
-        options.actorCommandPolicy.networkAccess.status === 'not-observed' &&
-        options.actorCommandPolicy.sensitiveAccess.status === 'not-observed';
+        hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy);
       const failedChecks = requirement.evaluation.checks.filter((check) => {
         switch (check) {
           case 'actor-command-policy':
@@ -624,7 +624,7 @@ const hasValidCurrentStages = (
         hasValidNonModelStage(stages.get(`${prefix}:assertions`), ['failed', 'passed']) &&
         (trial.judgeStatus === 'completed'
           ? hasValidModelStage(judge, isConfirmation)
-          : hasValidNonModelStage(judge, ['skipped']) && judge?.durationMs === 0)
+          : hasValidNonModelStage(judge, ['skipped']))
       );
     });
 

@@ -33,6 +33,7 @@ import { verifyQualificationResults } from '../../qualification/src/result/index
 import {
   CODEX_EVALUATION_MODEL,
   CODEX_EVALUATION_REASONING_EFFORT,
+  hasPassingCodexEvaluationCommandPolicy,
 } from '../codex-evaluation-host/index.mjs';
 import {
   createPortableSkillDigest,
@@ -69,7 +70,9 @@ const SEMANTIC_HOST_CONTRACT = {
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
 const readYaml = (path, schema) => {
-  const document = parseDocument(readFileSync(path, 'utf8'), { uniqueKeys: true });
+  const document = parseDocument(readFileSync(path, 'utf8'), {
+    uniqueKeys: true,
+  });
   if (document.errors.length > 0) {
     throw new Error(document.errors.map((error) => error.message).join('\n'));
   }
@@ -330,11 +333,6 @@ const hasValidJudgeEvidence = (judge, scenario) => {
   );
 };
 
-const hasPassingActorCommandPolicy = (commandPolicy) =>
-  commandPolicy.credentialExposure.status === 'not-observed' &&
-  commandPolicy.networkAccess.status === 'not-observed' &&
-  commandPolicy.sensitiveAccess.status === 'not-observed';
-
 const deriveQualificationRequirementAssessments = (
   actor,
   actorEvidence,
@@ -368,7 +366,7 @@ const deriveQualificationRequirementAssessments = (
     const failedChecks = requirement.evaluation.checks.filter((check) => {
       switch (check) {
         case 'actor-command-policy':
-          return !hasPassingActorCommandPolicy(actorEvidence.commandPolicy);
+          return !hasPassingCodexEvaluationCommandPolicy(actorEvidence.commandPolicy);
         case 'deterministic-after':
           return !deterministicAfter.summary.passed;
         case 'expected-actor-outcome':
@@ -870,6 +868,7 @@ const inspectSemanticEvidence = (repositoryRoot) => {
   ) {
     issues.push(`${RELEASE_PATHS.semanticResult} does not use confirmation policy 1.`);
   }
+
   if (semanticResult.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION) {
     issues.push(
       `${RELEASE_PATHS.semanticResult} does not use semantic protocol ${SEMANTIC_EVALUATION_PROTOCOL_VERSION}.`,

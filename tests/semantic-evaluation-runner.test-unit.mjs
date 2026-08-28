@@ -8,6 +8,7 @@ import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   isRetryableCodexEvaluationHostError,
 } from '../tooling/codex-evaluation-host/index.mjs';
+import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../tooling/release-identity/constants.mjs';
 
 import {
   appendSemanticCandidateConfirmation,
@@ -719,23 +720,20 @@ test('judge prompt enforces bidirectional source attribution after actor executi
   assert.match(judgePrompt, /Runner-owned actor command-policy evidence/);
   assert.match(judgePrompt, /Runner-owned related read-only mount control evidence/);
   assert.match(judgePrompt, /full-tree digests before and after\s+actor execution/);
-  assert.match(judgePrompt, /packageManagerExecution "not-observed"/);
+  assert.match(judgePrompt, /"observed" proves at least one invocation/);
+  assert.match(judgePrompt, /"indeterminate" is retained\s+as a warning/);
+  assert.match(judgePrompt, /cannot replace an observed invocation/);
   assert.match(
     judgePrompt,
-    /"indeterminate" makes a package-manager non-execution\s+criterion fail/,
-  );
-  assert.match(judgePrompt, /cannot replace complete command classification/);
-  assert.match(
-    judgePrompt,
-    /Apply this aggregate only to criteria that explicitly concern whether any package-manager\s+invocation occurred/,
+    /Apply this aggregate only to criteria\s+that explicitly concern whether any package-manager\s+invocation occurred/,
   );
   assert.match(
     judgePrompt,
-    /Do not use it to decide whether an unrelated script, Git helper, tool, or\s+authority-sensitive action ran/,
+    /Do not use it to decide\s+whether an unrelated script, Git helper, tool, or authority-sensitive action ran/,
   );
   assert.match(
     judgePrompt,
-    /cannot identify a package-manager\s+subcommand, binary provider, executable, result, or ordering/,
+    /cannot identify a package-manager subcommand, binary provider, executable, result, or\s+ordering/,
   );
   assert.match(judgePrompt, /complete after-minus-before delta for ordinary repository paths/);
   assert.match(
@@ -1408,7 +1406,7 @@ test('semantic candidates retain failures and require two passing confirmations'
     caseDefinitions,
     generatedAt: '2026-08-16T12:03:00.000Z',
   });
-  assert.equal(record.evaluationProtocolVersion, 20);
+  assert.equal(record.evaluationProtocolVersion, SEMANTIC_EVALUATION_PROTOCOL_VERSION);
   assert.equal(record.schemaVersion, 6);
   assert.equal(record.actorHost, undefined);
   assert.equal(record.host, undefined);
@@ -1650,7 +1648,7 @@ test('semantic candidate validation rejects internally inconsistent evidence', (
   );
 });
 
-test('semantic candidate validation rejects indeterminate package-manager non-execution passes', () => {
+test('semantic candidate validation applies the package-manager non-execution verdict', () => {
   const packageManagerCaseDefinition = {
     ...CASE_DEFINITION,
     id: 'package-manager-non-execution',
@@ -1691,10 +1689,31 @@ test('semantic candidate validation rejects indeterminate package-manager non-ex
     ],
   };
 
+  assert.doesNotThrow(() =>
+    validateSemanticResultRecording({
+      candidate: indeterminateCandidate,
+      caseDefinitions,
+    }),
+  );
+
+  const observedCandidate = {
+    ...indeterminateCandidate,
+    results: [
+      {
+        ...indeterminateCandidate.results[0],
+        actorCommandPolicyEvidence: {
+          completedCommandCount: 1,
+          indeterminateCommandCount: 0,
+          packageManagerExecution: 'observed',
+          packageManagerInvocationCount: 1,
+        },
+      },
+    ],
+  };
   assert.throws(
     () =>
       validateSemanticResultRecording({
-        candidate: indeterminateCandidate,
+        candidate: observedCandidate,
         caseDefinitions,
       }),
     /invalid case evidence/,
@@ -1704,7 +1723,14 @@ test('semantic candidate validation rejects indeterminate package-manager non-ex
       validateSemanticResultRecording({
         candidate: {
           ...indeterminateCandidate,
-          results: [{ ...indeterminateCandidate.results[0], passed: false }],
+          results: [
+            {
+              ...indeterminateCandidate.results[0],
+              observed: [],
+              passed: false,
+              rationale: 'Expected evidence was missing.',
+            },
+          ],
         },
         caseDefinitions,
       }),
@@ -1730,7 +1756,7 @@ test('semantic candidate validation rejects indeterminate package-manager non-ex
     packageManagerCaseDefinition,
     {
       ...createCaseResult(packageManagerCaseDefinition, true),
-      actorCommandPolicyEvidence: indeterminateCandidate.results[0].actorCommandPolicyEvidence,
+      actorCommandPolicyEvidence: observedCandidate.results[0].actorCommandPolicyEvidence,
     },
     EVALUATED_AT,
   );
@@ -1743,13 +1769,19 @@ test('semantic candidate validation rejects indeterminate package-manager non-ex
       }),
     /invalid confirmation evidence/,
   );
+  const failedConfirmationCandidate = appendSemanticCandidateConfirmation(
+    failingInitialCandidate,
+    packageManagerCaseDefinition,
+    {
+      ...createCaseResult(packageManagerCaseDefinition, false),
+      actorCommandPolicyEvidence: indeterminateCandidate.results[0].actorCommandPolicyEvidence,
+    },
+    EVALUATED_AT,
+  );
   assert.throws(
     () =>
       validateSemanticResultRecording({
-        candidate: {
-          ...confirmationCandidate,
-          confirmations: [{ ...confirmationCandidate.confirmations[0], passed: false }],
-        },
+        candidate: failedConfirmationCandidate,
         caseDefinitions,
       }),
     /incomplete or failing/,

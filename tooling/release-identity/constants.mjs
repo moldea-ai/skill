@@ -1,6 +1,6 @@
 // package and protocol identities owned by the current release workflow
 export const CLI_PACKAGE_NAME = '@moldea.ai/cli';
-export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 20;
+export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 21;
 export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 6;
 
 // release files that must carry the exact CLI version

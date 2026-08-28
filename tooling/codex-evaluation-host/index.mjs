@@ -33,7 +33,10 @@ export {
 } from './operational-retry.mjs';
 
 // execution evidence
-export { projectCodexEvaluationExecutionEvidence } from './execution-evidence.mjs';
+export {
+  hasPassingCodexEvaluationCommandPolicy,
+  projectCodexEvaluationExecutionEvidence,
+} from './execution-evidence.mjs';
 
 // Git command-policy boundary
 export { prepareGitCommandPolicyBoundary } from './git-command-policy-boundary.mjs';

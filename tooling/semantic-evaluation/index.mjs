@@ -19,6 +19,7 @@ export {
 export {
   classifyActorCommandPolicyEvent,
   createActorCommandPolicyEvidence,
+  hasPassingPackageManagerNonExecutionPolicy,
   hasValidActorCommandPolicyEvidence,
 } from './actor-command-policy-evidence.mjs';
 

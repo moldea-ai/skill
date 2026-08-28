@@ -67,7 +67,12 @@ const SemanticAttemptEvidenceReferenceSchema = z.discriminatedUnion('schemaVersi
     schemaVersion: z.literal(5),
   }),
   SemanticAttemptEvidenceReferenceBaseSchema.extend({
-    evaluationProtocolVersion: z.union([z.literal(18), z.literal(19), z.literal(20)]),
+    evaluationProtocolVersion: z.union([
+      z.literal(18),
+      z.literal(19),
+      z.literal(20),
+      z.literal(21),
+    ]),
     schemaVersion: z.literal(6),
   }),
 ]);

@@ -312,4 +312,14 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.evaluatedAt).toBeNull();
     expect(model.pendingCaseCount).toBe(model.caseCount);
   });
+
+  test('keeps protocol 20 repository evidence in history until protocol 21 is recorded', () => {
+    const model = loadSemanticEvaluationWebsiteModel(REPOSITORY_ROOT);
+
+    expect(model.status).toBe('not-recorded');
+    expect(model.hasAttempt).toBe(false);
+    expect(model.passedCaseCount).toBe(0);
+    expect(model.pendingCaseCount).toBe(model.caseCount);
+    expect(model.attempts).toHaveLength(11);
+  });
 });

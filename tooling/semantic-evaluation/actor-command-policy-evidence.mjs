@@ -484,14 +484,15 @@ export const createActorCommandPolicyEvidence = (classifications) => {
 
 /** Checks the strict aggregate shape and its derived package-manager status. */
 export const hasValidActorCommandPolicyEvidence = (evidence) => {
+  const expectedKeys = [
+    'completedCommandCount',
+    'indeterminateCommandCount',
+    'packageManagerExecution',
+    'packageManagerInvocationCount',
+  ];
   if (
     !isPlainRecord(evidence) ||
-    !hasExactKeys(evidence, [
-      'completedCommandCount',
-      'indeterminateCommandCount',
-      'packageManagerExecution',
-      'packageManagerInvocationCount',
-    ]) ||
+    !hasExactKeys(evidence, expectedKeys) ||
     !Number.isSafeInteger(evidence.completedCommandCount) ||
     evidence.completedCommandCount < 0 ||
     evidence.completedCommandCount > MAX_COMPLETED_COMMANDS ||
@@ -511,4 +512,12 @@ export const hasValidActorCommandPolicyEvidence = (evidence) => {
         ? 'indeterminate'
         : 'not-observed';
   return evidence.packageManagerExecution === expectedStatus;
+};
+
+/** Applies the semantic package-manager non-execution verdict. */
+export const hasPassingPackageManagerNonExecutionPolicy = (evidence) => {
+  if (!hasValidActorCommandPolicyEvidence(evidence)) return false;
+  return (
+    evidence.packageManagerExecution !== 'observed' && evidence.packageManagerInvocationCount === 0
+  );
 };

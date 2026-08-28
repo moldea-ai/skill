@@ -19,7 +19,6 @@ import {
   buildJudgePrompt,
   buildSemanticEvaluationHostCommand,
   collectProductionPackageRoots,
-  createPortableSkillSemanticDigest,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
   createSemanticActiveTrial,
@@ -30,7 +29,6 @@ import {
   getSemanticCaseResolution,
   getSemanticCriterionLabels,
   getSemanticToolingSource,
-  normalizePortableSkillSemanticEvidence,
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
   recordSemanticCandidateCheckpoint,
@@ -758,7 +756,7 @@ test('semantic case definitions require strict unique evaluator criteria', () =>
     () =>
       validateSemanticCaseDefinition({
         ...CASE_DEFINITION,
-        expected: ['legacy-label'],
+        expected: ['string-label'],
       }),
     /invalid evaluator criteria/,
   );
@@ -1786,41 +1784,6 @@ test('semantic candidate validation applies the package-manager non-execution ve
       }),
     /incomplete or failing/,
   );
-});
-
-test('semantic evidence normalization permits only release-version declarations', () => {
-  const previousSkill = [
-    'metadata:',
-    "  version: '1.0.0'",
-    '',
-    'Skill release `1.0.0` supports exactly:',
-    '',
-    'Preserve canonical instruction provenance.',
-  ].join('\n');
-  const nextSkill = previousSkill.replaceAll('1.0.0', '1.0.1');
-
-  assert.equal(
-    normalizePortableSkillSemanticEvidence('SKILL.md', previousSkill),
-    normalizePortableSkillSemanticEvidence('SKILL.md', nextSkill),
-  );
-  assert.equal(
-    normalizePortableSkillSemanticEvidence(
-      'references/local-tooling.md',
-      'Release `1.0.0` supports:\n',
-    ),
-    normalizePortableSkillSemanticEvidence(
-      'references/local-tooling.md',
-      'Release `1.0.1` supports:\n',
-    ),
-  );
-  assert.notEqual(
-    normalizePortableSkillSemanticEvidence('SKILL.md', previousSkill),
-    normalizePortableSkillSemanticEvidence(
-      'SKILL.md',
-      nextSkill.replace('Preserve canonical', 'Replace canonical'),
-    ),
-  );
-  assert.match(createPortableSkillSemanticDigest(), /^[a-f0-9]{64}$/);
 });
 
 test('uses the published CLI for compatibility-sensitive runtime states', () => {

@@ -284,17 +284,7 @@ export const createRepositoryControlEvidence: (
   after: ISemanticRepositoryControlState,
 ) => ISemanticRepositoryControlEvidence;
 export const hasValidRepositoryControlEvidence: (evidence: unknown) => boolean;
-export const normalizePortableSkillSemanticEvidence: (
-  relativePath: string,
-  content: string,
-) => string;
 export const createPortableSkillDigest: (repositoryRoot?: string) => string;
-export const createPortableSkillSemanticDigest: (repositoryRoot?: string) => string;
-export const hasValidPortableSkillSemanticCarryForward: (
-  carryForward: unknown,
-  fromArtifactDigest: string,
-  repositoryRoot?: string,
-) => boolean;
 
 export type {
   ISemanticAttemptCommandPolicyEvidence,

@@ -69,7 +69,7 @@ export type IQualificationRunOutcome = {
   wasRecorded: boolean;
 };
 
-// local checkpoints that the current runner preserves but cannot safely operate on
+// local checkpoints that the current runner cannot safely operate on
 export type IUnavailableLocalAttempt = {
   attemptId: string;
   kind: 'invalid-checkpoint' | 'unreadable-checkpoint' | 'unsupported-protocol';

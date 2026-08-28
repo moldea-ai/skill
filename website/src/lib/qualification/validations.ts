@@ -11,7 +11,6 @@ import type {
   IQualificationBaselineCheck,
   IQualificationCoverageResult,
   IQualificationExecutionError,
-  IQualificationHistoricalJudgeSkipped,
   IQualificationJudgeSkipped,
   IQualificationModelStageEvidence,
   IQualificationProfileCaseModel,
@@ -21,22 +20,6 @@ import type {
 
 const OFFICIAL_EGRESS_HOSTS = ['api.openai.com', 'auth.openai.com', 'chatgpt.com'] as const;
 const TRIAL_IDS = ['initial', 'confirmation-1', 'confirmation-2'] as const;
-
-const createExpectedHistoricalStageIds = (caseIds: readonly string[]): string[] => [
-  'source-state',
-  'coverage',
-  'candidate',
-  'baseline',
-  ...caseIds.flatMap((caseId) => [
-    `case:${caseId}:prepare`,
-    `case:${caseId}:deterministic-before`,
-    `case:${caseId}:actor`,
-    `case:${caseId}:deterministic-after`,
-    `case:${caseId}:assertions`,
-    `case:${caseId}:judge`,
-    `case:${caseId}:result`,
-  ]),
-];
 
 const createExpectedCurrentStageIds = (caseIds: readonly string[]): string[] => [
   'source-state',
@@ -70,17 +53,12 @@ const assertDeterministicEvidence = (
   expectedInspectionStatus: 'invalid' | 'valid',
   label: string,
 ): void => {
-  const isCliCompositionValid =
-    'cliCompositionValid' in verification
-      ? verification.cliCompositionValid
-      : verification.cliCompatibilityValid;
-
   const hasPassingState =
     verification.inspectionStatus === expectedInspectionStatus &&
     verification.repositoryFilesystemValid &&
     verification.memoryRepositoryEquivalent &&
     verification.coreValid &&
-    isCliCompositionValid &&
+    verification.cliCompositionValid &&
     verification.cliIdentityValid &&
     verification.cliPackageInventoryValid &&
     verification.cliAdapterInventoryValid &&
@@ -240,29 +218,24 @@ const deriveCurrentTrialFailures = (options: {
   ...(options.judge?.verdict === 'fail' ? options.judge.failures : []),
 ];
 
-/** Validates one historical case or current trial against its scenario and evidence artifacts. */
+/** Validates one current trial against its scenario and evidence artifacts. */
 export const assertQualificationCaseEvidence = (options: {
   actor: IActorOutput;
   actorCommandPolicy: IQualificationModelStageEvidence['commandPolicy'] | null;
   deterministicAfter: IDeterministicVerification;
   deterministicBefore: IDeterministicVerification;
   judge: IJudgeOutput | null;
-  judgeSkipped: IQualificationHistoricalJudgeSkipped | IQualificationJudgeSkipped | null;
+  judgeSkipped: IQualificationJudgeSkipped | null;
   profileCase: IQualificationProfileCaseModel;
   result: IQualificationAttemptTrialModel['result'];
   workspaceAssertions: IWorkspaceAssertionResult;
 }): void => {
   const { actor, deterministicAfter, deterministicBefore, judge, profileCase, result } = options;
-  const isCurrentTrial = 'trialId' in result;
   const expectedRequirementIds = profileCase.scenario.judgeRequirements
-    .filter((requirement) => !isCurrentTrial || requirement.evaluation.kind === 'judge')
+    .filter((requirement) => requirement.evaluation.kind === 'judge')
     .map(({ id }) => id);
   const actualRequirementIds = judge?.requirements.map(({ id }) => id) ?? [];
   const caseId = profileCase.id;
-
-  if (!isCurrentTrial && result.title !== profileCase.title) {
-    throw new Error(`Qualification case ${caseId} contradicts its profile title.`);
-  }
 
   if (result.judgeStatus === 'completed' && (judge === null || options.judgeSkipped !== null)) {
     throw new Error(`Qualification case ${caseId} has inconsistent completed judge evidence.`);
@@ -291,15 +264,7 @@ export const assertQualificationCaseEvidence = (options: {
     throw new Error(`Qualification case ${caseId} has a contradictory judge verdict.`);
   }
 
-  const hasPassed = isCurrentTrial ? result.passed : result.status === 'passed';
-
-  if (!isCurrentTrial && !hasPassed) {
-    if (result.failures.length === 0) {
-      throw new Error(`Failed qualification case ${caseId} has no recorded failure.`);
-    }
-
-    return;
-  }
+  const hasPassed = result.passed;
 
   assertPassingDeterministicEvidence(
     deterministicBefore,
@@ -316,11 +281,9 @@ export const assertQualificationCaseEvidence = (options: {
   const hasJudgeRequirements = profileCase.scenario.judgeRequirements.some(
     (requirement) => requirement.evaluation.kind === 'judge',
   );
-  const hasFailedRunnerRequirement =
-    isCurrentTrial &&
-    result.requirementAssessments.some(
-      ({ evaluator, verdict }) => evaluator === 'runner' && verdict === 'fail',
-    );
+  const hasFailedRunnerRequirement = result.requirementAssessments.some(
+    ({ evaluator, verdict }) => evaluator === 'runner' && verdict === 'fail',
+  );
   const shouldSkipCurrentJudge =
     !deterministicAfter.passed ||
     !options.workspaceAssertions.passed ||
@@ -331,78 +294,74 @@ export const assertQualificationCaseEvidence = (options: {
     result.judgeStatus === 'skipped' &&
     (options.judgeSkipped?.deterministicAfterPassed !== deterministicAfter.passed ||
       options.judgeSkipped.workspaceAssertionsPassed !== options.workspaceAssertions.passed ||
-      (isCurrentTrial && !shouldSkipCurrentJudge) ||
-      (isCurrentTrial &&
-        (!('kind' in options.judgeSkipped) ||
-          options.judgeSkipped.kind !==
-            (!hasJudgeRequirements ? 'no-judge-requirements' : 'deterministic-failure'))))
+      !shouldSkipCurrentJudge ||
+      options.judgeSkipped.kind !==
+        (!hasJudgeRequirements ? 'no-judge-requirements' : 'deterministic-failure'))
   ) {
     throw new Error(`Qualification case ${caseId} has contradictory judge skip evidence.`);
   }
 
-  if (isCurrentTrial) {
-    const judgeById = new Map(
-      judge?.requirements.map((requirement) => [requirement.id, requirement]),
-    );
-    const derivedAssessments = profileCase.scenario.judgeRequirements.map((requirement) => {
-      if (requirement.evaluation.kind === 'judge') {
-        const decision = judgeById.get(requirement.id);
-        return decision === undefined
-          ? {
-              id: requirement.id,
-              evaluator: 'judge' as const,
-              verdict: 'not-evaluated' as const,
-              evidence: 'The skipped judge stage did not evaluate this semantic requirement.',
-            }
-          : {
-              id: decision.id,
-              evaluator: 'judge' as const,
-              verdict: decision.verdict,
-              evidence: decision.evidence,
-            };
-      }
-
-      const commandPolicyPassed =
-        options.actorCommandPolicy !== null &&
-        hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy);
-      const failedChecks = requirement.evaluation.checks.filter((check) => {
-        switch (check) {
-          case 'actor-command-policy':
-            return !commandPolicyPassed;
-          case 'deterministic-after':
-            return !deterministicAfter.passed;
-          case 'expected-actor-outcome':
-            return actor.outcome !== profileCase.scenario.expectedActorOutcome;
-          case 'workspace-assertions':
-            return !options.workspaceAssertions.passed;
-        }
-      });
-      return {
-        id: requirement.id,
-        evaluator: 'runner' as const,
-        verdict: failedChecks.length === 0 ? ('pass' as const) : ('fail' as const),
-        evidence:
-          failedChecks.length === 0
-            ? `Runner checks passed: ${requirement.evaluation.checks.join(', ')}.`
-            : `Runner checks failed: ${failedChecks.join(', ')}.`,
-      };
-    });
-    const derivedFailures = deriveCurrentTrialFailures({
-      actor,
-      deterministicAfter,
-      judge,
-      profileCase,
-      requirementAssessments: derivedAssessments,
-      workspaceAssertions: options.workspaceAssertions,
-    });
-
-    if (
-      JSON.stringify(result.requirementAssessments) !== JSON.stringify(derivedAssessments) ||
-      result.passed !== (derivedFailures.length === 0) ||
-      JSON.stringify(result.failures) !== JSON.stringify(derivedFailures)
-    ) {
-      throw new Error(`Qualification case ${caseId} has a contradictory derived trial verdict.`);
+  const judgeById = new Map(
+    judge?.requirements.map((requirement) => [requirement.id, requirement]),
+  );
+  const derivedAssessments = profileCase.scenario.judgeRequirements.map((requirement) => {
+    if (requirement.evaluation.kind === 'judge') {
+      const decision = judgeById.get(requirement.id);
+      return decision === undefined
+        ? {
+            id: requirement.id,
+            evaluator: 'judge' as const,
+            verdict: 'not-evaluated' as const,
+            evidence: 'The skipped judge stage did not evaluate this semantic requirement.',
+          }
+        : {
+            id: decision.id,
+            evaluator: 'judge' as const,
+            verdict: decision.verdict,
+            evidence: decision.evidence,
+          };
     }
+
+    const commandPolicyPassed =
+      options.actorCommandPolicy !== null &&
+      hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy);
+    const failedChecks = requirement.evaluation.checks.filter((check) => {
+      switch (check) {
+        case 'actor-command-policy':
+          return !commandPolicyPassed;
+        case 'deterministic-after':
+          return !deterministicAfter.passed;
+        case 'expected-actor-outcome':
+          return actor.outcome !== profileCase.scenario.expectedActorOutcome;
+        case 'workspace-assertions':
+          return !options.workspaceAssertions.passed;
+      }
+    });
+    return {
+      id: requirement.id,
+      evaluator: 'runner' as const,
+      verdict: failedChecks.length === 0 ? ('pass' as const) : ('fail' as const),
+      evidence:
+        failedChecks.length === 0
+          ? `Runner checks passed: ${requirement.evaluation.checks.join(', ')}.`
+          : `Runner checks failed: ${failedChecks.join(', ')}.`,
+    };
+  });
+  const derivedFailures = deriveCurrentTrialFailures({
+    actor,
+    deterministicAfter,
+    judge,
+    profileCase,
+    requirementAssessments: derivedAssessments,
+    workspaceAssertions: options.workspaceAssertions,
+  });
+
+  if (
+    JSON.stringify(result.requirementAssessments) !== JSON.stringify(derivedAssessments) ||
+    result.passed !== (derivedFailures.length === 0) ||
+    JSON.stringify(result.failures) !== JSON.stringify(derivedFailures)
+  ) {
+    throw new Error(`Qualification case ${caseId} has a contradictory derived trial verdict.`);
   }
 
   if (!hasPassed && result.failures.length === 0) {
@@ -696,8 +655,7 @@ export const assertQualificationAttemptEvidence = (options: {
 
   const profileIds = [...profileCaseIds];
   const isCurrentTerminalAttempt =
-    result.protocolVersion === 6 &&
-    (result.status === 'passed' || (result.status === 'failed' && result.cases.length > 0));
+    result.status === 'passed' || (result.status === 'failed' && result.cases.length > 0);
 
   if (
     isCurrentTerminalAttempt &&
@@ -715,19 +673,6 @@ export const assertQualificationAttemptEvidence = (options: {
     .filter(({ status }) => status === 'passed' || status === 'recovered')
     .map(({ caseId }) => caseId);
   const endpointOrigin = result.provenance.modelEndpoint?.origin ?? null;
-  const expectedHistoricalStageIds = createExpectedHistoricalStageIds(profileIds);
-  const hasValidStages =
-    result.protocolVersion === 6
-      ? true
-      : JSON.stringify(result.stages.map(({ id }) => id)) ===
-          JSON.stringify(expectedHistoricalStageIds) &&
-        result.stages.every(
-          ({ cacheKey, cacheSourceAttemptId, status }) =>
-            (status === 'cached' || status === 'passed') &&
-            (status !== 'cached' || (cacheKey !== null && cacheSourceAttemptId !== null)) &&
-            (cacheSourceAttemptId === null || cacheKey !== null),
-        );
-
   if (
     !haveSameMembers(passingCaseIds, profileIds) ||
     coverage?.passed !== true ||
@@ -751,8 +696,7 @@ export const assertQualificationAttemptEvidence = (options: {
     result.provenance.allowedEgressHosts.length !== OFFICIAL_EGRESS_HOSTS.length ||
     !haveSameMembers(result.provenance.allowedEgressHosts, OFFICIAL_EGRESS_HOSTS) ||
     (endpointOrigin !== null && endpointOrigin !== 'https://api.openai.com') ||
-    result.provenance.sslCertificateFileSha256 !== null ||
-    !hasValidStages
+    result.provenance.sslCertificateFileSha256 !== null
   ) {
     throw new Error(`Passing qualification attempt ${result.attemptId} is incomplete.`);
   }

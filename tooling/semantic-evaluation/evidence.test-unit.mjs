@@ -3,11 +3,9 @@ import { describe, test } from 'node:test';
 
 import {
   createPortableSkillDigest,
-  createPortableSkillSemanticDigest,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
   getSemanticCriterionLabels,
-  hasValidPortableSkillSemanticCarryForward,
   validateSemanticCaseDefinition,
 } from './index.mjs';
 
@@ -93,11 +91,11 @@ describe('semantic evaluation evidence', () => {
     }
   });
 
-  test('rejects legacy prompts and unsourced or unsafe evidence', () => {
+  test('rejects prompt-shaped cases and unsourced or unsafe evidence', () => {
     const caseDefinition = createCaseDefinition('case-one');
 
     assert.throws(
-      () => validateSemanticCaseDefinition({ ...caseDefinition, prompt: 'Legacy prompt.' }),
+      () => validateSemanticCaseDefinition({ ...caseDefinition, prompt: 'Direct prompt.' }),
       /structured scenario/,
     );
     assert.throws(
@@ -145,24 +143,7 @@ describe('semantic evaluation evidence', () => {
     );
   });
 
-  test('validates release-only semantic evidence carry-forward', () => {
-    const artifactDigest = 'a'.repeat(64);
-    const semanticDigest = createPortableSkillSemanticDigest();
-
-    assert.equal(
-      hasValidPortableSkillSemanticCarryForward(
-        {
-          carriedForwardAt: '2026-08-22T12:00:00.000Z',
-          changedPortablePaths: ['SKILL.md', 'references/local-tooling.md'],
-          fromArtifactDigest: artifactDigest,
-          fromSemanticDigest: semanticDigest,
-          reason: 'Release-version declarations changed without changing semantic skill content.',
-          toArtifactDigest: createPortableSkillDigest(),
-          toSemanticDigest: semanticDigest,
-        },
-        artifactDigest,
-      ),
-      true,
-    );
+  test('hashes every distributed skill byte', () => {
+    assert.match(createPortableSkillDigest(), /^[a-f0-9]{64}$/);
   });
 });

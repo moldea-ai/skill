@@ -20,7 +20,7 @@ vi.mock('../qualification/index.ts', () => {
             lastPassingAttemptId: 'attempt-pass',
             latestAttemptId: 'attempt-pass',
             latestStatus: 'passed',
-            protocolVersion: 5,
+            protocolVersion: 6,
             updatedAt: '2026-08-22T12:00:00.000Z',
           },
           probes: [],

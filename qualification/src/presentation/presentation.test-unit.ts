@@ -12,9 +12,9 @@ describe('qualification status presentation', () => {
         attempts: [],
         unavailableAttempts: [
           {
-            attemptId: 'legacy-attempt',
+            attemptId: 'unsupported-attempt',
             kind: 'unsupported-protocol',
-            message: 'Preserved legacy checkpoint.',
+            message: 'Unsupported checkpoint.',
             protocolVersion: 1,
           },
           {
@@ -31,7 +31,7 @@ describe('qualification status presentation', () => {
         'Local attempts:',
         '  none',
         'Unavailable local attempts:',
-        '  legacy-attempt  protocol 1  unsupported-protocol',
+        '  unsupported-attempt  protocol 1  unsupported-protocol',
         '  malformed-attempt  protocol unknown  unreadable-checkpoint',
         'Committed latest results:',
         '  none',

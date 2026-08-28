@@ -1,9 +1,0 @@
-{
-  "protocolVersion": 3,
-  "adapterId": "vercel-ai-sdk",
-  "implementationId": "typescript-generate-stream-text-7",
-  "latestAttemptId": "20260823T173141836Z-vercel-ai-sdk-typescript-generate-stream-text-7-6322d1cd",
-  "latestStatus": "failed",
-  "lastPassingAttemptId": null,
-  "updatedAt": "2026-08-23T18:04:16.161Z"
-}

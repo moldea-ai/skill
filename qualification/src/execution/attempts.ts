@@ -41,7 +41,7 @@ const readProtocolVersion = (checkpoint: unknown): number | null => {
   return checkpoint.protocolVersion;
 };
 
-/** Summarizes schema issues without exposing host paths or mutating preserved evidence. */
+/** Summarizes schema issues without exposing host paths or mutating checkpoint files. */
 const formatCheckpointIssues = (
   issues: readonly { message: string; path: PropertyKey[] }[],
 ): string =>
@@ -55,7 +55,7 @@ const formatCheckpointIssues = (
     })
     .join('; ');
 
-/** Inspects one attempt checkpoint while preserving incompatible local evidence. */
+/** Inspects one attempt checkpoint without mutating unsupported or invalid files. */
 const inspectLocalAttemptCheckpoint = async (
   attemptsRoot: string,
   attemptId: string,
@@ -75,7 +75,7 @@ const inspectLocalAttemptCheckpoint = async (
       unavailableAttempt: {
         attemptId,
         kind: 'unreadable-checkpoint',
-        message: 'Checkpoint could not be read as JSON and was preserved without changes.',
+        message: 'Checkpoint could not be read as JSON and was left unchanged.',
         protocolVersion: null,
       },
     };
@@ -91,8 +91,8 @@ const inspectLocalAttemptCheckpoint = async (
         kind: 'unsupported-protocol',
         message:
           protocolVersion === null
-            ? 'Checkpoint has no numeric protocol version and was preserved without changes.'
-            : `Checkpoint protocol version ${protocolVersion} is not supported by protocol version ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION} and was preserved without changes.`,
+            ? 'Checkpoint has no numeric protocol version and was left unchanged.'
+            : `Checkpoint protocol version ${protocolVersion} is not supported by protocol version ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION} and was left unchanged.`,
         protocolVersion,
       },
     };
@@ -106,7 +106,7 @@ const inspectLocalAttemptCheckpoint = async (
       unavailableAttempt: {
         attemptId,
         kind: 'invalid-checkpoint',
-        message: `Checkpoint is invalid and was preserved without changes. ${formatCheckpointIssues(result.error.issues)}`,
+        message: `Checkpoint is invalid and was left unchanged. ${formatCheckpointIssues(result.error.issues)}`,
         protocolVersion,
       },
     };
@@ -118,7 +118,7 @@ const inspectLocalAttemptCheckpoint = async (
       unavailableAttempt: {
         attemptId,
         kind: 'invalid-checkpoint',
-        message: `Checkpoint attempt id ${result.data.attemptId} does not match its directory and was preserved without changes.`,
+        message: `Checkpoint attempt id ${result.data.attemptId} does not match its directory and was left unchanged.`,
         protocolVersion,
       },
     };
@@ -127,7 +127,7 @@ const inspectLocalAttemptCheckpoint = async (
   return { checkpoint: result.data, unavailableAttempt: null };
 };
 
-/** Inspects every local attempt without letting one incompatible checkpoint hide valid recovery state. */
+/** Inspects every local attempt without letting one unavailable checkpoint hide valid recovery state. */
 export const inspectLocalAttemptCheckpoints = async (
   attemptsRoot = path.join(LOCAL_QUALIFICATION_ROOT, 'attempts'),
 ): Promise<ILocalAttemptCheckpointInspection> => {

@@ -10,10 +10,7 @@ import {
   QualificationLatestResultSchema,
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
-import {
-  QUALIFICATION_CONFIRMATION_POLICY,
-  QUALIFICATION_RESULTS_ROOT,
-} from '../constants/index.ts';
+import { QUALIFICATION_CONFIRMATION_POLICY } from '../constants/index.ts';
 import {
   calculateFileSha256,
   ensureDirectory,
@@ -27,38 +24,6 @@ const sanitizationContext = {
   attemptDirectory: '/attempt',
   packagesRepository: '/packages',
   skillRepository: '/skill',
-};
-
-const historicalDeterministicArtifact = {
-  summary: {
-    passed: true,
-    inspectionStatus: 'valid',
-    repositoryFilesystemValid: true,
-    memoryRepositoryEquivalent: true,
-    coreValid: true,
-    cliCompatibilityValid: true,
-    cliIdentityValid: true,
-    cliPackageInventoryValid: true,
-    cliAdapterInventoryValid: true,
-    cliEnvelopeValid: true,
-    cliValidateStatus: 'valid',
-    cliInspectStatus: 'valid',
-    typecheckPassed: true,
-    repositoryUnchanged: true,
-    failures: [],
-    durationMs: 12,
-  },
-  details: {
-    direct: {},
-    cliCompatibility: {},
-    cliValidate: {},
-    cliInspect: {},
-    typecheck: {
-      exitCode: 0,
-      stdout: '',
-      stderr: '',
-    },
-  },
 };
 
 const createResult = (
@@ -115,14 +80,6 @@ describe('qualification result recording', () => {
     if (temporaryRoot !== null) {
       await rm(temporaryRoot, { force: true, recursive: true });
     }
-  });
-
-  test('keeps committed protocol 3 history verifiable after definition evolution', async () => {
-    const verification = await verifyQualificationResults(QUALIFICATION_RESULTS_ROOT);
-
-    expect(verification.passed).toBe(true);
-    expect(verification.attempts).toBeGreaterThan(0);
-    expect(verification.issues).toStrictEqual([]);
   });
 
   test('preserves history, latest status, last passing attempt, and artifact integrity', async () => {
@@ -285,7 +242,7 @@ describe('qualification result recording', () => {
     });
   });
 
-  test('rejects a latest pointer whose protocol does not match its attempt', async () => {
+  test('rejects an unsupported latest-pointer protocol', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
@@ -307,20 +264,17 @@ describe('qualification result recording', () => {
     const latest = await readJsonFile(latestPath, QualificationLatestResultSchema);
     await writeFile(
       latestPath,
-      `${JSON.stringify({ ...latest, protocolVersion: 5 }, null, 2)}\n`,
+      `${JSON.stringify({ ...latest, protocolVersion: 7 }, null, 2)}\n`,
       'utf8',
     );
 
-    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
-      passed: false,
-      attempts: 1,
-      issues: [
-        {
-          path: 'custom/custom/latest.json',
-          message: 'Latest pointer does not match recorded attempt history.',
-        },
-      ],
-    });
+    const verification = await verifyQualificationResults(resultsRoot);
+
+    expect(verification.passed).toBe(false);
+    expect(verification.attempts).toBe(1);
+    expect(verification.issues).toHaveLength(1);
+    expect(verification.issues[0]?.path).toBe('custom/custom');
+    expect(verification.issues[0]?.message).toContain('Invalid input: expected 6');
   });
 
   test.each([
@@ -369,52 +323,6 @@ describe('qualification result recording', () => {
       expect(verification.issues[0]?.message).toContain('Invalid input');
     },
   );
-
-  test('rejects a current attempt that uses the historical deterministic artifact shape', async () => {
-    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
-    const resultsRoot = path.join(temporaryRoot, 'results');
-    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
-    await ensureDirectory(artifactDirectory);
-    const passingResult = await seedPassingQualificationEvidenceFixture({
-      artifactDirectory,
-      attemptId: 'attempt-current',
-      resultsRoot,
-    });
-    const recorded = await recordQualificationResult(
-      { artifactDirectory, result: passingResult, sanitizationContext },
-      resultsRoot,
-    );
-    const attemptDirectory = path.join(
-      resultsRoot,
-      'custom',
-      'custom',
-      'attempts',
-      recorded.attemptId,
-    );
-    const artifactPath = path.join(
-      attemptDirectory,
-      'cases',
-      'release-case',
-      'trials',
-      'initial',
-      'deterministic-after.json',
-    );
-    await writeJsonFileAtomically(artifactPath, historicalDeterministicArtifact);
-    await writeJsonFileAtomically(path.join(attemptDirectory, 'attempt.json'), {
-      ...recorded,
-      artifactDigests: {
-        ...recorded.artifactDigests,
-        'cases/release-case/trials/initial/deterministic-after.json':
-          await calculateFileSha256(artifactPath),
-      },
-    });
-
-    const verification = await verifyQualificationResults(resultsRoot);
-
-    expect(verification.passed).toBe(false);
-    expect(verification.issues).toHaveLength(1);
-    expect(verification.issues[0]?.message).toContain('Invalid input');
-  });
 
   test('rejects passing evidence whose observed changes escape a path-pattern allowlist', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
@@ -585,7 +493,7 @@ describe('qualification result recording', () => {
       path.join(targetRoot, 'latest.json'),
       `${JSON.stringify(
         {
-          protocolVersion: 5,
+          protocolVersion: 6,
           adapterId: 'custom',
           implementationId: 'custom',
           latestAttemptId: 'missing-attempt',

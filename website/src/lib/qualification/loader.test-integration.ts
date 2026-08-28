@@ -1,9 +1,9 @@
 // @vitest-environment node
 // exercises the public loader against complete repository-shaped filesystem fixtures
 import { createHash } from 'node:crypto';
-import { mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative, sep } from 'node:path';
+import { dirname, join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 
@@ -13,7 +13,6 @@ import { seedPassingQualificationEvidenceFixture } from '../../../../qualificati
 import { assertPublishableQualificationEvidence, loadQualificationWebsiteModel } from './loader.ts';
 
 const SHA_A = 'a'.repeat(64);
-const SHA_B = 'b'.repeat(64);
 const temporaryRoots: string[] = [];
 
 interface IAttemptFixture extends Record<string, unknown> {
@@ -139,257 +138,8 @@ judgeRequirements:
   writeText(root, 'qualification/results/README.md', '# Results\n');
 };
 
-const listArtifactPaths = (directory: string): string[] => {
-  return readdirSync(directory, { withFileTypes: true })
-    .sort((left, right) => left.name.localeCompare(right.name, 'en'))
-    .flatMap((entry): string[] => {
-      const path = join(directory, entry.name);
-      return entry.isDirectory() ? listArtifactPaths(path) : [path];
-    });
-};
-
 const calculateDigest = (path: string): string =>
   createHash('sha256').update(readFileSync(path)).digest('hex');
-
-const createDeterministicArtifact = (
-  cliEvidenceKind: 'compatibility' | 'composition',
-): Record<string, unknown> => ({
-  summary: {
-    passed: true,
-    inspectionStatus: 'valid',
-    repositoryFilesystemValid: true,
-    memoryRepositoryEquivalent: true,
-    coreValid: true,
-    ...(cliEvidenceKind === 'composition'
-      ? { cliCompositionValid: true }
-      : { cliCompatibilityValid: true }),
-    cliIdentityValid: true,
-    cliPackageInventoryValid: true,
-    cliAdapterInventoryValid: true,
-    cliEnvelopeValid: true,
-    cliValidateStatus: 'valid',
-    cliInspectStatus: 'valid',
-    typecheckPassed: true,
-    repositoryUnchanged: true,
-    failures: [],
-    durationMs: 12,
-    futureField: 'accepted',
-  },
-  details: {
-    futureField: 'accepted',
-  },
-});
-
-const createAttempt = (
-  root: string,
-  options: {
-    attemptId: string;
-    createdAt: string;
-    judgeSkipped?: boolean;
-    status: 'errored' | 'failed' | 'passed';
-  },
-): void => {
-  const attemptDirectory = join(
-    root,
-    'qualification/results/custom/custom/attempts',
-    options.attemptId,
-  );
-  const caseStatus = options.status === 'passed' ? 'passed' : 'failed';
-  const isJudgeSkipped = options.judgeSkipped === true;
-  const deterministicArtifact = createDeterministicArtifact('composition');
-  const artifactValues: Record<string, unknown> = {
-    'baseline.json': {
-      required: false,
-      passed: true,
-      status: 'not-required',
-      baselineAttemptId: null,
-      failures: [],
-    },
-    'coverage.json': {
-      passed: true,
-      requiredClaims: ['qualification.support-gate'],
-      declaredClaims: ['qualification.support-gate'],
-      missingClaims: [],
-      unknownClaims: [],
-      uncoveredCaseIds: [],
-      futureField: 'accepted',
-    },
-    'source-state.json': {
-      passed: true,
-      requiresCleanInputs: true,
-      isExecutionHostTrusted: true,
-      packagesRepositoryDirty: false,
-      qualificationRepositoryDirty: false,
-      skillRepositoryDirty: false,
-      failures: [],
-      futureField: 'accepted',
-    },
-    'cases/evaluate-project/actor-output.json': {
-      outcome: 'completed',
-      summary: 'The project is aligned.',
-      commands: ['moldea validate'],
-      changedFiles: [],
-      observations: ['The project is valid.'],
-      unresolved: [],
-      futureField: 'accepted',
-    },
-    'cases/evaluate-project/deterministic-after.json': deterministicArtifact,
-    'cases/evaluate-project/deterministic-before.json': deterministicArtifact,
-    'cases/evaluate-project/judge-output.json': {
-      verdict: caseStatus === 'passed' ? 'pass' : 'fail',
-      summary: caseStatus === 'passed' ? 'Every requirement passed.' : 'One requirement failed.',
-      requirements: [
-        {
-          id: 'validates-project',
-          verdict: caseStatus === 'passed' ? 'pass' : 'fail',
-          evidence: caseStatus === 'passed' ? 'Validation passed.' : 'Validation was incomplete.',
-          futureField: 'accepted',
-        },
-      ],
-      failures: caseStatus === 'passed' ? [] : ['Validation was incomplete.'],
-      futureField: 'accepted',
-    },
-    'cases/evaluate-project/workspace-assertions.json': {
-      passed: !isJudgeSkipped,
-      failures: isJudgeSkipped ? ['Actor-reported changes did not match the workspace.'] : [],
-      before: [],
-      after: [],
-      changedPaths: [],
-      futureField: 'accepted',
-    },
-  };
-
-  if (isJudgeSkipped) {
-    delete artifactValues['cases/evaluate-project/judge-output.json'];
-    artifactValues['cases/evaluate-project/judge-skipped.json'] = {
-      reason:
-        'The judge was skipped because deterministic postchecks or workspace assertions already failed.',
-      deterministicAfterPassed: true,
-      workspaceAssertionsPassed: false,
-    };
-  }
-
-  if (options.status === 'errored') {
-    artifactValues['error.json'] = {
-      stageId: 'case:evaluate-project:actor',
-      message: 'The execution inputs changed.',
-    };
-  }
-
-  for (const [artifactPath, value] of Object.entries(artifactValues)) {
-    writeJson(attemptDirectory, artifactPath, value);
-  }
-  writeText(attemptDirectory, 'cases/evaluate-project/workspace.patch', '');
-
-  const artifactDigests = Object.fromEntries(
-    listArtifactPaths(attemptDirectory).map((path) => [
-      relative(attemptDirectory, path).replaceAll(sep, '/'),
-      calculateDigest(path),
-    ]),
-  );
-  writeJson(attemptDirectory, 'attempt.json', {
-    protocolVersion: 5,
-    attemptId: options.attemptId,
-    parentAttemptId: null,
-    selection: { adapterId: 'custom', implementationId: 'custom' },
-    status: options.status,
-    createdAt: options.createdAt,
-    completedAt: options.createdAt,
-    evidenceGeneratedAt: options.createdAt,
-    summary:
-      options.status === 'passed'
-        ? 'Qualification passed.'
-        : options.status === 'failed'
-          ? 'Qualification failed.'
-          : 'Qualification stopped with an execution error.',
-    provenance: {
-      model: 'gpt-5.6-sol',
-      reasoningEffort: 'medium',
-      codexVersion: '1.0.0',
-      nodeVersion: '24.15.0',
-      pnpmVersion: '11.9.0',
-      gitVersion: '2.50.0',
-      allowedEgressHosts: ['api.openai.com', 'auth.openai.com', 'chatgpt.com'],
-      hostTimeoutMs: 120000,
-      modelEndpoint: null,
-      sslCertificateFileSha256: null,
-      packagesRepositoryCommit: 'packages-commit',
-      packagesRepositoryFingerprint: SHA_A,
-      packagesRepositoryDirty: false,
-      qualificationRepositoryCommit: 'qualification-commit',
-      qualificationRepositoryDirty: false,
-      skillRepositoryCommit: 'skill-commit',
-      skillRepositoryFingerprint: SHA_B,
-      skillRepositoryDirty: false,
-      profileDigest: SHA_A,
-      qualificationDigest: SHA_B,
-      targetDigest: SHA_A,
-      baselineAttemptId: null,
-      packages: [
-        {
-          name: '@moldea.ai/cli',
-          version: '4.0.0',
-          registryIntegrity: `sha512-${'c'.repeat(86)}`,
-          registryShasum: 'd'.repeat(40),
-          registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-4.0.0.tgz',
-          tarballName: 'cli-4.0.0.tgz',
-          sha256: SHA_A,
-          futureField: 'accepted',
-        },
-      ],
-      futureField: 'accepted',
-    },
-    stages: [
-      'source-state',
-      'coverage',
-      'candidate',
-      'baseline',
-      'case:evaluate-project:prepare',
-      'case:evaluate-project:deterministic-before',
-      'case:evaluate-project:actor',
-      'case:evaluate-project:deterministic-after',
-      'case:evaluate-project:assertions',
-      'case:evaluate-project:judge',
-      'case:evaluate-project:result',
-    ].map((id) => ({
-      id,
-      status: isJudgeSkipped && id.endsWith(':judge') ? 'skipped' : 'passed',
-      startedAt: options.createdAt,
-      completedAt: options.createdAt,
-      durationMs: 5,
-      cacheKey: null,
-      cacheSourceAttemptId: null,
-      error: null,
-      futureField: 'accepted',
-    })),
-    cases: [
-      {
-        caseId: 'evaluate-project',
-        title: 'Evaluate project',
-        status: caseStatus,
-        durationMs: 100,
-        deterministicBeforePath: 'cases/evaluate-project/deterministic-before.json',
-        deterministicAfterPath: 'cases/evaluate-project/deterministic-after.json',
-        actorOutputPath: 'cases/evaluate-project/actor-output.json',
-        judgeStatus: isJudgeSkipped ? 'skipped' : 'completed',
-        judgeOutputPath: isJudgeSkipped ? null : 'cases/evaluate-project/judge-output.json',
-        judgeSkippedPath: isJudgeSkipped ? 'cases/evaluate-project/judge-skipped.json' : null,
-        workspaceAssertionsPath: 'cases/evaluate-project/workspace-assertions.json',
-        patchPath: 'cases/evaluate-project/workspace.patch',
-        actorUsage: { inputTokens: 10, cachedInputTokens: 2, outputTokens: 3 },
-        judgeUsage: null,
-        actorEvidenceCreatedAt: options.createdAt,
-        judgeEvidenceCreatedAt: isJudgeSkipped ? null : options.createdAt,
-        actorCacheSourceAttemptId: null,
-        judgeCacheSourceAttemptId: null,
-        failures: caseStatus === 'passed' ? [] : ['Validation was incomplete.'],
-        futureField: 'accepted',
-      },
-    ],
-    artifactDigests,
-    futureField: 'accepted',
-  });
-};
 
 const readAttemptFixture = (root: string, attemptId: string): IAttemptFixture => {
   const path = join(
@@ -426,24 +176,6 @@ const replaceAttemptArtifact = (
   const attempt = readAttemptFixture(root, attemptId);
   attempt.artifactDigests[relativePath] = calculateDigest(join(attemptDirectory, relativePath));
   writeJson(attemptDirectory, 'attempt.json', attempt);
-};
-
-const writeLatest = (
-  root: string,
-  latestAttemptId: string,
-  latestStatus: 'errored' | 'failed' | 'passed',
-  lastPassingAttemptId: string | null,
-): void => {
-  writeJson(root, 'qualification/results/custom/custom/latest.json', {
-    protocolVersion: 5,
-    adapterId: 'custom',
-    implementationId: 'custom',
-    latestAttemptId,
-    latestStatus,
-    lastPassingAttemptId,
-    updatedAt: '2026-08-20T12:00:00.000Z',
-    futureField: 'accepted',
-  });
 };
 
 const seedCurrentQualificationAttempt = async (root: string, attemptId: string): Promise<void> => {
@@ -604,41 +336,6 @@ describe('loadQualificationWebsiteModel', () => {
     expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
   });
 
-  test('accepts additive producer fields and loads a complete passing history', () => {
-    const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-pass',
-      createdAt: '2026-08-20T10:00:00.000Z',
-      status: 'passed',
-    });
-    writeLatest(root, 'attempt-pass', 'passed', 'attempt-pass');
-
-    const model = loadQualificationWebsiteModel(root);
-    const profile = model.profiles[0];
-
-    expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
-
-    expect(profile?.latest).toMatchObject({
-      latestAttemptId: 'attempt-pass',
-      latestStatus: 'passed',
-      lastPassingAttemptId: 'attempt-pass',
-    });
-    expect(profile?.currentLatest).toBeNull();
-    expect(profile?.currentLastPassing).toBeNull();
-    expect(profile?.attempts).toHaveLength(1);
-    expect(profile?.attempts[0]?.route).toBe(
-      '/evidence/qualification/custom/custom/attempts/attempt-pass/',
-    );
-    expect(profile?.attempts[0]?.cases[0]?.trials[0]).toMatchObject({
-      actor: { outcome: 'completed' },
-      deterministicAfter: { passed: true },
-      judge: { verdict: 'pass' },
-      workspaceAssertions: { passed: true },
-    });
-    expect(profile?.attempts[0]?.artifacts.length).toBeGreaterThan(8);
-  });
-
   test('loads and independently validates ordered recovered confirmation evidence', async () => {
     const root = createTemporaryRoot();
     const resultsRoot = join(root, 'qualification', 'results');
@@ -719,8 +416,8 @@ cases:
     ]);
     expect(
       recoveredCase?.trials.map(({ result: trial }) => ({
-        trialId: 'trialId' in trial ? trial.trialId : 'historical',
-        passed: 'passed' in trial ? trial.passed : trial.status === 'passed',
+        trialId: trial.trialId,
+        passed: trial.passed,
         actorCacheSourceAttemptId: trial.actorCacheSourceAttemptId,
         judgeCacheSourceAttemptId: trial.judgeCacheSourceAttemptId,
       })),
@@ -872,295 +569,30 @@ cases:
     expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
   });
 
-  test('keeps Terra history visible without treating it as current assurance', () => {
+  test('rejects an unsupported latest-pointer protocol', async () => {
     const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-terra',
-      createdAt: '2026-08-20T10:00:00.000Z',
-      status: 'passed',
-    });
-    const attempt = readAttemptFixture(root, 'attempt-terra');
-    attempt['protocolVersion'] = 3;
-    const provenance = attempt['provenance'];
-
-    if (typeof provenance !== 'object' || provenance === null || Array.isArray(provenance)) {
-      throw new Error('Missing test provenance.');
-    }
-    const mutableProvenance = provenance as Record<string, unknown>;
-    mutableProvenance['model'] = 'gpt-5.6-terra';
-    writeJson(
-      root,
-      'qualification/results/custom/custom/attempts/attempt-terra/attempt.json',
-      attempt,
-    );
-    replaceAttemptArtifact(
-      root,
-      'attempt-terra',
-      'cases/evaluate-project/deterministic-after.json',
-      createDeterministicArtifact('compatibility'),
-    );
-    replaceAttemptArtifact(
-      root,
-      'attempt-terra',
-      'cases/evaluate-project/deterministic-before.json',
-      createDeterministicArtifact('compatibility'),
-    );
-    writeJson(root, 'qualification/results/custom/custom/latest.json', {
-      protocolVersion: 3,
-      adapterId: 'custom',
-      implementationId: 'custom',
-      latestAttemptId: 'attempt-terra',
-      latestStatus: 'passed',
-      lastPassingAttemptId: 'attempt-terra',
-      updatedAt: '2026-08-20T12:00:00.000Z',
-    });
-
-    const profile = loadQualificationWebsiteModel(root).profiles[0];
-
-    expect(profile?.attempts[0]?.result.provenance.model).toBe('gpt-5.6-terra');
-    expect(profile?.currentLatest).toBeNull();
-    expect(profile?.currentLastPassing).toBeNull();
-  });
-
-  test('rejects a current attempt that uses the historical deterministic artifact shape', () => {
-    const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-current',
-      createdAt: '2026-08-20T10:00:00.000Z',
-      status: 'passed',
-    });
-    writeLatest(root, 'attempt-current', 'passed', 'attempt-current');
-    replaceAttemptArtifact(
-      root,
-      'attempt-current',
-      'cases/evaluate-project/deterministic-after.json',
-      createDeterministicArtifact('compatibility'),
-    );
-
-    expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
-  });
-
-  test('keeps a prior passing baseline when the latest attempt fails', () => {
-    const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-pass',
-      createdAt: '2026-08-20T10:00:00.000Z',
-      status: 'passed',
-    });
-    createAttempt(root, {
-      attemptId: 'attempt-fail',
-      createdAt: '2026-08-20T11:00:00.000Z',
-      status: 'failed',
-    });
-    writeLatest(root, 'attempt-fail', 'failed', 'attempt-pass');
-
-    const model = loadQualificationWebsiteModel(root);
-    const profile = model.profiles[0];
-
-    expect(profile?.attempts.map(({ result }) => result.attemptId)).toStrictEqual([
-      'attempt-pass',
-      'attempt-fail',
-    ]);
-    expect(profile?.latest).toMatchObject({
-      latestAttemptId: 'attempt-fail',
-      latestStatus: 'failed',
-      lastPassingAttemptId: 'attempt-pass',
-    });
-    expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
-  });
-
-  test('publishes an errored latest attempt without inventing a passing baseline', () => {
-    const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-error',
-      createdAt: '2026-08-20T10:00:00.000Z',
-      status: 'errored',
-    });
-    writeLatest(root, 'attempt-error', 'errored', null);
-
-    const model = loadQualificationWebsiteModel(root);
-
-    expect(model.profiles[0]?.latest).toMatchObject({
-      latestAttemptId: 'attempt-error',
-      latestStatus: 'errored',
-      lastPassingAttemptId: null,
-    });
-    expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
-  });
-
-  test('loads an explicit skipped judge after deterministic failure', () => {
-    const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-skipped-judge',
-      createdAt: '2026-08-20T11:00:00.000Z',
-      judgeSkipped: true,
-      status: 'failed',
-    });
-    writeLatest(root, 'attempt-skipped-judge', 'failed', null);
-
-    const caseEvidence = loadQualificationWebsiteModel(root).profiles[0]?.attempts[0]?.cases[0];
-
-    expect(caseEvidence?.trials[0]).toMatchObject({
-      judge: null,
-      judgeSkipped: {
-        deterministicAfterPassed: true,
-        workspaceAssertionsPassed: false,
-      },
-    });
-  });
-
-  test('rejects a latest pointer that contradicts immutable history', () => {
-    const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-pass',
-      createdAt: '2026-08-20T10:00:00.000Z',
-      status: 'passed',
-    });
-    writeLatest(root, 'missing-attempt', 'failed', null);
-
-    expect(() => loadQualificationWebsiteModel(root)).toThrow(
-      'Qualification latest pointer does not match attempt history.',
-    );
-  });
-
-  test('rejects a latest pointer whose protocol contradicts its attempt', async () => {
-    const root = createTemporaryRoot();
-    const attemptId = 'attempt-protocol-mismatch';
+    const attemptId = 'attempt-unsupported-pointer';
     await seedCurrentQualificationAttempt(root, attemptId);
     const latestPath = 'qualification/results/custom/custom/latest.json';
     const latest = JSON.parse(readFileSync(join(root, latestPath), 'utf8')) as Record<
       string,
       unknown
     >;
-    writeJson(root, latestPath, { ...latest, protocolVersion: 5 });
+    writeJson(root, latestPath, { ...latest, protocolVersion: 7 });
 
-    expect(() => loadQualificationWebsiteModel(root)).toThrow(
-      'Qualification latest pointer does not match attempt history.',
-    );
+    expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
   });
 
-  test('rejects a tampered public artifact digest', () => {
+  test('rejects a tampered current artifact digest', async () => {
     const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-pass',
-      createdAt: '2026-08-20T10:00:00.000Z',
-      status: 'passed',
+    const attemptId = 'attempt-tampered-artifact';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    writeJson(root, `qualification/results/custom/custom/attempts/${attemptId}/coverage.json`, {
+      passed: false,
     });
-    writeLatest(root, 'attempt-pass', 'passed', 'attempt-pass');
-    writeText(
-      root,
-      'qualification/results/custom/custom/attempts/attempt-pass/coverage.json',
-      '{"passed":false}\n',
-    );
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
       'Qualification artifact digest does not match: coverage.json',
-    );
-  });
-
-  test('rejects a passing attempt whose digested semantic evidence contradicts its status', () => {
-    const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-pass',
-      createdAt: '2026-08-20T10:00:00.000Z',
-      status: 'passed',
-    });
-    writeLatest(root, 'attempt-pass', 'passed', 'attempt-pass');
-    replaceAttemptArtifact(root, 'attempt-pass', 'cases/evaluate-project/judge-output.json', {
-      verdict: 'fail',
-      summary: 'The declared requirement failed.',
-      requirements: [
-        {
-          id: 'validates-project',
-          verdict: 'fail',
-          evidence: 'Validation failed.',
-        },
-      ],
-      failures: ['Validation failed.'],
-    });
-
-    expect(() => loadQualificationWebsiteModel(root)).toThrow(
-      'Passing qualification case evaluate-project has contradictory evidence.',
-    );
-  });
-
-  test('rejects a case artifact reference outside its case directory', () => {
-    const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-pass',
-      createdAt: '2026-08-20T10:00:00.000Z',
-      status: 'passed',
-    });
-    writeLatest(root, 'attempt-pass', 'passed', 'attempt-pass');
-    const attempt = readAttemptFixture(root, 'attempt-pass');
-    const caseResult = attempt.cases[0];
-
-    if (!caseResult) throw new Error('Missing test case result.');
-    caseResult['patchPath'] = 'coverage.json';
-    writeJson(
-      root,
-      'qualification/results/custom/custom/attempts/attempt-pass/attempt.json',
-      attempt,
-    );
-
-    expect(() => loadQualificationWebsiteModel(root)).toThrow(
-      'Qualification case evaluate-project has invalid artifact references.',
-    );
-  });
-
-  test('rejects a passing attempt with an incomplete stage history', () => {
-    const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-pass',
-      createdAt: '2026-08-20T10:00:00.000Z',
-      status: 'passed',
-    });
-    writeLatest(root, 'attempt-pass', 'passed', 'attempt-pass');
-    const attempt = readAttemptFixture(root, 'attempt-pass');
-    attempt['stages'] = [];
-    writeJson(
-      root,
-      'qualification/results/custom/custom/attempts/attempt-pass/attempt.json',
-      attempt,
-    );
-
-    expect(() => loadQualificationWebsiteModel(root)).toThrow(
-      'Passing qualification attempt attempt-pass is incomplete.',
-    );
-  });
-
-  test('rejects a failed case without an actionable recorded failure', () => {
-    const root = createTemporaryRoot();
-    seedProfile(root);
-    createAttempt(root, {
-      attemptId: 'attempt-fail',
-      createdAt: '2026-08-20T10:00:00.000Z',
-      status: 'failed',
-    });
-    writeLatest(root, 'attempt-fail', 'failed', null);
-    const attempt = readAttemptFixture(root, 'attempt-fail');
-    const caseResult = attempt.cases[0];
-
-    if (!caseResult) throw new Error('Missing test case result.');
-    caseResult['failures'] = [];
-    writeJson(
-      root,
-      'qualification/results/custom/custom/attempts/attempt-fail/attempt.json',
-      attempt,
-    );
-
-    expect(() => loadQualificationWebsiteModel(root)).toThrow(
-      'Failed qualification case evaluate-project has no recorded failure.',
     );
   });
 

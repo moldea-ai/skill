@@ -412,7 +412,9 @@ test('release evidence inspection requires fresh passing semantic and qualificat
           version: 1,
         },
         coverageDigest: semanticCandidate.coverageDigest,
+        evaluatedAt: semanticGeneratedAt,
         evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
+        generatedAt: semanticGeneratedAt,
         hostContract: semanticHostContract,
         results: semanticResults,
         schemaVersion: 6,
@@ -484,6 +486,23 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
         'fixtures/semantic-evaluation-result.json does not match the newest immutable passing semantic attempt.',
+      ),
+    );
+    writeFileSync(semanticResultPath, `${JSON.stringify(exactSemanticResult)}\n`, 'utf8');
+    assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
+
+    const semanticResultWithUnsupportedField = {
+      ...exactSemanticResult,
+      unsupportedField: true,
+    };
+    writeFileSync(
+      semanticResultPath,
+      `${JSON.stringify(semanticResultWithUnsupportedField)}\n`,
+      'utf8',
+    );
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
+        'fixtures/semantic-evaluation-result.json does not use the exact semantic result fields.',
       ),
     );
     writeFileSync(semanticResultPath, `${JSON.stringify(exactSemanticResult)}\n`, 'utf8');

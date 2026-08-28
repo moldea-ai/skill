@@ -4,7 +4,7 @@ const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
 const StableIdSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
 const AttemptStatusSchema = z.enum(['failed', 'incomplete', 'passed']);
 
-// additive semantic result contracts tolerate harmless future diagnostic fields
+// website read models select the current evidence fields rendered by public pages
 const SemanticHostSchema = z.object({
   model: z.literal('gpt-5.6-sol'),
   name: z.literal('codex'),
@@ -61,21 +61,10 @@ const SemanticAttemptEvidenceReferenceBaseSchema = z.object({
   path: z.literal('evidence.json'),
   sha256: Sha256Schema,
 });
-const SemanticAttemptEvidenceReferenceSchema = z.discriminatedUnion('schemaVersion', [
-  SemanticAttemptEvidenceReferenceBaseSchema.extend({
-    evaluationProtocolVersion: z.union([z.literal(16), z.literal(17)]),
-    schemaVersion: z.literal(5),
-  }),
-  SemanticAttemptEvidenceReferenceBaseSchema.extend({
-    evaluationProtocolVersion: z.union([
-      z.literal(18),
-      z.literal(19),
-      z.literal(20),
-      z.literal(21),
-    ]),
-    schemaVersion: z.literal(6),
-  }),
-]);
+const SemanticAttemptEvidenceReferenceSchema = SemanticAttemptEvidenceReferenceBaseSchema.extend({
+  evaluationProtocolVersion: z.literal(21),
+  schemaVersion: z.literal(6),
+});
 
 export const SemanticAttemptRecordSchema = z.object({
   artifactDigest: Sha256Schema,

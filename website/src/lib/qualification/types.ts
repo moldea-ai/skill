@@ -4,9 +4,6 @@ import { z } from 'zod';
 
 const QUALIFICATION_PROTOCOL_VERSION = 2;
 const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 6;
-const QUALIFICATION_HISTORICAL_SOL_EVIDENCE_PROTOCOL_VERSION = 5;
-const QUALIFICATION_PREVIOUS_EVIDENCE_PROTOCOL_VERSION = 4;
-const QUALIFICATION_TERRA_EVIDENCE_PROTOCOL_VERSION = 3;
 const INITIAL_OPERATIONAL_RETRY_DELAY_MS = 5_000;
 const MAXIMUM_OPERATIONAL_RETRY_DELAY_MS = 60_000;
 const StableIdSchema = z
@@ -178,7 +175,7 @@ export const QualificationScenarioSchema = z.object({
     .min(1),
 });
 
-// additive result contracts keep older website builds compatible with harmless producer fields
+// website read models select the current evidence fields rendered by public pages
 const QualificationLatestResultShape = {
   adapterId: StableIdSchema,
   implementationId: StableIdSchema,
@@ -187,24 +184,10 @@ const QualificationLatestResultShape = {
   lastPassingAttemptId: z.string().trim().min(1).nullable(),
   updatedAt: z.iso.datetime(),
 };
-export const QualificationLatestResultSchema = z.discriminatedUnion('protocolVersion', [
-  z.object({
-    protocolVersion: z.literal(QUALIFICATION_TERRA_EVIDENCE_PROTOCOL_VERSION),
-    ...QualificationLatestResultShape,
-  }),
-  z.object({
-    protocolVersion: z.literal(QUALIFICATION_PREVIOUS_EVIDENCE_PROTOCOL_VERSION),
-    ...QualificationLatestResultShape,
-  }),
-  z.object({
-    protocolVersion: z.literal(QUALIFICATION_HISTORICAL_SOL_EVIDENCE_PROTOCOL_VERSION),
-    ...QualificationLatestResultShape,
-  }),
-  z.object({
-    protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
-    ...QualificationLatestResultShape,
-  }),
-]);
+export const QualificationLatestResultSchema = z.object({
+  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
+  ...QualificationLatestResultShape,
+});
 const ModelUsageSchema = z.object({
   inputTokens: z.number().int().nonnegative(),
   cachedInputTokens: z.number().int().nonnegative(),
@@ -248,34 +231,9 @@ const QualificationProvenanceShape = {
   baselineAttemptId: z.string().trim().min(1).nullable(),
   packages: z.array(CandidatePackageSchema).min(1),
 };
-const QualificationTerraProvenanceSchema = z.object({
-  model: z.literal('gpt-5.6-terra'),
-  ...QualificationProvenanceShape,
-});
 const QualificationCurrentProvenanceSchema = z.object({
   model: z.literal('gpt-5.6-sol'),
   ...QualificationProvenanceShape,
-});
-export const QualificationHistoricalCaseResultSchema = z.object({
-  caseId: StableIdSchema,
-  title: z.string().trim().min(1),
-  status: z.enum(['errored', 'failed', 'passed']),
-  durationMs: z.number().int().nonnegative(),
-  deterministicBeforePath: RelativePathSchema,
-  deterministicAfterPath: RelativePathSchema,
-  actorOutputPath: RelativePathSchema,
-  judgeStatus: z.enum(['completed', 'skipped']),
-  judgeOutputPath: RelativePathSchema.nullable(),
-  judgeSkippedPath: RelativePathSchema.nullable(),
-  workspaceAssertionsPath: RelativePathSchema,
-  patchPath: RelativePathSchema,
-  actorUsage: ModelUsageSchema.nullable(),
-  judgeUsage: ModelUsageSchema.nullable(),
-  actorEvidenceCreatedAt: z.iso.datetime(),
-  judgeEvidenceCreatedAt: z.iso.datetime().nullable(),
-  actorCacheSourceAttemptId: z.string().nullable(),
-  judgeCacheSourceAttemptId: z.string().nullable(),
-  failures: z.array(z.string()),
 });
 export const QualificationTrialResultSchema = z
   .object({
@@ -379,10 +337,7 @@ export const QualificationCurrentCaseResultSchema = z
       });
     }
   });
-export const QualificationCaseResultSchema = z.union([
-  QualificationHistoricalCaseResultSchema,
-  QualificationCurrentCaseResultSchema,
-]);
+export const QualificationCaseResultSchema = QualificationCurrentCaseResultSchema;
 const QualificationAttemptResultShape = {
   attemptId: z.string().trim().min(1),
   parentAttemptId: z.string().trim().min(1).nullable(),
@@ -397,7 +352,7 @@ const QualificationAttemptResultShape = {
   summary: z.string().trim().min(1),
   artifactDigests: z.record(RelativePathSchema, Sha256Schema),
 };
-const QualificationHistoricalStageSchema = z.object({
+const QualificationStageSchema = z.object({
   id: z.string().trim().min(1),
   status: z.enum(['cached', 'errored', 'failed', 'passed', 'pending', 'running', 'skipped']),
   startedAt: z.iso.datetime().nullable(),
@@ -425,7 +380,7 @@ const QualificationOperationalRetrySchema = z
       });
     }
   });
-const QualificationCurrentStageSchema = QualificationHistoricalStageSchema.extend({
+const QualificationCurrentStageSchema = QualificationStageSchema.extend({
   operationalRetries: z.array(QualificationOperationalRetrySchema).max(1),
 }).superRefine((stage, context) => {
   const isModelStage = /:trial:(?:initial|confirmation-[12]):(?:actor|judge)$/u.test(stage.id);
@@ -452,40 +407,18 @@ const QualificationCurrentStageSchema = QualificationHistoricalStageSchema.exten
     });
   }
 });
-const QualificationHistoricalAttemptResultShape = {
+export const QualificationAttemptResultSchema = z.object({
+  protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationAttemptResultShape,
-  stages: z.array(QualificationHistoricalStageSchema),
-  cases: z.array(QualificationHistoricalCaseResultSchema),
-};
-export const QualificationAttemptResultSchema = z.discriminatedUnion('protocolVersion', [
-  z.object({
-    protocolVersion: z.literal(QUALIFICATION_TERRA_EVIDENCE_PROTOCOL_VERSION),
-    ...QualificationHistoricalAttemptResultShape,
-    provenance: QualificationTerraProvenanceSchema,
+  confirmationPolicy: z.object({
+    version: z.literal(1),
+    requiredPassingConfirmations: z.literal(2),
   }),
-  z.object({
-    protocolVersion: z.literal(QUALIFICATION_PREVIOUS_EVIDENCE_PROTOCOL_VERSION),
-    ...QualificationHistoricalAttemptResultShape,
-    provenance: QualificationCurrentProvenanceSchema,
-  }),
-  z.object({
-    protocolVersion: z.literal(QUALIFICATION_HISTORICAL_SOL_EVIDENCE_PROTOCOL_VERSION),
-    ...QualificationHistoricalAttemptResultShape,
-    provenance: QualificationCurrentProvenanceSchema,
-  }),
-  z.object({
-    protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
-    ...QualificationAttemptResultShape,
-    confirmationPolicy: z.object({
-      version: z.literal(1),
-      requiredPassingConfirmations: z.literal(2),
-    }),
-    mode: z.literal('official'),
-    stages: z.array(QualificationCurrentStageSchema),
-    cases: z.array(QualificationCurrentCaseResultSchema),
-    provenance: QualificationCurrentProvenanceSchema,
-  }),
-]);
+  mode: z.literal('official'),
+  stages: z.array(QualificationCurrentStageSchema),
+  cases: z.array(QualificationCurrentCaseResultSchema),
+  provenance: QualificationCurrentProvenanceSchema,
+});
 
 // additive public artifacts shown on immutable attempt pages
 export const QualificationCoverageResultSchema = z.object({
@@ -522,21 +455,13 @@ const DeterministicVerificationShape = {
   failures: z.array(z.string()),
   durationMs: z.number().int().nonnegative(),
 };
-export const HistoricalDeterministicVerificationSchema = z.object({
-  ...DeterministicVerificationShape,
-  cliCompatibilityValid: z.boolean(),
-});
-export const CurrentDeterministicVerificationSchema = z.object({
+export const DeterministicVerificationSchema = z.object({
   ...DeterministicVerificationShape,
   cliCompositionValid: z.boolean(),
 });
 // additive producer artifact carrying the stable summary and inspectable diagnostics
-export const HistoricalDeterministicVerificationArtifactSchema = z.object({
-  summary: HistoricalDeterministicVerificationSchema,
-  details: z.object({}),
-});
-export const CurrentDeterministicVerificationArtifactSchema = z.object({
-  summary: CurrentDeterministicVerificationSchema,
+export const DeterministicVerificationArtifactSchema = z.object({
+  summary: DeterministicVerificationSchema,
   details: z.object({}),
 });
 export const WorkspaceAssertionResultSchema = z.object({
@@ -568,10 +493,6 @@ const ActorOutputShape = {
   unresolved: z.array(z.string().trim().min(1)),
 };
 export const ActorOutputSchema = z.strictObject(ActorOutputShape);
-export const HistoricalActorOutputSchema = z.object({
-  ...ActorOutputShape,
-  commands: z.array(z.string()),
-});
 export const JudgeOutputSchema = z.object({
   verdict: z.enum(['fail', 'pass']),
   summary: z.string().trim().min(1),
@@ -600,9 +521,6 @@ export const QualificationJudgeSkippedSchema = z.object({
   reason: z.string().trim().min(1),
   deterministicAfterPassed: z.boolean(),
   workspaceAssertionsPassed: z.boolean(),
-});
-export const HistoricalQualificationJudgeSkippedSchema = QualificationJudgeSkippedSchema.omit({
-  kind: true,
 });
 const QualificationCommandPolicyEvidenceSchema = z
   .strictObject({
@@ -675,25 +593,17 @@ export type IQualificationStatus = z.infer<typeof AttemptStatusSchema>;
 export type IQualificationLatestResult = z.infer<typeof QualificationLatestResultSchema>;
 export type IQualificationAttemptResult = z.infer<typeof QualificationAttemptResultSchema>;
 export type IQualificationCurrentCaseResult = z.infer<typeof QualificationCurrentCaseResultSchema>;
-export type IQualificationHistoricalCaseResult = z.infer<
-  typeof QualificationHistoricalCaseResultSchema
->;
 export type IQualificationTrialResult = z.infer<typeof QualificationTrialResultSchema>;
 export type IQualificationOperationalRetry = z.infer<typeof QualificationOperationalRetrySchema>;
 export type IQualificationCoverageResult = z.infer<typeof QualificationCoverageResultSchema>;
 export type IQualificationSourceStateResult = z.infer<typeof QualificationSourceStateResultSchema>;
-export type IDeterministicVerification =
-  | z.infer<typeof HistoricalDeterministicVerificationSchema>
-  | z.infer<typeof CurrentDeterministicVerificationSchema>;
+export type IDeterministicVerification = z.infer<typeof DeterministicVerificationSchema>;
 export type IWorkspaceAssertionResult = z.infer<typeof WorkspaceAssertionResultSchema>;
 export type IActorOutput = z.infer<typeof ActorOutputSchema>;
 export type IJudgeOutput = z.infer<typeof JudgeOutputSchema>;
 export type IQualificationExecutionError = z.infer<typeof QualificationExecutionErrorSchema>;
 export type IQualificationBaselineCheck = z.infer<typeof QualificationBaselineCheckSchema>;
 export type IQualificationJudgeSkipped = z.infer<typeof QualificationJudgeSkippedSchema>;
-export type IQualificationHistoricalJudgeSkipped = z.infer<
-  typeof HistoricalQualificationJudgeSkippedSchema
->;
 export type IQualificationModelStageEvidence = z.infer<
   typeof QualificationModelStageEvidenceSchema
 >;
@@ -727,8 +637,8 @@ export interface IQualificationAttemptTrialModel {
   deterministicAfter: IDeterministicVerification;
   deterministicBefore: IDeterministicVerification;
   judge: IJudgeOutput | null;
-  judgeSkipped: IQualificationHistoricalJudgeSkipped | IQualificationJudgeSkipped | null;
-  result: IQualificationHistoricalCaseResult | IQualificationTrialResult;
+  judgeSkipped: IQualificationJudgeSkipped | null;
+  result: IQualificationTrialResult;
   retries: {
     actor: IQualificationOperationalRetry[];
     judge: IQualificationOperationalRetry[];

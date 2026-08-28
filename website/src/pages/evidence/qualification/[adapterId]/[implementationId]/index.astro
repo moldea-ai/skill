@@ -143,8 +143,8 @@ const breadcrumbs = [
                 <EvidenceStatus status="not-recorded" />
               </div>
               <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
-                No current protocol 6 Sol attempt has been committed. Historical Sol and Terra
-                attempts, projects, requirements, and matrix coverage remain inspectable below.
+                No protocol 6 Sol attempt has been committed. Projects, requirements, and matrix
+                coverage remain inspectable below.
               </p>
             </article>
           ) : (
@@ -429,13 +429,7 @@ const breadcrumbs = [
                       <EvidenceStatus status={result.status} />
                     </td>
                     <td class="px-4 py-3 align-top">
-                      <span class="font-mono text-xs">
-                        {result.protocolVersion === 6
-                          ? 'Current Sol'
-                          : result.protocolVersion === 5 || result.protocolVersion === 4
-                            ? 'Historical Sol'
-                            : 'Historical Terra'}
-                      </span>
+                      <span class="font-mono text-xs">Current Sol</span>
                     </td>
                     <td class="px-4 py-3 align-top">
                       <time datetime={result.createdAt}>{result.createdAt}</time>

@@ -411,29 +411,21 @@ export const QualificationProjectedExecutionEventSchema = z.strictObject({
   status: z.enum(['completed', 'failed']),
 });
 
-// immutable protocol 3–5 model-stage provenance retained for historical evidence
-export const QualificationHistoricalModelStageEvidenceSchema = z.strictObject({
+// immutable model-stage provenance for current qualification evidence
+export const QualificationModelStageEvidenceSchema = z.strictObject({
   role: z.enum(['actor', 'judge']),
+  trialId: z.enum(QUALIFICATION_TRIAL_IDS),
   createdAt: z.string().datetime(),
   durationMs: z.number().int().nonnegative(),
   usage: ModelUsageSchema.nullable(),
   cacheKey: z.string().regex(/^[a-f0-9]{64}$/u),
   sourceAttemptId: z.string().trim().min(1),
   cacheSourceAttemptId: z.string().trim().min(1).nullable(),
+  commandPolicy: QualificationCommandPolicyEvidenceSchema,
 });
-
-// current model-stage provenance includes the trial that produced the evidence
-export const QualificationModelStageEvidenceSchema =
-  QualificationHistoricalModelStageEvidenceSchema.extend({
-    trialId: z.enum(QUALIFICATION_TRIAL_IDS),
-    commandPolicy: QualificationCommandPolicyEvidenceSchema,
-  });
 
 export type IQualificationModelStageEvidence = z.infer<
   typeof QualificationModelStageEvidenceSchema
->;
-export type IQualificationHistoricalModelStageEvidence = z.infer<
-  typeof QualificationHistoricalModelStageEvidenceSchema
 >;
 
 // exact local execution identity that must remain stable across resume boundaries
@@ -479,18 +471,6 @@ export const ActorOutputSchema = z.strictObject({
   unresolved: z.array(z.string().trim().min(1)).meta({
     description: 'Remaining blockers or uncertainties that were not invented away.',
   }),
-});
-
-// frozen protocol 3–5 actor output retained for immutable history verification
-export const QualificationHistoricalActorOutputSchema = z.strictObject({
-  outcome: ActorOutputSchema.shape.outcome,
-  summary: ActorOutputSchema.shape.summary,
-  commands: z.array(z.string()).meta({
-    description: 'The exact project inspection and validation commands executed.',
-  }),
-  changedFiles: ActorOutputSchema.shape.changedFiles,
-  observations: ActorOutputSchema.shape.observations,
-  unresolved: ActorOutputSchema.shape.unresolved,
 });
 
 export type IActorOutput = z.infer<typeof ActorOutputSchema>;
@@ -577,31 +557,6 @@ export type IDeterministicVerificationArtifact = z.infer<
   typeof DeterministicVerificationArtifactSchema
 >;
 
-// protocol 3 and 4 deterministic artifacts retained only for immutable history verification
-const HistoricalDeterministicVerificationSchema = DeterministicVerificationSchema.omit({
-  cliCompositionValid: true,
-}).extend({
-  cliCompatibilityValid: z.boolean(),
-});
-export const QualificationHistoricalDeterministicVerificationArtifactSchema = z.strictObject({
-  summary: HistoricalDeterministicVerificationSchema,
-  details: z.strictObject({
-    direct: z.unknown(),
-    cliCompatibility: z.unknown(),
-    cliValidate: z.unknown(),
-    cliInspect: z.unknown(),
-    typecheck: z.strictObject({
-      exitCode: z.number().int(),
-      stdout: z.string(),
-      stderr: z.string(),
-    }),
-  }),
-});
-
-export type IQualificationRecordedDeterministicVerificationArtifact =
-  | z.infer<typeof QualificationHistoricalDeterministicVerificationArtifactSchema>
-  | IDeterministicVerificationArtifact;
-
 // one exact filesystem observation used for preservation and mutation assertions
 export const WorkspaceFileStateSchema = z.strictObject({
   path: RelativePathSchema,
@@ -650,11 +605,6 @@ export const QualificationJudgeSkippedSchema = z.strictObject({
   workspaceAssertionsPassed: z.boolean(),
 });
 
-// frozen protocol 3–5 judge-skip evidence retained for immutable history verification
-export const QualificationHistoricalJudgeSkippedSchema = QualificationJudgeSkippedSchema.omit({
-  kind: true,
-});
-
 export type IQualificationJudgeSkipped = z.infer<typeof QualificationJudgeSkippedSchema>;
 
 // durable stage state written atomically after every execution boundary
@@ -681,11 +631,6 @@ const QualificationStageCheckpointShape = {
   cacheSourceAttemptId: z.string().nullable(),
   error: z.string().nullable(),
 };
-
-// frozen protocol 3–5 checkpoint stage
-export const QualificationHistoricalStageCheckpointSchema = z.strictObject(
-  QualificationStageCheckpointShape,
-);
 
 // stable safe evidence for one retryable Codex host failure
 export const QualificationOperationalRetrySchema = z
@@ -751,9 +696,6 @@ export const QualificationStageCheckpointSchema = z
 
 export type IQualificationStageCheckpoint = z.infer<typeof QualificationStageCheckpointSchema>;
 export type IQualificationOperationalRetry = z.infer<typeof QualificationOperationalRetrySchema>;
-export type IQualificationHistoricalStageCheckpoint = z.infer<
-  typeof QualificationHistoricalStageCheckpointSchema
->;
 
 export const QualificationAttemptStatusSchema = z.enum([
   'errored',
@@ -822,33 +764,6 @@ export const QualificationAttemptCheckpointSchema = z
   });
 
 export type IQualificationAttemptCheckpoint = z.infer<typeof QualificationAttemptCheckpointSchema>;
-
-// frozen protocol 3–5 per-case summary and flat artifact references
-export const QualificationHistoricalCaseResultSchema = z.strictObject({
-  caseId: StableIdSchema,
-  title: z.string().trim().min(1),
-  status: z.enum(['errored', 'failed', 'passed']),
-  durationMs: z.number().int().nonnegative(),
-  deterministicBeforePath: RelativePathSchema,
-  deterministicAfterPath: RelativePathSchema,
-  actorOutputPath: RelativePathSchema,
-  judgeStatus: z.enum(['completed', 'skipped']),
-  judgeOutputPath: RelativePathSchema.nullable(),
-  judgeSkippedPath: RelativePathSchema.nullable(),
-  workspaceAssertionsPath: RelativePathSchema,
-  patchPath: RelativePathSchema,
-  actorUsage: ModelUsageSchema.nullable(),
-  judgeUsage: ModelUsageSchema.nullable(),
-  actorEvidenceCreatedAt: z.string().datetime(),
-  judgeEvidenceCreatedAt: z.string().datetime().nullable(),
-  actorCacheSourceAttemptId: z.string().nullable(),
-  judgeCacheSourceAttemptId: z.string().nullable(),
-  failures: z.array(z.string()),
-});
-
-export type IQualificationHistoricalCaseResult = z.infer<
-  typeof QualificationHistoricalCaseResultSchema
->;
 
 // one protocol 6 initial or confirmation trial and its complete artifact references
 export const QualificationTrialResultSchema = z
@@ -1018,11 +933,6 @@ export const QualificationProvenanceSchema = z.strictObject({
 
 export type IQualificationProvenance = z.infer<typeof QualificationProvenanceSchema>;
 
-// historical Terra provenance retained for protocol 3 result verification
-const QualificationTerraProvenanceSchema = QualificationProvenanceSchema.extend({
-  model: z.literal('gpt-5.6-terra'),
-});
-
 const QualificationAttemptResultSharedShape = {
   attemptId: z.string().trim().min(1),
   parentAttemptId: z.string().trim().min(1).nullable(),
@@ -1056,39 +966,8 @@ export const QualificationAttemptResultDraftSchema = z.strictObject({
 
 export type IQualificationAttemptResult = z.infer<typeof QualificationAttemptResultDraftSchema>;
 
-const QualificationHistoricalAttemptResultShape = {
-  ...QualificationAttemptResultSharedShape,
-  stages: z.array(QualificationHistoricalStageCheckpointSchema),
-  cases: z.array(QualificationHistoricalCaseResultSchema),
-};
-
-// protocol 3 Terra draft retained exclusively for immutable history verification
-const QualificationTerraAttemptResultDraftSchema = z.strictObject({
-  protocolVersion: z.literal(3),
-  ...QualificationHistoricalAttemptResultShape,
-  provenance: QualificationTerraProvenanceSchema,
-});
-
-// protocol 4 Sol draft retained exclusively for immutable history verification
-const QualificationProtocol4AttemptResultDraftSchema = z.strictObject({
-  protocolVersion: z.literal(4),
-  ...QualificationHistoricalAttemptResultShape,
-  provenance: QualificationProvenanceSchema,
-});
-
-// protocol 5 Sol draft retained exclusively for immutable history verification
-const QualificationProtocol5AttemptResultDraftSchema = z.strictObject({
-  protocolVersion: z.literal(5),
-  ...QualificationHistoricalAttemptResultShape,
-  provenance: QualificationProvenanceSchema,
-});
-
 const validateQualificationAttemptResult = (
-  result:
-    | z.infer<typeof QualificationAttemptResultDraftSchema>
-    | z.infer<typeof QualificationProtocol5AttemptResultDraftSchema>
-    | z.infer<typeof QualificationProtocol4AttemptResultDraftSchema>
-    | z.infer<typeof QualificationTerraAttemptResultDraftSchema>,
+  result: z.infer<typeof QualificationAttemptResultDraftSchema>,
   context: z.RefinementCtx,
 ): void => {
   if (
@@ -1203,23 +1082,8 @@ export const QualificationAttemptResultSchema = QualificationAttemptResultDraftS
   validateCurrentQualificationAttemptResult,
 );
 
-// protocol 3 Terra attempt retained exclusively for immutable history verification
-const QualificationTerraAttemptResultSchema =
-  QualificationTerraAttemptResultDraftSchema.superRefine(validateQualificationAttemptResult);
-
-// protocol 4 and 5 Sol attempts retained exclusively for immutable history verification
-const QualificationProtocol4AttemptResultSchema =
-  QualificationProtocol4AttemptResultDraftSchema.superRefine(validateQualificationAttemptResult);
-const QualificationProtocol5AttemptResultSchema =
-  QualificationProtocol5AttemptResultDraftSchema.superRefine(validateQualificationAttemptResult);
-
-// complete readable history across frozen protocols 3–5 plus the current contract
-export const QualificationRecordedAttemptResultSchema = z.union([
-  QualificationTerraAttemptResultSchema,
-  QualificationProtocol4AttemptResultSchema,
-  QualificationProtocol5AttemptResultSchema,
-  QualificationAttemptResultSchema,
-]);
+// complete readable history for the current qualification contract
+export const QualificationRecordedAttemptResultSchema = QualificationAttemptResultSchema;
 
 export type IQualificationRecordedAttemptResult = z.infer<
   typeof QualificationRecordedAttemptResultSchema
@@ -1238,27 +1102,7 @@ export const QualificationLatestResultSchema = z.strictObject({
 
 export type IQualificationLatestResult = z.infer<typeof QualificationLatestResultSchema>;
 
-// protocol 3 pointer retained exclusively for immutable history verification
-const QualificationTerraLatestResultSchema = QualificationLatestResultSchema.extend({
-  protocolVersion: z.literal(3),
-});
-
-// protocol 4 pointer retained exclusively for immutable history verification
-const QualificationProtocol4LatestResultSchema = QualificationLatestResultSchema.extend({
-  protocolVersion: z.literal(4),
-});
-
-// protocol 5 pointer retained exclusively for immutable history verification
-const QualificationProtocol5LatestResultSchema = QualificationLatestResultSchema.extend({
-  protocolVersion: z.literal(5),
-});
-
-export const QualificationRecordedLatestResultSchema = z.union([
-  QualificationTerraLatestResultSchema,
-  QualificationProtocol4LatestResultSchema,
-  QualificationProtocol5LatestResultSchema,
-  QualificationLatestResultSchema,
-]);
+export const QualificationRecordedLatestResultSchema = QualificationLatestResultSchema;
 
 export type IQualificationRecordedLatestResult = z.infer<
   typeof QualificationRecordedLatestResultSchema

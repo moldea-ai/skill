@@ -13,7 +13,6 @@ import {
 } from '../tooling/release-identity/index.mjs';
 import {
   createPortableSkillDigest,
-  createPortableSkillSemanticDigest,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
   createSemanticCoverageDigest,
@@ -49,7 +48,7 @@ const LIFECYCLE_CLI_MANIFEST_PATH = join(
   'lifecycle-cli',
   'package.json',
 );
-const LEGACY_RUNTIME_TERM = ['frame', 'work'].join('');
+const RETIRED_RUNTIME_TERM = ['frame', 'work'].join('');
 const READ_ONLY_TOOLING_OPERATIONS = new Set(['evaluate', 'plan', 'validate']);
 const REFERENCE_FILES = [
   'agent-design.md',
@@ -903,7 +902,7 @@ describe('portable Agent Skill contract', () => {
       /Run the documented hardened diff separately for each material path/i,
       /especially a failure, inspect the workspace and any helper sentinel before claiming no writes/i,
     ]);
-    assert.equal(portableContent.toLowerCase().includes(LEGACY_RUNTIME_TERM), false);
+    assert.equal(portableContent.toLowerCase().includes(RETIRED_RUNTIME_TERM), false);
   });
 
   test('has no semantic dependency on host-specific metadata or external repository paths', () => {
@@ -1729,37 +1728,7 @@ describe('source repository conformance', () => {
       assert.equal(result.artifact.sha256, result.skillDigest);
       assert.equal(result.artifactDigest, result.skillDigest);
       assert.equal(result.artifactSha256, result.skillDigest);
-      if (result.skillDigest === portableSkillDigest) {
-        assert.equal(result.releaseEvidenceCarryForward, undefined);
-      } else {
-        assert.ok(
-          result.releaseEvidenceCarryForward,
-          'Semantic evidence must match portable content or include a valid release-only carry-forward.',
-        );
-        assert.equal(result.releaseEvidenceCarryForward.fromArtifactDigest, result.skillDigest);
-        assert.equal(result.releaseEvidenceCarryForward.toArtifactDigest, portableSkillDigest);
-        assert.notEqual(
-          result.releaseEvidenceCarryForward.fromArtifactDigest,
-          result.releaseEvidenceCarryForward.toArtifactDigest,
-        );
-        assert.deepEqual(result.releaseEvidenceCarryForward.changedPortablePaths, [
-          'SKILL.md',
-          'references/local-tooling.md',
-        ]);
-        assert.equal(
-          result.releaseEvidenceCarryForward.fromSemanticDigest,
-          result.releaseEvidenceCarryForward.toSemanticDigest,
-        );
-        assert.equal(
-          result.releaseEvidenceCarryForward.toSemanticDigest,
-          createPortableSkillSemanticDigest(),
-        );
-        assert.match(result.releaseEvidenceCarryForward.carriedForwardAt, /^\d{4}-\d{2}-\d{2}T/);
-        assert.equal(
-          result.releaseEvidenceCarryForward.reason,
-          'Release-version declarations changed without changing semantic skill content.',
-        );
-      }
+      assert.equal(result.skillDigest, portableSkillDigest);
       assert.equal(result.hostContract.model, 'gpt-5.6-sol');
       assert.equal(result.hostContract.name, 'codex');
       assert.equal(result.hostContract.reasoningEffort, 'medium');

@@ -181,7 +181,7 @@ describe('qualification attempt discovery', () => {
     }
   });
 
-  test('preserves and reports incompatible checkpoints without hiding valid attempts', async () => {
+  test('reports unavailable checkpoints without hiding valid attempts', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-attempt-discovery-'));
     const attemptsRoot = path.join(temporaryRoot, 'attempts');
     const validAttemptId = '20260820T000001000Z-custom-custom-valid';
@@ -217,12 +217,15 @@ describe('qualification attempt discovery', () => {
       },
       stageIds: [],
     });
-    const legacyAttemptId = '20260820T000002000Z-custom-custom-legacy';
-    await writeJsonFileAtomically(path.join(attemptsRoot, legacyAttemptId, 'checkpoint.json'), {
-      ...validCheckpoint,
-      attemptId: legacyAttemptId,
-      protocolVersion: 3,
-    });
+    const unsupportedAttemptId = '20260820T000002000Z-custom-custom-unsupported';
+    await writeJsonFileAtomically(
+      path.join(attemptsRoot, unsupportedAttemptId, 'checkpoint.json'),
+      {
+        ...validCheckpoint,
+        attemptId: unsupportedAttemptId,
+        protocolVersion: 7,
+      },
+    );
     const unreadableAttemptId = '20260820T000003000Z-custom-custom-unreadable';
     await ensureDirectory(path.join(attemptsRoot, unreadableAttemptId));
     await writeFile(path.join(attemptsRoot, unreadableAttemptId, 'checkpoint.json'), '{', 'utf8');
@@ -243,28 +246,28 @@ describe('qualification attempt discovery', () => {
     expect(inspection.unavailableAttempts[0]).toStrictEqual({
       attemptId: mismatchedAttemptId,
       kind: 'invalid-checkpoint',
-      message: `Checkpoint attempt id ${validAttemptId} does not match its directory and was preserved without changes.`,
+      message: `Checkpoint attempt id ${validAttemptId} does not match its directory and was left unchanged.`,
       protocolVersion: 6,
     });
     expect(inspection.unavailableAttempts[1]?.attemptId).toBe(invalidAttemptId);
     expect(inspection.unavailableAttempts[1]?.kind).toBe('invalid-checkpoint');
     expect(inspection.unavailableAttempts[1]?.message).toContain(
-      'Checkpoint is invalid and was preserved without changes.',
+      'Checkpoint is invalid and was left unchanged.',
     );
     expect(inspection.unavailableAttempts[1]?.protocolVersion).toBe(6);
     expect(inspection.unavailableAttempts.slice(2)).toStrictEqual([
       {
         attemptId: unreadableAttemptId,
         kind: 'unreadable-checkpoint',
-        message: 'Checkpoint could not be read as JSON and was preserved without changes.',
+        message: 'Checkpoint could not be read as JSON and was left unchanged.',
         protocolVersion: null,
       },
       {
-        attemptId: legacyAttemptId,
+        attemptId: unsupportedAttemptId,
         kind: 'unsupported-protocol',
         message:
-          'Checkpoint protocol version 3 is not supported by protocol version 6 and was preserved without changes.',
-        protocolVersion: 3,
+          'Checkpoint protocol version 7 is not supported by protocol version 6 and was left unchanged.',
+        protocolVersion: 7,
       },
     ]);
     expect(

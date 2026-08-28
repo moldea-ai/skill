@@ -43,7 +43,6 @@ import {
   hasValidActorCommandPolicyEvidence,
   hasValidRepositoryControlEvidence,
   hasValidScenarioEvidence,
-  hasValidPortableSkillSemanticCarryForward,
   loadVerifiedSemanticEvaluationAttempts,
 } from '../semantic-evaluation/index.mjs';
 import {
@@ -66,6 +65,27 @@ const SEMANTIC_HOST_CONTRACT = {
   name: 'codex',
   reasoningEffort: CODEX_EVALUATION_REASONING_EFFORT,
 };
+
+// exact top-level fields owned by the current canonical semantic result
+const SEMANTIC_RESULT_KEYS = new Set([
+  'artifact',
+  'artifactDigest',
+  'artifactSha256',
+  'cases',
+  'caseHistories',
+  'caseSuiteDigest',
+  'cli',
+  'confirmationPolicy',
+  'coverageDigest',
+  'evaluatedAt',
+  'evaluationProtocolVersion',
+  'generatedAt',
+  'hostContract',
+  'results',
+  'schemaVersion',
+  'semanticAttemptId',
+  'skillDigest',
+]);
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
@@ -832,6 +852,13 @@ const inspectSemanticEvidence = (repositoryRoot) => {
   }
 
   const semanticResult = readJson(semanticResultPath);
+  if (
+    semanticResult === null ||
+    typeof semanticResult !== 'object' ||
+    Array.isArray(semanticResult)
+  ) {
+    return [`${RELEASE_PATHS.semanticResult} is not a semantic result object.`];
+  }
   const expectedCli = createSemanticCliIdentity(repositoryRoot);
   const conformanceCases = readJson(join(repositoryRoot, RELEASE_PATHS.conformanceCases));
   const semanticCases = conformanceCases.semanticCases ?? [];
@@ -854,6 +881,13 @@ const inspectSemanticEvidence = (repositoryRoot) => {
     }
   }
 
+  const semanticResultKeys = Object.keys(semanticResult);
+  if (
+    semanticResultKeys.length !== SEMANTIC_RESULT_KEYS.size ||
+    semanticResultKeys.some((key) => !SEMANTIC_RESULT_KEYS.has(key))
+  ) {
+    issues.push(`${RELEASE_PATHS.semanticResult} does not use the exact semantic result fields.`);
+  }
   if (semanticResult.schemaVersion !== 6) {
     issues.push(`${RELEASE_PATHS.semanticResult} does not use semantic result schema 6.`);
   }
@@ -882,16 +916,7 @@ const inspectSemanticEvidence = (repositoryRoot) => {
     semanticResult.artifactDigest === semanticResult.skillDigest &&
     semanticResult.artifactSha256 === semanticResult.skillDigest;
   const hasCurrentArtifact = semanticResult.skillDigest === expectedSkillDigest;
-  const hasValidCarryForward = hasValidPortableSkillSemanticCarryForward(
-    semanticResult.releaseEvidenceCarryForward,
-    semanticResult.skillDigest,
-    repositoryRoot,
-  );
-  if (
-    !hasConsistentRecordedArtifact ||
-    (!hasCurrentArtifact && !hasValidCarryForward) ||
-    (hasCurrentArtifact && semanticResult.releaseEvidenceCarryForward !== undefined)
-  ) {
+  if (!hasConsistentRecordedArtifact || !hasCurrentArtifact) {
     issues.push(
       `${RELEASE_PATHS.semanticResult} does not match the exact portable skill artifact.`,
     );

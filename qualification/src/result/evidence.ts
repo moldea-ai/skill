@@ -5,10 +5,7 @@ import { z } from 'zod';
 import { hasPassingCodexEvaluationCommandPolicy } from '../../../tooling/codex-evaluation-host/index.mjs';
 
 import { QualificationBaselineCheckSchema } from '../baseline/types.ts';
-import {
-  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
-  QUALIFICATION_TRIAL_IDS,
-} from '../constants/index.ts';
+import { QUALIFICATION_TRIAL_IDS } from '../constants/index.ts';
 import {
   ActorOutputSchema,
   DeterministicVerificationArtifactSchema,
@@ -16,11 +13,6 @@ import {
   QualificationCaseResultSchema,
   QualificationCaseScenarioSchema,
   QualificationExecutionErrorSchema,
-  QualificationHistoricalCaseResultSchema,
-  QualificationHistoricalActorOutputSchema,
-  QualificationHistoricalDeterministicVerificationArtifactSchema,
-  QualificationHistoricalJudgeSkippedSchema,
-  QualificationHistoricalModelStageEvidenceSchema,
   QualificationJudgeSkippedSchema,
   QualificationModelStageEvidenceSchema,
   QualificationProjectedExecutionEventSchema,
@@ -31,13 +23,9 @@ import {
   QualificationTrialResultSchema,
   WorkspaceAssertionResultSchema,
   type IActorOutput,
+  type IDeterministicVerificationArtifact,
   type IQualificationAttemptResult,
-  type IQualificationHistoricalCaseResult,
-  type IQualificationHistoricalModelStageEvidence,
-  type IQualificationHistoricalStageCheckpoint,
-  type IQualificationRecordedDeterministicVerificationArtifact,
   type IJudgeOutput,
-  type IQualificationRecordedAttemptResult,
   type IQualificationCaseResult,
   type IQualificationCaseScenario,
   type IQualificationModelStageEvidence,
@@ -86,55 +74,9 @@ const requireUniqueMembers = (members: readonly string[], label: string): void =
   }
 };
 
-const createExpectedHistoricalStageIds = (caseIds: readonly string[]): string[] => [
-  'source-state',
-  'coverage',
-  'candidate',
-  'baseline',
-  ...caseIds.flatMap((caseId) => [
-    `case:${caseId}:prepare`,
-    `case:${caseId}:deterministic-before`,
-    `case:${caseId}:actor`,
-    `case:${caseId}:deterministic-after`,
-    `case:${caseId}:assertions`,
-    `case:${caseId}:judge`,
-    `case:${caseId}:result`,
-  ]),
-];
-
-const createExpectedHistoricalCaseArtifactPaths = (caseId: string): string[] => {
-  const caseRoot = `cases/${caseId}`;
-
-  return [
-    `${caseRoot}/actor-evidence.json`,
-    `${caseRoot}/actor-events.jsonl`,
-    `${caseRoot}/actor-output.json`,
-    `${caseRoot}/actor-output.schema.json`,
-    `${caseRoot}/actor-prompt.md`,
-    `${caseRoot}/case-result.json`,
-    `${caseRoot}/deterministic-after.json`,
-    `${caseRoot}/deterministic-before.json`,
-    `${caseRoot}/judge-evidence.json`,
-    `${caseRoot}/judge-events.jsonl`,
-    `${caseRoot}/judge-output.json`,
-    `${caseRoot}/judge-output.schema.json`,
-    `${caseRoot}/judge-prompt.md`,
-    `${caseRoot}/workspace-assertions.json`,
-    `${caseRoot}/workspace.patch`,
-  ];
-};
-
-const createExpectedHistoricalPassingArtifactPaths = (caseIds: readonly string[]): string[] =>
-  [
-    'baseline.json',
-    'coverage.json',
-    'source-state.json',
-    ...caseIds.flatMap(createExpectedHistoricalCaseArtifactPaths),
-  ].sort((left, right) => left.localeCompare(right, 'en'));
-
 const requireArtifact = <TResult>(
   attemptDirectory: string,
-  result: IQualificationRecordedAttemptResult,
+  result: IQualificationAttemptResult,
   relativePath: string,
   schema: IBoundarySchema<TResult>,
 ): Promise<TResult> => {
@@ -154,20 +96,12 @@ const readOptionalArtifact = async <TResult>(
   return (await hasPath(artifactPath)) ? readJsonFile(artifactPath, schema) : null;
 };
 
-const getRecordedDeterministicArtifactSchema = (
-  protocolVersion: IQualificationRecordedAttemptResult['protocolVersion'],
-): IBoundarySchema<IQualificationRecordedDeterministicVerificationArtifact> =>
-  protocolVersion >= 5
-    ? DeterministicVerificationArtifactSchema
-    : QualificationHistoricalDeterministicVerificationArtifactSchema;
-
-/** Validates every JSON and JSON Lines artifact against its protocol-owned syntax and schema. */
+/** Validates every JSON and JSON Lines artifact against the current protocol schema. */
 const validateArtifactSchemas = async (
   attemptDirectory: string,
-  result: IQualificationRecordedAttemptResult,
+  result: IQualificationAttemptResult,
 ): Promise<void> => {
-  const isCurrentProtocol = result.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION;
-  const trialArtifactPattern = /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/(.+)$/u;
+  const trialRootPattern = /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\//u;
 
   for (const relativePath of Object.keys(result.artifactDigests)) {
     const artifactPath = resolveContainedPath(attemptDirectory, relativePath);
@@ -177,8 +111,7 @@ const validateArtifactSchemas = async (
 
       for (const eventLine of source.split('\n')) {
         if (eventLine.trim() !== '') {
-          const event = JSON.parse(eventLine) as unknown;
-          if (isCurrentProtocol) QualificationProjectedExecutionEventSchema.parse(event);
+          QualificationProjectedExecutionEventSchema.parse(JSON.parse(eventLine) as unknown);
         }
       }
       continue;
@@ -200,93 +133,56 @@ const validateArtifactSchemas = async (
     } else if (relativePath === 'error.json' || relativePath === 'interruption.json') {
       await readJsonFile(artifactPath, QualificationExecutionErrorSchema);
     } else if (
-      (isCurrentProtocol &&
-        /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/actor-output\.json$/u.test(
-          relativePath,
-        )) ||
-      (!isCurrentProtocol && /^cases\/[^/]+\/actor-output\.json$/u.test(relativePath))
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/actor-output\.json$/u.test(
+        relativePath,
+      )
     ) {
-      await readJsonFile(
-        artifactPath,
-        isCurrentProtocol ? ActorOutputSchema : QualificationHistoricalActorOutputSchema,
-      );
+      await readJsonFile(artifactPath, ActorOutputSchema);
     } else if (
-      (isCurrentProtocol &&
-        /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/judge-output\.json$/u.test(
-          relativePath,
-        )) ||
-      (!isCurrentProtocol && /^cases\/[^/]+\/judge-output\.json$/u.test(relativePath))
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/judge-output\.json$/u.test(
+        relativePath,
+      )
     ) {
       await readJsonFile(artifactPath, JudgeOutputSchema);
     } else if (
-      (isCurrentProtocol &&
-        /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/deterministic-(?:after|before)\.json$/u.test(
-          relativePath,
-        )) ||
-      (!isCurrentProtocol &&
-        /^cases\/[^/]+\/deterministic-(?:after|before)\.json$/u.test(relativePath))
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/deterministic-(?:after|before)\.json$/u.test(
+        relativePath,
+      )
     ) {
-      await readJsonFile(
-        artifactPath,
-        getRecordedDeterministicArtifactSchema(result.protocolVersion),
-      );
+      await readJsonFile(artifactPath, DeterministicVerificationArtifactSchema);
     } else if (
-      (isCurrentProtocol &&
-        /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/workspace-assertions\.json$/u.test(
-          relativePath,
-        )) ||
-      (!isCurrentProtocol && /^cases\/[^/]+\/workspace-assertions\.json$/u.test(relativePath))
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/workspace-assertions\.json$/u.test(
+        relativePath,
+      )
     ) {
       await readJsonFile(artifactPath, WorkspaceAssertionResultSchema);
     } else if (
-      (isCurrentProtocol &&
-        /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/judge-skipped\.json$/u.test(
-          relativePath,
-        )) ||
-      (!isCurrentProtocol && /^cases\/[^/]+\/judge-skipped\.json$/u.test(relativePath))
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/judge-skipped\.json$/u.test(
+        relativePath,
+      )
     ) {
-      await readJsonFile(
-        artifactPath,
-        isCurrentProtocol
-          ? QualificationJudgeSkippedSchema
-          : QualificationHistoricalJudgeSkippedSchema,
-      );
+      await readJsonFile(artifactPath, QualificationJudgeSkippedSchema);
     } else if (/^cases\/[^/]+\/case-result\.json$/u.test(relativePath)) {
-      if (isCurrentProtocol) {
-        await readJsonFile(artifactPath, QualificationCaseResultSchema);
-      } else {
-        await readJsonFile(artifactPath, QualificationHistoricalCaseResultSchema);
-      }
+      await readJsonFile(artifactPath, QualificationCaseResultSchema);
     } else if (
-      isCurrentProtocol &&
       /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/trial-result\.json$/u.test(
         relativePath,
       )
     ) {
       await readJsonFile(artifactPath, QualificationTrialResultSchema);
     } else if (
-      (isCurrentProtocol &&
-        /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/(?:actor|judge)-evidence\.json$/u.test(
-          relativePath,
-        )) ||
-      (!isCurrentProtocol && /^cases\/[^/]+\/(?:actor|judge)-evidence\.json$/u.test(relativePath))
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/(?:actor|judge)-evidence\.json$/u.test(
+        relativePath,
+      )
     ) {
-      await readJsonFile(
-        artifactPath,
-        isCurrentProtocol
-          ? QualificationModelStageEvidenceSchema
-          : QualificationHistoricalModelStageEvidenceSchema,
-      );
+      await readJsonFile(artifactPath, QualificationModelStageEvidenceSchema);
     } else if (
-      (isCurrentProtocol &&
-        /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/(?:actor|judge)-output\.schema\.json$/u.test(
-          relativePath,
-        )) ||
-      (!isCurrentProtocol &&
-        /^cases\/[^/]+\/(?:actor|judge)-output\.schema\.json$/u.test(relativePath))
+      /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\/(?:actor|judge)-output\.schema\.json$/u.test(
+        relativePath,
+      )
     ) {
       await readJsonFile(artifactPath, JsonObjectSchema);
-    } else if (isCurrentProtocol && trialArtifactPattern.test(relativePath)) {
+    } else if (trialRootPattern.test(relativePath)) {
       throw new Error(
         `Qualification evidence contains unsupported trial artifact ${relativePath}.`,
       );
@@ -297,7 +193,7 @@ const validateArtifactSchemas = async (
 };
 
 const assertDeterministicEvidence = (
-  artifact: IQualificationRecordedDeterministicVerificationArtifact,
+  artifact: IDeterministicVerificationArtifact,
   expectedInspectionStatus: 'invalid' | 'valid',
   label: string,
 ): void => {
@@ -307,9 +203,7 @@ const assertDeterministicEvidence = (
     verification.repositoryFilesystemValid &&
     verification.memoryRepositoryEquivalent &&
     verification.coreValid &&
-    ('cliCompositionValid' in verification
-      ? verification.cliCompositionValid
-      : verification.cliCompatibilityValid) &&
+    verification.cliCompositionValid &&
     verification.cliIdentityValid &&
     verification.cliPackageInventoryValid &&
     verification.cliAdapterInventoryValid &&
@@ -329,7 +223,7 @@ const assertDeterministicEvidence = (
 };
 
 const assertPassingDeterministicEvidence = (
-  artifact: IQualificationRecordedDeterministicVerificationArtifact,
+  artifact: IDeterministicVerificationArtifact,
   expectedInspectionStatus: 'invalid' | 'valid',
   label: string,
 ): void => {
@@ -439,68 +333,6 @@ const assertWorkspaceEvidence = (
   }
 };
 
-const assertPassingWorkspaceEvidence = (
-  actor: IActorOutput,
-  assertions: IWorkspaceAssertionResult,
-  scenario: IQualificationCaseScenario,
-): void => {
-  assertWorkspaceEvidence(actor, assertions, scenario);
-
-  if (!assertions.passed) {
-    throw new Error(`Passing case ${scenario.id} has failing workspace assertions.`);
-  }
-};
-
-const assertHistoricalModelEvidence = (options: {
-  attemptId: string;
-  caseResult: IQualificationHistoricalCaseResult;
-  evidence: IQualificationHistoricalModelStageEvidence;
-  role: 'actor' | 'judge';
-  stage: IQualificationHistoricalStageCheckpoint;
-}): void => {
-  const expectedCreatedAt =
-    options.role === 'actor'
-      ? options.caseResult.actorEvidenceCreatedAt
-      : options.caseResult.judgeEvidenceCreatedAt;
-  const expectedUsage =
-    options.role === 'actor' ? options.caseResult.actorUsage : options.caseResult.judgeUsage;
-  const expectedCacheSourceAttemptId =
-    options.role === 'actor'
-      ? options.caseResult.actorCacheSourceAttemptId
-      : options.caseResult.judgeCacheSourceAttemptId;
-  const isCached = expectedCacheSourceAttemptId !== null;
-
-  if (
-    options.evidence.role !== options.role ||
-    options.evidence.createdAt !== expectedCreatedAt ||
-    JSON.stringify(options.evidence.usage) !== JSON.stringify(expectedUsage) ||
-    options.evidence.cacheSourceAttemptId !== expectedCacheSourceAttemptId ||
-    options.evidence.sourceAttemptId !== (expectedCacheSourceAttemptId ?? options.attemptId) ||
-    options.stage.cacheKey !== options.evidence.cacheKey ||
-    options.stage.cacheSourceAttemptId !== expectedCacheSourceAttemptId ||
-    options.stage.status !== (isCached ? 'cached' : 'passed')
-  ) {
-    throw new Error(
-      `Case ${options.caseResult.caseId} has contradictory ${options.role} provenance.`,
-    );
-  }
-};
-
-const assertJudgeEvidence = (judge: IJudgeOutput, scenario: IQualificationCaseScenario): void => {
-  const expectedIds = scenario.judgeRequirements.map(({ id }) => id);
-  const actualIds = judge.requirements.map(({ id }) => id);
-  requireUniqueMembers(actualIds, `Case ${scenario.id} judge requirement ids`);
-  const hasFailedRequirement = judge.requirements.some(({ verdict }) => verdict === 'fail');
-
-  if (
-    !haveSameMembers(actualIds, expectedIds) ||
-    (judge.verdict === 'pass' && (hasFailedRequirement || judge.failures.length > 0)) ||
-    (judge.verdict === 'fail' && judge.failures.length === 0)
-  ) {
-    throw new Error(`Case ${scenario.id} has contradictory judge evidence.`);
-  }
-};
-
 const assertCurrentJudgeEvidence = (
   judge: IJudgeOutput,
   scenario: IQualificationCaseScenario,
@@ -519,212 +351,6 @@ const assertCurrentJudgeEvidence = (
   ) {
     throw new Error(`Case ${scenario.id} has contradictory current judge evidence.`);
   }
-};
-
-const assertJudgeOutput = (judge: IJudgeOutput, scenario: IQualificationCaseScenario): void => {
-  assertJudgeEvidence(judge, scenario);
-
-  if (judge.verdict !== 'pass') {
-    throw new Error(`Passing case ${scenario.id} has failing judge evidence.`);
-  }
-};
-
-const assertHistoricalPassingCaseEvidence = async (options: {
-  attemptDirectory: string;
-  result: IQualificationRecordedAttemptResult;
-  caseResult: IQualificationHistoricalCaseResult;
-  scenario: IQualificationCaseScenario;
-  stages: ReadonlyMap<string, IQualificationHistoricalStageCheckpoint>;
-}): Promise<void> => {
-  const { caseResult, scenario } = options;
-  const caseRoot = `cases/${caseResult.caseId}`;
-  const expectedPaths = {
-    actorOutput: `${caseRoot}/actor-output.json`,
-    deterministicAfter: `${caseRoot}/deterministic-after.json`,
-    deterministicBefore: `${caseRoot}/deterministic-before.json`,
-    judgeOutput: `${caseRoot}/judge-output.json`,
-    patch: `${caseRoot}/workspace.patch`,
-    workspaceAssertions: `${caseRoot}/workspace-assertions.json`,
-  };
-
-  if (
-    caseResult.title !== scenario.title ||
-    caseResult.status !== 'passed' ||
-    caseResult.failures.length > 0 ||
-    caseResult.deterministicBeforePath !== expectedPaths.deterministicBefore ||
-    caseResult.deterministicAfterPath !== expectedPaths.deterministicAfter ||
-    caseResult.actorOutputPath !== expectedPaths.actorOutput ||
-    caseResult.judgeStatus !== 'completed' ||
-    caseResult.judgeOutputPath !== expectedPaths.judgeOutput ||
-    caseResult.judgeSkippedPath !== null ||
-    caseResult.workspaceAssertionsPath !== expectedPaths.workspaceAssertions ||
-    caseResult.patchPath !== expectedPaths.patch
-  ) {
-    throw new Error(`Passing case ${caseResult.caseId} has contradictory result references.`);
-  }
-
-  const [
-    actor,
-    actorEvidence,
-    deterministicAfter,
-    deterministicBefore,
-    judge,
-    judgeEvidence,
-    assertions,
-  ] = await Promise.all([
-    requireArtifact(
-      options.attemptDirectory,
-      options.result,
-      expectedPaths.actorOutput,
-      QualificationHistoricalActorOutputSchema,
-    ),
-    requireArtifact(
-      options.attemptDirectory,
-      options.result,
-      `${caseRoot}/actor-evidence.json`,
-      QualificationHistoricalModelStageEvidenceSchema,
-    ),
-    requireArtifact(
-      options.attemptDirectory,
-      options.result,
-      expectedPaths.deterministicAfter,
-      getRecordedDeterministicArtifactSchema(options.result.protocolVersion),
-    ),
-    requireArtifact(
-      options.attemptDirectory,
-      options.result,
-      expectedPaths.deterministicBefore,
-      getRecordedDeterministicArtifactSchema(options.result.protocolVersion),
-    ),
-    requireArtifact(
-      options.attemptDirectory,
-      options.result,
-      expectedPaths.judgeOutput,
-      JudgeOutputSchema,
-    ),
-    requireArtifact(
-      options.attemptDirectory,
-      options.result,
-      `${caseRoot}/judge-evidence.json`,
-      QualificationHistoricalModelStageEvidenceSchema,
-    ),
-    requireArtifact(
-      options.attemptDirectory,
-      options.result,
-      expectedPaths.workspaceAssertions,
-      WorkspaceAssertionResultSchema,
-    ),
-  ]);
-  const recordedCaseResult = await requireArtifact(
-    options.attemptDirectory,
-    options.result,
-    `${caseRoot}/case-result.json`,
-    QualificationHistoricalCaseResultSchema,
-  );
-
-  if (JSON.stringify(recordedCaseResult) !== JSON.stringify(caseResult)) {
-    throw new Error(`Case ${caseResult.caseId} summary contradicts case-result.json.`);
-  }
-
-  if (actor.outcome !== scenario.expectedActorOutcome) {
-    throw new Error(`Passing case ${caseResult.caseId} has the wrong actor outcome.`);
-  }
-
-  assertPassingDeterministicEvidence(
-    deterministicBefore,
-    scenario.inspection.before,
-    `${caseResult.caseId} pre-actor deterministic evidence`,
-  );
-  assertPassingDeterministicEvidence(
-    deterministicAfter,
-    scenario.inspection.after,
-    `${caseResult.caseId} post-actor deterministic evidence`,
-  );
-  assertPassingWorkspaceEvidence(actor, assertions, scenario);
-  assertJudgeOutput(judge, scenario);
-
-  const expectedActorOutputSchema = z.toJSONSchema(QualificationHistoricalActorOutputSchema);
-  const expectedJudgeOutputSchema = z.toJSONSchema(JudgeOutputSchema);
-  const [actorOutputSchema, judgeOutputSchema] = await Promise.all([
-    requireArtifact(
-      options.attemptDirectory,
-      options.result,
-      `${caseRoot}/actor-output.schema.json`,
-      JsonObjectSchema,
-    ),
-    requireArtifact(
-      options.attemptDirectory,
-      options.result,
-      `${caseRoot}/judge-output.schema.json`,
-      JsonObjectSchema,
-    ),
-  ]);
-
-  if (
-    JSON.stringify(actorOutputSchema) !== JSON.stringify(expectedActorOutputSchema) ||
-    JSON.stringify(judgeOutputSchema) !== JSON.stringify(expectedJudgeOutputSchema)
-  ) {
-    throw new Error(`Case ${caseResult.caseId} has contradictory model output schemas.`);
-  }
-
-  const actorStage = options.stages.get(`case:${caseResult.caseId}:actor`);
-  const judgeStage = options.stages.get(`case:${caseResult.caseId}:judge`);
-
-  if (actorStage === undefined || judgeStage === undefined) {
-    throw new Error(`Case ${caseResult.caseId} is missing model-stage provenance.`);
-  }
-
-  assertHistoricalModelEvidence({
-    attemptId: options.result.attemptId,
-    caseResult,
-    evidence: actorEvidence,
-    role: 'actor',
-    stage: actorStage,
-  });
-  assertHistoricalModelEvidence({
-    attemptId: options.result.attemptId,
-    caseResult,
-    evidence: judgeEvidence,
-    role: 'judge',
-    stage: judgeStage,
-  });
-};
-
-const assertHistoricalPassingStages = (
-  result: IQualificationRecordedAttemptResult,
-  expectedStageIds: readonly string[],
-): Map<string, IQualificationHistoricalStageCheckpoint> => {
-  const actualStageIds = result.stages.map(({ id }) => id);
-
-  if (JSON.stringify(actualStageIds) !== JSON.stringify(expectedStageIds)) {
-    throw new Error('Passing qualification evidence has an incomplete stage inventory.');
-  }
-
-  const stages = new Map(result.stages.map((stage) => [stage.id, stage]));
-
-  for (const stage of result.stages) {
-    const isModelStage = stage.id.endsWith(':actor') || stage.id.endsWith(':judge');
-    const hasCompletedState =
-      stage.startedAt !== null &&
-      stage.completedAt !== null &&
-      stage.durationMs !== null &&
-      stage.error === null;
-    const hasValidStatus = isModelStage
-      ? stage.status === 'cached' || stage.status === 'passed'
-      : stage.status === 'passed';
-    const hasValidCacheState = isModelStage
-      ? stage.cacheKey !== null &&
-        (stage.status === 'cached'
-          ? stage.cacheSourceAttemptId !== null
-          : stage.cacheSourceAttemptId === null)
-      : stage.cacheKey === null && stage.cacheSourceAttemptId === null;
-
-    if (!hasCompletedState || !hasValidStatus || !hasValidCacheState) {
-      throw new Error(`Passing qualification stage ${stage.id} has contradictory state.`);
-    }
-  }
-
-  return stages;
 };
 
 const getCurrentTrialRoot = (caseId: string, trialId: IQualificationTrialResult['trialId']) =>
@@ -858,7 +484,7 @@ const assertCurrentModelEvidence = (options: {
 
 const deriveTrialFailures = (options: {
   actor: IActorOutput;
-  deterministicAfter: IQualificationRecordedDeterministicVerificationArtifact;
+  deterministicAfter: IDeterministicVerificationArtifact;
   judge: IJudgeOutput | null;
   scenario: IQualificationCaseScenario;
   requirementAssessments: IQualificationTrialResult['requirementAssessments'];
@@ -880,7 +506,7 @@ const deriveTrialFailures = (options: {
 const deriveRequirementAssessments = (options: {
   actor: IActorOutput;
   actorEvidence: IQualificationModelStageEvidence;
-  deterministicAfter: IQualificationRecordedDeterministicVerificationArtifact;
+  deterministicAfter: IDeterministicVerificationArtifact;
   judge: IJudgeOutput | null;
   scenario: IQualificationCaseScenario;
   workspaceAssertions: IWorkspaceAssertionResult;
@@ -1482,155 +1108,10 @@ const validateCurrentTerminalAttempt = async (
   }
 };
 
-/** Validates one historical pass against its immutable artifacts and stable profile identities. */
-const validateHistoricalPassingAttempt = async (
-  attemptDirectory: string,
-  result: IQualificationRecordedAttemptResult,
-  resultsRoot: string,
-): Promise<void> => {
-  const profilesRoot = path.resolve(resultsRoot, '..', 'profiles');
-  const profileDirectory = path.join(
-    profilesRoot,
-    result.selection.adapterId,
-    result.selection.implementationId,
-  );
-  const profile = await readYamlFile(
-    path.join(profileDirectory, 'profile.yaml'),
-    QualificationProfileSchema,
-  );
-
-  if (
-    profile.adapterId !== result.selection.adapterId ||
-    profile.implementationId !== result.selection.implementationId
-  ) {
-    throw new Error('Passing qualification evidence does not match its profile identity.');
-  }
-
-  const profileCaseIds = profile.cases.map(({ id }) => id);
-  const resultCaseIds = result.cases.map(({ caseId }) => caseId);
-  requireUniqueMembers(profileCaseIds, 'Qualification profile case ids');
-  requireUniqueMembers(resultCaseIds, 'Qualification result case ids');
-
-  if (JSON.stringify(resultCaseIds) !== JSON.stringify(profileCaseIds)) {
-    throw new Error('Passing qualification evidence does not contain every profile case in order.');
-  }
-
-  const expectedArtifactPaths = createExpectedHistoricalPassingArtifactPaths(profileCaseIds);
-  const actualArtifactPaths = Object.keys(result.artifactDigests).sort((left, right) =>
-    left.localeCompare(right, 'en'),
-  );
-
-  if (JSON.stringify(actualArtifactPaths) !== JSON.stringify(expectedArtifactPaths)) {
-    throw new Error('Passing qualification evidence has an incomplete artifact inventory.');
-  }
-
-  const [baseline, coverage, probes, sourceState] = await Promise.all([
-    requireArtifact(attemptDirectory, result, 'baseline.json', QualificationBaselineCheckSchema),
-    requireArtifact(attemptDirectory, result, 'coverage.json', QualificationCoverageResultSchema),
-    readYamlFile(
-      resolveContainedPath(profileDirectory, profile.probesFile),
-      QualificationProbesSchema,
-    ),
-    requireArtifact(
-      attemptDirectory,
-      result,
-      'source-state.json',
-      QualificationSourceStateResultSchema,
-    ),
-  ]);
-  const declaredClaims = probes.probes.map(({ matrixPath }) => matrixPath);
-  const hasPassingCoverage =
-    probes.adapterId === result.selection.adapterId &&
-    probes.implementationId === result.selection.implementationId &&
-    coverage.passed &&
-    coverage.missingClaims.length === 0 &&
-    coverage.unknownClaims.length === 0 &&
-    coverage.uncoveredCaseIds.length === 0 &&
-    haveSameMembers(coverage.requiredClaims, coverage.declaredClaims) &&
-    haveSameMembers(coverage.declaredClaims, declaredClaims);
-  const hasPassingSourceState =
-    sourceState.passed &&
-    sourceState.requiresCleanInputs &&
-    sourceState.isExecutionHostTrusted &&
-    !sourceState.packagesRepositoryDirty &&
-    !sourceState.qualificationRepositoryDirty &&
-    !sourceState.skillRepositoryDirty &&
-    sourceState.failures.length === 0 &&
-    !result.provenance.packagesRepositoryDirty &&
-    !result.provenance.qualificationRepositoryDirty &&
-    !result.provenance.skillRepositoryDirty;
-  const hasPassingBaseline =
-    result.selection.adapterId === 'custom'
-      ? !baseline.required &&
-        baseline.passed &&
-        baseline.status === 'not-required' &&
-        baseline.baselineAttemptId === null &&
-        result.provenance.baselineAttemptId === null &&
-        baseline.failures.length === 0
-      : baseline.required &&
-        baseline.passed &&
-        baseline.status === 'passed' &&
-        baseline.baselineAttemptId === result.provenance.baselineAttemptId &&
-        baseline.failures.length === 0;
-
-  if (!hasPassingCoverage || !hasPassingSourceState || !hasPassingBaseline) {
-    throw new Error('Passing qualification evidence has contradictory control artifacts.');
-  }
-
-  const stages = assertHistoricalPassingStages(
-    result,
-    createExpectedHistoricalStageIds(profileCaseIds),
-  );
-  const evidenceTimestamps: string[] = [];
-
-  for (const [index, profileCase] of profile.cases.entries()) {
-    const scenario = await readYamlFile(
-      resolveContainedPath(
-        resolveContainedPath(profileDirectory, profileCase.projectDirectory),
-        profileCase.scenarioFile,
-      ),
-      QualificationCaseScenarioSchema,
-    );
-    const caseResult = result.cases[index];
-
-    if (scenario.id !== profileCase.id || caseResult === undefined) {
-      throw new Error(`Qualification case ${profileCase.id} contradicts its profile identity.`);
-    }
-
-    const historicalCaseResult = QualificationHistoricalCaseResultSchema.parse(caseResult);
-    await assertHistoricalPassingCaseEvidence({
-      attemptDirectory,
-      result,
-      caseResult: historicalCaseResult,
-      scenario,
-      stages,
-    });
-    evidenceTimestamps.push(
-      historicalCaseResult.actorEvidenceCreatedAt,
-      ...(historicalCaseResult.judgeEvidenceCreatedAt === null
-        ? []
-        : [historicalCaseResult.judgeEvidenceCreatedAt]),
-    );
-  }
-
-  const evidenceGeneratedAt = evidenceTimestamps
-    .sort((left, right) => left.localeCompare(right, 'en'))
-    .at(0);
-
-  if (
-    result.completedAt === null ||
-    result.evidenceGeneratedAt !== evidenceGeneratedAt ||
-    (await hasPath(path.join(attemptDirectory, 'error.json'))) ||
-    (await hasPath(path.join(attemptDirectory, 'interruption.json')))
-  ) {
-    throw new Error('Passing qualification evidence has contradictory completion state.');
-  }
-};
-
 /** Validates the public artifacts and status contract for one committed attempt. */
 export const validateQualificationAttemptEvidence = async (options: {
   attemptDirectory: string;
-  result: IQualificationRecordedAttemptResult;
+  result: IQualificationAttemptResult;
   resultsRoot: string;
 }): Promise<void> => {
   await validateArtifactSchemas(options.attemptDirectory, options.result);
@@ -1657,17 +1138,10 @@ export const validateQualificationAttemptEvidence = async (options: {
   }
 
   if (
-    options.result.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
-    (options.result.status === 'passed' ||
-      (options.result.status === 'failed' && options.result.cases.length > 0))
+    options.result.status === 'passed' ||
+    (options.result.status === 'failed' && options.result.cases.length > 0)
   ) {
     await validateCurrentTerminalAttempt(
-      options.attemptDirectory,
-      options.result,
-      options.resultsRoot,
-    );
-  } else if (options.result.status === 'passed') {
-    await validateHistoricalPassingAttempt(
       options.attemptDirectory,
       options.result,
       options.resultsRoot,

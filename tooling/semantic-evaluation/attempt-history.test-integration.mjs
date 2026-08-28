@@ -131,13 +131,13 @@ test('semantic attempt recording is append-only and maintains independent latest
   }
 });
 
-test('semantic attempt recording rejects historical evidence protocols', async () => {
+test('semantic attempt recording rejects a noncurrent evidence protocol', async () => {
   const resultsRoot = await mkdtemp(join(tmpdir(), 'moldea-semantic-attempts-'));
   try {
-    const historicalEvidence = `${JSON.stringify(
+    const noncurrentEvidence = `${JSON.stringify(
       {
-        ...createEvidence('historical-case', true, '2026-08-25T00:00:00.000Z'),
-        evaluationProtocolVersion: 16,
+        ...createEvidence('noncurrent-case', true, '2026-08-25T00:00:00.000Z'),
+        evaluationProtocolVersion: 22,
       },
       null,
       2,
@@ -146,7 +146,7 @@ test('semantic attempt recording rejects historical evidence protocols', async (
     await assert.rejects(
       recordSemanticEvaluationAttempt({
         evidenceKind: 'candidate',
-        evidenceText: historicalEvidence,
+        evidenceText: noncurrentEvidence,
         recordedAt: '2026-08-25T00:00:01.000Z',
         resultsRoot,
         stopReason: 'complete',

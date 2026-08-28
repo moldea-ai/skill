@@ -261,7 +261,7 @@ test('semantic attempt summaries reject missing or incompatible trial evidence',
   );
 });
 
-test('semantic attempt summaries retain historical contracts and reject unsupported contracts', () => {
+test('semantic attempt summaries accept only the current schema and protocol contract', () => {
   const trial = createTrial('passing-case', true, '2026-08-25T01:00:00.000Z');
   const options = {
     evidenceKind: 'candidate',
@@ -275,25 +275,15 @@ test('semantic attempt summaries retain historical contracts and reject unsuppor
     () =>
       createSemanticAttemptRecord({
         ...options,
-        evidence: { ...createEvidence([trial]), schemaVersion: 4 },
+        evidence: { ...createEvidence([trial]), schemaVersion: 7 },
       }),
     /unsupported schema/,
-  );
-  assert.doesNotThrow(() =>
-    createSemanticAttemptRecord({
-      ...options,
-      evidence: {
-        ...createEvidence([trial]),
-        evaluationProtocolVersion: 16,
-        schemaVersion: 5,
-      },
-    }),
   );
   assert.throws(
     () =>
       createSemanticAttemptRecord({
         ...options,
-        evidence: { ...createEvidence([trial]), evaluationProtocolVersion: 15 },
+        evidence: { ...createEvidence([trial]), evaluationProtocolVersion: 22 },
       }),
     /unsupported schema and protocol contract/,
   );

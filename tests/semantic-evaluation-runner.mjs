@@ -69,11 +69,9 @@ import {
 
 export {
   createPortableSkillDigest,
-  createPortableSkillSemanticDigest,
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
   getSemanticCriterionLabels,
-  normalizePortableSkillSemanticEvidence,
   validateSemanticCaseDefinition,
 } from '../tooling/semantic-evaluation/index.mjs';
 

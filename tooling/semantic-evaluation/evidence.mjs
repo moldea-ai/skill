@@ -20,10 +20,6 @@ const STABLE_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SEMANTIC_CRITERION_KEYS = new Set(['criterion', 'label']);
 // maximum evaluator-authored host instruction context for one isolated case
 const MAX_HOST_INSTRUCTIONS_BYTES = 16_384;
-const PORTABLE_RELEASE_VERSION_PLACEHOLDER = '<portable-release-version>';
-const PORTABLE_RELEASE_VERSION_PATHS = new Set(['SKILL.md', 'references/local-tooling.md']);
-const PORTABLE_RELEASE_CARRY_FORWARD_REASON =
-  'Release-version declarations changed without changing semantic skill content.';
 const SEMANTIC_CASE_KEYS = new Set([
   'expected',
   'forbidden',
@@ -225,30 +221,6 @@ export const createSemanticCaseSuiteDigest = (caseDefinitions) => {
   return createJsonDigest(definitionsById);
 };
 
-/** Normalizes release declarations while preserving behavior-relevant skill content. */
-export const normalizePortableSkillSemanticEvidence = (relativePath, content) => {
-  if (relativePath === 'SKILL.md') {
-    return content
-      .replace(
-        /^(\s*version:\s*['"])[^'"]+(['"]\s*)$/m,
-        `$1${PORTABLE_RELEASE_VERSION_PLACEHOLDER}$2`,
-      )
-      .replace(
-        /Skill release `[^`]+` supports exactly:/,
-        `Skill release \`${PORTABLE_RELEASE_VERSION_PLACEHOLDER}\` supports exactly:`,
-      );
-  }
-
-  if (relativePath === 'references/local-tooling.md') {
-    return content.replace(
-      /Release `[^`]+` supports:/,
-      `Release \`${PORTABLE_RELEASE_VERSION_PLACEHOLDER}\` supports:`,
-    );
-  }
-
-  return content;
-};
-
 /** Hashes distributed paths with a caller-provided content transformation. */
 const createPortableSkillContentDigest = (transformContent, portableSkillRoot) => {
   const paths = [];
@@ -284,31 +256,3 @@ export const createPortableSkillDigest = (repositoryRoot = DEFAULT_REPOSITORY_RO
     (_relativePath, content) => content,
     join(repositoryRoot, 'moldea'),
   );
-
-/** Hashes semantic skill content while excluding only release-version declarations. */
-export const createPortableSkillSemanticDigest = (repositoryRoot = DEFAULT_REPOSITORY_ROOT) =>
-  createPortableSkillContentDigest(
-    (relativePath, content) => {
-      if (!PORTABLE_RELEASE_VERSION_PATHS.has(relativePath)) return content;
-      return normalizePortableSkillSemanticEvidence(relativePath, content.toString('utf8'));
-    },
-    join(repositoryRoot, 'moldea'),
-  );
-
-/** Validates release-only carry-forward against the current portable skill. */
-export const hasValidPortableSkillSemanticCarryForward = (
-  carryForward,
-  fromArtifactDigest,
-  repositoryRoot = DEFAULT_REPOSITORY_ROOT,
-) =>
-  isPlainRecord(carryForward) &&
-  carryForward.fromArtifactDigest === fromArtifactDigest &&
-  carryForward.toArtifactDigest === createPortableSkillDigest(repositoryRoot) &&
-  JSON.stringify(carryForward.changedPortablePaths) ===
-    JSON.stringify([...PORTABLE_RELEASE_VERSION_PATHS]) &&
-  typeof carryForward.fromSemanticDigest === 'string' &&
-  carryForward.fromSemanticDigest === carryForward.toSemanticDigest &&
-  carryForward.toSemanticDigest === createPortableSkillSemanticDigest(repositoryRoot) &&
-  carryForward.reason === PORTABLE_RELEASE_CARRY_FORWARD_REASON &&
-  typeof carryForward.carriedForwardAt === 'string' &&
-  /^\d{4}-\d{2}-\d{2}T/u.test(carryForward.carriedForwardAt);

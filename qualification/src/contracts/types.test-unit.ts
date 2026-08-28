@@ -4,7 +4,6 @@ import { describe, expect, test } from 'vitest';
 import {
   QualificationCaseResultSchema,
   QualificationCaseScenarioSchema,
-  QualificationHistoricalStageCheckpointSchema,
   QualificationStageCheckpointSchema,
   QualificationTrialResultSchema,
   type IQualificationTrialResult,
@@ -297,27 +296,4 @@ describe('protocol 6 qualification contracts', () => {
       }).success,
     ).toBe(false);
   });
-});
-
-test('keeps the protocol 3–5 stage contract frozen without retry evidence', () => {
-  const historicalStage = {
-    id: 'case:test-case:actor',
-    status: 'passed',
-    startedAt: '2026-08-20T00:00:00.000Z',
-    completedAt: '2026-08-20T00:00:01.000Z',
-    durationMs: 1_000,
-    cacheKey: null,
-    cacheSourceAttemptId: null,
-    error: null,
-  } as const;
-
-  expect(QualificationHistoricalStageCheckpointSchema.safeParse(historicalStage).success).toBe(
-    true,
-  );
-  expect(
-    QualificationHistoricalStageCheckpointSchema.safeParse({
-      ...historicalStage,
-      operationalRetries: [],
-    }).success,
-  ).toBe(false);
 });

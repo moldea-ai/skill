@@ -10,7 +10,7 @@ order: 172
 
 Semantic evaluation tests whether the portable `moldea` skill behaves correctly in difficult repository situations. It complements deterministic conformance and adapter qualification. It does not replace either one.
 
-The current suite contains 54 scenarios. Each initial trial uses one actor call and one independent judge call, for 108 model requests when every scenario passes initially. One bounded confirmation sequence adds up to four requests, and the theoretical full-run maximum is 324 requests when every case needs both confirmations. Operational retries are additional. Both processes use the fixed frontier assurance model, `gpt-5.6-sol`, at `medium` reasoning effort and have a five-minute per-call timeout by default. A timeout starts an operational retry instead of consuming the semantic trial. Terra attempts remain public as historical evidence, but Terra is not qualified for the current release.
+The current suite contains 54 scenarios. Each initial trial uses one actor call and one independent judge call, for 108 model requests when every scenario passes initially. One bounded confirmation sequence adds up to four requests, and the theoretical full-run maximum is 324 requests when every case needs both confirmations. Operational retries are additional. Both processes use the fixed frontier assurance model, `gpt-5.6-sol`, at `medium` reasoning effort and have a five-minute per-call timeout by default. A timeout starts an operational retry instead of consuming the semantic trial.
 
 ## What each scenario proves
 
@@ -43,7 +43,7 @@ The committed [coverage map](https://github.com/moldea-ai/skill/blob/main/fixtur
 
 Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, semantic protocol 21, confirmation policy, and fixed Codex, `gpt-5.6-sol`, medium host contract. Each completed trial records the exact actor and judge Codex CLI versions independently. A CLI version update alone does not discard compatible paid work, but a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. The canonical result exists only after all 54 cases pass initially or satisfy the bounded recovery policy.
 
-Only a complete protocol 21 run for the current suite can provide current semantic release evidence. Earlier attempts remain in immutable history but do not satisfy the current protocol or suite identity.
+Only a complete protocol 21 run for the current suite can provide semantic release evidence.
 
 Every terminal recorded run is published under `fixtures/semantic-evaluation-results/attempts/` with a derived summary and the exact source checkpoint. `latest.json` tracks the newest attempt and the last passing attempt independently. Failed and incomplete history remains public but cannot satisfy the release gate. The canonical result is never assembled or edited by hand.
 
@@ -57,7 +57,7 @@ After a semantic failure, preserve and inspect the actor response, runner facts,
 
 Search the evaluator and fixtures for analogous cases, then list every evaluation test the correction can affect. After the correction, run each listed evaluation test three consecutive times. If any selected test fails semantically, repeat the diagnosis, similar-case audit, impacted-test listing, correction, and three-pass verification recursively until all selected tests pass. Operational failures do not count toward those completed runs because the runner persists and retries them automatically.
 
-After correcting a source, fixture, or evaluator defect, when a confirmation rejects the candidate, or when the local checkpoint does not match the current contract, `--record --restart` begins a new full attempt. Restart removes only the ignored local checkpoint and preserves published attempt history.
+After correcting a source, fixture, or evaluator defect, when a confirmation rejects the candidate, or when the local checkpoint does not match the current contract, `--record --restart` begins a new full attempt. Restart removes only the ignored local checkpoint.
 
 For a final release-candidate cycle, maintainers first review, commit, and push the source correction, then freeze the portable skill, semantic cases, coverage map, runner, qualification engine, and ready profiles. A deterministic violation, terminal confirmation failure, repeated material product failure, or genuinely undecidable evaluator contract blocks that candidate and ends the cycle. It does not trigger an automatic source edit or restart.
 

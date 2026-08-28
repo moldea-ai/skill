@@ -12,7 +12,6 @@ export type {
   IQualificationCoverageResult,
   IQualificationCurrentCaseResult,
   IQualificationExecutionError,
-  IQualificationHistoricalCaseResult,
   IQualificationLatestResult,
   IQualificationJudgeSkipped,
   IQualificationOperationalRetry,

@@ -17,7 +17,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   ).toBeVisible();
   await expect(
     customProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('3');
+  ).toContainText('4');
 
   const vercelProfileLink = page.getByRole('link', {
     name: /Vercel AI SDK direct generation qualification/,
@@ -33,11 +33,11 @@ test('represents the current qualification evidence state', async ({ page }) => 
     name: /Vercel AI SDK ToolLoopAgent qualification/,
   });
   await expect(
-    toolLoopProfileLink.locator('[data-evidence-status][data-evidence-status="not-recorded"]'),
+    toolLoopProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
   ).toBeVisible();
   await expect(
     toolLoopProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('0');
+  ).toContainText('2');
 });
 
 test('presents the recorded Custom and Vercel results', async ({ page }) => {
@@ -80,8 +80,12 @@ test('presents the recorded Custom and Vercel results', async ({ page }) => {
     }),
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: '10 realistic journeys' })).toBeVisible();
-  await expect(page.locator('[data-evidence-status="not-recorded"]').first()).toBeVisible();
-  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toBeVisible();
+  await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
+  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
+    'href',
+    /\/evidence\/qualification\/vercel-ai-sdk\/typescript-tool-loop-agent-7\/attempts\//u,
+  );
 });
 
 test('replays qualification evidence through human-readable and technical views', async ({

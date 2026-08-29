@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The current manifest contains only `version: 1`, while the workspace patch removes the entire `support` agent registration and all Vercel runtime, agent-definition, loader, input-schema, and output-schema bindings. The obsolete canonical description and instruction assets are deleted, consistent with the removed implementation. Runner-owned validation reports a valid repository, valid inspect/validate results, passing typecheck, and no failures.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current workspace: `moldea/moldea.yaml` contains only `version: 1`; the support canonical asset directory and `src/support-agent.ts` are absent. Workspace patch: removes `agents.support`, `runtime.id: vercel-ai-sdk`, `runtimeAgent`, `instructionLoader`, `inputSchema`, `outputSchema`, and `affectedBy`, and deletes both support canonical assets. Deterministic-after: inspection and CLI validation are `valid`, repository filesystem/Core/adapter composition checks pass, typecheck passes, and failures are empty."
+    }
+  ],
+  "failures": []
+}

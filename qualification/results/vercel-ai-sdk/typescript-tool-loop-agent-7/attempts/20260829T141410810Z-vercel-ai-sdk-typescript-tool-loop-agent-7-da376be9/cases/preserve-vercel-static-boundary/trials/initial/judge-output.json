@@ -1,0 +1,37 @@
+{
+  "verdict": "pass",
+  "summary": "The canonical state, current source, workspace patch evidence, and successful deterministic validation agree. The two preparation boundaries are represented conservatively, delegating-support remains an ordinary function-tool relationship, and WorkflowAgent remains outside the ToolLoopAgent target.",
+  "requirements": [
+    {
+      "id": "preserves-prepare-call-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains only support.runtimeAgent and support.inputSchema bindings. Its warning prepare-call-wiring explicitly leaves instruction loading, structured output, and every get_status relationship unresolved because prepareCall may replace complete call settings. Current src/support-agent.ts confirms the prepareCall boundary; deterministic inspection is valid."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains step-support runtimeAgent, inputSchema, outputSchema, and all get-status registration, implementation, input-schema, and output-schema bindings. Only prepare-step-instruction-loader is unresolved. src/step-support-agent.ts confirms prepareStep is the relevant boundary; deterministic inspection is valid."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "pass",
+      "evidence": "delegating-support preserves the delegate_support tool and its direct implementation, registration, and schemas. src/delegation.ts calls stepSupportAgent.generate, but moldea/moldea.yaml adds no handoff, routing target, or subagent relationship. Workspace assertions show all delegation source files were unchanged."
+    },
+    {
+      "id": "keeps-workflow-agent-outside-target",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts remains unchanged and exports workflowSupportAgent using WorkflowAgent. No workflowSupportAgent target or @ai-sdk/workflow-derived relationship appears in moldea/moldea.yaml. Workspace assertions confirm source preservation."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "Both support and step-support reference /moldea/runtimes/vercel-ai-sdk-preparation.md. Workspace patch evidence identifies it as the sole new runtime-guidance file. It separately explains prepareCall and prepareStep, identifies which constructor relationships remain observable, and recommends closed wiring or prepared-boundary integration tests without asserting provider behavior."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains separate warning requirements prepare-call-wiring and prepare-step-instruction-loader. Each names its preparation boundary, lists the relevant source paths and symbols, and supplies relationship-specific resolution through non-replaceable closed static wiring or an integration test proving the effective relationships. Deterministic validation and inspection both passed."
+    }
+  ],
+  "failures": []
+}

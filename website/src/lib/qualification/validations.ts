@@ -665,6 +665,7 @@ export const assertQualificationAttemptEvidence = (options: {
     result.status === 'failed' &&
     sourceState?.passed !== false &&
     coverage?.passed !== false &&
+    baseline?.passed !== false &&
     !result.cases.some(({ status }) => status === 'failed')
   ) {
     throw new Error(`Failed qualification attempt ${result.attemptId} has no failing evidence.`);

@@ -1,0 +1,16 @@
+{
+  "outcome": "blocked",
+  "summary": "Initialize was selected through explicit Moldea adoption intent, but semantic initialization is blocked. The README describes transfer preparation/execution while explicitly leaving preview/execution policy undocumented; the implementation only maps `execute` to `submitted` versus `preview`. This cannot safely establish what is transferred or the authority and external effect of submission. Canonical state remains unchanged. The final Git diff and status were clean, and `./node_modules/.bin/tsc --noEmit` passed.",
+  "changedFiles": [],
+  "observations": [
+    "The root-local `@moldea.ai/cli` is declared and installed at exactly 5.0.0 with compatible Node 24.15.0 and npm 11.12.1.",
+    "`moldea inspect --json` completed with schema 2 and status `invalid`, reporting only missing `/moldea/moldea.yaml` and `/moldea/project.md`.",
+    "No package-manager executable extensions were found.",
+    "README.md says product policy for preview and execution modes is not documented.",
+    "src/transfer-operation.ts returns statuses but does not establish the transferred subject, recipient/system, authorization, or external side effect.",
+    "Runner-mounted `.agents/**` and `.moldea-qualification/**` inputs were not modified."
+  ],
+  "unresolved": [
+    "Decision required before continuing: what exactly does this module transfer, and what effect is `execute: true` authorized to cause—only create a submission request/record, or initiate/complete a real external transfer?"
+  ]
+}

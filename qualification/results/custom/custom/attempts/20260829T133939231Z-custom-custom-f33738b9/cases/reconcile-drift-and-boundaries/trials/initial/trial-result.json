@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 271409,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 982885,
+    "cachedInputTokens": 910592,
+    "outputTokens": 5286
+  },
+  "judgeUsage": {
+    "inputTokens": 372139,
+    "cachedInputTokens": 330752,
+    "outputTokens": 2507
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T14:01:49.296Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T14:03:21.169Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-binding",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts#supportAssistant, matching the export in src/support-assistant.ts. The workspace patch replaces /src/support-agent.ts#supportAgent, and Git status/diff show src/support-agent.ts remains deleted rather than recreated. Deterministic-after reports valid inspection, passing typecheck, and no failures."
+    },
+    {
+      "id": "records-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains agent-level unresolved warning dynamic-tool-registration. It states that static inspection cannot prove attachment, resolves through closed runtime wiring or an integration test proving createToolRegistry registrations exposed by supportAssistant, and relates /src/dynamic-tools.ts#createToolRegistry. The patch adds no invented tool binding, and deterministic-after reports valid inspection with no failures."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

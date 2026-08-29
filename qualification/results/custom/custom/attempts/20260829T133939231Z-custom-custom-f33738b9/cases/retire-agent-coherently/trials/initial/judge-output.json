@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, deterministic post-actor validation, and workspace patch agree that the removed support agent and its custom runtime integration were coherently retired while remaining project context and implementation were preserved.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/moldea.yaml now contains only version and project-context configuration; moldea/agents/support/ and moldea/runtimes/custom.md are absent. Workspace patch: the manifest diff removes agents.support, runtime id custom, guidance /moldea/runtimes/custom.md, and the runtimeAgent binding to /src/support-agent.ts#supportAgent; it also deletes both support agent documents and custom runtime guidance. The separate pre-existing diff deletes src/support-agent.ts, establishing why those canonical declarations were obsolete. Workspace assertions confirm exactly the four canonical retirement paths changed, while moldea/project.md and src/project-state.ts retained identical hashes. Deterministic-after reports passed=true, valid inspect and validate statuses, successful typecheck, repository equivalence, and no failures."
+    }
+  ],
+  "failures": []
+}

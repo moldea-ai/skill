@@ -1,0 +1,1158 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 3215
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "tool-registration",
+          "tool-registration"
+        ],
+        "evidenceCount": 23,
+        "agentCount": 3
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "tool-registration",
+          "tool-registration"
+        ],
+        "evidenceCount": 23,
+        "agentCount": 3
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                }
+              ],
+              "runtimeName": "delegating-support-runtime",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/step-support-agent.ts",
+                  "symbol": "stepSupportAgent"
+                }
+              ],
+              "runtimeName": "step-support-runtime",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "support-runtime",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/delegating-agent.ts"
+                },
+                {
+                  "path": "/src/instructions.ts",
+                  "symbol": "loadDelegatingSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadDelegatingSupportInstruction",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/step-support-agent.ts",
+                  "symbol": "stepSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "7.0.77",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "7.0.77",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "7.0.77",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "configurationProperty": "callOptionsSchema",
+                "schemaRole": "agent-input",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "DelegateSupportInputSchema"
+                },
+                {
+                  "path": "/src/delegating-agent.ts"
+                }
+              ],
+              "runtimeName": "DelegateSupportInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                },
+                {
+                  "path": "/src/delegating-agent.ts"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": "delegate-support",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "inputSchema",
+                "schemaRole": "tool-input"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "DelegateSupportInputSchema"
+                },
+                {
+                  "path": "/src/delegation-tool.ts"
+                }
+              ],
+              "runtimeName": "DelegateSupportInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": "delegate-support",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "outputSchema",
+                "schemaRole": "tool-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                },
+                {
+                  "path": "/src/delegation-tool.ts"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "configurationProperty": "callOptionsSchema",
+                "schemaRole": "agent-input",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportCallOptionsSchema"
+                },
+                {
+                  "path": "/src/step-support-agent.ts"
+                }
+              ],
+              "runtimeName": "SupportCallOptionsSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                },
+                {
+                  "path": "/src/step-support-agent.ts"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": "get-status",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "inputSchema",
+                "schemaRole": "tool-input"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportStatusInputSchema"
+                },
+                {
+                  "path": "/src/status-tools.ts"
+                }
+              ],
+              "runtimeName": "SupportStatusInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": "get-status",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "outputSchema",
+                "schemaRole": "tool-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportStatusOutputSchema"
+                },
+                {
+                  "path": "/src/status-tools.ts"
+                }
+              ],
+              "runtimeName": "SupportStatusOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "configurationProperty": "callOptionsSchema",
+                "schemaRole": "agent-input",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportCallOptionsSchema"
+                },
+                {
+                  "path": "/src/support-agent.ts"
+                }
+              ],
+              "runtimeName": "SupportCallOptionsSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "get-status",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "inputSchema",
+                "schemaRole": "tool-input"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportStatusInputSchema"
+                },
+                {
+                  "path": "/src/status-tools.ts"
+                }
+              ],
+              "runtimeName": "SupportStatusInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "get-status",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "outputSchema",
+                "schemaRole": "tool-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportStatusOutputSchema"
+                },
+                {
+                  "path": "/src/status-tools.ts"
+                }
+              ],
+              "runtimeName": "SupportStatusOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": "delegate-support",
+              "capabilityKind": "tool",
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7",
+                "toolType": "function"
+              },
+              "kind": "tool-registration",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "DelegateSupportInputSchema"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                },
+                {
+                  "path": "/src/delegating-agent.ts"
+                },
+                {
+                  "path": "/src/delegation-tool.ts",
+                  "symbol": "delegateSupportTool"
+                },
+                {
+                  "path": "/src/delegation.ts",
+                  "symbol": "delegateSupport"
+                }
+              ],
+              "runtimeName": "delegate_support",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": "get-status",
+              "capabilityKind": "tool",
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7",
+                "toolType": "function"
+              },
+              "kind": "tool-registration",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportStatusInputSchema"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportStatusOutputSchema"
+                },
+                {
+                  "path": "/src/implementations.ts",
+                  "symbol": "getStepSupportStatus"
+                },
+                {
+                  "path": "/src/status-tools.ts",
+                  "symbol": "stepSupportStatusTool"
+                },
+                {
+                  "path": "/src/step-support-agent.ts"
+                }
+              ],
+              "runtimeName": "get_status",
+              "source": "vercel-ai-sdk"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/contracts.ts",
+                    "/src/delegating-agent.ts",
+                    "/src/delegation-tool.ts",
+                    "/src/delegation.ts",
+                    "/src/instructions.ts",
+                    "/src/step-support-agent.ts"
+                  ],
+                  "bindings": {
+                    "inputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "DelegateSupportInputSchema"
+                    },
+                    "instructionLoader": {
+                      "path": "/src/instructions.ts",
+                      "symbol": "loadDelegatingSupportInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/delegating-agent.ts",
+                      "symbol": "delegatingSupportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "id": "vercel-ai-sdk"
+                  },
+                  "tools": {
+                    "delegate-support": {
+                      "description": "Delegates one focused support question to another agent.",
+                      "implementation": {
+                        "path": "/src/delegation.ts",
+                        "symbol": "delegateSupport"
+                      },
+                      "inputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "DelegateSupportInputSchema"
+                      },
+                      "name": "delegate_support",
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "registration": {
+                        "path": "/src/delegation-tool.ts",
+                        "symbol": "delegateSupportTool"
+                      }
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Delegates focused support questions through the registered support tool.\n",
+                    "digest": "sha256:a8117aea31bc38216e01077f15274cf9a991062b8d572773837a18878ce7bc8d",
+                    "path": "/moldea/agents/delegating-support/description.md",
+                    "scalarLength": 73,
+                    "utf8ByteLength": 73
+                  },
+                  "scalarLength": 72,
+                  "value": "Delegates focused support questions through the registered support tool."
+                },
+                "handoffDescription": null,
+                "id": "delegating-support",
+                "instruction": {
+                  "content": "# Delegating support agent\n\nYou are the `delegating-support` agent. Use the `delegate_support` tool for focused support questions. Do not infer authority or routing beyond the registered tool call.\n",
+                  "digest": "sha256:d60acb50fd78839aa7852812d99ef93b6634170434cd65085978b775debbd865",
+                  "path": "/moldea/agents/delegating-support/instruction.md",
+                  "scalarLength": 198,
+                  "utf8ByteLength": 198
+                },
+                "mirrors": []
+              },
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/contracts.ts",
+                    "/src/implementations.ts",
+                    "/src/instructions.ts",
+                    "/src/status-tools.ts",
+                    "/src/step-support-agent.ts"
+                  ],
+                  "bindings": {
+                    "inputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "SupportCallOptionsSchema"
+                    },
+                    "instructionLoader": {
+                      "path": "/src/instructions.ts",
+                      "symbol": "loadStepSupportInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/step-support-agent.ts",
+                      "symbol": "stepSupportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "id": "vercel-ai-sdk"
+                  },
+                  "tools": {
+                    "get-status": {
+                      "description": "Reads one support order status.",
+                      "implementation": {
+                        "path": "/src/implementations.ts",
+                        "symbol": "getStepSupportStatus"
+                      },
+                      "inputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportStatusInputSchema"
+                      },
+                      "name": "get_status",
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportStatusOutputSchema"
+                      },
+                      "registration": {
+                        "path": "/src/status-tools.ts",
+                        "symbol": "stepSupportStatusTool"
+                      }
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Handles support work whose per-step instruction may be replaced at runtime.\n",
+                    "digest": "sha256:0756b0c13fe196cb4a2cb3e39de296a8b10be60f84a6b6bb31301de6c2dfe8da",
+                    "path": "/moldea/agents/step-support/description.md",
+                    "scalarLength": 76,
+                    "utf8ByteLength": 76
+                  },
+                  "scalarLength": 75,
+                  "value": "Handles support work whose per-step instruction may be replaced at runtime."
+                },
+                "handoffDescription": null,
+                "id": "step-support",
+                "instruction": {
+                  "content": "# Step support agent\n\nYou are the `step-support` agent. Answer support questions only from verified project evidence.\n",
+                  "digest": "sha256:0b3e175e2a6a8e5952010629d7c187bc234093d4e7f2e6a72d6fd2de965ef345",
+                  "path": "/moldea/agents/step-support/instruction.md",
+                  "scalarLength": 118,
+                  "utf8ByteLength": 118
+                },
+                "mirrors": []
+              },
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/contracts.ts",
+                    "/src/implementations.ts",
+                    "/src/instructions.ts",
+                    "/src/status-tools.ts",
+                    "/src/support-agent.ts"
+                  ],
+                  "bindings": {
+                    "inputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "SupportCallOptionsSchema"
+                    },
+                    "instructionLoader": {
+                      "path": "/src/instructions.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "supportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "id": "vercel-ai-sdk"
+                  },
+                  "tools": {
+                    "get-status": {
+                      "description": "Reads one support order status.",
+                      "implementation": {
+                        "path": "/src/implementations.ts",
+                        "symbol": "getSupportStatus"
+                      },
+                      "inputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportStatusInputSchema"
+                      },
+                      "name": "get_status",
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportStatusOutputSchema"
+                      },
+                      "registration": {
+                        "path": "/src/status-tools.ts",
+                        "symbol": "supportStatusTool"
+                      }
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Produces support responses through a repository-specific request builder.\n",
+                    "digest": "sha256:ab6d3f651ca3971a36a0922b7ec353354febb630009c6ff5a3ca72d287c2bddc",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 74,
+                    "utf8ByteLength": 74
+                  },
+                  "scalarLength": 73,
+                  "value": "Produces support responses through a repository-specific request builder."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer only from verified project evidence.\n",
+                  "digest": "sha256:b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 90,
+                  "utf8ByteLength": 90
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: vercel-ai-sdk\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.ts\n        symbol: supportAgent\n      instructionLoader:\n        path: /src/instructions.ts\n        symbol: loadSupportInstruction\n      inputSchema:\n        path: /src/contracts.ts\n        symbol: SupportCallOptionsSchema\n      outputSchema:\n        path: /src/contracts.ts\n        symbol: SupportOutputSchema\n    tools:\n      get-status:\n        name: get_status\n        description: Reads one support order status.\n        implementation:\n          path: /src/implementations.ts\n          symbol: getSupportStatus\n        registration:\n          path: /src/status-tools.ts\n          symbol: supportStatusTool\n        inputSchema:\n          path: /src/contracts.ts\n          symbol: SupportStatusInputSchema\n        outputSchema:\n          path: /src/contracts.ts\n          symbol: SupportStatusOutputSchema\n    affectedBy:\n      - /src/support-agent.ts\n      - /src/contracts.ts\n      - /src/instructions.ts\n      - /src/status-tools.ts\n      - /src/implementations.ts\n  step-support:\n    runtime:\n      id: vercel-ai-sdk\n    bindings:\n      runtimeAgent:\n        path: /src/step-support-agent.ts\n        symbol: stepSupportAgent\n      instructionLoader:\n        path: /src/instructions.ts\n        symbol: loadStepSupportInstruction\n      inputSchema:\n        path: /src/contracts.ts\n        symbol: SupportCallOptionsSchema\n      outputSchema:\n        path: /src/contracts.ts\n        symbol: SupportOutputSchema\n    tools:\n      get-status:\n        name: get_status\n        description: Reads one support order status.\n        implementation:\n          path: /src/implementations.ts\n          symbol: getStepSupportStatus\n        registration:\n          path: /src/status-tools.ts\n          symbol: stepSupportStatusTool\n        inputSchema:\n          path: /src/contracts.ts\n          symbol: SupportStatusInputSchema\n        outputSchema:\n          path: /src/contracts.ts\n          symbol: SupportStatusOutputSchema\n    affectedBy:\n      - /src/step-support-agent.ts\n      - /src/contracts.ts\n      - /src/instructions.ts\n      - /src/status-tools.ts\n      - /src/implementations.ts\n  delegating-support:\n    runtime:\n      id: vercel-ai-sdk\n    bindings:\n      runtimeAgent:\n        path: /src/delegating-agent.ts\n        symbol: delegatingSupportAgent\n      instructionLoader:\n        path: /src/instructions.ts\n        symbol: loadDelegatingSupportInstruction\n      inputSchema:\n        path: /src/contracts.ts\n        symbol: DelegateSupportInputSchema\n      outputSchema:\n        path: /src/contracts.ts\n        symbol: SupportOutputSchema\n    tools:\n      delegate-support:\n        name: delegate_support\n        description: Delegates one focused support question to another agent.\n        implementation:\n          path: /src/delegation.ts\n          symbol: delegateSupport\n        registration:\n          path: /src/delegation-tool.ts\n          symbol: delegateSupportTool\n        inputSchema:\n          path: /src/contracts.ts\n          symbol: DelegateSupportInputSchema\n        outputSchema:\n          path: /src/contracts.ts\n          symbol: SupportOutputSchema\n    affectedBy:\n      - /src/delegating-agent.ts\n      - /src/delegation-tool.ts\n      - /src/delegation.ts\n      - /src/step-support-agent.ts\n      - /src/contracts.ts\n      - /src/instructions.ts\n",
+                "digest": "sha256:3718ac34b7ba5915861a77d87fcd7b3c7fdef72709b809de24e3fcf10334f8c8",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 3415,
+                "utf8ByteLength": 3415
+              },
+              "value": {
+                "agents": {
+                  "delegating-support": {
+                    "affectedBy": [
+                      "/src/contracts.ts",
+                      "/src/delegating-agent.ts",
+                      "/src/delegation-tool.ts",
+                      "/src/delegation.ts",
+                      "/src/instructions.ts",
+                      "/src/step-support-agent.ts"
+                    ],
+                    "bindings": {
+                      "inputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "DelegateSupportInputSchema"
+                      },
+                      "instructionLoader": {
+                        "path": "/src/instructions.ts",
+                        "symbol": "loadDelegatingSupportInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/delegating-agent.ts",
+                        "symbol": "delegatingSupportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "id": "vercel-ai-sdk"
+                    },
+                    "tools": {
+                      "delegate-support": {
+                        "description": "Delegates one focused support question to another agent.",
+                        "implementation": {
+                          "path": "/src/delegation.ts",
+                          "symbol": "delegateSupport"
+                        },
+                        "inputSchema": {
+                          "path": "/src/contracts.ts",
+                          "symbol": "DelegateSupportInputSchema"
+                        },
+                        "name": "delegate_support",
+                        "outputSchema": {
+                          "path": "/src/contracts.ts",
+                          "symbol": "SupportOutputSchema"
+                        },
+                        "registration": {
+                          "path": "/src/delegation-tool.ts",
+                          "symbol": "delegateSupportTool"
+                        }
+                      }
+                    }
+                  },
+                  "step-support": {
+                    "affectedBy": [
+                      "/src/contracts.ts",
+                      "/src/implementations.ts",
+                      "/src/instructions.ts",
+                      "/src/status-tools.ts",
+                      "/src/step-support-agent.ts"
+                    ],
+                    "bindings": {
+                      "inputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportCallOptionsSchema"
+                      },
+                      "instructionLoader": {
+                        "path": "/src/instructions.ts",
+                        "symbol": "loadStepSupportInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/step-support-agent.ts",
+                        "symbol": "stepSupportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "id": "vercel-ai-sdk"
+                    },
+                    "tools": {
+                      "get-status": {
+                        "description": "Reads one support order status.",
+                        "implementation": {
+                          "path": "/src/implementations.ts",
+                          "symbol": "getStepSupportStatus"
+                        },
+                        "inputSchema": {
+                          "path": "/src/contracts.ts",
+                          "symbol": "SupportStatusInputSchema"
+                        },
+                        "name": "get_status",
+                        "outputSchema": {
+                          "path": "/src/contracts.ts",
+                          "symbol": "SupportStatusOutputSchema"
+                        },
+                        "registration": {
+                          "path": "/src/status-tools.ts",
+                          "symbol": "stepSupportStatusTool"
+                        }
+                      }
+                    }
+                  },
+                  "support": {
+                    "affectedBy": [
+                      "/src/contracts.ts",
+                      "/src/implementations.ts",
+                      "/src/instructions.ts",
+                      "/src/status-tools.ts",
+                      "/src/support-agent.ts"
+                    ],
+                    "bindings": {
+                      "inputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportCallOptionsSchema"
+                      },
+                      "instructionLoader": {
+                        "path": "/src/instructions.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "supportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "id": "vercel-ai-sdk"
+                    },
+                    "tools": {
+                      "get-status": {
+                        "description": "Reads one support order status.",
+                        "implementation": {
+                          "path": "/src/implementations.ts",
+                          "symbol": "getSupportStatus"
+                        },
+                        "inputSchema": {
+                          "path": "/src/contracts.ts",
+                          "symbol": "SupportStatusInputSchema"
+                        },
+                        "name": "get_status",
+                        "outputSchema": {
+                          "path": "/src/contracts.ts",
+                          "symbol": "SupportStatusOutputSchema"
+                        },
+                        "registration": {
+                          "path": "/src/status-tools.ts",
+                          "symbol": "supportStatusTool"
+                        }
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Static support boundaries\n\nThis project isolates Vercel AI SDK preparation callbacks, uses one function tool to call another agent, and retains a workflow agent outside the selected ToolLoopAgent target.\n",
+              "digest": "sha256:a2a415c0242c7b41f52f8313a2f7c31cca3bde3e9673204c7fc2bc1a2efce29f",
+              "path": "/moldea/project.md",
+              "scalarLength": 206,
+              "utf8ByteLength": 206
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

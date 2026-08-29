@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Rebound the support runtime agent to `/src/support-assistant.ts#supportAssistant` and added an agent-level warning for the dynamically assembled tool-registration boundary. Moldea inspection is valid, TypeScript validation passes, and the final diff was inspected.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The removed `/src/support-agent.ts#supportAgent` binding was replaced with the implementation present in the working tree.",
+    "`./node_modules/.bin/moldea inspect --json` completed with schema 2, CLI 5.0.0, status `valid`, and no diagnostics.",
+    "`./node_modules/.bin/tsc -p tsconfig.json --noEmit` exited successfully.",
+    "Pre-existing deletion of `src/support-agent.ts` and untracked `src/support-assistant.ts` and `src/dynamic-tools.ts` were preserved."
+  ],
+  "unresolved": [
+    "Warning `dynamic-tool-registration`: static inspection cannot prove that `createToolRegistry` is attached to `supportAssistant`; resolve with closed runtime wiring or an integration test proving the registrations exposed at invocation. Related source: `/src/dynamic-tools.ts#createToolRegistry`."
+  ]
+}

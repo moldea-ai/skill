@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The current repository, deterministic post-actor validation, and workspace patch agree that the removed support agent is coherently retired.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/moldea.yaml contains only `version: 1`, with no agents or Vercel definition, loader, input-schema, or output-schema bindings; the support canonical assets and src/support-agent.ts are absent. Deterministic-after reports inspection and validation `valid`, zero failures, typecheck passed, and repository unchanged by validation. Workspace-patch records the manifest change and deletion of both moldea/agents/support assets, while unchanged hashes preserve moldea/project.md, package.json, src/project-state.ts, and tsconfig.json."
+    }
+  ],
+  "failures": []
+}

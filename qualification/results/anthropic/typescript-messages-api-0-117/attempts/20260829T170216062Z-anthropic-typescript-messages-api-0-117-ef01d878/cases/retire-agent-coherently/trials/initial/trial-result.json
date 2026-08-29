@@ -1,0 +1,58 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": false,
+  "durationMs": 307919,
+  "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 878917,
+    "cachedInputTokens": 810752,
+    "outputTokens": 4884
+  },
+  "judgeUsage": {
+    "inputTokens": 581728,
+    "cachedInputTokens": 533760,
+    "outputTokens": 3908
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T17:30:05.965Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T17:32:22.866Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "removes-obsolete-declaration",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace: `moldea/moldea.yaml` contains no agents, runtime, runtimeAgent, or instructionLoader declarations; the support description, instruction, and `src/support-agent.ts` are absent. Workspace patch: removes the entire `support` manifest entry, including `runtime.id: anthropic`, `supportAgent`, `loadSupportInstruction`, and `/src/support-agent.ts` bindings, while deleting both canonical support assets. Deterministic-after reports valid inspect/validate results, zero failures, successful typecheck, and an unchanged post-validation repository. Current file hashes match the workspace assertions’ after-state."
+    },
+    {
+      "id": "removes-orphaned-assets",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "preserves-surviving-context",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Judge command policy observed prohibited credential, network, or sensitive evaluator access."
+  ]
+}

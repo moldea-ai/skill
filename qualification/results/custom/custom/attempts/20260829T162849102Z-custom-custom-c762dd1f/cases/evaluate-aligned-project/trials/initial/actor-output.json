@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The support agent setup is structurally valid and agrees with the available source, so no files were edited. Moldea inspect and validate both returned valid schema-2 envelopes from CLI 5.0.0 with no diagnostics; TypeScript compilation also passed. The final Git diff and status were empty.",
+  "changedFiles": [],
+  "observations": [
+    "The manifest registers support with custom runtime guidance and binds runtimeAgent to /src/support-agent.ts symbol supportAgent.",
+    "The implementation exports supportAgent with id \"support\" and channel \"email\", matching the canonical agent identity, email-channel description, and custom runtime guidance.",
+    "The custom guidance accurately identifies the exported record as runtime-owned and says to preserve its identifier and channel.",
+    "The canonical instruction identifies the support agent and defines evidence-based answering and escalation behavior.",
+    "No handoff description, mirrors, capabilities, variables, or unresolved requirements are declared or required by the observed structure."
+  ],
+  "unresolved": [
+    "The repository contains no model-invocation or instruction-loading implementation, so runtime consumption of the canonical instruction cannot be established. This is an evidence limitation, not a demonstrated mismatch with the modeled implementation."
+  ]
+}

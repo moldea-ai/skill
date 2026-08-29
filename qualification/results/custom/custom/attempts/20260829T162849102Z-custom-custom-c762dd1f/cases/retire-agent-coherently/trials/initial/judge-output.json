@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, deterministic post-actor validation, and workspace patch agree that the removed support agent was retired coherently. The remaining project context and implementation are preserved.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/moldea.yaml contains only version 1 and the /moldea/project.md context relationship; no agents, support binding, runtime guidance, or custom runtime file remains. The only remaining support references state that the agent was removed. Workspace patch: deletes the support description and instruction, deletes moldea/runtimes/custom.md, and removes the complete agents.support block from moldea/moldea.yaml, including runtime.id custom, guidance, and the /src/support-agent.ts#supportAgent binding. The separate src/support-agent.ts deletion confirms why those canonical files were obsolete. Deterministic-after evidence reports passed=true, valid inspect/validate status, zero failures, successful typecheck, and repositoryUnchanged=true. Workspace assertions also pass and their final hashes match the inspected files."
+    }
+  ],
+  "failures": []
+}

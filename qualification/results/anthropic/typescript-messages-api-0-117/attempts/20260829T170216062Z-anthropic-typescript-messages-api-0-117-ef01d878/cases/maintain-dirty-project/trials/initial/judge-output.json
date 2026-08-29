@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, deterministic post-actor evidence, workspace assertions, and complete diff agree. Billing guidance is canonical and wired to support and the exact classifier, while all pre-existing SDK wiring and unrelated dirty work remain unchanged.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/context/billing.md accurately documents classifyBillingQuestion in /src/billing.ts; moldea/moldea.yaml globally registers that context with the exact classifyBillingQuestion symbol binding and assigns it to support; support's instruction applies the refund-review/invoice-question classifications without inventing outcomes. Workspace patch changes only the manifest, support instruction, and new billing context for this requirement. Deterministic-after reports valid inspect/validate results, passing typecheck, and no failures."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "verdict": "pass",
+      "evidence": "Current workspace retains src/support-agent.ts as a direct @anthropic-ai/sdk Messages API call using client.messages.create, with system loaded by loadSupportInstruction from moldea/agents/support/instruction.md. Deterministic before/after assertions show src/support-agent.ts has the identical SHA-256 77d31813e47e2a4716632fd97aa6df4abae37f8a01d238449e447c80d227544c, while validation, inspection, and typecheck all passed."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current manifest declares `lookup_order`, matching the closed Anthropic client-tool declaration in `src/tools.ts`. All runtime, loader, registration, schema, and implementation bindings remain intact; runner-owned validation reports valid inspect/validate results, successful typechecking, complete evidence, no diagnostics, and only `moldea/moldea.yaml` changed.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies the original canonical `find_order` versus source-backed `lookup_order` mismatch and cites the initial Anthropic tool-name diagnostic. Repository source confirms `lookupOrderTool.name` is `lookup_order`, while the task confirms the prior declared/client-tool mismatch."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now sets the support tool name to `lookup_order`, exactly matching `src/tools.ts`. Workspace assertions show `moldea/moldea.yaml` is the only changed path, and deterministic inspection and validation both return `valid`."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains runtimeAgent `/src/agent.ts#supportAgent`, instructionLoader `/src/agent.ts#loadSupportInstruction`, registration `/src/tools.ts#lookupOrderTool`, inputSchema `/src/contracts.ts#LookupOrderInputSchema`, and implementation `/src/implementations.ts#lookupOrder`. Source confirms the agent loads the canonical instruction and passes `[lookupOrderTool]`, whose `input_schema` is `LookupOrderInputSchema`; workspace hashes show all source and instruction files unchanged, while deterministic validation reports complete evidence, no failures, and a passing typecheck."
+    }
+  ],
+  "failures": []
+}

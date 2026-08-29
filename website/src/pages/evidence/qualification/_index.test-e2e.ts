@@ -15,6 +15,8 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(
     customProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
   ).toBeVisible();
+  await expect(customProfileLink.getByRole('img', { name: 'Custom adapter icon' })).toBeVisible();
+  await expect(customProfileLink.locator('img')).toHaveCount(0);
   await expect(
     customProfileLink.getByText('Attempts', { exact: true }).locator('..'),
   ).toContainText('4');
@@ -25,6 +27,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(
     vercelProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
   ).toBeVisible();
+  await expect(vercelProfileLink.getByAltText('Vercel company logo')).toBeVisible();
   await expect(
     vercelProfileLink.getByText('Attempts', { exact: true }).locator('..'),
   ).toContainText('2');
@@ -35,9 +38,29 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(
     toolLoopProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
   ).toBeVisible();
+  await expect(toolLoopProfileLink.getByAltText('Vercel company logo')).toBeVisible();
   await expect(
     toolLoopProfileLink.getByText('Attempts', { exact: true }).locator('..'),
   ).toContainText('2');
+
+  const vercelCompanyLogos = page.getByAltText('Vercel company logo');
+
+  await expect(vercelCompanyLogos).toHaveCount(2);
+  await expect
+    .poll(() =>
+      vercelCompanyLogos.evaluateAll((images) =>
+        images.every(
+          (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+        ),
+      ),
+    )
+    .toBe(true);
+
+  await page.getByRole('button', { name: 'Use dark theme' }).click();
+  await expect(page.locator('html')).toHaveClass(/dark/);
+  expect(
+    await vercelCompanyLogos.first().evaluate((element) => getComputedStyle(element).filter),
+  ).not.toBe('none');
 });
 
 test('presents the recorded Custom and Vercel results', async ({ page }) => {

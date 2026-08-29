@@ -16,6 +16,8 @@ In repository-owned Markdown, bold `Supported` labels render as target-maturity 
 
 The complete favicon, social image, icon, logo, wordmark, and source artwork set under `public/` mirrors the official brand assets used by the sibling packages website. Keep those copies synchronized intentionally when the source assets change.
 
+The company marks under `public/adapter-companies/` mirror the provider artwork used by the sibling packages website for adapters represented in qualification evidence. Keep the marks unmodified, load them through the app's base-aware paths, preserve their light and dark theme treatment, and do not imply provider endorsement.
+
 The compatibility marks under `public/coding-agents/` use source-owned third-party artwork only to identify supported hosts. The Codex asset preserves the transparent Blossom path geometry from the [official OpenAI brand guidelines](https://openai.com/brand/); the remaining authoritative sources are the [Claude product](https://claude.ai/), [Cursor brand archive](https://cursor.com/brand), [OpenCode repository brand assets](https://github.com/anomalyco/opencode/tree/dev/packages/console/app/src/asset/brand), [GitHub brand archive](https://brand.github.com/foundations/logo), and [Cline repository assets](https://github.com/cline/cline/tree/main/apps/vscode/assets/icons). Keep the mark geometry unmodified and do not imply vendor endorsement.
 
 The favicon URL includes a short content fingerprint in `src/layouts/base-layout.astro` to invalidate browser favicon caches. Update that fingerprint when `public/favicon.ico` changes.

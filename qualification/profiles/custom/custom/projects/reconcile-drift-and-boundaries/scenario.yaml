@@ -60,7 +60,7 @@ judgeRequirements:
       kind: runner
       checks: [workspace-assertions]
   - id: validates-project
-    description: The initially invalid project becomes valid through Repository FS, Repository memory, Core, CLI, and project typechecking without read-time mutation.
+    description: The initially invalid project passes every independent validation check without changing during inspection.
     evaluation:
       kind: runner
       checks: [deterministic-after]

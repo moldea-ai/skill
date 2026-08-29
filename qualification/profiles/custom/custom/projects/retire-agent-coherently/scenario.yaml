@@ -69,7 +69,7 @@ judgeRequirements:
       kind: runner
       checks: [workspace-assertions]
   - id: validates-project
-    description: Repository FS, Repository memory, Core, CLI, and project typechecking accept the reconciled project without read-time mutation.
+    description: Every independent validation check accepts the reconciled project without changing it during inspection.
     evaluation:
       kind: runner
       checks: [deterministic-after]

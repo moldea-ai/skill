@@ -1,5 +1,5 @@
-# Evaluate the existing Moldea project
+# Review the existing agent setup
 
-Inspect this project with the candidate Moldea skill and CLI. Determine whether `support` accurately represents its direct Vercel AI SDK wrapper and canonical instruction.
+Review whether `support` accurately represents its direct Vercel AI SDK wrapper and instruction.
 
-Do not edit an aligned project. Report the repository evidence and validation commands used.
+Do not edit an aligned project. Report the repository evidence and validation outcome.

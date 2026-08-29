@@ -63,7 +63,7 @@ judgeRequirements:
       kind: judge
       evidenceSources: [current-workspace, workspace-patch]
   - id: validates-project
-    description: Repository FS, Repository memory, Core, CLI, and project typechecking accept the completed agent without read-time mutation.
+    description: Every independent validation check accepts the completed agent without changing the project during inspection.
     evaluation:
       kind: runner
       checks: [deterministic-after]

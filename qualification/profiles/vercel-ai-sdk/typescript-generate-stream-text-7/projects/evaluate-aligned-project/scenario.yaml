@@ -64,7 +64,7 @@ judgeRequirements:
       kind: judge
       evidenceSources: [actor-output, current-workspace, deterministic-after]
   - id: validates-without-churn
-    description: Repository FS, Repository memory, Core, CLI, and project typechecking accept the project without mutation.
+    description: Every independent validation check accepts the project without changing it during inspection.
     evaluation:
       kind: runner
       checks: [deterministic-after, workspace-assertions]

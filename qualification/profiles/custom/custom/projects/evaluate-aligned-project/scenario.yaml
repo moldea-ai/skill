@@ -51,7 +51,7 @@ judgeRequirements:
       kind: runner
       checks: [workspace-assertions]
   - id: validates-project
-    description: Repository FS, Repository memory, Core, CLI, and project typechecking all confirm the valid project without mutation.
+    description: Every independent validation check confirms the valid project without changing it during inspection.
     evaluation:
       kind: runner
       checks: [deterministic-after]

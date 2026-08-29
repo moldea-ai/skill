@@ -18,7 +18,7 @@ probes:
   - id: repository-format-version-1
     kind: compatibility
     matrixPath: adapter.supported-repository-format-version.1
-    description: Repository format version 1 is exercised through Repository FS, Repository memory, Core, and CLI validation in every project.
+    description: Repository format version 1 is exercised through every independent validation layer in every project.
     coveredBy:
       - evaluate-aligned-project
       - initialize-grounded-project

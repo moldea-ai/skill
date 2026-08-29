@@ -5,7 +5,7 @@ probes:
   - id: compatible-core-range
     kind: compatibility
     matrixPath: adapter.compatible-core-range.^2.0.0
-    description: The exact CLI composition exercises the compatible Core range through both repository implementations.
+    description: The exact published package composition exercises the compatible Core range through both repository implementations.
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: repository-format-version
     kind: compatibility

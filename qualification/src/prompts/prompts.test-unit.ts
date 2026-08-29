@@ -92,16 +92,20 @@ const workspaceAssertions: IWorkspaceAssertionResult = {
 
 describe('qualification prompts', () => {
   test('keeps adapter identity and judge criteria out of the natural actor task', () => {
-    const prompt = buildActorPrompt({ task: '# Update the Moldea project' });
+    const prompt = buildActorPrompt({ task: '# Review the support agent' });
 
-    expect(prompt).toContain('# Update the Moldea project');
+    expect(prompt).toContain('# Review the support agent');
+    expect(prompt).toContain('Use applicable project-local tooling');
     expect(prompt).toContain('Agent Skill guidance discovered in the workspace');
+    expect(prompt).not.toContain('project-local Moldea tooling');
+    expect(prompt).not.toContain('.agents/skills/moldea/');
+    expect(prompt).not.toContain('.moldea-qualification/');
+    expect(prompt).not.toContain('CLI');
+    expect(prompt).not.toContain('Moldea');
     expect(prompt).not.toContain('adapter-custom');
     expect(prompt).not.toContain('custom');
     expect(prompt).not.toContain(scenario.id);
     expect(prompt).not.toContain(scenario.judgeRequirements[0]?.description);
-    expect(prompt).not.toContain('.moldea-qualification/skill');
-    expect(prompt).toContain('.agents/skills/moldea/');
   });
 
   test('gives the independent judge the declared requirements and installed skill path', () => {

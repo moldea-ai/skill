@@ -1,0 +1,335 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1003
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/**"
+                  ],
+                  "bindings": {
+                    "runtimeAgent": {
+                      "path": "/src/support-assistant.ts",
+                      "symbol": "supportAssistant"
+                    }
+                  },
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/custom.md",
+                    "id": "custom"
+                  },
+                  "unresolved": {
+                    "dynamic-tool-registration": {
+                      "category": "tool-registration",
+                      "description": "Static inspection cannot establish which dynamically assembled tools are registered with the support runtime.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/src/dynamic-tools.ts"
+                        }
+                      ],
+                      "resolution": "Add a repository-local integration test that constructs the final support runtime and proves its tool registrations."
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Answers customer support questions with project-owned account tools.\n",
+                    "digest": "sha256:300ad2f1f8fa3017d06fb521ef723b7b21f841c59910de4e4c9be5cb8ed1ec7f",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 69,
+                    "utf8ByteLength": 69
+                  },
+                  "scalarLength": 68,
+                  "value": "Answers customer support questions with project-owned account tools."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Use only project-owned capabilities whose behavior can be established from repository evidence.\n",
+                  "digest": "sha256:a684a6b7412970a6243c0c8d214f18548c801a47b12eeb890cbfbbee01edac41",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 142,
+                  "utf8ByteLength": 142
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: custom\n      guidance: /moldea/runtimes/custom.md\n    bindings:\n      runtimeAgent:\n        path: /src/support-assistant.ts\n        symbol: supportAssistant\n    affectedBy:\n      - /src/**\n    unresolved:\n      dynamic-tool-registration:\n        category: tool-registration\n        effect: warning\n        description: Static inspection cannot establish which dynamically assembled tools are registered with the support runtime.\n        resolution: Add a repository-local integration test that constructs the final support runtime and proves its tool registrations.\n        related:\n          - path: /src/dynamic-tools.ts\n",
+                "digest": "sha256:40031942f8e1d69e93c0bd1eea8aaae6e29c8854eccf5799c795c85d190df50b",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 676,
+                "utf8ByteLength": 676
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/src/**"
+                    ],
+                    "bindings": {
+                      "runtimeAgent": {
+                        "path": "/src/support-assistant.ts",
+                        "symbol": "supportAssistant"
+                      }
+                    },
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/custom.md",
+                      "id": "custom"
+                    },
+                    "unresolved": {
+                      "dynamic-tool-registration": {
+                        "category": "tool-registration",
+                        "description": "Static inspection cannot establish which dynamically assembled tools are registered with the support runtime.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/src/dynamic-tools.ts"
+                          }
+                        ],
+                        "resolution": "Add a repository-local integration test that constructs the final support runtime and proves its tool registrations."
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Qualification reconciliation project\n\nThis project models a support runtime whose implementation is being revised.\n",
+              "digest": "sha256:7fb182d2a0dee28953af897ee5f825c46a84413db34b89e53319b6ae9c293008",
+              "path": "/moldea/project.md",
+              "scalarLength": 117,
+              "utf8ByteLength": 117
+            },
+            "runtimes": [
+              {
+                "asset": {
+                  "content": "# Custom runtime guidance\n\nBind the registered support agent to its direct exported runtime definition. Record relationships that dynamic construction prevents static evidence from proving.\n",
+                  "digest": "sha256:a0dc8ee2d514ba2178dca497ad7d5cd7350d657ed07de5313d9762d0b1a2d075",
+                  "path": "/moldea/runtimes/custom.md",
+                  "scalarLength": 190,
+                  "utf8ByteLength": 190
+                }
+              }
+            ],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

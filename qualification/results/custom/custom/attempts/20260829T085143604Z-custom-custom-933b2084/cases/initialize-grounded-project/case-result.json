@@ -1,0 +1,66 @@
+{
+  "caseId": "initialize-grounded-project",
+  "title": "Initialize a grounded project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 202269,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 202269,
+      "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 763985,
+        "cachedInputTokens": 681472,
+        "outputTokens": 5276
+      },
+      "judgeUsage": {
+        "inputTokens": 202268,
+        "cachedInputTokens": 165632,
+        "outputTokens": 1562
+      },
+      "actorEvidenceCreatedAt": "2026-08-29T08:57:27.797Z",
+      "judgeEvidenceCreatedAt": "2026-08-29T08:58:16.642Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-project",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "README.md states that the service reviews invoice line items, returns findings to a human finance operator, and never authorizes or sends payment. src/invoice-review.ts deterministically detects duplicate references. moldea/project.md accurately preserves that purpose and boundary while explicitly distinguishing the implemented duplicate-reference behavior from the unimplemented arithmetic-mismatch claim."
+        },
+        {
+          "id": "keeps-foundation-minimal",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The workspace contains only moldea/moldea.yaml and moldea/project.md under moldea/. Hardened Git status/diff and runner-owned workspace assertions show exactly three changed paths: those two files and README.md. The manifest contains only version: 1, and no agent, decision, runtime guide, focused context, mirror, or unresolved requirement was created. README.md preserves its original content and appends one Moldea awareness block."
+        },
+        {
+          "id": "preserves-existing-work",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,50 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 185333,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 500424,
+    "cachedInputTokens": 454400,
+    "outputTokens": 4040
+  },
+  "judgeUsage": {
+    "inputTokens": 461134,
+    "cachedInputTokens": 414208,
+    "outputTokens": 2504
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T08:53:37.456Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T08:54:54.366Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-alignment",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace evidence shows `moldea/moldea.yaml` registering agent `support`, selecting runtime `custom` with guidance `/moldea/runtimes/custom.md`, and binding `runtimeAgent` to path `/src/support-agent.ts` and symbol `supportAgent`. The guidance identifies the exported `supportAgent` record and its identifier/channel contract; `src/support-agent.ts` exports that symbol with `id: 'support'` and `channel: 'email'`, consistent with `moldea/agents/support/description.md`. Deterministic-after evidence reports valid inspect/validate results, passing typecheck, and an unchanged repository; hardened Git status and diff are clean."
+    },
+    {
+      "id": "avoids-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Updated the canonical support runtime-agent binding to `/src/support-assistant.ts#supportAssistant` and added an agent-level warning for the unproven dynamic tool registration boundary. Final Moldea inspection and validation returned `status: valid`; TypeScript checking passed; the final diff was inspected.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "No implementation code was modified and the removed source file was not recreated.",
+    "Pre-existing deletion of `src/support-agent.ts` and untracked `src/support-assistant.ts` and `src/dynamic-tools.ts` were preserved.",
+    "The repository-local Moldea CLI 5.0.0 reported no diagnostics after reconciliation."
+  ],
+  "unresolved": [
+    "`dynamic-tool-registration` remains a warning: closed runtime wiring or an integration test must prove that the support runtime receives the dynamically assembled registry and that `lookupAccount` is model-visible. Related source: `/src/dynamic-tools.ts`."
+  ]
+}

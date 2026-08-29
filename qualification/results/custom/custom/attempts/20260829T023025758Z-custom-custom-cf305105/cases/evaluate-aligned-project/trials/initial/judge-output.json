@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor’s alignment explanation agrees with the unchanged repository and deterministic results. The canonical manifest registers `support`, selects the `custom` runtime with project guidance, and binds it to the matching exported runtime record. Validation and typechecking pass. Runtime consumption of the canonical instruction remains unproven, but that limitation does not contradict the declared requirement.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` registers agent `support`, sets `runtime.id: custom`, references `/moldea/runtimes/custom.md`, and binds `runtimeAgent` to `/src/support-agent.ts#supportAgent`. The guidance identifies that export as the runtime-owned definition; the source exports `supportAgent` with `id: 'support'` and `channel: 'email'`, matching `description.md`. Root-local `inspect`, `composition`, and `validate` returned valid schema-2/CLI-5.0.0 envelopes; TypeScript checking passed. Deterministic-after reports all checks valid and `repositoryUnchanged: true`; workspace hashes are unchanged and hardened Git status/diff are empty."
+    }
+  ],
+  "failures": []
+}

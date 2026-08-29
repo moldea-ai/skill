@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The current repository, workspace patch, and deterministic post-actor checks agree that the removed support agent was retired coherently. The manifest retains only project context, while the support declaration, binding, agent assets, and support-only custom runtime guidance are absent. Validation and typechecking passed.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/moldea.yaml contains only version and project-context configuration; it has no agents.support entry, custom runtime ID/guidance, runtimeAgent binding, /src/support-agent.ts path, or supportAgent symbol. moldea/project.md establishes that the former email support agent was removed, and src/project-state.ts preserves that removal state. Workspace patch: the complete manifest block declaring support, runtime.id custom, /moldea/runtimes/custom.md guidance, and the /src/support-agent.ts supportAgent binding was deleted; moldea/agents/support/{description.md,instruction.md} and moldea/runtimes/custom.md were also deleted. The latter described only the removed supportAgent export, establishing its obsolescence. Deterministic-after evidence reports inspectionStatus valid, CLI validate/inspect valid, typecheckPassed true, repositoryFilesystemValid true, repositoryUnchanged true, and no failures."
+    }
+  ],
+  "failures": []
+}

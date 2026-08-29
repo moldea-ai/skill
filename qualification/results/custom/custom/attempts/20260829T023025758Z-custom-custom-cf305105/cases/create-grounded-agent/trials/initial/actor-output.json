@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Created and registered the `order-triage` Moldea agent for the custom runtime. Its canonical description and instruction classify orders for human review and prohibit refund approval. Added the real `createOrderTriageAgent` binding, exact affected source path, and focused runtime guidance. Moldea inspect and composition passed with schema 2/CLI 5.0.0 and no diagnostics; TypeScript type-check passed. Final status, tracked diff, and new-file contents were reviewed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "No tools, provider capabilities, schemas, variables, handoffs, mirrors, or decision authority were invented.",
+    "The custom runtime is locally available for repository format 1.",
+    "Canonical instruction provenance is established through the factory’s typed loader injection and exact canonical path consumption."
+  ],
+  "unresolved": [
+    "The concrete runtime-owned loader implementation supplied to `createOrderTriageAgent` is outside this repository, so its behavior beyond the established typed boundary cannot be verified here."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, deterministic post-actor evidence, and Git diff agree: the stale support runtime binding was repaired, the obsolete source remains deleted, and the dynamic tool-registration uncertainty is represented as an agent-level warning without an invented tool binding.",
+  "requirements": [
+    {
+      "id": "repairs-binding",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now binds `runtimeAgent` to `/src/support-assistant.ts#supportAssistant`; `src/support-assistant.ts` exports that symbol. The Git diff removes the former `/src/support-agent.ts#supportAgent` reference, and status/diff show `src/support-agent.ts` remains deleted rather than recreated. Deterministic validation and inspection both report `valid`, with typechecking passed."
+    },
+    {
+      "id": "records-boundary",
+      "verdict": "pass",
+      "evidence": "`agents.support.unresolved.dynamic-tool-registration` is an agent-level requirement with `effect: warning`, explains that static inspection cannot establish registry connection, gives a concrete resolution through closed runtime wiring or an integration test proving registry receipt and `lookupAccount` model visibility, and relates `/src/dynamic-tools.ts`. The diff adds no tool binding. Deterministic inspection reports `valid`."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Added canonical billing-dispute guidance, bound it to `/src/billing.ts`, assigned it to the `support` agent, and updated the canonical instruction for refund and invoice questions. Moldea inspect and validate passed with schema 2, CLI 5.0.0, and zero diagnostics; TypeScript validation also passed. The complete tracked diff and untracked task file were inspected.",
+  "changedFiles": [
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "The existing Custom runtime ID, runtime guidance, and runtime-agent binding remain unchanged.",
+    "Pre-existing `src/operator-notes.ts` and `notes/local-observation.md` developer work was preserved without modification.",
+    "The guidance records the 30-day refund window as an eligibility boundary and explicitly avoids inventing invoice, payment, approval, or refund-execution evidence."
+  ],
+  "unresolved": [
+    "No invoice lookup, invoice-correction workflow, payment-status source, or refund-execution authority is established; the canonical guidance therefore requires escalation when evidence is insufficient."
+  ]
+}

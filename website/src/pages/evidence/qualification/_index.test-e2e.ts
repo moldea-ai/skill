@@ -5,49 +5,61 @@ import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
-test('represents the clean qualification evidence state', async ({ page }) => {
+test('represents the current qualification evidence state', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/qualification/'));
 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Adapter qualification evidence' }),
   ).toBeVisible();
-  const profileLinks = [
-    page.getByRole('link', { name: /Custom runtime qualification/ }),
-    page.getByRole('link', { name: /Vercel AI SDK direct generation qualification/ }),
-  ];
+  const customProfileLink = page.getByRole('link', { name: /Custom runtime qualification/ });
+  await expect(
+    customProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
+  ).toBeVisible();
+  await expect(
+    customProfileLink.getByText('Attempts', { exact: true }).locator('..'),
+  ).toContainText('1');
 
-  for (const profileLink of profileLinks) {
-    await expect(
-      profileLink.locator('[data-evidence-status][data-evidence-status="not-recorded"]'),
-    ).toBeVisible();
-  }
+  const vercelProfileLink = page.getByRole('link', {
+    name: /Vercel AI SDK direct generation qualification/,
+  });
+  await expect(
+    vercelProfileLink.locator('[data-evidence-status][data-evidence-status="not-recorded"]'),
+  ).toBeVisible();
+  await expect(
+    vercelProfileLink.getByText('Attempts', { exact: true }).locator('..'),
+  ).toContainText('0');
 });
 
-test('presents both qualification profiles before their first protocol 6 attempt', async ({
-  page,
-}) => {
-  const profiles = [
-    {
-      route: '/evidence/qualification/custom/custom/',
-      heading: 'Custom runtime qualification',
-      journeyHeading: '8 realistic journeys',
-    },
-    {
-      route: '/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/',
-      heading: 'Vercel AI SDK direct generation qualification',
-      journeyHeading: '10 realistic journeys',
-    },
-  ] as const;
+test('presents the recorded Custom result and pending Vercel profile', async ({ page }) => {
+  await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Custom runtime qualification' }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: '8 realistic journeys' })).toBeVisible();
+  await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
+  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
+    'href',
+    /\/evidence\/qualification\/custom\/custom\/attempts\//u,
+  );
 
-  for (const profile of profiles) {
-    await page.goto(toPublicPath(profile.route));
-    await expect(page.getByRole('heading', { level: 1, name: profile.heading })).toBeVisible();
-    await expect(page.getByRole('heading', { name: profile.journeyHeading })).toBeVisible();
-    await expect(
-      page.getByText(/No protocol 6 Sol attempt has been committed/u).first(),
-    ).toBeVisible();
-    await expect(page.getByRole('link', { name: /^Inspect the .* attempt$/u })).toHaveCount(0);
-  }
+  await page.goto(
+    toPublicPath('/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/'),
+  );
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Vercel AI SDK direct generation qualification',
+    }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: '10 realistic journeys' })).toBeVisible();
+  await expect(
+    page.locator('[data-evidence-status][data-evidence-status="not-recorded"]').first(),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/No protocol 6 Sol attempt has been committed/u).first(),
+  ).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Inspect the .* attempt$/u })).toHaveCount(0);
 });
 
 test('keeps qualification evidence accessible at 320px in both themes', async ({ browser }) => {

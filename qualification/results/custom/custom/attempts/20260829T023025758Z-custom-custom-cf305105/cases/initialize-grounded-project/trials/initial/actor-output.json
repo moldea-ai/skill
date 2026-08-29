@@ -1,0 +1,21 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized Moldea from repository evidence. Canonical state changed by adding the minimal version-1 manifest and project foundation; the existing README content was preserved and the standard awareness block appended. No agents, decisions, runtime guides, or unresolved requirements were created.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "Evidence: README.md defines invoice review for duplicate references and arithmetic mismatches, findings for a human finance operator, and no payment authorization or sending. src/invoice-review.ts implements sorted, unique duplicate-reference detection over references and cent amounts.",
+    "Tooling: package.json declares @moldea.ai/cli exactly at 5.0.0; the installed root-local executable resolved to that package. Node v24.15.0 and npm 11.12.1 satisfy the skill compatibility ranges.",
+    "Initial `node_modules/.bin/moldea inspect --json` returned schema 2, CLI 5.0.0, status `invalid`, solely because `/moldea/moldea.yaml` and `/moldea/project.md` were missing.",
+    "Final `node_modules/.bin/moldea inspect --json` returned exit 0, schema 2, CLI 5.0.0, format version 1, status `valid`, and no diagnostics or adapter evidence.",
+    "Final `node_modules/.bin/moldea validate --json` returned exit 0 and status `valid` with no diagnostics. `node_modules/.bin/tsc -p tsconfig.json` also exited 0.",
+    "Hardened Git status was clean before changes. Final status contains only modified README.md and new moldea/. The hardened README diff and direct reads of both new files were inspected; an attempted no-index Git rendering for an untracked file was denied by the evaluator command-shape guard and made no changes.",
+    "No network, provider, model, agent, subagent, package installation, or mounted-input modification was used. Next actions are foundation review or ordinary project development."
+  ],
+  "unresolved": [
+    "The README names arithmetic-mismatch review, but current source code does not establish arithmetic-mismatch detection behavior. This limitation is recorded as current project context, not invented as a requirement."
+  ]
+}

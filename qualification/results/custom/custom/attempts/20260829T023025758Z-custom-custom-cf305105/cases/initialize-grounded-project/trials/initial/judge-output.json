@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, workspace assertions, and tracked README diff agree: initialization added only the version-1 manifest, grounded project context, and standard README awareness block. The canonical description accurately limits implementation claims and preserves the human-review, non-authorizing boundary.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "README.md states that the project reviews invoice line items for duplicate references and arithmetic mismatches, returns findings to a human finance operator, and never authorizes or sends payment. src/invoice-review.ts implements deterministic sorted, unique duplicate-reference findings. moldea/project.md accurately preserves those facts, explicitly distinguishes the README-stated arithmetic-mismatch purpose from the currently implemented duplicate-reference behavior, and states the non-authorizing boundary."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "Workspace assertions identify exactly three changed paths: README.md, moldea/moldea.yaml, and moldea/project.md. The manifest contains only `version: 1`; the moldea tree contains only the manifest and project context. The README diff preserves all original content and appends one standard awareness block. No agent, decision, runtime guide, focused context, or unresolved requirement was created."
+    }
+  ],
+  "failures": []
+}

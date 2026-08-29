@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 236435,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 745922,
+    "cachedInputTokens": 691456,
+    "outputTokens": 5151
+  },
+  "judgeUsage": {
+    "inputTokens": 510219,
+    "cachedInputTokens": 449536,
+    "outputTokens": 2463
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T02:52:06.051Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T02:53:38.288Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-binding",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now binds `runtimeAgent` to `/src/support-assistant.ts#supportAssistant`; `src/support-assistant.ts` exports that symbol. The Git diff removes the former `/src/support-agent.ts#supportAgent` reference, and status/diff show `src/support-agent.ts` remains deleted rather than recreated. Deterministic validation and inspection both report `valid`, with typechecking passed."
+    },
+    {
+      "id": "records-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`agents.support.unresolved.dynamic-tool-registration` is an agent-level requirement with `effect: warning`, explains that static inspection cannot establish registry connection, gives a concrete resolution through closed runtime wiring or an integration test proving registry receipt and `lookupAccount` model visibility, and relates `/src/dynamic-tools.ts`. The diff adds no tool binding. Deterministic inspection reports `valid`."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

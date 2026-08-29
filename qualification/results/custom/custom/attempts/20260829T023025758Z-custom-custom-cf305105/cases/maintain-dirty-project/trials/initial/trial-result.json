@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 319737,
+  "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1616983,
+    "cachedInputTokens": 1506048,
+    "outputTokens": 8216
+  },
+  "judgeUsage": {
+    "inputTokens": 297207,
+    "cachedInputTokens": 254976,
+    "outputTokens": 2322
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T02:48:23.597Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T02:49:41.849Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "adds-context",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` contains canonical billing-dispute guidance. `moldea/moldea.yaml` registers it globally with a binding to `/src/billing.ts` and assigns it to `agents.support.context`; the support agent retains explicit `/src/**` affected-path coverage. Deterministic inspection and validation are valid with zero failures, and workspace assertions identify only the three intended changed paths."
+    },
+    {
+      "id": "updates-instruction",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The diff for `moldea/agents/support/instruction.md` preserves the required opening identity, `You are the `support` agent.`, and adds explicit direction to use billing context for refund and invoice questions, treat the refund window only as an eligibility boundary, avoid unsupported billing claims, and escalate uncertainty."
+    },
+    {
+      "id": "preserves-dirty-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

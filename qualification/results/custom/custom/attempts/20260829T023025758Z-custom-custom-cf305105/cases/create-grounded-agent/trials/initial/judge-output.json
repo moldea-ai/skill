@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state and patch consistently create a grounded custom-runtime order-triage agent. Canonical behavior matches the implementation, the manifest binds the real factory and affected source, the sole runtime-guidance file documents canonical instruction loading without invented capabilities, and deterministic validation passed.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "Current workspace and patch add description.md stating “Classifies orders for human review without approving refunds” and instruction.md directing “Classify orders for human review” and “Do not approve refunds or claim authority to make refund decisions.” This agrees with src/order-triage-agent.ts, whose action is `classify-for-human-review` and `canApproveRefunds` is false."
+    },
+    {
+      "id": "binds-implementation",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml registers `order-triage` with runtime `custom`, binds `runtimeAgent.path` to `/src/order-triage-agent.ts` and `symbol` to `createOrderTriageAgent`, and lists the same source under `affectedBy`. The export exists at that path. Deterministic-after evidence reports valid inspection/composition, passing typecheck, and no failures."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "verdict": "pass",
+      "evidence": "The manifest references `/moldea/runtimes/custom.md`, the sole Markdown file under moldea/runtimes. The new guidance explains that `createOrderTriageAgent` receives a runtime-owned asynchronous loader which loads canonical content from `/moldea/agents/order-triage/instruction.md`; it only records factory behavior (`classify-for-human-review`, no refund approval) and invents no provider behavior."
+    }
+  ],
+  "failures": []
+}

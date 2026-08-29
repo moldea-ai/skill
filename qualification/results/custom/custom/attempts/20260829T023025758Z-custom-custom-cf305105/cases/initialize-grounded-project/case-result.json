@@ -1,0 +1,66 @@
+{
+  "caseId": "initialize-grounded-project",
+  "title": "Initialize a grounded project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 282103,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 282103,
+      "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1141711,
+        "cachedInputTokens": 1022976,
+        "outputTokens": 6326
+      },
+      "judgeUsage": {
+        "inputTokens": 387072,
+        "cachedInputTokens": 343040,
+        "outputTokens": 2831
+      },
+      "actorEvidenceCreatedAt": "2026-08-29T02:37:37.563Z",
+      "judgeEvidenceCreatedAt": "2026-08-29T02:39:11.683Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-project",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "README.md states that the project reviews invoice line items for duplicate references and arithmetic mismatches, returns findings to a human finance operator, and never authorizes or sends payment. src/invoice-review.ts implements deterministic sorted, unique duplicate-reference findings. moldea/project.md accurately preserves those facts, explicitly distinguishes the README-stated arithmetic-mismatch purpose from the currently implemented duplicate-reference behavior, and states the non-authorizing boundary."
+        },
+        {
+          "id": "keeps-foundation-minimal",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Workspace assertions identify exactly three changed paths: README.md, moldea/moldea.yaml, and moldea/project.md. The manifest contains only `version: 1`; the moldea tree contains only the manifest and project context. The README diff preserves all original content and appends one standard awareness block. No agent, decision, runtime guide, focused context, or unresolved requirement was created."
+        },
+        {
+          "id": "preserves-existing-work",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

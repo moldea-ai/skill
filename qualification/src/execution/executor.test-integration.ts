@@ -194,7 +194,7 @@ describe('qualification execution', () => {
           output: {
             outcome: input.scenario.expectedActorOutcome,
             summary: `Completed ${input.caseId}.`,
-            changedFiles: input.scenario.workspace.allowedChangePaths,
+            changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
             observations: [],
             unresolved: [],
           },
@@ -260,7 +260,7 @@ describe('qualification execution', () => {
           output: {
             outcome: input.scenario.expectedActorOutcome,
             summary: `Completed ${input.caseId}.`,
-            changedFiles: input.scenario.workspace.allowedChangePaths,
+            changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
             observations: [],
             unresolved: [],
           },

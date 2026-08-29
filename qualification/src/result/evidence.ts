@@ -34,17 +34,13 @@ import {
   type IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
 import { QualificationCoverageResultSchema } from '../coverage/index.ts';
-import {
-  readJsonFile,
-  readYamlFile,
-  resolveContainedPath,
-  type IBoundarySchema,
-} from '../filesystem/index.ts';
+import { readJsonFile, resolveContainedPath, type IBoundarySchema } from '../filesystem/index.ts';
 import { matchesWorkspacePathContract } from '../project-fixture/index.ts';
 import {
   createQualificationStageIds,
   createQualificationTrialStageIds,
 } from '../execution/stages.ts';
+import { readQualificationContractYaml } from './contract-reader.ts';
 
 const JsonObjectSchema = z.record(z.string(), z.unknown());
 
@@ -946,16 +942,17 @@ const validateCurrentTerminalAttempt = async (
   result: IQualificationAttemptResult,
   resultsRoot: string,
 ): Promise<void> => {
-  const profilesRoot = path.resolve(resultsRoot, '..', 'profiles');
-  const profileDirectory = path.join(
-    profilesRoot,
+  const profileRelativeDirectory = path.join(
+    'profiles',
     result.selection.adapterId,
     result.selection.implementationId,
   );
-  const profile = await readYamlFile(
-    path.join(profileDirectory, 'profile.yaml'),
-    QualificationProfileSchema,
-  );
+  const profile = await readQualificationContractYaml({
+    qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
+    relativePath: path.join(profileRelativeDirectory, 'profile.yaml'),
+    resultsRoot,
+    schema: QualificationProfileSchema,
+  });
 
   // artifact verification validates recorded attempts; the release gate owns profile currency
   if (
@@ -998,10 +995,12 @@ const validateCurrentTerminalAttempt = async (
   const [baseline, coverage, probes, sourceState] = await Promise.all([
     requireArtifact(attemptDirectory, result, 'baseline.json', QualificationBaselineCheckSchema),
     requireArtifact(attemptDirectory, result, 'coverage.json', QualificationCoverageResultSchema),
-    readYamlFile(
-      resolveContainedPath(profileDirectory, profile.probesFile),
-      QualificationProbesSchema,
-    ),
+    readQualificationContractYaml({
+      qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
+      relativePath: path.join(profileRelativeDirectory, profile.probesFile),
+      resultsRoot,
+      schema: QualificationProbesSchema,
+    }),
     requireArtifact(
       attemptDirectory,
       result,
@@ -1086,13 +1085,16 @@ const validateCurrentTerminalAttempt = async (
       continue;
     }
 
-    const scenario = await readYamlFile(
-      resolveContainedPath(
-        resolveContainedPath(profileDirectory, profileCase.projectDirectory),
+    const scenario = await readQualificationContractYaml({
+      qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
+      relativePath: path.join(
+        profileRelativeDirectory,
+        profileCase.projectDirectory,
         profileCase.scenarioFile,
       ),
-      QualificationCaseScenarioSchema,
-    );
+      resultsRoot,
+      schema: QualificationCaseScenarioSchema,
+    });
 
     if (scenario.id !== profileCase.id || caseResult.caseId !== profileCase.id) {
       throw new Error(`Qualification case ${profileCase.id} contradicts its profile identity.`);

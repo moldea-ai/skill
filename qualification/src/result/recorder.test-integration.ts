@@ -18,6 +18,7 @@ import {
   readJsonFile,
   writeJsonFileAtomically,
 } from '../filesystem/index.ts';
+import { executeProcess } from '../process/index.ts';
 import { seedPassingQualificationEvidenceFixture } from '../../vitest/evidence-fixture.ts';
 import { recordQualificationResult, verifyQualificationResults } from './recorder.ts';
 
@@ -152,6 +153,77 @@ describe('qualification result recording', () => {
           message: 'Artifact digests do not match attempt.json.',
         },
       ],
+    });
+  });
+
+  test('verifies historical evidence against its recorded qualification contract', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'qualification', 'results');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    await ensureDirectory(artifactDirectory);
+    const passingResult = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'attempt-historical-contract',
+      resultsRoot,
+    });
+    await executeProcess({
+      command: 'git',
+      args: ['init', '--initial-branch=main'],
+      cwd: temporaryRoot,
+    });
+    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: temporaryRoot });
+    await executeProcess({
+      command: 'git',
+      args: [
+        '-c',
+        'commit.gpgsign=false',
+        '-c',
+        'user.name=Moldea Qualification',
+        '-c',
+        'user.email=qualification@moldea.local',
+        'commit',
+        '-m',
+        'test: preserve historical qualification contract',
+      ],
+      cwd: temporaryRoot,
+    });
+    const { stdout: qualificationRepositoryCommit } = await executeProcess({
+      command: 'git',
+      args: ['rev-parse', 'HEAD'],
+      cwd: temporaryRoot,
+    });
+    const recordedResult = QualificationAttemptResultSchema.parse({
+      ...passingResult,
+      provenance: {
+        ...passingResult.provenance,
+        qualificationRepositoryCommit: qualificationRepositoryCommit.trim(),
+      },
+    });
+    await recordQualificationResult(
+      { artifactDirectory, result: recordedResult, sanitizationContext },
+      resultsRoot,
+    );
+    const currentScenarioPath = path.join(
+      temporaryRoot,
+      'qualification',
+      'profiles',
+      'custom',
+      'custom',
+      'projects',
+      'release-case',
+      'scenario.yaml',
+    );
+    const currentScenario = await readFile(currentScenarioPath, 'utf8');
+    await writeFile(
+      currentScenarioPath,
+      currentScenario.replaceAll('moldea/runtimes/**/*.md', 'moldea/other/**/*.md'),
+      'utf8',
+    );
+
+    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
+      passed: true,
+      attempts: 1,
+      issues: [],
     });
   });
 

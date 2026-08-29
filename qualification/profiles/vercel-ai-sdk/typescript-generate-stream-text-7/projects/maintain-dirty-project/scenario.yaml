@@ -40,11 +40,17 @@ workspace:
       notes/local-observation.md,
       src/operator-notes.ts,
       src/support-agent.ts,
+      moldea/agents/support/description.md,
       moldea/context/billing.md,
     ]
   mustNotExistPaths: [moldea/runtimes]
   allowedChangePaths:
-    [moldea/moldea.yaml, moldea/agents/support/instruction.md, moldea/context/billing.md]
+    [
+      moldea/moldea.yaml,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      moldea/context/billing.md,
+    ]
   allowedChangePathPatterns: []
   mustChangePathPatterns: []
 judgeRequirements:

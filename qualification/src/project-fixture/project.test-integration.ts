@@ -233,6 +233,21 @@ describe('qualification project fixtures', () => {
     ]);
 
     await writeFile(
+      path.join(project.workspaceDirectory, 'moldea', 'agents', 'support', 'description.md'),
+      "Answers account, billing, refund, and invoice questions through the project's email channel.\n",
+      'utf8',
+    );
+    const refinedDescriptionAssertions = await inspectWorkspaceAssertions(project);
+
+    expect(refinedDescriptionAssertions.passed).toBe(true);
+    expect(refinedDescriptionAssertions.changedPaths).toStrictEqual([
+      'moldea/agents/support/description.md',
+      'moldea/agents/support/instruction.md',
+      'moldea/context/billing.md',
+      'moldea/moldea.yaml',
+    ]);
+
+    await writeFile(
       path.join(project.workspaceDirectory, '.agents', 'project-policy.md'),
       'modified policy\n',
       'utf8',

@@ -37,11 +37,13 @@ workspace:
     - moldea/context/billing.md
   mustExistPaths:
     - .agents/project-policy.md
+    - moldea/agents/support/description.md
     - moldea/context/billing.md
     - notes/local-observation.md
     - src/operator-notes.ts
   mustNotExistPaths: []
   allowedChangePaths:
+    - moldea/agents/support/description.md
     - moldea/agents/support/instruction.md
     - moldea/context/billing.md
     - moldea/moldea.yaml

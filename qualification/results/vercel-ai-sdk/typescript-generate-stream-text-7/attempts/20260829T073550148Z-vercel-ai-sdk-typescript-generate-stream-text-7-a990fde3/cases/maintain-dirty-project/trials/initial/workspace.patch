@@ -1,0 +1,76 @@
+diff --git a/moldea/agents/support/description.md b/moldea/agents/support/description.md
+index 04d221a..11ac7b1 100644
+--- a/moldea/agents/support/description.md
++++ b/moldea/agents/support/description.md
+@@ -1 +1 @@
+-Streams evidence-based support responses.
++Streams evidence-based support responses, including refund and invoice questions.
+diff --git a/moldea/agents/support/instruction.md b/moldea/agents/support/instruction.md
+index 9b54eaa..c7f07ea 100644
+--- a/moldea/agents/support/instruction.md
++++ b/moldea/agents/support/instruction.md
+@@ -1,3 +1,10 @@
+ # Support agent
+ 
+ You are the `support` agent. Answer only from available project evidence.
++
++For billing questions, follow the billing classification used by the project:
++
++- Treat a message containing the exact lowercase substring `refund` as a `refund-review`.
++- Treat other invoice questions as an `invoice-question`.
++
++The classification labels the request only. Do not claim that a refund was approved, an invoice was corrected, or any billing action was completed unless available project evidence establishes it. State what information is missing when the evidence is insufficient to answer the dispute.
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index aee2a74..bce7071 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,8 +1,17 @@
+ version: 1
++context:
++  /moldea/context/billing.md:
++    bindings:
++      - path: /src/billing.ts
++        symbol: classifyBillingQuestion
++    affectedBy:
++      - /src/billing.ts
+ agents:
+   support:
+     runtime:
+       id: vercel-ai-sdk
++    context:
++      - /moldea/context/billing.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -15,3 +24,4 @@ agents:
+         symbol: SupportOutputSchema
+     affectedBy:
+       - /src/support-agent.ts
++      - /src/billing.ts
+diff --git a/src/operator-notes.ts b/src/operator-notes.ts
+index 4c10137..c85298a 100644
+--- a/src/operator-notes.ts
++++ b/src/operator-notes.ts
+@@ -1 +1 @@
+-export const operatorNote = 'existing tracked work';
++export const operatorNote = 'developer is testing a separate escalation path';
+
+diff --git a/moldea/context/billing.md b/moldea/context/billing.md
+new file mode 100644
+index 0000000..0ac262a
+--- /dev/null
++++ b/moldea/context/billing.md
+@@ -0,0 +1,5 @@
++# Billing disputes
++
++Billing questions are classified by `classifyBillingQuestion` in `/src/billing.ts`. A message containing the exact lowercase substring `refund` is classified as `refund-review`; every other message passed to the classifier is classified as `invoice-question`.
++
++These values label a support request. They do not approve a refund, determine whether an invoice is correct, or perform a billing action. Support responses must remain grounded in available project evidence and identify missing information instead of inventing an outcome.
+
+diff --git a/notes/local-observation.md b/notes/local-observation.md
+new file mode 100644
+index 0000000..c97f13a
+--- /dev/null
++++ b/notes/local-observation.md
+@@ -0,0 +1 @@
++The staging invoice feed can arrive late. This untracked note is unrelated to canonical agent context.

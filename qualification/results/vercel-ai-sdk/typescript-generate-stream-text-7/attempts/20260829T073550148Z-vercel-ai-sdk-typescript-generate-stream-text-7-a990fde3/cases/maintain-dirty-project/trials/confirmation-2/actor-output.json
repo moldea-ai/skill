@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to `classifyBillingQuestion`, associated it with `support`, and placed the exact safe refund/invoice semantics in the instruction consumed by the existing loader. Moldea inspect and validate completed with schema 2, CLI 5.0.0, valid status, and no diagnostics; TypeScript type-check passed. The complete tracked diff and new context file were inspected.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The direct Vercel AI SDK wrapper, loadSupportInstruction implementation, and SupportOutputSchema remain unchanged.",
+    "Because the loader reads only instruction.md, the required billing semantics are self-contained there; the canonical context is also registered for durable traceability.",
+    "Pre-existing changes to src/operator-notes.ts and the untracked notes/ directory were preserved unchanged.",
+    "No provider, agent, model, subagent, or network access was used."
+  ],
+  "unresolved": []
+}

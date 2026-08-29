@@ -106,6 +106,9 @@ test('execution evidence recognizes exact evaluator-owned local tooling checks',
         `node -e "const fs=require('fs'),path=require('path'); const pkg=fs.realpathSync('node_modules/@moldea.ai/cli'); const bin=fs.realpathSync('node_modules/.bin/moldea'); const target=fs.realpathSync(path.join(pkg,'dist/moldea.js')); if(bin !== target || !bin.startsWith(pkg+path.sep)) process.exitCode=1; console.log(JSON.stringify({package:pkg,bin,expected:target,providerMatches:bin===target}))"`,
       ),
       createCommandEvent('git --version', 'git version 2.53.0\n'),
+      createCommandEvent('/home/evaluator/bin/git status --short'),
+      createCommandEvent('/home/evaluator/bin/npm --version', '11.12.1\n'),
+      createCommandEvent('env GIT_ATTR_NOSYSTEM=1 /home/evaluator/bin/git status --short'),
       createCommandEvent("rg --files -g '!node_modules' . 2>/dev/null | sed -n '1,240p'"),
       createCommandEvent(
         'env GIT_ATTR_NOSYSTEM=1 git -C /mnt -c core.fsmonitor=false -c core.pager=cat --no-pager status --porcelain=v2 -z',
@@ -117,7 +120,7 @@ test('execution evidence recognizes exact evaluator-owned local tooling checks',
   );
 
   assert.deepEqual(result.commandPolicy, {
-    completedCommandCount: 9,
+    completedCommandCount: 12,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
       status: 'not-observed',
@@ -163,14 +166,17 @@ test('execution evidence fails closed for network, sensitive, and opaque command
       createCommandEvent('curl https://api.openai.com'),
       createCommandEvent("cat '/home/evaluator/.codex/auth.json'", 'sk-exampletoken1234567890'),
       createCommandEvent('node scripts/check.mjs'),
+      createCommandEvent('/home/evaluator/bin/npm install package'),
+      createCommandEvent('cat /home/evaluator/bin/git'),
+      createCommandEvent('/home/evaluator/bin/git -C /home/evaluator status --short'),
     ].join('\n'),
   );
 
   assert.deepEqual(result.commandPolicy, {
-    completedCommandCount: 3,
+    completedCommandCount: 6,
     credentialExposure: { status: 'observed', observedCount: 1 },
-    networkAccess: { status: 'observed', observedCount: 1, indeterminateCount: 1 },
-    sensitiveAccess: { status: 'observed', observedCount: 1, indeterminateCount: 1 },
+    networkAccess: { status: 'observed', observedCount: 2, indeterminateCount: 1 },
+    sensitiveAccess: { status: 'observed', observedCount: 3, indeterminateCount: 1 },
   });
 });
 

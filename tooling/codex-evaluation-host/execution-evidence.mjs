@@ -167,6 +167,10 @@ const SAFE_NODE_REALPATH_PATHS = new Set([
 ]);
 const SAFE_SED_PRINT_SCRIPT_PATTERN = /^\d+(?:,\d+)?p$/u;
 const EVALUATOR_HOME_PATH = '/home/evaluator';
+const SAFE_EVALUATOR_EXECUTABLE_PATHS = new Set([
+  `${EVALUATOR_HOME_PATH}/bin/git`,
+  `${EVALUATOR_HOME_PATH}/bin/npm`,
+]);
 const NETWORK_GIT_SUBCOMMANDS = new Set([
   'clone',
   'fetch',
@@ -378,36 +382,56 @@ const tokenizeStaticShellList = (command) => {
   return commands.length > 0 ? commands : null;
 };
 
+/** Locates the executable token in a static command and its trusted env wrapper. */
+const identifyExecutableWordIndex = (words) => {
+  let wordIndex = 0;
+  while (/^[A-Za-z_][A-Za-z0-9_]*=.*/u.test(words[wordIndex] ?? '')) wordIndex += 1;
+  if (words[wordIndex] === '!') wordIndex += 1;
+
+  if (['env', '/bin/env', '/usr/bin/env'].includes(words[wordIndex] ?? '')) {
+    wordIndex += 1;
+    if (words[wordIndex] === '--') wordIndex += 1;
+    while (/^[A-Za-z_][A-Za-z0-9_]*=.*/u.test(words[wordIndex] ?? '')) wordIndex += 1;
+  }
+
+  return wordIndex < words.length ? wordIndex : null;
+};
+
 /** Classifies decoded static words that resolve into or above evaluator-owned state. */
 const classifyDecodedSensitiveAccess = (commands) => {
-  const decodedCommand = commands.flat().join(' ');
-  if (SENSITIVE_ACCESS_PATTERN.test(decodedCommand)) return 'observed';
-
   let hasIndeterminatePath = false;
-  for (const word of commands.flat()) {
-    const equalsIndex = word.indexOf('=');
-    const candidates = equalsIndex === -1 ? [word] : [word, word.slice(equalsIndex + 1)];
-    for (const candidate of candidates) {
-      let pathCandidate = candidate;
-      if (candidate === '~') pathCandidate = EVALUATOR_HOME_PATH;
-      else if (candidate.startsWith('~/')) {
-        pathCandidate = posix.join(EVALUATOR_HOME_PATH, candidate.slice(2));
-      } else if (!candidate.startsWith('/') && !candidate.startsWith('.')) continue;
-
-      const normalizedPath = posix.resolve('/mnt', pathCandidate);
-      if (
-        normalizedPath === EVALUATOR_HOME_PATH ||
-        normalizedPath.startsWith(`${EVALUATOR_HOME_PATH}/`)
-      ) {
-        return 'observed';
+  for (const words of commands) {
+    const executableWordIndex = identifyExecutableWordIndex(words);
+    for (const [wordIndex, word] of words.entries()) {
+      if (wordIndex === executableWordIndex && SAFE_EVALUATOR_EXECUTABLE_PATHS.has(word)) {
+        continue;
       }
-      if (
-        normalizedPath === '/proc' ||
-        normalizedPath.startsWith('/proc/') ||
-        normalizedPath === '/' ||
-        EVALUATOR_HOME_PATH.startsWith(`${normalizedPath}/`)
-      ) {
-        hasIndeterminatePath = true;
+      const equalsIndex = word.indexOf('=');
+      const candidates = equalsIndex === -1 ? [word] : [word, word.slice(equalsIndex + 1)];
+      for (const candidate of candidates) {
+        if (SENSITIVE_ACCESS_PATTERN.test(candidate)) return 'observed';
+
+        let pathCandidate = candidate;
+        if (candidate === '~') pathCandidate = EVALUATOR_HOME_PATH;
+        else if (candidate.startsWith('~/')) {
+          pathCandidate = posix.join(EVALUATOR_HOME_PATH, candidate.slice(2));
+        } else if (!candidate.startsWith('/') && !candidate.startsWith('.')) continue;
+
+        const normalizedPath = posix.resolve('/mnt', pathCandidate);
+        if (
+          normalizedPath === EVALUATOR_HOME_PATH ||
+          normalizedPath.startsWith(`${EVALUATOR_HOME_PATH}/`)
+        ) {
+          return 'observed';
+        }
+        if (
+          normalizedPath === '/proc' ||
+          normalizedPath.startsWith('/proc/') ||
+          normalizedPath === '/' ||
+          EVALUATOR_HOME_PATH.startsWith(`${normalizedPath}/`)
+        ) {
+          hasIndeterminatePath = true;
+        }
       }
     }
   }
@@ -455,7 +479,9 @@ const identifyGitSubcommand = (words) => {
 
 /** Checks the evaluator-owned npm probe's complete non-networking command contract. */
 const isSafeNpmProbeCommand = (words) =>
-  words[0] === 'npm' && words.length === 2 && ['--version', '-v'].includes(words[1]);
+  ['npm', `${EVALUATOR_HOME_PATH}/bin/npm`].includes(words[0]) &&
+  words.length === 2 &&
+  ['--version', '-v'].includes(words[1]);
 
 /** Checks Node's complete built-in version command without accepting executable code. */
 const isSafeNodeVersionCommand = (words) =>
@@ -826,8 +852,7 @@ const classifyCommand = (command) => {
       sensitiveAccess: rawSensitiveAccess ?? 'indeterminate',
     };
   }
-  const sensitiveAccess =
-    rawSensitiveAccess ?? classifyDecodedSensitiveAccess(commands) ?? undefined;
+  const sensitiveAccess = classifyDecodedSensitiveAccess(commands) ?? undefined;
   const networkClassifications = commands.map((words) => classifyNetworkCommand([...words]));
   const networkAccess = networkClassifications.includes('observed')
     ? 'observed'

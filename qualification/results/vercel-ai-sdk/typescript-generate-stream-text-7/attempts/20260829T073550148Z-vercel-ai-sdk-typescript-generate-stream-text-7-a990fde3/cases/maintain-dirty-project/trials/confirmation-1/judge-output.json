@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state and runner-owned evidence agree: billing guidance is canonical, registered, assigned to support, and bound to the exact billing implementation, while the direct Vercel AI SDK wiring remains intact and type-checks successfully.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "Current workspace contains /moldea/context/billing.md with accurate refund/invoice classification guidance. /moldea/moldea.yaml globally registers it under context, binds it to /src/billing.ts symbol classifyBillingQuestion, and assigns it to agents.support.context. The support instruction explicitly applies the billing context to refund and invoice questions. Workspace assertions identify only the three intended task changes, and deterministic inspection reports valid with no failures."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "verdict": "pass",
+      "evidence": "Current /src/support-agent.ts still directly calls streamText, loads /moldea/agents/support/instruction.md through loadSupportInstruction, and uses Output.object({ schema: SupportOutputSchema }). Runner-owned before/after hashes for this file are identical, while deterministic validation and TypeScript type-checking passed."
+    }
+  ],
+  "failures": []
+}

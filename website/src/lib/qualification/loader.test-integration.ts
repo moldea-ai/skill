@@ -1,6 +1,7 @@
 // @vitest-environment node
 // exercises the public loader against complete repository-shaped filesystem fixtures
 import { createHash } from 'node:crypto';
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -37,6 +38,13 @@ const writeText = (root: string, relativePath: string, content: string): void =>
 const writeJson = (root: string, relativePath: string, value: unknown): void => {
   writeText(root, relativePath, `${JSON.stringify(value, null, 2)}\n`);
 };
+
+const executeGit = (root: string, args: string[]): string =>
+  execFileSync('git', args, {
+    cwd: root,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim();
 
 const seedProfile = (root: string): void => {
   writeText(
@@ -321,6 +329,73 @@ const convertCurrentAttemptToFailed = (root: string, attemptId: string): void =>
   });
 };
 
+const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: string): void => {
+  const failure =
+    'Judge command policy observed prohibited credential, network, or sensitive evaluator access.';
+  const attempt = readAttemptFixture(root, attemptId);
+  const caseResult = attempt.cases[0];
+  const trials = caseResult?.['trials'];
+
+  if (
+    !caseResult ||
+    !Array.isArray(trials) ||
+    typeof trials[2] !== 'object' ||
+    trials[2] === null
+  ) {
+    throw new Error('Missing current confirmation fixture.');
+  }
+
+  const terminalTrial = trials[2] as Record<string, unknown>;
+  terminalTrial['passed'] = false;
+  terminalTrial['failures'] = [failure];
+  caseResult['status'] = 'failed';
+  caseResult['confirmationStatus'] = 'rejected';
+  caseResult['failures'] = [failure];
+  const judgeEvidencePath = 'cases/release-case/trials/confirmation-2/judge-evidence.json';
+  const judgeEvidence = JSON.parse(
+    readFileSync(
+      join(root, 'qualification/results/custom/custom/attempts', attemptId, judgeEvidencePath),
+      'utf8',
+    ),
+  ) as {
+    commandPolicy: {
+      completedCommandCount: number;
+      sensitiveAccess: Record<string, unknown>;
+    };
+  };
+  judgeEvidence.commandPolicy.completedCommandCount = 1;
+  judgeEvidence.commandPolicy.sensitiveAccess = {
+    status: 'observed',
+    observedCount: 1,
+    indeterminateCount: 0,
+  };
+  replaceAttemptArtifact(root, attemptId, judgeEvidencePath, judgeEvidence);
+  replaceAttemptArtifact(
+    root,
+    attemptId,
+    'cases/release-case/trials/confirmation-2/trial-result.json',
+    terminalTrial,
+  );
+  replaceAttemptArtifact(root, attemptId, 'cases/release-case/case-result.json', caseResult);
+  const updatedAttempt = readAttemptFixture(root, attemptId);
+  updatedAttempt['status'] = 'failed';
+  updatedAttempt.cases = attempt.cases;
+  writeJson(
+    root,
+    `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
+    updatedAttempt,
+  );
+  writeJson(root, 'qualification/results/custom/custom/latest.json', {
+    protocolVersion: 6,
+    adapterId: 'custom',
+    implementationId: 'custom',
+    latestAttemptId: attemptId,
+    latestStatus: 'failed',
+    lastPassingAttemptId: null,
+    updatedAt: '2026-08-20T12:00:00.000Z',
+  });
+};
+
 afterEach(() => {
   for (const root of temporaryRoots.splice(0)) rmSync(root, { force: true, recursive: true });
 });
@@ -513,6 +588,49 @@ cases:
       role: 'developer',
       source: 'recorded',
     });
+  });
+
+  test('validates historical evidence against its recorded qualification contract', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-historical-contract';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    executeGit(root, ['init', '--quiet']);
+    executeGit(root, ['config', 'user.email', 'qualification@example.com']);
+    executeGit(root, ['config', 'user.name', 'Qualification Fixture']);
+    executeGit(root, ['add', 'qualification/profiles']);
+    executeGit(root, ['commit', '--quiet', '-m', 'test: record qualification contract']);
+    const qualificationRepositoryCommit = executeGit(root, ['rev-parse', 'HEAD']);
+    const attempt = readAttemptFixture(root, attemptId);
+    const provenance = attempt['provenance'];
+
+    if (typeof provenance !== 'object' || provenance === null) {
+      throw new Error('Missing qualification provenance fixture.');
+    }
+
+    (provenance as Record<string, unknown>)['qualificationRepositoryCommit'] =
+      qualificationRepositoryCommit;
+    writeJson(
+      root,
+      `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
+      attempt,
+    );
+    const scenarioPath = 'qualification/profiles/custom/custom/projects/release-case/scenario.yaml';
+    const currentScenario = readFileSync(join(root, scenarioPath), 'utf8').replace(
+      '  expectation: changed',
+      '  expectation: unchanged',
+    );
+    writeText(root, scenarioPath, currentScenario);
+
+    expect(() => loadQualificationWebsiteModel(root)).not.toThrow();
+  });
+
+  test('loads a failed trial caused by judge command policy evidence', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-judge-policy-failure';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    convertCurrentAttemptToJudgePolicyFailure(root, attemptId);
+
+    expect(() => loadQualificationWebsiteModel(root)).not.toThrow();
   });
 
   test('rejects a current actor prompt with altered execution rules', async () => {

@@ -32,6 +32,7 @@ import {
   type IQualificationProfileModel,
   type IQualificationWebsiteModel,
 } from './types.ts';
+import { readRecordedQualificationContract } from './contract-reader.ts';
 import { createQualificationReplay } from './replay-transformers.ts';
 import {
   calculateFileSha256,
@@ -444,7 +445,11 @@ const loadCurrentAttemptCase = (
         WorkspaceAssertionResultSchema,
       ),
     };
-    assertQualificationCaseEvidence({ ...trialEvidence, profileCase });
+    assertQualificationCaseEvidence({
+      ...trialEvidence,
+      judgeCommandPolicy: judgeEvidence?.commandPolicy ?? null,
+      profileCase,
+    });
     return trialEvidence;
   });
 
@@ -469,11 +474,11 @@ const readOptionalArtifact = <Output>(
 
 const loadAttempt = (
   repositoryRoot: string,
+  resultsRoot: string,
   attemptDirectory: string,
   adapterId: string,
   implementationId: string,
-  profileCases: ReadonlyMap<string, IQualificationProfileCaseModel>,
-  probeMatrixPaths: readonly string[],
+  currentProfileCases: ReadonlyMap<string, IQualificationProfileCaseModel>,
 ): IQualificationAttemptModel => {
   const attemptPath = join(attemptDirectory, 'attempt.json');
   const result = readJsonFile(attemptPath, QualificationAttemptResultSchema);
@@ -491,8 +496,16 @@ const loadAttempt = (
     `Qualification attempt ${result.attemptId} case ids`,
   );
 
+  const recordedContract = readRecordedQualificationContract({
+    adapterId,
+    implementationId,
+    qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
+    repositoryRoot,
+    resultsRoot,
+  });
+
   for (const caseResult of result.cases) {
-    if (!profileCases.has(caseResult.caseId)) {
+    if (!recordedContract.caseScenarios.has(caseResult.caseId)) {
       throw new Error(`Qualification attempt ${result.attemptId} references an unknown case.`);
     }
   }
@@ -542,11 +555,14 @@ const loadAttempt = (
 
   const error = executionError ?? interruption;
   const cases = result.cases.map((caseResult) => {
-    const profileCase = profileCases.get(caseResult.caseId);
+    const currentProfileCase = currentProfileCases.get(caseResult.caseId);
+    const recordedScenario = recordedContract.caseScenarios.get(caseResult.caseId);
 
-    if (!profileCase) {
+    if (!currentProfileCase || !recordedScenario) {
       throw new Error(`Qualification attempt ${result.attemptId} references an unknown case.`);
     }
+
+    const profileCase = { ...currentProfileCase, scenario: recordedScenario };
 
     return loadCurrentAttemptCase(
       repositoryRoot,
@@ -567,8 +583,8 @@ const loadAttempt = (
     coverage,
     error,
     errorArtifactKind: executionError ? 'error' : interruption ? 'interruption' : null,
-    profileCaseIds: new Set(profileCases.keys()),
-    probeMatrixPaths,
+    profileCaseIds: new Set(recordedContract.profileCaseIds),
+    probeMatrixPaths: recordedContract.probeMatrixPaths,
     result,
     sourceState,
   });
@@ -591,8 +607,7 @@ const loadAttempts = (
   resultsRoot: string,
   adapterId: string,
   implementationId: string,
-  profileCases: ReadonlyMap<string, IQualificationProfileCaseModel>,
-  probeMatrixPaths: readonly string[],
+  currentProfileCases: ReadonlyMap<string, IQualificationProfileCaseModel>,
 ): { attempts: IQualificationAttemptModel[]; latest: IQualificationProfileModel['latest'] } => {
   const targetRoot = join(resultsRoot, adapterId, implementationId);
   const attemptsRoot = join(targetRoot, 'attempts');
@@ -601,11 +616,11 @@ const loadAttempts = (
     .map((entry) =>
       loadAttempt(
         repositoryRoot,
+        resultsRoot,
         join(attemptsRoot, entry.name),
         adapterId,
         implementationId,
-        profileCases,
-        probeMatrixPaths,
+        currentProfileCases,
       ),
     )
     .sort(
@@ -720,7 +735,6 @@ const loadProfile = (
     profile.adapterId,
     profile.implementationId,
     new Map(cases.map((profileCase) => [profileCase.id, profileCase])),
-    probes.probes.map(({ matrixPath }) => matrixPath),
   );
   return {
     adapterId: profile.adapterId,

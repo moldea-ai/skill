@@ -196,8 +196,10 @@ const assertWorkspaceEvidence = (
 
 const deriveCurrentTrialFailures = (options: {
   actor: IActorOutput;
+  actorCommandPolicy: IQualificationModelStageEvidence['commandPolicy'] | null;
   deterministicAfter: IDeterministicVerification;
   judge: IJudgeOutput | null;
+  judgeCommandPolicy: IQualificationModelStageEvidence['commandPolicy'] | null;
   profileCase: IQualificationProfileCaseModel;
   requirementAssessments: Extract<
     IQualificationAttemptResult,
@@ -209,6 +211,18 @@ const deriveCurrentTrialFailures = (options: {
     ? []
     : [
         `Actor outcome ${options.actor.outcome} did not match expected outcome ${options.profileCase.scenario.expectedActorOutcome}.`,
+      ]),
+  ...(options.actorCommandPolicy !== null &&
+  hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy)
+    ? []
+    : [
+        'Actor command policy observed prohibited credential, network, or sensitive evaluator access.',
+      ]),
+  ...(options.judgeCommandPolicy === null ||
+  hasPassingCodexEvaluationCommandPolicy(options.judgeCommandPolicy)
+    ? []
+    : [
+        'Judge command policy observed prohibited credential, network, or sensitive evaluator access.',
       ]),
   ...options.deterministicAfter.failures,
   ...options.workspaceAssertions.failures,
@@ -225,6 +239,7 @@ export const assertQualificationCaseEvidence = (options: {
   deterministicAfter: IDeterministicVerification;
   deterministicBefore: IDeterministicVerification;
   judge: IJudgeOutput | null;
+  judgeCommandPolicy: IQualificationModelStageEvidence['commandPolicy'] | null;
   judgeSkipped: IQualificationJudgeSkipped | null;
   profileCase: IQualificationProfileCaseModel;
   result: IQualificationAttemptTrialModel['result'];
@@ -349,8 +364,10 @@ export const assertQualificationCaseEvidence = (options: {
   });
   const derivedFailures = deriveCurrentTrialFailures({
     actor,
+    actorCommandPolicy: options.actorCommandPolicy,
     deterministicAfter,
     judge,
+    judgeCommandPolicy: options.judgeCommandPolicy,
     profileCase,
     requirementAssessments: derivedAssessments,
     workspaceAssertions: options.workspaceAssertions,

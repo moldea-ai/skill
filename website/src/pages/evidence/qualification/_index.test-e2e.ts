@@ -17,20 +17,20 @@ test('represents the current qualification evidence state', async ({ page }) => 
   ).toBeVisible();
   await expect(
     customProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('1');
+  ).toContainText('3');
 
   const vercelProfileLink = page.getByRole('link', {
     name: /Vercel AI SDK direct generation qualification/,
   });
   await expect(
-    vercelProfileLink.locator('[data-evidence-status][data-evidence-status="not-recorded"]'),
+    vercelProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
   ).toBeVisible();
   await expect(
     vercelProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('0');
+  ).toContainText('2');
 });
 
-test('presents the recorded Custom result and pending Vercel profile', async ({ page }) => {
+test('presents the recorded Custom and Vercel results', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
   await expect(
     page.getByRole('heading', { level: 1, name: 'Custom runtime qualification' }),
@@ -53,13 +53,12 @@ test('presents the recorded Custom result and pending Vercel profile', async ({ 
     }),
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: '10 realistic journeys' })).toBeVisible();
-  await expect(
-    page.locator('[data-evidence-status][data-evidence-status="not-recorded"]').first(),
-  ).toBeVisible();
-  await expect(
-    page.getByText(/No protocol 6 Sol attempt has been committed/u).first(),
-  ).toBeVisible();
-  await expect(page.getByRole('link', { name: /^Inspect the .* attempt$/u })).toHaveCount(0);
+  await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
+  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
+    'href',
+    /\/evidence\/qualification\/vercel-ai-sdk\/typescript-generate-stream-text-7\/attempts\//u,
+  );
 });
 
 test('replays qualification evidence through human-readable and technical views', async ({
@@ -91,7 +90,7 @@ test('replays qualification evidence through human-readable and technical views'
   await expect(developerMessage).toContainText('Add the order-triage agent');
   await expect(developerMessage).toContainText('createOrderTriageAgent');
   await expect(journey.getByRole('heading', { name: 'Workspace changes' })).toBeVisible();
-  await expect(journey.getByText('description.md', { exact: true })).toBeVisible();
+  await expect(journey.getByTitle('moldea/agents/order-triage/description.md')).toBeVisible();
   const verdict = journey.locator('[data-replay-verdict]').first();
   await expect(verdict.getByText('Trial verdict', { exact: true })).toBeVisible();
   await verdict.locator('summary').click();

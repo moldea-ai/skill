@@ -24,6 +24,7 @@ The committed inputs are deliberately inspectable:
 - Each project contains `scenario.yaml`, `task.md`, a committed `seed/`, optional pre-existing dirty state in `overlay/`, and the expected fake-host state in `expected/`.
 - [`profiles/custom/custom/`](profiles/custom/custom/) is the complete baseline profile for the built-in Custom adapter.
 - [`profiles/anthropic/typescript-messages-api-0-117/`](profiles/anthropic/typescript-messages-api-0-117/) qualifies direct Anthropic Messages API integrations through the universal catalog and two adapter-specific boundary cases.
+- [`profiles/claude-agent-sdk/typescript-query-subagents-0-3/`](profiles/claude-agent-sdk/typescript-query-subagents-0-3/) qualifies direct Claude Agent SDK query wrappers, programmatic subagents, and query-mounted SDK MCP tools through the universal catalog and two adapter-specific boundary cases.
 - [`profiles/vercel-ai-sdk/typescript-tool-loop-agent-7/`](profiles/vercel-ai-sdk/typescript-tool-loop-agent-7/) qualifies direct Vercel AI SDK 7 `ToolLoopAgent` construction through the universal catalog and two adapter-specific boundary cases.
 - [`profiles/vercel-ai-sdk/typescript-generate-stream-text-7/`](profiles/vercel-ai-sdk/typescript-generate-stream-text-7/) qualifies direct Vercel AI SDK 7 generation through the universal catalog and two adapter-specific boundary cases.
 - Every seed declares the same exact TypeScript development dependency owned by the qualification package. The runner downloads and verifies that compiler tarball independently, and each isolated workspace installs it with the registry-verified candidate CLI through an attempt-local pnpm store. It validates the relative `node_modules/.bin/tsc` link and makes the same compiler available to the actor, deterministic verifier, and copied judge workspace.
@@ -196,6 +197,12 @@ Eight is not an arbitrary maximum. These journeys cover aligned recognition, ini
 The `anthropic/typescript-messages-api-0-117` profile adds two cases to the universal catalog. One repairs an exact client-tool name mismatch while preserving valid SDK code and the direct input-schema binding. The other uses an intermediate Messages request and an Anthropic provider tool to prove that the skill records the adapter's static-analysis boundary without inventing runtime-pattern, client-tool registration, schema, provider, model, routing, handoff, subagent, or output-schema evidence.
 
 All ten projects install and typecheck with exact published Anthropic SDK dependencies. Supported cases exercise direct `client.messages.create(...)` calls, top-level `system` instruction loaders, closed client-tool arrays, and direct `input_schema` references. Qualification never invokes those functions or makes a provider call.
+
+## Claude Agent SDK
+
+The `claude-agent-sdk/typescript-query-subagents-0-3` profile adds two cases to the universal catalog. One repairs an exact fully qualified SDK MCP tool-name mismatch while preserving valid query, server, tool, implementation, and input-schema wiring. The other concentrates dynamic query options, main-thread selection, tool aliases, prompt arrays, built-in tools, dynamic and filesystem subagents, observer fields, critical reminders, external and per-agent MCP servers, server instructions, settings, skills, and hooks so the skill must preserve the adapter's relationship-local static boundary.
+
+All ten projects install and typecheck with exact published Claude Agent SDK and peer dependencies. Supported cases exercise direct `query(...)` wrappers, custom and preset-appended system prompts, closed programmatic subagent maps, static Agent availability, effective handoff descriptions, query JSON-schema output, explicit and inherited subagent tools, and repository-local SDK MCP tools. Qualification never starts a query, invokes a subagent or tool, or makes a provider call.
 
 ## Vercel AI SDK direct generation
 

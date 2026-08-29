@@ -50,6 +50,16 @@ cases:
     layer: adapter-specific
     description: Represent dynamic Messages requests and provider tools as unresolved instead of claiming evidence that the adapter cannot prove.
     challenge: Tests conservative handling of target-specific static-analysis boundaries plus provider, model, routing, handoff, subagent, and output-schema non-inference.
+  - id: repair-claude-agent-sdk-tool-registration
+    title: Repair Claude Agent SDK tool registration
+    layer: adapter-specific
+    description: Reconcile a declared tool name with a closed query-mounted SDK MCP tool using exact adapter diagnostics and source evidence.
+    challenge: Requires correcting the canonical fully qualified name without changing valid tool, server, implementation, or schema wiring.
+  - id: preserve-claude-agent-sdk-static-boundary
+    title: Preserve the Claude Agent SDK static boundary
+    layer: adapter-specific
+    description: Represent unsupported query, subagent, and MCP relationships as unresolved instead of claiming evidence that the adapter cannot prove.
+    challenge: Tests conservative handling of dynamic options, availability rules, routing descriptions, SDK-only fields, and external configuration.
   - id: repair-vercel-tool-registration
     title: Repair Vercel tool registration
     layer: adapter-specific

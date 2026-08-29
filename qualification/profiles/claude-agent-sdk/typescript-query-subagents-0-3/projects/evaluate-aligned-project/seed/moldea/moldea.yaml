@@ -1,0 +1,92 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: claude-agent-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/agents.ts
+        symbol: supportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadSupportInstruction
+      outputSchema:
+        path: /src/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      find-order:
+        name: mcp__support__find_order
+        description: Finds one order by identifier.
+        implementation:
+          path: /src/implementations.ts
+          symbol: findOrder
+        registration:
+          path: /src/tools.ts
+          symbol: findOrderTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: FindOrderInputSchema
+    affectedBy:
+      - /src/**
+  billing:
+    runtime:
+      id: claude-agent-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/agents.ts
+        symbol: billingAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadBillingInstruction
+    tools:
+      find-order:
+        name: mcp__support__find_order
+        description: Finds one order by identifier.
+        implementation:
+          path: /src/implementations.ts
+          symbol: findOrder
+        registration:
+          path: /src/tools.ts
+          symbol: findOrderTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: FindOrderInputSchema
+    affectedBy:
+      - /src/**
+  orders:
+    runtime:
+      id: claude-agent-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/agents.ts
+        symbol: ordersAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadOrdersInstruction
+    tools:
+      find-order:
+        name: mcp__support__find_order
+        description: Finds one order by identifier.
+        implementation:
+          path: /src/implementations.ts
+          symbol: findOrder
+        registration:
+          path: /src/tools.ts
+          symbol: findOrderTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: FindOrderInputSchema
+    affectedBy:
+      - /src/**
+  summary:
+    runtime:
+      id: claude-agent-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/agents.ts
+        symbol: summaryAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadSummaryInstruction
+    affectedBy:
+      - /src/**

@@ -51,10 +51,10 @@ const operationalRetryCount = result.stages.reduce(
 );
 const pageDescription =
   result.status === 'passed'
-    ? `Immutable passing qualification evidence for ${profile.adapterId}/${profile.implementationId}.`
+    ? `Review immutable passing qualification attempt ${result.attemptId} for ${profile.adapterId}/${profile.implementationId}.`
     : result.status === 'failed'
-      ? `Immutable failed qualification evidence for ${profile.adapterId}/${profile.implementationId}.`
-      : `Immutable qualification evidence from an execution-error attempt for ${profile.adapterId}/${profile.implementationId}.`;
+      ? `Review immutable failed qualification attempt ${result.attemptId} for ${profile.adapterId}/${profile.implementationId}.`
+      : `Review immutable execution-error qualification attempt ${result.attemptId} for ${profile.adapterId}/${profile.implementationId}.`;
 const profileCasesById = new Map(profile.cases.map((profileCase) => [profileCase.id, profileCase]));
 const getProfileCase = (caseId: string) => {
   const profileCase = profileCasesById.get(caseId);

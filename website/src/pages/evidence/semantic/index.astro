@@ -23,7 +23,7 @@ const successfulCaseCount =
 ---
 
 <BaseLayout
-  title="Semantic evaluation"
+  title="Semantic evaluation evidence"
   description={`Review current semantic assurance, immutable attempt history, and ${semanticEvaluation.caseCount} behavioral scenarios.`}
   {breadcrumbs}
 >
@@ -52,7 +52,7 @@ const successfulCaseCount =
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
           class="font-bold"
-          href={semanticEvaluation.methodologyUrl}
+          href={withBase(semanticEvaluation.methodologyUrl, basePath)}
           variant="primary"
         >
           Read the methodology

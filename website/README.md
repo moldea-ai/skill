@@ -20,6 +20,8 @@ The compatibility marks under `public/coding-agents/` use source-owned third-par
 
 The favicon URL includes a short content fingerprint in `src/layouts/base-layout.astro` to invalidate browser favicon caches. Update that fingerprint when `public/favicon.ico` changes.
 
+Production builds verify the complete search identity instead of only checking that SEO files exist. Every indexable HTML artifact must have one unique title and description, one self-referencing canonical URL, consistent Open Graph and Twitter metadata, and one level-one heading. The home page publishes one `WebSite` JSON-LD identity, navigable content may publish validated `BreadcrumbList` data, and the sitemap must contain exactly the canonical indexable routes. The client-only search surface and the 404 page use `noindex` and remain outside the sitemap.
+
 ## Commands
 
 Run these from the repository root:

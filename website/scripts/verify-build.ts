@@ -13,6 +13,8 @@ import { loadWebsiteModel } from '../src/lib/generation/generation.ts';
 import { SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
 import { DEFAULT_SITE_URL } from '../src/lib/site/constants.ts';
 
+import { getLogicalPagePath, verifySeoMetadata } from './build-verification/index.ts';
+
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 
 const getWebsiteDirectory = (): string => resolve(fileURLToPath(new URL('..', import.meta.url)));
@@ -68,9 +70,8 @@ const verifyHtmlLinks = (
 ): void => {
   const html = readFileSync(htmlPath, 'utf8');
   const relativeHtmlPath = relative(distDirectory, htmlPath).replaceAll(sep, '/');
-  const logicalPagePath =
-    relativeHtmlPath === 'index.html' ? '/' : `/${relativeHtmlPath.replace(/index\.html$/u, '')}`;
-  const deployedPageUrl = new URL(`${basePath}${logicalPagePath.replace(/^\//, '')}`, siteUrl);
+  const logicalPagePath = getLogicalPagePath(distDirectory, htmlPath);
+  const deployedPageUrl = new URL(createCanonicalUrl(logicalPagePath, siteUrl, basePath));
   const ids = getHtmlIdList(html);
   const seenIds = new Set<string>();
 
@@ -218,6 +219,7 @@ export const verifyProductionBuild = (): void => {
   const htmlPaths = files.filter((path) => path.endsWith('.html'));
 
   for (const htmlPath of htmlPaths) verifyHtmlLinks(distDirectory, htmlPath, basePath, siteUrl);
+  verifySeoMetadata(distDirectory, files, htmlPaths, basePath, siteUrl);
 
   const publicText = files
     .filter((path) => ['.html', '.txt', '.xml', '.json'].includes(extname(path)))

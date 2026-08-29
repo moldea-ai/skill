@@ -19,19 +19,30 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(customProfileLink.locator('img')).toHaveCount(0);
   await expect(
     customProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('4');
+  ).toContainText('5');
 
   const anthropicProfileLink = page.getByRole('link', {
     name: /Anthropic Messages API qualification/,
   });
   await expect(
-    anthropicProfileLink.locator('[data-evidence-status][data-evidence-status="not-recorded"]'),
+    anthropicProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
   ).toBeVisible();
   const anthropicCompanyLogo = anthropicProfileLink.getByAltText('Anthropic company logo');
   await expect(anthropicCompanyLogo).toBeVisible();
   await expect(
     anthropicProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('0');
+  ).toContainText('1');
+
+  const claudeProfileLink = page.getByRole('link', {
+    name: /Claude Agent SDK qualification/,
+  });
+  await expect(
+    claudeProfileLink.locator('[data-evidence-status][data-evidence-status="failed"]'),
+  ).toBeVisible();
+  await expect(claudeProfileLink.getByAltText('Anthropic company logo')).toBeVisible();
+  await expect(
+    claudeProfileLink.getByText('Attempts', { exact: true }).locator('..'),
+  ).toContainText('1');
 
   const vercelProfileLink = page.getByRole('link', {
     name: /Vercel AI SDK direct generation qualification/,
@@ -55,8 +66,10 @@ test('represents the current qualification evidence state', async ({ page }) => 
     toolLoopProfileLink.getByText('Attempts', { exact: true }).locator('..'),
   ).toContainText('2');
 
+  const anthropicCompanyLogos = page.getByAltText('Anthropic company logo');
   const vercelCompanyLogos = page.getByAltText('Vercel company logo');
 
+  await expect(anthropicCompanyLogos).toHaveCount(2);
   await expect(vercelCompanyLogos).toHaveCount(2);
   await expect
     .poll(() =>
@@ -69,8 +82,10 @@ test('represents the current qualification evidence state', async ({ page }) => 
     .toBe(true);
   await expect
     .poll(() =>
-      anthropicCompanyLogo.evaluate(
-        (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+      anthropicCompanyLogos.evaluateAll((images) =>
+        images.every(
+          (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+        ),
       ),
     )
     .toBe(true);
@@ -80,22 +95,25 @@ test('represents the current qualification evidence state', async ({ page }) => 
   expect(
     await vercelCompanyLogos.first().evaluate((element) => getComputedStyle(element).filter),
   ).not.toBe('none');
-  expect(await anthropicCompanyLogo.evaluate((element) => getComputedStyle(element).filter)).toBe(
-    'none',
-  );
+  expect(
+    await anthropicCompanyLogos.evaluateAll((images) =>
+      images.every((image) => getComputedStyle(image).filter === 'none'),
+    ),
+  ).toBe(true);
 });
 
-test('presents the transparent Anthropic profile before an attempt is recorded', async ({
-  page,
-}) => {
+test('presents the recorded Anthropic profile', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/qualification/anthropic/typescript-messages-api-0-117/'));
   await expect(
     page.getByRole('heading', { level: 1, name: 'Anthropic Messages API qualification' }),
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: '10 realistic journeys' })).toBeVisible();
-  await expect(page.locator('[data-evidence-status="not-recorded"]').first()).toBeVisible();
-  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toBeVisible();
-  await expect(page.getByRole('link', { name: /^Inspect the .* attempt$/u })).toHaveCount(0);
+  await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
+  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
+    'href',
+    /\/evidence\/qualification\/anthropic\/typescript-messages-api-0-117\/attempts\//u,
+  );
 });
 
 test('presents the recorded Custom and Vercel results', async ({ page }) => {

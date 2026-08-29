@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 6,
+  "adapterId": "claude-agent-sdk",
+  "implementationId": "typescript-query-subagents-0-3",
+  "latestAttemptId": "20260829T192216695Z-claude-agent-sdk-typescript-query-subagents-0-3-d2256ad2",
+  "latestStatus": "failed",
+  "lastPassingAttemptId": null,
+  "updatedAt": "2026-08-29T19:22:33.206Z"
+}

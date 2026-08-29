@@ -1,0 +1,9 @@
+{
+  "required": true,
+  "passed": false,
+  "status": "incompatible",
+  "baselineAttemptId": null,
+  "failures": [
+    "Custom baseline attempt 20260829T162849102Z-custom-custom-c762dd1f does not match the current suite, repositories, execution environment, and published candidate closure."
+  ]
+}

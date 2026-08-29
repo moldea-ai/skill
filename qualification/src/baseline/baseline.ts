@@ -12,6 +12,7 @@ import {
 import { readJsonFile } from '../filesystem/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
+import { calculateQualificationBaselineDigestAtCommit } from './fingerprints.ts';
 import { QualificationBaselineCheckSchema, type IQualificationBaselineCheck } from './types.ts';
 
 const CUSTOM_SELECTION = {
@@ -52,10 +53,10 @@ const getPublicPackageIdentity = (
  */
 export const inspectQualificationBaseline = async (options: {
   candidate: ICandidateClosure;
+  customTargetDigest: string;
   executionEnvironment: IQualificationExecutionEnvironment;
   isDryRun: boolean;
-  packagesState: IGitRepositoryState;
-  qualificationDigest: string;
+  qualificationBaselineDigest: string;
   resultsRoot: string;
   selection: IQualificationSelection;
   skillState: IGitRepositoryState;
@@ -124,15 +125,29 @@ export const inspectQualificationBaseline = async (options: {
   const actualPackages = [...baseline.provenance.packages].sort(({ name: left }, { name: right }) =>
     left.localeCompare(right, 'en'),
   );
+  const qualificationRepositoryRoot = path.resolve(options.resultsRoot, '..', '..');
+  let baselineQualificationDigest: string;
+
+  try {
+    baselineQualificationDigest = await calculateQualificationBaselineDigestAtCommit(
+      baseline.provenance.qualificationRepositoryCommit,
+      qualificationRepositoryRoot,
+    );
+  } catch {
+    return createFailure(
+      'incompatible',
+      `Custom baseline attempt ${baselineAttemptId} does not have readable universal source inputs.`,
+    );
+  }
+
   const hasCompatibleIdentity =
     latest.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
     baseline.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
     baseline.status === 'passed' &&
     baseline.selection.adapterId === CUSTOM_SELECTION.adapterId &&
     baseline.selection.implementationId === CUSTOM_SELECTION.implementationId &&
-    baseline.provenance.qualificationDigest === options.qualificationDigest &&
-    baseline.provenance.packagesRepositoryCommit === options.packagesState.commit &&
-    baseline.provenance.packagesRepositoryFingerprint === options.packagesState.fingerprint &&
+    baselineQualificationDigest === options.qualificationBaselineDigest &&
+    baseline.provenance.targetDigest === options.customTargetDigest &&
     baseline.provenance.skillRepositoryFingerprint === options.skillState.fingerprint &&
     baseline.provenance.model === options.executionEnvironment.model &&
     baseline.provenance.reasoningEffort === options.executionEnvironment.reasoningEffort &&
@@ -145,7 +160,7 @@ export const inspectQualificationBaseline = async (options: {
   if (!hasCompatibleIdentity) {
     return createFailure(
       'incompatible',
-      `Custom baseline attempt ${baselineAttemptId} does not match the current suite, repositories, execution environment, and published candidate closure.`,
+      `Custom baseline attempt ${baselineAttemptId} does not match the current universal suite, Custom target, portable skill, execution environment, and published candidate closure.`,
     );
   }
 

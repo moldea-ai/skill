@@ -6,14 +6,17 @@ import { afterEach, describe, expect, test } from 'vitest';
 
 import { createPublicCandidatePackage } from '../candidate-closure/index.ts';
 import {
+  QualificationAttemptResultSchema,
   type ICandidateClosure,
   type IQualificationExecutionEnvironment,
 } from '../contracts/index.ts';
-import { ensureDirectory } from '../filesystem/index.ts';
+import { ensureDirectory, writeTextFileAtomically } from '../filesystem/index.ts';
+import { executeProcess } from '../process/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import { recordQualificationResult } from '../result/index.ts';
 import { seedPassingQualificationEvidenceFixture } from '../../vitest/evidence-fixture.ts';
 import { inspectQualificationBaseline } from './baseline.ts';
+import { calculateQualificationBaselineDigestAtCommit } from './fingerprints.ts';
 
 const executionEnvironment: IQualificationExecutionEnvironment = {
   model: 'gpt-5.6-sol',
@@ -79,6 +82,99 @@ const createRepositoryState = (commit: string, fingerprint: string): IGitReposit
 const packagesState = createRepositoryState('packages-commit', 'd'.repeat(64));
 const skillState = createRepositoryState('skill-commit', 'e'.repeat(64));
 
+/**
+ * Creates the smallest committed qualification source tree required by baseline verification.
+ * @param repositoryRoot The temporary repository root that owns the fixture source.
+ * @returns A promise resolving to the exact fixture source commit.
+ */
+const createQualificationSourceCommit = async (repositoryRoot: string): Promise<string> => {
+  const sourceFiles = [
+    [
+      'qualification/cases/cases.yaml',
+      [
+        'version: 2',
+        'cases:',
+        '  - id: release-case',
+        '    title: Release case',
+        '    layer: universal-baseline',
+        '    description: Verify complete passing evidence.',
+        '    challenge: Exercise the reusable Custom baseline.',
+        '',
+      ].join('\n'),
+    ],
+    [
+      'qualification/package.json',
+      `${JSON.stringify({
+        name: '@moldea.ai/adapter-qualification-fixture',
+        version: '0.0.0',
+        type: 'module',
+        engines: { node: '^24.15.0' },
+        scripts: { qualification: 'node src/bin/index.ts' },
+        dependencies: { yaml: '2.9.0' },
+      })}\n`,
+    ],
+    [
+      'qualification/package-lock.json',
+      `${JSON.stringify({
+        name: '@moldea.ai/adapter-qualification-fixture',
+        version: '0.0.0',
+        lockfileVersion: 3,
+        requires: true,
+        packages: {
+          '': {
+            name: '@moldea.ai/adapter-qualification-fixture',
+            version: '0.0.0',
+            dependencies: { yaml: '2.9.0' },
+            engines: { node: '^24.15.0' },
+          },
+          'node_modules/yaml': {
+            version: '2.9.0',
+            integrity: 'sha512-yaml-runtime',
+          },
+        },
+      })}\n`,
+    ],
+    ['qualification/src/execution/executor.ts', 'export const executorVersion = 1;\n'],
+    ['tooling/codex-evaluation-host/host.mjs', 'export const hostVersion = 1;\n'],
+    ['tooling/package-candidate/index.mjs', 'export const candidateVersion = 1;\n'],
+  ] as const;
+
+  await Promise.all(
+    sourceFiles.map(async ([relativePath, source]) => {
+      const filePath = path.join(repositoryRoot, relativePath);
+      await ensureDirectory(path.dirname(filePath));
+      await writeTextFileAtomically(filePath, source);
+    }),
+  );
+  await executeProcess({
+    command: 'git',
+    args: ['init', '--initial-branch=main'],
+    cwd: repositoryRoot,
+  });
+  await executeProcess({ command: 'git', args: ['add', '-A'], cwd: repositoryRoot });
+  await executeProcess({
+    command: 'git',
+    args: [
+      '-c',
+      'commit.gpgsign=false',
+      '-c',
+      'user.name=Moldea Qualification',
+      '-c',
+      'user.email=qualification@moldea.local',
+      'commit',
+      '-m',
+      'test: commit qualification baseline source',
+    ],
+    cwd: repositoryRoot,
+  });
+  const { stdout } = await executeProcess({
+    command: 'git',
+    args: ['rev-parse', 'HEAD'],
+    cwd: repositoryRoot,
+  });
+  return stdout.trim();
+};
+
 describe('Custom qualification baseline', () => {
   let temporaryRoot: string | null = null;
 
@@ -92,10 +188,10 @@ describe('Custom qualification baseline', () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-baseline-'));
     const commonOptions = {
       candidate,
+      customTargetDigest: '2'.repeat(64),
       executionEnvironment,
       isDryRun: false,
-      packagesState,
-      qualificationDigest: '1'.repeat(64),
+      qualificationBaselineDigest: '1'.repeat(64),
       resultsRoot: path.join(temporaryRoot, 'results'),
       skillState,
     };
@@ -121,22 +217,17 @@ describe('Custom qualification baseline', () => {
     ).resolves.toMatchObject({ passed: true, status: 'not-required' });
   });
 
-  test('accepts only an integrity-verified baseline with identical universal inputs', async () => {
+  test('rejects a recorded baseline without readable immutable source inputs', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-baseline-'));
-    const resultsRoot = path.join(temporaryRoot, 'results');
+    const resultsRoot = path.join(temporaryRoot, 'qualification', 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
     await ensureDirectory(artifactDirectory);
     const passingBaseline = await seedPassingQualificationEvidenceFixture({
       artifactDirectory,
-      attemptId: 'custom-baseline',
-      hasOperationalRetry: true,
-      isRecovered: true,
+      attemptId: 'custom-baseline-unreadable-source',
       packages: [...candidate.packages, candidate.typeScriptPackage].map(
         createPublicCandidatePackage,
       ),
-      packagesRepositoryCommit: packagesState.commit,
-      packagesRepositoryFingerprint: packagesState.fingerprint,
-      qualificationDigest: '1'.repeat(64),
       resultsRoot,
       skillRepositoryCommit: skillState.commit,
       skillRepositoryFingerprint: skillState.fingerprint,
@@ -153,12 +244,77 @@ describe('Custom qualification baseline', () => {
       },
       resultsRoot,
     );
+
+    await expect(
+      inspectQualificationBaseline({
+        candidate,
+        customTargetDigest: 'e'.repeat(64),
+        executionEnvironment,
+        isDryRun: false,
+        qualificationBaselineDigest: '1'.repeat(64),
+        resultsRoot,
+        selection: { adapterId: 'vercel-ai-sdk', implementationId: 'typescript-agent' },
+        skillState,
+      }),
+    ).resolves.toMatchObject({
+      passed: false,
+      status: 'incompatible',
+      failures: [
+        'Custom baseline attempt custom-baseline-unreadable-source does not have readable universal source inputs.',
+      ],
+    });
+  });
+
+  test('accepts only an integrity-verified baseline with identical universal inputs', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-baseline-'));
+    const resultsRoot = path.join(temporaryRoot, 'qualification', 'results');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    await ensureDirectory(artifactDirectory);
+    const baselineFixture = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'custom-baseline',
+      hasOperationalRetry: true,
+      isRecovered: true,
+      packages: [...candidate.packages, candidate.typeScriptPackage].map(
+        createPublicCandidatePackage,
+      ),
+      packagesRepositoryCommit: packagesState.commit,
+      packagesRepositoryFingerprint: packagesState.fingerprint,
+      qualificationDigest: '1'.repeat(64),
+      resultsRoot,
+      skillRepositoryCommit: skillState.commit,
+      skillRepositoryFingerprint: skillState.fingerprint,
+    });
+    const qualificationRepositoryCommit = await createQualificationSourceCommit(temporaryRoot);
+    const qualificationBaselineDigest = await calculateQualificationBaselineDigestAtCommit(
+      qualificationRepositoryCommit,
+      temporaryRoot,
+    );
+    const passingBaseline = QualificationAttemptResultSchema.parse({
+      ...baselineFixture,
+      provenance: {
+        ...baselineFixture.provenance,
+        qualificationRepositoryCommit,
+      },
+    });
+    await recordQualificationResult(
+      {
+        artifactDirectory,
+        result: passingBaseline,
+        sanitizationContext: {
+          attemptDirectory: '/attempt',
+          packagesRepository: '/packages',
+          skillRepository: '/skill',
+        },
+      },
+      resultsRoot,
+    );
     const commonOptions = {
       candidate,
+      customTargetDigest: 'e'.repeat(64),
       executionEnvironment,
       isDryRun: false,
-      packagesState,
-      qualificationDigest: '1'.repeat(64),
+      qualificationBaselineDigest,
       resultsRoot,
       selection: { adapterId: 'vercel-ai-sdk', implementationId: 'typescript-agent' },
       skillState,
@@ -179,6 +335,12 @@ describe('Custom qualification baseline', () => {
       status: 'passed',
       baselineAttemptId: 'custom-baseline',
     });
+    await expect(
+      inspectQualificationBaseline({
+        ...commonOptions,
+        customTargetDigest: '9'.repeat(64),
+      }),
+    ).resolves.toMatchObject({ passed: false, status: 'incompatible' });
     await expect(
       inspectQualificationBaseline({
         ...commonOptions,

@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import { prepareCandidateClosure } from '../candidate-closure/index.ts';
 import {
+  calculateQualificationBaselineDigestAtCommit,
   inspectQualificationBaseline,
   QualificationBaselineCheckSchema,
 } from '../baseline/index.ts';
@@ -139,8 +140,18 @@ const inspectQualificationInputState = async (
     packagesRepository,
     packagesState.entries,
   );
+  const qualificationBaselineDigest = await calculateQualificationBaselineDigestAtCommit(
+    qualificationState.commit,
+  );
 
-  return { packagesDigest, packagesState, qualificationDigest, qualificationState, skillState };
+  return {
+    packagesDigest,
+    packagesState,
+    qualificationBaselineDigest,
+    qualificationDigest,
+    qualificationState,
+    skillState,
+  };
 };
 
 const createAttemptId = (adapterId: string, implementationId: string): string => {
@@ -283,6 +294,14 @@ export const runQualification = async (
     checkpoint.selection,
     checkpoint.packagesRepository,
   );
+  const customTarget =
+    checkpoint.selection.adapterId === 'custom' &&
+    checkpoint.selection.implementationId === 'custom'
+      ? target
+      : await resolveQualificationTarget(
+          { adapterId: 'custom', implementationId: 'custom' },
+          checkpoint.packagesRepository,
+        );
   const selectedProfileCases =
     checkpoint.selectedCaseId === null
       ? target.profile.cases
@@ -391,10 +410,10 @@ export const runQualification = async (
 
       const baseline = await inspectQualificationBaseline({
         candidate: checkpoint.candidate,
+        customTargetDigest: customTarget.targetDigest,
         executionEnvironment,
         isDryRun: checkpoint.isDryRun,
-        packagesState: currentInputState.packagesState,
-        qualificationDigest: currentInputState.qualificationDigest,
+        qualificationBaselineDigest: currentInputState.qualificationBaselineDigest,
         resultsRoot,
         selection: checkpoint.selection,
         skillState: currentInputState.skillState,
@@ -621,10 +640,10 @@ export const runQualification = async (
           checkpoint = await startQualificationStage(attemptDirectory, checkpoint, baselineStageId);
           const baselineResult = await inspectQualificationBaseline({
             candidate,
+            customTargetDigest: customTarget.targetDigest,
             executionEnvironment,
             isDryRun: checkpoint.mode !== 'official',
-            packagesState,
-            qualificationDigest,
+            qualificationBaselineDigest: inputState.qualificationBaselineDigest,
             resultsRoot,
             selection: checkpoint.selection,
             skillState,

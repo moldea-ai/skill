@@ -90,6 +90,7 @@ export type IQualificationExecutionProvenance = Omit<IQualificationProvenance, '
 export type IQualificationInputState = {
   packagesDigest: string;
   packagesState: IGitRepositoryState;
+  qualificationBaselineDigest: string;
   qualificationDigest: string;
   qualificationState: IGitRepositoryState;
   skillState: IGitRepositoryState;

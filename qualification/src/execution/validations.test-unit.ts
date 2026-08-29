@@ -305,6 +305,7 @@ describe('qualification source-state validation', () => {
     const inputState = {
       packagesDigest: 'a'.repeat(64),
       packagesState: createRepositoryState(false),
+      qualificationBaselineDigest: 'a'.repeat(64),
       qualificationDigest: 'a'.repeat(64),
       qualificationState: createRepositoryState(false),
       skillState: createRepositoryState(false),
@@ -401,6 +402,7 @@ describe('qualification source-state validation', () => {
     const inputState = {
       packagesDigest: 'a'.repeat(64),
       packagesState: createRepositoryState(false),
+      qualificationBaselineDigest: 'a'.repeat(64),
       qualificationDigest: 'a'.repeat(64),
       qualificationState: createRepositoryState(false),
       skillState: createRepositoryState(false),
@@ -422,6 +424,7 @@ describe('qualification source-state validation', () => {
         ...createRepositoryState(false),
         fingerprint: 'b'.repeat(64),
       },
+      qualificationBaselineDigest: 'a'.repeat(64),
       qualificationDigest: 'a'.repeat(64),
       qualificationState: createRepositoryState(false),
       skillState: createRepositoryState(false),

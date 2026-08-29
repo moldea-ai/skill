@@ -125,6 +125,20 @@ test('stacks the filesystem and cards accessibly at 320px in both themes', async
       );
     }
 
+    const fileSystemColors = await fileSystem.evaluate((element) => {
+      const surfaceStyle = getComputedStyle(element);
+      const selectionStyle = getComputedStyle(element, '::selection');
+
+      return {
+        background: surfaceStyle.backgroundColor,
+        color: surfaceStyle.color,
+        selectionBackground: selectionStyle.backgroundColor,
+        selectionColor: selectionStyle.color,
+      };
+    });
+    expect(fileSystemColors.selectionBackground).not.toBe(fileSystemColors.background);
+    expect(fileSystemColors.selectionColor).toBe(fileSystemColors.color);
+
     const documentWidths = await page.evaluate(() => ({
       client: document.documentElement.clientWidth,
       scroll: document.documentElement.scrollWidth,

@@ -52,6 +52,32 @@ const createPackageLock = (adapterVersion: string): string =>
     2,
   )}\n`;
 
+const createToolingPackageManifest = (cliVersion: string, semverVersion: string): string =>
+  `${JSON.stringify({
+    type: 'module',
+    devDependencies: { '@moldea.ai/cli': cliVersion, semver: semverVersion },
+  })}\n`;
+
+const createToolingPackageLock = (cliVersion: string, semverVersion: string): string =>
+  `${JSON.stringify({
+    lockfileVersion: 3,
+    packages: {
+      '': {
+        devDependencies: { '@moldea.ai/cli': cliVersion, semver: semverVersion },
+      },
+      'node_modules/@moldea.ai/cli': {
+        version: cliVersion,
+        dev: true,
+        integrity: `sha512-cli-${cliVersion}`,
+      },
+      'node_modules/semver': {
+        version: semverVersion,
+        dev: true,
+        integrity: `sha512-semver-${semverVersion}`,
+      },
+    },
+  })}\n`;
+
 /** Commits the complete fixture state and returns its immutable source identity. */
 const commitFixture = async (repositoryRoot: string, message: string): Promise<string> => {
   await executeProcess({ command: 'git', args: ['add', '-A'], cwd: repositoryRoot });
@@ -103,15 +129,23 @@ describe('qualification baseline fingerprint', () => {
         'qualification/profiles/custom/custom/projects/evaluate/task.md',
       ),
       evaluator: path.join(temporaryRoot, 'qualification/src/execution/executor.ts'),
+      evaluatorDeclaration: path.join(temporaryRoot, 'qualification/src/execution/executor.d.ts'),
       evaluatorTest: path.join(
         temporaryRoot,
         'qualification/src/execution/executor.test-integration.ts',
       ),
       host: path.join(temporaryRoot, 'tooling/codex-evaluation-host/host.mjs'),
+      hostDeclaration: path.join(temporaryRoot, 'tooling/codex-evaluation-host/index.d.mts'),
       hostTest: path.join(temporaryRoot, 'tooling/codex-evaluation-host/host.test-unit.mjs'),
       packageCandidate: path.join(temporaryRoot, 'tooling/package-candidate/index.mjs'),
+      packageCandidateDeclaration: path.join(
+        temporaryRoot,
+        'tooling/package-candidate/index.d.mts',
+      ),
       packageManifest: path.join(temporaryRoot, 'qualification/package.json'),
       packageLock: path.join(temporaryRoot, 'qualification/package-lock.json'),
+      toolingPackageManifest: path.join(temporaryRoot, 'package.json'),
+      toolingPackageLock: path.join(temporaryRoot, 'package-lock.json'),
     };
     await Promise.all(
       Object.values(files).map((filePath) => ensureDirectory(path.dirname(filePath))),
@@ -123,10 +157,21 @@ describe('qualification baseline fingerprint', () => {
       writeFile(files.customFixtureReadme, '# Existing project documentation\n', 'utf8'),
       writeFile(files.customTask, '# Evaluate the project\n', 'utf8'),
       writeFile(files.evaluator, 'export const evaluatorVersion = 1;\n', 'utf8'),
+      writeFile(
+        files.evaluatorDeclaration,
+        'export declare const evaluatorVersion: number;\n',
+        'utf8',
+      ),
       writeFile(files.evaluatorTest, 'export const testVersion = 1;\n', 'utf8'),
       writeFile(files.host, 'export const hostVersion = 1;\n', 'utf8'),
+      writeFile(files.hostDeclaration, 'export declare const hostVersion: number;\n', 'utf8'),
       writeFile(files.hostTest, 'export const testVersion = 1;\n', 'utf8'),
       writeFile(files.packageCandidate, 'export const candidateVersion = 1;\n', 'utf8'),
+      writeFile(
+        files.packageCandidateDeclaration,
+        'export declare const candidateVersion: number;\n',
+        'utf8',
+      ),
       writeFile(
         files.packageManifest,
         `${JSON.stringify({
@@ -139,6 +184,8 @@ describe('qualification baseline fingerprint', () => {
         'utf8',
       ),
       writeFile(files.packageLock, createPackageLock('1.0.0'), 'utf8'),
+      writeFile(files.toolingPackageManifest, createToolingPackageManifest('5.0.0', '7.8.5')),
+      writeFile(files.toolingPackageLock, createToolingPackageLock('5.0.0', '7.8.5')),
     ]);
     await executeProcess({
       command: 'git',
@@ -159,8 +206,19 @@ describe('qualification baseline fingerprint', () => {
       ),
       writeFile(files.caseCatalog, createCaseCatalog('Revised adapter-only case.'), 'utf8'),
       writeFile(files.customReadme, '# Expanded Custom documentation\n', 'utf8'),
+      writeFile(
+        files.evaluatorDeclaration,
+        'export declare const evaluatorVersion: string;\n',
+        'utf8',
+      ),
       writeFile(files.evaluatorTest, 'export const testVersion = 2;\n', 'utf8'),
+      writeFile(files.hostDeclaration, 'export declare const hostVersion: string;\n', 'utf8'),
       writeFile(files.hostTest, 'export const testVersion = 2;\n', 'utf8'),
+      writeFile(
+        files.packageCandidateDeclaration,
+        'export declare const candidateVersion: string;\n',
+        'utf8',
+      ),
       writeFile(
         files.packageManifest,
         `${JSON.stringify({
@@ -173,11 +231,27 @@ describe('qualification baseline fingerprint', () => {
         'utf8',
       ),
       writeFile(files.packageLock, createPackageLock('2.0.0'), 'utf8'),
+      writeFile(files.toolingPackageManifest, createToolingPackageManifest('6.0.0', '7.8.5')),
+      writeFile(files.toolingPackageLock, createToolingPackageLock('6.0.0', '7.8.5')),
     ]);
     const adapterGrowthCommit = await commitFixture(temporaryRoot, 'test: add adapter-only inputs');
     expect(
       await calculateQualificationBaselineDigestAtCommit(adapterGrowthCommit, temporaryRoot),
     ).toBe(initialDigest);
+
+    await Promise.all([
+      writeFile(files.toolingPackageManifest, createToolingPackageManifest('6.0.0', '7.9.0')),
+      writeFile(files.toolingPackageLock, createToolingPackageLock('6.0.0', '7.9.0')),
+    ]);
+    const toolingDependencyCommit = await commitFixture(
+      temporaryRoot,
+      'test: change shared tooling dependency',
+    );
+    const toolingDependencyDigest = await calculateQualificationBaselineDigestAtCommit(
+      toolingDependencyCommit,
+      temporaryRoot,
+    );
+    expect(toolingDependencyDigest).not.toBe(initialDigest);
 
     await writeFile(files.customFixtureReadme, '# Changed project documentation\n', 'utf8');
     const fixtureChangeCommit = await commitFixture(
@@ -188,7 +262,7 @@ describe('qualification baseline fingerprint', () => {
       fixtureChangeCommit,
       temporaryRoot,
     );
-    expect(fixtureChangeDigest).not.toBe(initialDigest);
+    expect(fixtureChangeDigest).not.toBe(toolingDependencyDigest);
 
     await writeFile(files.customTask, '# Evaluate and reconcile the project\n', 'utf8');
     const customChangeCommit = await commitFixture(temporaryRoot, 'test: change Custom behavior');

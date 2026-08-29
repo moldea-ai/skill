@@ -21,8 +21,9 @@ import {
   WorkspaceAssertionResultSchema,
 } from '../../qualification/src/contracts/index.ts';
 import {
-  calculateCompatibilityBehaviorDigest,
-  calculateQualificationDigest,
+  calculateQualificationExecutionDigest,
+  calculateQualificationProfileDigest,
+  calculateQualificationTargetDigest,
 } from '../../qualification/src/execution/fingerprints.ts';
 import {
   calculateDirectoryFingerprint,
@@ -50,6 +51,7 @@ import {
   downloadPublishedPackageClosure,
   resolvePublishedPackageClosure,
   resolvePublishedPackageManifest,
+  selectPublishedPackageClosure,
 } from '../package-candidate/index.mjs';
 import {
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
@@ -181,6 +183,7 @@ const listQualificationProfiles = (repositoryRoot) => {
         cases: profile.cases,
         implementationId: profile.implementationId,
         profileDirectory,
+        runtimePackages: profile.runtimePackages ?? [],
       });
     }
   }
@@ -872,10 +875,53 @@ const resolveCurrentQualificationInputs = async ({
     return {
       matrix,
       packagesState,
+      publishedManifests,
       publishedPackages: sortPackageIdentities(
         [...publishedPackages, typeScriptPackage].map(createRecordedPackageIdentity),
       ),
+      typeScriptPackage: createRecordedPackageIdentity(typeScriptPackage),
     };
+  } finally {
+    rmSync(artifactDirectory, { force: true, recursive: true });
+  }
+};
+
+/** Resolves the exact published closure used by one selected qualification profile. */
+const resolveCurrentQualificationPackageIdentities = async ({
+  adapterPackage,
+  downloadPublishedArtifact,
+  publishedManifests,
+  publishedPackages,
+  resolvePublishedManifest,
+  runtimePackages,
+  typeScriptPackage,
+}) => {
+  const selectedPackageNames = new Set(
+    selectPublishedPackageClosure(publishedManifests, adapterPackage).map(({ name }) => name),
+  );
+  const selectedPackages = publishedPackages.filter(({ name }) => selectedPackageNames.has(name));
+  const runtimePackageManifests = await Promise.all(
+    runtimePackages.map(({ name, version }) =>
+      resolvePublishedManifest({ packageName: name, version }),
+    ),
+  );
+  const artifactDirectory = mkdtempSync(join(tmpdir(), 'moldea-release-profile-packages-'));
+
+  try {
+    const runtimePackageArtifacts = await Promise.all(
+      runtimePackageManifests.map((manifest) =>
+        downloadPublishedArtifact({
+          artifactDirectory,
+          manifest,
+        }),
+      ),
+    );
+
+    return sortPackageIdentities([
+      ...selectedPackages,
+      ...runtimePackageArtifacts.map(createRecordedPackageIdentity),
+      typeScriptPackage,
+    ]);
   } finally {
     rmSync(artifactDirectory, { force: true, recursive: true });
   }
@@ -1077,23 +1123,6 @@ const inspectSemanticEvidence = (repositoryRoot) => {
   return issues;
 };
 
-const createQualificationDigestRoots = (repositoryRoot) => [
-  {
-    pathPrefix: 'qualification',
-    rootDirectory: join(repositoryRoot, 'qualification'),
-    excludedDirectoryNames: new Set(['node_modules']),
-    excludedRelativePathPrefixes: ['results'],
-  },
-  {
-    pathPrefix: 'tooling/codex-evaluation-host',
-    rootDirectory: join(repositoryRoot, 'tooling', 'codex-evaluation-host'),
-  },
-  {
-    pathPrefix: 'tooling/package-candidate',
-    rootDirectory: join(repositoryRoot, 'tooling', 'package-candidate'),
-  },
-];
-
 /**
  * Inspects whether fresh semantic and qualification evidence completes the release gate.
  * @param repositoryRoot The skill repository whose release is being checked.
@@ -1120,9 +1149,6 @@ export const inspectReleaseEvidence = async (
     );
   }
 
-  const qualificationDigest = await calculateQualificationDigest(
-    createQualificationDigestRoots(repositoryRoot),
-  );
   const skillDigest = await calculateDirectoryFingerprint(join(repositoryRoot, 'moldea'));
   const releaseCli = createSemanticCliIdentity(repositoryRoot);
   let currentInputs = null;
@@ -1163,6 +1189,7 @@ export const inspectReleaseEvidence = async (
     cases,
     implementationId,
     profileDirectory,
+    runtimePackages,
   } of listQualificationProfiles(repositoryRoot)) {
     const relativeLatestPath = join(
       'qualification',
@@ -1221,25 +1248,63 @@ export const inspectReleaseEvidence = async (
       );
       continue;
     }
-    const profileDigest = await calculateDirectoryFingerprint(profileDirectory);
     const adapter = currentInputs?.matrix.adapters[adapterId];
     const target = adapter?.targets?.find(({ id }) => id === implementationId);
     const hasCurrentTarget =
       adapter !== undefined && adapter.implementationStatus === 'available' && target !== undefined;
-    const targetDigest = hasCurrentTarget
-      ? calculateCompatibilityBehaviorDigest({ adapter, target })
-      : null;
+    let profileDigest = null;
+    let qualificationDigest = null;
+    let currentProfilePackages = null;
+
+    try {
+      [profileDigest, qualificationDigest] = await Promise.all([
+        calculateQualificationProfileDigest(profileDirectory),
+        calculateQualificationExecutionDigest({
+          caseIds,
+          profileDirectory,
+          roots: {
+            evaluationHostRoot: join(repositoryRoot, 'tooling/codex-evaluation-host'),
+            packageCandidateRoot: join(repositoryRoot, 'tooling/package-candidate'),
+            qualificationRoot: join(repositoryRoot, 'qualification'),
+            repositoryRoot,
+          },
+        }),
+      ]);
+      if (hasCurrentTarget && currentInputs !== null) {
+        currentProfilePackages = await resolveCurrentQualificationPackageIdentities({
+          adapterPackage: adapter.implementation.package,
+          downloadPublishedArtifact,
+          publishedManifests: currentInputs.publishedManifests,
+          publishedPackages: currentInputs.publishedPackages,
+          resolvePublishedManifest,
+          runtimePackages,
+          typeScriptPackage: currentInputs.typeScriptPackage,
+        });
+      }
+    } catch (error) {
+      issues.push(
+        `${relativeLatestPath} cannot resolve its current scoped inputs: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      continue;
+    }
+    const targetDigest =
+      hasCurrentTarget && adapter !== undefined && target !== undefined
+        ? calculateQualificationTargetDigest(adapter, target)
+        : null;
+    const currentProfilePackageNames = new Set(
+      currentProfilePackages?.map(({ name }) => name) ?? [],
+    );
     const recordedPackages = sortPackageIdentities(
-      attempt.provenance.packages.map(createRecordedPackageIdentity),
+      attempt.provenance.packages
+        .filter(({ name }) => currentProfilePackageNames.has(name))
+        .map(createRecordedPackageIdentity),
     );
     const hasExactPublishedClosure =
-      currentInputs !== null &&
-      JSON.stringify(recordedPackages) === JSON.stringify(currentInputs.publishedPackages);
+      currentProfilePackages !== null &&
+      JSON.stringify(recordedPackages) === JSON.stringify(currentProfilePackages);
     const hasSelectedPackage =
       adapter !== undefined &&
-      currentInputs?.publishedPackages.some(
-        ({ name }) => name === adapter.implementation.package,
-      ) === true;
+      currentProfilePackages?.some(({ name }) => name === adapter.implementation.package) === true;
     if (
       attempt.protocolVersion !== QUALIFICATION_EVIDENCE_PROTOCOL_VERSION ||
       attempt.status !== 'passed' ||
@@ -1251,9 +1316,6 @@ export const inspectReleaseEvidence = async (
       attempt.provenance?.skillRepositoryFingerprint !== skillDigest ||
       attempt.provenance?.profileDigest !== profileDigest ||
       currentInputs === null ||
-      attempt.provenance?.packagesRepositoryCommit !== currentInputs.packagesState.commit ||
-      attempt.provenance?.packagesRepositoryFingerprint !==
-        currentInputs.packagesState.fingerprint ||
       attempt.provenance?.packagesRepositoryDirty ||
       targetDigest === null ||
       attempt.provenance?.targetDigest !== targetDigest ||
@@ -1318,16 +1380,35 @@ export const inspectReleaseEvidence = async (
   }
 
   const customEvidence = passingEvidence.get('custom/custom');
-  const customBaselineAttemptId = customEvidence?.attempt.attemptId ?? null;
   for (const [selectionKey, evidence] of passingEvidence) {
     if (selectionKey === 'custom/custom') continue;
-    if (
-      customBaselineAttemptId === null ||
-      evidence.attempt.provenance.baselineAttemptId !== customBaselineAttemptId ||
-      evidence.baseline?.baselineAttemptId !== customBaselineAttemptId
-    ) {
+    const baselineAttemptId = evidence.attempt.provenance.baselineAttemptId;
+    const recordedBaselinePath =
+      baselineAttemptId === null
+        ? null
+        : join(resultsRoot, 'custom', 'custom', 'attempts', baselineAttemptId, 'attempt.json');
+    let hasRecordedPassingBaseline = false;
+    if (recordedBaselinePath !== null && existsSync(recordedBaselinePath)) {
+      try {
+        const recordedBaseline = QualificationAttemptResultSchema.parse(
+          readJson(recordedBaselinePath),
+        );
+        hasRecordedPassingBaseline =
+          recordedBaseline.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
+          recordedBaseline.status === 'passed' &&
+          recordedBaseline.selection.adapterId === 'custom' &&
+          recordedBaseline.selection.implementationId === 'custom';
+      } catch {
+        hasRecordedPassingBaseline = false;
+      }
+    }
+    if (customEvidence === undefined) {
       issues.push(
-        `${evidence.relativeLatestPath} does not reference the current passing Custom baseline.`,
+        `${evidence.relativeLatestPath} requires current passing Custom qualification evidence.`,
+      );
+    } else if (!hasRecordedPassingBaseline) {
+      issues.push(
+        `${evidence.relativeLatestPath} does not reference a committed passing Custom baseline.`,
       );
     }
   }

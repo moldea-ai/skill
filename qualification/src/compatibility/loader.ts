@@ -14,12 +14,11 @@ import {
   QualificationSelectionSchema,
   type IQualificationSelection,
 } from '../contracts/index.ts';
+import { readYamlFile, resolveContainedPath } from '../filesystem/index.ts';
 import {
-  calculateDirectoryFingerprint,
-  readYamlFile,
-  resolveContainedPath,
-} from '../filesystem/index.ts';
-import { calculateCompatibilityBehaviorDigest } from '../execution/fingerprints.ts';
+  calculateQualificationProfileDigest,
+  calculateQualificationTargetDigest,
+} from '../execution/fingerprints.ts';
 import {
   RuntimeCompatibilityMatrixSchema,
   type IQualificationImplementation,
@@ -220,8 +219,8 @@ export const resolveQualificationTarget = async (
     matrix,
     profile,
     profileDirectory,
-    profileDigest: await calculateDirectoryFingerprint(profileDirectory),
-    targetDigest: calculateCompatibilityBehaviorDigest({ adapter, target }),
+    profileDigest: await calculateQualificationProfileDigest(profileDirectory),
+    targetDigest: calculateQualificationTargetDigest(adapter, target),
     caseCatalog,
   };
 };

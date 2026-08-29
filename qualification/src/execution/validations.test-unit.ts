@@ -329,7 +329,7 @@ describe('qualification source-state validation', () => {
     expect(
       haveQualificationInputsChanged(
         {
-          packagesRepositoryFingerprint: 'a'.repeat(64),
+          packagesDigest: 'a'.repeat(64),
           qualificationDigest: 'a'.repeat(64),
           skillDigest: 'a'.repeat(64),
         },
@@ -395,7 +395,7 @@ describe('qualification source-state validation', () => {
   });
 
   test.each([
-    ['packages', { packagesRepositoryFingerprint: 'b'.repeat(64) }],
+    ['selected packages', { packagesDigest: 'b'.repeat(64) }],
     ['qualification', { qualificationDigest: 'b'.repeat(64) }],
     ['skill', { skillDigest: 'b'.repeat(64) }],
   ])('detects a changed %s fingerprint before publication', (_source, changedDigest) => {
@@ -408,7 +408,7 @@ describe('qualification source-state validation', () => {
       skillState: createRepositoryState(false),
     };
     const checkpointDigests = {
-      packagesRepositoryFingerprint: 'a'.repeat(64),
+      packagesDigest: 'a'.repeat(64),
       qualificationDigest: 'a'.repeat(64),
       skillDigest: 'a'.repeat(64),
       ...changedDigest,
@@ -417,7 +417,7 @@ describe('qualification source-state validation', () => {
     expect(haveQualificationInputsChanged(checkpointDigests, inputState)).toBe(true);
   });
 
-  test('rejects resume when exact package source changes but its cache digest remains reusable', () => {
+  test('retains resume when unrelated package source changes but selected behavior does not', () => {
     const inputState = {
       packagesDigest: 'a'.repeat(64),
       packagesState: {
@@ -433,13 +433,13 @@ describe('qualification source-state validation', () => {
     expect(
       haveQualificationInputsChanged(
         {
-          packagesRepositoryFingerprint: 'a'.repeat(64),
+          packagesDigest: 'a'.repeat(64),
           qualificationDigest: 'a'.repeat(64),
           skillDigest: 'a'.repeat(64),
         },
         inputState,
       ),
-    ).toBe(true);
+    ).toBe(false);
   });
 
   test.each([

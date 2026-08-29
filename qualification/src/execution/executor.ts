@@ -16,7 +16,10 @@ import {
   skipQualificationStageGroup,
   writeAttemptCheckpoint,
 } from '../checkpoint/index.ts';
-import { resolveQualificationTarget } from '../compatibility/index.ts';
+import {
+  resolveQualificationTarget,
+  type IResolvedQualificationTarget,
+} from '../compatibility/index.ts';
 import {
   DEFAULT_PACKAGES_REPOSITORY,
   DEFAULT_SKILL_REPOSITORY,
@@ -66,7 +69,7 @@ import {
 import { getLocalAttemptDirectory } from './attempts.ts';
 import {
   calculatePackagesQualificationDigest,
-  calculateQualificationDigest,
+  calculateQualificationExecutionDigest,
 } from './fingerprints.ts';
 import {
   executeActorModelStage,
@@ -124,22 +127,27 @@ const pathExists = async (candidatePath: string): Promise<boolean> => {
 const inspectQualificationInputState = async (
   packagesRepository: string,
   skillRepository: string,
+  target: IResolvedQualificationTarget,
 ): Promise<IQualificationInputState> => {
   const [packagesState, qualificationDigest, qualificationState, skillState] = await Promise.all([
     inspectGitRepositoryState(packagesRepository, {
       excludedRelativePathPrefixes: ['qualification'],
     }),
-    calculateQualificationDigest(),
+    calculateQualificationExecutionDigest({
+      caseIds: target.profile.cases.map(({ id }) => id),
+      profileDirectory: target.profileDirectory,
+    }),
     inspectGitRepositoryState(SKILL_REPOSITORY_ROOT, {
       includedRelativePathPrefixes: QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
       excludedRelativePathPrefixes: ['qualification/results'],
     }),
     inspectGitRepositoryState(skillRepository),
   ]);
-  const packagesDigest = await calculatePackagesQualificationDigest(
-    packagesRepository,
-    packagesState.entries,
-  );
+  const packagesDigest = calculatePackagesQualificationDigest({
+    adapter: target.adapter,
+    matrixVersion: target.matrix.version,
+    target: target.target,
+  });
   const qualificationBaselineDigest = await calculateQualificationBaselineDigestAtCommit(
     qualificationState.commit,
   );
@@ -249,7 +257,11 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
     throw new Error(`Candidate skill directory does not contain SKILL.md: ${skillRepository}`);
   }
 
-  const inputState = await inspectQualificationInputState(packagesRepository, skillRepository);
+  const inputState = await inspectQualificationInputState(
+    packagesRepository,
+    skillRepository,
+    target,
+  );
   const executionEnvironment = await inspectQualificationExecutionEnvironment(options.host);
   const attemptId = createAttemptId(
     options.selection.adapterId,
@@ -332,6 +344,7 @@ export const runQualification = async (
   const inputState = await inspectQualificationInputState(
     checkpoint.packagesRepository,
     checkpoint.skillRepository,
+    target,
   );
   const { packagesState, qualificationState, skillState } = inputState;
   const { qualificationDigest } = inputState;
@@ -384,8 +397,16 @@ export const runQualification = async (
       return;
     }
 
+    const currentTarget = await resolveQualificationTarget(
+      checkpoint.selection,
+      checkpoint.packagesRepository,
+    );
     const [currentInputState, currentExecutionEnvironment] = await Promise.all([
-      inspectQualificationInputState(checkpoint.packagesRepository, checkpoint.skillRepository),
+      inspectQualificationInputState(
+        checkpoint.packagesRepository,
+        checkpoint.skillRepository,
+        currentTarget,
+      ),
       inspectQualificationExecutionEnvironment(options.host),
     ]);
     const hasDirtyInput =
@@ -394,6 +415,8 @@ export const runQualification = async (
       currentInputState.skillState.isDirty;
 
     if (
+      checkpoint.profileDigest !== currentTarget.profileDigest ||
+      checkpoint.targetDigest !== currentTarget.targetDigest ||
       haveQualificationInputsChanged(checkpoint, currentInputState) ||
       haveQualificationExecutionInputsChanged(executionEnvironment, currentExecutionEnvironment) ||
       hasDirtyInput

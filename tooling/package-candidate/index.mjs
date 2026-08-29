@@ -22,5 +22,6 @@ export {
   downloadPublishedPackageClosure,
   resolvePublishedPackageClosure,
   resolvePublishedPackageManifest,
+  selectPublishedPackageClosure,
   verifyPublishedPackageArchive,
 } from './published.mjs';

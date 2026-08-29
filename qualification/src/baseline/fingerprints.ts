@@ -1,9 +1,17 @@
 import path from 'node:path';
-import { parse as parseYaml } from 'yaml';
 
 import { EXCLUDED_DIRECTORY_NAMES, SKILL_REPOSITORY_ROOT } from '../constants/index.ts';
-import { QualificationCaseCatalogSchema } from '../contracts/index.ts';
 import { calculateSha256 } from '../filesystem/index.ts';
+import {
+  isQualificationBehaviorBearingSourcePath,
+  isQualificationTestFilePath,
+  normalizeQualificationCaseCatalog,
+  normalizeQualificationRuntimePackageLock,
+  normalizeQualificationRuntimePackageManifest,
+  normalizeQualificationToolingPackageLock,
+  normalizeQualificationToolingPackageManifest,
+  QUALIFICATION_SHARED_TOOLING_PACKAGE_NAMES,
+} from '../input-identity/index.ts';
 import { executeProcess } from '../process/index.ts';
 
 const GIT_COMMIT_PATTERN = /^[a-f0-9]{40}$/u;
@@ -13,14 +21,22 @@ const BASELINE_PATH_PREFIXES = [
   'qualification/package.json',
   'qualification/package-lock.json',
   'qualification/profiles/custom/custom',
+  'package.json',
+  'package-lock.json',
   'tooling/codex-evaluation-host',
   'tooling/package-candidate',
 ] as const;
 const QUALIFICATION_CASE_CATALOG_PATH = 'qualification/cases/cases.yaml';
 const QUALIFICATION_PACKAGE_MANIFEST_PATH = 'qualification/package.json';
 const QUALIFICATION_PACKAGE_LOCK_PATH = 'qualification/package-lock.json';
+const TOOLING_PACKAGE_MANIFEST_PATH = 'package.json';
+const TOOLING_PACKAGE_LOCK_PATH = 'package-lock.json';
 const CUSTOM_PROFILE_DOCUMENTATION_PATH = 'qualification/profiles/custom/custom/README.md';
-const TEST_FILE_PATTERN = /\.test-(?:bench|e2e|integration|unit)\.[^/]+$/u;
+const SHARED_SOURCE_PATH_PREFIXES = [
+  'qualification/src/',
+  'tooling/codex-evaluation-host/',
+  'tooling/package-candidate/',
+] as const;
 const baselineDigestPromises = new Map<string, Promise<string>>();
 
 type IGitTreeEntry = {
@@ -29,108 +45,20 @@ type IGitTreeEntry = {
   path: string;
 };
 
-const isPlainRecord = (input: unknown): input is Record<string, unknown> =>
-  input !== null && typeof input === 'object' && !Array.isArray(input);
-
-/** Recursively orders record fields so formatting and property order cannot affect identity. */
-const normalizeRecord = (input: unknown): unknown => {
-  if (Array.isArray(input)) {
-    return input.map(normalizeRecord);
-  }
-  if (!isPlainRecord(input)) {
-    return input;
-  }
-
-  return Object.fromEntries(
-    Object.entries(input)
-      .sort(([left], [right]) => left.localeCompare(right, 'en'))
-      .map(([fieldName, fieldValue]) => [fieldName, normalizeRecord(fieldValue)]),
-  );
-};
-
-/**
- * Keeps only production-resolved packages from an npm lockfile.
- * @throws If the lockfile package inventory is malformed.
- */
-const normalizeRuntimePackageLock = (input: unknown): unknown => {
-  if (!isPlainRecord(input) || !isPlainRecord(input['packages'])) {
-    throw new Error('Qualification package lock does not contain a packages object.');
-  }
-
-  const runtimePackages = Object.fromEntries(
-    Object.entries(input['packages'])
-      .filter(([packagePath, packageRecord]) => {
-        if (packagePath === '') return true;
-        if (!isPlainRecord(packageRecord)) {
-          throw new Error(`Qualification package lock entry ${packagePath} is invalid.`);
-        }
-        return packageRecord['dev'] !== true;
-      })
-      .map(([packagePath, packageRecord]) => {
-        if (packagePath !== '' || !isPlainRecord(packageRecord)) {
-          return [packagePath, packageRecord];
-        }
-
-        return [
-          packagePath,
-          Object.fromEntries(
-            Object.entries(packageRecord).filter(([fieldName]) => fieldName !== 'devDependencies'),
-          ),
-        ];
-      }),
-  );
-
-  return normalizeRecord({
-    lockfileVersion: input['lockfileVersion'],
-    name: input['name'],
-    packages: runtimePackages,
-    requires: input['requires'],
-    version: input['version'],
-  });
-};
-
-/**
- * Keeps package fields that can change how the qualification runtime starts or resolves code.
- * @throws If the package manifest is malformed.
- */
-const normalizeRuntimePackageManifest = (input: unknown): unknown => {
-  if (!isPlainRecord(input)) {
-    throw new Error('Qualification package manifest is invalid.');
-  }
-  const scripts = input['scripts'];
-
-  return normalizeRecord({
-    dependencies: input['dependencies'],
-    engines: input['engines'],
-    scripts: isPlainRecord(scripts) ? { qualification: scripts['qualification'] } : undefined,
-    type: input['type'],
-  });
-};
-
-/**
- * Keeps only universal cases whose behavior the Custom baseline establishes.
- * @throws If the case catalog does not satisfy the qualification contract.
- */
-const normalizeUniversalCaseCatalog = (source: string): unknown => {
-  const catalog = QualificationCaseCatalogSchema.parse(parseYaml(source) as unknown);
-
-  return normalizeRecord({
-    version: catalog.version,
-    cases: catalog.cases.filter(({ layer }) => layer === 'universal-baseline'),
-  });
-};
-
 const hasExcludedPathSegment = (relativePath: string): boolean =>
   relativePath.split('/').some((segment) => EXCLUDED_DIRECTORY_NAMES.has(segment));
 
 const isBehaviorBearingBaselinePath = (relativePath: string): boolean => {
-  if (hasExcludedPathSegment(relativePath) || TEST_FILE_PATTERN.test(relativePath)) {
+  if (hasExcludedPathSegment(relativePath) || isQualificationTestFilePath(relativePath)) {
     return false;
   }
   if (relativePath === CUSTOM_PROFILE_DOCUMENTATION_PATH) {
     return false;
   }
-  return true;
+  return (
+    !SHARED_SOURCE_PATH_PREFIXES.some((pathPrefix) => relativePath.startsWith(pathPrefix)) ||
+    isQualificationBehaviorBearingSourcePath(relativePath)
+  );
 };
 
 /**
@@ -214,19 +142,35 @@ export const calculateQualificationBaselineDigestAtCommit = async (
     const caseCatalogEntry = treeEntries.find(
       ({ path: relativePath }) => relativePath === QUALIFICATION_CASE_CATALOG_PATH,
     );
+    const toolingPackageManifestEntry = treeEntries.find(
+      ({ path: relativePath }) => relativePath === TOOLING_PACKAGE_MANIFEST_PATH,
+    );
+    const toolingPackageLockEntry = treeEntries.find(
+      ({ path: relativePath }) => relativePath === TOOLING_PACKAGE_LOCK_PATH,
+    );
 
     if (
       packageLockEntry === undefined ||
       packageManifestEntry === undefined ||
-      caseCatalogEntry === undefined
+      caseCatalogEntry === undefined ||
+      toolingPackageManifestEntry === undefined ||
+      toolingPackageLockEntry === undefined
     ) {
       throw new Error('Qualification baseline source inputs are incomplete.');
     }
 
-    const [packageLockSource, packageManifestSource, caseCatalogSource] = await Promise.all([
+    const [
+      packageLockSource,
+      packageManifestSource,
+      caseCatalogSource,
+      toolingPackageManifestSource,
+      toolingPackageLockSource,
+    ] = await Promise.all([
       readCommitFile(resolvedRepositoryRoot, commit, QUALIFICATION_PACKAGE_LOCK_PATH),
       readCommitFile(resolvedRepositoryRoot, commit, QUALIFICATION_PACKAGE_MANIFEST_PATH),
       readCommitFile(resolvedRepositoryRoot, commit, QUALIFICATION_CASE_CATALOG_PATH),
+      readCommitFile(resolvedRepositoryRoot, commit, TOOLING_PACKAGE_MANIFEST_PATH),
+      readCommitFile(resolvedRepositoryRoot, commit, TOOLING_PACKAGE_LOCK_PATH),
     ]);
     const entries = treeEntries
       .filter(
@@ -234,6 +178,8 @@ export const calculateQualificationBaselineDigestAtCommit = async (
           relativePath !== QUALIFICATION_PACKAGE_LOCK_PATH &&
           relativePath !== QUALIFICATION_PACKAGE_MANIFEST_PATH &&
           relativePath !== QUALIFICATION_CASE_CATALOG_PATH &&
+          relativePath !== TOOLING_PACKAGE_MANIFEST_PATH &&
+          relativePath !== TOOLING_PACKAGE_LOCK_PATH &&
           isBehaviorBearingBaselinePath(relativePath),
       )
       .map(({ mode, objectId, path: relativePath }) => ({
@@ -245,14 +191,16 @@ export const calculateQualificationBaselineDigestAtCommit = async (
       {
         mode: caseCatalogEntry.mode,
         objectId: calculateSha256(
-          `${JSON.stringify(normalizeUniversalCaseCatalog(caseCatalogSource))}\n`,
+          `${JSON.stringify(normalizeQualificationCaseCatalog(caseCatalogSource, []))}\n`,
         ),
         path: QUALIFICATION_CASE_CATALOG_PATH,
       },
       {
         mode: packageLockEntry.mode,
         objectId: calculateSha256(
-          `${JSON.stringify(normalizeRuntimePackageLock(JSON.parse(packageLockSource) as unknown))}\n`,
+          `${JSON.stringify(
+            normalizeQualificationRuntimePackageLock(JSON.parse(packageLockSource) as unknown),
+          )}\n`,
         ),
         path: QUALIFICATION_PACKAGE_LOCK_PATH,
       },
@@ -260,10 +208,36 @@ export const calculateQualificationBaselineDigestAtCommit = async (
         mode: packageManifestEntry.mode,
         objectId: calculateSha256(
           `${JSON.stringify(
-            normalizeRuntimePackageManifest(JSON.parse(packageManifestSource) as unknown),
+            normalizeQualificationRuntimePackageManifest(
+              JSON.parse(packageManifestSource) as unknown,
+            ),
           )}\n`,
         ),
         path: QUALIFICATION_PACKAGE_MANIFEST_PATH,
+      },
+      {
+        mode: toolingPackageLockEntry.mode,
+        objectId: calculateSha256(
+          `${JSON.stringify(
+            normalizeQualificationToolingPackageLock(
+              JSON.parse(toolingPackageLockSource) as unknown,
+              QUALIFICATION_SHARED_TOOLING_PACKAGE_NAMES,
+            ),
+          )}\n`,
+        ),
+        path: TOOLING_PACKAGE_LOCK_PATH,
+      },
+      {
+        mode: toolingPackageManifestEntry.mode,
+        objectId: calculateSha256(
+          `${JSON.stringify(
+            normalizeQualificationToolingPackageManifest(
+              JSON.parse(toolingPackageManifestSource) as unknown,
+              QUALIFICATION_SHARED_TOOLING_PACKAGE_NAMES,
+            ),
+          )}\n`,
+        ),
+        path: TOOLING_PACKAGE_MANIFEST_PATH,
       },
     );
     entries.sort((left, right) => left.path.localeCompare(right.path, 'en'));

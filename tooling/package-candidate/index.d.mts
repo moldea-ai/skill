@@ -53,6 +53,11 @@ export const resolvePublishedPackageManifest: (options: {
   version: string;
 }) => Promise<IPublishedPackageManifest>;
 
+export const selectPublishedPackageClosure: (
+  manifests: IPublishedPackageManifest[],
+  selectedPackageName: string,
+) => IPublishedPackageManifest[];
+
 export const downloadPublishedPackageArtifact: (options: {
   artifactDirectory: string;
   fetchResource?: typeof fetch;

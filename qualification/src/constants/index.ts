@@ -31,6 +31,8 @@ export const SKILL_REPOSITORY_ROOT = path.resolve(
 export const DEFAULT_PACKAGES_REPOSITORY = path.resolve(SKILL_REPOSITORY_ROOT, '../packages');
 export const QUALIFICATION_ROOT = path.join(SKILL_REPOSITORY_ROOT, 'qualification');
 export const QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES = [
+  'package.json',
+  'package-lock.json',
   'qualification',
   'tooling/codex-evaluation-host',
   'tooling/package-candidate',

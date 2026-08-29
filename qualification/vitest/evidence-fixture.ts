@@ -14,9 +14,9 @@ import {
   type IQualificationProvenance,
   type IQualificationTrialResult,
 } from '../src/contracts/index.ts';
+import { calculateQualificationProfileDigest } from '../src/execution/fingerprints.ts';
 import { createQualificationStageIds } from '../src/execution/stages.ts';
 import {
-  calculateDirectoryFingerprint,
   ensureDirectory,
   writeJsonFileAtomically,
   writeTextFileAtomically,
@@ -205,7 +205,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
     ),
   ]);
 
-  const profileDigest = await calculateDirectoryFingerprint(profileDirectory);
+  const profileDigest = await calculateQualificationProfileDigest(profileDirectory);
   const actorOutput = {
     outcome: 'completed' as const,
     summary: 'Created grounded runtime guidance for the fixture.',

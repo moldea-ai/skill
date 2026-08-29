@@ -10,6 +10,7 @@ import {
   downloadPublishedPackageArtifact,
   resolvePublishedPackageClosure,
   resolvePublishedPackageManifest,
+  selectPublishedPackageClosure,
 } from './published.mjs';
 
 const createMetadata = (name, version, dependencies = {}) => ({
@@ -64,6 +65,90 @@ test('resolves the exact dependency-first published closure from the CLI', async
   assert.deepEqual(
     closure.map(({ name, version }) => `${name}@${version}`),
     ['@moldea.ai/core@2.0.0', '@moldea.ai/adapter-example@1.0.0', '@moldea.ai/cli@4.0.0'],
+  );
+});
+
+test('selects shared CLI packages without retaining sibling adapters', async () => {
+  const metadata = new Map([
+    [
+      '@moldea.ai/cli/4.0.0',
+      createMetadata('@moldea.ai/cli', '4.0.0', {
+        '@moldea.ai/adapter-selected': '1.0.0',
+        '@moldea.ai/adapter-sibling': '1.0.0',
+        '@moldea.ai/core': '2.0.0',
+        '@moldea.ai/repository': '1.0.0',
+        '@moldea.ai/repository-fs': '1.0.0',
+      }),
+    ],
+    [
+      '@moldea.ai/adapter-selected/1.0.0',
+      createMetadata('@moldea.ai/adapter-selected', '1.0.0', {
+        '@moldea.ai/core': '^2.0.0',
+      }),
+    ],
+    [
+      '@moldea.ai/adapter-sibling/1.0.0',
+      createMetadata('@moldea.ai/adapter-sibling', '1.0.0', {
+        '@moldea.ai/core': '^2.0.0',
+      }),
+    ],
+    [
+      '@moldea.ai/core/2.0.0',
+      createMetadata('@moldea.ai/core', '2.0.0', {
+        '@moldea.ai/repository': '^1.0.0',
+      }),
+    ],
+    ['@moldea.ai/repository/1.0.0', createMetadata('@moldea.ai/repository', '1.0.0')],
+    [
+      '@moldea.ai/repository-fs/1.0.0',
+      createMetadata('@moldea.ai/repository-fs', '1.0.0', {
+        '@moldea.ai/repository': '^1.0.0',
+      }),
+    ],
+  ]);
+  const closure = await resolvePublishedPackageClosure({
+    cliVersion: '4.0.0',
+    fetchResource: createRegistryFetch(metadata),
+    selectedPackageName: '@moldea.ai/adapter-selected',
+  });
+
+  assert.deepEqual(
+    selectPublishedPackageClosure(closure, '@moldea.ai/adapter-selected').map(({ name }) => name),
+    [
+      '@moldea.ai/repository',
+      '@moldea.ai/core',
+      '@moldea.ai/adapter-selected',
+      '@moldea.ai/repository-fs',
+      '@moldea.ai/cli',
+    ],
+  );
+});
+
+test('rejects incomplete and duplicate selected package closures', () => {
+  const cliManifest = createMetadata('@moldea.ai/cli', '4.0.0', {
+    '@moldea.ai/adapter-selected': '1.0.0',
+    '@moldea.ai/core': '2.0.0',
+  });
+  const selectedManifest = createMetadata('@moldea.ai/adapter-selected', '1.0.0', {
+    '@moldea.ai/core': '^2.0.0',
+  });
+
+  assert.throws(
+    () => selectPublishedPackageClosure([cliManifest], '@moldea.ai/adapter-selected'),
+    /missing @moldea\.ai\/adapter-selected/u,
+  );
+  assert.throws(
+    () =>
+      selectPublishedPackageClosure(
+        [cliManifest, selectedManifest, selectedManifest],
+        '@moldea.ai/adapter-selected',
+      ),
+    /duplicate @moldea\.ai\/adapter-selected/u,
+  );
+  assert.throws(
+    () =>
+      selectPublishedPackageClosure([cliManifest, selectedManifest], '@moldea.ai/adapter-selected'),
+    /missing @moldea\.ai\/core/u,
   );
 });
 

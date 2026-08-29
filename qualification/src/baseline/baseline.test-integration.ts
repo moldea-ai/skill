@@ -90,6 +90,34 @@ const skillState = createRepositoryState('skill-commit', 'e'.repeat(64));
 const createQualificationSourceCommit = async (repositoryRoot: string): Promise<string> => {
   const sourceFiles = [
     [
+      'package.json',
+      `${JSON.stringify({
+        type: 'module',
+        devDependencies: { '@moldea.ai/cli': '5.0.0', semver: '7.8.5' },
+      })}\n`,
+    ],
+    [
+      'package-lock.json',
+      `${JSON.stringify({
+        lockfileVersion: 3,
+        packages: {
+          '': {
+            devDependencies: { '@moldea.ai/cli': '5.0.0', semver: '7.8.5' },
+          },
+          'node_modules/@moldea.ai/cli': {
+            version: '5.0.0',
+            dev: true,
+            integrity: 'sha512-cli-runtime',
+          },
+          'node_modules/semver': {
+            version: '7.8.5',
+            dev: true,
+            integrity: 'sha512-semver-runtime',
+          },
+        },
+      })}\n`,
+    ],
+    [
       'qualification/cases/cases.yaml',
       [
         'version: 2',

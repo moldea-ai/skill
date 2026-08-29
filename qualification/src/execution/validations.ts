@@ -97,13 +97,13 @@ export const inspectQualificationSourceState = (
 export const haveQualificationInputsChanged = (
   checkpoint: Pick<
     IQualificationAttemptCheckpoint,
-    'packagesRepositoryFingerprint' | 'qualificationDigest' | 'skillDigest'
+    'packagesDigest' | 'qualificationDigest' | 'skillDigest'
   >,
   inputState: IQualificationInputState,
 ): boolean =>
   checkpoint.qualificationDigest !== inputState.qualificationDigest ||
   checkpoint.skillDigest !== inputState.skillState.fingerprint ||
-  checkpoint.packagesRepositoryFingerprint !== inputState.packagesState.fingerprint;
+  checkpoint.packagesDigest !== inputState.packagesDigest;
 
 /** Returns whether a resumed attempt would use a different local execution host identity. */
 export const haveQualificationExecutionInputsChanged = (

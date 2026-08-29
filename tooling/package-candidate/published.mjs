@@ -7,6 +7,7 @@ import semver from 'semver';
 import { loadCandidateArtifacts } from './artifacts.mjs';
 
 const CLI_PACKAGE_NAME = '@moldea.ai/cli';
+const ADAPTER_PACKAGE_PREFIX = '@moldea.ai/adapter-';
 const MOLDEA_PACKAGE_PREFIX = '@moldea.ai/';
 const NPM_REGISTRY_ORIGIN = 'https://registry.npmjs.org';
 const STABLE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/u;
@@ -182,6 +183,61 @@ export const resolvePublishedPackageClosure = async ({
   }
 
   return ordered;
+};
+
+/**
+ * Selects the CLI, shared runtime packages, and one adapter's dependency closure.
+ * @param manifests The complete dependency-first closure resolved from the CLI.
+ * @param selectedPackageName The adapter or built-in package under qualification.
+ * @returns The dependency-first package manifests relevant to the selected qualification.
+ * @throws If the closure contains duplicate or missing package identities.
+ */
+export const selectPublishedPackageClosure = (manifests, selectedPackageName) => {
+  assert.ok(isMoldeaPackageName(selectedPackageName));
+  const manifestsByName = new Map();
+
+  for (const manifest of manifests) {
+    assert.equal(
+      manifestsByName.has(manifest.name),
+      false,
+      `Published package closure contains duplicate ${manifest.name}.`,
+    );
+    manifestsByName.set(manifest.name, manifest);
+  }
+
+  const cliManifest = manifestsByName.get(CLI_PACKAGE_NAME);
+  assert.ok(cliManifest !== undefined, `Published package closure is missing ${CLI_PACKAGE_NAME}.`);
+  assert.ok(
+    manifestsByName.has(selectedPackageName),
+    `Published package closure is missing ${selectedPackageName}.`,
+  );
+
+  const selectedPackageNames = new Set([CLI_PACKAGE_NAME, selectedPackageName]);
+  const pendingPackageNames = [CLI_PACKAGE_NAME, selectedPackageName];
+
+  while (pendingPackageNames.length > 0) {
+    const packageName = pendingPackageNames.shift();
+    const manifest = manifestsByName.get(packageName);
+    assert.ok(manifest !== undefined, `Published package closure is missing ${packageName}.`);
+
+    for (const [dependencyName] of getInternalDependencies(manifest)) {
+      const isUnselectedCliAdapter =
+        packageName === CLI_PACKAGE_NAME &&
+        selectedPackageName !== CLI_PACKAGE_NAME &&
+        dependencyName.startsWith(ADAPTER_PACKAGE_PREFIX) &&
+        dependencyName !== selectedPackageName;
+      if (isUnselectedCliAdapter || selectedPackageNames.has(dependencyName)) continue;
+
+      assert.ok(
+        manifestsByName.has(dependencyName),
+        `Published package closure is missing ${dependencyName}.`,
+      );
+      selectedPackageNames.add(dependencyName);
+      pendingPackageNames.push(dependencyName);
+    }
+  }
+
+  return manifests.filter(({ name }) => selectedPackageNames.has(name));
 };
 
 /**

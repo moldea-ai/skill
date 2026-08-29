@@ -22,9 +22,12 @@ test('leads with the durable system around coding-agent work', async ({ page }) 
   );
 
   const heroTitleTypography = await page.locator('[data-hero-title]').evaluate((element) => ({
+    blockHeight: element.getBoundingClientRect().height,
     fontSize: Number.parseFloat(getComputedStyle(element).fontSize),
     lineHeight: Number.parseFloat(getComputedStyle(element).lineHeight),
   }));
+  expect(heroTitleTypography.blockHeight).toBeGreaterThan(heroTitleTypography.lineHeight);
+  expect(heroTitleTypography.blockHeight).toBeLessThanOrEqual(heroTitleTypography.lineHeight * 2.1);
   expect(heroTitleTypography.fontSize).toBeLessThanOrEqual(68);
   expect(heroTitleTypography.lineHeight).toBeGreaterThan(heroTitleTypography.fontSize);
 
@@ -93,15 +96,13 @@ test('presents value and proof before adoption reassurance', async ({ page }) =>
 
   expect(headingTops).toStrictEqual([...headingTops].sort((left, right) => left - right));
 
-  const sectionHeadingTypography = await page
-    .locator('.landing-section-title')
-    .evaluateAll((elements) =>
-      elements.map((element) => ({
-        fontSize: getComputedStyle(element).fontSize,
-        letterSpacing: getComputedStyle(element).letterSpacing,
-        lineHeight: getComputedStyle(element).lineHeight,
-      })),
-    );
+  const sectionHeadingTypography = await page.locator('.section-title').evaluateAll((elements) =>
+    elements.map((element) => ({
+      fontSize: getComputedStyle(element).fontSize,
+      letterSpacing: getComputedStyle(element).letterSpacing,
+      lineHeight: getComputedStyle(element).lineHeight,
+    })),
+  );
   expect(sectionHeadingTypography.length).toBeGreaterThan(0);
   expect(
     new Set(sectionHeadingTypography.map((typography) => JSON.stringify(typography))).size,

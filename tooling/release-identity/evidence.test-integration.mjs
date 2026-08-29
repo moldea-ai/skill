@@ -19,8 +19,9 @@ import {
   recordSemanticEvaluationAttempt,
 } from '../semantic-evaluation/index.mjs';
 import {
-  calculateCompatibilityBehaviorDigest,
-  calculateQualificationDigest,
+  calculateQualificationExecutionDigest,
+  calculateQualificationProfileDigest,
+  calculateQualificationTargetDigest,
 } from '../../qualification/src/execution/fingerprints.ts';
 import { calculateDirectoryFingerprint } from '../../qualification/src/filesystem/index.ts';
 import { inspectGitRepositoryState } from '../../qualification/src/repository-state/index.ts';
@@ -57,6 +58,17 @@ const TYPESCRIPT_MANIFEST = {
     tarball: 'https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz',
   },
 };
+const TOOLING_SEMVER_VERSION = '7.8.5';
+
+const PROFILE_RUNTIME_MANIFEST = {
+  name: 'external-runtime',
+  version: '1.2.3',
+  dist: {
+    integrity: 'sha512-external-runtime-integrity',
+    shasum: '4'.repeat(40),
+    tarball: 'https://registry.npmjs.org/external-runtime/-/external-runtime-1.2.3.tgz',
+  },
+};
 
 const writeFile = (root, relativePath, content) => {
   const path = join(root, relativePath);
@@ -75,8 +87,8 @@ const createRecordedPackages = (manifests) =>
     sha256: createHash('sha256').update(`${manifest.name}@${manifest.version}`).digest('hex'),
   }));
 
-const createRecordedQualificationPackages = (publishedManifests) =>
-  createRecordedPackages([...publishedManifests, TYPESCRIPT_MANIFEST]);
+const createRecordedQualificationPackages = (publishedManifests, runtimeManifests = []) =>
+  createRecordedPackages([...publishedManifests, ...runtimeManifests, TYPESCRIPT_MANIFEST]);
 
 const createSemanticCase = (id) => ({
   expected: [
@@ -214,7 +226,10 @@ const seedReleaseManifests = (root) => {
     root,
     'package.json',
     `${JSON.stringify({
-      devDependencies: { '@moldea.ai/cli': '4.0.0' },
+      devDependencies: {
+        '@moldea.ai/cli': '4.0.0',
+        semver: TOOLING_SEMVER_VERSION,
+      },
       moldeaRelease: { cliJsonSchemaVersion: 2 },
       version: '3.1.0',
     })}\n`,
@@ -226,12 +241,20 @@ const seedReleaseManifests = (root) => {
       lockfileVersion: 3,
       packages: {
         '': {
-          devDependencies: { '@moldea.ai/cli': '4.0.0' },
+          devDependencies: {
+            '@moldea.ai/cli': '4.0.0',
+            semver: TOOLING_SEMVER_VERSION,
+          },
           version: '3.1.0',
         },
         'node_modules/@moldea.ai/cli': {
           integrity: 'sha512-release-integrity',
           version: '4.0.0',
+        },
+        'node_modules/semver': {
+          dev: true,
+          integrity: 'sha512-tooling-semver-integrity',
+          version: TOOLING_SEMVER_VERSION,
         },
       },
     })}\n`,
@@ -240,6 +263,27 @@ const seedReleaseManifests = (root) => {
     root,
     'qualification/package.json',
     `${JSON.stringify({ devDependencies: { typescript: TYPESCRIPT_MANIFEST.version } })}\n`,
+  );
+  writeFile(
+    root,
+    'qualification/package-lock.json',
+    `${JSON.stringify({
+      name: '@moldea.ai/adapter-qualification',
+      version: '0.0.0',
+      lockfileVersion: 3,
+      requires: true,
+      packages: {
+        '': {
+          name: '@moldea.ai/adapter-qualification',
+          version: '0.0.0',
+          devDependencies: { typescript: TYPESCRIPT_MANIFEST.version },
+        },
+        'node_modules/typescript': {
+          version: TYPESCRIPT_MANIFEST.version,
+          dev: true,
+        },
+      },
+    })}\n`,
   );
   writeFile(
     root,
@@ -303,6 +347,11 @@ test('release evidence inspection requires fresh passing semantic and qualificat
         })),
       packagesRepository,
       resolvePublishedManifest: async ({ packageName, version }) => {
+        if (packageName === PROFILE_RUNTIME_MANIFEST.name) {
+          assert.equal(version, PROFILE_RUNTIME_MANIFEST.version);
+          return PROFILE_RUNTIME_MANIFEST;
+        }
+
         assert.equal(packageName, TYPESCRIPT_MANIFEST.name);
         assert.equal(version, TYPESCRIPT_MANIFEST.version);
         return TYPESCRIPT_MANIFEST;
@@ -439,29 +488,23 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       skillRepositoryFingerprint: await calculateDirectoryFingerprint(
         join(temporaryRoot, 'moldea'),
       ),
-      targetDigest: calculateCompatibilityBehaviorDigest({ adapter, target }),
+      targetDigest: calculateQualificationTargetDigest(adapter, target),
     });
     const skippedInitialJudgeStage = passingFixture.stages.find(
       ({ id }) => id === 'case:release-case:trial:initial:judge',
     );
     assert.ok(skippedInitialJudgeStage);
     skippedInitialJudgeStage.durationMs = 2;
-    const qualificationDigest = await calculateQualificationDigest([
-      {
-        pathPrefix: 'qualification',
-        rootDirectory: join(temporaryRoot, 'qualification'),
-        excludedDirectoryNames: new Set(['node_modules']),
-        excludedRelativePathPrefixes: ['results'],
+    const qualificationDigest = await calculateQualificationExecutionDigest({
+      caseIds: ['release-case'],
+      profileDirectory: join(temporaryRoot, 'qualification/profiles/custom/custom'),
+      roots: {
+        evaluationHostRoot: join(temporaryRoot, 'tooling/codex-evaluation-host'),
+        packageCandidateRoot: join(temporaryRoot, 'tooling/package-candidate'),
+        qualificationRoot: join(temporaryRoot, 'qualification'),
+        repositoryRoot: temporaryRoot,
       },
-      {
-        pathPrefix: 'tooling/codex-evaluation-host',
-        rootDirectory: join(temporaryRoot, 'tooling', 'codex-evaluation-host'),
-      },
-      {
-        pathPrefix: 'tooling/package-candidate',
-        rootDirectory: join(temporaryRoot, 'tooling', 'package-candidate'),
-      },
-    ]);
+    });
     await recordQualificationResult(
       {
         artifactDirectory: qualificationArtifacts,
@@ -728,6 +771,29 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     );
 
     writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
+    const toolingManifestPath = join(temporaryRoot, 'package.json');
+    const toolingLockPath = join(temporaryRoot, 'package-lock.json');
+    const exactToolingManifest = readFileSync(toolingManifestPath, 'utf8');
+    const exactToolingLock = readFileSync(toolingLockPath, 'utf8');
+    const changedToolingManifest = JSON.parse(exactToolingManifest);
+    const changedToolingLock = JSON.parse(exactToolingLock);
+    changedToolingManifest.devDependencies.semver = '7.9.0';
+    changedToolingLock.packages[''].devDependencies.semver = '7.9.0';
+    changedToolingLock.packages['node_modules/semver'] = {
+      dev: true,
+      integrity: 'sha512-changed-tooling-semver-integrity',
+      version: '7.9.0',
+    };
+    writeFileSync(toolingManifestPath, `${JSON.stringify(changedToolingManifest)}\n`, 'utf8');
+    writeFileSync(toolingLockPath, `${JSON.stringify(changedToolingLock)}\n`, 'utf8');
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
+        'qualification/results/custom/custom/latest.json does not match the current release inputs.',
+      ),
+    );
+    writeFileSync(toolingManifestPath, exactToolingManifest, 'utf8');
+    writeFileSync(toolingLockPath, exactToolingLock, 'utf8');
+
     const matrixPath = join(packagesRepository, 'compatibility', 'runtimes.yaml');
     const matrixContent = readFileSync(matrixPath, 'utf8');
     writeFileSync(matrixPath, `${matrixContent.trimEnd()}\n\n`, 'utf8');
@@ -738,7 +804,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       ),
     );
     assert.ok(
-      stalePackagesIssues.includes(
+      !stalePackagesIssues.includes(
         'qualification/results/custom/custom/latest.json does not match the current release inputs.',
       ),
     );
@@ -758,6 +824,9 @@ test('release evidence inspection requires fresh passing semantic and qualificat
         'implementationId: external-stream',
         'title: External qualification',
         'description: Release evidence baseline fixture.',
+        'runtimePackages:',
+        `  - name: ${PROFILE_RUNTIME_MANIFEST.name}`,
+        `    version: ${PROFILE_RUNTIME_MANIFEST.version}`,
         'probesFile: probes/claims.yaml',
         'cases:',
         '  - id: release-case',
@@ -817,31 +886,20 @@ test('release evidence inspection requires fresh passing semantic and qualificat
         },
       },
     ];
-    const updatedQualificationDigest = await calculateQualificationDigest([
-      {
-        pathPrefix: 'qualification',
-        rootDirectory: join(temporaryRoot, 'qualification'),
-        excludedDirectoryNames: new Set(['node_modules']),
-        excludedRelativePathPrefixes: ['results'],
-      },
-      {
-        pathPrefix: 'tooling/codex-evaluation-host',
-        rootDirectory: join(temporaryRoot, 'tooling', 'codex-evaluation-host'),
-      },
-      {
-        pathPrefix: 'tooling/package-candidate',
-        rootDirectory: join(temporaryRoot, 'tooling', 'package-candidate'),
-      },
-    ]);
-    const updatedPackagesState = await inspectGitRepositoryState(packagesRepository);
-    const updatedCustomAttempt = JSON.parse(readFileSync(attemptPath, 'utf8'));
-    updatedCustomAttempt.provenance.qualificationDigest = updatedQualificationDigest;
-    updatedCustomAttempt.provenance.packagesRepositoryCommit = updatedPackagesState.commit;
-    updatedCustomAttempt.provenance.packagesRepositoryFingerprint =
-      updatedPackagesState.fingerprint;
-    updatedCustomAttempt.provenance.packages =
-      createRecordedQualificationPackages(publishedManifests);
-    writeFileSync(attemptPath, `${JSON.stringify(updatedCustomAttempt)}\n`, 'utf8');
+    const issuesAfterUnrelatedAdapterAddition = await inspectReleaseEvidence(
+      temporaryRoot,
+      inspectionOptions,
+    );
+    assert.ok(
+      issuesAfterUnrelatedAdapterAddition.includes(
+        'qualification/results/external/external-stream/latest.json is missing qualification evidence.',
+      ),
+    );
+    assert.ok(
+      !issuesAfterUnrelatedAdapterAddition.includes(
+        'qualification/results/custom/custom/latest.json does not match the current release inputs.',
+      ),
+    );
 
     const externalAttemptId = 'external-release-attempt';
     const externalAttemptDirectory = join(
@@ -870,13 +928,26 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       adapterId: 'external',
       implementationId: 'external-stream',
     };
-    externalAttempt.provenance.profileDigest = await calculateDirectoryFingerprint(
+    externalAttempt.provenance.profileDigest = await calculateQualificationProfileDigest(
       join(temporaryRoot, 'qualification', 'profiles', 'external', 'external-stream'),
     );
-    externalAttempt.provenance.targetDigest = calculateCompatibilityBehaviorDigest({
-      adapter: matrix.adapters.external,
-      target: matrix.adapters.external.targets[0],
+    externalAttempt.provenance.qualificationDigest = await calculateQualificationExecutionDigest({
+      caseIds: ['release-case'],
+      profileDirectory: join(temporaryRoot, 'qualification/profiles/external/external-stream'),
+      roots: {
+        evaluationHostRoot: join(temporaryRoot, 'tooling/codex-evaluation-host'),
+        packageCandidateRoot: join(temporaryRoot, 'tooling/package-candidate'),
+        qualificationRoot: join(temporaryRoot, 'qualification'),
+        repositoryRoot: temporaryRoot,
+      },
     });
+    externalAttempt.provenance.targetDigest = calculateQualificationTargetDigest(
+      matrix.adapters.external,
+      matrix.adapters.external.targets[0],
+    );
+    externalAttempt.provenance.packages = createRecordedQualificationPackages(publishedManifests, [
+      PROFILE_RUNTIME_MANIFEST,
+    ]);
     externalAttempt.provenance.baselineAttemptId = attemptId;
     externalAttempt.artifactDigests['baseline.json'] = createHash('sha256')
       .update(externalBaselineContent)
@@ -911,6 +982,37 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     );
     assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
 
+    const replacementBaselineArtifacts = join(
+      temporaryRoot,
+      '.qualification-replacement-baseline-artifacts',
+    );
+    const replacementBaseline = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory: replacementBaselineArtifacts,
+      attemptId: 'zz-current-custom-baseline',
+      packages: createRecordedQualificationPackages(PUBLISHED_MOLDEA_MANIFESTS),
+      packagesRepositoryCommit: (await inspectGitRepositoryState(packagesRepository)).commit,
+      qualificationDigest,
+      resultsRoot: join(temporaryRoot, 'qualification', 'results'),
+      skillRepositoryFingerprint: await calculateDirectoryFingerprint(
+        join(temporaryRoot, 'moldea'),
+      ),
+      targetDigest: calculateQualificationTargetDigest(adapter, target),
+    });
+    await recordQualificationResult(
+      {
+        artifactDirectory: replacementBaselineArtifacts,
+        result: replacementBaseline,
+        sanitizationContext: {
+          attemptDirectory: '/attempt',
+          packagesRepository: '/packages',
+          skillRepository: '/skill',
+        },
+      },
+      join(temporaryRoot, 'qualification', 'results'),
+    );
+    rmSync(replacementBaselineArtifacts, { force: true, recursive: true });
+    assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
+
     const staleBaselineContent = `${JSON.stringify({
       required: true,
       passed: true,
@@ -926,13 +1028,17 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     writeFileSync(externalAttemptPath, `${JSON.stringify(externalAttempt)}\n`, 'utf8');
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
-        'qualification/results/external/external-stream/latest.json does not reference the current passing Custom baseline.',
+        'qualification/results/external/external-stream/latest.json does not reference a committed passing Custom baseline.',
       ),
     );
 
-    const incompleteAttempt = JSON.parse(readFileSync(attemptPath, 'utf8'));
+    const replacementBaselineAttemptPath = join(
+      temporaryRoot,
+      'qualification/results/custom/custom/attempts/zz-current-custom-baseline/attempt.json',
+    );
+    const incompleteAttempt = JSON.parse(readFileSync(replacementBaselineAttemptPath, 'utf8'));
     incompleteAttempt.cases = [];
-    writeFileSync(attemptPath, `${JSON.stringify(incompleteAttempt)}\n`, 'utf8');
+    writeFileSync(replacementBaselineAttemptPath, `${JSON.stringify(incompleteAttempt)}\n`, 'utf8');
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
         'qualification/results/custom/custom/latest.json does not contain every current passing case artifact.',

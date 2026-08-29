@@ -1,1 +1,16 @@
 @import '@moldea.ai/website-ui/styles.css';
+
+@layer components {
+  /* Ubuntu Sans needs a looser multiline rhythm than the shared display styles. */
+  .landing-hero-title {
+    font-size: clamp(2.5rem, 5vw, 4.25rem);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+  }
+
+  .landing-section-title {
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    line-height: 1.08;
+    letter-spacing: -0.015em;
+  }
+}

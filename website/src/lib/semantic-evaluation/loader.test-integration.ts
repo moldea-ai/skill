@@ -357,7 +357,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
       }),
     ],
     [
-      'a mismatched Moldea CLI version',
+      'a mismatched moldea CLI version',
       (cli: ReturnType<typeof createSemanticCliIdentity>) => ({
         byteCount: 24,
         disposition: 'projected',

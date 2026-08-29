@@ -5,7 +5,7 @@ export const SEMANTIC_EVALUATION_METHODOLOGY_ROUTE = '/docs/semantic-evaluation/
 // readable group labels shown before individual case evidence
 export const SEMANTIC_EVALUATION_GROUPS = {
   adoption: {
-    description: 'When Moldea should be adopted, initialized, evaluated, or left out of the way.',
+    description: 'When moldea should be adopted, initialized, evaluated, or left out of the way.',
     title: 'Adoption and initialization',
   },
   truth: {
@@ -83,7 +83,7 @@ export const SEMANTIC_CASE_PRESENTATION = {
   },
   'evaluate-brief-name-only-request': {
     groupId: 'adoption',
-    title: 'Resolves a brief Moldea evaluation request',
+    title: 'Resolves a brief moldea evaluation request',
   },
   'evaluate-clean-working-tree': {
     groupId: 'adoption',

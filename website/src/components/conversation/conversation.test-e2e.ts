@@ -11,7 +11,7 @@ test('uses the theme-aware brand mark for skill guidance', async ({ browser }) =
     await page.goto(toPublicPath('/'));
 
     const underTheHoodConversation = page
-      .getByRole('heading', { level: 3, name: 'Coding agent ↔ skill' })
+      .getByRole('heading', { level: 3, name: 'Developer, skill, and coding agent' })
       .locator('..')
       .locator('..');
     const visibleSkillMark = underTheHoodConversation.locator('[data-skill-guidance-mark]:visible');

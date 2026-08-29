@@ -10,8 +10,9 @@ const basePath = import.meta.env.BASE_URL;
 ---
 
 <section
-  class="border-b border-border bg-sidebar py-section-gap"
+  class="border-b border-border bg-background py-section-gap"
   aria-labelledby="getting-started-title"
+  data-getting-started
 >
   <div class="page-shell">
     <header class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end">
@@ -19,7 +20,7 @@ const basePath = import.meta.env.BASE_URL;
         <p class="eyebrow mb-4">Start in minutes</p>
         <h2
           id="getting-started-title"
-          class="section-title max-w-4xl font-semibold"
+          class="landing-section-title max-w-4xl font-semibold"
         >
           One install. One ordinary request.
         </h2>
@@ -27,7 +28,7 @@ const basePath = import.meta.env.BASE_URL;
       <div class="lg:justify-self-end">
         <p class="text-lg leading-8 text-muted-foreground">
           Add the skill to your project, then tell your coding agent what you want. There is no
-          setup wizard, Cloud account, or new command language.
+          setup wizard or new command language.
         </p>
         <ActionLink
           class="mt-5 font-bold"

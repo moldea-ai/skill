@@ -5,7 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { parseSearchDocuments } from '@moldea.ai/website-ui/search';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { PACKAGES_WEBSITE_URL, SKILLS_DIRECTORY_URL } from '../lib/model/constants.ts';
+import { SKILLS_DIRECTORY_URL } from '../lib/model/constants.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -93,28 +93,9 @@ const getPublicContentPaths = async (page: Page): Promise<string[]> => {
 test('makes skills.sh the primary distribution path on desktop and mobile', async ({ page }) => {
   await page.goto(toPublicPath('/'));
 
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'You keep shipping. Agents stay grounded.' }),
-  ).toBeVisible();
-  const heroTitleLineTops = await page.locator('[data-hero-title]').evaluate((element) => {
-    const range = document.createRange();
-    range.selectNodeContents(element);
-
-    return [...range.getClientRects()].map(({ top }) => Math.round(top));
-  });
-  expect(new Set(heroTitleLineTops).size).toBe(2);
-
   const faviconLink = page.locator('link[rel="icon"]');
   await expect(faviconLink).toHaveAttribute('href', `${toPublicPath('/favicon.ico')}?v=a8cfe06f`);
   await expect(faviconLink).toHaveAttribute('type', 'image/x-icon');
-
-  const outcomeHeading = page.getByRole('heading', {
-    level: 2,
-    name: 'Outcomes, not moldea operations.',
-  });
-  const brandedProductName = outcomeHeading.locator('code');
-  await expect(brandedProductName).toHaveText('moldea');
-  await expect(brandedProductName).toHaveClass(/bg-code/);
 
   const primaryLink = page
     .getByRole('link', { name: 'Get moldea on skills.sh', exact: true })
@@ -145,15 +126,10 @@ test('presents project and Agent Skill design as first-class landing capabilitie
 }) => {
   await page.goto(toPublicPath('/'));
 
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
-    'content',
-    /reusable Agent Skills/,
-  );
-  await expect(page.locator('main > section').first()).toContainText('reusable Agent Skills');
   await expect(
     page.getByRole('heading', {
       level: 2,
-      name: 'One operating layer for agents and Agent Skills.',
+      name: 'One operating layer across the agent lifecycle.',
     }),
   ).toBeVisible();
 
@@ -198,6 +174,7 @@ test('shows compatible coding agents with source-owned marks and a complete docs
     name: 'Use the coding agent you already trust.',
   });
   await expect(compatibilitySection).toBeVisible();
+  await compatibilitySection.scrollIntoViewIfNeeded();
 
   const codingAgentMarks = compatibilitySection.locator('img');
   await expect(codingAgentMarks).toHaveCount(6);
@@ -289,32 +266,6 @@ test('renders source-owned coding agent marks clearly in both themes', async ({ 
 
     await context.close();
   }
-});
-
-test('presents the package foundation and links to the packages website', async ({ page }) => {
-  await page.goto(toPublicPath('/'));
-
-  const packageFoundation = page.getByRole('region', {
-    name: 'More than instructions. A tested software foundation.',
-  });
-  await expect(packageFoundation).toBeVisible();
-  await expect(
-    packageFoundation.getByRole('heading', { name: 'Verified local execution' }),
-  ).toBeVisible();
-  await expect(
-    packageFoundation.getByRole('heading', { name: 'Deterministic contracts' }),
-  ).toBeVisible();
-  await expect(
-    packageFoundation.getByRole('heading', { name: 'Coherent source evidence' }),
-  ).toBeVisible();
-  await expect(
-    packageFoundation.getByRole('heading', { name: 'Runtime-specific evidence' }),
-  ).toBeVisible();
-
-  const packagesLink = packageFoundation.getByRole('link', { name: 'Explore moldea packages' });
-  await expect(packagesLink).toHaveAttribute('href', PACKAGES_WEBSITE_URL);
-  await expect(packagesLink).toHaveAttribute('target', '_blank');
-  await expect(packagesLink).toHaveAttribute('rel', 'noopener noreferrer');
 });
 
 test('uses the shared primary action interaction states across public surfaces', async ({

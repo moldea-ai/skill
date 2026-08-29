@@ -1,0 +1,116 @@
+---
+import { ArrowRight, GitBranch, RefreshCw, SearchCheck, type Icon } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import { EVIDENCE_ROUTE } from '../../lib/model/constants.ts';
+
+const outcomes = [
+  {
+    description:
+      'Canonical project truth stays in Git, where it can survive a session ending, a teammate leaving, or the team changing compatible coding-agent hosts.',
+    icon: GitBranch,
+    title: 'Memory that outlives the session',
+  },
+  {
+    description:
+      'Relevant changes trigger evidence-based reconsideration of context, instructions, contracts, and implementation without rewriting surfaces that remain correct.',
+    icon: RefreshCw,
+    title: 'Behavior that evolves with the code',
+  },
+  {
+    description:
+      'Structure and supported runtime relationships receive deterministic evidence, while semantic conclusions remain explicit coding-agent assessments.',
+    icon: SearchCheck,
+    title: 'Verification beyond model confidence',
+  },
+] satisfies Array<{
+  description: string;
+  icon: typeof Icon;
+  title: string;
+}>;
+const basePath = import.meta.env.BASE_URL;
+---
+
+<section
+  id="why-moldea"
+  class="scroll-mt-24 border-b border-border bg-sidebar py-section-gap"
+  aria-labelledby="why-moldea-title"
+  data-why-moldea
+>
+  <div class="page-shell">
+    <header class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+      <div class="max-w-5xl">
+        <p class="eyebrow mb-4">
+          Why <span class="normal-case"><InlineBrandText text="moldea" /></span> exists
+        </p>
+        <h2
+          id="why-moldea-title"
+          class="landing-section-title font-semibold"
+        >
+          Turn coding-agent work into durable <span class="md:whitespace-nowrap"
+            >project infrastructure.</span
+          >
+        </h2>
+      </div>
+      <ActionLink
+        class="font-bold shadow-surface"
+        href={withBase(EVIDENCE_ROUTE, basePath)}
+        size="lg"
+        variant="outline"
+      >
+        See evidence
+        <ArrowRight
+          class="size-4"
+          aria-hidden="true"
+        />
+      </ActionLink>
+    </header>
+
+    <div class="mt-8 grid gap-6 lg:grid-cols-[minmax(20rem,0.85fr)_minmax(0,1.15fr)]">
+      <div
+        class="surface-card flex flex-col p-6 sm:p-7 lg:h-full"
+        data-why-moldea-narrative
+      >
+        <p class="leading-7">
+          Your coding agent can inspect a repository, write instructions, and add checks.
+          <InlineBrandText
+            text="moldea turns those results into a shared system: Git-owned project memory, explicit relationships between behavior and implementation, and deterministic validation the next session can use."
+          />
+        </p>
+        <p
+          class="mt-4 border-t border-border pt-4 text-sm leading-6 text-muted-foreground lg:mt-auto"
+        >
+          Without a common format and operating method, every team has to define and maintain its
+          own conventions, validators, runtime analyzers, and handoff process. <InlineBrandText
+            text="moldea provides those foundations as an open system."
+          />
+        </p>
+      </div>
+
+      <ol
+        class="grid gap-3 lg:h-full lg:grid-rows-3"
+        data-why-moldea-outcomes
+      >
+        {
+          outcomes.map(({ description, icon: OutcomeIcon, title }, index) => (
+            <li class="surface-card grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)_auto] items-start gap-x-4 p-4">
+              <span class="row-span-2 inline-flex size-10 items-center justify-center rounded-xl bg-muted">
+                <OutcomeIcon
+                  class="size-5"
+                  aria-hidden="true"
+                />
+              </span>
+              <h3 class="min-w-0 text-lg leading-6 font-semibold tracking-tight">{title}</h3>
+              <span class="font-mono text-xs font-bold text-muted-foreground">0{index + 1}</span>
+              <p class="col-span-2 col-start-2 mt-2 text-sm leading-5 text-muted-foreground">
+                {description}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>

@@ -27,10 +27,12 @@ import {
   type IQualificationAttemptModel,
   type IQualificationAttemptResult,
   type IQualificationCurrentCaseResult,
+  type IQualificationProjectedExecutionEvent,
   type IQualificationProfileCaseModel,
   type IQualificationProfileModel,
   type IQualificationWebsiteModel,
 } from './types.ts';
+import { createQualificationReplay } from './replay-transformers.ts';
 import {
   calculateFileSha256,
   createRawSourceUrl,
@@ -49,6 +51,21 @@ import {
 } from './validations.ts';
 
 const QUALIFICATION_ROUTE = '/evidence/qualification/';
+// immutable protocol 6 actor-prompt boundary retained by current evidence
+const QUALIFICATION_ACTOR_PROMPT_PREFIX =
+  'Complete the project task below in the current Git working tree:\n\n';
+const QUALIFICATION_ACTOR_PROMPT_SUFFIX = `
+
+Execution rules:
+
+- Use the project-local Moldea tooling and follow applicable Agent Skill guidance discovered in the workspace.
+- Do not call a provider, run an agent, invoke another model, use subagents, or use network access.
+- Preserve all unrelated pre-existing changes and untracked files.
+- Do not modify mounted inputs under \`.agents/skills/moldea/\` or \`.moldea-qualification/\`.
+- Treat ambiguous or unsupported runtime behavior conservatively. Record it explicitly instead of inventing evidence.
+- Inspect the final Git diff and run the relevant local validation before finishing.
+- Return only the structured result required by the output schema.
+`;
 
 type ICaseCatalogEntry = ReturnType<typeof QualificationCaseCatalogSchema.parse>['cases'][number];
 type IProfile = ReturnType<typeof QualificationProfileSchema.parse>;
@@ -227,6 +244,44 @@ const readDeterministicArtifactSummary = (
   readAttemptArtifact(attemptDirectory, relativePath, DeterministicVerificationArtifactSchema)
     .summary;
 
+const readProjectedExecutionEvents = (
+  attemptDirectory: string,
+  relativePath: string,
+): IQualificationProjectedExecutionEvent[] => {
+  const path = resolveContainedPath(attemptDirectory, relativePath);
+  requireFile(path);
+
+  return readFileSync(path, 'utf8')
+    .split('\n')
+    .filter((eventLine) => eventLine.trim() !== '')
+    .map((eventLine) =>
+      QualificationProjectedExecutionEventSchema.parse(JSON.parse(eventLine) as unknown),
+    );
+};
+
+const readRecordedDeveloperTask = (attemptDirectory: string, relativePath: string): string => {
+  const path = resolveContainedPath(attemptDirectory, relativePath);
+  requireFile(path);
+  const prompt = readFileSync(path, 'utf8');
+  const taskEndIndex = prompt.length - QUALIFICATION_ACTOR_PROMPT_SUFFIX.length;
+  const developerTask = removeLeadingMarkdownTitle(
+    prompt.slice(QUALIFICATION_ACTOR_PROMPT_PREFIX.length, taskEndIndex),
+  );
+
+  if (
+    !prompt.startsWith(QUALIFICATION_ACTOR_PROMPT_PREFIX) ||
+    !prompt.endsWith(QUALIFICATION_ACTOR_PROMPT_SUFFIX) ||
+    taskEndIndex <= QUALIFICATION_ACTOR_PROMPT_PREFIX.length ||
+    developerTask.length === 0
+  ) {
+    throw new Error(
+      `Qualification actor prompt does not retain a recorded developer task: ${relativePath}`,
+    );
+  }
+
+  return developerTask;
+};
+
 const loadCurrentAttemptCase = (
   repositoryRoot: string,
   attemptDirectory: string,
@@ -251,6 +306,8 @@ const loadCurrentAttemptCase = (
   const trials = result.trials.map((trial) => {
     const trialRoot = `cases/${result.caseId}/trials/${trial.trialId}`;
     const actorEvidencePath = `${trialRoot}/actor-evidence.json`;
+    const actorEventsPath = `${trialRoot}/actor-events.jsonl`;
+    const actorPromptPath = `${trialRoot}/actor-prompt.md`;
     const judgeEvidencePath = `${trialRoot}/judge-evidence.json`;
     const trialResultPath = `${trialRoot}/trial-result.json`;
     const referencedPaths = [
@@ -258,6 +315,8 @@ const loadCurrentAttemptCase = (
       trial.deterministicAfterPath,
       trial.actorOutputPath,
       actorEvidencePath,
+      actorEventsPath,
+      actorPromptPath,
       trialResultPath,
       trial.workspaceAssertionsPath,
       trial.patchPath,
@@ -347,6 +406,7 @@ const loadCurrentAttemptCase = (
     const trialEvidence = {
       actor: readAttemptArtifact(attemptDirectory, trial.actorOutputPath, ActorOutputSchema),
       actorCommandPolicy: actorEvidence.commandPolicy,
+      actorExecutionEvents: readProjectedExecutionEvents(attemptDirectory, actorEventsPath),
       artifacts: artifacts.filter(({ path }) =>
         path.startsWith(
           `${getRepositoryRelativePath(repositoryRoot, join(caseDirectory, 'trials', trial.trialId))}/`,
@@ -360,6 +420,7 @@ const loadCurrentAttemptCase = (
         attemptDirectory,
         trial.deterministicBeforePath,
       ),
+      developerTask: readRecordedDeveloperTask(attemptDirectory, actorPromptPath),
       judge:
         trial.judgeOutputPath === null
           ? null
@@ -387,8 +448,11 @@ const loadCurrentAttemptCase = (
     return trialEvidence;
   });
 
+  const replay = createQualificationReplay(result, trials);
+
   return {
     artifacts: artifacts.filter(({ path }) => path.startsWith(casePrefix)),
+    replay,
     result,
     trials,
   };

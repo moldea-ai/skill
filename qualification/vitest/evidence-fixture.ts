@@ -21,6 +21,7 @@ import {
   writeJsonFileAtomically,
   writeTextFileAtomically,
 } from '../src/filesystem/index.ts';
+import { buildActorPrompt } from '../src/prompts/index.ts';
 
 const CASE_ID = 'release-case';
 const CASE_TITLE = 'Release case';
@@ -445,7 +446,10 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
         path.join(trialRoot, 'actor-output.schema.json'),
         z.toJSONSchema(ActorOutputSchema),
       ),
-      writeTextFileAtomically(path.join(trialRoot, 'actor-prompt.md'), 'Actor prompt.\n'),
+      writeTextFileAtomically(
+        path.join(trialRoot, 'actor-prompt.md'),
+        buildActorPrompt({ task: '# Release case\n\nInspect the current evidence.' }),
+      ),
       writeJsonFileAtomically(
         path.join(trialRoot, 'deterministic-after.json'),
         deterministicArtifact,

@@ -79,7 +79,7 @@ cases:
       sanitizationContext: {
         attemptDirectory: '/attempt',
         packagesRepository: '/packages',
-        skillRepository: '/skill',
+        skillRepository: '/repositories/skill',
       },
     },
     resultsRoot,

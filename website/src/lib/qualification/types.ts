@@ -1,5 +1,6 @@
 import { posix } from 'node:path';
 
+import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
 import { z } from 'zod';
 
 const QUALIFICATION_PROTOCOL_VERSION = 2;
@@ -607,6 +608,12 @@ export type IQualificationJudgeSkipped = z.infer<typeof QualificationJudgeSkippe
 export type IQualificationModelStageEvidence = z.infer<
   typeof QualificationModelStageEvidenceSchema
 >;
+export type IQualificationCommandPolicyEvidence = z.infer<
+  typeof QualificationCommandPolicyEvidenceSchema
+>;
+export type IQualificationProjectedExecutionEvent = z.infer<
+  typeof QualificationProjectedExecutionEventSchema
+>;
 
 // one committed artifact linked from public evidence pages
 export interface IQualificationArtifactModel {
@@ -633,9 +640,12 @@ export interface IQualificationProfileCaseModel {
 // complete evidence for one initial or confirmation trial
 export interface IQualificationAttemptTrialModel {
   actor: IActorOutput;
+  actorCommandPolicy: IQualificationCommandPolicyEvidence;
+  actorExecutionEvents: IQualificationProjectedExecutionEvent[];
   artifacts: IQualificationArtifactModel[];
   deterministicAfter: IDeterministicVerification;
   deterministicBefore: IDeterministicVerification;
+  developerTask: string;
   judge: IJudgeOutput | null;
   judgeSkipped: IQualificationJudgeSkipped | null;
   result: IQualificationTrialResult;
@@ -649,6 +659,7 @@ export interface IQualificationAttemptTrialModel {
 // complete evidence for one case in an immutable attempt
 export interface IQualificationAttemptCaseModel {
   artifacts: IQualificationArtifactModel[];
+  replay: IEvaluationReplayModel;
   result: z.infer<typeof QualificationCaseResultSchema>;
   trials: IQualificationAttemptTrialModel[];
 }

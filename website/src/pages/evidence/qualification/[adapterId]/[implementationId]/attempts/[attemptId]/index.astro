@@ -101,6 +101,11 @@ const getArtifactLabel = (artifactPath: string): string =>
           variant="compact"
         />
       </p>
+      <p class="mt-3 max-w-4xl leading-7 text-muted-foreground">
+        Open any journey to replay the developer request, coding-agent activity, workspace changes,
+        and independent verdict. Human-readable evidence comes next, while the complete technical
+        record remains available in its own tab.
+      </p>
       <ActionLink
         class="mt-7 font-bold"
         href={attempt.rawAttemptUrl}
@@ -142,45 +147,6 @@ const getArtifactLabel = (artifactPath: string): string =>
 
     <section
       class="border-b border-border py-10"
-      aria-labelledby="attempt-coverage-title"
-    >
-      <div class="max-w-3xl">
-        <p class="eyebrow mb-3">Coverage</p>
-        <h2
-          id="attempt-coverage-title"
-          class="section-title font-semibold"
-        >
-          Every declared behavior claim was exercised.
-        </h2>
-        <p class="mt-4 leading-7 text-muted-foreground">
-          The release gate matched adapter claims to realistic journeys before the actor and judge
-          stages ran.
-        </p>
-      </div>
-      <div class="mt-7 grid gap-3 sm:grid-cols-3">
-        <div class="surface-card p-5">
-          <p class="text-sm text-muted-foreground">Required claims</p>
-          <p class="mt-2 font-mono text-2xl font-bold">
-            {attempt.coverage?.requiredClaims.length ?? 0}
-          </p>
-        </div>
-        <div class="surface-card p-5">
-          <p class="text-sm text-muted-foreground">Missing claims</p>
-          <p class="mt-2 font-mono text-2xl font-bold">
-            {attempt.coverage?.missingClaims.length ?? 0}
-          </p>
-        </div>
-        <div class="surface-card p-5">
-          <p class="text-sm text-muted-foreground">Unknown claims</p>
-          <p class="mt-2 font-mono text-2xl font-bold">
-            {attempt.coverage?.unknownClaims.length ?? 0}
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section
-      class="border-b border-border py-10"
       aria-labelledby="attempt-cases-title"
     >
       <div class="max-w-3xl">
@@ -192,18 +158,23 @@ const getArtifactLabel = (artifactPath: string): string =>
           What happened in each journey
         </h2>
         <p class="mt-4 leading-7 text-muted-foreground">
-          Each journey combines deterministic checks, the actor outcome, workspace assertions, and
-          an independent semantic judgment.
+          Replay each project as a conversation and visible workspace timeline, then inspect the
+          human-readable evidence or open the complete technical record.
         </p>
       </div>
-      <div class="mt-7 grid gap-5">
+      <div class="mt-7 grid gap-3">
         {
-          attempt.cases.map((caseEvidence) => (
-            <QualificationCaseEvidence
-              evidence={caseEvidence}
-              scenario={getProfileCase(caseEvidence.result.caseId).scenario}
-            />
-          ))
+          attempt.cases.map((caseEvidence, index) => {
+            const profileCase = getProfileCase(caseEvidence.result.caseId);
+
+            return (
+              <QualificationCaseEvidence
+                evidence={caseEvidence}
+                number={index + 1}
+                profileCase={profileCase}
+              />
+            );
+          })
         }
       </div>
     </section>
@@ -213,10 +184,52 @@ const getArtifactLabel = (artifactPath: string): string =>
         <summary
           class="cursor-pointer font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         >
-          Technical provenance and committed artifacts
+          Attempt coverage, provenance, and raw artifacts
         </summary>
 
         <div class="mt-6 grid gap-7 border-t border-border pt-6">
+          <section aria-labelledby="attempt-coverage-title">
+            <div class="flex flex-wrap items-center gap-3">
+              <h2
+                id="attempt-coverage-title"
+                class="text-xl font-semibold"
+              >
+                Compatibility claim coverage
+              </h2>
+              <EvidenceStatus status={attempt.coverage?.passed ? 'passed' : 'failed'} />
+            </div>
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">
+              The release gate matched declared adapter behavior to realistic project journeys
+              before the actor and judge stages ran.
+            </p>
+            <dl class="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              <div class="rounded-lg border border-border p-3">
+                <dt class="text-muted-foreground">Required claims</dt>
+                <dd class="mt-1 font-mono text-lg font-bold">
+                  {attempt.coverage?.requiredClaims.length ?? 0}
+                </dd>
+              </div>
+              <div class="rounded-lg border border-border p-3">
+                <dt class="text-muted-foreground">Declared claims</dt>
+                <dd class="mt-1 font-mono text-lg font-bold">
+                  {attempt.coverage?.declaredClaims.length ?? 0}
+                </dd>
+              </div>
+              <div class="rounded-lg border border-border p-3">
+                <dt class="text-muted-foreground">Missing claims</dt>
+                <dd class="mt-1 font-mono text-lg font-bold">
+                  {attempt.coverage?.missingClaims.length ?? 0}
+                </dd>
+              </div>
+              <div class="rounded-lg border border-border p-3">
+                <dt class="text-muted-foreground">Unknown claims</dt>
+                <dd class="mt-1 font-mono text-lg font-bold">
+                  {attempt.coverage?.unknownClaims.length ?? 0}
+                </dd>
+              </div>
+            </dl>
+          </section>
+
           <section aria-labelledby="attempt-provenance-title">
             <h2
               id="attempt-provenance-title"

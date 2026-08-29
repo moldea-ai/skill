@@ -62,6 +62,65 @@ test('presents the recorded Custom result and pending Vercel profile', async ({ 
   await expect(page.getByRole('link', { name: /^Inspect the .* attempt$/u })).toHaveCount(0);
 });
 
+test('replays qualification evidence through human-readable and technical views', async ({
+  page,
+}) => {
+  await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
+  const attemptRoute = await page
+    .getByRole('link', { name: 'Inspect the passing attempt' })
+    .getAttribute('href');
+  if (attemptRoute === null) throw new Error('The Custom profile has no passing attempt route.');
+  await page.goto(attemptRoute);
+
+  const journey = page
+    .locator('main details')
+    .filter({ has: page.getByRole('heading', { level: 3, name: 'Create a grounded agent' }) })
+    .first();
+  await journey.locator(':scope > summary').click();
+
+  const replayTab = journey.getByRole('tab', { name: 'Replay' });
+  const evidenceTab = journey.getByRole('tab', { name: 'Evidence' });
+  const technicalTab = journey.getByRole('tab', { name: 'Technical' });
+  await expect(replayTab).toHaveAttribute('aria-selected', 'true');
+  await expect(evidenceTab).toHaveAttribute('aria-selected', 'false');
+  await expect(technicalTab).toHaveAttribute('aria-selected', 'false');
+  await expect(journey.getByText('Developer', { exact: true })).toBeVisible();
+  await expect(journey.getByText('Coding agent', { exact: true })).toBeVisible();
+  await expect(journey.getByText('Deterministic verifier', { exact: true })).toBeVisible();
+  const developerMessage = journey.locator('article').filter({ hasText: 'DEVELOPER' }).first();
+  await expect(developerMessage).toContainText('Create and register the moldea agent');
+  await expect(developerMessage).toContainText('createOrderTriageAgent');
+  await expect(journey.getByRole('heading', { name: 'Workspace changes' })).toBeVisible();
+  await expect(journey.getByText('description.md', { exact: true })).toBeVisible();
+  const verdict = journey.locator('[data-replay-verdict]').first();
+  await expect(verdict.getByText('Trial verdict', { exact: true })).toBeVisible();
+  await verdict.locator('summary').click();
+  await expect(verdict.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
+
+  await replayTab.focus();
+  await replayTab.press('ArrowRight');
+  await expect(evidenceTab).toBeFocused();
+  await expect(evidenceTab).toHaveAttribute('aria-selected', 'true');
+  await expect(journey.getByRole('heading', { name: 'What had to happen' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'What must not happen' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'Requirement results' })).toBeVisible();
+
+  await evidenceTab.press('End');
+  await expect(technicalTab).toBeFocused();
+  await expect(technicalTab).toHaveAttribute('aria-selected', 'true');
+  await expect(journey.getByRole('heading', { name: 'Complete trial evidence' })).toBeVisible();
+  const initialTrial = journey
+    .getByRole('heading', { level: 5, name: 'Initial trial' })
+    .locator('xpath=ancestor::article[1]');
+  await initialTrial.locator('summary').first().click();
+  await expect(initialTrial.getByRole('heading', { name: 'Deterministic evidence' })).toBeVisible();
+  await expect(initialTrial.getByText('Commands recorded:', { exact: false })).toBeVisible();
+  await expect(
+    initialTrial.getByText(/Operational retries \(0\) and committed trial artifacts/u),
+  ).toBeVisible();
+});
+
 test('keeps qualification evidence accessible at 320px in both themes', async ({ browser }) => {
   for (const colorScheme of ['light', 'dark'] as const) {
     const context = await browser.newContext({
@@ -133,12 +192,20 @@ test(
       ).toBeVisible();
 
       const caseEvidence = page
-        .locator('article')
+        .locator('main details')
         .filter({ has: page.getByRole('heading', { level: 3, name: 'Release case' }) })
         .first();
-      await expect(caseEvidence).toContainText(
-        'Two fresh passing confirmations recovered this case',
+      await caseEvidence.locator(':scope > summary').click();
+      await expect(caseEvidence).toContainText('Recovered after two fresh passing confirmations.');
+      await expect(caseEvidence.getByRole('tab', { name: 'Replay' })).toHaveAttribute(
+        'aria-selected',
+        'true',
       );
+      await expect(caseEvidence.getByText('Developer', { exact: true }).first()).toBeVisible();
+      await expect(caseEvidence.getByText('Coding agent', { exact: true }).first()).toBeVisible();
+      await caseEvidence.getByRole('tab', { name: 'Evidence' }).click();
+      await expect(caseEvidence.getByRole('heading', { name: 'Why it recovered' })).toBeVisible();
+      await caseEvidence.getByRole('tab', { name: 'Technical' }).click();
       await expect(caseEvidence.getByRole('heading', { level: 5 })).toHaveText([
         'Initial trial',
         'Confirmation 1',
@@ -152,6 +219,7 @@ test(
         'data-evidence-status',
         'failed',
       );
+      await initialTrial.locator('summary').first().click();
       await expect(initialTrial.getByText('Unexpected changed path unexpected.md.')).toHaveCount(2);
       await expect(
         initialTrial.getByText(

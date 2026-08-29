@@ -8,6 +8,7 @@ import { dirname, join } from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
 import { recordQualificationResult } from '../../../../qualification/src/result/index.ts';
+import { buildActorPrompt } from '../../../../qualification/src/prompts/index.ts';
 import { seedPassingQualificationEvidenceFixture } from '../../../../qualification/vitest/evidence-fixture.ts';
 
 import { assertPublishableQualificationEvidence, loadQualificationWebsiteModel } from './loader.ts';
@@ -178,6 +179,19 @@ const replaceAttemptArtifact = (
   writeJson(attemptDirectory, 'attempt.json', attempt);
 };
 
+const replaceAttemptTextArtifact = (
+  root: string,
+  attemptId: string,
+  relativePath: string,
+  content: string,
+): void => {
+  const attemptDirectory = join(root, 'qualification/results/custom/custom/attempts', attemptId);
+  writeText(attemptDirectory, relativePath, content);
+  const attempt = readAttemptFixture(root, attemptId);
+  attempt.artifactDigests[relativePath] = calculateDigest(join(attemptDirectory, relativePath));
+  writeJson(attemptDirectory, 'attempt.json', attempt);
+};
+
 const seedCurrentQualificationAttempt = async (root: string, attemptId: string): Promise<void> => {
   const resultsRoot = join(root, 'qualification', 'results');
   const artifactDirectory = join(root, `.qualification-artifacts-${attemptId}`);
@@ -228,7 +242,7 @@ cases:
       sanitizationContext: {
         attemptDirectory: '/attempt',
         packagesRepository: '/packages',
-        skillRepository: '/skill',
+        skillRepository: '/repositories/skill',
       },
     },
     resultsRoot,
@@ -387,7 +401,7 @@ cases:
         sanitizationContext: {
           attemptDirectory: '/attempt',
           packagesRepository: '/packages',
-          skillRepository: '/skill',
+          skillRepository: '/repositories/skill',
         },
       },
       resultsRoot,
@@ -456,6 +470,74 @@ cases:
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
       'Qualification case has contradictory post-actor deterministic evidence.',
+    );
+  });
+
+  test('replays the immutable developer task retained in the actor prompt', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-recorded-task';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    replaceAttemptTextArtifact(
+      root,
+      attemptId,
+      'cases/release-case/trials/initial/actor-prompt.md',
+      buildActorPrompt({
+        task: [
+          '# Recorded task',
+          '',
+          'Use the developer task retained by this immutable attempt.',
+          '',
+          'Execution rules:',
+          '',
+          '- Keep this task-owned section in the replay.',
+        ].join('\n'),
+      }),
+    );
+    writeText(
+      root,
+      'qualification/profiles/custom/custom/projects/release-case/task.md',
+      '# Current task\n\nThis newer profile text must not replace the recorded attempt task.\n',
+    );
+
+    const replay = loadQualificationWebsiteModel(root).profiles[0]?.currentLatest?.cases[0]?.replay;
+
+    expect(replay?.trials[0]?.steps[0]).toStrictEqual({
+      content: [
+        'Use the developer task retained by this immutable attempt.',
+        '',
+        'Execution rules:',
+        '',
+        '- Keep this task-owned section in the replay.',
+      ].join('\n'),
+      kind: 'message',
+      role: 'developer',
+      source: 'recorded',
+    });
+  });
+
+  test('rejects a current actor prompt without a recorded developer task boundary', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-invalid-actor-prompt';
+    const relativePath = 'cases/release-case/trials/initial/actor-prompt.md';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    replaceAttemptTextArtifact(
+      root,
+      attemptId,
+      relativePath,
+      [
+        'Complete the project task below in the current Git working tree:',
+        '',
+        '# Recorded task',
+        '',
+        'Execution rules:',
+        '',
+        '- This task-owned section is not the runner prompt boundary.',
+        '',
+      ].join('\n'),
+    );
+
+    expect(() => loadQualificationWebsiteModel(root)).toThrow(
+      `Qualification actor prompt does not retain a recorded developer task: ${relativePath}`,
     );
   });
 

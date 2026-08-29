@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the obsolete canonical support agent setup. Removed its manifest registration, runtime-agent/loader/schema bindings, impact path, description, and instruction. Preserved the pre-existing `src/support-agent.ts` deletion and all remaining project context. Moldea CLI 5.0.0 `inspect --json` and `validate --json` both finished valid with no diagnostics; TypeScript compilation also passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "The initial deterministic inspection reported four missing-path diagnostics for `/src/support-agent.ts`: the runtime wrapper, instruction loader, output schema, and affected-by path.",
+    "The pre-existing Git diff showed `src/support-agent.ts` intentionally deleted, including exports `supportAgent`, `loadSupportInstruction`, and `SupportOutputSchema`.",
+    "The retained `moldea/project.md` states that the support wrapper is retired, and `src/project-state.ts` reports zero active agents.",
+    "The final canonical project contains zero registered agents. A fallback repository search found no remaining existence claims outside the retained retirement context and read-only qualification input.",
+    "Final Git inspection showed only the pre-existing source deletion plus the three intended canonical changes."
+  ],
+  "unresolved": []
+}

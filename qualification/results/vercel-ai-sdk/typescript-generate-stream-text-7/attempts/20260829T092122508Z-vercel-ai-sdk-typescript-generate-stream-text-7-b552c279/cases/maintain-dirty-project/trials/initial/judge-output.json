@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, deterministic post-actor checks, and workspace patch agree: billing guidance is canonical and connected to support and the exact billing implementation, while all required Vercel AI SDK wiring and unrelated dirty work remain unchanged.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/context/billing.md canonically documents refund/invoice classification and its limits; moldea/moldea.yaml globally registers it, binds it to /src/billing.ts symbol classifyBillingQuestion, and assigns it to agents.support.context; support/instruction.md directs support to apply that guidance. The workspace patch changes only these three Moldea files, and deterministic inspect/validate report valid with zero failures."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "verdict": "pass",
+      "evidence": "src/support-agent.ts still directly calls streamText, loads moldea/agents/support/instruction.md through loadSupportInstruction, and passes output: Output.object({ schema: SupportOutputSchema }). Its before/after SHA-256 is identical, as are src/billing.ts and unrelated dirty files. Deterministic validation and TypeScript typechecking passed."
+    }
+  ],
+  "failures": []
+}

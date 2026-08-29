@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "requiresCleanInputs": true,
+  "isExecutionHostTrusted": true,
+  "packagesRepositoryDirty": false,
+  "qualificationRepositoryDirty": false,
+  "skillRepositoryDirty": false,
+  "failures": []
+}

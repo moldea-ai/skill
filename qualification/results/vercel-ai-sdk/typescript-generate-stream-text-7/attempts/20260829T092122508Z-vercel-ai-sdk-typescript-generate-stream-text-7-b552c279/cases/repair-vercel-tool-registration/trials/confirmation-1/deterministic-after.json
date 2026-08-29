@@ -1,0 +1,545 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 2677
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-pattern",
+          "schema",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 8,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-pattern",
+          "schema",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 8,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-generate-stream-text-7"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/agent.ts"
+                },
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "7.0.77",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "calls": "generateText",
+                "targetId": "typescript-generate-stream-text-7"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "supportAgent",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output",
+                "targetId": "typescript-generate-stream-text-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/agent.ts"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "inputSchema",
+                "schemaRole": "tool-input"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "LookupOrderInputSchema"
+                },
+                {
+                  "path": "/src/tools.ts"
+                }
+              ],
+              "runtimeName": "LookupOrderInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "outputSchema",
+                "schemaRole": "tool-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "LookupOrderOutputSchema"
+                },
+                {
+                  "path": "/src/tools.ts"
+                }
+              ],
+              "runtimeName": "LookupOrderOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool",
+              "details": {
+                "targetId": "typescript-generate-stream-text-7",
+                "toolType": "function"
+              },
+              "kind": "tool-registration",
+              "references": [
+                {
+                  "path": "/src/agent.ts"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "LookupOrderInputSchema"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "LookupOrderOutputSchema"
+                },
+                {
+                  "path": "/src/implementations.ts",
+                  "symbol": "lookupOrder"
+                },
+                {
+                  "path": "/src/tools.ts",
+                  "symbol": "lookupOrderTool"
+                }
+              ],
+              "runtimeName": "lookup_order",
+              "source": "vercel-ai-sdk"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/**"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/src/agent.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/agent.ts",
+                      "symbol": "supportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "id": "vercel-ai-sdk"
+                  },
+                  "tools": {
+                    "lookup-order": {
+                      "description": "Looks up one order by identifier.",
+                      "implementation": {
+                        "path": "/src/implementations.ts",
+                        "symbol": "lookupOrder"
+                      },
+                      "inputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "LookupOrderInputSchema"
+                      },
+                      "name": "lookup_order",
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "LookupOrderOutputSchema"
+                      },
+                      "registration": {
+                        "path": "/src/tools.ts",
+                        "symbol": "lookupOrderTool"
+                      }
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Answers support requests with order lookup evidence.\n",
+                    "digest": "sha256:0ff1bd9b3fd7e7ba0fa6485233478324b236fb61abbe20a7df730bf189c72a73",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 53,
+                    "utf8ByteLength": 53
+                  },
+                  "scalarLength": 52,
+                  "value": "Answers support requests with order lookup evidence."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Use order lookup evidence and escalate when no order can be verified.\n",
+                  "digest": "sha256:68bb48816e0a8353dc8ddd106f266f434db625e518dbbbf3ae67b447fafc1a5e",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 116,
+                  "utf8ByteLength": 116
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: vercel-ai-sdk\n    bindings:\n      runtimeAgent:\n        path: /src/agent.ts\n        symbol: supportAgent\n      instructionLoader:\n        path: /src/agent.ts\n        symbol: loadSupportInstruction\n      outputSchema:\n        path: /src/contracts.ts\n        symbol: SupportOutputSchema\n    tools:\n      lookup-order:\n        name: lookup_order\n        description: Looks up one order by identifier.\n        implementation:\n          path: /src/implementations.ts\n          symbol: lookupOrder\n        registration:\n          path: /src/tools.ts\n          symbol: lookupOrderTool\n        inputSchema:\n          path: /src/contracts.ts\n          symbol: LookupOrderInputSchema\n        outputSchema:\n          path: /src/contracts.ts\n          symbol: LookupOrderOutputSchema\n    affectedBy:\n      - /src/**\n",
+                "digest": "sha256:c2cebde94e33fb8b46b8943130764b9d1033026dca2121718ae4ab0372656065",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 857,
+                "utf8ByteLength": 857
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/src/**"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/src/agent.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/agent.ts",
+                        "symbol": "supportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "id": "vercel-ai-sdk"
+                    },
+                    "tools": {
+                      "lookup-order": {
+                        "description": "Looks up one order by identifier.",
+                        "implementation": {
+                          "path": "/src/implementations.ts",
+                          "symbol": "lookupOrder"
+                        },
+                        "inputSchema": {
+                          "path": "/src/contracts.ts",
+                          "symbol": "LookupOrderInputSchema"
+                        },
+                        "name": "lookup_order",
+                        "outputSchema": {
+                          "path": "/src/contracts.ts",
+                          "symbol": "LookupOrderOutputSchema"
+                        },
+                        "registration": {
+                          "path": "/src/tools.ts",
+                          "symbol": "lookupOrderTool"
+                        }
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Order lookup support\n\nThis project answers support questions with a repository-local order lookup tool.\n",
+              "digest": "sha256:176e77ee762345f7dddcf44b8b048ebdc270a421bbf5ce76c980500536ca390b",
+              "path": "/moldea/project.md",
+              "scalarLength": 106,
+              "utf8ByteLength": 106
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

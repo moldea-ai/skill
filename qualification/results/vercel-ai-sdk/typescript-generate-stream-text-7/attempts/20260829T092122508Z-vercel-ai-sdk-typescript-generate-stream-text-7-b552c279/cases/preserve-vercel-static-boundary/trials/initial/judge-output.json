@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, workspace patch assertions, and deterministic post-actor results agree: only the Moldea manifest and one runtime-guidance file changed, the support implementation remained byte-identical, validation and typechecking passed, and the static boundary is documented without unsupported relationships.",
+  "requirements": [
+    {
+      "id": "identifies-unsupported-form",
+      "verdict": "pass",
+      "evidence": "The actor output identifies the indirect request and prepareStep limitation. Current `/src/support-agent.ts` confirms `generateText(buildRequest(prompt))`, while `buildRequest` supplies `prepareStep` that returns replacement instructions. The deterministic post-actor inspection is valid."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "`/moldea/moldea.yaml` references `/moldea/runtimes/vercel-ai-sdk.md`, the sole new runtime-guidance file shown by the workspace patch. That file describes `buildRequest`, the indirect generateText call, and prepareStep, then gives direct `generateText({ ... })` or `streamText({ ... })` calls as the supported static-inspection pattern without asserting provider behavior."
+    },
+    {
+      "id": "records-unresolved-boundary",
+      "verdict": "pass",
+      "evidence": "Agent `support` owns the warning `vercel-static-boundary`, categorized `static-inspection`. Its description names the indirect request and prepareStep boundary; related paths include `/src/support-agent.ts` and the guidance file; its resolution concretely requires a directly exported function with direct `generateText({ ... })`, stable direct instructions, removal of prepareStep instruction replacement, tests, and Moldea inspection."
+    },
+    {
+      "id": "avoids-inference",
+      "verdict": "pass",
+      "evidence": "The final manifest contains only the existing Vercel runtime identity, runtime guidance, a runtimeAgent binding, affectedBy, and the unresolved warning. It adds no instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationship. Runner-owned inspection remained valid and reportedly emitted only language and runtime-package evidence."
+    }
+  ],
+  "failures": []
+}

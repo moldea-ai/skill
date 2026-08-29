@@ -1,0 +1,36 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 7cf7049..b22208a 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,9 +3,19 @@ agents:
+   support:
+     runtime:
+       id: vercel-ai-sdk
++      guidance: /moldea/runtimes/vercel-ai-sdk.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+         symbol: supportAgent
+     affectedBy:
+       - /src/support-agent.ts
++    unresolved:
++      vercel-static-boundary:
++        category: static-inspection
++        effect: warning
++        description: Static inspection does not establish the effective generateText request or instructions across the indirect request object and prepareStep replacement in /src/support-agent.ts.
++        resolution: In /src/support-agent.ts, migrate supportAgent to a directly exported function containing a direct generateText({ ... }) call, place stable instructions in its direct instructions property, and remove prepareStep instruction replacement; then run project tests and Moldea inspection before removing this warning.
++        related:
++          - path: /src/support-agent.ts
++          - path: /moldea/runtimes/vercel-ai-sdk.md
+
+diff --git a/moldea/runtimes/vercel-ai-sdk.md b/moldea/runtimes/vercel-ai-sdk.md
+new file mode 100644
+index 0000000..b269a18
+--- /dev/null
++++ b/moldea/runtimes/vercel-ai-sdk.md
+@@ -0,0 +1,5 @@
++# Indirect generation boundary
++
++`/src/support-agent.ts` builds the generation request in `buildRequest` and passes the returned object to `generateText`. Its `prepareStep` callback may replace instructions for a step.
++
++Local static inspection supports directly exported functions containing a direct `generateText({ ... })` or `streamText({ ... })` call. It cannot establish the effective request or instructions through this project's indirect, prepared boundary. Treat inspection as partial for this integration, and preserve the current implementation unless a migration is intentional and behaviorally validated.

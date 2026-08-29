@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "The existing setup is valid and semantically aligned; no repository files were edited. Moldea CLI 5.0.0 inspection and validation returned schema 2 `status: valid` with no diagnostics. TypeScript compilation passed, the final scoped Git diff was empty, and the final worktree status was clean.",
+  "changedFiles": [],
+  "observations": [
+    "`supportAgent` directly calls `generateText`, loads the canonical support instruction through `loadSupportInstruction`, uses `SupportOutputSchema` through `Output.object`, and registers `findOrderTool` as `find_order`.",
+    "The `find-order` declaration accurately binds `findOrderTool`, its `findOrder` implementation, and its Zod input/output schemas.",
+    "`summaryAgent` directly calls `streamText`, loads the canonical summary instruction through `loadSummaryInstruction`, and uses `SummaryOutputSchema` through `Output.object`.",
+    "Both instruction loaders read their respective canonical `/moldea/agents/*/instruction.md` files.",
+    "No provider, model, routing, handoff, subagent, or agent input-schema relationships were used or inferred."
+  ],
+  "unresolved": []
+}

@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace implements the requested grounded order-triage agent, and the runner-owned patch and deterministic evidence agree with it. The canonical assets state classification for human review and deny refund approval; the manifest binds every required existing Vercel AI SDK and function-tool symbol without adding prohibited constructs. Deterministic inspection and typechecking passed.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "Current workspace: description.md says the agent classifies orders as fulfillment or refund-review for human review and cannot approve refunds; instruction.md requires classify_order, requiresHumanReview=true, and limits refund cases to refund-review. src/order-triage-agent.ts corroborates those categories and enforces requiresHumanReview as literal true. Workspace patch evidence identifies only these canonical agent assets and moldea/moldea.yaml as changed."
+    },
+    {
+      "id": "binds-direct-wrapper",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/order-triage-agent.ts#orderTriageAgent, instructionLoader to #loadOrderTriageInstruction, and outputSchema to #OrderTriageOutputSchema. The source uses generateText directly, loads the canonical instruction, and passes Output.object({ schema: OrderTriageOutputSchema }). No agent inputSchema binding exists. Deterministic post-actor inspection is valid with no failures."
+    },
+    {
+      "id": "binds-function-tool",
+      "verdict": "pass",
+      "evidence": "The manifest declares runtime name classify_order and exactly binds implementation #classifyOrder, registration #classifyOrderTool, input schema #ClassifyOrderInputSchema, and output schema #ClassifyOrderOutputSchema in /src/order-triage-agent.ts. The source registers classifyOrderTool under tools.classify_order and constructs it with those exact implementation and schema symbols. Deterministic inspection and typechecking passed."
+    }
+  ],
+  "failures": []
+}

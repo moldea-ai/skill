@@ -1,10 +1,11 @@
 ---
 import { ChevronDown } from '@lucide/astro';
+import EvaluationReplay from '@moldea.ai/website-ui/evaluation-replay';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import TabbedPanels from '@moldea.ai/website-ui/tabbed-panels';
 
 import type { ISemanticEvaluationCaseModel } from '../../lib/semantic-evaluation/index.ts';
-import EvaluationReplay from '../evaluation-replay/evaluation-replay.astro';
-import EvidenceTabs from '../evidence-tabs/evidence-tabs.astro';
-import EvidenceText from '../evidence-text/evidence-text.astro';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
 import SemanticTrialProvenance from '../semantic-trial-provenance/semantic-trial-provenance.astro';
 
@@ -14,7 +15,34 @@ interface Props {
   showTrialProvenance?: boolean;
 }
 
+const TABS = [
+  { id: 'replay', label: 'Replay', slotName: 'replay' },
+  { id: 'evidence', label: 'Evidence', slotName: 'evidence' },
+] as const;
+
 const { evaluationCase, number, showTrialProvenance = false } = Astro.props;
+const resultHeading =
+  evaluationCase.status === 'failed'
+    ? 'Why it failed'
+    : evaluationCase.status === 'pending'
+      ? 'Not evaluated in this attempt'
+      : evaluationCase.status === 'recovered'
+        ? 'Why it recovered'
+        : 'Why it passed';
+const resultClass =
+  evaluationCase.status === 'failed'
+    ? 'border-destructive/40 bg-destructive/10'
+    : evaluationCase.status === 'pending'
+      ? 'border-border bg-muted/30'
+      : 'border-success/40 bg-success/10';
+const rationaleHtml =
+  evaluationCase.rationale === null
+    ? null
+    : await renderMarkdownFragment(evaluationCase.rationale, {
+        basePath: import.meta.env.BASE_URL,
+        localLinks: 'unwrap',
+        productNameTreatment: 'code',
+      });
 ---
 
 <details class="group surface-card min-w-0 overflow-hidden">
@@ -27,12 +55,18 @@ const { evaluationCase, number, showTrialProvenance = false } = Astro.props;
     <span class="min-w-0 flex-1">
       <span class="flex flex-wrap items-center gap-2">
         <span class="text-lg font-semibold tracking-tight">
-          <EvidenceText text={evaluationCase.title} />
+          <InlineBrandText
+            text={evaluationCase.title}
+            variant="compact"
+          />
         </span>
         <EvidenceStatus status={evaluationCase.status} />
       </span>
       <span class="mt-2 block text-sm leading-6 text-muted-foreground">
-        <EvidenceText text={evaluationCase.scenario} />
+        <InlineBrandText
+          text={evaluationCase.scenario}
+          variant="compact"
+        />
       </span>
     </span>
     <ChevronDown
@@ -42,7 +76,11 @@ const { evaluationCase, number, showTrialProvenance = false } = Astro.props;
   </summary>
 
   <div class="border-t border-border px-5 py-6 sm:px-6">
-    <EvidenceTabs id={`semantic-${evaluationCase.id}`}>
+    <TabbedPanels
+      ariaLabel="Scenario views"
+      id={`semantic-${evaluationCase.id}`}
+      items={TABS}
+    >
       <EvaluationReplay
         slot="replay"
         id={`semantic-${evaluationCase.id}`}
@@ -63,7 +101,10 @@ const { evaluationCase, number, showTrialProvenance = false } = Astro.props;
                 <ul class="mt-3 grid gap-3 text-sm leading-6">
                   {evaluationCase.expectedCriteria.map(({ criterion }) => (
                     <li class="rounded-lg border border-border bg-muted/30 p-3 text-muted-foreground">
-                      <EvidenceText text={criterion} />
+                      <InlineBrandText
+                        text={criterion}
+                        variant="compact"
+                      />
                     </li>
                   ))}
                 </ul>
@@ -79,7 +120,10 @@ const { evaluationCase, number, showTrialProvenance = false } = Astro.props;
                 <ul class="mt-3 grid gap-3 text-sm leading-6">
                   {evaluationCase.forbiddenCriteria.map(({ criterion }) => (
                     <li class="rounded-lg border border-border bg-muted/30 p-3 text-muted-foreground">
-                      <EvidenceText text={criterion} />
+                      <InlineBrandText
+                        text={criterion}
+                        variant="compact"
+                      />
                     </li>
                   ))}
                 </ul>
@@ -105,6 +149,46 @@ const { evaluationCase, number, showTrialProvenance = false } = Astro.props;
           )
         }
 
+        <section
+          class:list={['mt-6 rounded-xl border p-4 sm:p-5', resultClass]}
+          aria-labelledby={`${evaluationCase.id}-result`}
+        >
+          <h4
+            id={`${evaluationCase.id}-result`}
+            class="font-semibold"
+          >
+            {resultHeading}
+          </h4>
+          {
+            rationaleHtml === null ? (
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                This scenario remains pending because the recorded run stopped at an earlier
+                failure.
+              </p>
+            ) : (
+              <>
+                <div
+                  class="prose-moldea prose-moldea-wrap-code replay-markdown mt-2 min-w-0 text-muted-foreground"
+                  set:html={rationaleHtml}
+                />
+                <p class="mt-3 font-mono text-xs text-muted-foreground">
+                  Evaluated{' '}
+                  <time datetime={evaluationCase.evaluatedAt ?? undefined}>
+                    {evaluationCase.evaluatedAt}
+                  </time>
+                </p>
+                {evaluationCase.confirmationStatus !== null &&
+                  evaluationCase.confirmationStatus !== 'not-required' && (
+                    <p class="mt-2 text-sm text-muted-foreground">
+                      Confirmation status: {evaluationCase.confirmationStatus}. Recorded trials:{' '}
+                      {evaluationCase.trials.length}.
+                    </p>
+                  )}
+              </>
+            )
+          }
+        </section>
+
         {
           showTrialProvenance && (
             <SemanticTrialProvenance
@@ -114,6 +198,6 @@ const { evaluationCase, number, showTrialProvenance = false } = Astro.props;
           )
         }
       </div>
-    </EvidenceTabs>
+    </TabbedPanels>
   </div>
 </details>

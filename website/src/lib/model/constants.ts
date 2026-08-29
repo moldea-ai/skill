@@ -3,6 +3,7 @@ export const SKILLS_DIRECTORY_URL = 'https://www.skills.sh/moldea-ai/skill/molde
 export const SOURCE_REPOSITORY_URL = 'https://github.com/moldea-ai/skill';
 export const RAW_SOURCE_REPOSITORY_URL = 'https://raw.githubusercontent.com/moldea-ai/skill';
 export const PACKAGES_WEBSITE_URL = 'https://packages.moldea.ai/';
+export const REPOSITORY_FORMAT_SPECIFICATION_URL = 'https://packages.moldea.ai/repository-format/';
 export const INSTALL_COMMAND = 'npx skills add moldea-ai/skill';
 export const EVIDENCE_ROUTE = '/evidence/';
 

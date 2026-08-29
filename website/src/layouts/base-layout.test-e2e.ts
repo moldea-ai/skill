@@ -431,14 +431,14 @@ test('keeps documentation samples and navigation readable at 320px', async ({ pa
 test('presents Supported maturity as a consistent badge', async ({ page }) => {
   await page.goto(toPublicPath('/docs/adapter-qualification/'));
 
-  const maturityBadges = page.locator('.prose-moldea [data-maturity="supported"]');
+  const maturityBadges = page.locator('.prose-moldea [data-markdown-badge="supported"]');
   await expect(maturityBadges).toHaveCount(2);
 
   const eligibilityHeading = page.getByRole('heading', {
     level: 2,
     name: 'Supported maturity eligibility',
   });
-  await expect(eligibilityHeading.locator('[data-maturity="supported"]')).toHaveCount(0);
+  await expect(eligibilityHeading.locator('[data-markdown-badge="supported"]')).toHaveCount(0);
 
   for (const maturityBadge of await maturityBadges.all()) {
     await expect(maturityBadge).toHaveText('Supported');
@@ -748,7 +748,9 @@ test('renders every reader-facing product mention as inline code', async ({ page
         if (
           /\bmoldea\b/iu.test(text) &&
           parent &&
-          !parent.closest('code, script, style, noscript, [data-brand-plain]')
+          !parent.closest(
+            'code, script, style, noscript, [data-brand-plain], [aria-label="On this page"]',
+          )
         ) {
           matches.push(text.trim());
         }

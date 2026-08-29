@@ -55,7 +55,14 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
   await expect(evidenceTab).toHaveAttribute('aria-selected', 'true');
   await expect(replayScenario.getByRole('heading', { name: 'What had to happen' })).toBeVisible();
   await expect(replayScenario.getByRole('heading', { name: 'What must not happen' })).toBeVisible();
-  await expect(replayScenario.getByRole('heading', { name: 'Why it passed' })).toBeHidden();
+  const evidencePanel = replayScenario.getByRole('tabpanel', { name: 'Evidence' });
+  await expect(evidencePanel.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
+  const evidenceRationale = evidencePanel.locator('.replay-markdown');
+  await expect(evidenceRationale).toContainText(
+    'Workspace evidence shows a minimal valid moldea foundation',
+  );
+  await expect(evidenceRationale.locator('code').filter({ hasText: 'moldea' })).toHaveCount(1);
+  await expect(evidencePanel.getByText('Evaluated', { exact: false }).last()).toBeVisible();
   await evidenceTab.press('Home');
   await expect(replayTab).toBeFocused();
   await expect(replayTab).toHaveAttribute('aria-selected', 'true');
@@ -96,8 +103,11 @@ test('keeps semantic evidence accessible without JavaScript and at 320px', async
     const firstScenario = noJavaScriptPage.locator('main details').first();
     await firstScenario.locator(':scope > summary').click();
     await expect(firstScenario.getByText('Developer', { exact: true })).toBeVisible();
-    await firstScenario.locator('[data-replay-verdict]').first().locator('summary').click();
-    await expect(firstScenario.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
+    const evidencePanel = firstScenario.locator('[data-tabbed-panel]').nth(1);
+    await expect(evidencePanel.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
+    const verdict = firstScenario.locator('[data-replay-verdict]').first();
+    await verdict.locator('summary').click();
+    await expect(verdict.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
     const widths = await noJavaScriptPage.evaluate(() => ({
       client: document.documentElement.clientWidth,
       scroll: document.documentElement.scrollWidth,

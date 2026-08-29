@@ -10,6 +10,8 @@ order: 35
 
 Repository format is the open, Git-owned structure that gives people and coding agents one predictable place to understand a project. It keeps durable project truth, agent behavior, and implementation relationships reviewable beside the code they describe.
 
+This page introduces how to adopt the format. The [official Repository Format specification](https://packages.moldea.ai/repository-format/) defines the complete version `1` contract, including every supported file, manifest property, constraint, and conformance rule.
+
 The format is deliberately additive. A new project begins with two files and earns more structure only when real context, rationale, runtime guidance, or agent behavior needs a durable owner.
 
 ## Start with two files
@@ -143,6 +145,6 @@ Repository format stays efficient through a few operating principles:
 
 The repository-local `@moldea.ai/cli` reads the Git working tree and delegates Repository format interpretation to `@moldea.ai/core`. Validation checks canonical paths, strict manifest values, referenced files, decisions, agent assets, runtime availability, placeholders, mirrors, and adapter evidence without executing repository code.
 
-The coding agent invokes that deterministic boundary when a workflow needs structural evidence. A valid structure does not automatically prove semantic quality, and semantic review does not replace structural validation.
+The coding agent invokes that deterministic boundary when a workflow needs structural evidence. A valid structure does not automatically prove semantic quality, and semantic review does not replace structural validation. Consult the [official Repository Format specification](https://packages.moldea.ai/repository-format/) when exact property or conformance requirements matter.
 
 For the exact package-level behavior, see the [`@moldea.ai/core` documentation](https://packages.moldea.ai/packages/core/). To establish the format in a project, follow [Getting started](/docs/getting-started/) and ask your coding agent to initialize `moldea` for the repository.

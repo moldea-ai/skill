@@ -1,5 +1,3 @@
-import { createSemanticCaseDefinitionDigest } from '../../../../tooling/semantic-evaluation/index.mjs';
-
 import {
   buildEvaluationReplayPathTree,
   type IEvaluationReplayCommandStep,
@@ -8,7 +6,9 @@ import {
   type IEvaluationReplayWorkspaceChange,
   type IEvaluationReplayWorkspaceChangeStatus,
   type IEvaluationReplayWorkspaceStep,
-} from '../evaluation-replay/index.ts';
+} from '@moldea.ai/website-ui/evaluation-replay-model';
+
+import { createSemanticCaseDefinitionDigest } from '../../../../tooling/semantic-evaluation/index.mjs';
 
 import type { ISemanticCaseDefinition } from './types.ts';
 import type {

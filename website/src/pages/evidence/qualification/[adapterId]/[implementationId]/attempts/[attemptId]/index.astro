@@ -2,10 +2,10 @@
 import { ExternalLink } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 
 import QualificationCaseEvidence from '../../../../../../../components/qualification-case-evidence/qualification-case-evidence.astro';
 import EvidenceStatus from '../../../../../../../components/evidence-status/evidence-status.astro';
-import EvidenceText from '../../../../../../../components/evidence-text/evidence-text.astro';
 import BaseLayout from '../../../../../../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../../../../../../lib/generation/generation.ts';
 import type {
@@ -96,7 +96,10 @@ const getArtifactLabel = (artifactPath: string): string =>
         {result.attemptId}
       </h1>
       <p class="mt-5 max-w-4xl text-lg leading-8 text-muted-foreground">
-        <EvidenceText text={result.summary} />
+        <InlineBrandText
+          text={result.summary}
+          variant="compact"
+        />
       </p>
       <ActionLink
         class="mt-7 font-bold"

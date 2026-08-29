@@ -1,10 +1,10 @@
+import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
+
 import type { ISemanticCliIdentity } from '../../../../tooling/release-identity/identity.mjs';
 import type {
   ISemanticCaseDefinition as ISemanticCaseContract,
   ISemanticCriterion as ISemanticCriterionContract,
 } from '../../../../tooling/semantic-evaluation/index.mjs';
-
-import type { IEvaluationReplayModel } from '../evaluation-replay/index.ts';
 
 import type { SEMANTIC_CASE_PRESENTATION, SEMANTIC_EVALUATION_GROUPS } from './constants.ts';
 import type { ISemanticAttemptRecord, ISemanticLatestResult } from './validations.ts';

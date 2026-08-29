@@ -2,12 +2,12 @@
 import { ArrowRight, ExternalLink } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { renderMarkdownDocument } from '@moldea.ai/website-ui/markdown';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import EvidenceStatus from '../../../../../components/evidence-status/evidence-status.astro';
-import EvidenceText from '../../../../../components/evidence-text/evidence-text.astro';
 import BaseLayout from '../../../../../layouts/base-layout.astro';
-import { renderMarkdown } from '../../../../../lib/content/markdown.ts';
 import { loadWebsiteModel } from '../../../../../lib/generation/generation.ts';
 import type { IQualificationProfileModel } from '../../../../../lib/qualification/index.ts';
 
@@ -36,15 +36,17 @@ const latestAttemptLinkLabel =
       : latestAttempt.result.status === 'failed'
         ? 'Inspect the failed attempt'
         : 'Inspect the execution-error attempt';
-const prepareQualificationMarkdown = (markdown: string): string =>
-  markdown.replaceAll(/\bMoldea\b/gu, '`moldea`');
 const renderedCases = await Promise.all(
   profile.cases.map(async (profileCase) => ({
     ...profileCase,
-    renderedExplanation: await renderMarkdown(
-      prepareQualificationMarkdown(profileCase.projectExplanation),
-    ),
-    renderedTask: await renderMarkdown(prepareQualificationMarkdown(profileCase.task)),
+    renderedExplanation: await renderMarkdownDocument(profileCase.projectExplanation, {
+      basePath,
+      productNameTreatment: 'code',
+    }),
+    renderedTask: await renderMarkdownDocument(profileCase.task, {
+      basePath,
+      productNameTreatment: 'code',
+    }),
   })),
 );
 const breadcrumbs = [
@@ -79,7 +81,10 @@ const breadcrumbs = [
         {profile.title}
       </h1>
       <p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
-        <EvidenceText text={profile.description} />
+        <InlineBrandText
+          text={profile.description}
+          variant="compact"
+        />
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
@@ -161,7 +166,10 @@ const breadcrumbs = [
                   </time>
                 </div>
                 <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
-                  <EvidenceText text={latestAttempt.result.summary} />
+                  <InlineBrandText
+                    text={latestAttempt.result.summary}
+                    variant="compact"
+                  />
                 </p>
               </article>
               <a
@@ -210,17 +218,26 @@ const breadcrumbs = [
               </div>
               <h3 class="mt-4 text-2xl font-semibold tracking-tight">{profileCase.title}</h3>
               <p class="mt-3 max-w-4xl leading-7 text-muted-foreground">
-                <EvidenceText text={profileCase.catalogDescription} />
+                <InlineBrandText
+                  text={profileCase.catalogDescription}
+                  variant="compact"
+                />
               </p>
 
               <div class="mt-6 grid gap-4 lg:grid-cols-2">
                 <div class="rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
                   <h4 class="font-semibold">Why this is difficult</h4>
                   <p class="mt-2 text-sm leading-6 text-muted-foreground">
-                    <EvidenceText text={profileCase.catalogChallenge} />
+                    <InlineBrandText
+                      text={profileCase.catalogChallenge}
+                      variant="compact"
+                    />
                   </p>
                   <p class="mt-3 text-sm leading-6 text-muted-foreground">
-                    <EvidenceText text={profileCase.purpose} />
+                    <InlineBrandText
+                      text={profileCase.purpose}
+                      variant="compact"
+                    />
                   </p>
                 </div>
                 <div class="rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
@@ -261,7 +278,10 @@ const breadcrumbs = [
                       <li class="rounded-lg border border-border p-3">
                         <code class="text-xs font-bold">{requirement.id}</code>
                         <p class="mt-2 text-sm leading-6 text-muted-foreground">
-                          <EvidenceText text={requirement.description} />
+                          <InlineBrandText
+                            text={requirement.description}
+                            variant="compact"
+                          />
                         </p>
                       </li>
                     ))}
@@ -367,7 +387,10 @@ const breadcrumbs = [
                     </ul>
                   </td>
                   <td class="px-4 py-3 leading-6 text-muted-foreground">
-                    <EvidenceText text={probe.description} />
+                    <InlineBrandText
+                      text={probe.description}
+                      variant="compact"
+                    />
                   </td>
                 </tr>
               ))
@@ -435,7 +458,10 @@ const breadcrumbs = [
                       <time datetime={result.createdAt}>{result.createdAt}</time>
                     </td>
                     <td class="max-w-xl px-4 py-3 leading-6 text-muted-foreground">
-                      <EvidenceText text={result.summary} />
+                      <InlineBrandText
+                        text={result.summary}
+                        variant="compact"
+                      />
                     </td>
                   </tr>
                 ))}

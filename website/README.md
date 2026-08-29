@@ -10,7 +10,7 @@ The website is fail-closed for evidence integrity. Generation requires a current
 
 The public `https://skill.moldea.ai/llms.txt` file is generated from this model and is not maintained as a separate root source file.
 
-Reusable website foundations come from the exact public `@moldea.ai/website-ui` dependency. That package owns shared semantic design tokens, global interaction states, base-path and theme utilities, local-search behavior, and small Astro components. This application owns the `https://skill.moldea.ai` origin, `moldea-skill-theme` storage key, page composition, generated documentation, navigation copy, SEO identity, and public assets.
+Reusable website foundations come from the exact public `@moldea.ai/website-ui` dependency. That package owns shared semantic design tokens, global interaction states, base-path and theme utilities, local-search behavior, sanitized Markdown rendering, responsive documentation and site shells, tabs, status badges, inline brand treatment, and evaluation replay presentation. This application owns the `https://skill.moldea.ai` origin, `moldea-skill-theme` storage key, page composition, evidence-domain mapping, generated documentation, navigation copy, SEO identity, and public assets.
 
 In repository-owned Markdown, bold `Supported` labels render as target-maturity badges. Other bold text keeps its ordinary semantic emphasis.
 

@@ -1,5 +1,6 @@
 ---
 import { ExternalLink } from '@lucide/astro';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { prettifyTime } from 'web-utils-kit';
 
 import type {
@@ -7,7 +8,6 @@ import type {
   IQualificationProfileCaseModel,
 } from '../../lib/qualification/index.ts';
 import EvidenceStatus from '../evidence-status/evidence-status.astro';
-import EvidenceText from '../evidence-text/evidence-text.astro';
 
 interface Props {
   caseId: string;
@@ -90,7 +90,10 @@ const getArtifactLabel = (artifactPath: string): string =>
         <ul class="mt-2 list-disc space-y-1 ps-5 text-sm leading-6">
           {result.failures.map((failure) => (
             <li>
-              <EvidenceText text={failure} />
+              <InlineBrandText
+                text={failure}
+                variant="compact"
+              />
             </li>
           ))}
         </ul>
@@ -188,7 +191,10 @@ const getArtifactLabel = (artifactPath: string): string =>
                 <ul class="mt-3 list-disc space-y-1 ps-5 text-sm leading-6 text-muted-foreground">
                   {verification.failures.map((failure) => (
                     <li>
-                      <EvidenceText text={failure} />
+                      <InlineBrandText
+                        text={failure}
+                        variant="compact"
+                      />
                     </li>
                   ))}
                 </ul>
@@ -232,7 +238,10 @@ const getArtifactLabel = (artifactPath: string): string =>
             <ul class="mt-3 list-disc space-y-1 ps-5 text-sm leading-6 text-muted-foreground">
               {evidence.workspaceAssertions.failures.map((failure) => (
                 <li>
-                  <EvidenceText text={failure} />
+                  <InlineBrandText
+                    text={failure}
+                    variant="compact"
+                  />
                 </li>
               ))}
             </ul>
@@ -252,7 +261,12 @@ const getArtifactLabel = (artifactPath: string): string =>
       <dl class="mt-3 grid gap-2 text-sm">
         <div class="rounded-lg border border-border p-3">
           <dt class="text-muted-foreground">Actor</dt>
-          <dd class="mt-1"><EvidenceText text={actor.summary} /></dd>
+          <dd class="mt-1">
+            <InlineBrandText
+              text={actor.summary}
+              variant="compact"
+            />
+          </dd>
           <dd class="mt-2 text-xs text-muted-foreground">
             Outcome: <span class="font-mono text-foreground">{actor.outcome}</span>
           </dd>
@@ -273,9 +287,15 @@ const getArtifactLabel = (artifactPath: string): string =>
           <dd class="mt-1">
             {
               judge === null ? (
-                <EvidenceText text={judgeSkipped?.reason ?? 'Judge unavailable.'} />
+                <InlineBrandText
+                  text={judgeSkipped?.reason ?? 'Judge unavailable.'}
+                  variant="compact"
+                />
               ) : (
-                <EvidenceText text={judge.summary} />
+                <InlineBrandText
+                  text={judge.summary}
+                  variant="compact"
+                />
               )
             }
           </dd>
@@ -345,7 +365,10 @@ const getArtifactLabel = (artifactPath: string): string =>
                 </div>
               </dl>
               <p class="mt-2 text-sm leading-6 text-muted-foreground">
-                <EvidenceText text={requirement.evidence} />
+                <InlineBrandText
+                  text={requirement.evidence}
+                  variant="compact"
+                />
               </p>
             </li>
           ))}

@@ -3,46 +3,46 @@ import type { IEvidenceDisplayStatus } from './types.ts';
 // accessible labels and token-based visual treatment for evidence states
 export const EVIDENCE_STATUS_PRESENTATION: Record<
   IEvidenceDisplayStatus,
-  { className: string; label: string }
+  { label: string; tone: 'danger' | 'info' | 'neutral' | 'success' | 'warning' }
 > = {
   cached: {
-    className: 'border-border bg-muted text-foreground',
     label: 'Cached',
+    tone: 'neutral',
   },
   errored: {
-    className: 'border-destructive bg-destructive text-background',
     label: 'Execution error',
+    tone: 'danger',
   },
   failed: {
-    className: 'border-destructive bg-destructive text-background',
     label: 'Failed',
+    tone: 'danger',
   },
   incomplete: {
-    className: 'border-warning bg-warning text-warning-foreground',
     label: 'Incomplete',
+    tone: 'warning',
   },
   'not-recorded': {
-    className: 'border-border bg-muted text-muted-foreground',
     label: 'No recorded attempt',
+    tone: 'neutral',
   },
   passed: {
-    className: 'border-success bg-success text-success-foreground',
     label: 'Passed',
+    tone: 'success',
   },
   pending: {
-    className: 'border-border bg-muted text-muted-foreground',
     label: 'Pending',
+    tone: 'neutral',
   },
   recovered: {
-    className: 'border-success bg-success text-success-foreground',
     label: 'Recovered',
+    tone: 'success',
   },
   running: {
-    className: 'border-accent bg-accent text-accent-foreground',
     label: 'Running',
+    tone: 'info',
   },
   skipped: {
-    className: 'border-warning bg-warning text-warning-foreground',
     label: 'Skipped',
+    tone: 'warning',
   },
 };

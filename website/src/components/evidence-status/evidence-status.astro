@@ -1,4 +1,6 @@
 ---
+import StatusBadge from '@moldea.ai/website-ui/status-badge';
+
 import { EVIDENCE_STATUS_PRESENTATION } from './constants.ts';
 import type { IEvidenceDisplayStatus } from './types.ts';
 
@@ -11,11 +13,11 @@ const presentation = EVIDENCE_STATUS_PRESENTATION[status];
 ---
 
 <span
-  class:list={[
-    'inline-flex min-h-7 items-center rounded-full border px-2.5 py-1 text-xs font-bold',
-    presentation.className,
-  ]}
+  class="inline-flex"
   data-evidence-status={status}
 >
-  {presentation.label}
+  <StatusBadge
+    label={presentation.label}
+    tone={presentation.tone}
+  />
 </span>

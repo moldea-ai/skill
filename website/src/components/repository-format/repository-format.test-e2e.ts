@@ -3,6 +3,8 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
+import { REPOSITORY_FORMAT_SPECIFICATION_URL } from '../../lib/model/constants.ts';
+
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
@@ -90,6 +92,9 @@ test('connects a root-level repository to its implementation and guide', async (
   await guideLink.click();
   await expect(page.getByRole('heading', { level: 1, name: 'Repository format' })).toBeVisible();
   await expect(page.getByRole('heading', { level: 2, name: 'Start with two files' })).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'official Repository Format specification' }).first(),
+  ).toHaveAttribute('href', REPOSITORY_FORMAT_SPECIFICATION_URL);
 });
 
 test('stacks the filesystem and cards accessibly at 320px in both themes', async ({ browser }) => {

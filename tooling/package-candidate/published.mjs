@@ -14,6 +14,15 @@ const SHA1_PATTERN = /^[a-f0-9]{40}$/u;
 
 const isMoldeaPackageName = (packageName) => packageName.startsWith(MOLDEA_PACKAGE_PREFIX);
 
+/** Asserts one canonical exact semantic version, including prerelease and build identifiers. */
+const assertExactSemver = (version) => {
+  const parsedVersion = semver.parse(version);
+  assert.ok(
+    parsedVersion !== null && !version.startsWith('v') && parsedVersion.raw === version,
+    `${version} must be an exact semantic version.`,
+  );
+};
+
 const readStringRecord = (input, fieldName, packageName) => {
   if (input === undefined) return {};
   assert.ok(
@@ -34,7 +43,7 @@ const parsePublishedPackage = (input, expectedName, expectedVersion) => {
   assert.ok(input !== null && typeof input === 'object' && !Array.isArray(input));
   assert.equal(input.name, expectedName);
   assert.equal(input.version, expectedVersion);
-  assert.match(input.version, STABLE_VERSION_PATTERN);
+  assertExactSemver(input.version);
   assert.ok(input.dist !== null && typeof input.dist === 'object' && !Array.isArray(input.dist));
   assert.equal(typeof input.dist.integrity, 'string');
   assert.ok(input.dist.integrity.startsWith('sha512-'));
@@ -89,7 +98,7 @@ export const resolvePublishedPackageManifest = async ({
 }) => {
   assert.equal(typeof packageName, 'string');
   assert.ok(packageName.length > 0);
-  assert.match(version, STABLE_VERSION_PATTERN);
+  assertExactSemver(version);
   const metadataUrl = `${NPM_REGISTRY_ORIGIN}/${encodeURIComponent(packageName)}/${version}`;
   const response = await fetchRegistryResource(metadataUrl, fetchResource);
   return parsePublishedPackage(await response.json(), packageName, version);

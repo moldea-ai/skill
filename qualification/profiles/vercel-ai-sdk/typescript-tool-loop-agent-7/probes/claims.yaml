@@ -1,0 +1,222 @@
+version: 2
+adapterId: vercel-ai-sdk
+implementationId: typescript-tool-loop-agent-7
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The exact published package composition exercises the compatible Core range through aligned and newly registered ToolLoopAgent definitions.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: Cases distinguish closed supported construction, which needs no redundant guide, from preparation overrides that require a focused project-local boundary.
+    coveredBy: [evaluate-aligned-project, preserve-vercel-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes all universal journeys and two Vercel-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-vercel-tool-registration,
+        preserve-vercel-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare the exact published npm runtime package and inspect package-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Direct ToolLoopAgent sources are strict TypeScript ESM and typecheck with the exact project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: target-runtime-package
+    kind: compatibility
+    matrixPath: target.package.npm.ai.primary.>=7.0.66 <8.0.0
+    description: Every fixture pins and installs the verified ai package before offline project preparation.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-vercel-tool-registration,
+        preserve-vercel-static-boundary,
+      ]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Direct ToolLoopAgent symbols are bound explicitly, repaired after drift, and retained when preparation overrides obscure only subordinate relationships.
+    coveredBy:
+      [evaluate-aligned-project, reconcile-drift-and-boundaries, preserve-vercel-static-boundary]
+  - id: input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.input-schema
+    description: Direct callOptionsSchema relationships bind exact repository symbols and remain independently provable across preparation overrides.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-vercel-static-boundary]
+  - id: output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.output-schema
+    description: Output.object relationships bind exact source symbols when closed and remain unresolved when prepareCall can omit them.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        create-grounded-agent,
+        repair-vercel-tool-registration,
+        preserve-vercel-static-boundary,
+      ]
+  - id: instruction-loader-binding
+    kind: binding-support
+    matrixPath: target.binding-support.instruction-loader
+    description: Direct instruction loaders are evidenced from closed constructor settings and remain unresolved when preparation can replace them.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-vercel-static-boundary]
+  - id: tool-implementation-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-implementation
+    description: Function-tool execution binds to a repository-local implementation without executing it.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: tool-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-registration
+    description: Closed tools-map registration is validated and repaired from a concrete name mismatch while preparation overrides remain unresolved.
+    coveredBy:
+      [evaluate-aligned-project, repair-vercel-tool-registration, preserve-vercel-static-boundary]
+  - id: tool-input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-input-schema
+    description: Direct tool input schema relationships remain visible through the registered function tool.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: tool-output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-output-schema
+    description: Direct tool output schema relationships remain visible through the registered function tool.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: agent-definition-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.agent-definition
+    description: Directly exported ToolLoopAgent instances emit normalized agent-definition evidence even when preparation obscures selected subordinate relationships.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-vercel-static-boundary]
+  - id: instruction-loader-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.instruction-loader
+    description: Closed ToolLoopAgent settings emit instruction-loader evidence through exact source symbols.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct definitions emit TypeScript language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct definitions emit supported ai package evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Call-options, structured-output, and function-tool schema bindings emit normalized schema evidence according to relationship closure.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        create-grounded-agent,
+        repair-vercel-tool-registration,
+        preserve-vercel-static-boundary,
+      ]
+  - id: tool-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.tool-registration
+    description: Correct closed tools maps emit tool-registration evidence after name reconciliation.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: direct-tool-loop-agent-construction
+    kind: pattern
+    matrixPath: target.pattern.direct-tool-loop-agent-construction
+    description: A directly exported ToolLoopAgent constructed from one closed object literal is recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-agent-instruction-loader
+    kind: pattern
+    matrixPath: target.pattern.direct-agent-instruction-loader
+    description: Direct loader calls remain visible in closed instructions settings.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: call-options-input-schema
+    kind: pattern
+    matrixPath: target.pattern.call-options-input-schema
+    description: Direct callOptionsSchema bindings establish agent input-schema relationships independently of preparation callbacks.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-vercel-static-boundary]
+  - id: object-output-schema
+    kind: pattern
+    matrixPath: target.pattern.object-output-schema
+    description: Structured agent output uses Output.object when closed and remains unresolved when prepareCall can omit it.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-vercel-static-boundary]
+  - id: closed-tools-map
+    kind: pattern
+    matrixPath: target.pattern.closed-tools-map
+    description: Function tools are registered through immutable closed object maps with exact own-property names.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: direct-function-tool-bindings
+    kind: pattern
+    matrixPath: target.pattern.direct-function-tool-bindings
+    description: Tool implementation and both schema relationships use direct symbols.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: prepare-call-overrides
+    kind: pattern
+    matrixPath: target.pattern.prepare-call-overrides
+    description: The isolated prepareCall agent leaves instruction, tool, and output-schema wiring unresolved without hiding the agent definition or call-options schema.
+    coveredBy: [preserve-vercel-static-boundary]
+  - id: prepare-step-instruction-overrides
+    kind: pattern
+    matrixPath: target.pattern.prepare-step-instruction-overrides
+    description: The isolated prepareStep agent leaves only per-step instruction replacement unresolved while retaining output and tool proof.
+    coveredBy: [preserve-vercel-static-boundary]
+  - id: subagent-handoff-inference
+    kind: pattern
+    matrixPath: target.pattern.subagent-handoff-inference
+    description: A concrete function tool calls another agent without establishing routing, handoff, or subagent control transfer.
+    coveredBy: [preserve-vercel-static-boundary]
+  - id: workflow-agent
+    kind: pattern
+    matrixPath: target.pattern.workflow-agent
+    description: A real @ai-sdk/workflow WorkflowAgent remains outside the selected ToolLoopAgent target.
+    coveredBy: [preserve-vercel-static-boundary]
+  - id: typescript-esm-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.20c98b6726812c72
+    description: Supported cases use exact TypeScript ESM files and direct relative imports only.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: provider-routing-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.d726f04f065f6b4e
+    description: Canonical state never infers provider, model, routing, handoff, or subagent relationships from runtime definitions.
+    coveredBy: [evaluate-aligned-project, preserve-vercel-static-boundary]
+  - id: output-object-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.5aecb5b32aedc9b1
+    description: Only Output.object is bound as an agent output schema in supported fixtures.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: preparation-body-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.0d88ef845e472c94
+    description: Isolated boundary agents record exactly which relationships prepareCall and prepareStep bodies can replace.
+    coveredBy: [preserve-vercel-static-boundary]
+  - id: installed-version-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.f0d470d8093d63ba
+    description: Qualification independently pins, verifies, and installs the runtime tarball because adapter inspection reads manifests rather than lockfiles or node_modules.
+    coveredBy: [evaluate-aligned-project]

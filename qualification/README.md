@@ -23,6 +23,7 @@ The committed inputs are deliberately inspectable:
 - `profiles/<adapter>/<implementation>/probes/*.yaml` maps current compatibility claims to those cases.
 - Each project contains `scenario.yaml`, `task.md`, a committed `seed/`, optional pre-existing dirty state in `overlay/`, and the expected fake-host state in `expected/`.
 - [`profiles/custom/custom/`](profiles/custom/custom/) is the complete baseline profile for the built-in Custom adapter.
+- [`profiles/vercel-ai-sdk/typescript-tool-loop-agent-7/`](profiles/vercel-ai-sdk/typescript-tool-loop-agent-7/) qualifies direct Vercel AI SDK 7 `ToolLoopAgent` construction through the universal catalog and two adapter-specific boundary cases.
 - [`profiles/vercel-ai-sdk/typescript-generate-stream-text-7/`](profiles/vercel-ai-sdk/typescript-generate-stream-text-7/) qualifies direct Vercel AI SDK 7 generation through the universal catalog and two adapter-specific boundary cases.
 - Every seed declares the same exact TypeScript development dependency owned by the qualification package. The runner downloads and verifies that compiler tarball independently, and each isolated workspace installs it with the registry-verified candidate CLI through an attempt-local pnpm store. It validates the relative `node_modules/.bin/tsc` link and makes the same compiler available to the actor, deterministic verifier, and copied judge workspace.
 - Adapter profiles may also declare exact runtime and type packages required by their fixtures. The runner verifies, caches, records, and installs those published artifacts independently; every fixture must declare each package at the same exact version.
@@ -42,7 +43,7 @@ Keep the `skill` and `packages` repositories adjacent, install the packages repo
 npm run qualification
 ```
 
-The guided CLI prioritizes resumable attempts, disables adapter implementations without a committed profile, and asks for a default-deny confirmation only after free preflight, candidate preparation, Custom-baseline verification, and cache lookup have finished. The prompt appears immediately before the first uncached frontier-model call and reports both the ordinary plan and the retry-inclusive hard maximum. The eight-case Custom profile reports 48 planned and 96 maximum calls. The ten-case Vercel AI SDK profile reports 60 planned and 120 maximum calls. The ordinary plan covers one actor and one judge across an initial trial and two possible confirmations per case. Skipped judges, cache hits, and short-circuited confirmations can reduce the total; the hard maximum includes the one permitted operational retry for every planned call.
+The guided CLI prioritizes resumable attempts, disables adapter implementations without a committed profile, and asks for a default-deny confirmation only after free preflight, candidate preparation, Custom-baseline verification, and cache lookup have finished. The prompt appears immediately before the first uncached frontier-model call and reports both the ordinary plan and the retry-inclusive hard maximum. The eight-case Custom profile reports 48 planned and 96 maximum calls. Each ten-case Vercel AI SDK profile reports 60 planned and 120 maximum calls. The ordinary plan covers one actor and one judge across an initial trial and two possible confirmations per case. Skipped judges, cache hits, and short-circuited confirmations can reduce the total; the hard maximum includes the one permitted operational retry for every planned call.
 
 The same operations are available explicitly:
 
@@ -194,3 +195,9 @@ Eight is not an arbitrary maximum. These journeys cover aligned recognition, ini
 The `vercel-ai-sdk/typescript-generate-stream-text-7` profile adds two cases to the universal catalog. One repairs an exact closed-tools-map name mismatch while preserving valid SDK code and every schema and implementation binding. The other uses indirect generation settings and `prepareStep` to prove that the skill records the adapter's static-analysis boundary without inventing runtime-pattern, provider, model, routing, handoff, subagent, or input-schema evidence.
 
 All ten projects install and typecheck with exact published Vercel AI SDK dependencies. Supported cases exercise both `generateText` and `streamText`, `instructions` and the `system` fallback, `Output.object`, direct loaders, and repository-local function tools. Qualification never invokes those functions or makes a provider call.
+
+## Vercel AI SDK ToolLoopAgent
+
+The `vercel-ai-sdk/typescript-tool-loop-agent-7` profile reuses the universal catalog and the same two adapter-specific case identities with target-specific fixtures. Supported cases exercise directly exported `ToolLoopAgent` construction, `callOptionsSchema`, direct instruction loaders, `Output.object`, and closed repository-local function tools.
+
+The static-boundary case isolates `prepareCall` and `prepareStep` to prove relationship-local closure: `prepareCall` leaves instruction, tool, and output-schema relationships unresolved, while `prepareStep` leaves only instructions unresolved. The same project proves that a function tool calling another agent does not establish a handoff and that a real `WorkflowAgent` remains outside the selected target. All ten projects typecheck against exact published SDK dependencies without executing an agent, tool, or provider call.

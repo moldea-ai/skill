@@ -1,0 +1,117 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: vercel-ai-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.ts
+        symbol: supportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadSupportInstruction
+      inputSchema:
+        path: /src/contracts.ts
+        symbol: SupportCallOptionsSchema
+      outputSchema:
+        path: /src/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      get-status:
+        name: get_status
+        description: Reads one support order status.
+        implementation:
+          path: /src/implementations.ts
+          symbol: getSupportStatus
+        registration:
+          path: /src/status-tools.ts
+          symbol: supportStatusTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: SupportStatusInputSchema
+        outputSchema:
+          path: /src/contracts.ts
+          symbol: SupportStatusOutputSchema
+    affectedBy:
+      - /src/support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts
+      - /src/status-tools.ts
+      - /src/implementations.ts
+  step-support:
+    runtime:
+      id: vercel-ai-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/step-support-agent.ts
+        symbol: stepSupportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadStepSupportInstruction
+      inputSchema:
+        path: /src/contracts.ts
+        symbol: SupportCallOptionsSchema
+      outputSchema:
+        path: /src/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      get-status:
+        name: get_status
+        description: Reads one support order status.
+        implementation:
+          path: /src/implementations.ts
+          symbol: getStepSupportStatus
+        registration:
+          path: /src/status-tools.ts
+          symbol: stepSupportStatusTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: SupportStatusInputSchema
+        outputSchema:
+          path: /src/contracts.ts
+          symbol: SupportStatusOutputSchema
+    affectedBy:
+      - /src/step-support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts
+      - /src/status-tools.ts
+      - /src/implementations.ts
+  delegating-support:
+    runtime:
+      id: vercel-ai-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/delegating-agent.ts
+        symbol: delegatingSupportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadDelegatingSupportInstruction
+      inputSchema:
+        path: /src/contracts.ts
+        symbol: DelegateSupportInputSchema
+      outputSchema:
+        path: /src/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      delegate-support:
+        name: delegate_support
+        description: Delegates one focused support question to another agent.
+        implementation:
+          path: /src/delegation.ts
+          symbol: delegateSupport
+        registration:
+          path: /src/delegation-tool.ts
+          symbol: delegateSupportTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: DelegateSupportInputSchema
+        outputSchema:
+          path: /src/contracts.ts
+          symbol: SupportOutputSchema
+    affectedBy:
+      - /src/delegating-agent.ts
+      - /src/delegation-tool.ts
+      - /src/delegation.ts
+      - /src/step-support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts

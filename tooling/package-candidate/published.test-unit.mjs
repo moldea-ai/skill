@@ -84,6 +84,30 @@ test('resolves one exact external tool package from the canonical registry', asy
   );
 });
 
+test('accepts exact external prerelease versions without accepting ranges or tags', async () => {
+  const metadata = new Map([
+    ['@ai-sdk/workflow/2.0.7-beta.1', createMetadata('@ai-sdk/workflow', '2.0.7-beta.1')],
+  ]);
+  const manifest = await resolvePublishedPackageManifest({
+    fetchResource: createRegistryFetch(metadata),
+    packageName: '@ai-sdk/workflow',
+    version: '2.0.7-beta.1',
+  });
+
+  assert.equal(manifest.version, '2.0.7-beta.1');
+
+  for (const version of ['^2.0.7', 'v2.0.7', 'latest']) {
+    await assert.rejects(
+      resolvePublishedPackageManifest({
+        fetchResource: createRegistryFetch(metadata),
+        packageName: '@ai-sdk/workflow',
+        version,
+      }),
+      /must be an exact semantic version/u,
+    );
+  }
+});
+
 test('downloads one exact artifact only when both registry digests match', async (context) => {
   const artifactDirectory = await mkdtemp(join(tmpdir(), 'moldea-published-artifact-'));
   context.after(async () => rm(artifactDirectory, { force: true, recursive: true }));

@@ -48,5 +48,5 @@ cases:
   - id: preserve-vercel-static-boundary
     title: Preserve the Vercel static boundary
     layer: adapter-specific
-    description: Represent an indirect generation wrapper as unresolved instead of claiming runtime-pattern evidence that the adapter cannot prove.
-    challenge: Tests conservative handling of unsupported indirection, provider and model non-inference, and absent direct-generation evidence.
+    description: Represent unsupported Vercel SDK relationships as unresolved instead of claiming evidence that the adapter cannot prove.
+    challenge: Tests conservative handling of target-specific static-analysis boundaries plus provider, model, routing, handoff, and subagent non-inference.

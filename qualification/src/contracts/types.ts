@@ -1,4 +1,5 @@
 import path from 'node:path';
+import semver from 'semver';
 import { z } from 'zod';
 
 import { calculateCodexEvaluationOperationalRetryDelay } from '../../../tooling/codex-evaluation-host/index.mjs';
@@ -19,6 +20,15 @@ import {
 const StableIdSchema = z
   .string()
   .regex(/^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$/u, 'Expected a stable kebab-case id.');
+
+const ExactSemverSchema = z.string().refine((candidateVersion) => {
+  const parsedVersion = semver.parse(candidateVersion);
+  return (
+    parsedVersion !== null &&
+    !candidateVersion.startsWith('v') &&
+    parsedVersion.raw === candidateVersion
+  );
+}, 'Expected an exact semantic version.');
 
 const RelativePathSchema = z
   .string()
@@ -90,7 +100,7 @@ export const QualificationProfileSchema = z.strictObject({
     .array(
       z.strictObject({
         name: z.string().trim().min(1),
-        version: z.string().regex(/^\d+\.\d+\.\d+$/u),
+        version: ExactSemverSchema,
       }),
     )
     .optional(),

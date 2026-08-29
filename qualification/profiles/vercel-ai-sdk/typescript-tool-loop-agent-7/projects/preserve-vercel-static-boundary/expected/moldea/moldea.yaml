@@ -1,0 +1,110 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: vercel-ai-sdk
+      guidance: /moldea/runtimes/preparation-overrides.md
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.ts
+        symbol: supportAgent
+      inputSchema:
+        path: /src/contracts.ts
+        symbol: SupportCallOptionsSchema
+    affectedBy:
+      - /src/support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts
+      - /src/status-tools.ts
+      - /src/implementations.ts
+    unresolved:
+      prepare-call-overrides:
+        category: runtime-binding
+        effect: warning
+        description: The prepareCall body prevents Moldea from proving the instruction, tool, and output-schema relationships.
+        resolution: Keep invariant instructions, tools, and Output.object settings in the direct ToolLoopAgent object literal without prepareCall.
+        related:
+          - path: /src/support-agent.ts
+  step-support:
+    runtime:
+      id: vercel-ai-sdk
+      guidance: /moldea/runtimes/preparation-overrides.md
+    bindings:
+      runtimeAgent:
+        path: /src/step-support-agent.ts
+        symbol: stepSupportAgent
+      inputSchema:
+        path: /src/contracts.ts
+        symbol: SupportCallOptionsSchema
+      outputSchema:
+        path: /src/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      get-status:
+        name: get_status
+        description: Reads one support order status.
+        implementation:
+          path: /src/implementations.ts
+          symbol: getStepSupportStatus
+        registration:
+          path: /src/status-tools.ts
+          symbol: stepSupportStatusTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: SupportStatusInputSchema
+        outputSchema:
+          path: /src/contracts.ts
+          symbol: SupportStatusOutputSchema
+    affectedBy:
+      - /src/step-support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts
+      - /src/status-tools.ts
+      - /src/implementations.ts
+    unresolved:
+      prepare-step-instruction-overrides:
+        category: runtime-binding
+        effect: warning
+        description: The prepareStep body prevents Moldea from proving the instruction-loader relationship while leaving output and tools statically visible.
+        resolution: Keep invariant instructions in the direct ToolLoopAgent object literal without prepareStep instruction replacement.
+        related:
+          - path: /src/step-support-agent.ts
+  delegating-support:
+    runtime:
+      id: vercel-ai-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/delegating-agent.ts
+        symbol: delegatingSupportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadDelegatingSupportInstruction
+      inputSchema:
+        path: /src/contracts.ts
+        symbol: DelegateSupportInputSchema
+      outputSchema:
+        path: /src/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      delegate-support:
+        name: delegate_support
+        description: Delegates one focused support question to another agent.
+        implementation:
+          path: /src/delegation.ts
+          symbol: delegateSupport
+        registration:
+          path: /src/delegation-tool.ts
+          symbol: delegateSupportTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: DelegateSupportInputSchema
+        outputSchema:
+          path: /src/contracts.ts
+          symbol: SupportOutputSchema
+    affectedBy:
+      - /src/delegating-agent.ts
+      - /src/delegation-tool.ts
+      - /src/delegation.ts
+      - /src/step-support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts

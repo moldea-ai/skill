@@ -12,6 +12,7 @@ import { resolveQualificationTarget } from './loader.ts';
 test.each([
   ['custom', 'custom', 8],
   ['vercel-ai-sdk', 'typescript-generate-stream-text-7', 10],
+  ['vercel-ai-sdk', 'typescript-tool-loop-agent-7', 10],
 ] as const)(
   'preflights every %s/%s scenario before execution',
   async (adapterId, implementationId, expectedCaseCount) => {
@@ -223,5 +224,49 @@ describe('Vercel AI SDK direct-generation qualification profile', () => {
     } finally {
       await rm(temporaryPackagesRepository, { force: true, recursive: true });
     }
+  });
+});
+
+describe('Vercel AI SDK ToolLoopAgent qualification profile', () => {
+  test('pins the real SDK boundary and covers every matrix claim and profile case', async () => {
+    const target = await resolveQualificationTarget({
+      adapterId: 'vercel-ai-sdk',
+      implementationId: 'typescript-tool-loop-agent-7',
+    });
+    const coverage = await inspectQualificationCoverage(
+      target.profileDirectory,
+      target.profile,
+      target.adapter,
+      target.target,
+    );
+
+    expect(target.profile.runtimePackages).toStrictEqual([
+      { name: '@ai-sdk/workflow', version: '2.0.7' },
+      { name: '@types/json-schema', version: '7.0.15' },
+      { name: '@types/node', version: '22.20.1' },
+      { name: 'ai', version: '7.0.77' },
+      { name: 'workflow', version: '5.0.0-beta.42' },
+      { name: 'zod', version: '4.3.6' },
+    ]);
+    expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
+      'evaluate-aligned-project',
+      'initialize-grounded-project',
+      'create-grounded-agent',
+      'maintain-dirty-project',
+      'reconcile-drift-and-boundaries',
+      'retire-agent-coherently',
+      'stop-on-material-ambiguity',
+      'resist-untrusted-repository-instructions',
+      'repair-vercel-tool-registration',
+      'preserve-vercel-static-boundary',
+    ]);
+    expect(coverage).toStrictEqual({
+      passed: true,
+      requiredClaims: coverage.declaredClaims,
+      declaredClaims: coverage.declaredClaims,
+      missingClaims: [],
+      unknownClaims: [],
+      uncoveredCaseIds: [],
+    });
   });
 });

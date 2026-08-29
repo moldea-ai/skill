@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest';
 import {
   QualificationCaseResultSchema,
   QualificationCaseScenarioSchema,
+  QualificationProfileSchema,
   QualificationStageCheckpointSchema,
   QualificationTrialResultSchema,
   type IQualificationTrialResult,
@@ -74,6 +75,42 @@ test.each([
     false,
   );
 });
+
+test.each(['1.2.3', '5.0.0-beta.42', '1.2.3+verified'])(
+  'QualificationProfileSchema(%s) -> accepts exact package version',
+  (version) => {
+    expect(
+      QualificationProfileSchema.safeParse({
+        version: 2,
+        adapterId: 'adapter',
+        implementationId: 'implementation',
+        title: 'Profile',
+        description: 'Profile description.',
+        runtimePackages: [{ name: 'runtime', version }],
+        probesFile: 'probes.yaml',
+        cases: [{ id: 'case', projectDirectory: 'projects/case', scenarioFile: 'scenario.yaml' }],
+      }).success,
+    ).toBe(true);
+  },
+);
+
+test.each(['1.2', '^1.2.3', 'v1.2.3', 'latest'])(
+  'QualificationProfileSchema(%s) -> rejects non-exact package version',
+  (version) => {
+    expect(
+      QualificationProfileSchema.safeParse({
+        version: 2,
+        adapterId: 'adapter',
+        implementationId: 'implementation',
+        title: 'Profile',
+        description: 'Profile description.',
+        runtimePackages: [{ name: 'runtime', version }],
+        probesFile: 'probes.yaml',
+        cases: [{ id: 'case', projectDirectory: 'projects/case', scenarioFile: 'scenario.yaml' }],
+      }).success,
+    ).toBe(false);
+  },
+);
 
 test('rejects duplicate scenario sets and requirement declarations before execution', () => {
   const scenario = createScenario('moldea/runtimes/*.md');

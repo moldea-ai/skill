@@ -28,6 +28,16 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(
     vercelProfileLink.getByText('Attempts', { exact: true }).locator('..'),
   ).toContainText('2');
+
+  const toolLoopProfileLink = page.getByRole('link', {
+    name: /Vercel AI SDK ToolLoopAgent qualification/,
+  });
+  await expect(
+    toolLoopProfileLink.locator('[data-evidence-status][data-evidence-status="not-recorded"]'),
+  ).toBeVisible();
+  await expect(
+    toolLoopProfileLink.getByText('Attempts', { exact: true }).locator('..'),
+  ).toContainText('0');
 });
 
 test('presents the recorded Custom and Vercel results', async ({ page }) => {
@@ -59,6 +69,19 @@ test('presents the recorded Custom and Vercel results', async ({ page }) => {
     'href',
     /\/evidence\/qualification\/vercel-ai-sdk\/typescript-generate-stream-text-7\/attempts\//u,
   );
+
+  await page.goto(
+    toPublicPath('/evidence/qualification/vercel-ai-sdk/typescript-tool-loop-agent-7/'),
+  );
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Vercel AI SDK ToolLoopAgent qualification',
+    }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: '10 realistic journeys' })).toBeVisible();
+  await expect(page.locator('[data-evidence-status="not-recorded"]').first()).toBeVisible();
+  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toBeVisible();
 });
 
 test('replays qualification evidence through human-readable and technical views', async ({
@@ -131,7 +154,15 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
     const vercelProfileRoute = toPublicPath(
       '/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/',
     );
-    const routes = [toPublicPath('/evidence/qualification/'), profileRoute, vercelProfileRoute];
+    const toolLoopProfileRoute = toPublicPath(
+      '/evidence/qualification/vercel-ai-sdk/typescript-tool-loop-agent-7/',
+    );
+    const routes = [
+      toPublicPath('/evidence/qualification/'),
+      profileRoute,
+      vercelProfileRoute,
+      toolLoopProfileRoute,
+    ];
 
     await page.goto(profileRoute);
     const attemptLink = page.getByRole('link', { name: /^Inspect the .* attempt$/u });

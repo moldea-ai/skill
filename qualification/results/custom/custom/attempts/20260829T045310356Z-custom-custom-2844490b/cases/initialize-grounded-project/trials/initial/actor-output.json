@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized Moldea from repository evidence. Canonical state changed, the existing README content was preserved, and the standard awareness block was appended. Moldea CLI 5.0.0 inspection and validation both returned schema 2 `valid` results with no diagnostics; TypeScript checking also passed. Next actions are foundation review or ordinary project development.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "README.md establishes invoice-line review for duplicate references and arithmetic mismatches, with findings returned to a human finance operator and no authority to send or authorize payments.",
+    "src/invoice-review.ts implements deterministic duplicate-reference detection and sorted results.",
+    "No agent, decision, runtime guide, focused context, or unresolved requirement was created because repository evidence did not justify one.",
+    "The exact repository-local @moldea.ai/cli 5.0.0 was declared and installed; no package-manager executable extensions were present.",
+    "Final Git status contained only README.md and the new moldea/ directory; unrelated files remained unchanged."
+  ],
+  "unresolved": [
+    "Arithmetic-mismatch review is stated in the README, but its implementation is not evidenced by the current source. This limitation is recorded in moldea/project.md without inventing a requirement."
+  ]
+}

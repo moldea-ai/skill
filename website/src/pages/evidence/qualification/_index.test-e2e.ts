@@ -13,11 +13,11 @@ test('represents the current qualification evidence state', async ({ page }) => 
   ).toBeVisible();
   const customProfileLink = page.getByRole('link', { name: /Custom runtime qualification/ });
   await expect(
-    customProfileLink.locator('[data-evidence-status][data-evidence-status="not-recorded"]'),
+    customProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
   ).toBeVisible();
   await expect(
     customProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('0');
+  ).toContainText('1');
 
   const vercelProfileLink = page.getByRole('link', {
     name: /Vercel AI SDK direct generation qualification/,
@@ -30,19 +30,18 @@ test('represents the current qualification evidence state', async ({ page }) => 
   ).toContainText('0');
 });
 
-test('presents both profiles before qualification evidence is recorded', async ({ page }) => {
+test('presents the recorded Custom result and pending Vercel profile', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
   await expect(
     page.getByRole('heading', { level: 1, name: 'Custom runtime qualification' }),
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: '8 realistic journeys' })).toBeVisible();
-  await expect(
-    page.locator('[data-evidence-status][data-evidence-status="not-recorded"]').first(),
-  ).toBeVisible();
-  await expect(
-    page.getByText(/No protocol 6 Sol attempt has been committed/u).first(),
-  ).toBeVisible();
-  await expect(page.getByRole('link', { name: /^Inspect the .* attempt$/u })).toHaveCount(0);
+  await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
+  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toHaveCount(0);
+  await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
+    'href',
+    /\/evidence\/qualification\/custom\/custom\/attempts\//u,
+  );
 
   await page.goto(
     toPublicPath('/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/'),
@@ -67,12 +66,9 @@ test('replays qualification evidence through human-readable and technical views'
   page,
 }) => {
   await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
-  const passingAttemptLink = page.getByRole('link', { name: 'Inspect the passing attempt' });
-  test.skip(
-    (await passingAttemptLink.count()) === 0,
-    'No committed passing qualification attempt is available to replay.',
-  );
-  const attemptRoute = await passingAttemptLink.getAttribute('href');
+  const attemptRoute = await page
+    .getByRole('link', { name: 'Inspect the passing attempt' })
+    .getAttribute('href');
   if (attemptRoute === null) throw new Error('The Custom profile has no passing attempt route.');
   await page.goto(attemptRoute);
 

@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 343332,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1845796,
+    "cachedInputTokens": 1707776,
+    "outputTokens": 8231
+  },
+  "judgeUsage": {
+    "inputTokens": 310088,
+    "cachedInputTokens": 267776,
+    "outputTokens": 2615
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T05:07:09.733Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T05:08:23.359Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace files `moldea/agents/order-triage/description.md` and `instruction.md` state that the agent classifies orders for human review and cannot approve refunds; the instruction also prohibits financial mutations and presenting refunds as approved. This matches `src/order-triage-agent.ts` (`action: 'classify-for-human-review'`, `canApproveRefunds: false`), and workspace assertions identify both canonical files as new changes."
+    },
+    {
+      "id": "binds-implementation",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` registers `order-triage` with runtime `custom`, binds `runtimeAgent.path` to `/src/order-triage-agent.ts` and `symbol` to `createOrderTriageAgent`, and lists that source under `affectedBy`. The export exists at that path. Deterministic inspection and validation were valid, with repository equivalence and type-checking passing."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest references `/moldea/runtimes/order-triage-custom.md`, the sole Markdown file under `moldea/runtimes`. It accurately explains that the runtime-owned loader is passed to `createOrderTriageAgent`, the factory requests the canonical `/moldea/agents/order-triage/instruction.md`, and the returned content grounds the agent. It explicitly declines to assert a model provider or invocation mechanism. Workspace assertions confirm this guidance file is newly added."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

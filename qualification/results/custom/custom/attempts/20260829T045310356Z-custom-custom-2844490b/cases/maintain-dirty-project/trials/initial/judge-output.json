@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, workspace patch, and deterministic post-actor evidence agree: canonical billing guidance is globally registered, bound to the billing implementation, assigned to the support agent, and referenced by updated instructions that preserve the existing opening identity. Unrelated dirty-worktree content and the Custom runtime integration remain unchanged.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "Current workspace contains `/moldea/context/billing.md` with refund and invoice-dispute guidance. `moldea/moldea.yaml` globally registers it under `context`, binds it explicitly to `/src/billing.ts` symbol `refundWindowDays`, and assigns it to `agents.support.context`. The workspace patch/assertions identify only the three intended Moldea changes, and deterministic-after reports valid inspection, validation, typecheck, and unchanged repository state during checks."
+    },
+    {
+      "id": "updates-instruction",
+      "verdict": "pass",
+      "evidence": "The workspace patch preserves the original opening (`# Support agent` and `You are the support agent...`) and adds guidance directing refund and invoice questions to `/moldea/context/billing.md`, limiting answers to established evidence and requiring escalation for unresolved disputes. Current workspace content matches that patch."
+    }
+  ],
+  "failures": []
+}

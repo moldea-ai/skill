@@ -409,9 +409,11 @@ const deriveQualificationRequirementAssessments = (
 
 const deriveQualificationTrialFailures = (
   actor,
+  actorEvidence,
   deterministicAfter,
   assertions,
   judge,
+  judgeEvidence,
   requirementAssessments,
   scenario,
 ) => [
@@ -419,6 +421,16 @@ const deriveQualificationTrialFailures = (
     ? []
     : [
         `Actor outcome ${actor.outcome} did not match expected outcome ${scenario.expectedActorOutcome}.`,
+      ]),
+  ...(hasPassingCodexEvaluationCommandPolicy(actorEvidence.commandPolicy)
+    ? []
+    : [
+        'Actor command policy observed prohibited credential, network, or sensitive evaluator access.',
+      ]),
+  ...(judgeEvidence === null || hasPassingCodexEvaluationCommandPolicy(judgeEvidence.commandPolicy)
+    ? []
+    : [
+        'Judge command policy observed prohibited credential, network, or sensitive evaluator access.',
       ]),
   ...deterministicAfter.summary.failures,
   ...assertions.failures,
@@ -582,9 +594,11 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
         );
         const derivedFailures = deriveQualificationTrialFailures(
           actor,
+          actorEvidence,
           deterministicAfter,
           assertions,
           judge,
+          judgeEvidence,
           derivedRequirementAssessments,
           scenario,
         );

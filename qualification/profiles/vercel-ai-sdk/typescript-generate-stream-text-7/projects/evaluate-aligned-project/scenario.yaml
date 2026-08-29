@@ -49,12 +49,12 @@ workspace:
   mustChangePathPatterns: []
 judgeRequirements:
   - id: explains-direct-patterns
-    description: The actor distinguishes the direct generateText instructions relationship from the direct streamText system fallback using emitted evidence.
+    description: The actor accurately explains how each canonical instruction loader reaches its corresponding direct generation wrapper using emitted evidence. Equivalent evidence-based wording passes without requiring property-name repetition.
     evaluation:
       kind: judge
       evidenceSources: [actor-output, current-workspace, deterministic-after]
   - id: explains-closed-bindings
-    description: The actor identifies Output.object and the exact closed function-tool implementation, registration, and schema relationships.
+    description: The actor accurately explains the declared structured-output and closed function-tool relationships. Exact helper or schema symbol repetition is not required when the relationships are unambiguous and deterministic evidence confirms them.
     evaluation:
       kind: judge
       evidenceSources: [actor-output, current-workspace, deterministic-after]

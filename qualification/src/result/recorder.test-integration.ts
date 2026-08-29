@@ -8,6 +8,7 @@ import {
   QualificationAttemptResultDraftSchema,
   QualificationAttemptResultSchema,
   QualificationLatestResultSchema,
+  QualificationModelStageEvidenceSchema,
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
 import { QUALIFICATION_CONFIRMATION_POLICY } from '../constants/index.ts';
@@ -448,6 +449,64 @@ describe('qualification result recording', () => {
       'contradictory release-case initial post-actor deterministic evidence',
     );
   });
+
+  test.each(['actor', 'judge'] as const)(
+    'rejects a passing trial with an observed %s command-policy violation',
+    async (role) => {
+      temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+      const resultsRoot = path.join(temporaryRoot, 'results');
+      const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+      await ensureDirectory(artifactDirectory);
+      const passingResult = await seedPassingQualificationEvidenceFixture({
+        artifactDirectory,
+        attemptId: `attempt-${role}-policy`,
+        resultsRoot,
+      });
+      const recorded = await recordQualificationResult(
+        { artifactDirectory, result: passingResult, sanitizationContext },
+        resultsRoot,
+      );
+      const attemptDirectory = path.join(
+        resultsRoot,
+        'custom',
+        'custom',
+        'attempts',
+        recorded.attemptId,
+      );
+      const relativeEvidencePath = `cases/release-case/trials/initial/${role}-evidence.json`;
+      const evidencePath = path.join(attemptDirectory, relativeEvidencePath);
+      const evidence = await readJsonFile(evidencePath, QualificationModelStageEvidenceSchema);
+      await writeJsonFileAtomically(evidencePath, {
+        ...evidence,
+        commandPolicy: {
+          ...evidence.commandPolicy,
+          completedCommandCount: 1,
+          networkAccess: {
+            status: 'observed',
+            observedCount: 1,
+            indeterminateCount: 0,
+          },
+        },
+      });
+      await writeJsonFileAtomically(path.join(attemptDirectory, 'attempt.json'), {
+        ...recorded,
+        artifactDigests: {
+          ...recorded.artifactDigests,
+          [relativeEvidencePath]: await calculateFileSha256(evidencePath),
+        },
+      });
+
+      const verification = await verifyQualificationResults(resultsRoot);
+
+      expect(verification.passed).toBe(false);
+      expect(verification.issues).toHaveLength(1);
+      expect(verification.issues[0]?.message).toContain(
+        role === 'actor'
+          ? 'ran a judge after runner-owned failure'
+          : 'contradictory derived verdict',
+      );
+    },
+  );
 
   test('rejects invalid passing artifacts before publishing an attempt', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));

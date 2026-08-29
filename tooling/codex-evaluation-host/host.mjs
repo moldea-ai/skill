@@ -858,6 +858,9 @@ export const runCodexEvaluationHost = async ({
   if (!['read-only', 'read-write'].includes(workspaceAccess)) {
     throw new Error(`Unsupported evaluation workspace access: ${workspaceAccess}`);
   }
+  await prepareGitCommandPolicyBoundary(join(sandboxHome, 'bin'), {
+    trustedReadOnlyDirectoryNames: includeWorkspaceBinaryDirectory ? ['node_modules'] : [],
+  });
   const hostExecutable = resolveExecutablePath(command[0]);
   const hostCompanionExecutable = resolveCodeModeHostPath(hostExecutable);
   const hostConfiguration = identifyCodexEvaluationHostConfiguration({

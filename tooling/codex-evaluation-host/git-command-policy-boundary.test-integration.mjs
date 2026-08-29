@@ -189,6 +189,96 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
   }
 });
 
+test('Git command-policy boundary budgets trusted read-only top-level dependencies separately', async () => {
+  const testRoot = mkdtempSync(join(tmpdir(), 'moldea-git-read-only-dependencies-test-'));
+  const repositoryPath = join(testRoot, 'repository');
+  const dependencyDirectoryPath = join(repositoryPath, 'node_modules');
+  const statusArguments = [
+    ...COMMON_GIT_OPTIONS,
+    '--no-pager',
+    'status',
+    '--porcelain=v2',
+    '-z',
+    '--ignore-submodules=all',
+  ];
+
+  try {
+    mkdirSync(dependencyDirectoryPath, { recursive: true });
+    runSystemGit(repositoryPath, ['init', '--quiet']);
+    writeFileSync(join(repositoryPath, 'project-state.js'), 'export const state = "clean";\n');
+    runSystemGit(repositoryPath, ['add', '--all']);
+    runSystemGit(repositoryPath, [
+      '-c',
+      'user.name=Moldea Evaluation',
+      '-c',
+      'user.email=evaluation@invalid.example',
+      'commit',
+      '--quiet',
+      '-m',
+      'test: initialize read-only dependency fixture',
+    ]);
+    for (let entryIndex = 0; entryIndex < 4_097; entryIndex += 1) {
+      writeFileSync(join(dependencyDirectoryPath, `entry-${entryIndex}`), '');
+    }
+
+    const strictWrapperPath = await prepareGitCommandPolicyBoundary(join(testRoot, 'strict-bin'));
+    const strictResult = runWrappedGit(strictWrapperPath, repositoryPath, statusArguments);
+
+    assert.equal(strictResult.status, 2);
+    assert.match(strictResult.stderr, /repository attribute safety was not established/u);
+
+    const trustedWrapperPath = await prepareGitCommandPolicyBoundary(
+      join(testRoot, 'trusted-bin'),
+      {
+        trustedReadOnlyDirectoryNames: ['node_modules'],
+      },
+    );
+    const trustedResult = runWrappedGit(trustedWrapperPath, repositoryPath, statusArguments);
+
+    assert.equal(trustedResult.status, 0, trustedResult.stderr);
+
+    const trustedDependencyAttributesPath = join(dependencyDirectoryPath, '.gitattributes');
+    writeFileSync(trustedDependencyAttributesPath, '*.js filter=execution-trap\n', 'utf8');
+    const trustedDependencyAttributesResult = runWrappedGit(
+      trustedWrapperPath,
+      repositoryPath,
+      statusArguments,
+    );
+
+    assert.equal(trustedDependencyAttributesResult.status, 2);
+    assert.match(
+      trustedDependencyAttributesResult.stderr,
+      /repository attribute safety was not established/u,
+    );
+    rmSync(trustedDependencyAttributesPath);
+
+    const nestedDependencyDirectoryPath = join(repositoryPath, 'src', 'node_modules');
+    mkdirSync(nestedDependencyDirectoryPath, { recursive: true });
+    writeFileSync(
+      join(nestedDependencyDirectoryPath, '.gitattributes'),
+      '*.js filter=execution-trap\n',
+      'utf8',
+    );
+    const nestedAttributesResult = runWrappedGit(
+      trustedWrapperPath,
+      repositoryPath,
+      statusArguments,
+    );
+
+    assert.equal(nestedAttributesResult.status, 2);
+    assert.match(nestedAttributesResult.stderr, /repository attribute safety was not established/u);
+
+    await assert.rejects(
+      prepareGitCommandPolicyBoundary(join(testRoot, 'invalid-bin'), {
+        trustedReadOnlyDirectoryNames: ['_backup'],
+      }),
+      /Invalid trusted read-only workspace directory/u,
+    );
+  } finally {
+    rmSync(testRoot, { force: true, recursive: true });
+  }
+});
+
 test('Git command-policy boundary refuses linked-worktree common attributes', async () => {
   const testRoot = mkdtempSync(join(tmpdir(), 'moldea-git-common-attributes-test-'));
   const mainRepositoryPath = join(testRoot, 'main');

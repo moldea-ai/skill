@@ -42,18 +42,18 @@ workspace:
   allowedChangePathPatterns: []
   mustChangePathPatterns: []
 judgeRequirements:
-  - id: uses-exact-diagnostic
-    description: The actor explains that TOOL_NAME_MISMATCH proves the bound registration exists under a different closed map key.
+  - id: explains-name-mismatch
+    description: The actor explains from validation evidence and repository source that the declared tool name differs from the closed tools-map key. Repeating the internal diagnostic code is not required.
     evaluation:
       kind: judge
-      evidenceSources: [actor-output, current-workspace, deterministic-after]
+      evidenceSources: [actor-output, current-workspace, deterministic-after, workspace-patch]
   - id: repairs-canonical-name
     description: The manifest tool name becomes lookup_order, matching source without changing the valid runtime implementation.
     evaluation:
       kind: judge
       evidenceSources: [current-workspace, deterministic-after, workspace-patch]
   - id: preserves-binding-closure
-    description: Implementation, registration, input-schema, output-schema, instruction-loader, and output-schema bindings remain exact and evidenced.
+    description: Runtime-agent, instruction-loader, agent output-schema, tool implementation, registration, input-schema, and tool output-schema bindings remain exact and evidenced.
     evaluation:
       kind: judge
       evidenceSources: [current-workspace, deterministic-after]

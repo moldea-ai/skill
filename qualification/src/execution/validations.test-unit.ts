@@ -17,6 +17,7 @@ import {
   haveCandidateClosuresChanged,
   haveQualificationExecutionInputsChanged,
   createRunnerRequirementAssessments,
+  deriveQualificationCommandPolicyFailures,
   inspectQualificationSourceState,
   validateJudgeOutput,
 } from './validations.ts';
@@ -189,6 +190,51 @@ describe('runner-owned command-policy assessment', () => {
         evidence: `Runner checks ${expectedVerdict === 'pass' ? 'passed' : 'failed'}: actor-command-policy.`,
       },
     ]);
+  });
+});
+
+describe('mandatory command-policy failures', () => {
+  test.each([
+    ['indeterminate evidence', createCommandPolicyEvidence('indeterminate'), null, []],
+    [
+      'observed actor evidence',
+      createCommandPolicyEvidence('observed'),
+      null,
+      [
+        'Actor command policy observed prohibited credential, network, or sensitive evaluator access.',
+      ],
+    ],
+    [
+      'observed judge evidence',
+      createCommandPolicyEvidence('not-observed'),
+      createCommandPolicyEvidence('observed'),
+      [
+        'Judge command policy observed prohibited credential, network, or sensitive evaluator access.',
+      ],
+    ],
+    [
+      'observed actor and judge evidence',
+      createCommandPolicyEvidence('observed'),
+      createCommandPolicyEvidence('observed'),
+      [
+        'Actor command policy observed prohibited credential, network, or sensitive evaluator access.',
+        'Judge command policy observed prohibited credential, network, or sensitive evaluator access.',
+      ],
+    ],
+  ] satisfies ReadonlyArray<
+    readonly [
+      string,
+      IQualificationCommandPolicyEvidence,
+      IQualificationCommandPolicyEvidence | null,
+      string[],
+    ]
+  >)('%s', (_description, actorCommandPolicy, judgeCommandPolicy, expectedFailures) => {
+    expect(
+      deriveQualificationCommandPolicyFailures({
+        actorCommandPolicy,
+        judgeCommandPolicy,
+      }),
+    ).toStrictEqual(expectedFailures);
   });
 });
 

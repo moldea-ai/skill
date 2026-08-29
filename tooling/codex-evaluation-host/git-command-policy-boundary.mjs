@@ -1,6 +1,35 @@
 import { chmod, mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
+const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+
+/**
+ * Validates evaluator-owned top-level directories that the sandbox mounts read-only.
+ * @param directoryNames The directory names that cannot contain actor-authored attributes.
+ * @returns The normalized names embedded into the isolated Git wrapper.
+ */
+const normalizeTrustedReadOnlyDirectoryNames = (directoryNames) => {
+  const normalizedDirectoryNames = [...new Set(directoryNames)];
+  for (const directoryName of normalizedDirectoryNames) {
+    if (
+      typeof directoryName !== 'string' ||
+      directoryName.length === 0 ||
+      directoryName === '.' ||
+      directoryName === '..' ||
+      directoryName === '.git' ||
+      directoryName.includes('/') ||
+      directoryName.includes('\\') ||
+      EXCLUDED_DIRECTORY_NAMES.has(directoryName)
+    ) {
+      throw new Error(`Invalid trusted read-only workspace directory: ${directoryName}.`);
+    }
+  }
+  return normalizedDirectoryNames.sort();
+};
+
+const TRUSTED_READ_ONLY_DIRECTORY_NAMES_PLACEHOLDER =
+  '__MOLDEA_TRUSTED_READ_ONLY_DIRECTORY_NAMES__';
+
 // wrapper source that prevents repository configuration from delegating Git execution
 const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '#!/opt/node',
@@ -9,6 +38,7 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   "const { dirname, join, resolve, sep } = require('node:path');",
   '',
   "const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);",
+  `const TRUSTED_READ_ONLY_TOP_LEVEL_DIRECTORY_NAMES = new Set(${TRUSTED_READ_ONLY_DIRECTORY_NAMES_PLACEHOLDER});`,
   "const FILTER_ATTRIBUTE = Buffer.from('filter');",
   'const MAX_GIT_ATTRIBUTE_TRAVERSAL_DEPTH = 64;',
   'const MAX_GIT_ATTRIBUTE_TRAVERSAL_ENTRIES = 4_096;',
@@ -126,7 +156,7 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '',
   'const assertWorkingTreeAttributesAreSafe = (repositoryRoot) => {',
   '  let inspectedEntryCount = 0;',
-  '  const visit = (directoryPath, depth) => {',
+  '  const visit = (directoryPath, depth, isWithinTrustedReadOnlyDirectory) => {',
   '    if (depth > MAX_GIT_ATTRIBUTE_TRAVERSAL_DEPTH) {',
   "      throw new Error('Git attribute traversal exceeded the evaluator depth limit.');",
   '    }',
@@ -135,16 +165,26 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '      let entry;',
   '      while ((entry = directory.readSync()) !== null) {',
   "        if (entry.name === '.git') continue;",
-  '        inspectedEntryCount += 1;',
-  '        if (inspectedEntryCount > MAX_GIT_ATTRIBUTE_TRAVERSAL_ENTRIES) {',
-  "          throw new Error('Git attribute traversal exceeded the evaluator entry limit.');",
+  '        const isTrustedReadOnlyDirectory =',
+  '          depth === 0 &&',
+  '          entry.isDirectory() &&',
+  '          TRUSTED_READ_ONLY_TOP_LEVEL_DIRECTORY_NAMES.has(entry.name);',
+  '        if (!isWithinTrustedReadOnlyDirectory && !isTrustedReadOnlyDirectory) {',
+  '          inspectedEntryCount += 1;',
+  '          if (inspectedEntryCount > MAX_GIT_ATTRIBUTE_TRAVERSAL_ENTRIES) {',
+  "            throw new Error('Git attribute traversal exceeded the evaluator entry limit.');",
+  '          }',
   '        }',
   '        const absolutePath = join(directoryPath, entry.name);',
   '        if (entry.isDirectory()) {',
   '          if (EXCLUDED_DIRECTORY_NAMES.has(entry.name)) {',
   "            throw new Error('An excluded directory prevents complete Git attribute inspection.');",
   '          }',
-  '          visit(absolutePath, depth + 1);',
+  '          visit(',
+  '            absolutePath,',
+  '            depth + 1,',
+  '            isWithinTrustedReadOnlyDirectory || isTrustedReadOnlyDirectory,',
+  '          );',
   "        } else if (entry.name === '.gitattributes') {",
   '          assertAttributeFileIsSafe(absolutePath);',
   '        }',
@@ -153,7 +193,7 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
   '      directory.closeSync();',
   '    }',
   '  };',
-  '  visit(repositoryRoot, 0);',
+  '  visit(repositoryRoot, 0, false);',
   '};',
   '',
   'const listIndexedAttributePaths = (repositoryRoot) => {',
@@ -407,14 +447,34 @@ const GIT_COMMAND_POLICY_WRAPPER_SOURCE = [
 ].join('\n');
 
 /**
+ * Creates the Git wrapper source for the evaluator-owned read-only workspace paths.
+ * @param trustedReadOnlyDirectoryNames Evaluator-owned top-level directories mounted read-only.
+ * @returns The complete executable wrapper source.
+ */
+const createGitCommandPolicyWrapperSource = (trustedReadOnlyDirectoryNames) =>
+  GIT_COMMAND_POLICY_WRAPPER_SOURCE.replace(
+    TRUSTED_READ_ONLY_DIRECTORY_NAMES_PLACEHOLDER,
+    JSON.stringify(trustedReadOnlyDirectoryNames),
+  );
+
+/**
  * Installs the evaluator-owned Git boundary ahead of the system executable.
  * @param directoryPath The isolated command directory mounted first on actor PATH.
+ * @param options Evaluator-owned read-only directories excluded from the repository entry budget.
  * @returns A promise that resolves to the installed wrapper path.
+ * @throws
+ * - If a trusted read-only directory name is invalid or conflicts with an excluded directory
  */
-export const prepareGitCommandPolicyBoundary = async (directoryPath) => {
+export const prepareGitCommandPolicyBoundary = async (
+  directoryPath,
+  { trustedReadOnlyDirectoryNames = [] } = {},
+) => {
   const wrapperPath = join(directoryPath, 'git');
+  const wrapperSource = createGitCommandPolicyWrapperSource(
+    normalizeTrustedReadOnlyDirectoryNames(trustedReadOnlyDirectoryNames),
+  );
   await mkdir(directoryPath, { recursive: true, mode: 0o700 });
-  await writeFile(wrapperPath, GIT_COMMAND_POLICY_WRAPPER_SOURCE, 'utf8');
+  await writeFile(wrapperPath, wrapperSource, 'utf8');
   await chmod(wrapperPath, 0o755);
   return wrapperPath;
 };

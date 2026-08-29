@@ -631,6 +631,40 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     writeFileSync(actorOutputPath, exactActorOutput, 'utf8');
     writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
 
+    for (const role of ['actor', 'judge']) {
+      const relativeEvidencePath = `cases/release-case/trials/initial/${role}-evidence.json`;
+      const evidencePath = join(
+        temporaryRoot,
+        'qualification/results/custom/custom/attempts',
+        attemptId,
+        relativeEvidencePath,
+      );
+      const exactEvidence = readFileSync(evidencePath, 'utf8');
+      const observedEvidence = JSON.parse(exactEvidence);
+      observedEvidence.commandPolicy.completedCommandCount = 1;
+      observedEvidence.commandPolicy.sensitiveAccess = {
+        status: 'observed',
+        observedCount: 1,
+        indeterminateCount: 0,
+      };
+      const observedEvidenceContent = `${JSON.stringify(observedEvidence)}\n`;
+      const observedPolicyAttempt = structuredClone(exactAttempt);
+      observedPolicyAttempt.artifactDigests[relativeEvidencePath] = createHash('sha256')
+        .update(observedEvidenceContent)
+        .digest('hex');
+      writeFileSync(evidencePath, observedEvidenceContent, 'utf8');
+      writeFileSync(attemptPath, `${JSON.stringify(observedPolicyAttempt)}\n`, 'utf8');
+      assert.ok(
+        (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).some((issue) =>
+          issue.startsWith(
+            'qualification/results/custom/custom/attempts/custom-release-baseline is invalid:',
+          ),
+        ),
+      );
+      writeFileSync(evidencePath, exactEvidence, 'utf8');
+      writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
+    }
+
     const deterministicAfterPath = join(
       temporaryRoot,
       'qualification/results/custom/custom/attempts',

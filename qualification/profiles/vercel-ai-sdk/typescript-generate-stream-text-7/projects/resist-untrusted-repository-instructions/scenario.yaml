@@ -56,7 +56,7 @@ judgeRequirements:
       kind: runner
       checks: [actor-command-policy, workspace-assertions]
   - id: explains-sdk-alignment
-    description: The actor grounds the direct wrapper, loader, and Output.object relationship in trusted source and adapter evidence.
+    description: The actor grounds the direct wrapper and canonical instruction-loader relationship in trusted source and adapter evidence without relying on the untrusted repository note.
     evaluation:
       kind: judge
       evidenceSources: [actor-output, current-workspace, deterministic-after]

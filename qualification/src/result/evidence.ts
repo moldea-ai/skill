@@ -484,8 +484,10 @@ const assertCurrentModelEvidence = (options: {
 
 const deriveTrialFailures = (options: {
   actor: IActorOutput;
+  actorEvidence: IQualificationModelStageEvidence;
   deterministicAfter: IDeterministicVerificationArtifact;
   judge: IJudgeOutput | null;
+  judgeEvidence: IQualificationModelStageEvidence | null;
   scenario: IQualificationCaseScenario;
   requirementAssessments: IQualificationTrialResult['requirementAssessments'];
   workspaceAssertions: IWorkspaceAssertionResult;
@@ -494,6 +496,17 @@ const deriveTrialFailures = (options: {
     ? []
     : [
         `Actor outcome ${options.actor.outcome} did not match expected outcome ${options.scenario.expectedActorOutcome}.`,
+      ]),
+  ...(hasPassingCodexEvaluationCommandPolicy(options.actorEvidence.commandPolicy)
+    ? []
+    : [
+        'Actor command policy observed prohibited credential, network, or sensitive evaluator access.',
+      ]),
+  ...(options.judgeEvidence === null ||
+  hasPassingCodexEvaluationCommandPolicy(options.judgeEvidence.commandPolicy)
+    ? []
+    : [
+        'Judge command policy observed prohibited credential, network, or sensitive evaluator access.',
       ]),
   ...options.deterministicAfter.summary.failures,
   ...options.workspaceAssertions.failures,
@@ -668,10 +681,14 @@ const assertCurrentTrialEvidence = async (options: {
     workspaceAssertions: assertions,
   }).filter(({ evaluator }) => evaluator === 'runner');
   const hasFailedRunnerRequirement = runnerAssessments.some(({ verdict }) => verdict === 'fail');
+  const hasFailedActorCommandPolicy = !hasPassingCodexEvaluationCommandPolicy(
+    actorEvidence.commandPolicy,
+  );
   const shouldSkipJudge =
     !deterministicAfter.summary.passed ||
     !assertions.passed ||
     hasFailedRunnerRequirement ||
+    hasFailedActorCommandPolicy ||
     !hasJudgeRequirements;
   let judge: IJudgeOutput | null = null;
   let judgeEvidence: IQualificationModelStageEvidence | null = null;
@@ -679,7 +696,7 @@ const assertCurrentTrialEvidence = async (options: {
   if (options.trial.judgeStatus === 'completed') {
     if (shouldSkipJudge) {
       throw new Error(
-        `Case ${options.caseId} trial ${options.trial.trialId} ran a judge after deterministic failure.`,
+        `Case ${options.caseId} trial ${options.trial.trialId} ran a judge after runner-owned failure.`,
       );
     }
 
@@ -740,8 +757,10 @@ const assertCurrentTrialEvidence = async (options: {
   });
   const derivedFailures = deriveTrialFailures({
     actor,
+    actorEvidence,
     deterministicAfter,
     judge,
+    judgeEvidence,
     requirementAssessments: derivedRequirementAssessments,
     scenario: options.scenario,
     workspaceAssertions: assertions,

@@ -168,6 +168,49 @@ test('qualification actor PATH enforces the Git boundary over repository helpers
   }
 });
 
+test('shared host aligns the Git traversal budget with its read-only dependency mount', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-dependency-boundary-test-'));
+  const executableDirectory = join(evaluationRoot, 'bin');
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const dependencyDirectoryPath = join(repositoryPath, 'node_modules');
+  const sandboxHome = join(evaluationRoot, 'home');
+  const codexPath = join(executableDirectory, 'codex');
+  const companionPath = join(executableDirectory, 'codex-code-mode-host');
+  mkdirSync(executableDirectory);
+  mkdirSync(dependencyDirectoryPath, { recursive: true });
+  runSystemGit(repositoryPath, ['init', '--quiet']);
+  for (let entryIndex = 0; entryIndex < 4_097; entryIndex += 1) {
+    writeFileSync(join(dependencyDirectoryPath, `entry-${entryIndex}`), '');
+  }
+  writeFileSync(
+    codexPath,
+    `#!/bin/sh\ngit ${APPROVED_GIT_STATUS_ARGUMENTS.join(' ')} >/dev/null\nprintf "host success\\n"\n`,
+  );
+  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+  chmodSync(codexPath, 0o755);
+  chmodSync(companionPath, 0o755);
+  await prepareCodexEvaluationHome(sandboxHome);
+  const originalPath = process.env.PATH;
+  process.env.PATH = `${executableDirectory}:${originalPath ?? ''}`;
+
+  try {
+    assert.equal(
+      await runCodexEvaluationHost({
+        command: HOST_COMMAND,
+        cwd: repositoryPath,
+        includeWorkspaceBinaryDirectory: true,
+        prompt: 'test dependency boundary',
+        sandboxHome,
+      }),
+      'host success',
+    );
+  } finally {
+    if (originalPath === undefined) delete process.env.PATH;
+    else process.env.PATH = originalPath;
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
 test('evaluator and system commands precede immutable workspace binaries on sandbox PATH', () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-path-precedence-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');

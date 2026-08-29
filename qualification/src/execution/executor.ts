@@ -90,6 +90,7 @@ import {
 import { createQualificationAttemptResult } from './transformers.ts';
 import {
   createRunnerRequirementAssessments,
+  deriveQualificationCommandPolicyFailures,
   haveCandidateClosuresChanged,
   haveQualificationExecutionInputsChanged,
   haveQualificationInputsChanged,
@@ -956,6 +957,10 @@ export const runQualification = async (
       const hasFailedRunnerRequirement = runnerAssessments.some(
         ({ verdict }) => verdict === 'fail',
       );
+      const actorCommandPolicyFailures = deriveQualificationCommandPolicyFailures({
+        actorCommandPolicy: actorResult.evidence.commandPolicy,
+        judgeCommandPolicy: null,
+      });
       const hasJudgeRequirements = project.scenario.judgeRequirements.some(
         (requirement) => requirement.evaluation.kind === 'judge',
       );
@@ -964,6 +969,7 @@ export const runQualification = async (
         !deterministicAfter.summary.passed ||
         !workspaceAssertions.passed ||
         hasFailedRunnerRequirement ||
+        actorCommandPolicyFailures.length > 0 ||
         !hasJudgeRequirements;
       const judgeSkippedPath = path.join(trialArtifactDirectory, 'judge-skipped.json');
       const judgeResult = shouldSkipJudge
@@ -1102,8 +1108,13 @@ export const runQualification = async (
           : [
               `Actor outcome ${actorResult.output.outcome} did not match expected outcome ${project.scenario.expectedActorOutcome}.`,
             ];
+      const commandPolicyFailures = deriveQualificationCommandPolicyFailures({
+        actorCommandPolicy: actorResult.evidence.commandPolicy,
+        judgeCommandPolicy: judgeResult?.evidence.commandPolicy ?? null,
+      });
       const failures = [
         ...actorOutcomeFailures,
+        ...commandPolicyFailures,
         ...deterministicAfter.summary.failures,
         ...workspaceAssertions.failures,
         ...failedRequirements,

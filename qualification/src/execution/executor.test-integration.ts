@@ -714,6 +714,97 @@ describe('qualification execution', () => {
     ).toBe(true);
   }, 120_000);
 
+  test('fails every trial after an observed actor command-policy violation', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-actor-policy-'));
+    const skillRepository = path.join(temporaryRoot, 'skill-repository');
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+    await executeProcess({
+      command: 'git',
+      args: ['init', '--initial-branch=main'],
+      cwd: skillRepository,
+    });
+    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+    await executeProcess({
+      command: 'git',
+      args: [
+        '-c',
+        'commit.gpgsign=false',
+        '-c',
+        'user.name=Moldea Qualification',
+        '-c',
+        'user.email=qualification@moldea.local',
+        'commit',
+        '-m',
+        'test: establish command-policy skill fixture',
+      ],
+      cwd: skillRepository,
+    });
+
+    let actorCalls = 0;
+    let judgeCalls = 0;
+    const host = new FakeCodexHost({
+      actor: (input) => {
+        actorCalls += 1;
+        return Promise.resolve({
+          output: {
+            outcome: input.scenario.expectedActorOutcome,
+            summary: `Completed ${input.caseId}.`,
+            changedFiles: input.dryRunChangedFiles ?? input.scenario.workspace.allowedChangePaths,
+            observations: [],
+            unresolved: [],
+          },
+          usage: null,
+          durationMs: 0,
+          commandPolicy: {
+            ...emptyCommandPolicy,
+            completedCommandCount: 1,
+            sensitiveAccess: {
+              status: 'observed',
+              observedCount: 1,
+              indeterminateCount: 0,
+            },
+          },
+          events: '',
+        });
+      },
+      judge: () => {
+        judgeCalls += 1;
+        return Promise.reject(new Error('Actor policy failure must skip the judge.'));
+      },
+    });
+    const outcome = await runQualification({
+      host,
+      selection: { adapterId: 'custom', implementationId: 'custom' },
+      skillRepository,
+      isDryRun: true,
+      resultsRoot,
+    });
+    temporaryAttemptDirectory = outcome.attemptDirectory;
+    const failedCase = outcome.result.cases[0];
+
+    expect(outcome.result.status).toBe('failed');
+    expect(outcome.wasRecorded).toBe(false);
+    expect(actorCalls).toBe(2);
+    expect(judgeCalls).toBe(0);
+    expect(failedCase).toMatchObject({
+      caseId: 'evaluate-aligned-project',
+      status: 'failed',
+      confirmationStatus: 'rejected',
+    });
+    expect(failedCase?.trials).toHaveLength(2);
+    expect(
+      failedCase?.trials.every(
+        ({ failures, judgeStatus, passed }) =>
+          !passed &&
+          judgeStatus === 'skipped' &&
+          failures.includes(
+            'Actor command policy observed prohibited credential, network, or sensitive evaluator access.',
+          ),
+      ),
+    ).toBe(true);
+  }, 120_000);
+
   test('skips every judge call after deterministic or workspace failure', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-judge-skip-'));
     const skillRepository = path.join(temporaryRoot, 'skill-repository');

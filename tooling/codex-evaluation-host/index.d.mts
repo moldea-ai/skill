@@ -158,7 +158,12 @@ export const projectCodexEvaluationExecutionEvidence: (
 export const hasPassingCodexEvaluationCommandPolicy: (
   evidence: ICodexEvaluationCommandPolicyEvidence,
 ) => boolean;
-export const prepareGitCommandPolicyBoundary: (directoryPath: string) => Promise<string>;
+export const prepareGitCommandPolicyBoundary: (
+  directoryPath: string,
+  options?: {
+    trustedReadOnlyDirectoryNames?: readonly string[];
+  },
+) => Promise<string>;
 export const runCodexEvaluationOperationalStage: <T>(options: {
   initialFailureCount?: number;
   maximumRetryCount?: number;

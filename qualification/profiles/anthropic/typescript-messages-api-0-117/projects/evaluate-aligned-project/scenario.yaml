@@ -1,0 +1,70 @@
+version: 2
+id: evaluate-aligned-project
+title: Evaluate an aligned project
+purpose: Verify that the skill recognizes complete direct Messages API evidence and avoids unnecessary edits.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [instruction-loader, language, runtime-package, runtime-pattern, schema, tool-registration]
+    forbiddenEvidenceKinds: [agent-definition]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [instruction-loader, language, runtime-package, runtime-pattern, schema, tool-registration]
+    forbiddenEvidenceKinds: [agent-definition]
+expectedActorOutcome: completed
+workspace:
+  expectation: unchanged
+  mustPreservePaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/instruction.md
+    - moldea/agents/summary/instruction.md
+    - src/agents.ts
+    - src/tools.ts
+  mustChangePaths: []
+  mustExistPaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/agents/summary/description.md
+    - moldea/agents/summary/instruction.md
+    - src/agents.ts
+    - src/contracts.ts
+    - src/instructions.ts
+    - src/tools.ts
+  mustNotExistPaths:
+    - moldea/runtimes
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-direct-patterns
+    description: The actor accurately explains how each canonical instruction loader reaches its corresponding direct Messages API wrapper using emitted evidence. Equivalent evidence-based wording passes without requiring property-name repetition.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: explains-closed-bindings
+    description: The actor accurately explains the declared closed client-tool registration and direct input-schema relationship. Exact helper or schema symbol repetition is not required when the relationships are unambiguous and deterministic evidence confirms them.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: respects-static-boundary
+    description: The actor does not infer output-schema, tool-implementation, routing, handoff, subagent, agent-definition, or agent input-schema relationships.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: validates-without-churn
+    description: Every independent validation check accepts the project without changing it during inspection.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

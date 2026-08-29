@@ -1,0 +1,27 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: anthropic
+    bindings:
+      runtimeAgent:
+        path: /src/agent.ts
+        symbol: supportAgent
+      instructionLoader:
+        path: /src/agent.ts
+        symbol: loadSupportInstruction
+    tools:
+      lookup-order:
+        name: find_order
+        description: Looks up one order by identifier.
+        implementation:
+          path: /src/implementations.ts
+          symbol: lookupOrder
+        registration:
+          path: /src/tools.ts
+          symbol: lookupOrderTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: LookupOrderInputSchema
+    affectedBy:
+      - /src/**

@@ -21,6 +21,18 @@ test('represents the current qualification evidence state', async ({ page }) => 
     customProfileLink.getByText('Attempts', { exact: true }).locator('..'),
   ).toContainText('4');
 
+  const anthropicProfileLink = page.getByRole('link', {
+    name: /Anthropic Messages API qualification/,
+  });
+  await expect(
+    anthropicProfileLink.locator('[data-evidence-status][data-evidence-status="not-recorded"]'),
+  ).toBeVisible();
+  const anthropicCompanyLogo = anthropicProfileLink.getByAltText('Anthropic company logo');
+  await expect(anthropicCompanyLogo).toBeVisible();
+  await expect(
+    anthropicProfileLink.getByText('Attempts', { exact: true }).locator('..'),
+  ).toContainText('0');
+
   const vercelProfileLink = page.getByRole('link', {
     name: /Vercel AI SDK direct generation qualification/,
   });
@@ -55,12 +67,35 @@ test('represents the current qualification evidence state', async ({ page }) => 
       ),
     )
     .toBe(true);
+  await expect
+    .poll(() =>
+      anthropicCompanyLogo.evaluate(
+        (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+      ),
+    )
+    .toBe(true);
 
   await page.getByRole('button', { name: 'Use dark theme' }).click();
   await expect(page.locator('html')).toHaveClass(/dark/);
   expect(
     await vercelCompanyLogos.first().evaluate((element) => getComputedStyle(element).filter),
   ).not.toBe('none');
+  expect(await anthropicCompanyLogo.evaluate((element) => getComputedStyle(element).filter)).toBe(
+    'none',
+  );
+});
+
+test('presents the transparent Anthropic profile before an attempt is recorded', async ({
+  page,
+}) => {
+  await page.goto(toPublicPath('/evidence/qualification/anthropic/typescript-messages-api-0-117/'));
+  await expect(
+    page.getByRole('heading', { level: 1, name: 'Anthropic Messages API qualification' }),
+  ).toBeVisible();
+  await expect(page.getByRole('heading', { name: '10 realistic journeys' })).toBeVisible();
+  await expect(page.locator('[data-evidence-status="not-recorded"]').first()).toBeVisible();
+  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toBeVisible();
+  await expect(page.getByRole('link', { name: /^Inspect the .* attempt$/u })).toHaveCount(0);
 });
 
 test('presents the recorded Custom and Vercel results', async ({ page }) => {
@@ -178,6 +213,9 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
     });
     const page = await context.newPage();
     const profileRoute = toPublicPath('/evidence/qualification/custom/custom/');
+    const anthropicProfileRoute = toPublicPath(
+      '/evidence/qualification/anthropic/typescript-messages-api-0-117/',
+    );
     const vercelProfileRoute = toPublicPath(
       '/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/',
     );
@@ -187,6 +225,7 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
     const routes = [
       toPublicPath('/evidence/qualification/'),
       profileRoute,
+      anthropicProfileRoute,
       vercelProfileRoute,
       toolLoopProfileRoute,
     ];

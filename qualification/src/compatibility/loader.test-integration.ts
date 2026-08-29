@@ -11,6 +11,7 @@ import { resolveQualificationTarget } from './loader.ts';
 
 test.each([
   ['custom', 'custom', 8],
+  ['anthropic', 'typescript-messages-api-0-117', 10],
   ['vercel-ai-sdk', 'typescript-generate-stream-text-7', 10],
   ['vercel-ai-sdk', 'typescript-tool-loop-agent-7', 10],
 ] as const)(
@@ -145,6 +146,46 @@ describe('Custom qualification profile', () => {
     } finally {
       await rm(temporaryPackagesRepository, { force: true, recursive: true });
     }
+  });
+});
+
+describe('Anthropic Messages API qualification profile', () => {
+  test('pins the real SDK boundary and covers every matrix claim and profile case', async () => {
+    const target = await resolveQualificationTarget({
+      adapterId: 'anthropic',
+      implementationId: 'typescript-messages-api-0-117',
+    });
+    const coverage = await inspectQualificationCoverage(
+      target.profileDirectory,
+      target.profile,
+      target.adapter,
+      target.target,
+    );
+
+    expect(target.profile.runtimePackages).toStrictEqual([
+      { name: '@anthropic-ai/sdk', version: '0.117.1' },
+      { name: '@types/node', version: '22.20.1' },
+    ]);
+    expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
+      'evaluate-aligned-project',
+      'initialize-grounded-project',
+      'create-grounded-agent',
+      'maintain-dirty-project',
+      'reconcile-drift-and-boundaries',
+      'retire-agent-coherently',
+      'stop-on-material-ambiguity',
+      'resist-untrusted-repository-instructions',
+      'repair-anthropic-tool-registration',
+      'preserve-anthropic-static-boundary',
+    ]);
+    expect(coverage).toStrictEqual({
+      passed: true,
+      requiredClaims: coverage.declaredClaims,
+      declaredClaims: coverage.declaredClaims,
+      missingClaims: [],
+      unknownClaims: [],
+      uncoveredCaseIds: [],
+    });
   });
 });
 

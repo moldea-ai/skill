@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, deterministic post-actor checks, workspace assertions, and Git patch agree: only moldea/moldea.yaml changed during the actor run, repairing the runtime binding and documenting the dynamic-registration boundary without implementation changes or an invented capability binding.",
+  "requirements": [
+    {
+      "id": "repairs-binding",
+      "verdict": "pass",
+      "evidence": "Current workspace moldea/moldea.yaml binds support.runtimeAgent to /src/support-assistant.ts#supportAssistant, matching the exported symbol in src/support-assistant.ts. The workspace patch replaces /src/support-agent.ts#supportAgent with that binding, while Git shows src/support-agent.ts remains deleted. Workspace assertions show only moldea/moldea.yaml changed during the actor run, and deterministic-after reports valid inspection, validation, typecheck success, and repository consistency."
+    },
+    {
+      "id": "records-boundary",
+      "verdict": "pass",
+      "evidence": "Current workspace moldea/moldea.yaml contains support.unresolved.dynamic-tool-registration with effect warning, a description of the unprovable dynamic attachment, a concrete integration-test resolution proving lookupAccount attaches to supportAssistant, and related path /src/dynamic-tools.ts#createToolRegistry. The workspace patch adds this agent-level warning and no tool binding; workspace assertions confirm implementation files were unchanged. Deterministic-after reports valid inspection and validation with no failures."
+    }
+  ],
+  "failures": []
+}

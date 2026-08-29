@@ -1,0 +1,21 @@
+{
+  "outcome": "completed",
+  "summary": "Retired all canonical support-agent declarations while preserving project context and the pre-existing `src/support-agent.ts` deletion. The exact local Moldea 5.0.0 inspection is valid with no diagnostics and reports zero agents and runtimes; TypeScript validation also passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The pre-existing Git diff showed `src/support-agent.ts` intentionally deleted; its former implementation exported only `supportAgent`.",
+    "`moldea/project.md` independently states that the former email support agent was removed from runtime implementation.",
+    "The obsolete manifest entry bound `support` to the missing `/src/support-agent.ts` and referenced `/moldea/runtimes/custom.md`; pre-change inspection reported `MOLDEA_REFERENCE_MISSING`.",
+    "The deleted description, instruction, and runtime guidance exclusively claimed support-agent behavior or integration.",
+    "Final diffs were inspected path-by-path. `<workspace>/node_modules/.bin/moldea inspect --json` returned schema 2, CLI 5.0.0, status `valid`, and no diagnostics. `tsc --project <workspace>/tsconfig.json` exited successfully.",
+    "The unrelated pre-existing deletion of `src/support-agent.ts` and remaining project implementation/context were preserved."
+  ],
+  "unresolved": [
+    "`git diff --check` was unavailable because the evaluator rejected that command shape; deterministic Moldea inspection, TypeScript validation, hardened Git status, and path-by-path diff inspection completed successfully."
+  ]
+}

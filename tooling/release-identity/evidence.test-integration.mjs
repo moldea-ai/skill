@@ -430,6 +430,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       artifactDirectory: qualificationArtifacts,
       attemptId,
       hasOperationalRetry: true,
+      hasSkippedInitialJudge: true,
       isRecovered: true,
       packages: createRecordedQualificationPackages(PUBLISHED_MOLDEA_MANIFESTS),
       packagesRepositoryCommit: packagesState.commit,
@@ -440,6 +441,11 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       ),
       targetDigest: calculateCompatibilityBehaviorDigest({ adapter, target }),
     });
+    const skippedInitialJudgeStage = passingFixture.stages.find(
+      ({ id }) => id === 'case:release-case:trial:initial:judge',
+    );
+    assert.ok(skippedInitialJudgeStage);
+    skippedInitialJudgeStage.durationMs = 2;
     const qualificationDigest = await calculateQualificationDigest([
       {
         pathPrefix: 'qualification',
@@ -632,7 +638,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
 
     for (const role of ['actor', 'judge']) {
-      const relativeEvidencePath = `cases/release-case/trials/initial/${role}-evidence.json`;
+      const relativeEvidencePath = `cases/release-case/trials/confirmation-1/${role}-evidence.json`;
       const evidencePath = join(
         temporaryRoot,
         'qualification/results/custom/custom/attempts',
@@ -876,7 +882,8 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       .update(externalBaselineContent)
       .digest('hex');
     for (const trialId of ['initial', 'confirmation-1', 'confirmation-2']) {
-      for (const role of ['actor', 'judge']) {
+      const roles = trialId === 'initial' ? ['actor'] : ['actor', 'judge'];
+      for (const role of roles) {
         const relativeEvidencePath = `cases/release-case/trials/${trialId}/${role}-evidence.json`;
         const evidencePath = join(externalAttemptDirectory, relativeEvidencePath);
         const evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));

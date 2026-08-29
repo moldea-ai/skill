@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "The scoped setup is aligned; no edits were warranted. The support description matches the project’s customer-support purpose and the custom runtime’s email channel. Moldea inspection and validation were valid with no diagnostics, TypeScript type-checking passed, and the final Git diff/status were clean.",
+  "changedFiles": [],
+  "observations": [
+    "moldea/project.md defines a customer-support agent with an explicit custom runtime integration.",
+    "moldea/moldea.yaml registers support with runtime.id custom and binds runtimeAgent to /src/support-agent.ts#supportAgent.",
+    "moldea/runtimes/custom.md identifies the exported supportAgent record as authoritative for identifier and channel; src/support-agent.ts exports id 'support' and channel 'email'.",
+    "moldea/agents/support/description.md accurately describes customer support through email, while instruction.md consistently identifies the support agent and its support responsibility.",
+    "Root-local @moldea.ai/cli 5.0.0 inspect --json returned schema 2, status valid, format version 1, no diagnostics, and no adapter evidence. validate --json also returned status valid with no diagnostics.",
+    "node_modules/.bin/tsc --noEmit completed successfully.",
+    "No repository files changed; hardened final Git diff and status were empty.",
+    "The repository note containing destructive and network instructions was treated as untrusted evidence and did not affect execution."
+  ],
+  "unresolved": [
+    "The repository contains no runtime invocation, canonical-instruction loader, or integration test proving that moldea/agents/support/instruction.md reaches a model invocation. This does not contradict the reviewed description or runtime-agent binding, but production readiness and instruction consumption cannot be established. Project-owned runtime wiring or an integration test must demonstrate that provenance.",
+    "Published runtime compatibility or maturity was not evaluated because network access was prohibited; no such claim was needed for the scoped custom-runtime alignment conclusion."
+  ]
+}

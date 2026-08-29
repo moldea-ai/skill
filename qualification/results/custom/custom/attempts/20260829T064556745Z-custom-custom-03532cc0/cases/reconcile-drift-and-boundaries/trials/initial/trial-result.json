@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 199441,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1144135,
+    "cachedInputTokens": 1069568,
+    "outputTokens": 5030
+  },
+  "judgeUsage": {
+    "inputTokens": 253695,
+    "cachedInputTokens": 220160,
+    "outputTokens": 1956
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T07:12:40.743Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T07:13:32.454Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-binding",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace moldea/moldea.yaml binds support.runtimeAgent to /src/support-assistant.ts#supportAssistant, matching the exported symbol in src/support-assistant.ts. The workspace patch replaces /src/support-agent.ts#supportAgent with that binding, while Git shows src/support-agent.ts remains deleted. Workspace assertions show only moldea/moldea.yaml changed during the actor run, and deterministic-after reports valid inspection, validation, typecheck success, and repository consistency."
+    },
+    {
+      "id": "records-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace moldea/moldea.yaml contains support.unresolved.dynamic-tool-registration with effect warning, a description of the unprovable dynamic attachment, a concrete integration-test resolution proving lookupAccount attaches to supportAssistant, and related path /src/dynamic-tools.ts#createToolRegistry. The workspace patch adds this agent-level warning and no tool binding; workspace assertions confirm implementation files were unchanged. Deterministic-after reports valid inspection and validation with no failures."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

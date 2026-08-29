@@ -584,6 +584,26 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
           `case:${caseId}:trial:${trial.trialId}:deterministic-after`,
         );
         const assertionsStage = stages.get(`case:${caseId}:trial:${trial.trialId}:assertions`);
+        const runnerRequirementAssessments = deriveQualificationRequirementAssessments(
+          actor,
+          actorEvidence,
+          deterministicAfter,
+          assertions,
+          null,
+          scenario,
+        ).filter(({ evaluator }) => evaluator === 'runner');
+        const hasFailedRunnerRequirement = runnerRequirementAssessments.some(
+          ({ verdict }) => verdict === 'fail',
+        );
+        const hasFailedActorCommandPolicy = !hasPassingCodexEvaluationCommandPolicy(
+          actorEvidence.commandPolicy,
+        );
+        const shouldSkipJudge =
+          !deterministicAfter.summary.passed ||
+          !assertions.passed ||
+          hasFailedRunnerRequirement ||
+          hasFailedActorCommandPolicy ||
+          !hasJudgeRequirements;
         const derivedRequirementAssessments = deriveQualificationRequirementAssessments(
           actor,
           actorEvidence,
@@ -617,12 +637,14 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
           hasValidModelEvidence(attempt, trial, 'actor', actorStage, actorEvidence) &&
           (judge === null
             ? judgeSkipped !== null &&
-              !hasJudgeRequirements &&
-              judgeSkipped.kind === 'no-judge-requirements' &&
+              shouldSkipJudge &&
+              judgeSkipped.kind ===
+                (!hasJudgeRequirements ? 'no-judge-requirements' : 'deterministic-failure') &&
               judgeSkipped.deterministicAfterPassed === deterministicAfter.summary.passed &&
               judgeSkipped.workspaceAssertionsPassed === assertions.passed &&
               judgeStage?.status === 'skipped'
-            : judgeEvidence !== null &&
+            : !shouldSkipJudge &&
+              judgeEvidence !== null &&
               hasValidJudgeEvidence(judge, scenario) &&
               hasValidModelEvidence(attempt, trial, 'judge', judgeStage, judgeEvidence)) &&
           JSON.stringify(trial.requirementAssessments) ===
@@ -677,8 +699,8 @@ const hasCompletePassingQualificationStages = (attempt, caseIds) => {
     (stage.status === 'cached'
       ? stage.cacheSourceAttemptId !== null && stage.operationalRetries.length === 0
       : stage.cacheSourceAttemptId === null);
-  const hasValidSkippedState = (stage) =>
-    hasValidNonModelState(stage, ['skipped']) && stage.durationMs === 0 && stage.error === null;
+  const hasValidSkippedState = (stage) => hasValidNonModelState(stage, ['skipped']);
+  const hasValidUnexecutedState = (stage) => hasValidSkippedState(stage) && stage.durationMs === 0;
   const controlsPass = ['source-state', 'coverage', 'candidate', 'baseline'].every((stageId) =>
     hasValidNonModelState(stages.get(stageId), ['passed']),
   );
@@ -697,7 +719,9 @@ const hasCompletePassingQualificationStages = (attempt, caseIds) => {
             'deterministic-after',
             'assertions',
             'judge',
-          ].every((stageName) => hasValidSkippedState(stages.get(`${stagePrefix}:${stageName}`)));
+          ].every((stageName) =>
+            hasValidUnexecutedState(stages.get(`${stagePrefix}:${stageName}`)),
+          );
         }
 
         const actor = stages.get(`${stagePrefix}:actor`);

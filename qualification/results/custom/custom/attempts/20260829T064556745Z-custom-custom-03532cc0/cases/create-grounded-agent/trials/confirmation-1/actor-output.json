@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Created the order-triage agent and registered it with the custom runtime. Canonical inspection passed using Moldea CLI 5.0.0 with no diagnostics, and the complete TypeScript project passed `tsc --project tsconfig.json`. Final Git status and diff were reviewed; unrelated files were preserved.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The agent classifies orders for human review and is explicitly prohibited from approving refunds or performing financial mutations.",
+    "The manifest binds the runtime agent to `createOrderTriageAgent` in `/src/order-triage-agent.ts` and records that exact source as affected.",
+    "Runtime guidance documents canonical instruction loading and conservatively records that no provider integration, tools, executable schemas, or repository-local loader implementation are established.",
+    "Canonical state changed and validates successfully with format version 1."
+  ],
+  "unresolved": []
+}

@@ -1,0 +1,164 @@
+version: 2
+adapterId: cloudflare-agents
+implementationId: typescript-think-0-16-ai-sdk-7
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The published adapter and exact Think runtime composition exercise the compatible Core range.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: The boundary case records Cloudflare deployment and dynamic-runtime behavior outside static inspection.
+    coveredBy: [evaluate-aligned-project, preserve-cloudflare-think-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes all universal journeys and two Think-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-cloudflare-think-tool-registration,
+        preserve-cloudflare-think-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare the exact published npm runtime packages and inspect project-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Supported Think sources are strict TypeScript ESM and typecheck with the exact project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: think-package
+    kind: compatibility
+    matrixPath: target.package.npm.@cloudflare/think.primary.>=0.16.0 <0.17.0
+    description: Every fixture pins the verified Think package.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, preserve-cloudflare-think-static-boundary]
+  - id: agents-package
+    kind: compatibility
+    matrixPath: target.package.npm.agents.companion.>=0.21.0 <0.22.0
+    description: Every fixture pins the Agents companion used by agentTool handoffs.
+    coveredBy: [evaluate-aligned-project, preserve-cloudflare-think-static-boundary]
+  - id: ai-package
+    kind: compatibility
+    matrixPath: target.package.npm.ai.companion.>=7.0.0 <8.0.0
+    description: Every fixture pins the AI SDK companion used by normal function tools.
+    coveredBy: [evaluate-aligned-project, repair-cloudflare-think-tool-registration]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Directly exported Think class symbols are bound, repaired after drift, and retained across subordinate boundaries.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        reconcile-drift-and-boundaries,
+        preserve-cloudflare-think-static-boundary,
+      ]
+  - id: instruction-loader-binding
+    kind: binding-support
+    matrixPath: target.binding-support.instruction-loader
+    description: Direct loaders returned by getSystemPrompt bind exact source symbols.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: tool-implementation-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-implementation
+    description: AI SDK function-tool execution binds a repository-local implementation without invoking it.
+    coveredBy: [evaluate-aligned-project, repair-cloudflare-think-tool-registration]
+  - id: tool-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-registration
+    description: Closed getTools map registration is validated and repaired from a concrete map-key mismatch.
+    coveredBy: [evaluate-aligned-project, repair-cloudflare-think-tool-registration]
+  - id: tool-input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-input-schema
+    description: Direct AI SDK tool input schemas remain visible through closed registrations.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: tool-output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-output-schema
+    description: Direct AI SDK tool output schemas remain visible through closed registrations.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: agent-definition-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.agent-definition
+    description: Directly exported Think classes emit normalized agent-definition evidence.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, preserve-cloudflare-think-static-boundary]
+  - id: handoff-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.handoff-registration
+    description: A closed agentTool entry with exact routing text emits a handoff relationship.
+    coveredBy: [evaluate-aligned-project]
+  - id: instruction-loader-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.instruction-loader
+    description: Closed getSystemPrompt methods emit instruction-loader evidence through exact source symbols.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct definitions emit TypeScript language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct definitions emit supported Think package evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Function-tool input and output bindings emit normalized schema evidence.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-cloudflare-think-tool-registration]
+  - id: tool-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.tool-registration
+    description: Correct closed tool maps emit tool-registration evidence after map-key reconciliation.
+    coveredBy: [evaluate-aligned-project, repair-cloudflare-think-tool-registration]
+  - id: directly-exported-think-class
+    kind: pattern
+    matrixPath: target.pattern.directly-exported-think-class
+    description: A directly exported class extending an exact named Think import is recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: think-instruction-methods
+    kind: pattern
+    matrixPath: target.pattern.think-instruction-methods
+    description: Direct loader calls returned by closed getSystemPrompt methods establish instruction relationships.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: closed-think-tools-map
+    kind: pattern
+    matrixPath: target.pattern.closed-think-tools-map
+    description: AI SDK function tools and agentTool helpers are active through closed getTools maps.
+    coveredBy: [evaluate-aligned-project, repair-cloudflare-think-tool-registration]
+  - id: class-shape-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.d63c30f2f286abe8
+    description: The boundary case preserves an initialization-sensitive Think subclass without claiming it as a supported runtime agent.
+    coveredBy: [preserve-cloudflare-think-static-boundary]
+  - id: dynamic-runtime-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.ae402c8eb4b4025e
+    description: Dynamic session and open tool-map behavior remains outside canonical static relationships.
+    coveredBy: [reconcile-drift-and-boundaries, preserve-cloudflare-think-static-boundary]
+  - id: agent-schema-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.9f8d0b33906d6c25
+    description: The profile never invents agent input or output schema bindings for Think classes.
+    coveredBy: [evaluate-aligned-project, preserve-cloudflare-think-static-boundary]

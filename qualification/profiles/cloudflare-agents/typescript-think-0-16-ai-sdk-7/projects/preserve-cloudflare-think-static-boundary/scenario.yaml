@@ -1,0 +1,97 @@
+version: 2
+id: preserve-cloudflare-think-static-boundary
+title: Preserve the Cloudflare Think static boundary
+purpose: Verify conservative handling of dynamic Think relationships and initialization-sensitive classes.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [agent-definition, instruction-loader, language, runtime-package, schema, tool-registration]
+    forbiddenEvidenceKinds: [runtime-pattern]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [agent-definition, instruction-loader, language, runtime-package, schema, tool-registration]
+    forbiddenEvidenceKinds: [runtime-pattern]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      src/support-agent.ts,
+      src/step-support-agent.ts,
+      src/delegating-agent.ts,
+      src/contracts.ts,
+      src/instructions.ts,
+      src/implementations.ts,
+      src/status-tools.ts,
+      src/delegation.ts,
+      src/delegation-tool.ts,
+      src/workflow-agent.mts,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      moldea/agents/step-support/description.md,
+      moldea/agents/step-support/instruction.md,
+      moldea/agents/delegating-support/description.md,
+      moldea/agents/delegating-support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    [
+      src/support-agent.ts,
+      src/step-support-agent.ts,
+      src/delegating-agent.ts,
+      src/delegation.ts,
+      src/workflow-agent.mts,
+      moldea/moldea.yaml,
+    ]
+  mustNotExistPaths: []
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: [moldea/runtimes/**/*.md]
+  mustChangePathPatterns: [moldea/runtimes/**/*.md]
+judgeRequirements:
+  - id: preserves-open-tool-boundary
+    description: For SupportAgent, the actor preserves the proved class and instruction loader while recording the open getTools map as unresolved instead of binding a partial tool set.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-dynamic-session-boundary
+    description: For StepSupportAgent, the actor preserves the direct class without inventing an instruction-loader relationship from helper-built configureSession behavior.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: does-not-infer-subagent-handoff
+    description: The actor preserves the delegate_support function tool and its direct bindings without adding a handoff or routing relationship from ordinary function-tool delegation.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: keeps-initialized-class-outside-target
+    description: The actor preserves RuntimeInitializedAgent as source but does not register its initialization-sensitive class shape as a supported Think target.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: records-focused-guidance
+    description: Both boundary agents reference the sole new runtime-guidance file under /moldea/runtimes/**/*.md, which covers the static alternatives plus Cloudflare bindings, Durable Object migrations, and deployment configuration.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
+  - id: records-unresolved-boundaries
+    description: Focused unresolved warnings distinguish the open tool map from helper-built session configuration and name the relevant source paths and resolutions.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: validates-project
+    description: Every deterministic layer accepts the project, relationship-local evidence remains exact, and every source and agent instruction file remains unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

@@ -110,3 +110,13 @@ cases:
     layer: adapter-specific
     description: Represent middleware and unsupported LangChain relationship shapes without claiming evidence that the adapter cannot prove.
     challenge: Tests conservative handling of non-empty middleware, multiple response formats, state and context schemas, headless tools, LangGraph, and routing non-inference.
+  - id: repair-cloudflare-think-tool-registration
+    title: Repair Cloudflare Think tool registration
+    layer: adapter-specific
+    description: Reconcile a declared tool name with a closed Think getTools map using exact adapter diagnostics and source evidence.
+    challenge: Requires correcting canonical identity without changing valid Think, implementation, or schema wiring.
+  - id: preserve-cloudflare-think-static-boundary
+    title: Preserve the Cloudflare Think static boundary
+    layer: adapter-specific
+    description: Represent dynamic Think session and tool relationships without claiming evidence that the adapter cannot prove.
+    challenge: Tests conservative handling of open tool maps, helper-built sessions, initialization-sensitive classes, and Cloudflare deployment behavior.

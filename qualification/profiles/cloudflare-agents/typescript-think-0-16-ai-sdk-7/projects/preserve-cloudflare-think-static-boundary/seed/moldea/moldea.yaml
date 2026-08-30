@@ -1,0 +1,51 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: cloudflare-agents
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.ts
+        symbol: SupportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadSupportInstruction
+    affectedBy:
+      - /src/**
+  step-support:
+    runtime:
+      id: cloudflare-agents
+    bindings:
+      runtimeAgent:
+        path: /src/step-support-agent.ts
+        symbol: StepSupportAgent
+    affectedBy:
+      - /src/**
+  delegating-support:
+    runtime:
+      id: cloudflare-agents
+    bindings:
+      runtimeAgent:
+        path: /src/delegating-agent.ts
+        symbol: DelegatingSupportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadDelegatingSupportInstruction
+    tools:
+      delegate-support:
+        name: delegate_support
+        description: Delegates one focused support question to another agent.
+        implementation:
+          path: /src/delegation.ts
+          symbol: delegateSupport
+        registration:
+          path: /src/delegation-tool.ts
+          symbol: delegateSupportTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: DelegateSupportInputSchema
+        outputSchema:
+          path: /src/contracts.ts
+          symbol: DelegateSupportOutputSchema
+    affectedBy:
+      - /src/**

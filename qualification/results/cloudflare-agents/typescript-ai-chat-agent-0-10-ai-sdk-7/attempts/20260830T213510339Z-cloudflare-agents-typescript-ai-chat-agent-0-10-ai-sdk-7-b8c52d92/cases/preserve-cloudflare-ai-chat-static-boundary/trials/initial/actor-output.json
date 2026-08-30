@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Updated canonical Moldea state while preserving all source. Added explicit warnings for SupportAgent’s open tools map and StepSupportAgent’s replaceable per-step instruction, retained all proved delegating-support relationships without routing or handoff claims, and added shared Cloudflare deployment guidance. Moldea validate/inspect and TypeScript compilation passed with no diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ],
+  "observations": [
+    "Only support, step-support, and delegating-support remain registered.",
+    "IndirectSupportAgent, UnsupportedOutputAgent, and RuntimeInitializedAgent remain unregistered.",
+    "Delegating-support retains its runtime agent, instruction loader, ordinary tool implementation, registration, and input/output schema bindings.",
+    "The runtime guide records Durable Object bindings, SQLite migrations, provider wiring, request routing, and Worker deployment as deployment-owner responsibilities.",
+    "Final Git status contains only the intended canonical manifest modification and new runtime guide."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove SupportAgent’s complete runtime-selected tools map.",
+    "Static inspection cannot prove one effective StepSupportAgent instruction loader because prepareStep may replace instructions per step."
+  ]
+}

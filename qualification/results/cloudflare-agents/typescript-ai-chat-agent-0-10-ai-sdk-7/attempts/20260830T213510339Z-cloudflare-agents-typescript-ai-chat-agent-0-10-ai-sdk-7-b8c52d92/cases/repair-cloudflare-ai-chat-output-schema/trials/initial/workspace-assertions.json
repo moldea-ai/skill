@@ -1,0 +1,143 @@
+{
+  "passed": true,
+  "failures": [],
+  "before": [
+    {
+      "path": "moldea/agents/support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0ff1bd9b3fd7e7ba0fa6485233478324b236fb61abbe20a7df730bf189c72a73"
+    },
+    {
+      "path": "moldea/agents/support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "68bb48816e0a8353dc8ddd106f266f434db625e518dbbbf3ae67b447fafc1a5e"
+    },
+    {
+      "path": "moldea/moldea.yaml",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "75bd89c364e1c71e666c0c8dad86c77ca5e21beb377aefc84e61af14c5e312f0"
+    },
+    {
+      "path": "moldea/project.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "176e77ee762345f7dddcf44b8b048ebdc270a421bbf5ce76c980500536ca390b"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "d24087df04c88c771f0334c2f3cdc8982b04dc0e54a93addbfd92cd2915608f5"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b4a0aa5fddb4d6b5f0b769bcbfaa48952fd0b8b9a309045121f1751694c4a2eb"
+    },
+    {
+      "path": "src/agent.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "3f7486b1f077feb4cd0458043dbbcb1bb4cb050816cd5dfb069f953d1de1d53f"
+    },
+    {
+      "path": "src/contracts.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "e352012fc58e6ad0e9e24b8673c839480db20cc5ae28d6111b630709efe13ee1"
+    },
+    {
+      "path": "src/implementations.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "257a4f724e003ce2d795bb0c098238b51f32fcc9427bc28271ee236cdb84bafc"
+    },
+    {
+      "path": "src/tools.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0f9102d5e8e7ab13a392e984d9fe9ebadae26b7285025e25c5bc30d8ee83e9d7"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "452d2b5c92462830be8b0c7b644fb17fde9777056fbd12c96ca8471a2363c2fe"
+    }
+  ],
+  "after": [
+    {
+      "path": "moldea/agents/support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0ff1bd9b3fd7e7ba0fa6485233478324b236fb61abbe20a7df730bf189c72a73"
+    },
+    {
+      "path": "moldea/agents/support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "68bb48816e0a8353dc8ddd106f266f434db625e518dbbbf3ae67b447fafc1a5e"
+    },
+    {
+      "path": "moldea/moldea.yaml",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "6f60cda80d49eb5bcc5fb29c488f3b9a1097cf2d981f120b6ae01f2def9fe9f7"
+    },
+    {
+      "path": "moldea/project.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "176e77ee762345f7dddcf44b8b048ebdc270a421bbf5ce76c980500536ca390b"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "d24087df04c88c771f0334c2f3cdc8982b04dc0e54a93addbfd92cd2915608f5"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b4a0aa5fddb4d6b5f0b769bcbfaa48952fd0b8b9a309045121f1751694c4a2eb"
+    },
+    {
+      "path": "src/agent.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "3f7486b1f077feb4cd0458043dbbcb1bb4cb050816cd5dfb069f953d1de1d53f"
+    },
+    {
+      "path": "src/contracts.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "e352012fc58e6ad0e9e24b8673c839480db20cc5ae28d6111b630709efe13ee1"
+    },
+    {
+      "path": "src/implementations.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "257a4f724e003ce2d795bb0c098238b51f32fcc9427bc28271ee236cdb84bafc"
+    },
+    {
+      "path": "src/tools.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0f9102d5e8e7ab13a392e984d9fe9ebadae26b7285025e25c5bc30d8ee83e9d7"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "452d2b5c92462830be8b0c7b644fb17fde9777056fbd12c96ca8471a2363c2fe"
+    }
+  ],
+  "changedPaths": [
+    "moldea/moldea.yaml"
+  ]
+}

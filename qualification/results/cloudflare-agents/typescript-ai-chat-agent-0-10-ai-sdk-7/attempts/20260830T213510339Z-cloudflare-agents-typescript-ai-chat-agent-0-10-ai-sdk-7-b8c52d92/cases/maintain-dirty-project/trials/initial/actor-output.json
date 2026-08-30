@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to classifyBillingQuestion, assigned it to support, and updated support guidance for refund and invoice questions. Moldea inspect/validate and TypeScript validation passed. Reviewed the full tracked diff and new untracked billing file.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md"
+  ],
+  "observations": [
+    "Moldea 5.0.0 inspection and validation completed as valid with zero diagnostics.",
+    "TypeScript compilation completed successfully with no emit.",
+    "src/support-agent.ts remained unchanged, preserving the directly exported SupportAgent class and loadSupportInstruction loader.",
+    "Pre-existing src/operator-notes.ts and notes/local-observation.md developer work remained unchanged.",
+    "Runtime execution was not invoked, per the execution rules; validation establishes canonical wiring and static implementation compatibility, not observed production responses."
+  ],
+  "unresolved": []
+}

@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical assets, implementation, workspace patch, and deterministic post-actor results agree. The agent is grounded in human-review classification without refund authority, and every required agent and function-tool binding targets the exact exported implementation symbol.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "moldea/agents/order-triage/description.md and instruction.md explicitly classify orders for human review and prohibit refund approval, matching src/order-triage-agent.ts. Workspace assertions show only these assets and moldea/moldea.yaml were changed; no runtime guide or other invented canonical surface was added."
+    },
+    {
+      "id": "binds-direct-agent",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/order-triage-agent.ts#OrderTriageAgent, instructionLoader to #loadOrderTriageInstruction, and outputSchema to #OrderTriageOutputSchema. The source directly exports all three, OrderTriageAgent extends AIChatAgent, and OrderTriageOutputSchema is passed to Output.object. No agent inputSchema is declared. Deterministic inspection and validation passed."
+    },
+    {
+      "id": "binds-function-tool",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml declares runtime name classify_order and binds implementation #classifyOrder, registration #classifyOrderTool, input schema #ClassifyOrderInputSchema, and output schema #ClassifyOrderOutputSchema in /src/order-triage-agent.ts. The source exports those exact symbols and registers them through tool({ inputSchema, outputSchema, execute }). Deterministic inspection, validation, and typecheck all passed."
+    }
+  ],
+  "failures": []
+}

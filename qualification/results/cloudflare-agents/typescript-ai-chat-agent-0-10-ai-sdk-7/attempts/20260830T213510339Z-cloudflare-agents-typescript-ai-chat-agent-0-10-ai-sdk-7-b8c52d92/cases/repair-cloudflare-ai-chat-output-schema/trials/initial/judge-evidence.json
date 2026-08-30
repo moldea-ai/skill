@@ -1,0 +1,31 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-08-30T22:32:28.857Z",
+  "durationMs": 124205,
+  "usage": {
+    "inputTokens": 577751,
+    "cachedInputTokens": 519680,
+    "outputTokens": 4502
+  },
+  "cacheKey": "38bb2c9c3f7e86a479a386ba5252dd3c022595a51d54d84e61a4822018051cda",
+  "sourceAttemptId": "20260830T213510339Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-b8c52d92",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 32,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    }
+  }
+}

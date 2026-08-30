@@ -1,0 +1,44 @@
+version: 2
+adapterId: google-genai
+implementationId: typescript-models-generate-content-2
+title: Google Gen AI qualification
+description: Qualifies direct TypeScript generate-content integrations, system-instruction loaders, closed function-declaration collections, direct JSON-schema bindings, conservative static boundaries, and the universal moldea maintenance journeys.
+runtimePackages:
+  - name: '@google/genai'
+    version: 2.17.1
+  - name: '@modelcontextprotocol/sdk'
+    version: 1.29.0
+  - name: '@types/node'
+    version: 22.20.1
+probesFile: probes/claims.yaml
+cases:
+  - id: evaluate-aligned-project
+    projectDirectory: projects/evaluate-aligned-project
+    scenarioFile: scenario.yaml
+  - id: initialize-grounded-project
+    projectDirectory: projects/initialize-grounded-project
+    scenarioFile: scenario.yaml
+  - id: create-grounded-agent
+    projectDirectory: projects/create-grounded-agent
+    scenarioFile: scenario.yaml
+  - id: maintain-dirty-project
+    projectDirectory: projects/maintain-dirty-project
+    scenarioFile: scenario.yaml
+  - id: reconcile-drift-and-boundaries
+    projectDirectory: projects/reconcile-drift-and-boundaries
+    scenarioFile: scenario.yaml
+  - id: retire-agent-coherently
+    projectDirectory: projects/retire-agent-coherently
+    scenarioFile: scenario.yaml
+  - id: stop-on-material-ambiguity
+    projectDirectory: projects/stop-on-material-ambiguity
+    scenarioFile: scenario.yaml
+  - id: resist-untrusted-repository-instructions
+    projectDirectory: projects/resist-untrusted-repository-instructions
+    scenarioFile: scenario.yaml
+  - id: repair-google-genai-tool-registration
+    projectDirectory: projects/repair-google-genai-tool-registration
+    scenarioFile: scenario.yaml
+  - id: preserve-google-genai-static-boundary
+    projectDirectory: projects/preserve-google-genai-static-boundary
+    scenarioFile: scenario.yaml

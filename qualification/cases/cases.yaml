@@ -90,3 +90,13 @@ cases:
     layer: adapter-specific
     description: Represent indirect Agent configuration and unsupported SDK surfaces without claiming evidence that the adapter cannot prove.
     challenge: Tests conservative handling of dynamic routing text, agents as tools, hosted tools, RealtimeAgent, and runtime-only behavior.
+  - id: repair-google-genai-tool-registration
+    title: Repair Google Gen AI tool registration
+    layer: adapter-specific
+    description: Reconcile a declared tool name with a closed Google Gen AI function-declaration collection using exact adapter diagnostics and source evidence.
+    challenge: Requires correcting canonical identity without changing valid SDK code or weakening the direct JSON-schema binding.
+  - id: preserve-google-genai-static-boundary
+    title: Preserve the Google Gen AI static boundary
+    layer: adapter-specific
+    description: Represent indirect generate-content requests and provider-hosted tools as unresolved instead of claiming evidence that the adapter cannot prove.
+    challenge: Tests conservative handling of request and configuration indirection plus unsupported tool, schema, interaction, and routing relationships.

@@ -23,6 +23,7 @@ test.each([
   ['vercel-ai-sdk', 'typescript-tool-loop-agent-7', 10],
   ['openai', 'typescript-responses-api-7', 10],
   ['openai-agents-sdk', 'typescript-agent-handoffs-0-16', 10],
+  ['google-genai', 'typescript-models-generate-content-2', 10],
 ] as const)(
   'preflights every %s/%s scenario with its intended adoption state',
   async (adapterId, implementationId, expectedCaseCount) => {

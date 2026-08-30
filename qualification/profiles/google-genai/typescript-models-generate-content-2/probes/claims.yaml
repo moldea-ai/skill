@@ -1,0 +1,210 @@
+version: 2
+adapterId: google-genai
+implementationId: typescript-models-generate-content-2
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The exact published adapter and SDK composition exercises the compatible Core range through supported generate-content integrations.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: Direct supported integrations need no redundant guide, while the boundary case records unsupported indirection explicitly.
+    coveredBy: [create-grounded-agent, preserve-google-genai-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes all universal journeys and two Google Gen AI-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-google-genai-tool-registration,
+        preserve-google-genai-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare the exact published npm SDK package and inspect project-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Supported generate-content sources are strict TypeScript ESM and typecheck with the exact project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: target-runtime-package
+    kind: compatibility
+    matrixPath: target.package.npm.@google/genai.primary.>=2.17.1 <3.0.0
+    description: Every fixture pins and installs the verified Google Gen AI SDK before offline project preparation.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-google-genai-tool-registration,
+        preserve-google-genai-static-boundary,
+      ]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Direct generate-content wrappers are bound explicitly, repaired after drift, and omitted when request indirection prevents proof.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        reconcile-drift-and-boundaries,
+        preserve-google-genai-static-boundary,
+      ]
+  - id: instruction-loader-binding
+    kind: binding-support
+    matrixPath: target.binding-support.instruction-loader
+    description: Direct instruction loaders remain visible through config.systemInstruction.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: tool-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-registration
+    description: Closed function-declaration collections are validated and repaired from a concrete name mismatch.
+    coveredBy: [evaluate-aligned-project, repair-google-genai-tool-registration]
+  - id: tool-input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-input-schema
+    description: Direct function-declaration input-schema relationships remain visible through registered tools.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-google-genai-tool-registration]
+  - id: instruction-loader-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.instruction-loader
+    description: Aligned direct wrappers emit instruction-loader evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct wrappers emit TypeScript language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct wrappers emit supported Google Gen AI SDK evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-pattern-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-pattern
+    description: Direct generate-content calls emit runtime-pattern evidence while indirect request construction deliberately does not.
+    coveredBy: [evaluate-aligned-project, preserve-google-genai-static-boundary]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Direct parametersJsonSchema bindings emit normalized schema evidence.
+    coveredBy: [evaluate-aligned-project, repair-google-genai-tool-registration]
+  - id: tool-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.tool-registration
+    description: Correct closed function-declaration collections emit tool-registration evidence after name reconciliation.
+    coveredBy: [evaluate-aligned-project, repair-google-genai-tool-registration]
+  - id: direct-models-generate-content
+    kind: pattern
+    matrixPath: target.pattern.direct-models-generate-content
+    description: Directly exported wrappers with a module-local client and direct models.generateContent calls are recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, maintain-dirty-project]
+  - id: direct-config-system-instruction
+    kind: pattern
+    matrixPath: target.pattern.direct-config-system-instruction
+    description: Direct loader calls remain lexically visible through config.systemInstruction.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: closed-function-declaration-tools
+    kind: pattern
+    matrixPath: target.pattern.closed-function-declaration-tools
+    description: Supported function declarations are registered through immutable closed collections with exact names.
+    coveredBy: [evaluate-aligned-project, repair-google-genai-tool-registration]
+  - id: direct-parameters-json-schema
+    kind: pattern
+    matrixPath: target.pattern.direct-parameters-json-schema
+    description: Function-declaration input schemas use direct source symbols through parametersJsonSchema.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-google-genai-tool-registration]
+  - id: dynamic-request-or-config
+    kind: pattern
+    matrixPath: target.pattern.dynamic-request-or-config
+    description: An indirect generate-content request object produces no invented direct runtime-pattern relationship.
+    coveredBy: [preserve-google-genai-static-boundary]
+  - id: alternative-parameters-schema
+    kind: pattern
+    matrixPath: target.pattern.alternative-parameters-schema
+    description: Supported fixtures use parametersJsonSchema and do not infer the alternative parameters representation.
+    coveredBy: [evaluate-aligned-project, preserve-google-genai-static-boundary]
+  - id: callable-and-mcp-tools
+    kind: pattern
+    matrixPath: target.pattern.callable-and-mcp-tools
+    description: The boundary case does not treat callable or MCP surfaces as supported function declarations.
+    coveredBy: [preserve-google-genai-static-boundary]
+  - id: provider-server-tools
+    kind: pattern
+    matrixPath: target.pattern.provider-server-tools
+    description: A Google-hosted search tool remains outside repository-local function-declaration evidence.
+    coveredBy: [preserve-google-genai-static-boundary]
+  - id: streaming-chat-live-interactions
+    kind: pattern
+    matrixPath: target.pattern.streaming-chat-live-interactions
+    description: The profile selects direct generate-content calls without treating other Google Gen AI interaction APIs as invalid project code.
+    coveredBy: [preserve-google-genai-static-boundary]
+  - id: function-name-length
+    kind: provider-limit
+    matrixPath: target.provider-limit.function-name-length
+    description: The repair case uses a short function name within the SDK declaration limit.
+    coveredBy: [repair-google-genai-tool-registration]
+  - id: function-name-pattern
+    kind: provider-limit
+    matrixPath: target.provider-limit.function-name-pattern
+    description: The repair case uses a function name within the documented SDK pattern.
+    coveredBy: [repair-google-genai-tool-registration]
+  - id: function-declaration-count
+    kind: provider-limit
+    matrixPath: target.provider-limit.function-declaration-count
+    description: Closed tool fixtures remain far below the SDK function-declaration count limit.
+    coveredBy: [evaluate-aligned-project, repair-google-genai-tool-registration]
+  - id: module-resolution-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.2a38c4f1748a3e23
+    description: Supported cases use direct relative imports without compiler aliases, package exports, subpath imports, or re-export graphs.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: client-configuration-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.fdb44e8e96f14d48
+    description: Qualification does not infer provider, authentication, model, request-content, or response-handling semantics.
+    coveredBy: [evaluate-aligned-project, preserve-google-genai-static-boundary]
+  - id: backend-name-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.088365a74a006cff
+    description: The repair case exercises only the documented SDK function-name contract.
+    coveredBy: [repair-google-genai-tool-registration]
+  - id: unsupported-surface-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.707b704e476fbae6
+    description: The boundary case keeps dynamic configuration and Google-hosted tools outside selected evidence.
+    coveredBy: [preserve-google-genai-static-boundary]
+  - id: input-schema-validation-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.59f7524d48839f2c
+    description: Qualification establishes direct JSON-schema wiring without claiming that the adapter validates schema contents.
+    coveredBy: [evaluate-aligned-project, repair-google-genai-tool-registration]
+  - id: initial-target-boundary
+    kind: known-limitation
+    matrixPath: target.known-limitation.a2d3371db6fb0607
+    description: Canonical state does not infer unsupported APIs, alternative schemas, output schemas, variables, or routing from generate-content calls.
+    coveredBy: [evaluate-aligned-project, preserve-google-genai-static-boundary]

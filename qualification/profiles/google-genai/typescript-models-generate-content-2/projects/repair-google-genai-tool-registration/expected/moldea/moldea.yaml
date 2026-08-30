@@ -1,0 +1,27 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: google-genai
+    bindings:
+      runtimeAgent:
+        path: /src/agent.ts
+        symbol: supportAgent
+      instructionLoader:
+        path: /src/agent.ts
+        symbol: loadSupportInstruction
+    tools:
+      lookup-order:
+        name: lookup_order
+        description: Looks up one order by identifier.
+        implementation:
+          path: /src/implementations.ts
+          symbol: lookupOrder
+        registration:
+          path: /src/tools.ts
+          symbol: lookupOrderDeclaration
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: LookupOrderInputSchema
+    affectedBy:
+      - /src/**

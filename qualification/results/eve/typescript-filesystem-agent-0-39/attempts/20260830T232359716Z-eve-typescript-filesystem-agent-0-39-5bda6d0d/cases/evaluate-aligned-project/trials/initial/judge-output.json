@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The actor report agrees with the project-owned Eve filesystem definitions, canonical moldea manifest, and runner-owned validation. The repository remained unchanged: deterministic checks report valid inspect/validate envelopes, passing type-checking, and repositoryUnchanged=true; workspace assertions show identical before/after hashes and no changed paths.",
+  "requirements": [
+    {
+      "id": "explains-filesystem-definitions",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds support to /agent/agent.ts default and summary to /agent/subagents/summary/agent.ts default. Those files contain the corresponding defineAgent definitions, and summary is directory-backed beneath agent/subagents/summary. The actor accurately reports this root-versus-nested structure; deterministic inspection status is valid."
+    },
+    {
+      "id": "explains-exclusive-instructions",
+      "verdict": "pass",
+      "evidence": "The support instructionLoader is /agent/loaders.ts#loadSupportInstruction, which is consumed by agent/instructions.ts. Summary instead binds directly to the exact lowercase path /agent/subagents/summary/instructions.md. Its text matches the summary agent’s canonical behavior. The actor explicitly distinguishes these sources."
+    },
+    {
+      "id": "explains-capability-bindings",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds SupportOutputSchema, SummaryOutputSchema, FindOrderInputSchema, and FindOrderOutputSchema to declarations in agent/contracts.ts. The find_order registration at agent/tools/find_order.ts imports those schemas and executes findOrder from agent/implementations.ts. The analyze skill is defined and registered at agent/skills/analyze.ts. Canonical support instructions delegate summaries to summary, whose handoff description matches its responsibility. These facts agree with the actor report and valid deterministic inspection."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "The actor limits its conclusions to repository definitions, static Eve adapter evidence, schemas, type-checking, and moldea validation. It explicitly declines to infer provider, model, remote-agent, extension, connection, or runtime-only relationships and notes that agent execution/runtime consumption was not tested."
+    }
+  ],
+  "failures": []
+}

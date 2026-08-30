@@ -33,6 +33,7 @@ workspace:
       src/operator-notes.ts,
       agent/agent.ts,
       agent/instructions.ts,
+      agent/loaders.ts,
     ]
   mustChangePaths:
     [moldea/moldea.yaml, moldea/agents/support/instruction.md, moldea/context/billing.md]
@@ -44,6 +45,7 @@ workspace:
       src/operator-notes.ts,
       agent/agent.ts,
       agent/instructions.ts,
+      agent/loaders.ts,
       moldea/agents/support/description.md,
       moldea/context/billing.md,
     ]

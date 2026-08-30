@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted moldea format-1 project is valid and aligned with the reviewed Eve filesystem definitions. No repository files changed. Local `moldea inspect --json` and `validate --json` returned schema 2, CLI 5.0.0, status `valid`, and no diagnostics; TypeScript type-checking passed; the final Git diff and status were empty.",
+  "changedFiles": [],
+  "observations": [
+    "`support` maps to the root Eve agent at `/agent/agent.ts`; `summary` maps to the local nested subagent at `/agent/subagents/summary/agent.ts`.",
+    "Exclusive instruction sources are accurately bound: `support` uses `loadSupportInstruction` from `/agent/loaders.ts`, while `summary` uses `/agent/subagents/summary/instructions.md`. Their canonical instructions remain consistent with the discovered responsibilities and capabilities.",
+    "Output schemas map to `SupportOutputSchema` and `SummaryOutputSchema`. The `find_order` filesystem tool maps its registration, implementation, input schema, and output schema to the corresponding TypeScript definitions.",
+    "Inspection identified `find_order` as a nested filesystem tool with a bound implementation and path depth 1, and `analyze` as a TypeScript skill registered from `/agent/skills/analyze.ts`.",
+    "Inspection identified a wired local-subagent handoff from `support` to `summary`, using the summary handoff description as its routing description.",
+    "No deterministic diagnostics, confirmed semantic problems, material ambiguities, or relevant unresolved requirements were found.",
+    "No provider, model, remote-agent, extension, connection, or runtime-only relationship was inferred."
+  ],
+  "unresolved": [
+    "Agent execution and runtime-only consumption were intentionally not tested under the task constraints; conclusions are limited to repository definitions, static Eve adapter evidence, schemas, TypeScript checking, and moldea validation."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical assets and manifest match the unchanged Eve implementation. Runner-owned assertions limit the patch to the manifest and two order-triage assets, while deterministic inspection and typechecking both pass.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "The added description says the agent classifies orders for human review without approving refunds; the added instruction requires human/manual review and says never to approve or promise a refund. This agrees with agent/agent.ts, agent/loaders.ts, the classify_order implementation, and review_policy skill. Workspace-patch evidence shows only these canonical assets and moldea/moldea.yaml changed; implementation files remained unchanged."
+    },
+    {
+      "id": "binds-filesystem-agent",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtime eve to /agent/agent.ts#default, directly binds /agent/contracts.ts#OrderTriageOutputSchema, and declares the sole instructionLoader as /agent/loaders.ts#loadOrderTriageInstruction. No provider, model, routing, remote-agent, extension, connection, or runtime-guide registration was added. Deterministic post-actor inspection and validation are valid."
+    },
+    {
+      "id": "binds-filesystem-capabilities",
+      "verdict": "pass",
+      "evidence": "The classify-order registration uses runtime name classify_order, implementation /agent/implementations.ts#classifyOrder, registration /agent/tools/classify_order.ts#default, and the exact input/output schema symbols in /agent/contracts.ts. The review-policy registration uses runtime name review_policy and /agent/skills/review_policy.ts#default for both implementation and registration. These bindings agree with the source files, and deterministic inspection passed without failures."
+    }
+  ],
+  "failures": []
+}

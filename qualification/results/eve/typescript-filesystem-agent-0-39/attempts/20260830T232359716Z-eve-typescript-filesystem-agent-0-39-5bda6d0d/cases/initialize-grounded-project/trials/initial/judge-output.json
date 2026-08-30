@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace and runner-owned patch evidence agree: moldea was initialized with a grounded invoice-review context and only the minimal foundation surfaces were added.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service extracts invoice anomalies for operator review, calculates total differences, requires review when totals differ, and never approves payment or changes invoices. This agrees with README.md and src/invoice-review.ts. Workspace assertions show src/invoice-review.ts remained unchanged."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The workspace contains only moldea/moldea.yaml and moldea/project.md under moldea; the manifest is only `version: 1`, with no agents, runtimes, relationships, decisions, or requirements. README.md contains one standard awareness block. Runner-owned changedPaths lists exactly README.md, moldea/moldea.yaml, and moldea/project.md, and deterministic inspection reports valid."
+    }
+  ],
+  "failures": []
+}

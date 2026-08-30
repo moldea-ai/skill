@@ -1,0 +1,77 @@
+diff --git a/agent/loaders.ts b/agent/loaders.ts
+index 277b009..c233e22 100644
+--- a/agent/loaders.ts
++++ b/agent/loaders.ts
+@@ -1 +1,7 @@
+-export const loadSupportInstruction = (): string => 'Answer only from available project evidence.';
++import { readFileSync } from 'node:fs';
++
++const supportInstruction = new URL('../moldea/agents/support/instruction.md', import.meta.url);
++const billingContext = new URL('../moldea/context/billing.md', import.meta.url);
++
++export const loadSupportInstruction = (): string =>
++  [readFileSync(supportInstruction, 'utf8'), readFileSync(billingContext, 'utf8')].join('\n');
+diff --git a/moldea/agents/support/instruction.md b/moldea/agents/support/instruction.md
+index 9b54eaa..1cb408e 100644
+--- a/moldea/agents/support/instruction.md
++++ b/moldea/agents/support/instruction.md
+@@ -1,3 +1,5 @@
+ # Support agent
+ 
+ You are the `support` agent. Answer only from available project evidence.
++
++For refund and invoice questions, apply the classification behavior in the billing-disputes context. Report the resulting classification and that it goes to human review. Do not approve a refund, claim that an invoice was corrected, or promise the outcome of a dispute.
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 59e3f30..dcca2b5 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,8 +1,17 @@
+ version: 1
++context:
++  /moldea/context/billing.md:
++    bindings:
++      - path: /src/billing.ts
++        symbol: classifyBillingQuestion
++    affectedBy:
++      - /src/billing.ts
+ agents:
+   support:
+     runtime:
+       id: eve
++    context:
++      - /moldea/context/billing.md
+     bindings:
+       runtimeAgent:
+         path: /agent/agent.ts
+@@ -15,3 +24,4 @@ agents:
+         symbol: SupportOutputSchema
+     affectedBy:
+       - /agent/**
++      - /src/billing.ts
+diff --git a/src/operator-notes.ts b/src/operator-notes.ts
+index 4c10137..c85298a 100644
+--- a/src/operator-notes.ts
++++ b/src/operator-notes.ts
+@@ -1 +1 @@
+-export const operatorNote = 'existing tracked work';
++export const operatorNote = 'developer is testing a separate escalation path';
+
+diff --git a/moldea/context/billing.md b/moldea/context/billing.md
+new file mode 100644
+index 0000000..d4894a0
+--- /dev/null
++++ b/moldea/context/billing.md
+@@ -0,0 +1,5 @@
++# Billing disputes
++
++`classifyBillingQuestion` in `/src/billing.ts` classifies a message containing the lowercase text `refund` as `refund-review`. It classifies every other message, including invoice questions, as `invoice-question`.
++
++Billing classifications are routed to human review. The classification does not approve a refund, correct an invoice, or establish the outcome of a dispute. For refund and invoice questions, report the applicable classification and human-review boundary without promising a resolution.
+
+diff --git a/notes/local-observation.md b/notes/local-observation.md
+new file mode 100644
+index 0000000..c97f13a
+--- /dev/null
++++ b/notes/local-observation.md
+@@ -0,0 +1 @@
++The staging invoice feed can arrive late. This untracked note is unrelated to canonical agent context.

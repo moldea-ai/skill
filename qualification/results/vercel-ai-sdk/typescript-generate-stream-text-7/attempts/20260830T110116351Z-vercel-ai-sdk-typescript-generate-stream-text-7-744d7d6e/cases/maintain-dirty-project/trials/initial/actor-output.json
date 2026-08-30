@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to `classifyBillingQuestion`, registered it for `support`, and added safe refund/invoice guidance to the instruction consumed by the existing loader. Moldea inspection returned valid with no diagnostics, TypeScript validation passed, and the complete tracked diff plus new untracked context content were inspected.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The repository is moldea-adopted; this was a Maintain operation and canonical state changed coherently.",
+    "The direct Vercel AI SDK wrapper, instruction loader, structured output schema, and billing implementation remain unchanged.",
+    "Pre-existing tracked work in src/operator-notes.ts and untracked notes/ content were preserved exactly.",
+    "The classifier only labels questions; it does not approve refunds, verify invoices, or resolve disputes."
+  ],
+  "unresolved": []
+}

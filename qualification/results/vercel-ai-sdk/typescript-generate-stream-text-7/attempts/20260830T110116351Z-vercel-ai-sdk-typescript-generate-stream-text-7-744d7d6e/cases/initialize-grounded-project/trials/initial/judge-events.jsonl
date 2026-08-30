@@ -1,0 +1,12 @@
+{"eventType":"command.completed","exitCode":0,"outputByteCount":14592,"status":"completed"}
+{"eventType":"command.completed","exitCode":0,"outputByteCount":37099,"status":"completed"}
+{"eventType":"command.completed","exitCode":0,"outputByteCount":10631,"status":"completed"}
+{"eventType":"command.completed","exitCode":2,"outputByteCount":70,"status":"failed"}
+{"eventType":"command.completed","exitCode":0,"outputByteCount":0,"status":"completed"}
+{"eventType":"command.completed","exitCode":2,"outputByteCount":70,"status":"failed"}
+{"eventType":"command.completed","exitCode":0,"outputByteCount":207,"status":"completed"}
+{"eventType":"command.completed","exitCode":0,"outputByteCount":0,"status":"completed"}
+{"eventType":"command.completed","exitCode":2,"outputByteCount":70,"status":"failed"}
+{"eventType":"command.completed","exitCode":2,"outputByteCount":70,"status":"failed"}
+{"eventType":"command.completed","exitCode":0,"outputByteCount":1742,"status":"completed"}
+{"eventType":"command.completed","exitCode":2,"outputByteCount":62,"status":"failed"}

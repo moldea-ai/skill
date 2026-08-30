@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, runner-owned validation, and reported one-line patch agree: the manifest now declares `lookup_order`, matching the closed Vercel tools map, while all runtime, loader, implementation, registration, and schema bindings remain intact. Deterministic inspection is valid, diagnostics are empty, and typechecking passed.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies the original `find_order` versus `lookup_order` mismatch. Current `src/agent.ts` confirms the closed map key is `lookup_order`, while the runner records only `moldea/moldea.yaml` as changed and deterministic inspection reports valid with no failures."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml:18` declares `name: lookup_order`, exactly matching `tools: { lookup_order: lookupOrderTool }` in `src/agent.ts:16`. Workspace assertions show `moldea/moldea.yaml` is the sole changed path; all runtime source hashes are unchanged."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings for `supportAgent`, `loadSupportInstruction`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema`. Source confirms the instruction loader reads the canonical instruction, `generateText` uses the output schema and tool map, and `lookupOrderTool` connects both schemas to `lookupOrder`. Deterministic inspection is valid and typechecking passed."
+    }
+  ],
+  "failures": []
+}

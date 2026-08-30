@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current repository, canonical file inventory, workspace assertions, and deterministic validation agree: moldea was initialized with a grounded invoice-review foundation and no invented agent or runtime relationship.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "Current `moldea/project.md` states that the service identifies invoice-total anomalies for operator review and does not approve payments or change invoices. This matches `README.md` and `src/invoice-review.ts`, which computes the total difference and requires operator review when totals differ. Workspace evidence identifies the project context as newly added."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The canonical inventory contains only `moldea/moldea.yaml` and `moldea/project.md`; the manifest contains only `version: 1`. The README has one standard awareness block. Workspace assertions list exactly those two new files plus the README modification, with no agent, runtime guide, decision, context extension, or unresolved requirement. Deterministic inspection and validation are valid with no failures."
+    }
+  ],
+  "failures": []
+}

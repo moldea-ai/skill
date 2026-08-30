@@ -1,0 +1,182 @@
+{
+  "caseId": "evaluate-aligned-project",
+  "title": "Evaluate an aligned project",
+  "status": "failed",
+  "confirmationStatus": "rejected",
+  "durationMs": 589884,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": false,
+      "durationMs": 146045,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+      "judgeStatus": "skipped",
+      "judgeOutputPath": null,
+      "judgeSkippedPath": "cases/evaluate-aligned-project/trials/initial/judge-skipped.json",
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 826466,
+        "cachedInputTokens": 721408,
+        "outputTokens": 4302
+      },
+      "judgeUsage": null,
+      "actorEvidenceCreatedAt": "2026-08-30T12:46:05.901Z",
+      "judgeEvidenceCreatedAt": null,
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-patterns",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "explains-closed-bindings",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "respects-static-boundary",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "fail",
+          "evidence": "Runner checks failed: workspace-assertions."
+        }
+      ],
+      "failures": [
+        "Expected an unchanged project, but changed: moldea/agents/summary/description.md.",
+        "Changes escaped the declared allowlist: moldea/agents/summary/description.md.",
+        "Requirement validates-without-churn failed: Runner checks failed: workspace-assertions."
+      ]
+    },
+    {
+      "trialId": "confirmation-1",
+      "kind": "confirmation",
+      "confirmationIndex": 1,
+      "passed": true,
+      "durationMs": 300701,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/confirmation-1/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/confirmation-1/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/confirmation-1/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/evaluate-aligned-project/trials/confirmation-1/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/confirmation-1/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/confirmation-1/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 559815,
+        "cachedInputTokens": 436480,
+        "outputTokens": 5263
+      },
+      "judgeUsage": {
+        "inputTokens": 485742,
+        "cachedInputTokens": 441344,
+        "outputTokens": 3589
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T12:49:01.803Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T12:51:09.244Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-patterns",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/moldea.yaml` binds supportAgent/loadSupportInstruction and summaryAgent/loadSummaryInstruction. `src/agents.ts` directly calls `client.responses.create` for both wrappers and awaits the corresponding loader; `src/instructions.ts` reads each agent's canonical `instruction.md`. The actor accurately reports these relationships."
+        },
+        {
+          "id": "explains-closed-bindings",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest declares `find_order`, `findOrder`, `findOrderTool`, and `FindOrderInputSchema`. `src/agents.ts` registers `findOrderTool`; `src/tools.ts` directly assigns imported `FindOrderInputSchema` to `parameters`; `src/contracts.ts` requires one string `orderId` and sets `additionalProperties: false`. The actor describes these as declared/source-matched bindings without claiming runtime invocation."
+        },
+        {
+          "id": "respects-static-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Deterministic evidence reports `repositoryUnchanged: true`, while workspace assertions show no changed paths and identical hashes. The actor explicitly disclaims proof of provider execution, tool invocation, output schemas, routing, handoffs, subagents, and agent input schemas. Targeted canonical inspection found no declarations for those unsupported surfaces."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    },
+    {
+      "trialId": "confirmation-2",
+      "kind": "confirmation",
+      "confirmationIndex": 2,
+      "passed": false,
+      "durationMs": 143138,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/confirmation-2/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/confirmation-2/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/confirmation-2/actor-output.json",
+      "judgeStatus": "skipped",
+      "judgeOutputPath": null,
+      "judgeSkippedPath": "cases/evaluate-aligned-project/trials/confirmation-2/judge-skipped.json",
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/confirmation-2/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/confirmation-2/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 602719,
+        "cachedInputTokens": 542720,
+        "outputTokens": 4154
+      },
+      "judgeUsage": null,
+      "actorEvidenceCreatedAt": "2026-08-30T12:53:29.795Z",
+      "judgeEvidenceCreatedAt": null,
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-patterns",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "explains-closed-bindings",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "respects-static-boundary",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "fail",
+          "evidence": "Runner checks failed: workspace-assertions."
+        }
+      ],
+      "failures": [
+        "Expected an unchanged project, but changed: moldea/agents/summary/description.md.",
+        "Changes escaped the declared allowlist: moldea/agents/summary/description.md.",
+        "Requirement validates-without-churn failed: Runner checks failed: workspace-assertions."
+      ]
+    }
+  ],
+  "failures": [
+    "Expected an unchanged project, but changed: moldea/agents/summary/description.md.",
+    "Changes escaped the declared allowlist: moldea/agents/summary/description.md.",
+    "Requirement validates-without-churn failed: Runner checks failed: workspace-assertions."
+  ]
+}

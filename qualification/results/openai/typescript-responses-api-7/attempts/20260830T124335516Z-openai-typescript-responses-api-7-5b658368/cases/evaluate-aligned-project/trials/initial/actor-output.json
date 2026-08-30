@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Corrected the summary agent description from “Streams” to “Produces” because its direct `responses.create` wrapper does not enable streaming. The support and summary runtime bindings and canonical instruction loaders align with source. The support tool registration aligns on `find_order`, its description, and `FindOrderInputSchema`; its implementation was preserved. Local moldea inspection returned valid with no diagnostics, TypeScript type-checking passed, and the final Git diff contains only the intended description change.",
+  "changedFiles": [
+    "moldea/agents/summary/description.md"
+  ],
+  "observations": [
+    "The repository is adopted under moldea format version 1.",
+    "Both agents directly call OpenAI `client.responses.create` and load their respective canonical instruction files.",
+    "The support wrapper registers the function tool but contains no in-repository tool-call execution loop.",
+    "OpenAI adapter evidence establishes detected wrappers, instruction loaders, tool registration, and tool input schema only; it does not prove runtime execution, output schemas, routing, handoffs, subagents, or agent input schemas.",
+    "Validation completed with `moldea inspect --json` using CLI 5.0.0 and `tsc --noEmit -p tsconfig.json`; both exited successfully."
+  ],
+  "unresolved": [
+    "Actual execution of `findOrder` after a model tool call is not established by the inspected wrapper or adapter evidence. No provider or agent was invoked, as required."
+  ]
+}

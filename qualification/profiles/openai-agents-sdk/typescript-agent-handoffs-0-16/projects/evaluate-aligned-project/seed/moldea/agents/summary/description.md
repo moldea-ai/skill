@@ -1,1 +1,1 @@
-Streams a concise summary of a customer support request.
+Produces a concise summary of a customer support request.

@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": false,
+  "durationMs": 146045,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+  "judgeStatus": "skipped",
+  "judgeOutputPath": null,
+  "judgeSkippedPath": "cases/evaluate-aligned-project/trials/initial/judge-skipped.json",
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 826466,
+    "cachedInputTokens": 721408,
+    "outputTokens": 4302
+  },
+  "judgeUsage": null,
+  "actorEvidenceCreatedAt": "2026-08-30T12:46:05.901Z",
+  "judgeEvidenceCreatedAt": null,
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-patterns",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "respects-static-boundary",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "fail",
+      "evidence": "Runner checks failed: workspace-assertions."
+    }
+  ],
+  "failures": [
+    "Expected an unchanged project, but changed: moldea/agents/summary/description.md.",
+    "Changes escaped the declared allowlist: moldea/agents/summary/description.md.",
+    "Requirement validates-without-churn failed: Runner checks failed: workspace-assertions."
+  ]
+}

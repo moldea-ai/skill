@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Updated adopted canonical state to document Cloudflare Think’s static-inspection boundaries while preserving all source and proved relationships. Moldea inspect/validate completed valid with zero diagnostics, and TypeScript compilation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ],
+  "observations": [
+    "Preserved support runtime-agent and instruction-loader bindings; recorded its runtime-selected tool map as unresolved.",
+    "Preserved only step-support’s proved runtime-agent binding; recorded helper-built session instruction provenance as unresolved.",
+    "Preserved all delegating-support bindings, tool registration, implementation, and schemas without adding handoff or routing metadata.",
+    "RuntimeInitializedAgent remains unregistered.",
+    "The runtime guide documents static boundaries, Cloudflare Worker bindings, Durable Object migrations, and deployment ownership.",
+    "Final Git inspection showed no source changes or unrelated modifications."
+  ],
+  "unresolved": [
+    "Static inspection cannot establish SupportAgent’s complete runtime-selected tool map.",
+    "Static inspection cannot establish step-support’s instruction-loader binding through helper-delegated session construction."
+  ]
+}

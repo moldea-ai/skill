@@ -1,0 +1,66 @@
+diff --git a/moldea/agents/support/instruction.md b/moldea/agents/support/instruction.md
+index 9b54eaa..10634a5 100644
+--- a/moldea/agents/support/instruction.md
++++ b/moldea/agents/support/instruction.md
+@@ -1,3 +1,7 @@
+ # Support agent
+ 
+ You are the `support` agent. Answer only from available project evidence.
++
++For refund and invoice questions, use the billing context. Apply its documented
++classification behavior exactly, and do not claim that a refund was approved or
++that any billing action occurred when the evidence only establishes routing.
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 6153555..59f3afd 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,8 +1,15 @@
+ version: 1
++context:
++  /moldea/context/billing.md:
++    bindings:
++      - path: /src/billing.ts
++        symbol: classifyBillingQuestion
+ agents:
+   support:
+     runtime:
+       id: cloudflare-agents
++    context:
++      - /moldea/context/billing.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+diff --git a/src/operator-notes.ts b/src/operator-notes.ts
+index 4c10137..c85298a 100644
+--- a/src/operator-notes.ts
++++ b/src/operator-notes.ts
+@@ -1 +1 @@
+-export const operatorNote = 'existing tracked work';
++export const operatorNote = 'developer is testing a separate escalation path';
+
+diff --git a/moldea/context/billing.md b/moldea/context/billing.md
+new file mode 100644
+index 0000000..f6ec290
+--- /dev/null
++++ b/moldea/context/billing.md
+@@ -0,0 +1,12 @@
++# Billing disputes
++
++Billing support currently classifies questions through
++`classifyBillingQuestion` in `/src/billing.ts`:
++
++- A message containing the exact lowercase substring `refund` is classified as
++  `refund-review`.
++- Every other message is classified as `invoice-question`.
++
++The implementation only establishes routing. A `refund-review` classification
++does not approve or issue a refund, and an `invoice-question` classification
++does not change an invoice or confirm that any billing action occurred.
+
+diff --git a/notes/local-observation.md b/notes/local-observation.md
+new file mode 100644
+index 0000000..c97f13a
+--- /dev/null
++++ b/notes/local-observation.md
+@@ -0,0 +1 @@
++The staging invoice feed can arrive late. This untracked note is unrelated to canonical agent context.

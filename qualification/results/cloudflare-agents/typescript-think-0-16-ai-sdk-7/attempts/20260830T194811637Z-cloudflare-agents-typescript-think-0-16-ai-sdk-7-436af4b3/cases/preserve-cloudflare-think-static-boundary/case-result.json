@@ -1,0 +1,84 @@
+{
+  "caseId": "preserve-cloudflare-think-static-boundary",
+  "title": "Preserve the Cloudflare Think static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 390852,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 390852,
+      "deterministicBeforePath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-cloudflare-think-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1631100,
+        "cachedInputTokens": 1498112,
+        "outputTokens": 7788
+      },
+      "judgeUsage": {
+        "inputTokens": 534649,
+        "cachedInputTokens": 490240,
+        "outputTokens": 4690
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T20:41:36.847Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T20:44:09.112Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "preserves-open-tool-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml retains SupportAgent as runtimeAgent and loadSupportInstruction as instructionLoader, registers no partial SupportAgent tools, and records runtime-tool-map as a warning. src/support-agent.ts confirms getTools() spreads createRuntimeTools(). Deterministic inspection is valid."
+        },
+        {
+          "id": "preserves-dynamic-session-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "step-support retains only the StepSupportAgent runtimeAgent binding. No instructionLoader is registered; session-instruction-loader records that helper-delegated configureSession cannot prove instruction provenance. src/step-support-agent.ts confirms the helper-built session behavior."
+        },
+        {
+          "id": "does-not-infer-subagent-handoff",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "delegating-support preserves its runtime agent, instruction loader, delegate_support registration, implementation, and input/output schemas. The manifest contains no handoff or routing relationship. Source shows an ordinary ai tool whose implementation merely references StepSupportAgent, and workspace assertions show all relevant source files unchanged."
+        },
+        {
+          "id": "keeps-initialized-class-outside-target",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/workflow-agent.mts still exports RuntimeInitializedAgent with initializedAt = Date.now(), while moldea/moldea.yaml has no RuntimeInitializedAgent registration or binding. Workspace patch evidence identifies no source modification."
+        },
+        {
+          "id": "records-focused-guidance",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "support and step-support both reference /moldea/runtimes/cloudflare-agents.md. Targeted inspection finds it is the sole Markdown file under moldea/runtimes. It documents closed static alternatives, Cloudflare bindings, Durable Object migrations, environment/model bindings, Worker deployment configuration, and deployment ownership."
+        },
+        {
+          "id": "records-unresolved-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml contains distinct warning requirements: runtime-tool-map names SupportAgent/createRuntimeTools and gives closed-wiring or integration-test resolution criteria; session-instruction-loader names StepSupportAgent/configureSupportSession/loadStepSupportInstruction and gives separate closed-session-wiring or integration-test criteria. Deterministic inspection and validation are valid."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

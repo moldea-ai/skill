@@ -1,0 +1,66 @@
+{
+  "caseId": "retire-agent-coherently",
+  "title": "Retire an agent coherently",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 338281,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 338281,
+      "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 974395,
+        "cachedInputTokens": 876800,
+        "outputTokens": 5410
+      },
+      "judgeUsage": {
+        "inputTokens": 481265,
+        "cachedInputTokens": 408832,
+        "outputTokens": 3861
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T20:21:43.664Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T20:24:03.088Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "removes-obsolete-declaration",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current workspace: `moldea/moldea.yaml` contains only `version: 1`; `moldea/agents/support/description.md`, `moldea/agents/support/instruction.md`, and `src/support-agent.ts` are absent; targeted checks found no `SupportAgent`, `loadSupportInstruction`, support source path, runtime-agent, instruction-loader, output-schema, or registered-support references. Workspace patch: runner assertions identify exactly the manifest modification and deletion of both support canonical assets. Deterministic-after: inspection and validation are `valid`, typecheck passed, all failure lists are empty, and repository state remained unchanged."
+        },
+        {
+          "id": "removes-orphaned-assets",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "preserves-surviving-context",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 6,
+  "adapterId": "cloudflare-agents",
+  "implementationId": "typescript-think-0-16-ai-sdk-7",
+  "latestAttemptId": "20260830T194811637Z-cloudflare-agents-typescript-think-0-16-ai-sdk-7-436af4b3",
+  "latestStatus": "passed",
+  "lastPassingAttemptId": "20260830T194811637Z-cloudflare-agents-typescript-think-0-16-ai-sdk-7-436af4b3",
+  "updatedAt": "2026-08-30T20:44:15.355Z"
+}

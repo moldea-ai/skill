@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current files and runner-owned workspace patch agree: initialization added only the minimal moldea foundation and standard README block, while preserving the original README text. Deterministic validation reports valid status with no failures.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states the invoice-anomaly review purpose, total comparison, difference reporting, unequal-total operator review, and the boundary that the service never approves payment or changes invoices. These statements match README.md and src/invoice-review.ts. Current file hashes match the runner-owned after-state hashes."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The runner-owned patch lists only README.md, moldea/moldea.yaml, and moldea/project.md as changed. moldea/moldea.yaml contains only `version: 1`; the moldea tree contains only the manifest and project context, with no agent, runtime guide, decision, or unresolved requirement paths or manifest references. The original README content hashes exactly to the runner-owned before-state hash and remains intact before one standard awareness block."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,24 @@
+{
+  "verdict": "fail",
+  "summary": "Canonical behavior and function-tool bindings are correct, and deterministic validation/typechecking passed. However, moldea/moldea.yaml does not bind OrderTriageOutputSchema as the agent’s Output.object output schema, so the direct-agent requirement is incomplete.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "moldea/agents/order-triage/description.md states that the agent classifies orders for human review without refund-approval authority. instruction.md repeats both constraints and limits operation to classify_order. No redundant runtime guide or invented authority appears among the three changed paths."
+    },
+    {
+      "id": "binds-direct-agent",
+      "verdict": "fail",
+      "evidence": "moldea/moldea.yaml correctly binds runtimeAgent to OrderTriageAgent and instructionLoader to loadOrderTriageInstruction, with no agent input schema. But its bindings section has no outputSchema binding to OrderTriageOutputSchema, which src/order-triage-agent.ts passes to Output.object. Deterministic validation passing establishes structural validity, not fulfillment of this omitted semantic binding."
+    },
+    {
+      "id": "binds-function-tool",
+      "verdict": "pass",
+      "evidence": "The manifest tool name classify_order and symbols classifyOrder, classifyOrderTool, ClassifyOrderInputSchema, and ClassifyOrderOutputSchema exactly match src/order-triage-agent.ts, where classify_order registers classifyOrderTool and that tool uses the declared implementation and schemas. Deterministic validation and inspection also passed."
+    }
+  ],
+  "failures": [
+    "Add the agent output-schema binding in moldea/moldea.yaml for /src/order-triage-agent.ts symbol OrderTriageOutputSchema; do not add an agent input schema."
+  ]
+}

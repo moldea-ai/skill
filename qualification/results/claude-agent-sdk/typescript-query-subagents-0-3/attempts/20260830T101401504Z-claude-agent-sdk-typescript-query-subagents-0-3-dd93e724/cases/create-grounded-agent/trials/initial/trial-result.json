@@ -1,0 +1,62 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 101644,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1903517,
+    "cachedInputTokens": 1792000,
+    "outputTokens": 7804
+  },
+  "judgeUsage": {
+    "inputTokens": 322310,
+    "cachedInputTokens": 260608,
+    "outputTokens": 2649
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T10:11:04.344Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T10:24:19.297Z",
+  "actorCacheSourceAttemptId": "20260830T100644062Z-claude-agent-sdk-typescript-query-subagents-0-3-0c787896",
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/agents/order-triage/description.md states that the agent classifies incoming orders for human review and cannot approve refunds. instruction.md requires classification for human review and says never to approve refunds or claim refund authority. src/order-triage-agent.ts implements classification only, and workspace-patch evidence limits changes to the manifest plus these two canonical assets."
+    },
+    {
+      "id": "binds-direct-wrapper",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/order-triage-agent.ts#orderTriageAgent and instructionLoader to /src/order-triage-agent.ts#loadOrderTriageInstruction. Those exact exports exist: orderTriageAgent directly returns query(...), and the loader reads the canonical instruction.md. The manifest contains no output-schema, routing, handoff, subagent, or agent input-schema relationship. Deterministic inspect and validate both reported valid."
+    },
+    {
+      "id": "binds-function-tool",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/order-triage-agent.ts declares tool name classify_order, registers classifyOrderTool in orderServer, mounts that server as orders, and exposes mcp__orders__classify_order to query. The manifest binds that exact fully qualified name to classifyOrder, classifyOrderTool, and ClassifyOrderInputSchema at /src/order-triage-agent.ts. Deterministic adapter inspection was valid and typechecking passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

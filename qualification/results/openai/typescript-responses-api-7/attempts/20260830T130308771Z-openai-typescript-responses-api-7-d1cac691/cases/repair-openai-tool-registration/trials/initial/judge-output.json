@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The canonical tool name is now `lookup_order`, matching the unchanged closed OpenAI Responses registration. Runner-owned validation reports valid inspection with no failures, successful typechecking, and only `moldea/moldea.yaml` changed; all runtime, loader, registration, schema, and implementation source hashes remained unchanged.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the stale manifest name `find_order`, the source name `lookup_order`, and the initial name-mismatch diagnostic. Current `src/tools.ts` confirms the closed function-tool name is `lookup_order`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` declares `name: lookup_order`, matching `lookupOrderTool` in `src/tools.ts`. Workspace assertions identify only `moldea/moldea.yaml` as changed, while deterministic validation and inspection are both valid and typechecking passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings to `supportAgent`, `loadSupportInstruction`, `lookupOrderTool`, `LookupOrderInputSchema`, and `lookupOrder`. `src/agent.ts` still directly calls `client.responses.create` with canonical instructions and `tools: [lookupOrderTool]`; registration, schema, and implementation source hashes are identical before and after. The actor appropriately limits adapter evidence to static wiring rather than claiming provider execution."
+    }
+  ],
+  "failures": []
+}

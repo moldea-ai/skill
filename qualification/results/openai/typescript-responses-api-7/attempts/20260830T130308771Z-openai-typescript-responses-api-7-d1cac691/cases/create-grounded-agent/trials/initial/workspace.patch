@@ -1,0 +1,63 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index b825518..c99a36d 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1 +1,36 @@
+ version: 1
++agents:
++  order-triage:
++    runtime:
++      id: openai
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: orderTriageAgent
++      instructionLoader:
++        path: /src/order-triage-agent.ts
++        symbol: loadOrderTriageInstruction
++    tools:
++      classify-order:
++        name: classify_order
++        description: Classifies an order for human review.
++        implementation:
++          path: /src/order-triage-agent.ts
++          symbol: classifyOrder
++        registration:
++          path: /src/order-triage-agent.ts
++          symbol: classifyOrderTool
++        inputSchema:
++          path: /src/order-triage-agent.ts
++          symbol: ClassifyOrderInputSchema
++    unresolved:
++      classify-order-execution:
++        category: runtime
++        effect: blocking
++        description: The Responses API wrapper registers classify_order, but repository evidence does not establish dispatching returned tool calls to classifyOrder or submitting tool results.
++        resolution: Identify or implement repository-local runtime wiring and tests that dispatch classify_order calls to classifyOrder and submit the tool results to the Responses API.
++        related:
++          - path: /src/order-triage-agent.ts
++            symbol: orderTriageAgent
++          - path: /src/order-triage-agent.ts
++            symbol: classifyOrder
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..cad141b
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review and cannot approve refunds.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..ec509de
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,7 @@
++# order-triage
++
++`order-triage`
++
++Classify orders for human review. Never approve refunds or perform account changes.
++
++Use `classify_order` when an order ID is available, passing the supplied ID as `orderId`. Treat its classification as input for human review, not as approval or an account change. If no order ID is supplied, state that classification requires one; do not invent an ID.

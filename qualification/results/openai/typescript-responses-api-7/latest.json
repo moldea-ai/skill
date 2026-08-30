@@ -2,8 +2,8 @@
   "protocolVersion": 6,
   "adapterId": "openai",
   "implementationId": "typescript-responses-api-7",
-  "latestAttemptId": "20260830T124335516Z-openai-typescript-responses-api-7-5b658368",
-  "latestStatus": "failed",
-  "lastPassingAttemptId": null,
-  "updatedAt": "2026-08-30T12:53:35.200Z"
+  "latestAttemptId": "20260830T130308771Z-openai-typescript-responses-api-7-d1cac691",
+  "latestStatus": "passed",
+  "lastPassingAttemptId": "20260830T130308771Z-openai-typescript-responses-api-7-d1cac691",
+  "updatedAt": "2026-08-30T13:52:48.874Z"
 }

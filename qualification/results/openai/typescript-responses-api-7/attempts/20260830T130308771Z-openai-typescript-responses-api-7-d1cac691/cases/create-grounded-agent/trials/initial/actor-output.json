@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Added the canonical order-triage agent and exact bindings for orderTriageAgent, loadOrderTriageInstruction, classifyOrder, classifyOrderTool, and ClassifyOrderInputSchema. Moldea inspect/validate completed valid with no diagnostics; TypeScript type-checking passed. Final Git status and diff were reviewed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md"
+  ],
+  "observations": [
+    "The description and instruction classify orders for human review and explicitly deny refund approval.",
+    "No runtime guide, output schema, routing, handoff, subagent, agent input schema, or refund authority was added.",
+    "The OpenAI adapter detected Responses API, instruction-loader, tool-registration, and input-schema wiring; this evidence does not prove runtime tool execution.",
+    "Current published compatibility/maturity was not queried because network access was prohibited; its resolver is https://packages.moldea.ai/compatibility/runtimes.json."
+  ],
+  "unresolved": [
+    "A blocking manifest requirement records that the repository does not establish dispatching classify_order tool calls to classifyOrder or submitting tool results to the Responses API."
+  ]
+}

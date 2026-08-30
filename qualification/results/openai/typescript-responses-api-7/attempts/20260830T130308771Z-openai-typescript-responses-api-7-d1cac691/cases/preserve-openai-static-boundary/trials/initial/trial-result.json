@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 245415,
+  "deterministicBeforePath": "cases/preserve-openai-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-openai-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-openai-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-openai-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-openai-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-openai-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 670719,
+    "cachedInputTokens": 616704,
+    "outputTokens": 3483
+  },
+  "judgeUsage": {
+    "inputTokens": 330710,
+    "cachedInputTokens": 291072,
+    "outputTokens": 3511
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T13:50:39.367Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T13:52:45.481Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-evidence",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`src/agents.ts` defines `supportAgent` as a direct `client.responses.create({...})` call and supplies `instructions: await loadSupportInstruction()`. The loader reads `moldea/agents/support/instruction.md`. `moldea/moldea.yaml` binds those exact symbols as `runtimeAgent` and `instructionLoader`, matching the actor explanation and valid deterministic inspection."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`src/agents.ts` passes only the provider-hosted `{ type: 'web_search' }` descriptor. The canonical manifest registers no capability, function-tool implementation, registration binding, or schema for it, and the agent assets contain no invented tool relationship. This agrees with the actor explanation and valid deterministic result."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`dynamicSupportAgent` constructs `request` separately and passes it to `client.responses.create(request)`. Its manifest entry records only the OpenAI runtime, runtime-agent binding, and affected source; it invents no instruction loader, schema, capability, routing, handoff, or direct runtime pattern. The existing `indirect-request-construction` warning explains the limitation and resolves it by requiring a closed direct request object or a supported adapter pattern."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

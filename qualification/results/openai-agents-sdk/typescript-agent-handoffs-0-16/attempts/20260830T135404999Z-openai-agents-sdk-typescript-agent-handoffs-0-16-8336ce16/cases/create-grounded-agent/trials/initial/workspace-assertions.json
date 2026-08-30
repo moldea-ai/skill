@@ -1,0 +1,97 @@
+{
+  "passed": true,
+  "failures": [],
+  "before": [
+    {
+      "path": "moldea/moldea.yaml",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "09bfcc6a14b83e2192b8673677725c84883ee9cd0c70e45c9ec09daa8f2b2847"
+    },
+    {
+      "path": "moldea/project.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "47ef4ec4b1d3eabce19caaf0f5dcfe301880638ecb78f1ff07f95e6eb11fc848"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b33b870488f8cbbf9429dd1f323ff031da32610156e88325e4f1de6083b95d43"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b4a0aa5fddb4d6b5f0b769bcbfaa48952fd0b8b9a309045121f1751694c4a2eb"
+    },
+    {
+      "path": "src/order-triage-agent.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "c04e5d3bcb13256b18cf922dd64318eb13ebcf6f4b9d49c83182c36dbe07c9a7"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "7618798c77f948fc8b2a75fa7accecd8222ffc47e53ccd5461da03116901576a"
+    }
+  ],
+  "after": [
+    {
+      "path": "moldea/agents/order-triage/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "c133df904319d9be5560272f86d5fae893619da0525bc7d44eb92a7f41465e0a"
+    },
+    {
+      "path": "moldea/agents/order-triage/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "ffd01434ebd4c7f6c82dfb544e5b912806cc6cda5d71586b31c9af54ba03c670"
+    },
+    {
+      "path": "moldea/moldea.yaml",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "343c0ec88dfeae520680bdc7e1af106471c54278766f7b8986ee11e4ca9d6c0b"
+    },
+    {
+      "path": "moldea/project.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "47ef4ec4b1d3eabce19caaf0f5dcfe301880638ecb78f1ff07f95e6eb11fc848"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b33b870488f8cbbf9429dd1f323ff031da32610156e88325e4f1de6083b95d43"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b4a0aa5fddb4d6b5f0b769bcbfaa48952fd0b8b9a309045121f1751694c4a2eb"
+    },
+    {
+      "path": "src/order-triage-agent.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "c04e5d3bcb13256b18cf922dd64318eb13ebcf6f4b9d49c83182c36dbe07c9a7"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "7618798c77f948fc8b2a75fa7accecd8222ffc47e53ccd5461da03116901576a"
+    }
+  ],
+  "changedPaths": [
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/moldea.yaml"
+  ]
+}

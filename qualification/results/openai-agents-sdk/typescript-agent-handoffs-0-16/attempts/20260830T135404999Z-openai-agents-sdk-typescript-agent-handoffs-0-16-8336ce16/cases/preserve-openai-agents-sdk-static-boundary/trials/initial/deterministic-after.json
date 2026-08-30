@@ -1,0 +1,508 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 5423
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 2
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 2
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "definitionKind": "agent"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "support",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "configurationProperty": "instructions"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/agents.ts"
+                },
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "dynamicSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "0.16.1",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@openai/agents",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "0.16.1",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@openai/agents",
+              "source": "openai-agents-sdk"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/agents.ts"
+                  ],
+                  "bindings": {
+                    "runtimeAgent": {
+                      "path": "/src/agents.ts",
+                      "symbol": "dynamicSupportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "id": "openai-agents-sdk"
+                  },
+                  "unresolved": {
+                    "indirect-agent-configuration": {
+                      "category": "runtime-pattern",
+                      "description": "The dynamic-support Agent configuration is passed indirectly, so the adapter cannot prove an agent definition or its relationships.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/src/agents.ts",
+                          "symbol": "dynamicSupportAgent"
+                        }
+                      ],
+                      "resolution": "Construct the Agent with a closed inline configuration or document the relationship through a supported adapter pattern."
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Answers support questions through an indirectly assembled OpenAI request.\n",
+                    "digest": "sha256:98ccb48cdc60075c14b7e24318bccc76ea1c4125bfbc51d3789d580df5a5de9e",
+                    "path": "/moldea/agents/dynamic-support/description.md",
+                    "scalarLength": 74,
+                    "utf8ByteLength": 74
+                  },
+                  "scalarLength": 73,
+                  "value": "Answers support questions through an indirectly assembled OpenAI request."
+                },
+                "handoffDescription": null,
+                "id": "dynamic-support",
+                "instruction": {
+                  "content": "# Dynamic support agent\n\nYou are the `dynamic-support` agent. Answer support questions from verified project evidence.\n",
+                  "digest": "sha256:10f809f5c859c509c710797066b0a8f69b6d86fc0b0c33dd52cbd1e36b7a8807",
+                  "path": "/moldea/agents/dynamic-support/instruction.md",
+                  "scalarLength": 119,
+                  "utf8ByteLength": 119
+                },
+                "mirrors": []
+              },
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/agents.ts"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/src/agents.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/agents.ts",
+                      "symbol": "supportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "id": "openai-agents-sdk"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Answers support questions through a direct OpenAI Agents SDK wrapper.\n",
+                    "digest": "sha256:9925f3747f8c7c720ced97eaa961ce0b9aae3c2208b57ac155cce45022344d1e",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 70,
+                    "utf8ByteLength": 70
+                  },
+                  "scalarLength": 69,
+                  "value": "Answers support questions through a direct OpenAI Agents SDK wrapper."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer support questions from verified project evidence.\n",
+                  "digest": "sha256:e7ab796d00d12f27c4cfb05cdfacff7704106cf90c5c6d261e2016239248ba91",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 103,
+                  "utf8ByteLength": 103
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: openai-agents-sdk\n    bindings:\n      runtimeAgent:\n        path: /src/agents.ts\n        symbol: supportAgent\n      instructionLoader:\n        path: /src/agents.ts\n        symbol: loadSupportInstruction\n    affectedBy:\n      - /src/agents.ts\n  dynamic-support:\n    runtime:\n      id: openai-agents-sdk\n    bindings:\n      runtimeAgent:\n        path: /src/agents.ts\n        symbol: dynamicSupportAgent\n    affectedBy:\n      - /src/agents.ts\n    unresolved:\n      indirect-agent-configuration:\n        category: runtime-pattern\n        effect: warning\n        description: The dynamic-support Agent configuration is passed indirectly, so the adapter cannot prove an agent definition or its relationships.\n        resolution: Construct the Agent with a closed inline configuration or document the relationship through a supported adapter pattern.\n        related:\n          - path: /src/agents.ts\n            symbol: dynamicSupportAgent\n",
+                "digest": "sha256:4ce144a56031f84ae9dbea63008b7adb91d9d5f343d870431cf82d1489d464ec",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 987,
+                "utf8ByteLength": 987
+              },
+              "value": {
+                "agents": {
+                  "dynamic-support": {
+                    "affectedBy": [
+                      "/src/agents.ts"
+                    ],
+                    "bindings": {
+                      "runtimeAgent": {
+                        "path": "/src/agents.ts",
+                        "symbol": "dynamicSupportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "id": "openai-agents-sdk"
+                    },
+                    "unresolved": {
+                      "indirect-agent-configuration": {
+                        "category": "runtime-pattern",
+                        "description": "The dynamic-support Agent configuration is passed indirectly, so the adapter cannot prove an agent definition or its relationships.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/src/agents.ts",
+                            "symbol": "dynamicSupportAgent"
+                          }
+                        ],
+                        "resolution": "Construct the Agent with a closed inline configuration or document the relationship through a supported adapter pattern."
+                      }
+                    }
+                  },
+                  "support": {
+                    "affectedBy": [
+                      "/src/agents.ts"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/src/agents.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/agents.ts",
+                        "symbol": "supportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "id": "openai-agents-sdk"
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# OpenAI support boundaries\n\nThis project exposes direct and indirect OpenAI Agents SDK support wrappers while preserving the limits of static repository evidence.\n",
+              "digest": "sha256:d526075240a10930f564026463abde8b6a5c58a73fd6ed8796f71a25fc055c3c",
+              "path": "/moldea/project.md",
+              "scalarLength": 164,
+              "utf8ByteLength": 164
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

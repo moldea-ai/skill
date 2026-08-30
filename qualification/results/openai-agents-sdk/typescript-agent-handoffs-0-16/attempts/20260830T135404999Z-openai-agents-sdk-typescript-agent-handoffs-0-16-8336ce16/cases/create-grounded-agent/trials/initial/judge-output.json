@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, workspace patch assertions, and deterministic post-actor results agree. The canonical order-triage agent is grounded in human-review classification without refund authority, and the manifest binds only the exact existing SDK agent, instruction loader, schemas, and classify_order tool symbols.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "moldea/agents/order-triage/description.md states that the agent classifies orders for human review and cannot approve refunds. instruction.md requires classification through classify_order and says refund classifications are referrals for human review, never approvals. Workspace assertions identify these two canonical assets and moldea/moldea.yaml as the only changed paths."
+    },
+    {
+      "id": "binds-direct-wrapper",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/order-triage-agent.ts#orderTriageAgent, instructionLoader to #loadOrderTriageInstruction, and outputSchema to #OrderTriageOutputSchema. Those exact exports exist in src/order-triage-agent.ts. The complete manifest contains no routing, handoff, subagent, or agent-input-schema relationship, and deterministic-after reports valid inspection and validation."
+    },
+    {
+      "id": "binds-function-tool",
+      "verdict": "pass",
+      "evidence": "The manifest registers runtime name classify_order and binds implementation classifyOrder, registration classifyOrderTool, input schema ClassifyOrderInputSchema, and output schema ClassifyOrderOutputSchema at /src/order-triage-agent.ts. The source defines those exact symbols and configures classifyOrderTool with the matching name, execute function, parameters, and outputSchema. No claim of proven runtime execution appears; deterministic-after reports valid adapter inspection and passing typecheck."
+    }
+  ],
+  "failures": []
+}

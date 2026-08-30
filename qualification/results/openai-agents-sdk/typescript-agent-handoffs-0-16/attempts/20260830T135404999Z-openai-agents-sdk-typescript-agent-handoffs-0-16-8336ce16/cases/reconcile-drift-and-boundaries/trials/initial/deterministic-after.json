@@ -1,0 +1,416 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 5545
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package"
+        ],
+        "evidenceCount": 4,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package"
+        ],
+        "evidenceCount": 4,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "definitionKind": "agent"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/support-assistant.ts",
+                  "symbol": "supportAssistant"
+                }
+              ],
+              "runtimeName": "support",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "configurationProperty": "instructions"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/support-assistant.ts"
+                },
+                {
+                  "path": "/src/support-assistant.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/support-assistant.ts",
+                  "symbol": "supportAssistant"
+                }
+              ],
+              "runtimeName": null,
+              "source": "openai-agents-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "0.16.1",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@openai/agents",
+              "source": "openai-agents-sdk"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/**"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/src/support-assistant.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/support-assistant.ts",
+                      "symbol": "supportAssistant"
+                    }
+                  },
+                  "runtime": {
+                    "id": "openai-agents-sdk"
+                  },
+                  "unresolved": {
+                    "dynamic-tool-registry-wiring": {
+                      "category": "integration",
+                      "description": "Static inspection does not establish whether the dynamically assembled tool registry is supplied to the support agent.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/src/dynamic-tools.ts",
+                          "symbol": "assembleTools"
+                        }
+                      ],
+                      "resolution": "Establish closed runtime wiring or an integration test that proves whether assembleTools output is passed to supportAssistant, then register only the qualifying tools that evidence establishes."
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Produces a structured response to a support request.\n",
+                    "digest": "sha256:70dd898ec16b544984ca6792d83b3d1512aed65a05837e03b61fb2909d33e229",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 53,
+                    "utf8ByteLength": 53
+                  },
+                  "scalarLength": 52,
+                  "value": "Produces a structured response to a support request."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer from verified project evidence.\n",
+                  "digest": "sha256:9fa5916b50ec2db879209f595df91348c576061533576ee93caf56b00a416434",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 85,
+                  "utf8ByteLength": 85
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: openai-agents-sdk\n    bindings:\n      runtimeAgent:\n        path: /src/support-assistant.ts\n        symbol: supportAssistant\n      instructionLoader:\n        path: /src/support-assistant.ts\n        symbol: loadSupportInstruction\n    affectedBy:\n      - /src/**\n    unresolved:\n      dynamic-tool-registry-wiring:\n        category: integration\n        effect: warning\n        description: Static inspection does not establish whether the dynamically assembled tool registry is supplied to the support agent.\n        resolution: Establish closed runtime wiring or an integration test that proves whether assembleTools output is passed to supportAssistant, then register only the qualifying tools that evidence establishes.\n        related:\n          - path: /src/dynamic-tools.ts\n            symbol: assembleTools\n",
+                "digest": "sha256:dc00de85688fa74f3fa465cb9247338d11d4b60810db11b3ae5a7af714933b4c",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 865,
+                "utf8ByteLength": 865
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/src/**"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/src/support-assistant.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/support-assistant.ts",
+                        "symbol": "supportAssistant"
+                      }
+                    },
+                    "runtime": {
+                      "id": "openai-agents-sdk"
+                    },
+                    "unresolved": {
+                      "dynamic-tool-registry-wiring": {
+                        "category": "integration",
+                        "description": "Static inspection does not establish whether the dynamically assembled tool registry is supplied to the support agent.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/src/dynamic-tools.ts",
+                            "symbol": "assembleTools"
+                          }
+                        ],
+                        "resolution": "Establish closed runtime wiring or an integration test that proves whether assembleTools output is passed to supportAssistant, then register only the qualifying tools that evidence establishes."
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Support response project\n\nThis project produces structured support responses through a direct generation wrapper.\n",
+              "digest": "sha256:eeb441d0e5ff641303f0f40f24ba13e52543002bd561d488b31b2eaefdfa5539",
+              "path": "/moldea/project.md",
+              "scalarLength": 116,
+              "utf8ByteLength": 116
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

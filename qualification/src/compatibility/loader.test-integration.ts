@@ -9,6 +9,12 @@ import { inspectQualificationCoverage } from '../coverage/index.ts';
 import { ensureDirectory } from '../filesystem/index.ts';
 import { resolveQualificationTarget } from './loader.ts';
 
+// cases that intentionally begin without the complete moldea adoption contract
+const UNADOPTED_QUALIFICATION_CASE_IDS = new Set([
+  'initialize-grounded-project',
+  'stop-on-material-ambiguity',
+]);
+
 test.each([
   ['custom', 'custom', 8],
   ['anthropic', 'typescript-messages-api-0-117', 10],
@@ -18,11 +24,31 @@ test.each([
   ['openai', 'typescript-responses-api-7', 10],
   ['openai-agents-sdk', 'typescript-agent-handoffs-0-16', 10],
 ] as const)(
-  'preflights every %s/%s scenario before execution',
+  'preflights every %s/%s scenario with its intended adoption state',
   async (adapterId, implementationId, expectedCaseCount) => {
     const target = await resolveQualificationTarget({ adapterId, implementationId });
 
     expect(target.profile.cases).toHaveLength(expectedCaseCount);
+
+    for (const profileCase of target.profile.cases) {
+      const readmePath = path.join(
+        target.profileDirectory,
+        profileCase.projectDirectory,
+        'seed',
+        'README.md',
+      );
+
+      const readme = await readFile(readmePath, 'utf8');
+
+      if (UNADOPTED_QUALIFICATION_CASE_IDS.has(profileCase.id)) {
+        expect(readme).not.toContain('<!-- moldea:start -->');
+        expect(readme).not.toContain('<!-- moldea:end -->');
+        continue;
+      }
+
+      expect(readme).toContain('<!-- moldea:start -->');
+      expect(readme).toContain('<!-- moldea:end -->');
+    }
   },
 );
 

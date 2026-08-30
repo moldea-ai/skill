@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Created and registered the order-triage agent on the custom runtime. Its canonical description and instruction classify orders for human review and deny refund approval or financial-mutation authority. Bound `createOrderTriageAgent`, registered the affected source path, documented canonical instruction loading, and established the README awareness block. TypeScript compilation, moldea validation, and full inspection pass; moldea reports zero diagnostics.",
+  "changedFiles": [
+    "README.md",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/moldea.yaml",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "No tools, provider capabilities, schemas, routing, or additional decision authority were declared.",
+    "The source factory already loads `/moldea/agents/order-triage/instruction.md`, returns `action: classify-for-human-review`, and sets `canApproveRefunds: false`; `src/order-triage-agent.ts` required no modification.",
+    "Final hardened Git status contains only the intended manifest modification and new canonical files."
+  ],
+  "unresolved": [
+    "The injected instruction loader has no separate repository-local implementation or symbol, so no instructionLoader binding or provider behavior was invented.",
+    "The evaluator rejected `git diff --no-index` for untracked files; their final contents were inspected directly after reviewing the tracked manifest diff."
+  ]
+}

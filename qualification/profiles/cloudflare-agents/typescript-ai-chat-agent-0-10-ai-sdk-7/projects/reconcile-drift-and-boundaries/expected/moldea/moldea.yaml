@@ -1,0 +1,22 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: cloudflare-agents
+    bindings:
+      runtimeAgent:
+        path: /src/support-assistant.ts
+        symbol: SupportAssistant
+      instructionLoader:
+        path: /src/support-assistant.ts
+        symbol: loadSupportInstruction
+    affectedBy:
+      - /src/**
+    unresolved:
+      dynamic-tool-registration:
+        category: tool-registration
+        effect: warning
+        description: The final tool registry is assembled dynamically and cannot be proven from static repository evidence.
+        resolution: Replace dynamic assembly with an explicit closed generation-request tools map or retain this documented boundary.
+        related:
+          - path: /src/dynamic-tools.ts

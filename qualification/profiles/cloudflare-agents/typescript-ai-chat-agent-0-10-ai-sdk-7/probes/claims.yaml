@@ -1,0 +1,176 @@
+version: 2
+adapterId: cloudflare-agents
+implementationId: typescript-ai-chat-agent-0-10-ai-sdk-7
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The published adapter and exact AIChatAgent runtime composition exercise the compatible Core range.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: The boundary case records Cloudflare Durable Object and deployment behavior outside static inspection.
+    coveredBy: [evaluate-aligned-project, preserve-cloudflare-ai-chat-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes all universal journeys and two AIChatAgent-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-cloudflare-ai-chat-output-schema,
+        preserve-cloudflare-ai-chat-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare exact published npm runtime packages and inspect project-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Supported AIChatAgent sources are strict TypeScript ESM and typecheck with the project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: ai-chat-package
+    kind: compatibility
+    matrixPath: target.package.npm.@cloudflare/ai-chat.primary.>=0.10.2 <0.11.0
+    description: Every fixture pins the verified AIChatAgent package.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, preserve-cloudflare-ai-chat-static-boundary]
+  - id: agents-package
+    kind: compatibility
+    matrixPath: target.package.npm.agents.companion.>=0.21.0 <0.22.0
+    description: Every fixture pins the Agents companion used by agentTool handoffs.
+    coveredBy: [evaluate-aligned-project, preserve-cloudflare-ai-chat-static-boundary]
+  - id: ai-package
+    kind: compatibility
+    matrixPath: target.package.npm.ai.companion.>=7.0.0 <8.0.0
+    description: Every fixture pins the AI SDK companion used by direct generation and function tools.
+    coveredBy: [evaluate-aligned-project, repair-cloudflare-ai-chat-output-schema]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Directly exported AIChatAgent class symbols are bound, repaired after drift, and retained across supported boundaries.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        reconcile-drift-and-boundaries,
+        preserve-cloudflare-ai-chat-static-boundary,
+      ]
+  - id: instruction-loader-binding
+    kind: binding-support
+    matrixPath: target.binding-support.instruction-loader
+    description: Direct generation-request instructions bind exact repository-local loader symbols.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.output-schema
+    description: Output.object agent schemas bind exact repository-local schema symbols and are repaired after drift.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-cloudflare-ai-chat-output-schema]
+  - id: tool-implementation-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-implementation
+    description: AI SDK function-tool execution binds a repository-local implementation without invoking it.
+    coveredBy: [evaluate-aligned-project, repair-cloudflare-ai-chat-output-schema]
+  - id: tool-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-registration
+    description: Closed generation-request tool maps bind exact repository-local tool registrations.
+    coveredBy: [evaluate-aligned-project, repair-cloudflare-ai-chat-output-schema]
+  - id: tool-input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-input-schema
+    description: Direct AI SDK tool input schemas remain visible through closed registrations.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: tool-output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-output-schema
+    description: Direct AI SDK tool output schemas remain visible through closed registrations.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: agent-definition-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.agent-definition
+    description: Directly exported AIChatAgent classes emit normalized agent-definition evidence.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, preserve-cloudflare-ai-chat-static-boundary]
+  - id: handoff-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.handoff-registration
+    description: A closed agentTool entry with exact routing text emits a handoff relationship.
+    coveredBy: [evaluate-aligned-project]
+  - id: instruction-loader-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.instruction-loader
+    description: Direct generation-request instructions emit loader evidence through exact source symbols.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct definitions emit TypeScript language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct definitions emit supported AIChatAgent, Agents, and AI SDK package evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-pattern-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-pattern
+    description: Direct streamText calls in supported handlers emit normalized runtime-pattern evidence.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Structured agent output and function-tool bindings emit normalized schema evidence.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-cloudflare-ai-chat-output-schema]
+  - id: tool-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.tool-registration
+    description: Correct closed request maps emit tool-registration evidence.
+    coveredBy: [evaluate-aligned-project, repair-cloudflare-ai-chat-output-schema]
+  - id: directly-exported-ai-chat-agent-class
+    kind: pattern
+    matrixPath: target.pattern.directly-exported-ai-chat-agent-class
+    description: A directly exported class extending an exact named AIChatAgent import is recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-ai-sdk-generation
+    kind: pattern
+    matrixPath: target.pattern.direct-ai-sdk-generation
+    description: Direct generateText and streamText calls in onChatMessage establish runtime patterns.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: ai-chat-structured-output-and-tools
+    kind: pattern
+    matrixPath: target.pattern.ai-chat-structured-output-and-tools
+    description: Output.object schemas, function tools, and agentTool helpers remain active through closed request maps.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-cloudflare-ai-chat-output-schema]
+  - id: indirect-generation-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.7ab99c26879c29d9
+    description: Indirect generation and prepareStep-controlled instructions remain outside canonical static relationships.
+    coveredBy: [reconcile-drift-and-boundaries, preserve-cloudflare-ai-chat-static-boundary]
+  - id: agent-schema-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.c75cc5c959f6183e
+    description: Unsupported output variants and agent input schemas are not promoted into canonical schema bindings.
+    coveredBy: [preserve-cloudflare-ai-chat-static-boundary]
+  - id: dynamic-tools-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.577967fb4f963cc2
+    description: Runtime-selected tools remain outside canonical tool relationships.
+    coveredBy: [reconcile-drift-and-boundaries, preserve-cloudflare-ai-chat-static-boundary]

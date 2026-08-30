@@ -26,6 +26,7 @@ test.each([
   ['google-genai', 'typescript-models-generate-content-2', 10],
   ['langchain', 'typescript-create-agent-1-5', 10],
   ['cloudflare-agents', 'typescript-think-0-16-ai-sdk-7', 10],
+  ['cloudflare-agents', 'typescript-ai-chat-agent-0-10-ai-sdk-7', 10],
 ] as const)(
   'preflights every %s/%s scenario with its intended adoption state',
   async (adapterId, implementationId, expectedCaseCount) => {

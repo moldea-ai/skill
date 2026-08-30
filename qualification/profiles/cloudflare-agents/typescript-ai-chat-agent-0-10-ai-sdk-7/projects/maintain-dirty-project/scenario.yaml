@@ -1,0 +1,80 @@
+version: 2
+id: maintain-dirty-project
+title: Maintain a dirty project
+purpose: Verify a focused context change while preserving SDK wiring and unrelated work.
+taskFile: task.md
+seedDirectory: seed
+overlayDirectory: overlay
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [agent-definition, instruction-loader, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [agent-definition, instruction-loader, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      .agents/project-policy.md,
+      README.md,
+      notes/local-observation.md,
+      src/operator-notes.ts,
+      src/support-agent.ts,
+    ]
+  mustChangePaths:
+    [moldea/moldea.yaml, moldea/agents/support/instruction.md, moldea/context/billing.md]
+  mustExistPaths:
+    [
+      .agents/project-policy.md,
+      README.md,
+      notes/local-observation.md,
+      src/operator-notes.ts,
+      src/support-agent.ts,
+      moldea/agents/support/description.md,
+      moldea/context/billing.md,
+    ]
+  mustNotExistPaths: [moldea/runtimes]
+  allowedChangePaths:
+    [
+      moldea/moldea.yaml,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      moldea/context/billing.md,
+    ]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: adds-context
+    description: Billing context is canonical, globally registered, assigned to support, and related to the exact billing source.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-sdk-wiring
+    description: The directly exported AIChatAgent class, direct generation, and instruction-loader relationship remain unchanged and evidenced.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
+  - id: preserves-dirty-state
+    description: Unrelated project policy, tracked operator note, and untracked local observation remain byte-for-byte unchanged.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: validates-project
+    description: Every deterministic layer accepts the final project without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

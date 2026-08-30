@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the obsolete canonical support agent registration and assets while preserving project context and the pre-existing deletion of `src/support-agent.ts`. Final moldea inspection returned valid with zero agents and no diagnostics; TypeScript validation and Git diff checks passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "The pre-existing Git diff showed `src/support-agent.ts` intentionally deleted, including `supportAgent`, `loadSupportInstruction`, `SupportInputSchema`, and `SupportOutputSchema`.",
+    "Before correction, moldea inspection reported five diagnostics: the missing affected path plus missing runtime-agent, instruction-loader, input-schema, and output-schema references.",
+    "`src/project-state.ts` declares `activeAgents: 0`, and `moldea/project.md` records that the support agent definition was retired.",
+    "Final moldea inspection using CLI 5.0.0 returned `valid`, zero agents, and no diagnostics.",
+    "`tsc -p tsconfig.json --noEmit` and hardened `git diff --check` completed successfully.",
+    "No provider, agent, model, subagent, network access, or unsupported runtime behavior was invoked."
+  ],
+  "unresolved": []
+}

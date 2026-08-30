@@ -1,0 +1,106 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index ca39605..58e8556 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,51 +3,43 @@ agents:
+   support:
+     runtime:
+       id: vercel-ai-sdk
++      guidance: /moldea/runtimes/vercel-ai-sdk-preparation.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+         symbol: supportAgent
+-      instructionLoader:
+-        path: /src/instructions.ts
+-        symbol: loadSupportInstruction
+       inputSchema:
+         path: /src/contracts.ts
+         symbol: SupportCallOptionsSchema
+-      outputSchema:
+-        path: /src/contracts.ts
+-        symbol: SupportOutputSchema
+-    tools:
+-      get-status:
+-        name: get_status
+-        description: Reads one support order status.
+-        implementation:
+-          path: /src/implementations.ts
+-          symbol: getSupportStatus
+-        registration:
+-          path: /src/status-tools.ts
+-          symbol: supportStatusTool
+-        inputSchema:
+-          path: /src/contracts.ts
+-          symbol: SupportStatusInputSchema
+-        outputSchema:
+-          path: /src/contracts.ts
+-          symbol: SupportStatusOutputSchema
+     affectedBy:
+       - /src/support-agent.ts
+       - /src/contracts.ts
+       - /src/instructions.ts
+       - /src/status-tools.ts
+       - /src/implementations.ts
++    unresolved:
++      prepare-call-static-boundary:
++        category: runtime-inspection
++        effect: warning
++        description: prepareCall can replace the call settings, so static inspection cannot prove the configured instruction loader, output schema, or get_status tool wiring is effective.
++        resolution: Exercise supportAgent through closed runtime wiring and verify that prepareCall preserves the canonical instruction, SupportOutputSchema, and supportStatusTool registration for every supported call path.
++        related:
++          - path: /src/support-agent.ts
++            symbol: supportAgent
++          - path: /src/instructions.ts
++            symbol: loadSupportInstruction
++          - path: /src/contracts.ts
++            symbol: SupportOutputSchema
++          - path: /src/status-tools.ts
++            symbol: supportStatusTool
+   step-support:
+     runtime:
+       id: vercel-ai-sdk
++      guidance: /moldea/runtimes/vercel-ai-sdk-preparation.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+         symbol: stepSupportAgent
+-      instructionLoader:
+-        path: /src/instructions.ts
+-        symbol: loadStepSupportInstruction
+       inputSchema:
+         path: /src/contracts.ts
+         symbol: SupportCallOptionsSchema
+@@ -76,6 +68,17 @@ agents:
+       - /src/instructions.ts
+       - /src/status-tools.ts
+       - /src/implementations.ts
++    unresolved:
++      prepare-step-instruction-static-boundary:
++        category: runtime-inspection
++        effect: warning
++        description: prepareStep can replace instructions for each step, so static inspection cannot prove that loadStepSupportInstruction is the effective instruction loader.
++        resolution: Exercise every supported step path through closed runtime wiring and verify that prepareStep preserves the canonical step-support instruction.
++        related:
++          - path: /src/step-support-agent.ts
++            symbol: stepSupportAgent
++          - path: /src/instructions.ts
++            symbol: loadStepSupportInstruction
+   delegating-support:
+     runtime:
+       id: vercel-ai-sdk
+
+diff --git a/moldea/runtimes/vercel-ai-sdk-preparation.md b/moldea/runtimes/vercel-ai-sdk-preparation.md
+new file mode 100644
+index 0000000..e1f6551
+--- /dev/null
++++ b/moldea/runtimes/vercel-ai-sdk-preparation.md
+@@ -0,0 +1,8 @@
++# Vercel AI SDK preparation boundaries
++
++Static ToolLoopAgent inspection proves only configuration that a preparation callback cannot replace within the inspected boundary.
++
++- `supportAgent` uses `prepareCall`, which can replace call settings. Its agent definition and `callOptionsSchema` relationship are statically proved; its configured instructions, output, and tools are not.
++- `stepSupportAgent` uses only `prepareStep`. Its agent definition, call-options schema, output schema, and tool relationships are statically proved, while its per-step instruction may be replaced.
++
++Resolve the remaining effective-runtime relationships with closed wiring or integration tests that exercise the preparation callbacks. The separate `workflowSupportAgent` is a `WorkflowAgent`, not a ToolLoopAgent inspection target. A function tool calling `stepSupportAgent` is ordinary tool implementation and does not establish a handoff, routing target, or subagent relationship.

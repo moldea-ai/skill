@@ -1,0 +1,84 @@
+{
+  "caseId": "preserve-vercel-static-boundary",
+  "title": "Preserve the Vercel static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 335367,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 335367,
+      "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1292702,
+        "cachedInputTokens": 1206272,
+        "outputTokens": 6790
+      },
+      "judgeUsage": {
+        "inputTokens": 421577,
+        "cachedInputTokens": 347136,
+        "outputTokens": 3311
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T12:40:54.733Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T12:42:59.543Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "preserves-prepare-call-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml retains support.runtimeAgent and support.inputSchema only. prepare-call-static-boundary explicitly marks the instruction loader, SupportOutputSchema, and get_status tool wiring unresolved because prepareCall can replace call settings, with related source symbols and closed-runtime verification criteria."
+        },
+        {
+          "id": "preserves-prepare-step-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "step-support retains runtimeAgent, inputSchema, outputSchema, and the complete get-status tool bindings. Its sole unresolved entry concerns loadStepSupportInstruction because prepareStep can replace per-step instructions."
+        },
+        {
+          "id": "does-not-infer-subagent-handoff",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "delegating-support preserves the delegate_support tool implementation, registration, and schemas. src/delegation.ts directly calls stepSupportAgent.generate, while the manifest contains no routing, handoff, or subagent relationship. Workspace evidence shows no source changes."
+        },
+        {
+          "id": "keeps-workflow-agent-outside-target",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/workflow-agent.mts remains unchanged and exports workflowSupportAgent as a WorkflowAgent. No workflow agent appears in moldea/moldea.yaml, and the workspace patch changed only the manifest and runtime guidance."
+        },
+        {
+          "id": "records-focused-guidance",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Both support and step-support reference /moldea/runtimes/vercel-ai-sdk-preparation.md, the sole newly added runtime-guidance file. It distinguishes prepareCall from prepareStep, identifies each statically provable relationship set, and recommends closed wiring or integration tests without asserting provider behavior."
+        },
+        {
+          "id": "records-unresolved-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest contains separate warning requirements for prepareCall and prepareStep. Each names its boundary, links the relevant agent and relationship source symbols, and states the relationship-specific closed-runtime verification needed for resolution."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

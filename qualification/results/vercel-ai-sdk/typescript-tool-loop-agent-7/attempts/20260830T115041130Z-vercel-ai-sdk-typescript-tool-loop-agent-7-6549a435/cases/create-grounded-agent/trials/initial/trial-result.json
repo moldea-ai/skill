@@ -1,0 +1,62 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 353726,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1144701,
+    "cachedInputTokens": 1067520,
+    "outputTokens": 6630
+  },
+  "judgeUsage": {
+    "inputTokens": 338401,
+    "cachedInputTokens": 295168,
+    "outputTokens": 2857
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T12:04:29.959Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T12:06:16.822Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/agents/order-triage/description.md says it classifies incoming orders for human review and cannot approve refunds; instruction.md requires classification, requiresHumanReview=true, and states refund review is review only. Workspace assertions identify both files as newly added and moldea/moldea.yaml as the only modified existing file; no runtime guide or handoff asset exists under moldea."
+    },
+    {
+      "id": "binds-direct-agent",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent/orderTriageAgent, instructionLoader/loadOrderTriageInstruction, inputSchema/OrderTriageInputSchema, and outputSchema/OrderTriageOutputSchema at /src/order-triage-agent.ts. Those exact exported symbols are used by the direct ToolLoopAgent construction, including callOptionsSchema and Output.object. Deterministic post-actor inspection and validation are valid, with typecheckPassed=true."
+    },
+    {
+      "id": "binds-function-tool",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest registers runtime name classify_order and binds classifyOrder, classifyOrderTool, ClassifyOrderInputSchema, and ClassifyOrderOutputSchema at /src/order-triage-agent.ts. The implementation defines the closed tool with those exact symbols and registers it as tools.classify_order. Deterministic inspection, validation, and type checking all passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

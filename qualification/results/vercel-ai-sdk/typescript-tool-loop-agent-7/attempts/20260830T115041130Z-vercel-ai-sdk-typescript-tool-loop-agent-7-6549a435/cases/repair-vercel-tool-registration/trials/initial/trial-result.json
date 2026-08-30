@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 260695,
+  "deterministicBeforePath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-vercel-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-vercel-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-vercel-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-vercel-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 569725,
+    "cachedInputTokens": 517888,
+    "outputTokens": 3854
+  },
+  "judgeUsage": {
+    "inputTokens": 387745,
+    "cachedInputTokens": 354816,
+    "outputTokens": 3148
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T12:35:14.560Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T12:37:24.172Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies the prior canonical `find_order` name and the runtime map key `lookup_order`. This is corroborated by `src/agent.ts`, whose closed tools map is `tools: { lookup_order: lookupOrderTool }`, and by the task's validation evidence that the declared name differed from that key."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`, exactly matching `src/agent.ts`. Workspace assertions identify only `moldea/moldea.yaml` as changed and show unchanged hashes for every runtime source file; deterministic inspection and validation both report `valid`."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current source and manifest preserve exact bindings for runtime agent (`supportAgent`), instruction loader (`loadSupportInstruction`), agent schemas (`SupportInputSchema`, `SupportOutputSchema`), implementation (`lookupOrder`), registration (`lookupOrderTool`), and tool schemas (`LookupOrderInputSchema`, `LookupOrderOutputSchema`). The imports and calls close each binding through `src/agent.ts`, `src/tools.ts`, `src/implementations.ts`, and `src/contracts.ts`. Workspace hashes show those files unchanged, while deterministic inspection is `valid`, typechecking passed, and failures are empty."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

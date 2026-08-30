@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the adopted project's canonical Vercel tool name from `find_order` to the runtime map key `lookup_order`. Local inspection with moldea CLI 5.0.0 returned schema 2, status `valid`, complete tool-registration evidence, and no diagnostics. TypeScript validation also passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the direct agent definition, tool declaration, implementation, and input/output schemas unchanged.",
+    "Final Git diff contains only the one-field canonical name correction.",
+    "The worktree was initially clean; final status reports only the intended modification."
+  ],
+  "unresolved": []
+}

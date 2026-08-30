@@ -1,0 +1,31 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-08-30T11:55:17.116Z",
+  "durationMs": 108012,
+  "usage": {
+    "inputTokens": 448527,
+    "cachedInputTokens": 404736,
+    "outputTokens": 3824
+  },
+  "cacheKey": "9cc6b92d292f75e7ea3ca354790a0d1e28aa9dbfac18b8505f7d3eb7bb45410c",
+  "sourceAttemptId": "20260830T115041130Z-vercel-ai-sdk-typescript-tool-loop-agent-7-6549a435",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 35,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    }
+  }
+}

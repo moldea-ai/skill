@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to `classifyBillingQuestion`, registered it with `support`, and incorporated conservative refund/invoice guidance into the loaded canonical instruction. Moldea inspection, TypeScript compilation, and Git diff checks pass.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Moldea CLI 5.0.0 inspection returned schema 2 status `valid` with no diagnostics.",
+    "`tsc --noEmit -p tsconfig.json` and `git diff --check -- .` passed.",
+    "The direct Vercel AI SDK definition, instruction loader, call-options input schema, and structured output in `src/support-agent.ts` remain unchanged.",
+    "Pre-existing tracked work in `src/operator-notes.ts` and untracked `notes/local-observation.md` were preserved exactly.",
+    "The complete tracked diff and final worktree status were inspected. No provider, agent, model, subagent, or network access was used.",
+    "The guidance explicitly limits classification to routing; it does not infer refund eligibility, invoice correctness, account facts, or billing-change authority."
+  ],
+  "unresolved": []
+}

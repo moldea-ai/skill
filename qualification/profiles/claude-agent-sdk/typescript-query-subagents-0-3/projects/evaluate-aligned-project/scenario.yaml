@@ -77,12 +77,12 @@ workspace:
   mustChangePathPatterns: []
 judgeRequirements:
   - id: explains-direct-patterns
-    description: The actor accurately explains the direct query wrappers plus custom and preset-appended canonical prompt loaders using emitted evidence.
+    description: The actor accurately explains how each canonical instruction loader reaches its corresponding direct query wrapper using emitted evidence. Equivalent evidence-based wording passes without requiring SDK property-name repetition.
     evaluation:
       kind: judge
       evidenceSources: [actor-output, current-workspace, deterministic-after]
   - id: explains-closed-bindings
-    description: The actor accurately explains closed programmatic subagents, Agent availability, effective routing descriptions, explicit and inherited subagent tools, JSON-schema output, and query-mounted SDK MCP tool relationships.
+    description: The actor accurately explains the declared programmatic subagents, routing descriptions, effective tool availability, structured output, and query-mounted SDK MCP tool relationships. Exact option or symbol repetition is not required when the relationships are unambiguous and deterministic evidence confirms them.
     evaluation:
       kind: judge
       evidenceSources: [actor-output, current-workspace, deterministic-after]

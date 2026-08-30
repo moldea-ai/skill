@@ -1,0 +1,59 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "passed": false,
+  "durationMs": 254587,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/evaluate-aligned-project/trials/confirmation-1/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 646348,
+    "cachedInputTokens": 603648,
+    "outputTokens": 4124
+  },
+  "judgeUsage": {
+    "inputTokens": 504570,
+    "cachedInputTokens": 442624,
+    "outputTokens": 3929
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T09:22:06.812Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T09:24:10.047Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-patterns",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "src/agents.ts shows supportAgent using systemPrompt: loadSupportInstruction() and summaryAgent using a claude_code preset with append: loadSummaryInstruction(); src/instructions.ts loads both canonical instruction files. The actor only states that both direct wrappers bind canonical loaders and does not explain this custom-versus-preset-appended distinction."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor accurately reports billing and orders as closed AgentDefinition registrations, support’s explicit Agent availability, exact handoff routing descriptions, billing’s explicit and orders’ inherited mcp__support__find_order access, support-only SupportOutputSchema structured output, and the query-mounted support SDK MCP server. These claims agree with src/agents.ts, src/tools.ts, moldea/moldea.yaml, canonical handoff descriptions, and the valid deterministic inspection."
+    },
+    {
+      "id": "respects-static-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor explicitly declines to infer agent input schemas, tool output schemas, provider, model, external MCP, runtime execution, or actual invocation relationships. Its claims remain limited to static source, canonical bindings, and deterministic adapter evidence."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": [
+    "Requirement explains-direct-patterns failed: src/agents.ts shows supportAgent using systemPrompt: loadSupportInstruction() and summaryAgent using a claude_code preset with append: loadSummaryInstruction(); src/instructions.ts loads both canonical instruction files. The actor only states that both direct wrappers bind canonical loaders and does not explain this custom-versus-preset-appended distinction.",
+    "The actor report must explicitly explain that support uses a custom canonical system prompt while summary appends its canonical prompt to the claude_code preset."
+  ]
+}

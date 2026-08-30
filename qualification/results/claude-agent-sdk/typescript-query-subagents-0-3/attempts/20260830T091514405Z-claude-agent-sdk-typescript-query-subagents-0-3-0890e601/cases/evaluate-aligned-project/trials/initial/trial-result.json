@@ -1,0 +1,61 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": false,
+  "durationMs": 264096,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 648685,
+    "cachedInputTokens": 593920,
+    "outputTokens": 3734
+  },
+  "judgeUsage": {
+    "inputTokens": 417636,
+    "cachedInputTokens": 335872,
+    "outputTokens": 4044
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T09:17:49.556Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T09:19:55.459Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-patterns",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "src/agents.ts shows supportAgent uses a direct query with the custom systemPrompt loadSupportInstruction(), while summaryAgent uses a direct query whose claude_code preset appends loadSummaryInstruction(). src/instructions.ts loads the corresponding canonical instruction.md files. The actor reports direct wrappers and loaders but does not explain the custom-versus-preset-appended distinction required by this judgment."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "src/agents.ts defines the closed agents map { billing, orders }, explicitly enables the Agent tool for support, uses canonical handoff text as both subagent descriptions, gives billing an explicit find-order tool, leaves orders to inherited availability, and binds SupportOutputSchema through json_schema. src/tools.ts mounts findOrderTool on the support SDK MCP server. The actor covers most relationships but does not explain the explicit Agent availability or clearly identify the registration as a closed set."
+    },
+    {
+      "id": "respects-static-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor explicitly declines to infer agent input schema, tool output schema, provider, model, external MCP, or runtime invocation relationships. moldea/moldea.yaml declares only supported static bindings and tool input-schema relationships, and the deterministic post-actor result is valid with an unchanged repository."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": [
+    "Requirement explains-direct-patterns failed: src/agents.ts shows supportAgent uses a direct query with the custom systemPrompt loadSupportInstruction(), while summaryAgent uses a direct query whose claude_code preset appends loadSummaryInstruction(). src/instructions.ts loads the corresponding canonical instruction.md files. The actor reports direct wrappers and loaders but does not explain the custom-versus-preset-appended distinction required by this judgment.",
+    "Requirement explains-closed-bindings failed: src/agents.ts defines the closed agents map { billing, orders }, explicitly enables the Agent tool for support, uses canonical handoff text as both subagent descriptions, gives billing an explicit find-order tool, leaves orders to inherited availability, and binds SupportOutputSchema through json_schema. src/tools.ts mounts findOrderTool on the support SDK MCP server. The actor covers most relationships but does not explain the explicit Agent availability or clearly identify the registration as a closed set.",
+    "Explain that support uses a custom canonical system prompt while summary appends its canonical prompt to the claude_code preset.",
+    "Explicitly report that support enables the Agent tool and that its literal agents map closes programmatic subagent registration to billing and orders."
+  ]
+}

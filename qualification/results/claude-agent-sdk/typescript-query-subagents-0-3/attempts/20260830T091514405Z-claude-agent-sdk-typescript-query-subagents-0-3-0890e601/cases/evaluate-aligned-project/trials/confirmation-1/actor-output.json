@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted Moldea agent setup is valid and semantically aligned with the local Claude Agent SDK implementation. No edits were necessary. TypeScript compilation, Moldea inspection, Moldea validation, final Git diff, and final Git status all completed successfully; the worktree remains clean.",
+  "changedFiles": [],
+  "observations": [
+    "support and summary bind to direct query wrappers and their canonical instruction loaders in src/agents.ts and src/instructions.ts.",
+    "billing and orders bind to programmatic AgentDefinition registrations with canonical prompt loaders. Their runtime routing descriptions exactly match their target-owned handoff descriptions.",
+    "Moldea inspection detected support’s query-session registrations for billing and orders through the explicitly enabled Agent tool.",
+    "The query-mounted support SDK MCP server registers mcp__support__find_order. support receives it at query scope, billing explicitly lists it, and orders inherits it.",
+    "Only support binds the detected SupportOutputSchema structured output.",
+    "Moldea inspect and validate returned schemaVersion 2, CLI 5.0.0, status valid, and no diagnostics. TypeScript compilation exited successfully.",
+    "No agent input-schema, tool output-schema, provider, model, external MCP, or runtime invocation relationship was inferred or asserted.",
+    "Canonical state remained unchanged because no deterministic diagnostics, semantic conflicts, material ambiguities, or relevant unresolved requirements were found within the requested scope."
+  ],
+  "unresolved": []
+}

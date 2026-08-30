@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted project is valid and aligned for the requested scope; no files were edited. Repository-local moldea inspection returned schema 2, CLI 5.0.0, status valid, and no diagnostics. Strict TypeScript validation passed, and the final Git diff and status were empty.",
+  "changedFiles": [],
+  "observations": [
+    "`supportAgent` and `summaryAgent` are direct `client.models.generateContent` wrappers matching their `google-genai` runtime bindings.",
+    "Each wrapper loads its canonical instruction through the declared loader and supplies it as `config.systemInstruction`.",
+    "The support wrapper registers `findOrderDeclaration`, whose name and description match the manifest. Its `parametersJsonSchema` references `FindOrderInputSchema`, requiring one string `orderId` with no additional properties; this matches the declared tool input schema and local `findOrder` implementation input.",
+    "No deterministic diagnostics, confirmed semantic problems, material ambiguities, or relevant unresolved requirements were found.",
+    "Google Gen AI adapter evidence establishes detectable wrappers, loaders, tool registration, and tool-input schema relationships only."
+  ],
+  "unresolved": [
+    "Runtime provider execution, actual tool execution, output schemas, routing, handoffs, subagents, and agent-level input schemas were not established. Those claims would require separately authorized runtime integration evidence or provider-side traces; none were invoked under the task constraints."
+  ]
+}

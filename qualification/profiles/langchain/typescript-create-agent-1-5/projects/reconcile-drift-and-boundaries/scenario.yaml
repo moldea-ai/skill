@@ -35,7 +35,7 @@ workspace:
   mustChangePathPatterns: []
 judgeRequirements:
   - id: repairs-direct-bindings
-    description: Removed agent references are replaced with the existing supportAssistant, loadSupportInstruction, SupportInputSchema, and SupportOutputSchema symbols.
+    description: Removed agent references are replaced with the existing supportAssistant, loadSupportInstruction, and SupportOutputSchema symbols.
     evaluation:
       kind: judge
       evidenceSources: [current-workspace, deterministic-after, workspace-patch]

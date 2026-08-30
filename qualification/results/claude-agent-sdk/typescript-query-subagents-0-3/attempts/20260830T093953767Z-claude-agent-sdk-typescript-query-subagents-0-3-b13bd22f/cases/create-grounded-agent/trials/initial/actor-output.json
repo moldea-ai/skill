@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Created the canonical order-triage agent, grounded its description and instruction in human-review classification and lack of refund approval authority, and bound the existing Claude Agent SDK wrapper, instruction loader, tool implementation, and input schema symbols. Moldea inspection and validation completed successfully with zero diagnostics; TypeScript compilation also passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md"
+  ],
+  "observations": [
+    "The project is Moldea-adopted; canonical state was updated through a focused Maintain operation.",
+    "Bindings use `orderTriageAgent`, `loadOrderTriageInstruction`, `classifyOrder`, and `ClassifyOrderInputSchema` from `/src/order-triage-agent.ts`.",
+    "No runtime guide, output schema, routing, handoff, subagent, agent input schema, or refund authority was added.",
+    "Final Git status contained only the intended manifest change and new agent directory."
+  ],
+  "unresolved": [
+    "Current published Claude Agent SDK compatibility and maturity were not established because network access was prohibited. Resolver: https://packages.moldea.ai/compatibility/runtimes.json"
+  ]
+}

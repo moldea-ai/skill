@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Created the canonical order-triage agent and bound the direct Claude Agent SDK query wrapper, instruction loader, and MCP classification tool to their exact implementation and schema symbols. Final moldea inspection and validation passed with zero diagnostics; TypeScript compilation also passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md"
+  ],
+  "observations": [
+    "Claude Agent SDK inspection produced six grounded evidence items for the query wrapper, instruction loader, runtime package, tool registration, implementation, and input schema.",
+    "No runtime guide, output schema, routing, handoff, subagent, agent input schema, or refund authority was added.",
+    "The final worktree contains only the intended modified manifest and new agent directory."
+  ],
+  "unresolved": []
+}

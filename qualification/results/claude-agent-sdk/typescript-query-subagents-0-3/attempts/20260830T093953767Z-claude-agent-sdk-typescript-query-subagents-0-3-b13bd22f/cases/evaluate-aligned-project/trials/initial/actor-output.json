@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "The existing adopted moldea agent setup is valid and aligned; no edits were needed. Local CLI inspection and validation returned schema 2, CLI 5.0.0, status valid, and no diagnostics. TypeScript checking passed, and the final Git diff/status were clean.",
+  "changedFiles": [],
+  "observations": [
+    "support is a direct query wrapper loading its canonical system prompt, registering billing and orders as query-session subagents, explicitly enabling Agent and mcp__support__find_order, mounting the support SDK MCP server, and binding SupportOutputSchema as JSON-schema structured output.",
+    "billing and orders are programmatic AgentDefinition subagents whose prompts load their canonical instructions and whose runtime routing descriptions exactly match their canonical handoff descriptions.",
+    "billing explicitly lists mcp__support__find_order; orders omits a tools list and adapter evidence classifies its availability as inherited subagent tools.",
+    "summary is a direct query wrapper that appends its canonical instruction to the claude_code preset.",
+    "The find-order canonical registration matches the local SDK MCP tool name, description, implementation, registration, and input-schema bindings for support, billing, and orders.",
+    "No agent input-schema, tool output-schema, provider, model, external MCP, or runtime invocation relationship was inferred.",
+    "Checks completed: moldea inspect --json, moldea validate --json, tsc --noEmit, hardened final Git diff, and hardened final Git status."
+  ],
+  "unresolved": [
+    "Runtime execution behavior was not tested because the task prohibited running agents or calling a provider; conclusions are limited to repository source, canonical declarations, static type checking, and local adapter evidence."
+  ]
+}

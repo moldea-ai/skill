@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 335805,
+  "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1422265,
+    "cachedInputTokens": 1344512,
+    "outputTokens": 7480
+  },
+  "judgeUsage": {
+    "inputTokens": 497078,
+    "cachedInputTokens": 451584,
+    "outputTokens": 4004
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T08:46:40.830Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T08:48:42.089Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "adds-context",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace contains /moldea/context/billing.md with the exact case-sensitive classifyBillingQuestion behavior. /moldea/moldea.yaml globally registers that context, binds it to /src/billing.ts#classifyBillingQuestion, assigns it to support, and lists /src/billing.ts as affectedBy. Support instruction.md contains matching conservative refund/invoice guidance. The patch changes only these expected Moldea surfaces, and deterministic inspection/typecheck passed."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current /src/support-agent.ts still imports @anthropic-ai/sdk, constructs Anthropic directly, calls client.messages.create, and loads the system instruction through loadSupportInstruction from /moldea/agents/support/instruction.md. Its before/after SHA-256 is identical, Git reports no diff for the file, and deterministic validation/typecheck passed."
+    },
+    {
+      "id": "preserves-dirty-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

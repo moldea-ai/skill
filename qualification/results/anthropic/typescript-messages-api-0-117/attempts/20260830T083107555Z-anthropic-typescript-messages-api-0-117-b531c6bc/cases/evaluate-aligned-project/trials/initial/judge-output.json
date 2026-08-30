@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The actor’s report agrees with the current canonical manifest and TypeScript implementation, while correctly identifying the summary description’s unsupported streaming claim. Runner-owned validation passed, typechecking passed, and before/after hashes plus hardened Git evidence confirm no repository changes.",
+  "requirements": [
+    {
+      "id": "explains-direct-patterns",
+      "verdict": "pass",
+      "evidence": "`src/agents.ts` passes `await loadSupportInstruction()` and `await loadSummaryInstruction()` directly as the respective Messages API `system` values; `src/instructions.ts` loads each canonical `instruction.md`. The actor accurately reports both paths and the summary description mismatch."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "verdict": "pass",
+      "evidence": "`supportAgent` registers `[findOrderTool]`; `src/tools.ts` defines `find_order` with `input_schema: FindOrderInputSchema`; `src/contracts.ts` requires a string `orderId`; and `moldea/moldea.yaml` declares the matching registration, implementation, and input-schema bindings. The actor reports these relationships while explicitly withholding any dispatch claim."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "The actor reports a read-only evaluation, preserves `findOrder`, and states that adapter evidence establishes detectable implementation only—not runtime execution or tool dispatch. It also withholds output-schema, routing, handoff, subagent, and agent input-schema inferences. Deterministic evidence reports `repositoryUnchanged: true`, and workspace hashes show no changed paths."
+    }
+  ],
+  "failures": []
+}

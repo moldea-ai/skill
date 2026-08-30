@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 298497,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1657611,
+    "cachedInputTokens": 1537280,
+    "outputTokens": 5982
+  },
+  "judgeUsage": {
+    "inputTokens": 440005,
+    "cachedInputTokens": 384512,
+    "outputTokens": 3065
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T08:51:56.062Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T08:53:40.590Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-direct-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` binds `runtimeAgent` to `/src/support-assistant.ts#supportAssistant` and `instructionLoader` to `/src/support-assistant.ts#loadSupportInstruction`. Both symbols are exported by `src/support-assistant.ts`; the loader supplies the canonical instruction as the Anthropic `messages.create` `system` value. The Git diff removes both `/src/support-agent.ts` references, and the deleted-file diff confirms that removed source only contained the obsolete `supportAgent`. Deterministic validation, inspection, and typechecking all passed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` contains agent-owned unresolved warning `dynamic-tool-registry-relationship`, with effect `warning`, a description of the static-inspection limitation, a concrete resolution requiring closed wiring or an integration test, and related source `/src/dynamic-tools.ts#assembleTools`. The source exports `assembleTools`, while the manifest adds no invented capability/tool binding. The Git diff shows this exact warning addition, workspace assertions show only `moldea/moldea.yaml` changed during the actor run, and deterministic validation and inspection passed."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

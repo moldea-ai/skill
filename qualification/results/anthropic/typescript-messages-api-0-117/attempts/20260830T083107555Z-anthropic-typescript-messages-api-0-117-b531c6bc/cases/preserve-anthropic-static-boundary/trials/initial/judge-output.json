@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical state accurately preserves the Anthropic static boundary. Repository hashes match the runner’s after-state, changedPaths is empty, and deterministic validation reports valid inspection, passing typecheck, and an unchanged repository.",
+  "requirements": [
+    {
+      "id": "explains-direct-evidence",
+      "verdict": "pass",
+      "evidence": "src/agents.ts directly calls client.messages.create in supportAgent, while loadSupportInstruction reads moldea/agents/support/instruction.md and supplies it through the request system property. moldea/moldea.yaml binds both supportAgent and loadSupportInstruction, matching the actor explanation and deterministic valid result."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "verdict": "pass",
+      "evidence": "src/agents.ts places providerWebSearchTool, typed web_search_20250305, directly in the Anthropic request’s tools array. The complete support manifest entry contains only runtimeAgent and instructionLoader bindings—no capability, client-tool registration, schema, routing, or handoff relationship. The unchanged workspace and deterministic validation confirm this conservative boundary was preserved."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "verdict": "pass",
+      "evidence": "dynamicSupportAgent constructs an intermediate request object before passing it to client.messages.create. Its manifest entry records no direct Messages runtime-pattern relationship and retains the indirect-request-construction warning, explaining that adapter relationships cannot be proven and resolving it by passing a closed object directly or documenting the relationship through a supported adapter pattern."
+    }
+  ],
+  "failures": []
+}

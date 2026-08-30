@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the obsolete canonical support-agent setup. Removed its manifest registration, runtime wrapper/loader bindings, impact path, description, and instruction. TypeScript validation passed, and moldea 5.0.0 inspection changed from three missing-path diagnostics to valid with zero agents and no diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "The pre-existing deletion of src/support-agent.ts removes the Anthropic Messages API wrapper, supportAgent export, and loadSupportInstruction export; it was preserved unchanged.",
+    "src/project-state.ts independently reports activeAgents: 0.",
+    "moldea/project.md states that the support wrapper was retired and remains unchanged.",
+    "Final hardened Git review found only the three task changes plus the pre-existing src/support-agent.ts deletion; no unrelated files or qualification inputs were modified.",
+    "Canonical state is now aligned: moldea/moldea.yaml contains only version: 1, and final inspection reports an empty agents list."
+  ],
+  "unresolved": []
+}

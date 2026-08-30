@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current manifest, implementation, Git diff, workspace assertions, and deterministic post-actor results agree. The stale wrapper bindings were replaced with real exported symbols, and the uncertain dynamic tool relationship was recorded as an agent-level warning without inventing a capability binding.",
+  "requirements": [
+    {
+      "id": "repairs-direct-bindings",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` binds `runtimeAgent` to `/src/support-assistant.ts#supportAssistant` and `instructionLoader` to `/src/support-assistant.ts#loadSupportInstruction`. Both symbols are exported by `src/support-assistant.ts`; the loader supplies the canonical instruction as the Anthropic `messages.create` `system` value. The Git diff removes both `/src/support-agent.ts` references, and the deleted-file diff confirms that removed source only contained the obsolete `supportAgent`. Deterministic validation, inspection, and typechecking all passed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` contains agent-owned unresolved warning `dynamic-tool-registry-relationship`, with effect `warning`, a description of the static-inspection limitation, a concrete resolution requiring closed wiring or an integration test, and related source `/src/dynamic-tools.ts#assembleTools`. The source exports `assembleTools`, while the manifest adds no invented capability/tool binding. The Git diff shows this exact warning addition, workspace assertions show only `moldea/moldea.yaml` changed during the actor run, and deterministic validation and inspection passed."
+    }
+  ],
+  "failures": []
+}

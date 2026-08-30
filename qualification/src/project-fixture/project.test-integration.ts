@@ -221,6 +221,9 @@ describe('qualification project fixtures', () => {
     expect(project.beforeActorFiles.map(({ path: relativePath }) => relativePath)).toContain(
       '.agents/project-policy.md',
     );
+    expect(project.beforeActorFiles.map(({ path: relativePath }) => relativePath)).toContain(
+      'README.md',
+    );
 
     await applyExpectedDryRunState(project);
     const assertions = await inspectWorkspaceAssertions(project);

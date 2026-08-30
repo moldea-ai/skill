@@ -27,6 +27,7 @@ workspace:
   expectation: changed
   mustPreservePaths:
     - .agents/project-policy.md
+    - README.md
     - src/operator-notes.ts
     - notes/local-observation.md
     - src/support-agent.ts
@@ -37,6 +38,7 @@ workspace:
     - moldea/context/billing.md
   mustExistPaths:
     - .agents/project-policy.md
+    - README.md
     - moldea/agents/support/description.md
     - moldea/context/billing.md
     - notes/local-observation.md

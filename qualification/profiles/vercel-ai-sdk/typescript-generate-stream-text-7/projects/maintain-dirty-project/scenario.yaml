@@ -28,6 +28,7 @@ workspace:
   mustPreservePaths:
     [
       .agents/project-policy.md,
+      README.md,
       notes/local-observation.md,
       src/operator-notes.ts,
       src/support-agent.ts,
@@ -37,6 +38,7 @@ workspace:
   mustExistPaths:
     [
       .agents/project-policy.md,
+      README.md,
       notes/local-observation.md,
       src/operator-notes.ts,
       src/support-agent.ts,

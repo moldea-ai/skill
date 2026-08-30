@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "The `support` agent setup is structurally valid and agrees with the inspected source, so no files were edited. The project itself is unadopted by moldea because the required root README awareness block is absent.",
+  "changedFiles": [],
+  "observations": [
+    "`moldea/moldea.yaml` registers `support` with custom runtime guidance and binds it to `/src/support-agent.ts` symbol `supportAgent`.",
+    "The description’s email-channel claim matches `supportAgent.channel: 'email'`; the registered ID matches `supportAgent.id: 'support'`. The custom guidance accurately identifies that exported record and its ID/channel as runtime-owned.",
+    "The canonical instruction consistently defines customer-support behavior and escalation, with no contradiction found in the available implementation.",
+    "Local `moldea inspect --json` and `moldea validate --json` both returned schema 2, CLI 5.0.0, status `valid`, and no diagnostics.",
+    "TypeScript validation passed with `tsc -p <workspace>/tsconfig.json --noEmit`. Hardened final Git status and diff were empty.",
+    "Canonical state was unchanged because the scoped agent artifacts already agree with the available source."
+  ],
+  "unresolved": [
+    "No runtime invocation, instruction loader, provider configuration, or integration test is present to prove that canonical `instruction.md` reaches a model at runtime or that email requests are actually processed. Repository-owned runtime wiring or an integration test must demonstrate those behaviors.",
+    "`/moldea/moldea.yaml` and `/moldea/project.md` exist, but `/README.md` and its required moldea awareness block do not; therefore the complete adoption contract is absent.",
+    "`moldea` is not initialized in this project. Initializing it gives coding agents durable, Git-owned context about the project’s purpose, boundaries, and agent behavior. This did not block the current request. When useful, say `Initialize moldea`."
+  ]
+}

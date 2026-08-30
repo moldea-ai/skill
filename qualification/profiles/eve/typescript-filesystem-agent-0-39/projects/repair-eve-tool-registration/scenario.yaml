@@ -1,0 +1,71 @@
+version: 2
+id: repair-eve-tool-registration
+title: Repair Eve tool registration
+purpose: Verify precise diagnostic-driven repair of recursive filesystem tool identity.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: [EVE_TOOL_NAME_MISMATCH]
+    forbiddenDiagnosticCodes: [EVE_TOOL_REGISTRATION_NOT_WIRED]
+    requiredEvidenceKinds: [agent-definition, instruction-loader, language, runtime-package, schema]
+    forbiddenEvidenceKinds: [tool-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: [EVE_TOOL_NAME_MISMATCH, EVE_TOOL_REGISTRATION_NOT_WIRED]
+    requiredEvidenceKinds:
+      [agent-definition, instruction-loader, language, runtime-package, schema, tool-registration]
+    forbiddenEvidenceKinds: [handoff-registration, skill-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      agent/agent.ts,
+      agent/instructions.md,
+      agent/contracts.ts,
+      agent/implementations.ts,
+      agent/tools/orders/find.ts,
+      moldea/agents/support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    [
+      moldea/moldea.yaml,
+      agent/agent.ts,
+      agent/instructions.md,
+      agent/contracts.ts,
+      agent/implementations.ts,
+      agent/tools/orders/find.ts,
+    ]
+  mustNotExistPaths: [moldea/runtimes]
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-name-mismatch
+    description: The actor explains from validation evidence and repository source that the declared tool name differs from the path-derived Eve runtime name. Repeating the internal diagnostic code is not required.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after, workspace-patch]
+  - id: repairs-canonical-name
+    description: The manifest tool name becomes orders-find, matching source without changing the valid runtime implementation.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-binding-closure
+    description: Runtime-agent, Markdown instruction, agent output-schema, tool implementation, registration, input-schema, and tool output-schema bindings remain exact and evidenced.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
+  - id: validates-project
+    description: The mismatch disappears, tool-registration evidence appears, and every deterministic layer passes without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

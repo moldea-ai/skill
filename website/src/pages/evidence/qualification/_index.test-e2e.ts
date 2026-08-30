@@ -76,13 +76,24 @@ test('represents the current qualification evidence state', async ({ page }) => 
   });
   await expect(openAiAgentsProfileLink.getByAltText('OpenAI company logo')).toBeVisible();
 
+  const eveProfileLink = page.getByRole('link', {
+    name: /Eve filesystem-agent qualification/,
+  });
+  await expect(
+    eveProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
+  ).toBeVisible();
+  await expect(eveProfileLink.getByAltText('Vercel company logo')).toBeVisible();
+  await expect(eveProfileLink.getByText('Attempts', { exact: true }).locator('..')).toContainText(
+    '1',
+  );
+
   const anthropicCompanyLogos = page.getByAltText('Anthropic company logo');
   const openAiCompanyLogos = page.getByAltText('OpenAI company logo');
   const vercelCompanyLogos = page.getByAltText('Vercel company logo');
 
   await expect(anthropicCompanyLogos).toHaveCount(2);
   await expect(openAiCompanyLogos).toHaveCount(2);
-  await expect(vercelCompanyLogos).toHaveCount(2);
+  await expect(vercelCompanyLogos).toHaveCount(3);
   await expect
     .poll(() =>
       vercelCompanyLogos.evaluateAll((images) =>
@@ -270,12 +281,16 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
     const openAiAgentsProfileRoute = toPublicPath(
       '/evidence/qualification/openai-agents-sdk/typescript-agent-handoffs-0-16/',
     );
+    const eveProfileRoute = toPublicPath(
+      '/evidence/qualification/eve/typescript-filesystem-agent-0-39/',
+    );
     const routes = [
       toPublicPath('/evidence/qualification/'),
       profileRoute,
       anthropicProfileRoute,
       openAiResponsesProfileRoute,
       openAiAgentsProfileRoute,
+      eveProfileRoute,
       vercelProfileRoute,
       toolLoopProfileRoute,
     ];

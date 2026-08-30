@@ -1,0 +1,17 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: eve
+    bindings:
+      runtimeAgent:
+        path: /legacy/agent.ts
+        symbol: default
+      instructionLoader:
+        path: /legacy/loaders.ts
+        symbol: loadSupportInstruction
+      outputSchema:
+        path: /legacy/contracts.ts
+        symbol: SupportOutputSchema
+    affectedBy:
+      - /legacy/**

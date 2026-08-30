@@ -1,0 +1,32 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: eve
+    bindings:
+      runtimeAgent:
+        path: /agent/agent.ts
+        symbol: default
+      instructionLoader:
+        path: /agent/instructions.md
+      outputSchema:
+        path: /agent/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      find-order:
+        name: orders-find
+        description: Finds one order by identifier.
+        implementation:
+          path: /agent/implementations.ts
+          symbol: findOrder
+        registration:
+          path: /agent/tools/orders/find.ts
+          symbol: default
+        inputSchema:
+          path: /agent/contracts.ts
+          symbol: FindOrderInputSchema
+        outputSchema:
+          path: /agent/contracts.ts
+          symbol: FindOrderOutputSchema
+    affectedBy:
+      - /agent/**

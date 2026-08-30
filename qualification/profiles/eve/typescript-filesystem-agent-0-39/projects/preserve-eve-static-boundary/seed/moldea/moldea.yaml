@@ -1,0 +1,42 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: eve
+    bindings:
+      runtimeAgent:
+        path: /agent/agent.ts
+        symbol: default
+      instructionLoader:
+        path: /agent/instructions.md
+      outputSchema:
+        path: /agent/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      status:
+        name: status
+        description: Reads one support ticket status.
+        implementation:
+          path: /agent/implementations.ts
+          symbol: getStatus
+        registration:
+          path: /agent/tools/status.ts
+          symbol: default
+        inputSchema:
+          path: /agent/contracts.ts
+          symbol: StatusInputSchema
+        outputSchema:
+          path: /agent/contracts.ts
+          symbol: StatusOutputSchema
+    skills:
+      triage:
+        name: triage
+        description: Applies the support triage boundary.
+        implementation:
+          path: /agent/skills/triage.ts
+          symbol: default
+        registration:
+          path: /agent/skills/triage.ts
+          symbol: default
+    affectedBy:
+      - /agent/**

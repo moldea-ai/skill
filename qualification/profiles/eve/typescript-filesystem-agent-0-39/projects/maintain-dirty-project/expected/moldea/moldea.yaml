@@ -1,0 +1,23 @@
+version: 1
+context:
+  /moldea/context/billing.md:
+    affectedBy:
+      - /src/billing.ts
+agents:
+  support:
+    runtime:
+      id: eve
+    bindings:
+      runtimeAgent:
+        path: /agent/agent.ts
+        symbol: default
+      instructionLoader:
+        path: /agent/loaders.ts
+        symbol: loadSupportInstruction
+      outputSchema:
+        path: /agent/contracts.ts
+        symbol: SupportOutputSchema
+    context:
+      - /moldea/context/billing.md
+    affectedBy:
+      - /agent/**

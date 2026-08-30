@@ -43,6 +43,7 @@
     "ai": "7.0.77",
     "eslint": "10.8.1",
     "eslint-config-prettier": "10.1.8",
+    "eve": "0.39.1",
     "globals": "17.9.0",
     "langchain": "1.5.9",
     "openai": "7.8.0",

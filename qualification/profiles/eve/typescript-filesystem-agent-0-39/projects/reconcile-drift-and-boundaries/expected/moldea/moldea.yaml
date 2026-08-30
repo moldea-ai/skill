@@ -1,0 +1,25 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: eve
+    bindings:
+      runtimeAgent:
+        path: /agent/agent.ts
+        symbol: default
+      instructionLoader:
+        path: /agent/loaders.ts
+        symbol: loadSupportInstruction
+      outputSchema:
+        path: /agent/contracts.ts
+        symbol: SupportOutputSchema
+    affectedBy:
+      - /agent/**
+    unresolved:
+      dynamic-tool-registration:
+        category: tool-registration
+        effect: warning
+        description: The runtime tool is produced by defineDynamic and its final registration cannot be proven from static repository evidence.
+        resolution: Replace runtime selection with one static defineTool module or retain this explicit boundary.
+        related:
+          - path: /agent/tools/runtime.ts

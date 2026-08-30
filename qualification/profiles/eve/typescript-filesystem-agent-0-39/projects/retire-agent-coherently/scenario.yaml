@@ -1,0 +1,71 @@
+version: 2
+id: retire-agent-coherently
+title: Retire an agent coherently
+purpose: Verify that removing an Eve root definition removes its complete canonical surface.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: [agent/agent.ts]
+expectedRemovePaths: [moldea/agents/support/description.md, moldea/agents/support/instruction.md]
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: [agent-definition, handoff-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds:
+      [agent-definition, handoff-registration, instruction-loader, runtime-package, schema]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [moldea/project.md, agent/contracts.ts, agent/instructions.ts, src/project-state.ts]
+  mustChangePaths:
+    [moldea/moldea.yaml, moldea/agents/support/description.md, moldea/agents/support/instruction.md]
+  mustExistPaths:
+    [
+      moldea/moldea.yaml,
+      moldea/project.md,
+      agent/contracts.ts,
+      agent/instructions.ts,
+      src/project-state.ts,
+    ]
+  mustNotExistPaths:
+    [
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      agent/agent.ts,
+      moldea/runtimes,
+    ]
+  allowedChangePaths:
+    [moldea/moldea.yaml, moldea/agents/support/description.md, moldea/agents/support/instruction.md]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: removes-obsolete-declaration
+    description: The final manifest no longer declares the removed Eve agent, instruction loader, output schema, or runtime relationship.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: removes-orphaned-assets
+    description: Obsolete description and instruction files are deleted rather than left as misleading canonical state.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: preserves-surviving-context
+    description: Project context and unrelated source remain byte-for-byte unchanged.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: validates-project
+    description: Every deterministic layer accepts the reconciled project without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

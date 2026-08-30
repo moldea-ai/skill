@@ -1,0 +1,105 @@
+version: 2
+id: preserve-eve-static-boundary
+title: Preserve the Eve static boundary
+purpose: Verify conservative handling of dynamic capabilities and unsupported Eve filesystem surfaces.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [
+        agent-definition,
+        instruction-loader,
+        language,
+        runtime-package,
+        schema,
+        skill-registration,
+        tool-registration,
+      ]
+    forbiddenEvidenceKinds: [handoff-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [
+        agent-definition,
+        instruction-loader,
+        language,
+        runtime-package,
+        schema,
+        skill-registration,
+        tool-registration,
+      ]
+    forbiddenEvidenceKinds: [handoff-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      agent/agent.ts,
+      agent/instructions.md,
+      agent/contracts.ts,
+      agent/implementations.ts,
+      agent/tools/status.ts,
+      agent/tools/runtime.ts,
+      agent/skills/triage.ts,
+      agent/skills/reference.md,
+      agent/skills/guide/SKILL.md,
+      agent/subagents/quick.ts,
+      examples/instructions/Instructions.md,
+      examples/instructions/system.md,
+      examples/instructions/instructions/part.md,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    [
+      agent/agent.ts,
+      agent/instructions.md,
+      agent/tools/status.ts,
+      agent/tools/runtime.ts,
+      agent/skills/triage.ts,
+      agent/skills/reference.md,
+      agent/skills/guide/SKILL.md,
+      agent/subagents/quick.ts,
+      moldea/moldea.yaml,
+    ]
+  mustNotExistPaths: []
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: [moldea/runtimes/**/*.md]
+  mustChangePathPatterns: [moldea/runtimes/**/*.md]
+judgeRequirements:
+  - id: preserves-supported-static-relationships
+    description: The exact root agent, lowercase Markdown instructions, output schema, static status tool, and TypeScript triage skill remain canonically bound and deterministically evidenced.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: records-dynamic-and-markdown-boundaries
+    description: Focused unresolved warnings retain the dynamic tool and Markdown skills without inventing static tool or skill registration evidence.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after, workspace-patch]
+  - id: records-subagent-and-instruction-boundaries
+    description: The single-file subagent and unsupported instruction forms remain unclaimed, with concrete supported alternatives and source references.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after, workspace-patch]
+  - id: records-operational-boundaries
+    description: One concise runtime guide distinguishes remote agents, extensions, connection and framework tools, collisions, reserved names, advanced runtime behavior, and the Node.js prerequisite from proved canonical relationships.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
+  - id: validates-project
+    description: Every deterministic layer accepts the project, proved relationship evidence remains exact, and all source and canonical agent assets remain unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

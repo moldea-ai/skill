@@ -130,3 +130,13 @@ cases:
     layer: adapter-specific
     description: Represent dynamic AIChatAgent request relationships without claiming evidence that the adapter cannot prove.
     challenge: Tests conservative handling of runtime-selected tools, prepareStep instructions, indirect generation, unsupported output variants, and Cloudflare deployment behavior.
+  - id: repair-eve-tool-registration
+    title: Repair Eve tool registration
+    layer: adapter-specific
+    description: Reconcile a declared tool name with Eve's recursive filesystem-derived runtime name using exact adapter diagnostics and source evidence.
+    challenge: Requires correcting canonical identity without changing the valid filesystem tool, implementation, or schema bindings.
+  - id: preserve-eve-static-boundary
+    title: Preserve the Eve static boundary
+    layer: adapter-specific
+    description: Represent dynamic capabilities and unsupported filesystem sources without claiming evidence that the adapter cannot prove.
+    challenge: Tests conservative handling of dynamic tools, Markdown skills, single-file subagents, remote agents, extensions, and instruction composition.

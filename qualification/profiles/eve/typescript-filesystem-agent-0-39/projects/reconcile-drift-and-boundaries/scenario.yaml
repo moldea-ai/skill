@@ -1,0 +1,69 @@
+version: 2
+id: reconcile-drift-and-boundaries
+title: Reconcile drift and boundaries
+purpose: Verify stale-reference repair alongside conservative treatment of a dynamic Eve tool.
+taskFile: task.md
+seedDirectory: seed
+overlayDirectory: overlay
+expectedDirectory: expected
+removePaths: [legacy/agent.ts]
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: [agent-definition, tool-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [agent-definition, instruction-loader, language, runtime-package, schema]
+    forbiddenEvidenceKinds: [handoff-registration, skill-registration, tool-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      agent/agent.ts,
+      agent/contracts.ts,
+      agent/instructions.ts,
+      agent/tools/runtime.ts,
+      moldea/agents/support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    [
+      agent/agent.ts,
+      agent/contracts.ts,
+      agent/instructions.ts,
+      agent/tools/runtime.ts,
+      moldea/moldea.yaml,
+    ]
+  mustNotExistPaths: [legacy/agent.ts, moldea/runtimes]
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: repairs-direct-bindings
+    description: The removed legacy reference is replaced with the exact current root definition, loader, and output-schema symbols.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: records-dynamic-boundary
+    description: The runtime-defined tool is an unresolved warning with a concrete resolution and source, not an invented static tool binding.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-source
+    description: Current implementation files and canonical agent assets remain unchanged, and removed source is not recreated.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: validates-project
+    description: The initially invalid project becomes valid through every deterministic layer without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

@@ -200,7 +200,11 @@ const replaceAttemptTextArtifact = (
   writeJson(attemptDirectory, 'attempt.json', attempt);
 };
 
-const seedCurrentQualificationAttempt = async (root: string, attemptId: string): Promise<void> => {
+const seedCurrentQualificationAttempt = async (
+  root: string,
+  attemptId: string,
+  hasSkippedInitialJudge = false,
+): Promise<void> => {
   const resultsRoot = join(root, 'qualification', 'results');
   const artifactDirectory = join(root, `.qualification-artifacts-${attemptId}`);
   writeText(
@@ -229,6 +233,7 @@ cases:
     artifactDirectory,
     attemptId,
     hasOperationalRetry: true,
+    hasSkippedInitialJudge,
     isRecovered: true,
     packages: [
       {
@@ -254,6 +259,89 @@ cases:
       },
     },
     resultsRoot,
+  );
+};
+
+const convertCurrentAttemptToActorPolicyFailure = (root: string, attemptId: string): void => {
+  const failure =
+    'Actor command policy observed prohibited credential, network, or sensitive evaluator access.';
+  const attempt = readAttemptFixture(root, attemptId);
+  const caseResult = attempt.cases[0];
+  const trials = caseResult?.['trials'];
+
+  if (
+    !caseResult ||
+    !Array.isArray(trials) ||
+    typeof trials[0] !== 'object' ||
+    trials[0] === null
+  ) {
+    throw new Error('Missing current initial fixture.');
+  }
+
+  const initialTrial = trials[0] as Record<string, unknown>;
+  initialTrial['failures'] = [failure];
+  const attemptDirectory = join(root, 'qualification/results/custom/custom/attempts', attemptId);
+  const initialRoot = 'cases/release-case/trials/initial';
+  const confirmationRoot = 'cases/release-case/trials/confirmation-1';
+  const actorEvidencePath = `${initialRoot}/actor-evidence.json`;
+  const actorEvidence = JSON.parse(
+    readFileSync(join(attemptDirectory, actorEvidencePath), 'utf8'),
+  ) as {
+    commandPolicy: {
+      completedCommandCount: number;
+      sensitiveAccess: Record<string, unknown>;
+    };
+  };
+  actorEvidence.commandPolicy.completedCommandCount = 1;
+  actorEvidence.commandPolicy.sensitiveAccess = {
+    status: 'observed',
+    observedCount: 1,
+    indeterminateCount: 0,
+  };
+  replaceAttemptArtifact(root, attemptId, actorEvidencePath, actorEvidence);
+  replaceAttemptTextArtifact(
+    root,
+    attemptId,
+    `${initialRoot}/actor-events.jsonl`,
+    `${JSON.stringify({
+      eventType: 'command.completed',
+      exitCode: 0,
+      outputByteCount: 1,
+      status: 'completed',
+    })}\n`,
+  );
+
+  for (const artifactName of ['actor-output.json', 'workspace-assertions.json'] as const) {
+    const passingArtifact = JSON.parse(
+      readFileSync(join(attemptDirectory, confirmationRoot, artifactName), 'utf8'),
+    ) as unknown;
+    replaceAttemptArtifact(root, attemptId, `${initialRoot}/${artifactName}`, passingArtifact);
+  }
+
+  replaceAttemptArtifact(root, attemptId, `${initialRoot}/judge-skipped.json`, {
+    kind: 'deterministic-failure',
+    reason: 'The judge was skipped because runner-owned evidence already failed.',
+    deterministicAfterPassed: true,
+    workspaceAssertionsPassed: true,
+  });
+  replaceAttemptArtifact(root, attemptId, `${initialRoot}/trial-result.json`, initialTrial);
+  replaceAttemptArtifact(root, attemptId, 'cases/release-case/case-result.json', caseResult);
+
+  const updatedAttempt = readAttemptFixture(root, attemptId);
+  const assertionsStage = updatedAttempt.stages.find(
+    ({ id }) => id === 'case:release-case:trial:initial:assertions',
+  );
+
+  if (assertionsStage === undefined) {
+    throw new Error('Missing current initial assertions stage.');
+  }
+
+  assertionsStage['status'] = 'passed';
+  updatedAttempt.cases = [caseResult];
+  writeJson(
+    root,
+    `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
+    updatedAttempt,
   );
 };
 
@@ -629,6 +717,15 @@ cases:
     const attemptId = 'attempt-judge-policy-failure';
     await seedCurrentQualificationAttempt(root, attemptId);
     convertCurrentAttemptToJudgePolicyFailure(root, attemptId);
+
+    expect(() => loadQualificationWebsiteModel(root)).not.toThrow();
+  });
+
+  test('loads a recovered trial whose judge was skipped after an actor policy failure', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-actor-policy-failure';
+    await seedCurrentQualificationAttempt(root, attemptId, true);
+    convertCurrentAttemptToActorPolicyFailure(root, attemptId);
 
     expect(() => loadQualificationWebsiteModel(root)).not.toThrow();
   });

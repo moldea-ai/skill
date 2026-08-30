@@ -299,10 +299,14 @@ export const assertQualificationCaseEvidence = (options: {
   const hasFailedRunnerRequirement = result.requirementAssessments.some(
     ({ evaluator, verdict }) => evaluator === 'runner' && verdict === 'fail',
   );
+  const hasFailedActorCommandPolicy =
+    options.actorCommandPolicy === null ||
+    !hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy);
   const shouldSkipCurrentJudge =
     !deterministicAfter.passed ||
     !options.workspaceAssertions.passed ||
     hasFailedRunnerRequirement ||
+    hasFailedActorCommandPolicy ||
     !hasJudgeRequirements;
 
   if (

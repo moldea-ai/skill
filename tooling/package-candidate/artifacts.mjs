@@ -9,7 +9,7 @@ const CLI_PACKAGE_NAME = '@moldea.ai/cli';
 const MOLDEA_PACKAGE_PREFIX = '@moldea.ai/';
 const STABLE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
 
-/** Returns whether a package belongs to the local Moldea package namespace. */
+/** Returns whether a package belongs to the local moldea package namespace. */
 const isMoldeaPackageName = (packageName) => packageName.startsWith(MOLDEA_PACKAGE_PREFIX);
 
 /** Reads one regular entry from a gzip-compressed USTAR-compatible package archive. */

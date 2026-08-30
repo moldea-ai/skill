@@ -21,7 +21,7 @@ agents:
       prepare-call-overrides:
         category: runtime-binding
         effect: warning
-        description: The prepareCall body prevents Moldea from proving the instruction, tool, and output-schema relationships.
+        description: The prepareCall body prevents moldea from proving the instruction, tool, and output-schema relationships.
         resolution: Keep invariant instructions, tools, and Output.object settings in the direct ToolLoopAgent object literal without prepareCall.
         related:
           - path: /src/support-agent.ts
@@ -65,7 +65,7 @@ agents:
       prepare-step-instruction-overrides:
         category: runtime-binding
         effect: warning
-        description: The prepareStep body prevents Moldea from proving the instruction-loader relationship while leaving output and tools statically visible.
+        description: The prepareStep body prevents moldea from proving the instruction-loader relationship while leaving output and tools statically visible.
         resolution: Keep invariant instructions in the direct ToolLoopAgent object literal without prepareStep instruction replacement.
         related:
           - path: /src/step-support-agent.ts

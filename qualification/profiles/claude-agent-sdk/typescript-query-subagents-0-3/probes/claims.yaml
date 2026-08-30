@@ -268,7 +268,7 @@ probes:
   - id: built-in-subagents
     kind: pattern
     matrixPath: target.pattern.built-in-subagents
-    description: The built-in general-purpose subagent and runtime Agent decisions are not mapped to registered Moldea agents.
+    description: The built-in general-purpose subagent and runtime Agent decisions are not mapped to registered moldea agents.
     coveredBy: [preserve-claude-agent-sdk-static-boundary]
   - id: observer-agent-fields
     kind: pattern

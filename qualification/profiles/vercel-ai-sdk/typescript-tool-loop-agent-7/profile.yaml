@@ -2,7 +2,7 @@ version: 2
 adapterId: vercel-ai-sdk
 implementationId: typescript-tool-loop-agent-7
 title: Vercel AI SDK ToolLoopAgent qualification
-description: Qualifies direct TypeScript ToolLoopAgent construction, call-options input schemas, closed function tools, structured output, conservative preparation boundaries, and the universal Moldea maintenance journeys.
+description: Qualifies direct TypeScript ToolLoopAgent construction, call-options input schemas, closed function tools, structured output, conservative preparation boundaries, and the universal moldea maintenance journeys.
 runtimePackages:
   - name: '@ai-sdk/workflow'
     version: 2.0.7

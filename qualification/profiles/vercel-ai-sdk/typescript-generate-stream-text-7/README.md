@@ -1,6 +1,6 @@
 # Vercel AI SDK direct generation profile
 
-This profile qualifies `@moldea.ai/adapter-vercel-ai-sdk` target `typescript-generate-stream-text-7` against ten transparent projects. It runs the eight universal Moldea journeys plus two adapter-specific cases for closed tool registration and conservative handling of unsupported generation indirection.
+This profile qualifies `@moldea.ai/adapter-vercel-ai-sdk` target `typescript-generate-stream-text-7` against ten transparent projects. It runs the eight universal moldea journeys plus two adapter-specific cases for closed tool registration and conservative handling of unsupported generation indirection.
 
 Each project pins `ai@7.0.77`, its `zod@4.3.6` peer, `@types/json-schema@7.0.15`, `@types/node@22.20.1`, and `typescript@6.0.3`. Qualification downloads and verifies the exact published runtime and type artifacts once, records their checksums with the candidate evidence, primes the attempt-local package store, and installs the projects offline. The deterministic stages typecheck against the real SDK package but never call a provider, execute an agent, or execute a tool.
 

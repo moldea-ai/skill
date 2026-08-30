@@ -105,7 +105,7 @@ export const resolvePublishedPackageManifest = async ({
   return parsePublishedPackage(await response.json(), packageName, version);
 };
 
-/** Resolves the exact published Moldea runtime closure rooted at one CLI release. */
+/** Resolves the exact published moldea runtime closure rooted at one CLI release. */
 export const resolvePublishedPackageClosure = async ({
   cliVersion,
   fetchResource = fetch,

@@ -1,3 +1,3 @@
-# Initialize this project for Moldea
+# Initialize moldea
 
-Inspect the repository and initialize the minimum useful Moldea foundation. Do not invent project truth. If the evidence cannot establish one safe purpose, explain the exact ambiguity and the decision required before continuing.
+Inspect the repository and establish only the minimum useful moldea foundation. Do not invent project truth. If the evidence cannot establish one safe purpose, explain the exact ambiguity and the decision required before continuing.

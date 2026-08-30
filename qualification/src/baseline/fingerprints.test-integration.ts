@@ -85,7 +85,7 @@ const commitFixture = async (repositoryRoot: string, message: string): Promise<s
     command: 'git',
     args: [
       '-c',
-      'user.name=Moldea Qualification',
+      'user.name=moldea qualification',
       '-c',
       'user.email=qualification@moldea.local',
       'commit',

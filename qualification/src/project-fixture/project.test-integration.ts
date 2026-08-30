@@ -187,7 +187,7 @@ describe('qualification project fixtures', () => {
     const skillRepository = path.join(temporaryRoot, 'skill');
     const candidate = await createCandidateFixture(temporaryRoot);
     await ensureDirectory(skillRepository);
-    const skillContent = '# Moldea test skill\n\nUse the project-local Moldea CLI.\n';
+    const skillContent = '# moldea test skill\n\nUse the project-local moldea CLI.\n';
     await writeFile(path.join(skillRepository, 'SKILL.md'), skillContent, 'utf8');
     const skillState: IGitRepositoryState = {
       commit: 'fixture',
@@ -421,7 +421,7 @@ describe('qualification project fixtures', () => {
       'utf8',
     );
     await ensureDirectory(skillRepository);
-    const skillContent = '# Moldea test skill\n';
+    const skillContent = '# moldea test skill\n';
     await writeFile(path.join(skillRepository, 'SKILL.md'), skillContent, 'utf8');
     const project = await prepareQualificationProject({
       attemptDirectory: path.join(temporaryRoot, 'attempt'),
@@ -488,7 +488,7 @@ describe('qualification project fixtures', () => {
       );
     };
     await ensureDirectory(skillRepository);
-    const skillContent = '# Moldea test skill\n';
+    const skillContent = '# moldea test skill\n';
     await writeFile(path.join(skillRepository, 'SKILL.md'), skillContent, 'utf8');
     const skillState: IGitRepositoryState = {
       commit: 'fixture',

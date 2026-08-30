@@ -38,7 +38,7 @@ describe('Git repository state inspection', () => {
       command: 'git',
       args: [
         '-c',
-        'user.name=Moldea Qualification',
+        'user.name=moldea qualification',
         '-c',
         'user.email=qualification@moldea.local',
         'commit',
@@ -94,7 +94,7 @@ describe('Git repository state inspection', () => {
       command: 'git',
       args: [
         '-c',
-        'user.name=Moldea Qualification',
+        'user.name=moldea qualification',
         '-c',
         'user.email=qualification@moldea.local',
         'commit',

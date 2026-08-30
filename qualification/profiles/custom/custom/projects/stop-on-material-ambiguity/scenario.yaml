@@ -51,7 +51,7 @@ judgeRequirements:
       kind: judge
       evidenceSources: [actor-output, current-workspace]
   - id: avoids-invention
-    description: The actor does not choose a transfer mode, create Moldea files, or change the README.
+    description: The actor does not choose a transfer mode, create moldea files, or change the README.
     evaluation:
       kind: runner
       checks: [expected-actor-outcome, workspace-assertions]

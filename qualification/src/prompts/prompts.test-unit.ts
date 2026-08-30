@@ -97,11 +97,11 @@ describe('qualification prompts', () => {
     expect(prompt).toContain('# Review the support agent');
     expect(prompt).toContain('Use applicable project-local tooling');
     expect(prompt).toContain('Agent Skill guidance discovered in the workspace');
-    expect(prompt).not.toContain('project-local Moldea tooling');
+    expect(prompt).not.toContain('project-local moldea tooling');
     expect(prompt).not.toContain('.agents/skills/moldea/');
     expect(prompt).not.toContain('.moldea-qualification/');
     expect(prompt).not.toContain('CLI');
-    expect(prompt).not.toContain('Moldea');
+    expect(prompt).not.toContain('moldea');
     expect(prompt).not.toContain('adapter-custom');
     expect(prompt).not.toContain('custom');
     expect(prompt).not.toContain(scenario.id);
@@ -121,7 +121,7 @@ describe('qualification prompts', () => {
       deterministicAfter: deterministicVerification,
       implementationId: 'custom',
       scenario,
-      task: '# Update the Moldea project',
+      task: '# Update the moldea project',
       workspaceAssertions,
     });
 

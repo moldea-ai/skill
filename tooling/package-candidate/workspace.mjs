@@ -15,7 +15,7 @@ const MOLDEA_PACKAGE_PREFIX = '@moldea.ai/';
 const STABLE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/;
 const WORKSPACE_COLLECTION_NAMES = ['packages', 'projects'];
 
-/** Returns whether a package belongs to the local Moldea package namespace. */
+/** Returns whether a package belongs to the local moldea package namespace. */
 const isMoldeaPackageName = (packageName) => packageName.startsWith(MOLDEA_PACKAGE_PREFIX);
 
 /** Returns one validated dependency record from an unknown manifest field. */
@@ -39,7 +39,7 @@ const readDependencyRecord = (dependencies, fieldName, packageName) => {
 const readSourcePackageManifest = (manifestPath, projectDirectory) => {
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   assert.equal(typeof manifest.name, 'string', `${manifestPath} must declare a package name.`);
-  assert.ok(isMoldeaPackageName(manifest.name), `${manifest.name} is outside the Moldea scope.`);
+  assert.ok(isMoldeaPackageName(manifest.name), `${manifest.name} is outside the moldea scope.`);
   assert.match(
     manifest.version,
     STABLE_VERSION_PATTERN,
@@ -94,7 +94,7 @@ const validateSourceDependencyVersion = ({
 };
 
 /**
- * Discovers immediate package projects from one Moldea packages workspace.
+ * Discovers immediate package projects from one moldea packages workspace.
  * @param workspaceRoot The packages repository root.
  * @returns Package manifests keyed by identity.
  */

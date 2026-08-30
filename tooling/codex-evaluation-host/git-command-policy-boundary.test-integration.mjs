@@ -61,7 +61,7 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
     runSystemGit(repositoryPath, ['add', '--all']);
     runSystemGit(repositoryPath, [
       '-c',
-      'user.name=Moldea Evaluation',
+      'user.name=moldea evaluation',
       '-c',
       'user.email=evaluation@invalid.example',
       'commit',
@@ -209,7 +209,7 @@ test('Git command-policy boundary budgets trusted read-only top-level dependenci
     runSystemGit(repositoryPath, ['add', '--all']);
     runSystemGit(repositoryPath, [
       '-c',
-      'user.name=Moldea Evaluation',
+      'user.name=moldea evaluation',
       '-c',
       'user.email=evaluation@invalid.example',
       'commit',
@@ -292,7 +292,7 @@ test('Git command-policy boundary refuses linked-worktree common attributes', as
     runSystemGit(mainRepositoryPath, ['add', '--all']);
     runSystemGit(mainRepositoryPath, [
       '-c',
-      'user.name=Moldea Evaluation',
+      'user.name=moldea evaluation',
       '-c',
       'user.email=evaluation@invalid.example',
       'commit',

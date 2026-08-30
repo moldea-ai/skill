@@ -186,7 +186,7 @@ const createQualificationSourceCommit = async (repositoryRoot: string): Promise<
       '-c',
       'commit.gpgsign=false',
       '-c',
-      'user.name=Moldea Qualification',
+      'user.name=moldea qualification',
       '-c',
       'user.email=qualification@moldea.local',
       'commit',

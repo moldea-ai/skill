@@ -2,7 +2,7 @@ version: 2
 adapterId: claude-agent-sdk
 implementationId: typescript-query-subagents-0-3
 title: Claude Agent SDK qualification
-description: Qualifies direct TypeScript query wrappers, programmatic subagents, canonical prompt and routing metadata, query-mounted SDK MCP tools, conservative static boundaries, and the universal Moldea maintenance journeys.
+description: Qualifies direct TypeScript query wrappers, programmatic subagents, canonical prompt and routing metadata, query-mounted SDK MCP tools, conservative static boundaries, and the universal moldea maintenance journeys.
 runtimePackages:
   - name: '@anthropic-ai/claude-agent-sdk'
     version: 0.3.234

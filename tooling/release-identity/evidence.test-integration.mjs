@@ -319,7 +319,7 @@ const seedReleaseManifests = (root) => {
   writeFile(root, 'qualification/src/fixture.ts', 'export const fixture = true;\n');
   writeFile(root, 'tooling/codex-evaluation-host/fixture.mjs', 'export const fixture = true;\n');
   writeFile(root, 'tooling/package-candidate/fixture.mjs', 'export const fixture = true;\n');
-  writeFile(root, 'moldea/SKILL.md', '# Moldea fixture\n');
+  writeFile(root, 'moldea/SKILL.md', '# moldea fixture\n');
   writeFile(root, 'fixtures/conformance-cases.json', '{"semanticCases":[]}\n');
   writeFile(
     root,

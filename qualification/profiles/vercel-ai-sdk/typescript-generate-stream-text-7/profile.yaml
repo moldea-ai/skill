@@ -2,7 +2,7 @@ version: 2
 adapterId: vercel-ai-sdk
 implementationId: typescript-generate-stream-text-7
 title: Vercel AI SDK direct generation qualification
-description: Qualifies direct TypeScript generateText and streamText integrations, closed function tools, structured output, conservative static boundaries, and the universal Moldea maintenance journeys.
+description: Qualifies direct TypeScript generateText and streamText integrations, closed function tools, structured output, conservative static boundaries, and the universal moldea maintenance journeys.
 runtimePackages:
   - name: '@types/json-schema'
     version: 7.0.15

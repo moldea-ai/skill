@@ -2,7 +2,7 @@ version: 2
 adapterId: anthropic
 implementationId: typescript-messages-api-0-117
 title: Anthropic Messages API qualification
-description: Qualifies direct TypeScript Messages API integrations, canonical system loaders, closed client-tool arrays, direct input-schema bindings, conservative static boundaries, and the universal Moldea maintenance journeys.
+description: Qualifies direct TypeScript Messages API integrations, canonical system loaders, closed client-tool arrays, direct input-schema bindings, conservative static boundaries, and the universal moldea maintenance journeys.
 runtimePackages:
   - name: '@anthropic-ai/sdk'
     version: 0.117.1

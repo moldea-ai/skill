@@ -1,6 +1,6 @@
 # Claude Agent SDK profile
 
-This profile qualifies `@moldea.ai/adapter-claude-agent-sdk` target `typescript-query-subagents-0-3` against ten transparent projects. It runs the eight universal Moldea journeys plus two adapter-specific cases for query-mounted SDK MCP tool registration and conservative handling of unsupported query, subagent, and MCP relationships.
+This profile qualifies `@moldea.ai/adapter-claude-agent-sdk` target `typescript-query-subagents-0-3` against ten transparent projects. It runs the eight universal moldea journeys plus two adapter-specific cases for query-mounted SDK MCP tool registration and conservative handling of unsupported query, subagent, and MCP relationships.
 
 Each project pins `@anthropic-ai/claude-agent-sdk@0.3.234`, its exact peer packages, `@types/node@22.20.1`, and `typescript@6.0.3`. Qualification downloads and verifies the exact published runtime and type artifacts once, records their checksums with the candidate evidence, primes the attempt-local package store, and installs the projects offline. The deterministic stages typecheck against the real SDK packages but never call a provider, execute an agent, or execute a tool.
 

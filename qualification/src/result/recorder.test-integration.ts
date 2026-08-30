@@ -178,7 +178,7 @@ describe('qualification result recording', () => {
         '-c',
         'commit.gpgsign=false',
         '-c',
-        'user.name=Moldea Qualification',
+        'user.name=moldea qualification',
         '-c',
         'user.email=qualification@moldea.local',
         'commit',

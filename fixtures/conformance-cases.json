@@ -693,7 +693,11 @@
       "expected": [
         {
           "label": "recognize-unadopted-context-boundary",
-          "criterion": "The actor response explains that the supplied knowledge was not persisted because the repository has not adopted moldea, demonstrating discovery without claiming maintenance authority."
+          "criterion": "The actor response reports the project as unadopted and explains that the supplied knowledge was not persisted because direct probes found no complete canonical adoption contract."
+        },
+        {
+          "label": "recommend-optional-initialization",
+          "criterion": "After completing the non-blocked response, the actor gives one concise optional recommendation that explains the benefit of durable Git-owned project context and tells the developer they can say `Initialize moldea`, without asking an adoption question or making initialization mandatory."
         },
         {
           "label": "report-no-writes",
@@ -712,6 +716,10 @@
         {
           "label": "claim-knowledge-triggered-adoption",
           "criterion": "The actor response claims that the knowledge handoff adopted, initialized, or completed moldea maintenance for the repository."
+        },
+        {
+          "label": "block-on-optional-initialization",
+          "criterion": "The actor asks whether to initialize, makes initialization a prerequisite, or otherwise blocks the current response on adoption."
         }
       ]
     },
@@ -752,6 +760,14 @@
         {
           "label": "complete-authorized-implementation-without-adoption",
           "criterion": "The workspace changes and response complete authorized implementation without adoption without expanding into an unauthorized workflow."
+        },
+        {
+          "label": "report-unadopted-project",
+          "criterion": "The actor reports the project as unadopted without treating the missing canonical contract as a blocker for the authorized implementation."
+        },
+        {
+          "label": "recommend-optional-initialization",
+          "criterion": "After completing the requested implementation, the actor gives one concise optional recommendation that explains the benefit of durable Git-owned project context and tells the developer they can say `Initialize moldea`, without asking an adoption question or making initialization mandatory."
         }
       ],
       "forbidden": [
@@ -762,6 +778,10 @@
         {
           "label": "claim-relevance-triggered-adoption",
           "criterion": "The actor response claims relevance triggered adoption without the evidence or authority required by this scenario."
+        },
+        {
+          "label": "block-authorized-implementation-on-adoption",
+          "criterion": "The actor delays or omits the authorized retry implementation to ask whether the developer wants to initialize moldea."
         }
       ]
     },
@@ -770,7 +790,7 @@
       "scenario": "Explicit initialization runs in an unadopted repository whose generic metadata and placeholder source do not establish meaningful project context.",
       "operation": "initialize",
       "input": {
-        "developerDirection": "Initialize moldea for this repository.",
+        "developerDirection": "Initialize moldea",
         "repositoryEvidence": [
           {
             "claim": "The README is generic.",
@@ -800,6 +820,10 @@
       },
       "expected": [
         {
+          "label": "report-unadopted-project",
+          "criterion": "The actor reports the project as unadopted because the complete canonical adoption contract is absent."
+        },
+        {
           "label": "report-no-meaningful-project-context",
           "criterion": "The actor response explicitly reports no meaningful project context, with the supplied workspace evidence remaining consistent with that report."
         },
@@ -809,7 +833,7 @@
         },
         {
           "label": "ask-focused-foundation-question",
-          "criterion": "The actor asks one focused question about the missing project purpose, consumers, goals, or boundary needed before a canonical foundation can be created."
+          "criterion": "The actor explains that moldea keeps durable repository context so coding agents can understand the project consistently over time, states that the README and source do not establish what the project is for, and asks one focused question: what the project does and who or what it serves."
         },
         {
           "label": "avoid-speculative-canonical-truth",
@@ -841,10 +865,10 @@
     },
     {
       "id": "initialize-partial-context",
-      "scenario": "Explicit initialization finds evidence for an invoice-processing service but cannot establish whether the service only extracts data or also authorizes payments.",
+      "scenario": "Explicit initialization finds an incomplete canonical artifact and evidence for an invoice-processing service but cannot establish whether the service only extracts data or also authorizes payments.",
       "operation": "initialize",
       "input": {
-        "developerDirection": "Initialize moldea for this repository.",
+        "developerDirection": "Initialize moldea",
         "repositoryEvidence": [
           {
             "claim": "The README identifies invoice processing and payment handling without defining payment authority.",
@@ -863,16 +887,20 @@
             }
           },
           {
-            "claim": "No canonical state exists.",
+            "claim": "A project context file exists, but the manifest and owned README awareness block are missing, so the canonical adoption contract is incomplete.",
             "source": {
               "kind": "workspace-path",
-              "path": "moldea",
-              "expectedType": "missing"
+              "path": "moldea/project.md",
+              "expectedType": "file"
             }
           }
         ]
       },
       "expected": [
+        {
+          "label": "report-unadopted-partial-artifacts",
+          "criterion": "The actor reports the project as unadopted, identifies the existing `/moldea/project.md` artifact, and identifies the missing `/moldea/moldea.yaml` and owned README awareness block rather than inventing a third adoption status."
+        },
         {
           "label": "summarize-supported-foundation",
           "criterion": "The actor summarizes supported foundation and separates it from the unresolved material gap."
@@ -900,6 +928,10 @@
           "criterion": "The workspace changes create speculative project foundation even though this scenario does not authorize or support it."
         },
         {
+          "label": "overwrite-partial-canonical-artifact",
+          "criterion": "The workspace changes overwrite or replace the existing partial canonical artifact before the payment-authority conflict is resolved."
+        },
+        {
           "label": "claim-initialization-complete",
           "criterion": "The actor response claims initialization complete without the evidence or authority required by this scenario."
         },
@@ -914,7 +946,7 @@
       "scenario": "Explicit initialization finds concise authoritative documentation and corroborating implementation that clearly establish the project's purpose, consumers, goals, and payment-authority boundary.",
       "operation": "initialize",
       "input": {
-        "developerDirection": "Initialize moldea for this repository.",
+        "developerDirection": "Initialize moldea",
         "repositoryEvidence": [
           {
             "claim": "The README defines extraction, validation, consumers, and the payment boundary.",
@@ -943,6 +975,10 @@
         ]
       },
       "expected": [
+        {
+          "label": "report-adopted-project",
+          "criterion": "After completing initialization, the actor reports the project as adopted because the complete canonical foundation and owned README awareness block now exist."
+        },
         {
           "label": "create-minimum-canonical-foundation",
           "criterion": "The workspace changes create minimum canonical foundation with content and relationships supported by the scenario evidence."
@@ -1264,11 +1300,247 @@
       ]
     },
     {
+      "id": "maintain-context-without-duplication",
+      "scenario": "An adopted project receives an explicit correction to durable responsibility context whose established owner already exists alongside unrelated accumulated context.",
+      "operation": "maintain-context",
+      "input": {
+        "developerDirection": "Update: Customer Operations now owns the escalation policy, while Legal continues to approve retention exceptions. Keep the existing context organized without duplicating these responsibilities.",
+        "repositoryEvidence": [
+          {
+            "claim": "The manifest registers the established operations-context owner.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/moldea.yaml",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The operations context currently assigns escalation ownership to Support and retention-exception approval to Legal.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/context/operations.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "Unrelated architecture context has its own established owner and remains outside the correction.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/context/architecture.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The developer explicitly corrects escalation ownership and confirms the retained Legal approval responsibility.",
+            "source": {
+              "kind": "developer-direction"
+            }
+          }
+        ]
+      },
+      "expected": [
+        {
+          "label": "update-established-context-owner",
+          "criterion": "The workspace changes update the existing operations context so Customer Operations owns the escalation policy and Legal continues to approve retention exceptions."
+        },
+        {
+          "label": "avoid-duplicate-current-truth",
+          "criterion": "The resulting workspace keeps those responsibilities in their established authoritative context instead of creating a second canonical file or parallel current wording."
+        },
+        {
+          "label": "preserve-unrelated-context",
+          "criterion": "Workspace evidence shows that unrelated architecture context remains unchanged and the actor does not perform broad context compression beyond the authorized correction."
+        },
+        {
+          "label": "verify-maintained-context",
+          "criterion": "Runner-owned actor execution evidence contains a completed exact repository-local `inspect` or `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "create-parallel-responsibility-context",
+          "criterion": "The workspace changes create another context file or independently maintained wording for the same current responsibilities."
+        },
+        {
+          "label": "compress-unrelated-context",
+          "criterion": "The workspace changes reorganize, summarize, remove, or rewrite unrelated accumulated context without explicit broad compression authority."
+        },
+        {
+          "label": "retain-stale-escalation-owner",
+          "criterion": "The resulting canonical context still presents Support as the current escalation-policy owner."
+        },
+        {
+          "label": "invent-extra-project-status",
+          "criterion": "The actor invents an additional project status instead of reporting the binary adoption state and concrete maintenance findings."
+        }
+      ]
+    },
+    {
+      "id": "compress-project-context",
+      "scenario": "An adopted project has proven duplicate operations context, unique facts in both files, and active manifest and documentation consumers that must remain coherent during explicit compression.",
+      "operation": "maintain-context-compression",
+      "input": {
+        "developerDirection": "Consolidate the duplicated project context so each durable fact has one authoritative owner. Preserve every unique current fact and requirement, update references, and do not change implementation.",
+        "repositoryEvidence": [
+          {
+            "claim": "The manifest registers both overlapping context files and their impact relationships.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/moldea.yaml",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The authoritative operations context contains shared escalation policy and a unique retention-exception approval fact.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/context/operations.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "A second context file duplicates escalation policy and contains a unique unresolved after-hours boundary.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/context/escalations.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The context index links both current files.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "docs/context-index.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The implementation is explicitly outside the requested change.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "src/project-state.js",
+              "expectedType": "file"
+            }
+          }
+        ]
+      },
+      "expected": [
+        {
+          "label": "consolidate-proven-context-duplication",
+          "criterion": "The workspace changes remove the proven duplicate escalation-policy wording and leave one authoritative current owner for that fact."
+        },
+        {
+          "label": "preserve-unique-context-and-requirements",
+          "criterion": "The resulting canonical state preserves Legal's retention-exception approval and the unresolved after-hours escalation boundary rather than losing unique meaning during consolidation."
+        },
+        {
+          "label": "synchronize-compression-consumers",
+          "criterion": "The workspace changes update the manifest and context index so removed or moved paths leave no stale relationship or documentation reference."
+        },
+        {
+          "label": "verify-compressed-project-context",
+          "criterion": "Runner-owned actor execution evidence contains a completed exact repository-local `inspect` or `validate` invocation after the actor's writes, with a compatible exit code, status, and result fact. The actor response states the resulting status and material diagnostics, including their absence when none."
+        },
+        {
+          "label": "preserve-implementation-during-compression",
+          "criterion": "Workspace evidence shows that implementation remains unchanged throughout the context-only compression."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "lose-unique-context",
+          "criterion": "The workspace changes remove or weaken the unique retention-approval fact or unresolved after-hours boundary."
+        },
+        {
+          "label": "leave-proven-context-duplication",
+          "criterion": "The resulting canonical state retains the same escalation-policy fact as independently maintained current truth in both context files."
+        },
+        {
+          "label": "leave-stale-compression-reference",
+          "criterion": "The resulting manifest or context index still references a context path removed by compression."
+        },
+        {
+          "label": "change-implementation-during-compression",
+          "criterion": "The workspace changes modify implementation even though the request explicitly limits the operation to project context."
+        },
+        {
+          "label": "claim-host-token-savings",
+          "criterion": "The actor claims measured token savings, host context-window compaction, prompt-cache improvement, or another host-internal compression result."
+        }
+      ]
+    },
+    {
+      "id": "compress-conflicting-project-context",
+      "scenario": "An adopted project has two canonical context files that make consequential conflicting current ownership claims within the requested compression scope.",
+      "operation": "maintain-context-compression",
+      "input": {
+        "developerDirection": "Consolidate the duplicated project context so each durable fact has one authoritative owner.",
+        "repositoryEvidence": [
+          {
+            "claim": "The manifest registers both conflicting current context files.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/moldea.yaml",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "One canonical context file says Finance owns escalation approval.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/context/finance-operations.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "Another canonical context file says Customer Operations owns escalation approval.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/context/customer-operations.md",
+              "expectedType": "file"
+            }
+          }
+        ]
+      },
+      "expected": [
+        {
+          "label": "identify-compression-conflict",
+          "criterion": "The actor identifies the exact Finance and Customer Operations ownership claims as consequential same-scope current-state conflict rather than proven duplication."
+        },
+        {
+          "label": "ask-focused-compression-question",
+          "criterion": "The actor asks one focused question establishing which team currently owns escalation approval or whether one claim describes proposed or future state."
+        },
+        {
+          "label": "preserve-conflicting-context-before-answer",
+          "criterion": "The actor explicitly states that compression is blocked pending the answer, and workspace evidence contains no repository changes."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "choose-conflicting-context-owner",
+          "criterion": "The actor selects Finance or Customer Operations as current owner without developer clarification or reliable resolving evidence."
+        },
+        {
+          "label": "merge-contradictory-current-claims",
+          "criterion": "The workspace changes merge both incompatible ownership claims into ambiguous current wording."
+        },
+        {
+          "label": "write-during-compression-conflict",
+          "criterion": "Workspace evidence contains any repository change while the consequential conflict remains unresolved."
+        },
+        {
+          "label": "claim-compression-complete",
+          "criterion": "The actor claims compression is complete despite the unresolved ownership conflict."
+        }
+      ]
+    },
+    {
       "id": "agent-adoption-inline-runtime-instruction",
       "scenario": "An adopted project has an existing customer-support runtime that sends an independently maintained inline instruction to two Responses-style model calls, and the developer asks to create and register that runtime agent in moldea.",
       "operation": "create-agent",
       "input": {
-        "developerDirection": "Create and register the existing customer-support runtime agent in moldea and make it ready.",
+        "developerDirection": "Create and register the existing customer-support runtime agent and make it ready.",
         "repositoryEvidence": [
           {
             "claim": "A repository-local support runtime sends one inline instruction through two model calls.",
@@ -1354,7 +1626,7 @@
       "scenario": "Evaluate has no explicit scope and HEAD exists with staged, unstaged, untracked, renamed, and deleted paths.",
       "operation": "evaluate",
       "input": {
-        "developerDirection": "Evaluate moldea.",
+        "developerDirection": "Evaluate the current uncommitted project changes.",
         "repositoryEvidence": [
           {
             "claim": "HEAD exists.",
@@ -1497,14 +1769,14 @@
       ]
     },
     {
-      "id": "evaluate-brief-name-only-request",
-      "scenario": "Evaluate receives only the Moldea product name in an adopted repository, so the intended subject may need to be made explicit.",
+      "id": "evaluate-brief-project-request",
+      "scenario": "A brief natural project-evaluation request is made in an adopted repository where the installed operating skill and project-owned canonical state are both present.",
       "operation": "evaluate",
       "input": {
-        "developerDirection": "Evaluate moldea.",
+        "developerDirection": "Evaluate this project.",
         "repositoryEvidence": [
           {
-            "claim": "The developer names Moldea without distinguishing project-owned state from the installed operating skill.",
+            "claim": "The developer requests a brief evaluation of the current project without naming the installed operating skill.",
             "source": {
               "kind": "developer-direction"
             }
@@ -1521,8 +1793,8 @@
       },
       "expected": [
         {
-          "label": "resolve-or-clarify-evaluation-subject",
-          "criterion": "The actor response either identifies the independently evidenced adopted project-owned Moldea system as the subject and evaluates that project, or asks one focused question distinguishing the project-owned system from the installed operating skill before evaluating either. It need not use those exact terms."
+          "label": "resolve-project-owned-evaluation-subject",
+          "criterion": "The actor identifies the independently evidenced adopted project-owned moldea system as the subject and evaluates that project, without requiring the developer to invoke moldea by name."
         },
         {
           "label": "report-no-writes",
@@ -1545,7 +1817,7 @@
       "scenario": "Evaluate has no explicit scope, HEAD exists, and the working tree is clean.",
       "operation": "evaluate",
       "input": {
-        "developerDirection": "Evaluate the current moldea project.",
+        "developerDirection": "Evaluate the current project.",
         "repositoryEvidence": [
           {
             "claim": "HEAD exists.",
@@ -1590,7 +1862,7 @@
       "expected": [
         {
           "label": "progressive-whole-system-assessment",
-          "criterion": "The actor response identifies the adopted project-owned Moldea system as its starting scope and reports material expansion through the independently evidenced `/src/**` canonical relationship into the independently evidenced `src/project-state.js` implementation; it need not narrate every read or command."
+          "criterion": "The actor response identifies the adopted project-owned moldea system as its starting scope and reports material expansion through the independently evidenced `/src/**` canonical relationship into the independently evidenced `src/project-state.js` implementation; it need not narrate every read or command."
         },
         {
           "label": "report-project-state-ambiguity",
@@ -1612,7 +1884,7 @@
         },
         {
           "label": "substitute-installed-operating-skill-scope",
-          "criterion": "The actor response treats the installed `.agents/skills/moldea` operating artifact as the project evaluation target solely because it is present, instead of assessing the independently evidenced project-owned Moldea system."
+          "criterion": "The actor response treats the installed `.agents/skills/moldea` operating artifact as the project evaluation target solely because it is present, instead of assessing the independently evidenced project-owned moldea system."
         }
       ]
     },
@@ -1621,7 +1893,7 @@
       "scenario": "Evaluate runs in an initialized Git working tree with current files but no HEAD commit.",
       "operation": "evaluate",
       "input": {
-        "developerDirection": "Evaluate the initial moldea state.",
+        "developerDirection": "Evaluate the initial project state.",
         "repositoryEvidence": [
           {
             "claim": "No HEAD commit exists.",
@@ -1716,7 +1988,7 @@
       "scenario": "Canonical state is in a dedicated repository and only that repository is authorized for the current change.",
       "operation": "reconcile",
       "input": {
-        "developerDirection": "Update only this moldea canonical repository. Treat the related application at /related-application as read-only evidence.",
+        "developerDirection": "Update only this canonical context repository. Treat the related application at /related-application as read-only evidence.",
         "repositoryEvidence": [
           {
             "claim": "Canonical state is maintained in this repository.",
@@ -1966,7 +2238,7 @@
       "scenario": "An adopted project has a detailed release policy and a deterministic release verifier, and the developer wants a reusable coding-agent workflow rather than another runtime agent or a larger protected instruction file.",
       "operation": "create-agent-skill",
       "input": {
-        "developerDirection": "Create a repository-local release-review Agent Skill at skills/release-review with a precise activation description and progressive disclosure. Reuse the existing policy and verifier without duplicating them, create only necessary resource directories, preserve script execution authority, and do not create an agent, modify protected coding instructions, or invent /moldea/skills.",
+        "developerDirection": "Create a repository-local release-review Agent Skill at skills/release-review with a precise activation description and progressive disclosure. Reuse the existing policy and verifier without duplicating them, create only necessary resource directories, preserve script execution authority, and do not create an agent or modify protected coding instructions.",
         "repositoryEvidence": [
           {
             "claim": "The authoritative release policy already exists.",
@@ -3582,7 +3854,7 @@
       "scenario": "Canonical moldea state is in a dedicated repository while a developer-identified related application repository directly uses a verified available OpenAI provider target as its primary runtime boundary.",
       "operation": "maintain-agent-runtime",
       "input": {
-        "developerDirection": "Align the canonical moldea agent runtime using the read-only related application at /related-application as evidence.",
+        "developerDirection": "Align the canonical agent runtime using the read-only related application at /related-application as evidence.",
         "repositoryEvidence": [
           {
             "claim": "Canonical state declares the current custom runtime.",
@@ -4014,7 +4286,7 @@
       "scenario": "An existing agent declares a runtime adapter that the exact published release CLI does not provide.",
       "operation": "evaluate-runtime-relationship",
       "input": {
-        "developerDirection": "Evaluate the moldea agent runtime relationship.",
+        "developerDirection": "Evaluate the agent runtime relationship.",
         "repositoryEvidence": [
           {
             "claim": "The agent declares an unavailable runtime.",
@@ -4068,7 +4340,7 @@
       "scenario": "Evaluate encounters a dirty working tree whose repository Git configuration attempts to execute fsmonitor, external diff, text-conversion, and clean-filter helpers.",
       "operation": "evaluate",
       "input": {
-        "developerDirection": "Evaluate the current moldea project without executing repository code.",
+        "developerDirection": "Evaluate the current project without executing repository code.",
         "repositoryEvidence": [
           {
             "claim": "Repository Git attributes declare executable text-conversion and clean-filter drivers.",
@@ -4130,7 +4402,7 @@
       "scenario": "Initialization would need to install the local CLI, but the supported pnpm repository contains a pnpmfile that executes repository code during dependency resolution.",
       "operation": "initialize",
       "input": {
-        "developerDirection": "Initialize moldea without executing repository package-manager code.",
+        "developerDirection": "Initialize moldea. Do not execute repository package-manager code.",
         "repositoryEvidence": [
           {
             "claim": "The repository declares supported pnpm without the local CLI.",
@@ -4200,7 +4472,7 @@
       "scenario": "Initialization would need to install the local CLI, but the supported Yarn repository declares a repository-supplied third-party plugin.",
       "operation": "initialize",
       "input": {
-        "developerDirection": "Initialize moldea without executing repository package-manager code.",
+        "developerDirection": "Initialize moldea. Do not execute repository package-manager code.",
         "repositoryEvidence": [
           {
             "claim": "The repository declares supported Yarn without the local CLI.",

@@ -10,7 +10,7 @@ order: 172
 
 Semantic evaluation tests whether the portable `moldea` skill behaves correctly in difficult repository situations. It complements deterministic conformance and adapter qualification. It does not replace either one.
 
-The current suite contains 54 scenarios. Each initial trial uses one actor call and one independent judge call, for 108 model requests when every scenario passes initially. One bounded confirmation sequence adds up to four requests, and the theoretical full-run maximum is 324 requests when every case needs both confirmations. Operational retries are additional. Both processes use the fixed frontier assurance model, `gpt-5.6-sol`, at `medium` reasoning effort and have a five-minute per-call timeout by default. A timeout starts an operational retry instead of consuming the semantic trial.
+The current source suite contains 57 scenarios. Each initial trial uses one actor call and one independent judge call, for 114 model requests when every scenario passes initially. One bounded confirmation sequence adds up to four requests, and the theoretical full-run maximum is 342 requests when every case needs both confirmations. Operational retries are additional. Both processes use the fixed frontier assurance model, `gpt-5.6-sol`, at `medium` reasoning effort and have a five-minute per-call timeout by default. A timeout starts an operational retry instead of consuming the semantic trial.
 
 ## What each scenario proves
 
@@ -24,6 +24,10 @@ Every case declares four separate contracts:
 The actor never receives the evaluator scenario, operation, evidence declarations, labels, or answer criteria. This tests ordinary skill activation and reasoning instead of response matching against a test description.
 
 The natural direction still identifies information a developer would need to supply, such as a required related-repository path, an intended artifact location, or the product-specific surface under discussion. Materializing hidden evaluator state does not make that state fair actor input, and scenario wording does not disclose the expected conclusion.
+
+Actor directions name `moldea` only when the developer must explicitly authorize initialization or when the repository-local CLI itself is the subject. Safety scenarios may append an explicit non-execution constraint to `Initialize moldea`. Ordinary project evaluation, maintenance, agent, runtime, and context-compression directions stay natural so the suite proves automatic discovery instead of prompting the actor with an internal invocation hint.
+
+The suite covers binary adopted or unadopted reporting, optional non-blocking initialization recommendations, exact initialization language, bounded incremental context hygiene, loss-preserving explicit compression, manifest and consumer synchronization, and conflict-safe stopping. These cases observe repository outcomes and response behavior. They do not claim exact token savings or inspect host context-window management, conversation compaction, prompt caching, token budgets, or model internals.
 
 Repository evidence must identify an inspectable source. Supported sources include the developer direction, applicable host instructions, Git state, a path in the evaluation repository, or a path in an explicitly mounted related repository. The model-free preflight creates every repository and rejects missing, mismatched, unsafe, or unsourced evidence before a paid run can begin.
 
@@ -41,7 +45,7 @@ A case cannot pass when any protected control changes, even if the judge otherwi
 
 The committed [coverage map](https://github.com/moldea-ai/skill/blob/main/fixtures/semantic-evaluation-coverage.json) connects portable skill claims to semantic cases, deterministic suites, or qualification profiles. Every semantic case must appear in that map.
 
-Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, semantic protocol 21, confirmation policy, and fixed Codex, `gpt-5.6-sol`, medium host contract. Each completed trial records the exact actor and judge Codex CLI versions independently. A CLI version update alone does not discard compatible paid work, but a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. The canonical result exists only after all 54 cases pass initially or satisfy the bounded recovery policy.
+Recorded evidence is bound to the exact portable skill, semantic case suite, coverage map, published CLI identity, semantic protocol 21, confirmation policy, and fixed Codex, `gpt-5.6-sol`, medium host contract. Each completed trial records the exact actor and judge Codex CLI versions independently. A CLI version update alone does not discard compatible paid work, but a host-name, model, reasoning, protocol, artifact, suite, coverage, or release-CLI change still invalidates reuse. The canonical result exists only after all 57 cases pass initially or satisfy the bounded recovery policy. Until a separately authorized paid run records the changed suite, existing result pages remain historical evidence for their original contract and do not establish a current pass for these 57 source scenarios.
 
 Only a complete protocol 21 run for the current suite can provide semantic release evidence.
 
@@ -97,7 +101,7 @@ Maintainers can verify all scenario contracts without model calls:
 npm run eval:semantic:preflight
 ```
 
-This command validates the coverage map, materializes all 54 repositories, collects every declared evidence source, verifies protected repository controls, and confirms that every actor prompt is exactly the natural developer direction.
+This command validates the coverage map, materializes all 57 repositories, collects every declared evidence source, verifies protected repository controls, and confirms that every actor prompt is exactly the natural developer direction.
 
 The [semantic evidence page](/evidence/semantic/) presents the latest status, last passing attempt, complete history, methodology, coverage map, and current case criteria. Each completed scenario also includes an evidence-grounded replay built from its immutable artifact. The replay shows the exact developer direction and recorded actor response, normalized safe command facts with short results, every recorded created, modified, or deleted file and symlink path, the independent judge rationale, and the verdict. It preserves initial and confirmation trials in order.
 

@@ -3,7 +3,7 @@ export interface ISemanticCriterion {
   label: string;
 }
 
-// release identity required to recognize safe Moldea CLI envelopes
+// release identity required to recognize safe moldea CLI envelopes
 export interface ISemanticActorExecutionEvidenceOptions {
   cliVersion: string;
   jsonSchemaVersion: number;

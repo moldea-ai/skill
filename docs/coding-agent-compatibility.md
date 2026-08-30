@@ -56,7 +56,7 @@ Before installation, confirm that the host supports Agent Skills or is recognize
 After installation, use the host normally:
 
 ```text
-Initialize moldea for this repository.
+Initialize moldea
 ```
 
 Or ask directly for an outcome:

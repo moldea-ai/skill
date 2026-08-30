@@ -1,7 +1,7 @@
 ---
 name: moldea
 description: >-
-  Use first when a message supplies, confirms, or corrects potentially durable current-project knowledge such as ownership, policy, terminology, architecture, or operations, in any format and even without naming Moldea or requesting persistence; determine adoption before writing. Also use when authorized work may affect canonical truth or declared behavior. Use for explicit initialization, agent-system planning, agent or Agent Skill design, maintenance, evaluation, reconciliation, and validation. Initial adoption requires explicit developer intent.
+  Use first when a message supplies, confirms, or corrects potentially durable current-project knowledge such as ownership, policy, terminology, architecture, or operations, in any format and even without naming moldea or requesting persistence; determine adoption before writing. Also use when authorized work may affect canonical truth or declared behavior. Use for explicit initialization, agent-system planning, agent or Agent Skill design, maintenance, evaluation, reconciliation, and validation. Initial adoption requires explicit developer intent.
 license: MIT
 metadata:
   # prettier-ignore
@@ -17,10 +17,10 @@ Use `moldea` for Git-owned project truth, agent systems, agent behavior, and reu
 Activate through one of three paths:
 
 - **Explicit activation:** the developer requests initialization, agent-system planning, project, agent, or Agent Skill work, evaluation, reconciliation, or validation.
-- **Knowledge-triggered activation:** the repository receives potentially material durable project knowledge, even without naming Moldea or requesting persistence and regardless of whether it arrives as prose, an answer, structured data, or an accessible source.
+- **Knowledge-triggered activation:** the repository receives potentially material durable project knowledge, even without naming moldea or requesting persistence and regardless of whether it arrives as prose, an answer, structured data, or an accessible source.
 - **Relevance-triggered activation:** authorized work may affect canonical project truth, declared agent behavior, or a path referenced by canonical state or an unresolved requirement.
 
-Knowledge and relevance activation never establish adoption. Without explicit adoption intent or existing adoption, do not initialize or persist; report that the information remains unpersisted and no files changed. In an adopted repository, an unambiguous current-knowledge handoff authorizes Maintain: classify each claim as persist, clarify, or omit instead of asking whether or where to store it.
+Knowledge and relevance activation never establish adoption. A project is adopted only when direct probes establish the complete canonical adoption contract; otherwise it is unadopted. Partial or inconsistent artifacts do not create another status: identify the exact artifacts or missing contract elements, preserve existing content, and do not initialize or repair over it without explicit authority and resolved semantics. Without explicit adoption intent or existing adoption, do not initialize or persist. Complete the authorized request, report that durable knowledge remains unpersisted and no canonical files changed, and give the optional non-blocking initialization recommendation defined in `references/continuous-maintenance.md`. In an adopted repository, an unambiguous current-knowledge handoff authorizes Maintain: classify each claim as persist, clarify, or omit instead of asking whether or where to store it.
 
 Agent-system planning applies only when the developer asks how an AI-enabled objective should be divided among agents and non-agent components. Generic planning and host-defined `plan` commands remain outside.
 
@@ -43,14 +43,14 @@ Complete this gate before gathering target evidence or running commands:
 
 1. Establish the activation path and adoption state.
 2. Select the operation and subject. In an adopted repository, a brief request to evaluate `moldea` targets the project-owned system, not the installed operating skill. Ask one focused question before evaluating when the subject remains materially ambiguous.
-3. Establish write authority. Plan, evaluate, inspect, check, review, explain, report, and validate are read-only. Relevant implementation authorizes necessary same-change Moldea synchronization unless excluded; an adopted unambiguous current-knowledge handoff authorizes context maintenance.
+3. Establish write authority. Plan, evaluate, inspect, check, review, explain, report, and validate are read-only. Relevant implementation authorizes necessary same-change moldea synchronization unless excluded; an adopted unambiguous current-knowledge handoff authorizes context maintenance.
 4. Load only the focused references required by the selected operation, including `references/local-tooling.md` before its first governed command.
 
 Supported operations are:
 
-- **Plan:** recommend the smallest robust agent-and-software system for an explicitly AI-enabled objective. Allow zero agents; do not adopt Moldea or establish tooling merely to plan.
+- **Plan:** recommend the smallest robust agent-and-software system for an explicitly AI-enabled objective. Allow zero agents; do not adopt moldea or establish tooling merely to plan.
 - **Initialize:** establish local tooling, project understanding, `/moldea/moldea.yaml`, `/moldea/project.md`, and the owned README awareness block. Complete the file-only executable-extension gate before a foundation clarification can stop the attempt; report any tooling blocker and prerequisite before an independent context question. Do not create an agent automatically.
-- **Maintain:** reconsider and, when required, synchronize affected project truth, decisions, runtime guidance, agents, Agent Skills, relationships, contracts, requirements, mirrors, README guidance, or implementation.
+- **Maintain:** reconsider and, when required, synchronize affected project truth, decisions, runtime guidance, agents, Agent Skills, relationships, contracts, requirements, mirrors, README guidance, or implementation. Natural requests to consolidate, deduplicate, organize, clean up, or compress canonical project context select explicit context compression within Maintain.
 - **Evaluate:** assess the resolved subject structurally and semantically without writes or dependency establishment.
 - **Reconcile:** use the evaluation evidence model, establish intended state, and apply the smallest authorized coherent correction.
 - **Validate:** run read-only deterministic repository-local validation.
@@ -76,6 +76,7 @@ An unexplained same-scope conflict over consequential policy, permission, approv
 - Read `references/context-gathering.md` before initialization, agent-system planning, consequential project-context work, Agent Skill creation or material maintenance, agent creation, semantic evaluation, or reconciliation.
 - Read `references/agent-system-planning.md` before planning an AI- or agent-enabled system, decomposing agent responsibilities, or recommending orchestration.
 - Read `references/continuous-maintenance.md` before initialization, knowledge- or relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
+- Read `references/context-compression.md` before explicit broad context consolidation, deduplication, organization, cleanup, or compression.
 - Read `references/agent-design.md` before agent or runtime evaluation, creation, or material maintenance, including instructions, descriptions, schemas, capabilities, variables, mirrors, relationships, and requirements.
 - Read `references/skill-design.md` before creating, evaluating, or materially changing an Agent Skill, its `SKILL.md`, references, scripts, assets, activation contract, installation relationship, or runtime registration.
 - Read `references/evaluate-and-reconcile.md` before `evaluate`, `reconcile`, or a scoped semantic alignment assessment.
@@ -90,7 +91,7 @@ Governing specifications and deterministic CLI, Core, or adapter results still c
 4. Use compatible local tooling when the operation requires it. Inspect executable package-manager configuration as file data before invoking the manager. If an executable extension blocks manager-dependent work and the exact local CLI is absent, apply `references/local-tooling.md`'s completion contract by reporting the extension path, blocked manager-based CLI installation, unavailable independent local-CLI path, and remove-or-disable prerequisite before asking any independent focused question; that question never substitutes for the blocker report.
 5. Keep observed current fact, developer-confirmed truth, intended resulting state, planned work, accepted rationale, history, unresolved state, and investigative inference distinct.
 6. Before editing, assign each affected fact to its established owner and inspect affected canonical relationships, requirement criteria, mirrors, generated surfaces, consumers, implementation, and related-repository boundaries.
-7. Apply the smallest coherent authorized change. When a dependent artifact does not own a fact, link the established authoritative source rather than independently maintaining duplicate policy or procedure. For Agent Skills, preserve skill-owned activation and workflow, but refer to repository-owned requirements and stopping conditions through their source instead of copying their details into `SKILL.md` or a focused resource. Synchronize declared mirrors and distributed copies only from their canonical source. Preserve unrelated work and leave correct canonical state unchanged.
+7. Apply the smallest coherent authorized change. Keep each fact with its established authoritative owner and avoid creating duplicate current truth. During ordinary maintenance, remove only duplication or stale wording directly affected by the authorized change; preserve unrelated accumulated context and report broader consolidation as an optional explicit-compression opportunity. When a dependent artifact does not own a fact, link the established authoritative source rather than independently maintaining duplicate policy or procedure. For Agent Skills, preserve skill-owned activation and workflow, but refer to repository-owned requirements and stopping conditions through their source instead of copying their details into `SKILL.md` or a focused resource. Synchronize declared mirrors and distributed copies only from their canonical source. Preserve unrelated work and leave correct canonical state unchanged.
 8. Run relevant project-native checks for changed executable behavior when authorized.
 9. After writes, rerun `inspect --json` separately and review diagnostics, mirrors, requirements, semantic readiness, and unrelated invalidity.
 
@@ -106,7 +107,7 @@ Adapter evidence establishes detectable implementation, not intent. Core invalid
 
 ## Report truthfully
 
-Keep the report proportional to the operation. State the selected operation, activation path, scope, material evidence and limitations, deterministic status, semantic conclusions, changed and intentionally unchanged surfaces, unresolved requirements or conflicts, and checks run or omitted when relevant. For each material evidence limitation, name the unavailable fact and one concrete safe prerequisite that would resolve it.
+Keep the report proportional to the operation. State whether the project is adopted or unadopted, the selected operation, activation path, scope, material evidence and limitations, deterministic status, semantic conclusions, changed and intentionally unchanged surfaces, unresolved requirements or conflicts, and checks run or omitted when relevant. Report concrete diagnostics, drift, conflicts, requirements, and evidence limitations directly; project status is only adopted or unadopted. For each material evidence limitation, name the unavailable fact and one concrete safe prerequisite that would resolve it.
 
 Every write-capable result identifies `Canonical state` as changed, unchanged with a reason, or blocked with the focused question. Every read-only result explicitly states that no repository files changed. Report only completed, independently attributable checks and workspace-proven changes; never generalize a component validator into whole-system validity.
 

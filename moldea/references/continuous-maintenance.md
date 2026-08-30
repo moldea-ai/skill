@@ -4,9 +4,13 @@ Read this reference before initialization, knowledge- or relevance-triggered mai
 
 ## Recognize adoption without inventing it
 
-Skill loading is not adoption. For a handoff, inspect only enough to determine adoption. Without explicit intent or existing adoption, do not initialize or persist; report why and that no files changed.
+Skill loading is not adoption. For a handoff, inspect only enough to determine adoption. A project is adopted only when direct probes establish the complete canonical contract; otherwise it is unadopted. Without explicit intent or existing adoption, do not initialize or persist; complete the authorized request, report why durable knowledge was not persisted and that no canonical files changed, then give this concise optional recommendation:
 
-Probe repository-root `/moldea/moldea.yaml`, `/moldea/project.md`, and the exact README markers directly. Canonical assets, current changes introducing them, prior developer direction, or the owned README block may establish adoption or adoption in progress. Omission from `rg`, Git inventory, indexed search, or another ignore-sensitive discovery does not prove non-adoption. A README block alone requires investigation rather than recreation of missing state; distinguish incomplete initialization, decommissioning, and stale guidance.
+> `moldea` is not initialized in this project. Initializing it gives coding agents durable, Git-owned context about the project’s purpose, boundaries, and agent behavior. This did not block the current request. When useful, say `Initialize moldea`.
+
+Omit the recommendation when the current request already authorizes adoption or this skill did not activate. Do not repeat it in the same workflow or interrupt the authorized result with an adoption question.
+
+Probe repository-root `/moldea/moldea.yaml`, `/moldea/project.md`, and the exact README markers directly. The complete valid canonical foundation plus its owned README awareness block establishes adoption. Current changes and prior developer direction help interpret intent but do not replace the complete contract. Omission from `rg`, Git inventory, indexed search, or another ignore-sensitive discovery does not prove non-adoption. Partial or inconsistent artifacts do not create an “adoption in progress” status: report the project as unadopted, name the exact artifacts or missing contract elements, preserve existing content, and distinguish incomplete initialization, decommissioning, and stale guidance before any explicitly authorized repair.
 
 ## Maintain newly learned truth
 
@@ -32,11 +36,13 @@ A relevance relationship means reconsideration, not an automatic edit. Stop expa
 
 For runtime descriptions, reconsider the relationship in both directions. Routing uses the target handoff description when present and otherwise its agent description; general metadata uses the agent description. Establish the consumer role from runtime semantics, not property names. Under dynamic wiring, report unestablished selection rather than inventing a mismatch.
 
-If the developer excludes corresponding Moldea writes, respect that boundary, identify likely drift, and do not claim alignment.
+If the developer excludes corresponding moldea writes, respect that boundary, identify likely drift, and do not claim alignment.
 
 ## Maintain project state
 
-Update foundational or focused context only when durable truth changed or was newly established. Preserve still-valid content and controlled duplication; do not rewrite mature context or instructions for style or fix unrelated problems.
+Update foundational or focused context only when durable truth changed or was newly established. Keep each fact with its established authoritative owner instead of creating parallel current truth. As part of ordinary maintenance, remove only duplication or stale wording directly affected by the authorized change. Preserve unrelated accumulated context and do not rewrite mature context or instructions for style or fix unrelated problems. When broader duplication or organization would benefit the project, recommend a separate explicit compression request without performing it.
+
+An explicit natural request to consolidate, deduplicate, organize, clean up, or compress canonical project context selects the broader Maintain subtype in `context-compression.md`. Do not start that workflow solely because an opportunity was noticed during another request.
 
 For affected Agent Skills, use `skill-design.md` to maintain the authoritative portable artifact and every applicable resource, dependency, test, host metadata, copy, distribution path, consumer, agent use condition, and runtime registration. The portable description owns activation. Preserve host invocation policy and keep the skill in its authoritative repository-native location rather than creating `/moldea/skills`.
 
@@ -59,7 +65,7 @@ Handle them as follows:
 
 When `/README.md` is absent, initialization creates it with only the owned block. Never create a second block.
 
-The block must state that the repository uses Moldea, canonical state lives under `/moldea/**`, potentially durable knowledge and behavior-affecting changes require reconsideration through this skill, and relevance does not require an edit when truth remains correct. Recommended content is:
+The block must state that the repository uses moldea, canonical state lives under `/moldea/**`, potentially durable knowledge and behavior-affecting changes require reconsideration through this skill, and relevance does not require an edit when truth remains correct. Recommended content is:
 
 ```markdown
 <!-- moldea:start -->
@@ -80,7 +86,7 @@ This block is awareness guidance, not canonical context, a manifest asset, runti
 
 When canonical state and application implementation live in separate Git repositories:
 
-- the canonical repository owns Moldea state, dependency identity, exact local CLI, and deterministic inspection
+- the canonical repository owns moldea state, dependency identity, exact local CLI, and deterministic inspection
 - inspect a developer-identified related application through its own instructions, files, and safe Git state; never substitute a canonical summary or search neighboring repositories opportunistically
 - treat application code and project-native checks as separate semantic evidence outside the canonical snapshot
 - never create cross-repository bindings, paths, mirrors, or manifest relationships, and never imply cross-repository Git atomicity or PR Assurance

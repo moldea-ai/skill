@@ -81,9 +81,9 @@ export const SEMANTIC_CASE_PRESENTATION = {
     groupId: 'adoption',
     title: 'Evaluates a dirty working tree without editing it',
   },
-  'evaluate-brief-name-only-request': {
+  'evaluate-brief-project-request': {
     groupId: 'adoption',
-    title: 'Resolves a brief moldea evaluation request',
+    title: 'Resolves a brief project evaluation request',
   },
   'evaluate-clean-working-tree': {
     groupId: 'adoption',
@@ -108,6 +108,18 @@ export const SEMANTIC_CASE_PRESENTATION = {
   'canonical-instruction-changed': {
     groupId: 'truth',
     title: 'Propagates canonical instruction changes',
+  },
+  'maintain-context-without-duplication': {
+    groupId: 'truth',
+    title: 'Maintains context without duplicating truth',
+  },
+  'compress-project-context': {
+    groupId: 'truth',
+    title: 'Compresses project context without losing meaning',
+  },
+  'compress-conflicting-project-context': {
+    groupId: 'truth',
+    title: 'Stops compression on conflicting truth',
   },
   'provider-hosted-capability': {
     groupId: 'routing',

@@ -65,6 +65,20 @@ test('coverage binds every semantic case to an explicit portable-skill claim', (
   ]) {
     assert.equal(activationCaseIds.has(caseId), true);
   }
+
+  const compressionClaim = coverage.claims.find(
+    ({ id }) => id === 'context-quality-and-compression',
+  );
+  const compressionCaseIds = new Set(
+    compressionClaim?.evidence.filter(({ kind }) => kind === 'semantic-case').map(({ id }) => id),
+  );
+
+  assert.match(compressionClaim?.description ?? '', /explicit context compression/i);
+  assert.deepEqual([...compressionCaseIds].sort(), [
+    'compress-conflicting-project-context',
+    'compress-project-context',
+    'maintain-context-without-duplication',
+  ]);
 });
 
 test('coverage rejects unknown and uncovered semantic cases', () => {

@@ -9,12 +9,12 @@ Both operations use supported local tooling, `inspect --json`, material local co
 Resolve the subject before collecting target evidence:
 
 1. Establish adoption from project-owned canonical state.
-2. In an adopted repository, a brief name-only request targets the project-owned Moldea system. Ask one focused question before evaluating when material subject ambiguity remains.
+2. In an adopted repository, a brief natural project-evaluation request targets the project-owned moldea system. Ask one focused question before evaluating when material subject ambiguity remains.
 3. Use the installed `.agents/skills/moldea` entrypoint and operation-triggered references only as operating guidance. Do not inventory, validate, or report that tree as target evidence unless the developer explicitly scopes it or repository evidence establishes project ownership.
 
 After resolving the subject, select initial evidence from repository state:
 
-- **HEAD exists and the tree is dirty:** include staged, unstaged, untracked, renamed, and deleted paths relative to HEAD, then expand through registered and semantic relationships into materially affected Moldea surfaces.
+- **HEAD exists and the tree is dirty:** include staged, unstaged, untracked, renamed, and deleted paths relative to HEAD, then expand through registered and semantic relationships into materially affected moldea surfaces.
 - **HEAD exists and the tree is clean:** begin with the project-owned foundation, relationships, decisions, agents, capabilities, schemas, runtime guidance, requirements, and adapter evidence, then inspect relevant implementation progressively rather than exhaustively.
 - **HEAD does not exist:** treat every current path as newly introduced for initial scope selection.
 
@@ -28,7 +28,7 @@ An explicit agent, Agent Skill, capability, domain, path, runtime, change, or co
 2. Run root-local `composition --json` only when installed executable composition can change a conclusion. Load `runtime-compatibility.md` and retrieve its publication only when current technical compatibility or maturity can change a conclusion.
 3. Preserve Core and adapter diagnostics with their actual meaning.
 4. Compare affected surfaces in both directions; no asset type automatically wins.
-5. Limit findings to structural and semantic Moldea alignment unless registered behavior makes another concern relevant.
+5. Limit findings to structural and semantic moldea alignment unless registered behavior makes another concern relevant.
 6. Stop when evidence supports reliable scoped conclusions.
 
 Semantic alignment requires reliable evidence of each material behavior's intended meaning and relevant consumption. A relationship proves scope and implementation proves current behavior; neither alone proves agreement. Report an exact evidence limitation instead of claiming alignment when intent or consumption remains unknown.
@@ -41,7 +41,7 @@ For Agent Skills, apply `skill-design.md` to the authoritative artifact, activat
 
 Core invalidity can prevent adapters from running. In that state `evidence: []` means unavailable evidence, not absent runtime behavior. External implementation can create the same limitation in dedicated-repository mode.
 
-Report five separate categories:
+Report the binary adoption state and five separate finding categories. Project status is only adopted or unadopted; diagnostics, drift, conflicts, requirements, and evidence gaps do not create another status.
 
 - **Deterministic diagnostics:** mechanically proven Core or adapter problems.
 - **Confirmed semantic problems:** evidence-backed contradiction, drift, stale relationship, or material instruction-quality concern.

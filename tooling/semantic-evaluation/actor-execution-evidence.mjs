@@ -106,7 +106,7 @@ const projectWorkspacePaths = (source, command) => {
   return { kind: 'workspace-paths', paths };
 };
 
-/** Returns the recognized Moldea operation for one exact repository-local invocation. */
+/** Returns the recognized moldea operation for one exact repository-local invocation. */
 const getRecognizedMoldeaOperation = (command) => {
   for (const operation of MOLDEA_COMMANDS) {
     if (
@@ -120,7 +120,7 @@ const getRecognizedMoldeaOperation = (command) => {
   return null;
 };
 
-/** Returns whether one Moldea envelope has a consistent command, status, and exit code. */
+/** Returns whether one moldea envelope has a consistent command, status, and exit code. */
 const hasConsistentMoldeaEnvelope = (envelope, exitCode, options) => {
   if (
     !isPlainRecord(envelope) ||
@@ -150,7 +150,7 @@ const hasConsistentMoldeaEnvelope = (envelope, exitCode, options) => {
   return [2, 3].includes(exitCode) && envelope.result === null && envelope.error !== null;
 };
 
-/** Returns safe release-bound fields only when the complete output is one Moldea envelope. */
+/** Returns safe release-bound fields only when the complete output is one moldea envelope. */
 const projectMoldeaEnvelope = (source, command, exitCode, options) => {
   let envelope;
   try {

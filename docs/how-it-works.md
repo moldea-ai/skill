@@ -24,24 +24,24 @@ The coding agent can activate the skill in three ways:
 - **Knowledge-triggered activation:** in an adopted repository, you supply, confirm, or correct potentially durable project knowledge through terse prose, an answer, a table, YAML, JSON, or an accessible source. This is the first activation signal even without a persistence request.
 - **Relevance-triggered activation:** an ordinary authorized change may affect declared project or agent behavior in a repository that already uses or is adopting `moldea`.
 
-A knowledge handoff can load the skill before adoption is known so it can inspect that boundary. Loading never establishes adoption or authorizes persistence. In an unadopted repository, it creates no canonical state and reports that the knowledge was not persisted and no files changed. Once canonical adoption is established, the coding agent does not ask you to adopt again or choose a storage path. It determines whether the information is current, durable, material, sufficiently established, and authorized for persistence, then selects the appropriate canonical surface.
+A knowledge handoff can load the skill before adoption is known so it can inspect that boundary. Loading never establishes adoption or authorizes persistence. A project is adopted only when direct probes establish the complete canonical foundation and owned README awareness block; otherwise it is unadopted. Partial or inconsistent artifacts remain unadopted and are reported precisely rather than becoming a third status. In an unadopted repository, the coding agent completes the authorized request, creates no canonical state, reports that durable knowledge was not persisted, and gives one optional non-blocking recommendation that explains the benefit of initialization and points to `Initialize moldea`. Once canonical adoption is established, the coding agent does not ask you to adopt again or choose a storage path. It determines whether the information is current, durable, material, sufficiently established, and authorized for persistence, then selects the appropriate canonical surface.
 
 ## Operation selection
 
 The skill directs the coding agent to select one operation and honor its authority:
 
-| Operation  | Writes | Purpose                                                               |
-| ---------- | ------ | --------------------------------------------------------------------- |
-| Plan       | No     | Recommend the smallest robust agent-and-software architecture.        |
-| Initialize | Yes    | Establish local tooling and the minimum canonical project foundation. |
-| Maintain   | Yes    | Keep affected project and agent representations coherent.             |
-| Evaluate   | No     | Report deterministic and semantic alignment evidence.                 |
-| Reconcile  | Yes    | Correct confirmed drift with established intent.                      |
-| Validate   | No     | Run deterministic structural validation only.                         |
+| Operation  | Writes | Purpose                                                                                           |
+| ---------- | ------ | ------------------------------------------------------------------------------------------------- |
+| Plan       | No     | Recommend the smallest robust agent-and-software architecture.                                    |
+| Initialize | Yes    | Establish local tooling and the minimum canonical project foundation.                             |
+| Maintain   | Yes    | Keep affected project and agent representations coherent, including explicit context compression. |
+| Evaluate   | No     | Report deterministic and semantic alignment evidence.                                             |
+| Reconcile  | Yes    | Correct confirmed drift with established intent.                                                  |
+| Validate   | No     | Run deterministic structural validation only.                                                     |
 
 ## Focused guidance
 
-The portable skill has a small universal contract and focused references. The coding agent reads only the guidance needed for the active workflow, such as agent design, Agent Skill design, context gathering, continuous maintenance, evaluation, or local tooling.
+The portable skill has a small universal contract and focused references. The coding agent reads only the guidance needed for the active workflow, such as agent design, Agent Skill design, context gathering, continuous maintenance, explicit context compression, evaluation, or local tooling.
 
 ## Evidence before edits
 
@@ -59,6 +59,8 @@ The developer should not need to run these commands. This boundary exists so the
 
 ## Small coherent changes
 
-Write-capable operations update the smallest authorized set of affected representations. The coding agent preserves unrelated work and does not create duplicate canonical stores, independent instructions, fake relationships, or ceremonial files.
+Write-capable operations update the smallest authorized set of affected representations. The coding agent preserves unrelated work and does not create duplicate canonical stores, independent instructions, fake relationships, or ceremonial files. Ordinary maintenance removes only duplication or stale wording directly affected by the authorized change. A natural request to consolidate, deduplicate, organize, clean up, or compress canonical context authorizes broader loss-preserving reorganization: every unique current fact, accepted rationale, requirement, unresolved boundary, relationship, and consumer remains accounted for, and consequential conflicts stop before writes.
+
+This context compression applies only to Git-owned project state. It does not manage a coding host's context window, conversation compaction, prompt cache, token budget, or internal model behavior, and it does not claim token savings.
 
 After writes, it reruns deterministic inspection and the relevant project-native checks, then reports the selected operation, scope, files, tooling, evidence, decisions, limitations, and verification.

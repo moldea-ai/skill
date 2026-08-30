@@ -293,7 +293,7 @@ test('does not project a focused runtime-test result from empty or oversized out
   });
 });
 
-test('projects release-bound valid and invalid Moldea envelope facts', () => {
+test('projects release-bound valid and invalid moldea envelope facts', () => {
   const validOutput = JSON.stringify({
     cliVersion: '4.0.1',
     command: 'validate',
@@ -356,7 +356,7 @@ test('projects release-bound valid and invalid Moldea envelope facts', () => {
   );
 });
 
-test('projects the same Moldea fact from every approved repository-local invocation form', () => {
+test('projects the same moldea fact from every approved repository-local invocation form', () => {
   const invocationPrefixes = [
     'node_modules/.bin/moldea',
     './node_modules/.bin/moldea',
@@ -451,7 +451,7 @@ test('projects the same Moldea fact from every approved repository-local invocat
   }
 });
 
-test('rejects composed and near-match Moldea commands even when their output is valid', () => {
+test('rejects composed and near-match moldea commands even when their output is valid', () => {
   const sensitive = 'sk-sensitive-value';
   const output = JSON.stringify({
     cliVersion: '4.0.1',

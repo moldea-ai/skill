@@ -1958,7 +1958,7 @@ const seedAdoptedProject = async (repositoryPath, caseDefinition) => {
   await writeScenarioFile(
     repositoryPath,
     'README.md',
-    '# Evaluation repository\n\n<!-- moldea:start -->\n## `moldea`\n\nThis repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.\n\nWhen sharing potentially durable project knowledge or making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.\n\nA relevant change requires reconsideration of the affected `moldea` state; it does not require editing `/moldea/**` when established project truth and declared agent behavior remain unchanged.\n<!-- moldea:end -->\n',
+    '# Evaluation repository\n\n<!-- moldea:start -->\n\n## `moldea`\n\nThis repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.\n\nWhen sharing potentially durable project knowledge or making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.\n\nA relevant change requires reconsideration of the affected `moldea` state; it does not require editing `/moldea/**` when established project truth and declared agent behavior remain unchanged.\n<!-- moldea:end -->\n',
   );
   await writeScenarioFile(
     repositoryPath,
@@ -2362,6 +2362,11 @@ const seedInitializationContext = async (repositoryPath, caseDefinition) => {
       'src/invoice.js',
       'export const processInvoice = (invoice) => ({ ...invoice, processed: true });\n',
     );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/project.md',
+      '# Invoice processor\n\nThis service processes invoices for accounting systems. Its payment authority is not established.\n',
+    );
     return;
   }
 
@@ -2389,6 +2394,73 @@ const seedInitializationContext = async (repositoryPath, caseDefinition) => {
   }
 
   throw new Error(`Unsupported initialization-context case ${caseDefinition.id}.`);
+};
+
+/** Seeds established, duplicate, or conflicting context for maintenance scenarios. */
+const seedContextMaintenanceScenario = async (repositoryPath, caseId) => {
+  if (caseId === 'maintain-context-without-duplication') {
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/moldea.yaml',
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n  /moldea/context/operations.md:\n    affectedBy:\n      - /src/operations/**\n  /moldea/context/architecture.md:\n    affectedBy:\n      - /src/platform/**\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/context/operations.md',
+      '# Operations\n\nSupport owns the escalation policy. Legal approves retention exceptions.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/context/architecture.md',
+      '# Architecture\n\nThe application uses a modular monolith and a PostgreSQL database.\n',
+    );
+    return;
+  }
+
+  if (caseId === 'compress-project-context') {
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/moldea.yaml',
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n  /moldea/context/operations.md:\n    affectedBy:\n      - /src/operations/**\n  /moldea/context/escalations.md:\n    affectedBy:\n      - /src/operations/**\n\nunresolved:\n  after-hours-escalation:\n    category: behavior\n    effect: non-blocking\n    description: The current after-hours escalation owner is not established.\n    resolution: Establish the current after-hours escalation owner.\n    related:\n      - path: /moldea/context/escalations.md\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/context/operations.md',
+      '# Operations\n\nCustomer Operations owns the escalation policy. Legal approves retention exceptions.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/context/escalations.md',
+      '# Escalations\n\nCustomer Operations owns the escalation policy.\n\nThe current after-hours escalation owner remains unresolved.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'docs/context-index.md',
+      '# Context index\n\n- [Operations](../moldea/context/operations.md)\n- [Escalations](../moldea/context/escalations.md)\n',
+    );
+    return;
+  }
+
+  if (caseId === 'compress-conflicting-project-context') {
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/moldea.yaml',
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n  /moldea/context/finance-operations.md:\n    affectedBy:\n      - /src/operations/**\n  /moldea/context/customer-operations.md:\n    affectedBy:\n      - /src/operations/**\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/context/finance-operations.md',
+      '# Finance operations\n\nFinance owns escalation approval.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'moldea/context/customer-operations.md',
+      '# Customer operations\n\nCustomer Operations owns escalation approval.\n',
+    );
+    return;
+  }
+
+  throw new Error(`Unsupported context-maintenance case ${caseId}.`);
 };
 
 /** Materializes scenario claims as repository evidence before the baseline commit. */
@@ -2493,6 +2565,11 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
         'src/refund-policy.js',
         'export const requiresApproval = () => false;\n',
       );
+      break;
+    case 'compress-conflicting-project-context':
+    case 'compress-project-context':
+    case 'maintain-context-without-duplication':
+      await seedContextMaintenanceScenario(repositoryPath, caseDefinition.id);
       break;
     case 'agent-adoption-inline-runtime-instruction':
       await seedInlineInstructionRuntime(repositoryPath);
@@ -2872,7 +2949,7 @@ const createRelatedApplicationRepository = async (root) => {
     ['add', '--all'],
     [
       '-c',
-      'user.name=Moldea Evaluation',
+      'user.name=moldea Evaluation',
       '-c',
       'user.email=evaluation@invalid.example',
       'commit',
@@ -2922,7 +2999,7 @@ export const createActorRepository = async (root, caseDefinition) => {
       ['add', '--all'],
       [
         '-c',
-        'user.name=Moldea Evaluation',
+        'user.name=moldea Evaluation',
         '-c',
         'user.email=evaluation@invalid.example',
         'commit',

@@ -30,7 +30,7 @@ Project installation is recommended because the team can share the skill through
 
 Open the repository in a compatible coding agent and ask naturally:
 
-> Initialize `moldea` for this repository.
+> `Initialize moldea`
 
 This request explicitly authorizes adoption. The coding agent handles the initialization workflow:
 
@@ -50,13 +50,13 @@ The minimum canonical foundation is:
 
 `moldea.yaml` starts with schema version `1` and omits empty optional mappings. `project.md` records only durable project identity, purpose, users, goals, values, boundaries, and universally important facts supported by repository evidence.
 
-Initialization does not create an agent automatically. It also does not create ceremonial empty directories, speculative context, or a parallel source of truth. When the repository is already partially or fully initialized, the same request preserves valid established content and becomes focused foundation maintenance rather than a destructive fresh scaffold.
+Initialization does not create an agent automatically. It also does not create ceremonial empty directories, speculative context, or a parallel source of truth. An adopted project turns the same request into focused foundation maintenance. Partial or inconsistent artifacts leave the project unadopted: the coding agent identifies the exact existing artifacts and missing contract elements, preserves valid content, and does not initialize or repair over them until the request authorizes that work and any consequential ambiguity is resolved.
 
 ## When the repository does not explain itself
 
 Initialization is conversational when the evidence is not yet sufficient:
 
-- When no meaningful project context can be established, the coding agent says what it inspected and asks about one highest-value missing fact, normally the project's purpose or who it serves. It does not bundle purpose, users, goals, and boundaries into a questionnaire. Brief or generic package metadata can inform that question, but it cannot finalize the foundation by itself. Neither can a repository name, generic label, placeholder file, or empty export.
+- When no meaningful project context can be established, the coding agent explains the benefit before asking one focused question: “`moldea` keeps durable project context in the repository so coding agents can understand the project consistently over time. The README and source do not establish what this project is for, so I haven’t initialized it yet. What does the project do, and who or what does it serve?” It adapts the inspected sources when needed, but it does not bundle purpose, users, goals, and boundaries into a questionnaire. Brief or generic package metadata can inform that question, but it cannot finalize the foundation by itself. Neither can a repository name, generic label, placeholder file, or empty export.
 - When part of the project is clear but a material purpose, user, goal, authority, or boundary remains uncertain, it summarizes the supported conclusions and asks one question about that consequential boundary before finalizing affected claims. A broad phrase such as “handles payments” does not establish authorization, value movement, destructive effects, lifecycle changes, or external actions when the implementation proves only narrower processing.
 - When the foundation is sufficiently clear, it completes initialization without asking a question merely for ceremony.
 
@@ -95,6 +95,8 @@ You do not need to:
 - create a `moldea` Cloud account for local work
 
 The coding agent owns the safe interaction with the skill and repository-local tooling.
+
+If an ordinary request activates `moldea` in an unadopted project, initialization remains optional. The coding agent completes the authorized request, does not persist durable project knowledge, and briefly explains that initialization gives future coding agents durable Git-owned context. It can point to `Initialize moldea` without turning adoption into a prerequisite or interrupting the work with a question.
 
 ## Update the skill
 

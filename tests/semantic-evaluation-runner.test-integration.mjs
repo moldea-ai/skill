@@ -62,6 +62,15 @@ const AMBIGUOUS_CONTEXT_CASE_DEFINITION = SEMANTIC_CASES.find(
 const EXPLICIT_CONTEXT_CORRECTION_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'adopted-explicit-context-correction',
 );
+const MAINTAIN_CONTEXT_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'maintain-context-without-duplication',
+);
+const COMPRESS_CONTEXT_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'compress-project-context',
+);
+const CONFLICTING_COMPRESSION_CASE_DEFINITION = SEMANTIC_CASES.find(
+  ({ id }) => id === 'compress-conflicting-project-context',
+);
 const PARTIAL_INITIALIZATION_CASE_DEFINITION = SEMANTIC_CASES.find(
   ({ id }) => id === 'initialize-partial-context',
 );
@@ -411,11 +420,104 @@ test('partial initialization exposes payment involvement without deciding author
     );
     const readme = readFileSync(join(repositoryPath, 'README.md'), 'utf8');
     const implementation = readFileSync(join(repositoryPath, 'src', 'invoice.js'), 'utf8');
+    const partialProjectContext = readFileSync(
+      join(repositoryPath, 'moldea', 'project.md'),
+      'utf8',
+    );
 
     assert.match(readme, /payment handling/i);
+    assert.doesNotMatch(readme, /<!-- moldea:(?:start|end) -->/u);
     assert.doesNotMatch(readme, /authoriz|initiat|extract/i);
     assert.match(implementation, /processInvoice/);
     assert.doesNotMatch(implementation, /authoriz|initiat|payment|extract/i);
+    assert.match(partialProjectContext, /payment authority is not established/i);
+    assert.equal(existsSync(join(repositoryPath, 'moldea', 'moldea.yaml')), false);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('context-maintenance fixture keeps one established owner beside unrelated context', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-context-maintenance-test-'));
+  assert.ok(MAINTAIN_CONTEXT_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      MAINTAIN_CONTEXT_CASE_DEFINITION,
+    );
+    const manifest = readFileSync(join(repositoryPath, 'moldea', 'moldea.yaml'), 'utf8');
+    const operations = readFileSync(
+      join(repositoryPath, 'moldea', 'context', 'operations.md'),
+      'utf8',
+    );
+    const architecture = readFileSync(
+      join(repositoryPath, 'moldea', 'context', 'architecture.md'),
+      'utf8',
+    );
+
+    assert.match(manifest, /\/moldea\/context\/operations\.md/u);
+    assert.match(manifest, /\/moldea\/context\/architecture\.md/u);
+    assert.match(operations, /Support owns the escalation policy/u);
+    assert.match(operations, /Legal approves retention exceptions/u);
+    assert.match(architecture, /modular monolith/u);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('context-compression fixture exposes duplicate, unique, requirement, and consumer state', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-context-compression-test-'));
+  assert.ok(COMPRESS_CONTEXT_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      COMPRESS_CONTEXT_CASE_DEFINITION,
+    );
+    const manifest = readFileSync(join(repositoryPath, 'moldea', 'moldea.yaml'), 'utf8');
+    const operations = readFileSync(
+      join(repositoryPath, 'moldea', 'context', 'operations.md'),
+      'utf8',
+    );
+    const escalations = readFileSync(
+      join(repositoryPath, 'moldea', 'context', 'escalations.md'),
+      'utf8',
+    );
+    const contextIndex = readFileSync(join(repositoryPath, 'docs', 'context-index.md'), 'utf8');
+
+    assert.match(operations, /Customer Operations owns the escalation policy/u);
+    assert.match(escalations, /Customer Operations owns the escalation policy/u);
+    assert.match(operations, /Legal approves retention exceptions/u);
+    assert.match(escalations, /after-hours escalation owner remains unresolved/u);
+    assert.match(manifest, /after-hours-escalation:[\s\S]*\/moldea\/context\/escalations\.md/u);
+    assert.match(contextIndex, /operations\.md/u);
+    assert.match(contextIndex, /escalations\.md/u);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('conflicting-compression fixture exposes both current ownership claims', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-context-conflict-test-'));
+  assert.ok(CONFLICTING_COMPRESSION_CASE_DEFINITION);
+
+  try {
+    const { repositoryPath } = await createActorRepository(
+      evaluationRoot,
+      CONFLICTING_COMPRESSION_CASE_DEFINITION,
+    );
+    const financeContext = readFileSync(
+      join(repositoryPath, 'moldea', 'context', 'finance-operations.md'),
+      'utf8',
+    );
+    const customerOperationsContext = readFileSync(
+      join(repositoryPath, 'moldea', 'context', 'customer-operations.md'),
+      'utf8',
+    );
+
+    assert.match(financeContext, /Finance owns escalation approval/u);
+    assert.match(customerOperationsContext, /Customer Operations owns escalation approval/u);
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

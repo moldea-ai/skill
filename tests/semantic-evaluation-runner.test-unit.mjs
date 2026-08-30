@@ -1801,6 +1801,15 @@ test('uses the published CLI for compatibility-sensitive runtime states', () => 
     'published-package',
   );
   assert.equal(getSemanticToolingSource('adopted-relevance-no-change'), 'published-package');
+  assert.equal(
+    getSemanticToolingSource('maintain-context-without-duplication'),
+    'published-package',
+  );
+  assert.equal(getSemanticToolingSource('compress-project-context'), 'published-package');
+  assert.equal(
+    getSemanticToolingSource('compress-conflicting-project-context'),
+    'published-package',
+  );
   assert.equal(getSemanticToolingSource('initialize-insufficient-context'), 'published-package');
   assert.equal(getSemanticToolingSource('initialize-partial-context'), 'published-package');
   assert.equal(getSemanticToolingSource('initialize-sufficient-context'), 'published-package');

@@ -78,7 +78,7 @@ Use pnpm `--workspace-root` only for a root workspace. Yarn uses `skip-build`; n
 
 The file-only gate precedes command selection. Lifecycle-script suppression does not neutralize repository-supplied extensions and cannot bypass the manager prohibition.
 
-If the manager rejects the control, configuration defeats it, or suppression materially changes resolution, report the prerequisite. A Moldea request never implies lifecycle-script authority.
+If the manager rejects the control, configuration defeats it, or suppression materially changes resolution, report the prerequisite. A moldea request never implies lifecycle-script authority.
 
 ## Preserve decision gates
 

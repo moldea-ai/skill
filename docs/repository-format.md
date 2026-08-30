@@ -14,6 +14,8 @@ This page introduces how to adopt the format. The [official Repository Format sp
 
 The format is deliberately additive. A new project begins with two files and earns more structure only when real context, rationale, runtime guidance, or agent behavior needs a durable owner.
 
+The project is adopted only when direct probes establish the complete two-file canonical foundation and the owned README awareness block. Otherwise it is unadopted. Partial or inconsistent artifacts are preserved and reported precisely rather than represented through a third status or overwritten as a fresh scaffold.
+
 ## Start with two files
 
 The minimum foundation is complete on its own:
@@ -140,6 +142,7 @@ Repository format stays efficient through a few operating principles:
 4. **Keep canonical behavior singular.** Runtime instructions derive from the canonical agent instruction instead of becoming independently maintained copies.
 5. **Let impact paths narrow future work.** `affectedBy` relationships guide evidence gathering while preserving a legitimate no-change result.
 6. **Preserve genuine gaps explicitly.** Unresolved requirements record material incomplete state with clear resolution criteria; they are not a roadmap or substitute for asking the developer.
+7. **Compress only with explicit intent.** Ordinary maintenance removes only duplication affected by the authorized change. A broader consolidation request may reorganize canonical context, but it must preserve every unique fact, rationale, requirement, unresolved boundary, relationship, and consumer and stop before consequential conflicts.
 
 ## What validates the structure
 
@@ -147,4 +150,4 @@ The repository-local `@moldea.ai/cli` reads the Git working tree and delegates R
 
 The coding agent invokes that deterministic boundary when a workflow needs structural evidence. A valid structure does not automatically prove semantic quality, and semantic review does not replace structural validation. Consult the [official Repository Format specification](https://packages.moldea.ai/repository-format/) when exact property or conformance requirements matter.
 
-For the exact package-level behavior, see the [`@moldea.ai/core` documentation](https://packages.moldea.ai/packages/core/). To establish the format in a project, follow [Getting started](/docs/getting-started/) and ask your coding agent to initialize `moldea` for the repository.
+For the exact package-level behavior, see the [`@moldea.ai/core` documentation](https://packages.moldea.ai/packages/core/). To establish the format in a project, follow [Getting started](/docs/getting-started/) and say `Initialize moldea` to your coding agent.

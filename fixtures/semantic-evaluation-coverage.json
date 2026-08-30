@@ -24,7 +24,7 @@
         { "kind": "semantic-case", "id": "adopted-relevance-changed-behavior" },
         { "kind": "semantic-case", "id": "agent-adoption-inline-runtime-instruction" },
         { "kind": "semantic-case", "id": "evaluate-dirty-working-tree" },
-        { "kind": "semantic-case", "id": "evaluate-brief-name-only-request" },
+        { "kind": "semantic-case", "id": "evaluate-brief-project-request" },
         { "kind": "semantic-case", "id": "evaluate-clean-working-tree" },
         { "kind": "semantic-case", "id": "evaluate-unborn-repository" }
       ],
@@ -48,6 +48,24 @@
         { "kind": "semantic-case", "id": "canonical-instruction-changed" }
       ],
       "rationale": "The cases separate direct truth, corrections, conflicts, unresolved requirements, mirrors, and multi-repository authority."
+    },
+    {
+      "id": "context-quality-and-compression",
+      "description": "Ordinary maintenance keeps each affected durable fact with its established owner, while explicit context compression removes proven duplication without losing unique truth, requirements, relationships, or consumers and stops before consequential conflict.",
+      "sourcePaths": [
+        "moldea/SKILL.md#select-the-operation",
+        "moldea/SKILL.md#common-lifecycle",
+        "moldea/references/continuous-maintenance.md#maintain-project-state",
+        "moldea/references/context-compression.md#preserve-meaning-before-removing-content",
+        "moldea/references/context-compression.md#stop-on-consequential-conflict",
+        "moldea/references/context-compression.md#verify-the-compressed-result"
+      ],
+      "evidence": [
+        { "kind": "semantic-case", "id": "maintain-context-without-duplication" },
+        { "kind": "semantic-case", "id": "compress-project-context" },
+        { "kind": "semantic-case", "id": "compress-conflicting-project-context" }
+      ],
+      "rationale": "The scenarios distinguish bounded incremental hygiene from authorized broad consolidation, require loss-preserving relationship synchronization, and preserve conflicts for focused developer resolution."
     },
     {
       "id": "agent-system-planning",

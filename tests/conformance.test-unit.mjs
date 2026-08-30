@@ -53,6 +53,7 @@ const READ_ONLY_TOOLING_OPERATIONS = new Set(['evaluate', 'plan', 'validate']);
 const REFERENCE_FILES = [
   'agent-design.md',
   'agent-system-planning.md',
+  'context-compression.md',
   'context-gathering.md',
   'continuous-maintenance.md',
   'evaluate-and-reconcile.md',
@@ -119,9 +120,11 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'agent-adoption-inline-runtime-instruction',
     'available-runtime-insufficient-behavioral-evidence',
     'canonical-instruction-changed',
+    'compress-conflicting-project-context',
+    'compress-project-context',
     'dedicated-repository-runtime-selection',
     'dedicated-repository-single-side-change',
-    'evaluate-brief-name-only-request',
+    'evaluate-brief-project-request',
     'evaluate-clean-working-tree',
     'evaluate-dirty-working-tree',
     'evaluate-unborn-repository',
@@ -131,6 +134,7 @@ const REQUIRED_EVALUATION_CASE_IDS = {
     'initialize-partial-context',
     'initialize-sufficient-context',
     'installed-adapter-without-published-target',
+    'maintain-context-without-duplication',
     'plan-existing-project-one-agent',
     'plan-justified-multi-agent',
     'plan-material-ambiguity',
@@ -373,12 +377,13 @@ describe('portable Agent Skill contract', () => {
     assertMatchesEvery(frontmatter.description, [
       /supplies, confirms, or corrects potentially durable current-project knowledge/u,
       /ownership, policy, terminology, architecture, or operations/u,
-      /in any format and even without naming Moldea or requesting persistence/u,
+      /in any format and even without naming moldea or requesting persistence/u,
       /determine adoption before writing/u,
       /authorized work may affect canonical truth or declared behavior/u,
       /explicit initialization, agent-system planning, agent or Agent Skill design, maintenance, evaluation, reconciliation, and validation/u,
       /Initial adoption requires explicit developer intent/u,
     ]);
+    assert.doesNotMatch(portableContent, /\bMoldea\b/u);
     assert.ok(skill.split('\n').length < 500);
   });
 
@@ -450,7 +455,7 @@ describe('portable Agent Skill contract', () => {
 
     assert.ok(knowledgeActivation);
     assert.match(knowledgeActivation, /the repository receives/u);
-    assert.match(knowledgeActivation, /without naming Moldea or requesting persistence/u);
+    assert.match(knowledgeActivation, /without naming moldea or requesting persistence/u);
     assert.doesNotMatch(knowledgeActivation, /adopted repository/u);
 
     assertMatchesEvery(skill, [
@@ -458,10 +463,13 @@ describe('portable Agent Skill contract', () => {
       /Knowledge-triggered activation/,
       /Relevance-triggered activation/,
       /potentially material durable project knowledge/i,
-      /without naming Moldea or requesting persistence/i,
+      /without naming moldea or requesting persistence/i,
       /path referenced by canonical state or an unresolved requirement/i,
       /Knowledge and relevance activation never establish adoption/i,
+      /adopted only when direct probes establish the complete canonical adoption contract/i,
+      /Partial or inconsistent artifacts do not create another status/i,
       /Without explicit adoption intent or existing adoption, do not initialize or persist/i,
+      /optional non-blocking initialization recommendation defined in `references\/continuous-maintenance\.md`/i,
       /unambiguous current-knowledge handoff authorizes Maintain/i,
       /classify each claim as persist, clarify, or omit/i,
       /Plan, evaluate, inspect, check, review, explain, report, and validate are read-only/i,
@@ -469,6 +477,8 @@ describe('portable Agent Skill contract', () => {
       /No asset type or operation authority automatically selects truth/i,
       /Do not stage, unstage, commit/,
       /assign each affected fact to its established owner/i,
+      /remove only duplication or stale wording directly affected by the authorized change/i,
+      /broader consolidation as an optional explicit-compression opportunity/i,
       /When a dependent artifact does not own a fact, link the established authoritative source rather than independently maintaining duplicate policy or procedure/i,
       /preserve skill-owned activation and workflow, but refer to repository-owned requirements and stopping conditions through their source instead of copying their details into `SKILL\.md` or a focused resource/i,
       /Synchronize declared mirrors and distributed copies only from their canonical source/i,
@@ -483,7 +493,11 @@ describe('portable Agent Skill contract', () => {
     ]);
     assertMatchesEvery(continuousMaintenance, [
       /Skill loading is not adoption/i,
+      /adopted only when direct probes establish the complete canonical contract/i,
       /Without explicit intent or existing adoption, do not initialize or persist/i,
+      /This did not block the current request/i,
+      /When useful, say `Initialize moldea`/i,
+      /Partial or inconsistent artifacts do not create an .*adoption in progress.* status/i,
       /Omission from `rg`, Git inventory, indexed search, or another ignore-sensitive discovery does not prove non-adoption/i,
       /needs no persistence request, adoption confirmation, or storage-path question/i,
       /leave correct state unchanged/i,
@@ -541,9 +555,34 @@ describe('portable Agent Skill contract', () => {
       /completed deterministic proof stage, status, and material diagnostics, including their absence/i,
       /exact repository-local invocation still runs separately but need not be repeated/i,
       /For corrections, state the corrected boundary and resulting current truth/i,
-      /Without explicit intent or existing adoption, do not initialize or persist; report why and that no files changed/i,
+      /Without explicit intent or existing adoption, do not initialize or persist/i,
       /Read every referencing requirement's current state and criteria before editing/i,
       /durable truth changed or was newly established/i,
+      /remove only duplication or stale wording directly affected by the authorized change/i,
+      /recommend a separate explicit compression request without performing it/i,
+    ]);
+  });
+
+  test('defines explicit loss-preserving context compression without host-context claims', () => {
+    const contextCompression = readRepositoryFile('moldea/references/context-compression.md');
+
+    assertMatchesEvery(skill, [
+      /consolidate, deduplicate, organize, clean up, or compress canonical project context/i,
+      /Read `references\/context-compression\.md` before explicit broad context consolidation/i,
+    ]);
+    assertMatchesEvery(contextCompression, [
+      /Maintain subtype for Git-owned canonical project context/i,
+      /does not manage the coding host's context window, prompt cache, conversation compaction, token budget, or model internals/i,
+      /never claims token savings/i,
+      /Broad compression requires explicit developer intent/i,
+      /Do not start it merely because ordinary maintenance reveals an opportunity/i,
+      /account for every distinct established fact, accepted rationale, relevant requirement, unresolved boundary, relationship, and consumer/i,
+      /Consolidate proven duplicates into the established authoritative owner/i,
+      /Update manifest paths, references, indexes, consumers, and directly affected documentation in the same change/i,
+      /Do not use arbitrary file-count, word-count, character-count, age, or size thresholds/i,
+      /ask one focused question/i,
+      /Make no semantic write before the answer/i,
+      /Confirm that unrelated context and implementation remain unchanged/i,
     ]);
   });
 
@@ -568,6 +607,10 @@ describe('portable Agent Skill contract', () => {
       /Classify the project foundation before changing dependency state/i,
       /Missing or unverified tooling never makes available evidence empty/i,
       /brief or generic package metadata may guide clarification but cannot establish a sufficient foundation alone/i,
+      /`moldea` keeps durable project context in the repository so coding agents can understand the project consistently over time/i,
+      /What does the project do, and who or what does it serve/i,
+      /Partial or inconsistent artifacts leave the project unadopted/i,
+      /identify the exact artifacts and missing contract elements/i,
     ]);
   });
 
@@ -671,7 +714,7 @@ describe('portable Agent Skill contract', () => {
       /HEAD exists and the tree is clean/i,
       /HEAD does not exist/i,
       /Resolve the subject before collecting target evidence/i,
-      /brief name-only request targets the project-owned Moldea system/i,
+      /brief natural project-evaluation request targets the project-owned moldea system/i,
       /Ask one focused question before evaluating when material subject ambiguity remains/i,
       /installed `\.agents\/skills\/moldea` entrypoint and operation-triggered references only as operating guidance/i,
       /Do not inventory, validate, or report that tree as target evidence/i,
@@ -685,6 +728,7 @@ describe('portable Agent Skill contract', () => {
       /Material ambiguities/,
       /Relevant unresolved requirements/,
       /Material evidence limitations/,
+      /Project status is only adopted or unadopted/i,
       /each unknown fact, its smallest reliable resolving artifact and established owner/i,
       /what that artifact must prove/i,
       /source-owned target documentation, closed wiring, provider configuration, and integration tests/i,
@@ -964,6 +1008,24 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(readmeAwarenessCriterion.criterion, /manifest|affectedBy/i);
   });
 
+  test('preserves the explicit README discovery block without status or cadence state', () => {
+    const continuousMaintenance = readRepositoryFile('moldea/references/continuous-maintenance.md');
+    const recommendedBlock = continuousMaintenance.match(
+      /```markdown\n(<!-- moldea:start -->[\s\S]*?<!-- moldea:end -->)\n```/u,
+    )?.[1];
+
+    assert.ok(recommendedBlock);
+    assert.equal(recommendedBlock.match(/<!-- moldea:start -->/gu)?.length, 1);
+    assert.equal(recommendedBlock.match(/<!-- moldea:end -->/gu)?.length, 1);
+    assert.match(
+      recommendedBlock,
+      /Canonical `moldea` project state lives under `\/moldea\/\*\*`/u,
+    );
+    assert.match(recommendedBlock, /use the `moldea` Agent Skill/u);
+    assert.match(recommendedBlock, /does not require editing `\/moldea\/\*\*`/u);
+    assert.doesNotMatch(recommendedBlock, /adopted|unadopted|health|compress|Initialize moldea/iu);
+  });
+
   test('judges canonical no-change maintenance from observable response and workspace evidence', () => {
     const noChangeCase = cases.semanticCases.find(({ id }) => id === 'adopted-relevance-no-change');
 
@@ -1036,10 +1098,7 @@ describe('source repository conformance', () => {
     );
 
     assert.ok(cleanEvaluationCase);
-    assert.equal(
-      cleanEvaluationCase.input.developerDirection,
-      'Evaluate the current moldea project.',
-    );
+    assert.equal(cleanEvaluationCase.input.developerDirection, 'Evaluate the current project.');
     assert.deepEqual(
       cleanEvaluationCase.input.repositoryEvidence
         .filter(({ source }) => source.kind === 'workspace-path')
@@ -1084,15 +1143,15 @@ describe('source repository conformance', () => {
     assert.match(scopeSubstitutionCriterion.criterion, /solely because it is present/i);
   });
 
-  test('keeps a brief Moldea evaluation request from silently becoming a skill audit', () => {
+  test('resolves a brief project evaluation without requiring a moldea invocation', () => {
     const briefEvaluationCase = cases.semanticCases.find(
-      ({ id }) => id === 'evaluate-brief-name-only-request',
+      ({ id }) => id === 'evaluate-brief-project-request',
     );
 
     assert.ok(briefEvaluationCase);
-    assert.equal(briefEvaluationCase.input.developerDirection, 'Evaluate moldea.');
+    assert.equal(briefEvaluationCase.input.developerDirection, 'Evaluate this project.');
     assert.deepEqual(getSemanticCriterionLabels(briefEvaluationCase.expected), [
-      'resolve-or-clarify-evaluation-subject',
+      'resolve-project-owned-evaluation-subject',
       'report-no-writes',
     ]);
     assert.deepEqual(getSemanticCriterionLabels(briefEvaluationCase.forbidden), [
@@ -1101,7 +1160,7 @@ describe('source repository conformance', () => {
     ]);
 
     const subjectCriterion = briefEvaluationCase.expected.find(
-      ({ label }) => label === 'resolve-or-clarify-evaluation-subject',
+      ({ label }) => label === 'resolve-project-owned-evaluation-subject',
     );
     const silentAuditCriterion = briefEvaluationCase.forbidden.find(
       ({ label }) => label === 'silently-audit-installed-operating-skill',
@@ -1109,10 +1168,8 @@ describe('source repository conformance', () => {
 
     assert.ok(subjectCriterion);
     assert.ok(silentAuditCriterion);
-    assert.match(subjectCriterion.criterion, /either identifies/i);
-    assert.match(subjectCriterion.criterion, /adopted project-owned Moldea system/i);
-    assert.match(subjectCriterion.criterion, /or asks one focused question/i);
-    assert.match(subjectCriterion.criterion, /before evaluating either/i);
+    assert.match(subjectCriterion.criterion, /adopted project-owned moldea system/i);
+    assert.match(subjectCriterion.criterion, /without requiring the developer to invoke moldea/i);
     assert.match(silentAuditCriterion.criterion, /installed `\.agents\/skills\/moldea`/i);
     assert.match(silentAuditCriterion.criterion, /without first establishing/i);
   });
@@ -1353,12 +1410,14 @@ describe('source repository conformance', () => {
     assert.ok(ambiguousHandoffCase);
     assert.deepEqual(getSemanticCriterionLabels(unadoptedHandoffCase.expected), [
       'recognize-unadopted-context-boundary',
+      'recommend-optional-initialization',
       'report-no-writes',
     ]);
     assert.deepEqual(getSemanticCriterionLabels(unadoptedHandoffCase.forbidden), [
       'initialize-from-knowledge-discovery',
       'persist-unadopted-context',
       'claim-knowledge-triggered-adoption',
+      'block-on-optional-initialization',
     ]);
     assert.deepEqual(getSemanticCriterionLabels(directHandoffCase.expected), [
       'maintain-durable-project-knowledge',
@@ -1409,17 +1468,107 @@ describe('source repository conformance', () => {
     ]);
   });
 
-  test('keeps semantic directions self-contained for the behavior under evaluation', () => {
+  test('covers binary adoption, incremental hygiene, and explicit context compression', () => {
+    const semanticCasesById = new Map(
+      cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
+    );
+    const unadoptedRelevanceCase = semanticCasesById.get('unadopted-relevance-no-initialization');
+    const insufficientInitializationCase = semanticCasesById.get('initialize-insufficient-context');
+    const partialInitializationCase = semanticCasesById.get('initialize-partial-context');
+    const sufficientInitializationCase = semanticCasesById.get('initialize-sufficient-context');
+    const maintenanceCase = semanticCasesById.get('maintain-context-without-duplication');
+    const compressionCase = semanticCasesById.get('compress-project-context');
+    const conflictingCompressionCase = semanticCasesById.get(
+      'compress-conflicting-project-context',
+    );
+
+    assert.ok(unadoptedRelevanceCase);
+    assert.ok(insufficientInitializationCase);
+    assert.ok(partialInitializationCase);
+    assert.ok(sufficientInitializationCase);
+    assert.ok(maintenanceCase);
+    assert.ok(compressionCase);
+    assert.ok(conflictingCompressionCase);
+    assert.deepEqual(getSemanticCriterionLabels(unadoptedRelevanceCase.expected), [
+      'complete-authorized-implementation-without-adoption',
+      'report-unadopted-project',
+      'recommend-optional-initialization',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(insufficientInitializationCase.expected), [
+      'report-unadopted-project',
+      'report-no-meaningful-project-context',
+      'identify-inspected-evidence',
+      'ask-focused-foundation-question',
+      'avoid-speculative-canonical-truth',
+      'do-not-claim-completion',
+    ]);
+    assert.match(
+      insufficientInitializationCase.expected.find(
+        ({ label }) => label === 'ask-focused-foundation-question',
+      )?.criterion ?? '',
+      /what the project does and who or what it serves/i,
+    );
+    assert.deepEqual(getSemanticCriterionLabels(partialInitializationCase.expected), [
+      'report-unadopted-partial-artifacts',
+      'summarize-supported-foundation',
+      'identify-material-boundary-gap',
+      'ask-focused-clarification-before-finalizing',
+      'do-not-claim-completion',
+    ]);
+    assert.match(partialInitializationCase.expected[0].criterion, /`\/moldea\/project\.md`/u);
+    assert.match(
+      partialInitializationCase.expected[0].criterion,
+      /missing `\/moldea\/moldea\.yaml`/u,
+    );
+    assert.equal(sufficientInitializationCase.expected[0].label, 'report-adopted-project');
+    assert.deepEqual(getSemanticCriterionLabels(maintenanceCase.expected), [
+      'update-established-context-owner',
+      'avoid-duplicate-current-truth',
+      'preserve-unrelated-context',
+      'verify-maintained-context',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(compressionCase.expected), [
+      'consolidate-proven-context-duplication',
+      'preserve-unique-context-and-requirements',
+      'synchronize-compression-consumers',
+      'verify-compressed-project-context',
+      'preserve-implementation-during-compression',
+    ]);
+    assert.deepEqual(getSemanticCriterionLabels(conflictingCompressionCase.expected), [
+      'identify-compression-conflict',
+      'ask-focused-compression-question',
+      'preserve-conflicting-context-before-answer',
+    ]);
+
+    for (const conformanceCase of [maintenanceCase, compressionCase, conflictingCompressionCase]) {
+      assert.doesNotMatch(conformanceCase.input.developerDirection, /moldea/i);
+    }
+  });
+
+  test('keeps actor directions natural and names moldea only when the request must', () => {
     const semanticCasesById = new Map(
       cases.semanticCases.map((conformanceCase) => [conformanceCase.id, conformanceCase]),
     );
     const getDirection = (caseId) => semanticCasesById.get(caseId)?.input.developerDirection ?? '';
+    const directionCaseIdsNamingMoldea = cases.semanticCases
+      .filter(({ input }) => /moldea/i.test(input.developerDirection))
+      .map(({ id }) => id)
+      .sort();
 
+    assert.deepEqual(directionCaseIdsNamingMoldea, [
+      'initialize-insufficient-context',
+      'initialize-partial-context',
+      'initialize-sufficient-context',
+      'pnpm-hook-install-blocked',
+      'pnpm-pnp-local-cli-provider',
+      'yarn-conflicting-cli-provider',
+      'yarn-plugin-install-blocked',
+    ]);
     for (const caseId of [
       'dedicated-repository-runtime-selection',
       'dedicated-repository-single-side-change',
     ]) {
-      assert.match(getDirection(caseId), /moldea/i);
+      assert.doesNotMatch(getDirection(caseId), /moldea/i);
       assert.match(getDirection(caseId), /related application at \/related-application/i);
       assert.match(getDirection(caseId), /read-only/i);
     }
@@ -1428,11 +1577,18 @@ describe('source repository conformance', () => {
       getDirection('skill-create-progressive-disclosure'),
       /Agent Skill at skills\/release-review/i,
     );
+    assert.doesNotMatch(getDirection('skill-create-progressive-disclosure'), /\/moldea\/skills/i);
     assert.match(getDirection('pnpm-pnp-local-cli-provider'), /repository-local moldea CLI/i);
-    assert.match(
-      getDirection('unavailable-runtime-selection'),
-      /moldea agent runtime relationship/i,
-    );
+    assert.doesNotMatch(getDirection('unavailable-runtime-selection'), /moldea/i);
+    for (const caseId of [
+      'initialize-insufficient-context',
+      'initialize-partial-context',
+      'initialize-sufficient-context',
+    ]) {
+      assert.equal(getDirection(caseId), 'Initialize moldea');
+    }
+    assert.match(getDirection('pnpm-hook-install-blocked'), /^Initialize moldea\./u);
+    assert.match(getDirection('yarn-plugin-install-blocked'), /^Initialize moldea\./u);
 
     const partialInitializationCase = semanticCasesById.get('initialize-partial-context');
     const insufficientInitializationCase = semanticCasesById.get('initialize-insufficient-context');
@@ -2044,11 +2200,11 @@ describe('source repository conformance', () => {
 
     assertMatchesEvery(readme, [
       /Semantic evaluation is intentionally lengthy/,
-      /54 cases/,
-      /108 model requests/,
+      /57 cases/,
+      /114 model requests/,
       /bounded confirmation sequence/,
       /up to four requests/,
-      /theoretical full-run maximum is 324 requests/,
+      /theoretical full-run maximum is 342 requests/,
       /Operational retries are additional/,
       /local CLI composition/,
       /public technical and maturity publication/,

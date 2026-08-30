@@ -1,0 +1,24 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 11ae249..ae6872c 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -10,19 +10,6 @@ agents:
+       instructionLoader:
+         path: /src/instructions.ts
+         symbol: loadSupportInstruction
+-    tools:
+-      find-order:
+-        name: find_order
+-        description: Finds one order by identifier.
+-        implementation:
+-          path: /src/implementations.ts
+-          symbol: findOrder
+-        registration:
+-          path: /src/tools.ts
+-          symbol: findOrderTool
+-        inputSchema:
+-          path: /src/contracts.ts
+-          symbol: FindOrderInputSchema
+     affectedBy:
+       - /src/**
+   summary:

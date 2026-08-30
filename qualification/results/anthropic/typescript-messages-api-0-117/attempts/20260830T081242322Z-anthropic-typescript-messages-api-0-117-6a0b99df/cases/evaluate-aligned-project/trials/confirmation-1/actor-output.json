@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the adopted project’s agent declarations with the direct Anthropic Messages API wrappers. Final `moldea inspect --json` returned schema 2, CLI 5.0.0, status `valid`, and no diagnostics. TypeScript validation also passed.",
+  "changedFiles": [
+    "moldea/agents/summary/description.md",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Both agents call `client.messages.create` and load their canonical instructions into the request `system` property through the declared loaders.",
+    "Corrected the summary description from streaming to generation because the wrapper does not request streaming.",
+    "The support wrapper registers the `find_order` client tool, whose schema requires exactly one string `orderId` and rejects additional properties.",
+    "Removed the manifest tool declaration because `findOrder` is not connected to the wrapper; retaining it as an implementation binding would invent a tool-implementation relationship.",
+    "Updated support guidance to describe requesting the client tool without claiming that the wrapper executes it or completes a tool-result continuation.",
+    "No output-schema, routing, handoff, subagent, agent input-schema, or unsupported tool-implementation relationships were inferred.",
+    "The final Git diff contains only the four intentional canonical agent changes; the worktree was initially clean."
+  ],
+  "unresolved": []
+}

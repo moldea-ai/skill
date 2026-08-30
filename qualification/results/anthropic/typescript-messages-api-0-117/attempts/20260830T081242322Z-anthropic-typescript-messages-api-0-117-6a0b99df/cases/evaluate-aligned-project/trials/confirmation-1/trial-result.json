@@ -1,0 +1,60 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "passed": false,
+  "durationMs": 223534,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "skipped",
+  "judgeOutputPath": null,
+  "judgeSkippedPath": "cases/evaluate-aligned-project/trials/confirmation-1/judge-skipped.json",
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 885393,
+    "cachedInputTokens": 822016,
+    "outputTokens": 7165
+  },
+  "judgeUsage": null,
+  "actorEvidenceCreatedAt": "2026-08-30T08:20:12.662Z",
+  "judgeEvidenceCreatedAt": null,
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-patterns",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "respects-static-boundary",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "fail",
+      "evidence": "Runner checks failed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": [
+    "Required evidence kind was not observed: schema.",
+    "Required evidence kind was not observed: tool-registration.",
+    "Expected an unchanged project, but changed: moldea/agents/summary/description.md, moldea/agents/support/description.md, moldea/agents/support/instruction.md, moldea/moldea.yaml.",
+    "Changes escaped the declared allowlist: moldea/agents/summary/description.md, moldea/agents/support/description.md, moldea/agents/support/instruction.md, moldea/moldea.yaml.",
+    "Required preserved path changed: moldea/moldea.yaml.",
+    "Required preserved path changed: moldea/agents/support/instruction.md.",
+    "Requirement validates-without-churn failed: Runner checks failed: deterministic-after, workspace-assertions."
+  ]
+}

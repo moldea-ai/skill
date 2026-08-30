@@ -1,0 +1,131 @@
+{
+  "caseId": "reconcile-drift-and-boundaries",
+  "title": "Reconcile drift and boundaries",
+  "status": "failed",
+  "confirmationStatus": "rejected",
+  "durationMs": 629079,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": false,
+      "durationMs": 297671,
+      "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 953472,
+        "cachedInputTokens": 883712,
+        "outputTokens": 4751
+      },
+      "judgeUsage": {
+        "inputTokens": 452142,
+        "cachedInputTokens": 408832,
+        "outputTokens": 4235
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T17:39:29.562Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T17:41:44.300Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "repairs-direct-bindings",
+          "evaluator": "judge",
+          "verdict": "fail",
+          "evidence": "Current workspace moldea/moldea.yaml binds supportAssistant, loadSupportInstruction, and SupportOutputSchema, but has no inputSchema binding to SupportInputSchema. src/support-assistant.ts likewise exports only SupportOutputSchema, loadSupportInstruction, and supportAssistant. The workspace patch changed only moldea/moldea.yaml, while deterministic validation/typechecking passed; those checks did not establish the missing required binding."
+        },
+        {
+          "id": "records-dynamic-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml records support.unresolved.dynamic-tool-registry-relationship as an agent-level warning, identifies the unknown relationship between assembleTools and supportAssistant, gives a concrete resolution through inspectable wiring or an integration test, and relates /src/dynamic-tools.ts symbol assembleTools. The manifest contains no invented tool or capability binding. Deterministic inspection/validation passed, and the workspace patch changed only the manifest."
+        },
+        {
+          "id": "preserves-source",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": [
+        "Requirement repairs-direct-bindings failed: Current workspace moldea/moldea.yaml binds supportAssistant, loadSupportInstruction, and SupportOutputSchema, but has no inputSchema binding to SupportInputSchema. src/support-assistant.ts likewise exports only SupportOutputSchema, loadSupportInstruction, and supportAssistant. The workspace patch changed only moldea/moldea.yaml, while deterministic validation/typechecking passed; those checks did not establish the missing required binding.",
+        "Add the required SupportInputSchema implementation/binding coherently, or resolve the task contradiction if that symbol is intentionally absent; the current repository cannot satisfy repairs-direct-bindings as declared."
+      ]
+    },
+    {
+      "trialId": "confirmation-1",
+      "kind": "confirmation",
+      "confirmationIndex": 1,
+      "passed": false,
+      "durationMs": 331408,
+      "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/deterministic-before.json",
+      "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/deterministic-after.json",
+      "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/workspace-assertions.json",
+      "patchPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1134867,
+        "cachedInputTokens": 1048320,
+        "outputTokens": 4595
+      },
+      "judgeUsage": {
+        "inputTokens": 591051,
+        "cachedInputTokens": 545024,
+        "outputTokens": 5630
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T17:44:35.268Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T17:47:15.709Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "repairs-direct-bindings",
+          "evaluator": "judge",
+          "verdict": "fail",
+          "evidence": "Current workspace: src/support-assistant.ts exports supportAssistant, loadSupportInstruction, and SupportOutputSchema, but contains no SupportInputSchema. moldea/moldea.yaml binds only runtimeAgent, instructionLoader, and outputSchema; it has no SupportInputSchema reference or input-schema binding. The deterministic summary is valid and typechecks, but confirms only structural validity. Workspace assertions show only moldea/moldea.yaml changed and src/support-assistant.ts remained unchanged."
+        },
+        {
+          "id": "records-dynamic-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml records agents.support.unresolved.dynamic-tool-registry-relationship with effect warning, explains that static inspection cannot establish whether assembleTools supplies supportAssistant, gives a concrete closed-wiring/integration-test resolution, and relates /src/dynamic-tools.ts#assembleTools and /src/support-assistant.ts#supportAssistant. No tool binding was invented. Runner-owned assertions show only the manifest changed, while implementation files remained unchanged; deterministic inspection and validation passed."
+        },
+        {
+          "id": "preserves-source",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": [
+        "Requirement repairs-direct-bindings failed: Current workspace: src/support-assistant.ts exports supportAssistant, loadSupportInstruction, and SupportOutputSchema, but contains no SupportInputSchema. moldea/moldea.yaml binds only runtimeAgent, instructionLoader, and outputSchema; it has no SupportInputSchema reference or input-schema binding. The deterministic summary is valid and typechecks, but confirms only structural validity. Workspace assertions show only moldea/moldea.yaml changed and src/support-assistant.ts remained unchanged.",
+        "Add or restore the required existing SupportInputSchema relationship in the canonical support-agent bindings, ensuring the symbol actually exists at the declared implementation path, then rerun validation."
+      ]
+    }
+  ],
+  "failures": [
+    "Requirement repairs-direct-bindings failed: Current workspace: src/support-assistant.ts exports supportAssistant, loadSupportInstruction, and SupportOutputSchema, but contains no SupportInputSchema. moldea/moldea.yaml binds only runtimeAgent, instructionLoader, and outputSchema; it has no SupportInputSchema reference or input-schema binding. The deterministic summary is valid and typechecks, but confirms only structural validity. Workspace assertions show only moldea/moldea.yaml changed and src/support-assistant.ts remained unchanged.",
+    "Add or restore the required existing SupportInputSchema relationship in the canonical support-agent bindings, ensuring the symbol actually exists at the declared implementation path, then rerun validation."
+  ]
+}

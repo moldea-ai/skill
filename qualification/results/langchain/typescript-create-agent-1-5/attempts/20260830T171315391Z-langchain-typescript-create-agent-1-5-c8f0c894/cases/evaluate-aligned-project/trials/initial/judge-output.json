@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The actor report accurately describes the repository’s direct LangChain createAgent wiring and stays within the required static boundary. Current file hashes match the before/after workspace assertions, while deterministic evidence reports valid inspection, passing typecheck, no failures, and an unchanged repository.",
+  "requirements": [
+    {
+      "id": "explains-direct-patterns",
+      "verdict": "pass",
+      "evidence": "In src/agents.ts, supportAgent directly awaits loadSupportInstruction() for systemPrompt and binds SupportOutputSchema as responseFormat; summaryAgent directly awaits loadSummaryInstruction() and binds SummaryOutputSchema through toolStrategy. src/instructions.ts loads the corresponding canonical support and summary instruction.md files. This agrees with the actor explanation and deterministic valid inspection."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml declares both output-schema bindings and the support find-order relationship. The implementation closes that chain: supportAgent registers findOrderTool; findOrderTool wraps findOrder with runtime name find_order, the declared description, and FindOrderInputSchema. summaryAgent has structured output but no tool registration. The actor reports these relationships accurately, and deterministic validation reports zero failures."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "The actor limits its conclusions to directly observable createAgent definitions, instruction loaders, schemas, and the closed support tool chain, explicitly stating that it inferred no provider, model, routing, handoff, or subagent relationships. Current workspace evidence and deterministic validation introduce no conflicting claim."
+    }
+  ],
+  "failures": []
+}

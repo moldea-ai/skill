@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, deterministic post-actor results, and workspace patch agree. Billing guidance is canonical, registered, assigned to support, bound to the exact classifier, and present in support instructions. The LangChain agent wiring is unchanged and typechecks successfully.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` defines refund/invoice classification and limitations. `moldea/moldea.yaml` globally registers it, binds it to `/src/billing.ts` symbol `classifyBillingQuestion`, and assigns it to `agents.support.context`. The support instruction applies the same guidance. Workspace assertions identify only the three expected moldea paths as changed, and deterministic inspection/validation passed."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` still directly calls `createAgent`, loads the canonical instruction through `loadSupportInstruction`, and sets `responseFormat: providerStrategy(SupportOutputSchema)`. Its before/after SHA-256 is identical in workspace assertions, and deterministic typechecking passed."
+    }
+  ],
+  "failures": []
+}

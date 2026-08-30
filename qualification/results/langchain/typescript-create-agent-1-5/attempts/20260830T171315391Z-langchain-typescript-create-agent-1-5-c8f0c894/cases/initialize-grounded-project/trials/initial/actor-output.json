@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized moldea from repository evidence only. The README identifies an invoice-anomaly review service for an operator and excludes payment approval or invoice modification; the source confirms totals are compared, their difference is returned, and mismatches require operator review. Canonical state and the standard README awareness block were added without creating agents, runtime guidance, decisions, or unresolved requirements. Moldea inspect and validate both returned valid schema-2 envelopes from CLI 5.0.0 with no diagnostics.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "The project is now adopted with the complete canonical foundation and one correctly ordered README awareness block.",
+    "The original README content was preserved; the hardened Git diff showed only the appended awareness block.",
+    "Initial hardened Git status was clean; final status contained only README.md and the new moldea directory.",
+    "Canonical state: changed to version 1 with evidence-backed purpose, current behavior, and boundaries.",
+    "Next actions: review the foundation if desired, or continue ordinary development."
+  ],
+  "unresolved": []
+}

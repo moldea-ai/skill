@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor accurately identified the registered `support` agent, its custom runtime guidance, and its explicit implementation binding. Repository contents, deterministic validation, and an empty Git diff agree.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` registers `support` with runtime `custom`, guidance `/moldea/runtimes/custom.md`, and runtimeAgent binding `/src/support-agent.ts` symbol `supportAgent`. The guidance names the exported record and preserves its identifier/channel; `src/support-agent.ts` exports `supportAgent` with id `support` and channel `email`, matching the agent description and instruction. The actor reported these relationships. Deterministic inspection and typechecking passed, workspace hashes were unchanged, hardened Git status was clean, and the targeted Git diff was empty."
+    }
+  ],
+  "failures": []
+}

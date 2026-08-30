@@ -1,0 +1,1360 @@
+{
+  "activeTrial": null,
+  "artifactDigest": "af2c141b221b4bf5e7ef1bcdfd18d502e349982b8004d879223d83de7817f6f6",
+  "caseSuiteDigest": "b0088f0e0e428d304d1df2e6e1eab63c92611681fd26f10c7a9667d27a789ab8",
+  "cli": {
+    "integrity": "sha512-6aIzkwEPDtfgdM3mtcI4fzZ8VCmjmSEhLr0oEnrXZuSSubMa+KR8XFL7l3rw43NhfNqwRgebasiDV9rWu/BdXg==",
+    "jsonSchemaVersion": 2,
+    "name": "@moldea.ai/cli",
+    "packageLockSha256": "28c8db4f55580babdae926d70b407f2aaef7dadcce93c4878089eceaf0de7a24",
+    "version": "5.0.0"
+  },
+  "confirmations": [
+    {
+      "actorHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "actorCommandPolicyEvidence": {
+        "completedCommandCount": 4,
+        "indeterminateCommandCount": 0,
+        "packageManagerExecution": "not-observed",
+        "packageManagerInvocationCount": 0
+      },
+      "actorResponse": "Understood:\n\n- Customer Operations owns the escalation policy.\n- Legal approves retention exceptions.\n- This week, the team is auditing the oldest cases.\n\nThe project is unadopted: both canonical moldea files and the README awareness block are absent. No repository files changed, so this context remains unpersisted.\n\n`moldea` is not initialized in this project. Initializing it gives coding agents durable, Git-owned context about the project’s purpose, boundaries, and agent behavior. This did not block the current request. When useful, say `Initialize moldea`.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 14125,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 26138,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 20,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 24,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "readOnlyMountControlEvidence": [],
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "f47605a1f52193a4d85d13d0101076054cb96c9c7cb67333a1e396ea6b457166",
+          "head": {
+            "commit": "eae93df5a1b5c3c899fc43ed4ad5c35e15a5d2e0",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "eae93df5a1b5c3c899fc43ed4ad5c35e15a5d2e0"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "f47605a1f52193a4d85d13d0101076054cb96c9c7cb67333a1e396ea6b457166",
+          "head": {
+            "commit": "eae93df5a1b5c3c899fc43ed4ad5c35e15a5d2e0",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "eae93df5a1b5c3c899fc43ed4ad5c35e15a5d2e0"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The repository contains application source but no adoption direction.",
+          "observation": {
+            "content": "export const request = async (url) => fetch(url);\n",
+            "omission": null,
+            "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+            "mode": 33204,
+            "path": "src/http-client.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/http-client.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical moldea state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        },
+        {
+          "claim": "The README has no adoption marker.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer supplies durable responsibilities and a transient activity through natural prose.",
+          "observation": {
+            "content": "Customer Operations owns the escalation policy. Legal approves retention exceptions. This week the team is auditing the oldest cases.",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseId": "unadopted-direct-context-handoff",
+      "forbidden": [],
+      "id": "unadopted-direct-context-handoff",
+      "judgeHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "observed": [
+        "recognize-unadopted-context-boundary",
+        "recommend-optional-initialization",
+        "report-no-writes"
+      ],
+      "passed": true,
+      "rationale": "The response identifies the project as unadopted based on absent canonical moldea files and README awareness, says the supplied context remained unpersisted, offers non-blocking optional initialization with the exact `Initialize moldea` phrase and its durable Git-owned context benefit, and explicitly reports no file changes. The independently supplied workspace delta is empty, so no adoption surface or handed-off knowledge was persisted.",
+      "caseDefinitionDigest": "5deb335b1ab510cb2a1d55d0e00707a2f2c41c236a5a44ef97aac4c43fb8a50f",
+      "evaluatedAt": "2026-08-30T02:03:10.482Z",
+      "operationalRetries": {
+        "actorFailureCount": 0,
+        "judgeFailureCount": 0,
+        "lastFailure": null
+      },
+      "confirmationIndex": 1
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "actorCommandPolicyEvidence": {
+        "completedCommandCount": 4,
+        "indeterminateCommandCount": 0,
+        "packageManagerExecution": "not-observed",
+        "packageManagerInvocationCount": 0
+      },
+      "actorResponse": "Understood:\n\n- Customer Operations owns the escalation policy.\n- Legal approves retention exceptions.\n- This week’s operational focus is auditing the oldest cases.\n\nThe project is unadopted by `moldea`: `/moldea/moldea.yaml`, `/moldea/project.md`, and the README awareness block are absent. Canonical state remains unchanged, and no repository files were modified.\n\n`moldea` is not initialized in this project. Initializing it gives coding agents durable, Git-owned context about the project’s purpose, boundaries, and agent behavior. This did not block the current request. When useful, say `Initialize moldea`.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 14125,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 10234,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 127,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "readOnlyMountControlEvidence": [],
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "2e699cd2396c3af52d91d2bc3663aadc3e86870d58fd0150cc507cf3bf22dbfe",
+          "head": {
+            "commit": "eb81621fc903f4316965359b2176265a0b90e8b0",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "eb81621fc903f4316965359b2176265a0b90e8b0"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "2e699cd2396c3af52d91d2bc3663aadc3e86870d58fd0150cc507cf3bf22dbfe",
+          "head": {
+            "commit": "eb81621fc903f4316965359b2176265a0b90e8b0",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "eb81621fc903f4316965359b2176265a0b90e8b0"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The repository contains application source but no adoption direction.",
+          "observation": {
+            "content": "export const request = async (url) => fetch(url);\n",
+            "omission": null,
+            "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+            "mode": 33204,
+            "path": "src/http-client.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/http-client.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical moldea state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        },
+        {
+          "claim": "The README has no adoption marker.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer supplies durable responsibilities and a transient activity through natural prose.",
+          "observation": {
+            "content": "Customer Operations owns the escalation policy. Legal approves retention exceptions. This week the team is auditing the oldest cases.",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseId": "unadopted-direct-context-handoff",
+      "forbidden": [],
+      "id": "unadopted-direct-context-handoff",
+      "judgeHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "observed": [
+        "recognize-unadopted-context-boundary",
+        "recommend-optional-initialization",
+        "report-no-writes"
+      ],
+      "passed": true,
+      "rationale": "The response identifies the project as unadopted based on absent canonical moldea files and README awareness, states canonical state remained unchanged, offers the optional `Initialize moldea` recommendation with its durable Git-owned context benefit without blocking, and explicitly reports no file modifications; the workspace delta is empty. No evidence shows initialization, persistence, a false adoption claim, or blocking.",
+      "caseDefinitionDigest": "5deb335b1ab510cb2a1d55d0e00707a2f2c41c236a5a44ef97aac4c43fb8a50f",
+      "evaluatedAt": "2026-08-30T02:03:53.948Z",
+      "operationalRetries": {
+        "actorFailureCount": 0,
+        "judgeFailureCount": 0,
+        "lastFailure": null
+      },
+      "confirmationIndex": 2
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "actorCommandPolicyEvidence": {
+        "completedCommandCount": 7,
+        "indeterminateCommandCount": 2,
+        "packageManagerExecution": "indeterminate",
+        "packageManagerInvocationCount": 0
+      },
+      "actorResponse": "Implemented exactly one retry for HTTP 5xx responses in [http-client.js](/mnt/src/http-client.js:1). Non-5xx responses are not retried, and a second 5xx is returned without another attempt.\n\nVerified 503→200, repeated 503, and 404 behavior.\n\nMoldea canonical state was unchanged because the project is uninitialized. `moldea` is not initialized in this project. Initializing it gives coding agents durable, Git-owned context about the project’s purpose, boundaries, and agent behavior. This did not block the current request. When useful, say `Initialize moldea`.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 14125,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 26138,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 10,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 165,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 165,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 9,
+            "outputEvidence": {
+              "byteCount": 53,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "failed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 24,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "readOnlyMountControlEvidence": [],
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "76999adaf4cb51e8ae441976db21cb0f1d00bd10251f9150133bde227226bcb8",
+          "head": {
+            "commit": "d0467b6f2374d424283e1b94d18f24761bde83df",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "d0467b6f2374d424283e1b94d18f24761bde83df"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "76999adaf4cb51e8ae441976db21cb0f1d00bd10251f9150133bde227226bcb8",
+          "head": {
+            "commit": "d0467b6f2374d424283e1b94d18f24761bde83df",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "d0467b6f2374d424283e1b94d18f24761bde83df"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The repository contains application source.",
+          "observation": {
+            "content": "export const request = async (url) => fetch(url);\n",
+            "omission": null,
+            "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+            "mode": 33204,
+            "path": "src/http-client.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/http-client.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical moldea state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        },
+        {
+          "claim": "The README has no adoption marker.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "export const request = async (url) => {\n  const response = await fetch(url);\n\n  if (response.status >= 500 && response.status < 600) {\n    return fetch(url);\n  }\n\n  return response;\n};\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "dc84c9a3b1c98ed1f6a348b417fce21855abc4b7de112f5112a766ce1350ca6c",
+              "type": "file"
+            },
+            "before": {
+              "content": "export const request = async (url) => fetch(url);\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+              "type": "file"
+            },
+            "path": "src/http-client.js"
+          }
+        ]
+      },
+      "caseId": "unadopted-relevance-no-initialization",
+      "forbidden": [],
+      "id": "unadopted-relevance-no-initialization",
+      "judgeHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "observed": [
+        "complete-authorized-implementation-without-adoption",
+        "report-unadopted-project",
+        "recommend-optional-initialization"
+      ],
+      "passed": true,
+      "rationale": "The workspace modifies only src/http-client.js and implements one retry after an initial HTTP 5xx; no moldea path was created. The response explicitly reports the project as uninitialized, says this did not block the request, and gives the concise optional `Initialize moldea` recommendation with its durable Git-owned context benefit. The claimed behavioral verification is not independently established because runner output dispositions were unrecognized, but no criterion requires verified test results.",
+      "caseDefinitionDigest": "7783edcab5eaa27e7b5914359c791dfc50fac8f4b7d9ece5f2e734988fd35fc9",
+      "evaluatedAt": "2026-08-30T02:07:00.155Z",
+      "operationalRetries": {
+        "actorFailureCount": 0,
+        "judgeFailureCount": 0,
+        "lastFailure": null
+      },
+      "confirmationIndex": 1
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "actorCommandPolicyEvidence": {
+        "completedCommandCount": 8,
+        "indeterminateCommandCount": 2,
+        "packageManagerExecution": "indeterminate",
+        "packageManagerInvocationCount": 0
+      },
+      "actorResponse": "Implemented exactly one retry for HTTP 500–599 responses in [http-client.js](/mnt/src/http-client.js:1).\n\nVerified:\n\n- First 5xx triggers one retry.\n- A second 5xx is returned without another retry.\n- 4xx and network errors are not retried.\n\nFocused retry checks passed.\n\nCanonical state: unchanged—Moldea is not initialized. This did not block the change. To initialize it later, say `Initialize moldea`.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 87,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 644,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 1233,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 14125,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 26138,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 127,
+            "outputEvidence": {
+              "byteCount": 95,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "failed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 9,
+            "outputEvidence": {
+              "byteCount": 53,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "failed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 28,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "readOnlyMountControlEvidence": [],
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "931d985f7dcfdc3ff7202a3112bca6b9528b32bd02956e31f65897fb7fbc2c0d",
+          "head": {
+            "commit": "5572f035efeb6f9ad9434c32d670e07a57013e93",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "5572f035efeb6f9ad9434c32d670e07a57013e93"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "931d985f7dcfdc3ff7202a3112bca6b9528b32bd02956e31f65897fb7fbc2c0d",
+          "head": {
+            "commit": "5572f035efeb6f9ad9434c32d670e07a57013e93",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "5572f035efeb6f9ad9434c32d670e07a57013e93"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The repository contains application source.",
+          "observation": {
+            "content": "export const request = async (url) => fetch(url);\n",
+            "omission": null,
+            "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+            "mode": 33204,
+            "path": "src/http-client.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/http-client.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical moldea state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        },
+        {
+          "claim": "The README has no adoption marker.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "export const request = async (url) => {\n  const response = await fetch(url);\n\n  if (response.status >= 500 && response.status < 600) {\n    return fetch(url);\n  }\n\n  return response;\n};\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "dc84c9a3b1c98ed1f6a348b417fce21855abc4b7de112f5112a766ce1350ca6c",
+              "type": "file"
+            },
+            "before": {
+              "content": "export const request = async (url) => fetch(url);\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+              "type": "file"
+            },
+            "path": "src/http-client.js"
+          }
+        ]
+      },
+      "caseId": "unadopted-relevance-no-initialization",
+      "forbidden": [],
+      "id": "unadopted-relevance-no-initialization",
+      "judgeHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "observed": [
+        "complete-authorized-implementation-without-adoption",
+        "report-unadopted-project"
+      ],
+      "passed": false,
+      "rationale": "The workspace implements one retry only for 5xx responses, changes no other files, and does not create moldea. The response explicitly reports Moldea as uninitialized and non-blocking. The initialization suggestion is optional and gives the required phrase, but it does not explain the benefit of durable Git-owned project context, so that expected label is not established.",
+      "caseDefinitionDigest": "7783edcab5eaa27e7b5914359c791dfc50fac8f4b7d9ece5f2e734988fd35fc9",
+      "evaluatedAt": "2026-08-30T02:08:24.104Z",
+      "operationalRetries": {
+        "actorFailureCount": 0,
+        "judgeFailureCount": 0,
+        "lastFailure": null
+      },
+      "confirmationIndex": 2
+    }
+  ],
+  "coverageDigest": "e8fdd57fdcd151205baa072948f92f98328dea0ec79a2f7a66e05180d8f5de84",
+  "evaluationProtocolVersion": 21,
+  "generatedAt": "2026-08-30T02:01:44.434Z",
+  "hostContract": {
+    "model": "gpt-5.6-sol",
+    "name": "codex",
+    "reasoningEffort": "medium"
+  },
+  "results": [
+    {
+      "actorHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "actorCommandPolicyEvidence": {
+        "completedCommandCount": 3,
+        "indeterminateCommandCount": 1,
+        "packageManagerExecution": "indeterminate",
+        "packageManagerInvocationCount": 0
+      },
+      "actorResponse": "Understood:\n\n- Customer Operations owns the escalation policy.\n- Legal approves retention exceptions.\n- This week’s focus is auditing the oldest cases.\n\nThe `/mnt` project is not adopted by `moldea`, so this context remains unpersisted and no repository files changed.\n\n`moldea` is not initialized in this project. Initializing it gives coding agents durable, Git-owned context about the project’s purpose, boundaries, and agent behavior. This did not block the current request. When useful, say `Initialize moldea`.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 14125,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 10234,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 83,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "readOnlyMountControlEvidence": [],
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "d46f7c60fcedf39b746ab419a7693b6f72006355eee9bd05852de9b81c2334e1",
+          "head": {
+            "commit": "f4b2b84a81c1d088eb854e6156055423044d3752",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "f4b2b84a81c1d088eb854e6156055423044d3752"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "d46f7c60fcedf39b746ab419a7693b6f72006355eee9bd05852de9b81c2334e1",
+          "head": {
+            "commit": "f4b2b84a81c1d088eb854e6156055423044d3752",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "f4b2b84a81c1d088eb854e6156055423044d3752"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The repository contains application source but no adoption direction.",
+          "observation": {
+            "content": "export const request = async (url) => fetch(url);\n",
+            "omission": null,
+            "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+            "mode": 33204,
+            "path": "src/http-client.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/http-client.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical moldea state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        },
+        {
+          "claim": "The README has no adoption marker.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "The developer supplies durable responsibilities and a transient activity through natural prose.",
+          "observation": {
+            "content": "Customer Operations owns the escalation policy. Legal approves retention exceptions. This week the team is auditing the oldest cases.",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseId": "unadopted-direct-context-handoff",
+      "forbidden": [],
+      "id": "unadopted-direct-context-handoff",
+      "judgeHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "observed": [
+        "recommend-optional-initialization",
+        "report-no-writes"
+      ],
+      "passed": false,
+      "rationale": "The response gives a concise, non-blocking initialization recommendation, explains the durable Git-owned context benefit, and says `Initialize moldea`. It explicitly reports no repository files changed, corroborated by the empty workspace delta. Although it calls the project unadopted and context unpersisted, it does not explain that direct probes found no complete canonical adoption contract, so that criterion is not fully demonstrated. No forbidden persistence, adoption, or blocking behavior is evidenced.",
+      "caseDefinitionDigest": "5deb335b1ab510cb2a1d55d0e00707a2f2c41c236a5a44ef97aac4c43fb8a50f",
+      "evaluatedAt": "2026-08-30T02:02:30.938Z",
+      "operationalRetries": {
+        "actorFailureCount": 0,
+        "judgeFailureCount": 0,
+        "lastFailure": null
+      }
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "actorCommandPolicyEvidence": {
+        "completedCommandCount": 11,
+        "indeterminateCommandCount": 2,
+        "packageManagerExecution": "indeterminate",
+        "packageManagerInvocationCount": 0
+      },
+      "actorResponse": "Implemented in [src/http-client.js](/mnt/src/http-client.js:1).\n\n- Retries once for any initial HTTP `500–599` response.\n- Never retries the retry response.\n- Non-5xx responses remain single-attempt.\n- Verified `404`, `503 → 200`, and `500 → 502` scenarios.\n\nCanonical state: unchanged because `moldea` is not initialized. This did not block the change. When useful, say `Initialize moldea`.",
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 14125,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 26138,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 10,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 709,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 253,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 34,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 9,
+            "outputEvidence": {
+              "byteCount": 53,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "failed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 0,
+              "disposition": "empty",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 393,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 132,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "readOnlyMountControlEvidence": [],
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "3764afb70f7ad28a80c8ae5f4eea1e0cc4abf091ba7301d9fac3035147e31770",
+          "head": {
+            "commit": "e805d0d5c0bc36e3df5f4d0bed149967656b23c3",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "e805d0d5c0bc36e3df5f4d0bed149967656b23c3"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "3764afb70f7ad28a80c8ae5f4eea1e0cc4abf091ba7301d9fac3035147e31770",
+          "head": {
+            "commit": "e805d0d5c0bc36e3df5f4d0bed149967656b23c3",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "b78af0ea3364b0febe86411e702a0b19895d1fae4de99d35b581b21903e0e5f3",
+          "installedSkillDigest": "74ef6ef5d1e12ddc31dbb6672d4ca444db9a4e9d7fc6c71cf5c44bef601ecc8c",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "e805d0d5c0bc36e3df5f4d0bed149967656b23c3"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The repository contains application source.",
+          "observation": {
+            "content": "export const request = async (url) => fetch(url);\n",
+            "omission": null,
+            "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+            "mode": 33204,
+            "path": "src/http-client.js",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "src/http-client.js",
+            "expectedType": "file"
+          }
+        },
+        {
+          "claim": "No canonical moldea state exists.",
+          "observation": {
+            "path": "moldea",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea",
+            "expectedType": "missing"
+          }
+        },
+        {
+          "claim": "The README has no adoption marker.",
+          "observation": {
+            "content": "# Evaluation repository\n",
+            "omission": null,
+            "sha256": "c9bbcc063853a4290850526f1672bc34ab89ac86e2347f1bdd564ad1709a71f6",
+            "mode": 33204,
+            "path": "README.md",
+            "type": "file"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "README.md",
+            "expectedType": "file"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": [
+          {
+            "after": {
+              "content": "export const request = async (url) => {\n  const response = await fetch(url);\n\n  if (response.status >= 500 && response.status <= 599) {\n    return fetch(url);\n  }\n\n  return response;\n};\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "85489f748fa19bbbe13ea9895e8deef9efc97d42e3b0dd1764098d5a6545b6b8",
+              "type": "file"
+            },
+            "before": {
+              "content": "export const request = async (url) => fetch(url);\n",
+              "mode": 33204,
+              "omission": null,
+              "sha256": "94a91e1a15fefef4835af2d8ed2db61856d0728c8d281fe765cef7ee11c5508a",
+              "type": "file"
+            },
+            "path": "src/http-client.js"
+          }
+        ]
+      },
+      "caseId": "unadopted-relevance-no-initialization",
+      "forbidden": [],
+      "id": "unadopted-relevance-no-initialization",
+      "judgeHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.151.0"
+      },
+      "observed": [
+        "complete-authorized-implementation-without-adoption",
+        "report-unadopted-project"
+      ],
+      "passed": false,
+      "rationale": "The workspace shows only the authorized HTTP client change, implementing one retry after an initial 5xx response, while moldea remained absent. The response explicitly reports moldea as uninitialized and non-blocking. It mentions `Initialize moldea` but does not explain the benefit of durable Git-owned project context, so the optional-initialization criterion is not fully demonstrated. No forbidden behavior is evidenced.",
+      "caseDefinitionDigest": "7783edcab5eaa27e7b5914359c791dfc50fac8f4b7d9ece5f2e734988fd35fc9",
+      "evaluatedAt": "2026-08-30T02:05:35.051Z",
+      "operationalRetries": {
+        "actorFailureCount": 0,
+        "judgeFailureCount": 0,
+        "lastFailure": null
+      }
+    }
+  ],
+  "schemaVersion": 6,
+  "updatedAt": "2026-08-30T02:08:24.104Z"
+}

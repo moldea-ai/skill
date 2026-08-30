@@ -180,7 +180,9 @@ export const resolveQualificationTarget = async (
   }
 
   const caseCatalog = await readYamlFile(QUALIFICATION_CASES_PATH, QualificationCaseCatalogSchema);
-  const catalogCaseIds = new Set(caseCatalog.cases.map(({ id }) => id));
+  const catalogCasesById = new Map(
+    caseCatalog.cases.map((catalogCase) => [catalogCase.id, catalogCase]),
+  );
   const missingCaseIds = caseCatalog.cases
     .filter(({ layer }) => layer === 'universal-baseline')
     .map(({ id }) => id)
@@ -193,7 +195,7 @@ export const resolveQualificationTarget = async (
   }
 
   for (const caseId of caseIds) {
-    if (!catalogCaseIds.has(caseId)) {
+    if (!catalogCasesById.has(caseId)) {
       throw new Error(`Qualification profile references uncataloged case ${caseId}.`);
     }
   }
@@ -208,6 +210,12 @@ export const resolveQualificationTarget = async (
 
       if (scenario.id !== profileCase.id) {
         throw new Error(`Scenario identity does not match profile case ${profileCase.id}.`);
+      }
+
+      const catalogCase = catalogCasesById.get(profileCase.id);
+
+      if (catalogCase === undefined || scenario.title !== catalogCase.title) {
+        throw new Error(`Scenario title does not match catalog case ${profileCase.id}.`);
       }
     }),
   );

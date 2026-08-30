@@ -1,0 +1,164 @@
+version: 2
+adapterId: openai
+implementationId: typescript-responses-api-7
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The exact published adapter and SDK composition exercises the compatible Core range through supported Responses API integrations.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: The boundary case records project-specific behavior that static inspection cannot establish while direct supported relationships remain canonical bindings.
+    coveredBy: [create-grounded-agent, preserve-openai-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes all universal journeys and two OpenAI-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-openai-tool-registration,
+        preserve-openai-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare the exact published npm SDK package and inspect project-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Supported Responses API sources are strict TypeScript ESM and typecheck with the exact project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: target-runtime-package
+    kind: compatibility
+    matrixPath: target.package.npm.openai.primary.>=7.4.0 <8.0.0
+    description: Every fixture pins and installs the verified OpenAI SDK before offline project preparation.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-openai-tool-registration,
+        preserve-openai-static-boundary,
+      ]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Direct Responses wrappers are bound explicitly, repaired after drift, and omitted when request indirection prevents proof of the runtime pattern.
+    coveredBy:
+      [evaluate-aligned-project, reconcile-drift-and-boundaries, preserve-openai-static-boundary]
+  - id: instruction-loader-binding
+    kind: binding-support
+    matrixPath: target.binding-support.instruction-loader
+    description: Direct instruction loaders remain visible through the Responses instructions property.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: tool-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-registration
+    description: Closed function-tool arrays are validated and repaired from a concrete name mismatch.
+    coveredBy: [evaluate-aligned-project, repair-openai-tool-registration]
+  - id: tool-input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-input-schema
+    description: Direct function-tool input-schema relationships remain visible through registered tools.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-openai-tool-registration]
+  - id: instruction-loader-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.instruction-loader
+    description: Aligned direct wrappers emit instruction-loader evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct wrappers emit TypeScript language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct wrappers emit supported OpenAI SDK evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-pattern-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-pattern
+    description: Direct Responses calls emit runtime-pattern evidence while indirect request construction deliberately does not.
+    coveredBy: [evaluate-aligned-project, preserve-openai-static-boundary]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Direct function-tool input-schema bindings emit normalized schema evidence.
+    coveredBy: [evaluate-aligned-project, repair-openai-tool-registration]
+  - id: tool-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.tool-registration
+    description: Correct closed function-tool arrays emit tool-registration evidence after name reconciliation.
+    coveredBy: [evaluate-aligned-project, repair-openai-tool-registration]
+  - id: direct-responses-runtime-agent
+    kind: pattern
+    matrixPath: target.pattern.direct-responses-runtime-agent
+    description: Directly exported wrappers with a module-local OpenAI client and direct Responses calls are recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, maintain-dirty-project]
+  - id: direct-instruction-loader
+    kind: pattern
+    matrixPath: target.pattern.direct-instruction-loader
+    description: Direct loader calls remain lexically visible through the Responses instructions property.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: static-function-tools
+    kind: pattern
+    matrixPath: target.pattern.static-function-tools
+    description: Supported function tools are registered through immutable closed arrays with exact declared names.
+    coveredBy: [evaluate-aligned-project, repair-openai-tool-registration]
+  - id: direct-tool-input-schema
+    kind: pattern
+    matrixPath: target.pattern.direct-tool-input-schema
+    description: Function-tool input schemas use direct source symbols through parameters.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-openai-tool-registration]
+  - id: dynamic-source-indirection
+    kind: pattern
+    matrixPath: target.pattern.dynamic-source-indirection
+    description: An indirect Responses request object produces no invented direct runtime-pattern relationship.
+    coveredBy: [preserve-openai-static-boundary]
+  - id: chat-completions
+    kind: pattern
+    matrixPath: target.pattern.chat-completions
+    description: The profile selects direct Responses integrations without treating other OpenAI APIs as invalid project code.
+    coveredBy: [preserve-openai-static-boundary]
+  - id: typescript-esm-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.96a2d2697190e938
+    description: Supported cases use TypeScript ESM and direct supported imports only.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: installed-version-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.c649164044d6227d
+    description: Qualification independently pins, verifies, and installs the SDK because adapter inspection reads manifests rather than lockfiles or node_modules.
+    coveredBy: [evaluate-aligned-project]
+  - id: selected-api-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.ed42a3931b067e42
+    description: The boundary case keeps unsupported API families and provider-hosted configuration outside selected-target evidence.
+    coveredBy: [preserve-openai-static-boundary]
+  - id: unsupported-relationship-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.9ef4424e1db15ef1
+    description: Canonical state does not infer unsupported agent schemas, tool execution, output schemas, skills, variables, or routing from Responses calls.
+    coveredBy: [evaluate-aligned-project, preserve-openai-static-boundary]

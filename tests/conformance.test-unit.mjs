@@ -468,8 +468,11 @@ describe('portable Agent Skill contract', () => {
       /Knowledge and relevance activation never establish adoption/i,
       /adopted only when direct probes establish the complete canonical adoption contract/i,
       /Partial or inconsistent artifacts do not create another status/i,
+      /name every present canonical artifact and missing contract element in the final response/i,
       /Without explicit adoption intent or existing adoption, do not initialize or persist/i,
-      /optional non-blocking initialization recommendation defined in `references\/continuous-maintenance\.md`/i,
+      /non-blocking initialization recommendation defined in `references\/continuous-maintenance\.md`/i,
+      /Initialization is optional; when this skill activates without adoption authority and establishes non-adoption, the complete recommendation is required/i,
+      /Use the reference's quoted wording verbatim so the benefit of durable Git-owned project context and exact `Initialize moldea` request are not omitted or shortened/i,
       /unambiguous current-knowledge handoff authorizes Maintain/i,
       /classify each claim as persist, clarify, or omit/i,
       /Plan, evaluate, inspect, check, review, explain, report, and validate are read-only/i,
@@ -497,6 +500,8 @@ describe('portable Agent Skill contract', () => {
       /Without explicit intent or existing adoption, do not initialize or persist/i,
       /This did not block the current request/i,
       /When useful, say `Initialize moldea`/i,
+      /Initialization is optional; when this skill activates without adoption authority and establishes non-adoption, giving the complete recommendation is required/i,
+      /Use the quoted wording verbatim rather than shortening or paraphrasing away its benefit of durable Git-owned project context or exact initialization request/i,
       /Partial or inconsistent artifacts do not create an .*adoption in progress.* status/i,
       /Omission from `rg`, Git inventory, indexed search, or another ignore-sensitive discovery does not prove non-adoption/i,
       /needs no persistence request, adoption confirmation, or storage-path question/i,
@@ -594,7 +599,7 @@ describe('portable Agent Skill contract', () => {
       /Partial:/,
       /Sufficient:/,
       /no meaningful context was established/i,
-      /ask one question about that boundary/i,
+      /In the final response, state the evidence-backed project purpose before naming the material gap and asking one question about it/i,
       /Judge evidence by quality, coverage, consistency, and authority rather than volume/i,
       /Stop before dependencies, canonical state, or the README block/i,
       /do not bundle purpose, users, goals, boundaries, authority, and workflow/i,
@@ -610,7 +615,7 @@ describe('portable Agent Skill contract', () => {
       /`moldea` keeps durable project context in the repository so coding agents can understand the project consistently over time/i,
       /What does the project do, and who or what does it serve/i,
       /Partial or inconsistent artifacts leave the project unadopted/i,
-      /identify the exact artifacts and missing contract elements/i,
+      /name every present canonical artifact and missing contract element in the final response/i,
     ]);
   });
 
@@ -1419,6 +1424,15 @@ describe('source repository conformance', () => {
       'claim-knowledge-triggered-adoption',
       'block-on-optional-initialization',
     ]);
+    assert.match(
+      unadoptedHandoffCase.expected[0].criterion,
+      /actor response reports the project as unadopted and the supplied knowledge as unpersisted/i,
+    );
+    assert.match(
+      unadoptedHandoffCase.expected[0].criterion,
+      /Evaluator-provided repository evidence independently establishes that the complete canonical adoption contract is absent/i,
+    );
+    assert.doesNotMatch(unadoptedHandoffCase.expected[0].criterion, /direct probes found/i);
     assert.deepEqual(getSemanticCriterionLabels(directHandoffCase.expected), [
       'maintain-durable-project-knowledge',
       'filter-transient-project-detail',
@@ -1534,6 +1548,15 @@ describe('source repository conformance', () => {
       'verify-compressed-project-context',
       'preserve-implementation-during-compression',
     ]);
+    const compressionConsumerCriterion = compressionCase.expected.find(
+      ({ label }) => label === 'synchronize-compression-consumers',
+    );
+    assert.ok(compressionConsumerCriterion);
+    assert.match(compressionConsumerCriterion.criterion, /remain coherent/i);
+    assert.match(
+      compressionConsumerCriterion.criterion,
+      /unchanged consumers do not require no-op edits/i,
+    );
     assert.deepEqual(getSemanticCriterionLabels(conflictingCompressionCase.expected), [
       'identify-compression-conflict',
       'ask-focused-compression-question',
@@ -1971,11 +1994,16 @@ describe('source repository conformance', () => {
       );
       assert.equal(skillMaintenanceResult.skillArtifactEvidence.length, 1);
       assert.equal(skillMaintenanceResult.skillArtifactEvidence[0].validation.valid, true);
+      const maintainedReleaseSkill = skillMaintenanceResult.skillArtifactEvidence[0].files.find(
+        ({ path }) => path === 'skills/release-review/SKILL.md',
+      ).content;
       const packageManagerReference = skillMaintenanceResult.skillArtifactEvidence[0].files.find(
         ({ path }) => path === 'skills/release-review/references/package-managers.md',
       ).content;
-      assert.match(packageManagerReference, /npm/i);
-      assert.match(packageManagerReference, /pnpm/i);
+      assert.match(maintainedReleaseSkill, /npm and pnpm/i);
+      assert.match(packageManagerReference, /release-policy\.md/i);
+      assert.match(packageManagerReference, /verify-release\.mjs/i);
+      assert.match(packageManagerReference, /each manager named by the policy/i);
 
       const hostMetadataResult = result.cases.find(
         ({ id }) => id === 'skill-maintain-host-invocation-policy',

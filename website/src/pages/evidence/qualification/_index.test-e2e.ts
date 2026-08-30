@@ -66,14 +66,35 @@ test('represents the current qualification evidence state', async ({ page }) => 
     toolLoopProfileLink.getByText('Attempts', { exact: true }).locator('..'),
   ).toContainText('2');
 
+  const openAiResponsesProfileLink = page.getByRole('link', {
+    name: /OpenAI Responses API qualification/,
+  });
+  await expect(openAiResponsesProfileLink.getByAltText('OpenAI company logo')).toBeVisible();
+
+  const openAiAgentsProfileLink = page.getByRole('link', {
+    name: /OpenAI Agents SDK qualification/,
+  });
+  await expect(openAiAgentsProfileLink.getByAltText('OpenAI company logo')).toBeVisible();
+
   const anthropicCompanyLogos = page.getByAltText('Anthropic company logo');
+  const openAiCompanyLogos = page.getByAltText('OpenAI company logo');
   const vercelCompanyLogos = page.getByAltText('Vercel company logo');
 
   await expect(anthropicCompanyLogos).toHaveCount(2);
+  await expect(openAiCompanyLogos).toHaveCount(2);
   await expect(vercelCompanyLogos).toHaveCount(2);
   await expect
     .poll(() =>
       vercelCompanyLogos.evaluateAll((images) =>
+        images.every(
+          (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+        ),
+      ),
+    )
+    .toBe(true);
+  await expect
+    .poll(() =>
+      openAiCompanyLogos.evaluateAll((images) =>
         images.every(
           (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
         ),
@@ -94,6 +115,9 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(page.locator('html')).toHaveClass(/dark/);
   expect(
     await vercelCompanyLogos.first().evaluate((element) => getComputedStyle(element).filter),
+  ).not.toBe('none');
+  expect(
+    await openAiCompanyLogos.first().evaluate((element) => getComputedStyle(element).filter),
   ).not.toBe('none');
   expect(
     await anthropicCompanyLogos.evaluateAll((images) =>
@@ -240,10 +264,18 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
     const toolLoopProfileRoute = toPublicPath(
       '/evidence/qualification/vercel-ai-sdk/typescript-tool-loop-agent-7/',
     );
+    const openAiResponsesProfileRoute = toPublicPath(
+      '/evidence/qualification/openai/typescript-responses-api-7/',
+    );
+    const openAiAgentsProfileRoute = toPublicPath(
+      '/evidence/qualification/openai-agents-sdk/typescript-agent-handoffs-0-16/',
+    );
     const routes = [
       toPublicPath('/evidence/qualification/'),
       profileRoute,
       anthropicProfileRoute,
+      openAiResponsesProfileRoute,
+      openAiAgentsProfileRoute,
       vercelProfileRoute,
       toolLoopProfileRoute,
     ];

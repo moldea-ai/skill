@@ -1,0 +1,32 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: openai-agents-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/agents.ts
+        symbol: supportAgent
+      instructionLoader:
+        path: /src/agents.ts
+        symbol: loadSupportInstruction
+    affectedBy:
+      - /src/agents.ts
+  dynamic-support:
+    runtime:
+      id: openai-agents-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/agents.ts
+        symbol: dynamicSupportAgent
+    affectedBy:
+      - /src/agents.ts
+    unresolved:
+      indirect-agent-configuration:
+        category: runtime-pattern
+        effect: warning
+        description: The dynamic-support Agent configuration is passed indirectly, so the adapter cannot prove an agent definition or its relationships.
+        resolution: Construct the Agent with a closed inline configuration or document the relationship through a supported adapter pattern.
+        related:
+          - path: /src/agents.ts
+            symbol: dynamicSupportAgent

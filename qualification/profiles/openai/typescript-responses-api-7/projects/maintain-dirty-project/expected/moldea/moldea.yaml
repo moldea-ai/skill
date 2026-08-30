@@ -1,0 +1,20 @@
+version: 1
+context:
+  /moldea/context/billing.md:
+    affectedBy:
+      - /src/billing.ts
+agents:
+  support:
+    runtime:
+      id: openai
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.ts
+        symbol: supportAgent
+      instructionLoader:
+        path: /src/support-agent.ts
+        symbol: loadSupportInstruction
+    context:
+      - /moldea/context/billing.md
+    affectedBy:
+      - /src/support-agent.ts

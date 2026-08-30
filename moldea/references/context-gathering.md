@@ -96,7 +96,7 @@ Classify the project foundation before changing dependency state. Missing or unv
 Project names, generic labels, placeholders, empty exports, and brief or generic package metadata may guide clarification but cannot establish a sufficient foundation alone:
 
 - **Insufficient:** meaningful purpose, users or systems served, principal goals, and relevant boundaries remain unknown. Report that no meaningful context was established and which high-information sources were inspected. Stop before dependencies, canonical state, or the README block, then explain the durable-context benefit and ask one question about the highest-value missing fact. Prefer: “`moldea` keeps durable project context in the repository so coding agents can understand the project consistently over time. The README and source do not establish what this project is for, so I haven’t initialized it yet. What does the project do, and who or what does it serve?” Adapt only the inspected sources and missing foundational fact.
-- **Partial:** some conclusions are supported, but a material gap or consequential alternative remains. Report the narrower conclusion and unestablished boundary. Stop before dependencies, canonical state, mirrors, or the README block; ask one question about that boundary.
+- **Partial:** some conclusions are supported, but a material gap or consequential alternative remains. In the final response, state the evidence-backed project purpose before naming the material gap and asking one question about it. Stop before dependencies, canonical state, mirrors, or the README block.
 - **Sufficient:** evidence supports a useful truthful foundation without material assumptions. Complete initialization without a ceremonial question and report understanding, the material sources supporting each foundation conclusion, resulting files, validation, and non-blocking limitations.
 
 Judge evidence by quality, coverage, consistency, and authority rather than volume. A concise authoritative source may be sufficient; extensive stale or contradictory documentation may not be.
@@ -110,7 +110,7 @@ Once sufficient, create only:
 
 Use `version: 1` and omit empty optional manifest mappings. Create focused context, decisions, runtime guidance, agents, and requirements only when actual understanding requires them. Never create ceremonial directories or checklist documents.
 
-Initialization does not create an agent by default. Partial or inconsistent artifacts leave the project unadopted; identify the exact artifacts and missing contract elements, preserve valid content, and do not initialize or repair over them until explicit authority and any consequential semantic ambiguity are resolved. A new initialize request in an adopted repository becomes foundation maintenance.
+Initialization does not create an agent by default. Partial or inconsistent artifacts leave the project unadopted; name every present canonical artifact and missing contract element in the final response, preserve valid content, and do not initialize or repair over them until explicit authority and any consequential semantic ambiguity are resolved. A new initialize request in an adopted repository becomes foundation maintenance.
 
 Never turn developer-answerable ambiguity into an unresolved requirement or claim initialization completed while awaiting context.
 

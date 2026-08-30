@@ -8,6 +8,8 @@ Skill loading is not adoption. For a handoff, inspect only enough to determine a
 
 > `moldea` is not initialized in this project. Initializing it gives coding agents durable, Git-owned context about the project’s purpose, boundaries, and agent behavior. This did not block the current request. When useful, say `Initialize moldea`.
 
+Initialization is optional; when this skill activates without adoption authority and establishes non-adoption, giving the complete recommendation is required. Use the quoted wording verbatim rather than shortening or paraphrasing away its benefit of durable Git-owned project context or exact initialization request.
+
 Omit the recommendation when the current request already authorizes adoption or this skill did not activate. Do not repeat it in the same workflow or interrupt the authorized result with an adoption question.
 
 Probe repository-root `/moldea/moldea.yaml`, `/moldea/project.md`, and the exact README markers directly. The complete valid canonical foundation plus its owned README awareness block establishes adoption. Current changes and prior developer direction help interpret intent but do not replace the complete contract. Omission from `rg`, Git inventory, indexed search, or another ignore-sensitive discovery does not prove non-adoption. Partial or inconsistent artifacts do not create an “adoption in progress” status: report the project as unadopted, name the exact artifacts or missing contract elements, preserve existing content, and distinguish incomplete initialization, decommissioning, and stale guidance before any explicitly authorized repair.

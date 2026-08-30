@@ -693,11 +693,11 @@
       "expected": [
         {
           "label": "recognize-unadopted-context-boundary",
-          "criterion": "The actor response reports the project as unadopted and explains that the supplied knowledge was not persisted because direct probes found no complete canonical adoption contract."
+          "criterion": "The actor response reports the project as unadopted and the supplied knowledge as unpersisted. Evaluator-provided repository evidence independently establishes that the complete canonical adoption contract is absent."
         },
         {
           "label": "recommend-optional-initialization",
-          "criterion": "After completing the non-blocked response, the actor gives one concise optional recommendation that explains the benefit of durable Git-owned project context and tells the developer they can say `Initialize moldea`, without asking an adoption question or making initialization mandatory."
+          "criterion": "After completing the non-blocked response, the actor gives one concise non-blocking recommendation that leaves initialization optional, explains the benefit of durable Git-owned project context, and tells the developer they can say `Initialize moldea`, without asking an adoption question."
         },
         {
           "label": "report-no-writes",
@@ -767,7 +767,7 @@
         },
         {
           "label": "recommend-optional-initialization",
-          "criterion": "After completing the requested implementation, the actor gives one concise optional recommendation that explains the benefit of durable Git-owned project context and tells the developer they can say `Initialize moldea`, without asking an adoption question or making initialization mandatory."
+          "criterion": "After completing the requested implementation, the actor gives one concise non-blocking recommendation that leaves initialization optional, explains the benefit of durable Git-owned project context, and tells the developer they can say `Initialize moldea`, without asking an adoption question."
         }
       ],
       "forbidden": [
@@ -1435,7 +1435,7 @@
         },
         {
           "label": "synchronize-compression-consumers",
-          "criterion": "The workspace changes update the manifest and context index so removed or moved paths leave no stale relationship or documentation reference."
+          "criterion": "The resulting manifest and context index remain coherent. Workspace changes update them when compression removes or moves a path or changes an ownership reference; unchanged consumers do not require no-op edits."
         },
         {
           "label": "verify-compressed-project-context",

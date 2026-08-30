@@ -2421,7 +2421,7 @@ const seedContextMaintenanceScenario = async (repositoryPath, caseId) => {
     await writeScenarioFile(
       repositoryPath,
       'moldea/moldea.yaml',
-      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n  /moldea/context/operations.md:\n    affectedBy:\n      - /src/operations/**\n  /moldea/context/escalations.md:\n    affectedBy:\n      - /src/operations/**\n\nunresolved:\n  after-hours-escalation:\n    category: behavior\n    effect: non-blocking\n    description: The current after-hours escalation owner is not established.\n    resolution: Establish the current after-hours escalation owner.\n    related:\n      - path: /moldea/context/escalations.md\n',
+      'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n  /moldea/context/operations.md:\n    affectedBy:\n      - /src/operations/**\n  /moldea/context/escalations.md:\n    affectedBy:\n      - /src/operations/**\n\nunresolved:\n  after-hours-escalation:\n    category: behavior\n    effect: warning\n    description: The current after-hours escalation owner is not established.\n    resolution: Establish the current after-hours escalation owner.\n    related:\n      - path: /moldea/context/escalations.md\n',
     );
     await writeScenarioFile(
       repositoryPath,

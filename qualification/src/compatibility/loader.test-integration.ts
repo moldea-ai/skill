@@ -15,6 +15,8 @@ test.each([
   ['claude-agent-sdk', 'typescript-query-subagents-0-3', 10],
   ['vercel-ai-sdk', 'typescript-generate-stream-text-7', 10],
   ['vercel-ai-sdk', 'typescript-tool-loop-agent-7', 10],
+  ['openai', 'typescript-responses-api-7', 10],
+  ['openai-agents-sdk', 'typescript-agent-handoffs-0-16', 10],
 ] as const)(
   'preflights every %s/%s scenario before execution',
   async (adapterId, implementationId, expectedCaseCount) => {
@@ -344,6 +346,88 @@ describe('Vercel AI SDK ToolLoopAgent qualification profile', () => {
       'resist-untrusted-repository-instructions',
       'repair-vercel-tool-registration',
       'preserve-vercel-static-boundary',
+    ]);
+    expect(coverage).toStrictEqual({
+      passed: true,
+      requiredClaims: coverage.declaredClaims,
+      declaredClaims: coverage.declaredClaims,
+      missingClaims: [],
+      unknownClaims: [],
+      uncoveredCaseIds: [],
+    });
+  });
+});
+
+describe('OpenAI Responses API qualification profile', () => {
+  test('pins the real SDK boundary and covers every matrix claim and profile case', async () => {
+    const target = await resolveQualificationTarget({
+      adapterId: 'openai',
+      implementationId: 'typescript-responses-api-7',
+    });
+    const coverage = await inspectQualificationCoverage(
+      target.profileDirectory,
+      target.profile,
+      target.adapter,
+      target.target,
+    );
+
+    expect(target.profile.runtimePackages).toStrictEqual([
+      { name: 'openai', version: '7.8.0' },
+      { name: '@types/node', version: '22.20.1' },
+    ]);
+    expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
+      'evaluate-aligned-project',
+      'initialize-grounded-project',
+      'create-grounded-agent',
+      'maintain-dirty-project',
+      'reconcile-drift-and-boundaries',
+      'retire-agent-coherently',
+      'stop-on-material-ambiguity',
+      'resist-untrusted-repository-instructions',
+      'repair-openai-tool-registration',
+      'preserve-openai-static-boundary',
+    ]);
+    expect(coverage).toStrictEqual({
+      passed: true,
+      requiredClaims: coverage.declaredClaims,
+      declaredClaims: coverage.declaredClaims,
+      missingClaims: [],
+      unknownClaims: [],
+      uncoveredCaseIds: [],
+    });
+  });
+});
+
+describe('OpenAI Agents SDK qualification profile', () => {
+  test('pins the real SDK boundary and covers every matrix claim and profile case', async () => {
+    const target = await resolveQualificationTarget({
+      adapterId: 'openai-agents-sdk',
+      implementationId: 'typescript-agent-handoffs-0-16',
+    });
+    const coverage = await inspectQualificationCoverage(
+      target.profileDirectory,
+      target.profile,
+      target.adapter,
+      target.target,
+    );
+
+    expect(target.profile.runtimePackages).toStrictEqual([
+      { name: '@openai/agents', version: '0.16.1' },
+      { name: '@openai/agents-realtime', version: '0.16.1' },
+      { name: '@types/node', version: '22.20.1' },
+      { name: 'zod', version: '4.3.6' },
+    ]);
+    expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
+      'evaluate-aligned-project',
+      'initialize-grounded-project',
+      'create-grounded-agent',
+      'maintain-dirty-project',
+      'reconcile-drift-and-boundaries',
+      'retire-agent-coherently',
+      'stop-on-material-ambiguity',
+      'resist-untrusted-repository-instructions',
+      'repair-openai-agents-sdk-tool-registration',
+      'preserve-openai-agents-sdk-static-boundary',
     ]);
     expect(coverage).toStrictEqual({
       passed: true,

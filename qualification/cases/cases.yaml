@@ -70,3 +70,23 @@ cases:
     layer: adapter-specific
     description: Represent unsupported Vercel SDK relationships as unresolved instead of claiming evidence that the adapter cannot prove.
     challenge: Tests conservative handling of target-specific static-analysis boundaries plus provider, model, routing, handoff, and subagent non-inference.
+  - id: repair-openai-tool-registration
+    title: Repair OpenAI tool registration
+    layer: adapter-specific
+    description: Reconcile a declared tool name with a closed OpenAI Responses function-tool array using exact adapter diagnostics and source evidence.
+    challenge: Requires correcting canonical identity without changing valid SDK code or weakening the input-schema binding.
+  - id: preserve-openai-static-boundary
+    title: Preserve the OpenAI static boundary
+    layer: adapter-specific
+    description: Represent indirect Responses requests and provider-hosted configuration as unresolved instead of claiming evidence that the adapter cannot prove.
+    challenge: Tests conservative handling of request indirection plus unsupported schema, execution, routing, and API-family relationships.
+  - id: repair-openai-agents-sdk-tool-registration
+    title: Repair OpenAI Agents SDK tool registration
+    layer: adapter-specific
+    description: Reconcile a declared tool name with a closed Agent function-tool array using exact adapter diagnostics and source evidence.
+    challenge: Requires correcting canonical identity without changing valid Agent, implementation, or schema wiring.
+  - id: preserve-openai-agents-sdk-static-boundary
+    title: Preserve the OpenAI Agents SDK static boundary
+    layer: adapter-specific
+    description: Represent indirect Agent configuration and unsupported SDK surfaces without claiming evidence that the adapter cannot prove.
+    challenge: Tests conservative handling of dynamic routing text, agents as tools, hosted tools, RealtimeAgent, and runtime-only behavior.

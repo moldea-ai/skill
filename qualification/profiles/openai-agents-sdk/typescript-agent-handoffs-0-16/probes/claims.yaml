@@ -1,0 +1,254 @@
+version: 2
+adapterId: openai-agents-sdk
+implementationId: typescript-agent-handoffs-0-16
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The exact published adapter and SDK composition exercises the compatible Core range through supported Agent integrations.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: Direct supported relationships need no redundant guide while the boundary case retains unresolved dynamic SDK behavior.
+    coveredBy: [create-grounded-agent, preserve-openai-agents-sdk-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes all universal journeys and two OpenAI Agents SDK-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-openai-agents-sdk-tool-registration,
+        preserve-openai-agents-sdk-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare the exact published npm SDK package and inspect project-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Supported Agent sources are strict TypeScript ESM and typecheck with the exact project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: target-runtime-package
+    kind: compatibility
+    matrixPath: target.package.npm.@openai/agents.primary.>=0.16.1 <0.17.0
+    description: Every fixture pins and installs the verified OpenAI Agents SDK before offline project preparation.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-openai-agents-sdk-tool-registration,
+        preserve-openai-agents-sdk-static-boundary,
+      ]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Direct Agent symbols are bound explicitly, repaired after drift, and left unresolved when indirect configuration prevents proof.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        create-grounded-agent,
+        reconcile-drift-and-boundaries,
+        preserve-openai-agents-sdk-static-boundary,
+      ]
+  - id: output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.output-schema
+    description: Agent output schemas remain bound through outputType.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: instruction-loader-binding
+    kind: binding-support
+    matrixPath: target.binding-support.instruction-loader
+    description: Direct instruction loaders remain visible through Agent instructions.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: tool-implementation-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-implementation
+    description: Repository-local function-tool implementations remain directly bound through execute.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-openai-agents-sdk-tool-registration]
+  - id: tool-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-registration
+    description: Closed Agent tool arrays are validated and repaired from a concrete function-tool name mismatch.
+    coveredBy: [evaluate-aligned-project, repair-openai-agents-sdk-tool-registration]
+  - id: tool-input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-input-schema
+    description: Function-tool input schemas remain directly bound through parameters.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-openai-agents-sdk-tool-registration]
+  - id: tool-output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-output-schema
+    description: Function-tool output schemas remain directly bound through outputSchema.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-openai-agents-sdk-tool-registration]
+  - id: agent-definition-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.agent-definition
+    description: Direct Agent constructors emit agent-definition evidence.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: handoff-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.handoff-registration
+    description: Direct and configured handoffs emit target-aware registration evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: instruction-loader-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.instruction-loader
+    description: Aligned direct Agents emit instruction-loader evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct Agents emit TypeScript language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct Agents emit supported SDK package evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Direct agent and function-tool schema bindings emit normalized schema evidence.
+    coveredBy: [evaluate-aligned-project, repair-openai-agents-sdk-tool-registration]
+  - id: tool-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.tool-registration
+    description: Correct closed tool arrays emit tool-registration evidence after name reconciliation.
+    coveredBy: [evaluate-aligned-project, repair-openai-agents-sdk-tool-registration]
+  - id: direct-agent-construction
+    kind: pattern
+    matrixPath: target.pattern.direct-agent-construction
+    description: Direct new Agent construction is recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, maintain-dirty-project]
+  - id: agent-create-construction
+    kind: pattern
+    matrixPath: target.pattern.agent-create-construction
+    description: Direct Agent.create construction is recognized without execution.
+    coveredBy: [evaluate-aligned-project]
+  - id: direct-instruction-loader
+    kind: pattern
+    matrixPath: target.pattern.direct-instruction-loader
+    description: Direct loader references remain lexically visible through Agent instructions.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-agent-output-schema
+    kind: pattern
+    matrixPath: target.pattern.direct-agent-output-schema
+    description: Direct agent output schemas remain visible through outputType.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: closed-function-tool
+    kind: pattern
+    matrixPath: target.pattern.closed-function-tool
+    description: Function tools use explicit names and direct implementation and schema bindings.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-openai-agents-sdk-tool-registration]
+  - id: closed-agent-tool-array
+    kind: pattern
+    matrixPath: target.pattern.closed-agent-tool-array
+    description: Closed Agent tool arrays register repository-local function tools.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-openai-agents-sdk-tool-registration]
+  - id: direct-agent-handoff
+    kind: pattern
+    matrixPath: target.pattern.direct-agent-handoff
+    description: A source Agent registers a directly referenced target Agent.
+    coveredBy: [evaluate-aligned-project]
+  - id: configured-handoff-helper
+    kind: pattern
+    matrixPath: target.pattern.configured-handoff-helper
+    description: A closed handoff helper registers a target with explicit static overrides.
+    coveredBy: [evaluate-aligned-project]
+  - id: effective-routing-description
+    kind: pattern
+    matrixPath: target.pattern.effective-routing-description
+    description: The target handoff description remains canonical for direct routing.
+    coveredBy: [evaluate-aligned-project]
+  - id: registration-description-override
+    kind: pattern
+    matrixPath: target.pattern.registration-description-override
+    description: The configured handoff override matches the target's effective routing description.
+    coveredBy: [evaluate-aligned-project]
+  - id: dynamic-agent-configuration
+    kind: pattern
+    matrixPath: target.pattern.dynamic-agent-configuration
+    description: An indirect Agent configuration remains explicitly unresolved.
+    coveredBy: [preserve-openai-agents-sdk-static-boundary]
+  - id: dynamic-routing-description
+    kind: pattern
+    matrixPath: target.pattern.dynamic-routing-description
+    description: A transformed handoff description does not become canonical routing evidence.
+    coveredBy: [preserve-openai-agents-sdk-static-boundary]
+  - id: agents-as-tools
+    kind: pattern
+    matrixPath: target.pattern.agents-as-tools
+    description: Agent-as-tool delegation remains outside handoff evidence.
+    coveredBy: [preserve-openai-agents-sdk-static-boundary]
+  - id: hosted-and-mcp-tools
+    kind: pattern
+    matrixPath: target.pattern.hosted-and-mcp-tools
+    description: Hosted web search remains outside repository-local function-tool evidence.
+    coveredBy: [preserve-openai-agents-sdk-static-boundary]
+  - id: realtime-and-sandbox-agents
+    kind: pattern
+    matrixPath: target.pattern.realtime-and-sandbox-agents
+    description: A RealtimeAgent remains outside the selected static Agent target.
+    coveredBy: [preserve-openai-agents-sdk-static-boundary]
+  - id: module-resolution-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.e355c1d4dacb5d48
+    description: Supported cases use direct root and relative imports without aliases or re-export graphs.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: routing-description-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.6e1fa2bbb24d9d53
+    description: The boundary case keeps transformed routing text unresolved.
+    coveredBy: [preserve-openai-agents-sdk-static-boundary]
+  - id: function-tool-name-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.8d9147d122a85fb7
+    description: Function tools use explicit normalized static names.
+    coveredBy: [repair-openai-agents-sdk-tool-registration]
+  - id: handoff-runtime-name-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.38fe3414cc22ac89
+    description: The aligned configured handoff uses an evidence-safe static override while direct handoffs retain a null runtime name.
+    coveredBy: [evaluate-aligned-project]
+  - id: schema-content-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.ece74d11d8785c51
+    description: Qualification establishes direct schema wiring without claiming schema-content validation.
+    coveredBy: [evaluate-aligned-project, repair-openai-agents-sdk-tool-registration]
+  - id: unobserved-runtime-fields-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.c6212ccdb1a7894b
+    description: Canonical state does not infer callbacks, filters, variables, guardrails, sessions, models, approvals, or provider behavior.
+    coveredBy: [preserve-openai-agents-sdk-static-boundary]
+  - id: unsupported-sdk-surfaces-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.1f366d2c1cd8cd86
+    description: The boundary case keeps agents-as-tools, hosted tools, RealtimeAgent, and dynamic graphs outside supported evidence.
+    coveredBy: [preserve-openai-agents-sdk-static-boundary]

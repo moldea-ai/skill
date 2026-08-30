@@ -1,0 +1,71 @@
+version: 2
+id: preserve-openai-agents-sdk-static-boundary
+title: Preserve the OpenAI Agents SDK static boundary
+purpose: Verify conservative treatment of indirect Agent configuration and unsupported SDK routing, tool, and Realtime surfaces.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [agent-definition, instruction-loader, language, runtime-package]
+    forbiddenEvidenceKinds: [handoff-registration, schema, tool-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [agent-definition, instruction-loader, language, runtime-package]
+    forbiddenEvidenceKinds: [handoff-registration, schema, tool-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: unchanged
+  mustPreservePaths:
+    [
+      moldea/moldea.yaml,
+      moldea/project.md,
+      moldea/agents/support/instruction.md,
+      moldea/agents/dynamic-support/instruction.md,
+      src/agents.ts,
+      package.json,
+    ]
+  mustChangePaths: []
+  mustExistPaths:
+    [
+      moldea/moldea.yaml,
+      moldea/project.md,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      moldea/agents/dynamic-support/description.md,
+      moldea/agents/dynamic-support/instruction.md,
+      src/agents.ts,
+      package.json,
+    ]
+  mustNotExistPaths: [moldea/runtimes]
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-direct-evidence
+    description: The actor grounds the support agent's direct Agent definition and instruction loader in deterministic adapter evidence.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-provider-tool-boundary
+    description: The actor treats hosted web search and agent-as-tool delegation as outside repository-local function-tool and handoff evidence instead of inventing canonical relationships.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-indirect-request-boundary
+    description: The actor explains that indirect dynamic-support configuration does not establish a direct Agent definition, that transformed routing text and RealtimeAgent remain unresolved, and retains the existing warning with a concrete resolution.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: validates-without-churn
+    description: Every deterministic layer accepts the project and the workspace remains unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

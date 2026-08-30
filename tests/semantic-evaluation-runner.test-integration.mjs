@@ -491,6 +491,7 @@ test('context-compression fixture exposes duplicate, unique, requirement, and co
     assert.match(operations, /Legal approves retention exceptions/u);
     assert.match(escalations, /after-hours escalation owner remains unresolved/u);
     assert.match(manifest, /after-hours-escalation:[\s\S]*\/moldea\/context\/escalations\.md/u);
+    assert.match(manifest, /after-hours-escalation:[\s\S]*effect: warning/u);
     assert.match(contextIndex, /operations\.md/u);
     assert.match(contextIndex, /escalations\.md/u);
   } finally {

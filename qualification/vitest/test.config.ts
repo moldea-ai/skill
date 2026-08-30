@@ -20,7 +20,12 @@ export const createTestConfig = (suite: ITestSuiteKind): ViteUserConfig =>
       include: [`src/**/*.test-${suite}.ts`],
       passWithNoTests: false,
       restoreMocks: true,
-      ...(suite === 'integration' ? { testTimeout: INTEGRATION_TEST_TIMEOUT_MS } : {}),
+      ...(suite === 'integration'
+        ? {
+            fileParallelism: false,
+            testTimeout: INTEGRATION_TEST_TIMEOUT_MS,
+          }
+        : {}),
       sequence: {
         shuffle: false,
       },

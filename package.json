@@ -37,7 +37,10 @@
     "website:dev": "npm --prefix website run dev"
   },
   "devDependencies": {
+    "@langchain/core": "1.2.9",
+    "@langchain/langgraph": "1.4.12",
     "@moldea.ai/cli": "5.0.0",
+    "langchain": "1.5.9",
     "semver": "7.8.5",
     "yaml": "2.9.0"
   }

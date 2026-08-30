@@ -1,0 +1,63 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: langchain
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.ts
+        symbol: supportAgent
+    affectedBy:
+      - /src/support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts
+      - /src/status-tools.ts
+      - /src/implementations.ts
+  step-support:
+    runtime:
+      id: langchain
+    bindings:
+      runtimeAgent:
+        path: /src/step-support-agent.ts
+        symbol: stepSupportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadStepSupportInstruction
+    affectedBy:
+      - /src/step-support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts
+      - /src/status-tools.ts
+  delegating-support:
+    runtime:
+      id: langchain
+    bindings:
+      runtimeAgent:
+        path: /src/delegating-agent.ts
+        symbol: delegatingSupportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadDelegatingSupportInstruction
+      outputSchema:
+        path: /src/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      delegate-support:
+        name: delegate_support
+        description: Delegates one focused support question to another agent.
+        implementation:
+          path: /src/delegation.ts
+          symbol: delegateSupport
+        registration:
+          path: /src/delegation-tool.ts
+          symbol: delegateSupportTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: DelegateSupportInputSchema
+    affectedBy:
+      - /src/delegating-agent.ts
+      - /src/delegation-tool.ts
+      - /src/delegation.ts
+      - /src/step-support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts

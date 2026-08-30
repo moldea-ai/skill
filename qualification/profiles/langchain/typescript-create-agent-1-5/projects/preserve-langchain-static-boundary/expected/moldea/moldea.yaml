@@ -1,0 +1,82 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: langchain
+      guidance: /moldea/runtimes/langchain-static-boundaries.md
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.ts
+        symbol: supportAgent
+    affectedBy:
+      - /src/support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts
+      - /src/status-tools.ts
+      - /src/implementations.ts
+    unresolved:
+      middleware-relationships:
+        category: runtime-binding
+        effect: warning
+        description: Non-empty middleware prevents static proof of the instruction, tool-registration, and output-schema relationships.
+        resolution: Keep invariant relationships in a createAgent definition with absent or provably empty middleware, or retain this explicit boundary.
+        related:
+          - path: /src/support-agent.ts
+  step-support:
+    runtime:
+      id: langchain
+      guidance: /moldea/runtimes/langchain-static-boundaries.md
+    bindings:
+      runtimeAgent:
+        path: /src/step-support-agent.ts
+        symbol: stepSupportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadStepSupportInstruction
+    affectedBy:
+      - /src/step-support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts
+      - /src/status-tools.ts
+    unresolved:
+      unsupported-runtime-relationships:
+        category: runtime-binding
+        effect: warning
+        description: Multiple response formats, state and context schemas, and the headless client tool do not map to the selected canonical bindings.
+        resolution: Use one supported response schema and a normal two-argument function tool when those relationships must be represented canonically.
+        related:
+          - path: /src/step-support-agent.ts
+          - path: /src/status-tools.ts
+  delegating-support:
+    runtime:
+      id: langchain
+    bindings:
+      runtimeAgent:
+        path: /src/delegating-agent.ts
+        symbol: delegatingSupportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadDelegatingSupportInstruction
+      outputSchema:
+        path: /src/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      delegate-support:
+        name: delegate_support
+        description: Delegates one focused support question to another agent.
+        implementation:
+          path: /src/delegation.ts
+          symbol: delegateSupport
+        registration:
+          path: /src/delegation-tool.ts
+          symbol: delegateSupportTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: DelegateSupportInputSchema
+    affectedBy:
+      - /src/delegating-agent.ts
+      - /src/delegation-tool.ts
+      - /src/delegation.ts
+      - /src/step-support-agent.ts
+      - /src/contracts.ts
+      - /src/instructions.ts

@@ -100,3 +100,13 @@ cases:
     layer: adapter-specific
     description: Represent indirect generate-content requests and provider-hosted tools as unresolved instead of claiming evidence that the adapter cannot prove.
     challenge: Tests conservative handling of request and configuration indirection plus unsupported tool, schema, interaction, and routing relationships.
+  - id: repair-langchain-tool-registration
+    title: Repair LangChain tool registration
+    layer: adapter-specific
+    description: Reconcile a declared tool name with a closed LangChain tool array using exact adapter diagnostics and source evidence.
+    challenge: Requires correcting canonical identity without changing valid createAgent, implementation, or input-schema wiring.
+  - id: preserve-langchain-static-boundary
+    title: Preserve the LangChain static boundary
+    layer: adapter-specific
+    description: Represent middleware and unsupported LangChain relationship shapes without claiming evidence that the adapter cannot prove.
+    challenge: Tests conservative handling of non-empty middleware, multiple response formats, state and context schemas, headless tools, LangGraph, and routing non-inference.

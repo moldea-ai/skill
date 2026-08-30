@@ -1,0 +1,25 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: langchain
+    bindings:
+      runtimeAgent:
+        path: /src/support-assistant.ts
+        symbol: supportAssistant
+      instructionLoader:
+        path: /src/support-assistant.ts
+        symbol: loadSupportInstruction
+      outputSchema:
+        path: /src/support-assistant.ts
+        symbol: SupportOutputSchema
+    affectedBy:
+      - /src/**
+    unresolved:
+      dynamic-tool-registration:
+        category: tool-registration
+        effect: warning
+        description: The final tool registry is assembled dynamically and cannot be proven from static repository evidence.
+        resolution: Replace dynamic assembly with an explicit immutable registration or document the runtime relationship through a supported adapter pattern.
+        related:
+          - path: /src/dynamic-tools.ts

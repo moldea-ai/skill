@@ -24,6 +24,7 @@ test.each([
   ['openai', 'typescript-responses-api-7', 10],
   ['openai-agents-sdk', 'typescript-agent-handoffs-0-16', 10],
   ['google-genai', 'typescript-models-generate-content-2', 10],
+  ['langchain', 'typescript-create-agent-1-5', 10],
 ] as const)(
   'preflights every %s/%s scenario with its intended adoption state',
   async (adapterId, implementationId, expectedCaseCount) => {

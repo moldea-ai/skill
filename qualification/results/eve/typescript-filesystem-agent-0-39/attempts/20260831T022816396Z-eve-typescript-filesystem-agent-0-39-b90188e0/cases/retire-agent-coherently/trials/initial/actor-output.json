@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the canonical `support` agent registration and deleted its canonical description and instruction assets. Obsolescence was established by the explicit retirement input, the pre-existing deletion of the sole Eve `defineAgent` root, retirement statements in README/project context/source state, and the initial Moldea diagnostic that `/agent/agent.ts` was missing. Final Moldea inspection and validation passed with no diagnostics; TypeScript checking also passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "Canonical state now contains `version: 1` with no agents, runtime relationship, instruction-loader binding, or output-schema binding.",
+    "Preserved README, project context, remaining source files, qualification inputs, and the unrelated pre-existing deletion of `agent/agent.ts`.",
+    "Final `moldea inspect --json` and `moldea validate --json` returned CLI 5.0.0/schema 2 `valid` results with no diagnostics.",
+    "`tsc --noEmit -p <workspace>/tsconfig.json` passed.",
+    "The final hardened Git diff was inspected. An additional `git diff --check` attempt was rejected by the evaluator’s command-shape policy; it was not treated as completed validation."
+  ],
+  "unresolved": [
+    "The repository does not establish whether the preserved support-specific loader, schema, and instruction source files have external or dynamic consumers. No runtime relationship was inferred; they were conservatively retained as requested."
+  ]
+}

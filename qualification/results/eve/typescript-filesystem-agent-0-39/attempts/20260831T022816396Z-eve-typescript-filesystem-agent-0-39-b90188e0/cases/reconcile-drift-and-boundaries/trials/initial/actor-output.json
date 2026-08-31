@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s Eve runtime-agent, instruction-loader, output-schema, and affected-path bindings with /agent/**. Added an agent-level warning for the dynamically registered tool boundary. Final Moldea inspection and validation were valid with no diagnostics; TypeScript checking also passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The Eve adapter detected the runtime agent at /agent/agent.ts, loadSupportInstruction at /agent/loaders.ts, and SupportOutputSchema at /agent/contracts.ts.",
+    "Preserved the pre-existing deletion of legacy/agent.ts and untracked agent/ implementation without modifying implementation code.",
+    "No runtime guide or fabricated tool registration was added."
+  ],
+  "unresolved": [
+    "Warning dynamic-tool-registration: static inspection cannot prove the final registration or runtime-facing name of the dynamic definition in /agent/tools/runtime.ts. Resolution requires an integration test that starts an Eve session, loads the default session.started definition, and asserts its final registered tool name."
+  ]
+}

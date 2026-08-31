@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted moldea project is valid and semantically aligned for the requested scope. Local `inspect --json` and `validate --json` returned schema 2, CLI 5.0.0, status `valid`, and no diagnostics. TypeScript checking passed. No repository files changed; the final Git diff and status were empty.",
+  "changedFiles": [],
+  "observations": [
+    "Eve inspection identifies `support` as the root filesystem agent and `summary` as a nested local subagent.",
+    "Exclusive instruction loaders match the filesystem definitions: `loadSupportInstruction` for `support` and `/agent/subagents/summary/instructions.md` for `summary`.",
+    "Output schemas resolve to `SupportOutputSchema` and `SummaryOutputSchema`; the order tool resolves its input and output schemas and bound `findOrder` implementation.",
+    "The recursive `/agent/tools/find_order.ts` registration was detected as a filesystem tool with runtime name `find_order`.",
+    "The TypeScript `/agent/skills/analyze.ts` registration was detected with runtime name `analyze` and matches its canonical description.",
+    "The local-subagent registration targets `summary`, uses its handoff description, and inspection reports the routing description as wired.",
+    "Canonical descriptions and instructions accurately describe the locally evidenced responsibilities without contradicting the Eve definitions.",
+    "No provider, model, remote-agent, extension, connection, or runtime-only relationship was inferred."
+  ],
+  "unresolved": []
+}

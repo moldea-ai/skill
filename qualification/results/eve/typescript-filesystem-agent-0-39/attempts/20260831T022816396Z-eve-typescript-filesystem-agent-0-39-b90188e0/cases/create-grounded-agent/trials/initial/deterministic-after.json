@@ -1,0 +1,560 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1238
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "skill-registration",
+          "tool-registration"
+        ],
+        "evidenceCount": 9,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "skill-registration",
+          "tool-registration"
+        ],
+        "evidenceCount": 9,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "order-triage",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "agentKind": "root",
+                "agentRoot": "/agent",
+                "layout": "nested",
+                "targetId": "typescript-filesystem-agent-0-39"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/agent/agent.ts",
+                  "symbol": "default"
+                }
+              ],
+              "runtimeName": "moldea-qualification-eve-create",
+              "source": "eve"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {},
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/agent/loaders.ts",
+                  "symbol": "loadOrderTriageInstruction"
+                }
+              ],
+              "runtimeName": "loadOrderTriageInstruction",
+              "source": "eve"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/agent/agent.ts",
+                  "symbol": "default"
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "declaredRange": "0.39.1",
+                "dependencyKind": "dependencies",
+                "packageClassification": "supported",
+                "targetId": "typescript-filesystem-agent-0-39"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/agent/contracts.ts",
+                  "symbol": "OrderTriageOutputSchema"
+                }
+              ],
+              "runtimeName": "OrderTriageOutputSchema",
+              "source": "eve"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": "classify-order",
+              "capabilityKind": "tool",
+              "details": {
+                "schemaRole": "tool-input"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/agent/contracts.ts",
+                  "symbol": "ClassifyOrderInputSchema"
+                }
+              ],
+              "runtimeName": "ClassifyOrderInputSchema",
+              "source": "eve"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": "classify-order",
+              "capabilityKind": "tool",
+              "details": {
+                "schemaRole": "tool-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/agent/contracts.ts",
+                  "symbol": "ClassifyOrderOutputSchema"
+                }
+              ],
+              "runtimeName": "ClassifyOrderOutputSchema",
+              "source": "eve"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": "review-policy",
+              "capabilityKind": "skill",
+              "details": {
+                "registrationKind": "typescript"
+              },
+              "kind": "skill-registration",
+              "references": [
+                {
+                  "path": "/agent/skills/review_policy.ts"
+                }
+              ],
+              "runtimeName": "review_policy",
+              "source": "eve"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": "classify-order",
+              "capabilityKind": "tool",
+              "details": {
+                "implementationKind": "bound-function",
+                "pathDepth": 1,
+                "registrationKind": "filesystem-tool"
+              },
+              "kind": "tool-registration",
+              "references": [
+                {
+                  "path": "/agent/implementations.ts",
+                  "symbol": "classifyOrder"
+                },
+                {
+                  "path": "/agent/tools/classify_order.ts"
+                }
+              ],
+              "runtimeName": "classify_order",
+              "source": "eve"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/agent/loaders.ts",
+                      "symbol": "loadOrderTriageInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/agent/contracts.ts",
+                      "symbol": "OrderTriageOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/agent/agent.ts",
+                      "symbol": "default"
+                    }
+                  },
+                  "runtime": {
+                    "id": "eve"
+                  },
+                  "skills": {
+                    "review-policy": {
+                      "description": "Applies the human-review boundary to order classification.",
+                      "implementation": {
+                        "path": "/agent/skills/review_policy.ts",
+                        "symbol": "default"
+                      },
+                      "name": "review_policy",
+                      "registration": {
+                        "path": "/agent/skills/review_policy.ts",
+                        "symbol": "default"
+                      }
+                    }
+                  },
+                  "tools": {
+                    "classify-order": {
+                      "description": "Classifies one order for human review.",
+                      "implementation": {
+                        "path": "/agent/implementations.ts",
+                        "symbol": "classifyOrder"
+                      },
+                      "inputSchema": {
+                        "path": "/agent/contracts.ts",
+                        "symbol": "ClassifyOrderInputSchema"
+                      },
+                      "name": "classify_order",
+                      "outputSchema": {
+                        "path": "/agent/contracts.ts",
+                        "symbol": "ClassifyOrderOutputSchema"
+                      },
+                      "registration": {
+                        "path": "/agent/tools/classify_order.ts",
+                        "symbol": "default"
+                      }
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Classifies orders for human review without approving refunds.\n",
+                    "digest": "sha256:1215e1a3ced55d0ad67e48e54ec6abcb0dbb4020a128f13475efd8d248d36d87",
+                    "path": "/moldea/agents/order-triage/description.md",
+                    "scalarLength": 62,
+                    "utf8ByteLength": 62
+                  },
+                  "scalarLength": 61,
+                  "value": "Classifies orders for human review without approving refunds."
+                },
+                "handoffDescription": null,
+                "id": "order-triage",
+                "instruction": {
+                  "content": "# Order triage\n\n`order-triage`\n\nClassify orders for human review. Use `classify_order` to classify an order and apply `review_policy` to preserve the human-review boundary. Return a `classification` of `manual-review` or `insufficient-evidence` with a `reason`. Never approve or promise a refund.\n",
+                  "digest": "sha256:8a64a421aa68bc08c4f9410b67c61134d06608a4000bbe0292065684798bedc6",
+                  "path": "/moldea/agents/order-triage/instruction.md",
+                  "scalarLength": 297,
+                  "utf8ByteLength": 297
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  order-triage:\n    runtime:\n      id: eve\n    bindings:\n      runtimeAgent:\n        path: /agent/agent.ts\n        symbol: default\n      outputSchema:\n        path: /agent/contracts.ts\n        symbol: OrderTriageOutputSchema\n      instructionLoader:\n        path: /agent/loaders.ts\n        symbol: loadOrderTriageInstruction\n    tools:\n      classify-order:\n        name: classify_order\n        description: Classifies one order for human review.\n        implementation:\n          path: /agent/implementations.ts\n          symbol: classifyOrder\n        registration:\n          path: /agent/tools/classify_order.ts\n          symbol: default\n        inputSchema:\n          path: /agent/contracts.ts\n          symbol: ClassifyOrderInputSchema\n        outputSchema:\n          path: /agent/contracts.ts\n          symbol: ClassifyOrderOutputSchema\n    skills:\n      review-policy:\n        name: review_policy\n        description: Applies the human-review boundary to order classification.\n        implementation:\n          path: /agent/skills/review_policy.ts\n          symbol: default\n        registration:\n          path: /agent/skills/review_policy.ts\n          symbol: default\n",
+                "digest": "sha256:1015a070c95e812c31ca208aad1eb40426fe353ea41e07e139d468c5a20feca1",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 1194,
+                "utf8ByteLength": 1194
+              },
+              "value": {
+                "agents": {
+                  "order-triage": {
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/agent/loaders.ts",
+                        "symbol": "loadOrderTriageInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/agent/contracts.ts",
+                        "symbol": "OrderTriageOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/agent/agent.ts",
+                        "symbol": "default"
+                      }
+                    },
+                    "runtime": {
+                      "id": "eve"
+                    },
+                    "skills": {
+                      "review-policy": {
+                        "description": "Applies the human-review boundary to order classification.",
+                        "implementation": {
+                          "path": "/agent/skills/review_policy.ts",
+                          "symbol": "default"
+                        },
+                        "name": "review_policy",
+                        "registration": {
+                          "path": "/agent/skills/review_policy.ts",
+                          "symbol": "default"
+                        }
+                      }
+                    },
+                    "tools": {
+                      "classify-order": {
+                        "description": "Classifies one order for human review.",
+                        "implementation": {
+                          "path": "/agent/implementations.ts",
+                          "symbol": "classifyOrder"
+                        },
+                        "inputSchema": {
+                          "path": "/agent/contracts.ts",
+                          "symbol": "ClassifyOrderInputSchema"
+                        },
+                        "name": "classify_order",
+                        "outputSchema": {
+                          "path": "/agent/contracts.ts",
+                          "symbol": "ClassifyOrderOutputSchema"
+                        },
+                        "registration": {
+                          "path": "/agent/tools/classify_order.ts",
+                          "symbol": "default"
+                        }
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Order triage project\n\nThis project classifies orders for human review. It does not approve refunds or execute financial actions.\n",
+              "digest": "sha256:9162477d82513bc5e59f56bf689ec5823c60237785c7d6580e923cd7492f91ff",
+              "path": "/moldea/project.md",
+              "scalarLength": 131,
+              "utf8ByteLength": 131
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

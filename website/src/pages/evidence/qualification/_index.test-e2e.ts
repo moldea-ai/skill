@@ -98,13 +98,20 @@ test('represents the current qualification evidence state', async ({ page }) => 
     langGraphStateGraphProfileLink.getByText('Attempts', { exact: true }).locator('..'),
   ).toContainText('1');
 
+  const langGraphFunctionalApiProfileLink = page.getByRole('link', {
+    name: /LangGraph Functional API qualification/,
+  });
+  await expect(
+    langGraphFunctionalApiProfileLink.getByAltText('LangChain company logo'),
+  ).toBeVisible();
+
   const anthropicCompanyLogos = page.getByAltText('Anthropic company logo');
   const langChainCompanyLogos = page.getByAltText('LangChain company logo');
   const openAiCompanyLogos = page.getByAltText('OpenAI company logo');
   const vercelCompanyLogos = page.getByAltText('Vercel company logo');
 
   await expect(anthropicCompanyLogos).toHaveCount(2);
-  await expect(langChainCompanyLogos).toHaveCount(2);
+  await expect(langChainCompanyLogos).toHaveCount(3);
   await expect(openAiCompanyLogos).toHaveCount(2);
   await expect(vercelCompanyLogos).toHaveCount(3);
   await expect
@@ -316,6 +323,9 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
     const langGraphStateGraphProfileRoute = toPublicPath(
       '/evidence/qualification/langgraph/typescript-state-graph-1-4/',
     );
+    const langGraphFunctionalApiProfileRoute = toPublicPath(
+      '/evidence/qualification/langgraph/typescript-functional-api-1-4/',
+    );
     const routes = [
       toPublicPath('/evidence/qualification/'),
       profileRoute,
@@ -324,6 +334,7 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
       openAiAgentsProfileRoute,
       eveProfileRoute,
       langGraphStateGraphProfileRoute,
+      langGraphFunctionalApiProfileRoute,
       vercelProfileRoute,
       toolLoopProfileRoute,
     ];

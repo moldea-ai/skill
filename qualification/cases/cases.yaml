@@ -150,3 +150,13 @@ cases:
     layer: adapter-specific
     description: Represent dynamic routing, opaque schemas, runtime semantics, and higher-level graph surfaces without claiming evidence that the adapter cannot prove.
     challenge: Tests conservative handling of Command and Send destinations, graph-node non-capabilities, partial topology, persistence, runtime context, prebuilt agents, and supervisor composition.
+  - id: repair-langgraph-functional-runtime-binding
+    title: Repair LangGraph Functional API runtime binding
+    layer: adapter-specific
+    description: Reconcile a declared runtime-agent symbol with a directly exported Functional API entrypoint using exact adapter diagnostics and source evidence.
+    challenge: Requires correcting canonical identity without changing the valid entrypoint, direct task pattern, or TypeScript runtime contracts.
+  - id: preserve-langgraph-functional-api-static-boundary
+    title: Preserve the LangGraph Functional API static boundary
+    layer: adapter-specific
+    description: Represent dynamic task selection, nested calls, TypeScript-only contracts, and runtime semantics without claiming evidence that the adapter cannot prove.
+    challenge: Tests conservative handling of lexical-call boundaries plus task non-capabilities, schema and routing non-inference, persistence, replay, interrupt, and approval semantics.

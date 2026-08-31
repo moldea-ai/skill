@@ -1,0 +1,56 @@
+version: 2
+id: reconcile-drift-and-boundaries
+title: Reconcile drift and boundaries
+purpose: Verify stale entrypoint-reference repair alongside conservative treatment of dynamic task selection.
+taskFile: task.md
+seedDirectory: seed
+overlayDirectory: overlay
+expectedDirectory: expected
+removePaths: [src/removed-support-workflow.ts]
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: [agent-definition, runtime-pattern, schema]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: [instruction-loader, tool-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [src/support-workflow.ts, src/dynamic-routing.ts, moldea/agents/support/instruction.md]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths: [src/support-workflow.ts, src/dynamic-routing.ts, moldea/moldea.yaml]
+  mustNotExistPaths: [src/removed-support-workflow.ts, moldea/runtimes]
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: repairs-direct-binding
+    description: The removed workflow reference is replaced with the existing supportWorkflow runtime-agent symbol without inventing schema bindings.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: records-dynamic-boundary
+    description: Runtime-selected task control flow is an unresolved warning with a concrete resolution and related source, not invented static destinations, handoffs, subagents, or tools.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-source
+    description: Existing implementation files and canonical agent assets remain unchanged, and removed source is not recreated.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: validates-project
+    description: The initially invalid project becomes valid through every deterministic layer without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

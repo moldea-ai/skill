@@ -1,0 +1,20 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: langgraph
+    bindings:
+      runtimeAgent:
+        path: /src/workflows.ts
+        symbol: supportWorkflow
+    affectedBy:
+      - /src/**
+  summary:
+    runtime:
+      id: langgraph
+    bindings:
+      runtimeAgent:
+        path: /src/workflows.ts
+        symbol: summaryWorkflow
+    affectedBy:
+      - /src/**

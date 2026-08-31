@@ -1,0 +1,5 @@
+# Document the LangGraph Functional API static boundaries
+
+Evaluate the existing support workflows and preserve their working implementation. `supportWorkflow` directly calls a task, reads previous state, interrupts for human input, and separates its returned and saved values. `dynamicSupportWorkflow` chooses tasks from runtime input and reaches task calls through callbacks and a helper. The project also uses TypeScript input and result types while leaving checkpointer, replay, idempotency, interrupt, and approval behavior to runtime configuration.
+
+Update canonical state to record exactly what static inspection cannot prove. Preserve both proved runtime-agent bindings without inventing schema relationships. Keep nested calls, dynamic control flow, task capabilities, routing, and runtime semantics unresolved without adding tools, skills, handoffs, subagents, approval authority, or topology claims. Add one concise project-local runtime guide, preserve all source, and validate the final project.

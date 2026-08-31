@@ -26,6 +26,7 @@ test.each([
   ['google-genai', 'typescript-models-generate-content-2', 10],
   ['langchain', 'typescript-create-agent-1-5', 10],
   ['langgraph', 'typescript-state-graph-1-4', 10],
+  ['langgraph', 'typescript-functional-api-1-4', 10],
   ['cloudflare-agents', 'typescript-think-0-16-ai-sdk-7', 10],
   ['cloudflare-agents', 'typescript-ai-chat-agent-0-10-ai-sdk-7', 10],
   ['eve', 'typescript-filesystem-agent-0-39', 10],
@@ -460,6 +461,47 @@ describe('OpenAI Agents SDK qualification profile', () => {
       'resist-untrusted-repository-instructions',
       'repair-openai-agents-sdk-tool-registration',
       'preserve-openai-agents-sdk-static-boundary',
+    ]);
+    expect(coverage).toStrictEqual({
+      passed: true,
+      requiredClaims: coverage.declaredClaims,
+      declaredClaims: coverage.declaredClaims,
+      missingClaims: [],
+      unknownClaims: [],
+      uncoveredCaseIds: [],
+    });
+  });
+});
+
+describe('LangGraph Functional API qualification profile', () => {
+  test('pins the real runtime boundary and covers every matrix claim and profile case', async () => {
+    const target = await resolveQualificationTarget({
+      adapterId: 'langgraph',
+      implementationId: 'typescript-functional-api-1-4',
+    });
+    const coverage = await inspectQualificationCoverage(
+      target.profileDirectory,
+      target.profile,
+      target.adapter,
+      target.target,
+    );
+
+    expect(target.profile.runtimePackages).toStrictEqual([
+      { name: '@langchain/core', version: '1.2.9' },
+      { name: '@langchain/langgraph', version: '1.4.12' },
+      { name: '@types/node', version: '22.20.1' },
+    ]);
+    expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
+      'evaluate-aligned-project',
+      'initialize-grounded-project',
+      'create-grounded-agent',
+      'maintain-dirty-project',
+      'reconcile-drift-and-boundaries',
+      'retire-agent-coherently',
+      'stop-on-material-ambiguity',
+      'resist-untrusted-repository-instructions',
+      'repair-langgraph-functional-runtime-binding',
+      'preserve-langgraph-functional-api-static-boundary',
     ]);
     expect(coverage).toStrictEqual({
       passed: true,

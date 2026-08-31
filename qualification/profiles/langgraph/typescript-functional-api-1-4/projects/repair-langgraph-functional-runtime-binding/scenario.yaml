@@ -1,0 +1,55 @@
+version: 2
+id: repair-langgraph-functional-runtime-binding
+title: Repair LangGraph Functional API runtime binding
+purpose: Verify precise diagnostic-driven repair of a direct entrypoint symbol relationship.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: [LANGGRAPH_RUNTIME_AGENT_SYMBOL_NOT_FOUND]
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [language, runtime-package]
+    forbiddenEvidenceKinds:
+      [agent-definition, instruction-loader, runtime-pattern, schema, tool-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: [LANGGRAPH_RUNTIME_AGENT_SYMBOL_NOT_FOUND]
+    requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: [instruction-loader, schema, tool-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths: [src/workflow.ts, moldea/agents/support/instruction.md]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths: [moldea/moldea.yaml, src/workflow.ts]
+  mustNotExistPaths: [moldea/runtimes]
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-runtime-mismatch
+    description: The actor explains from validation evidence and repository source that the declared runtime-agent symbol does not match the exported entrypoint. Repeating the internal diagnostic code is not required.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after, workspace-patch]
+  - id: repairs-canonical-runtime-binding
+    description: The manifest runtime-agent symbol becomes supportWorkflow, matching source without changing the valid entrypoint.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-binding-boundary
+    description: The runtime-agent binding becomes exact and evidenced, while the task remains a runtime pattern rather than a manifest tool, skill, or handoff and TypeScript types remain outside schema bindings.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
+  - id: validates-project
+    description: The runtime-symbol diagnostic disappears and every deterministic layer passes without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

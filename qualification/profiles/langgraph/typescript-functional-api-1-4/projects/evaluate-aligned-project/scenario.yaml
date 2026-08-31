@@ -1,0 +1,65 @@
+version: 2
+id: evaluate-aligned-project
+title: Evaluate an aligned project
+purpose: Verify that the skill recognizes complete direct Functional API evidence and avoids unnecessary edits.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: [instruction-loader, tool-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: [instruction-loader, tool-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: unchanged
+  mustPreservePaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/instruction.md
+    - moldea/agents/summary/instruction.md
+    - src/workflows.ts
+  mustChangePaths: []
+  mustExistPaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/agents/summary/description.md
+    - moldea/agents/summary/instruction.md
+    - src/tasks.ts
+    - src/workflows.ts
+  mustNotExistPaths:
+    - moldea/runtimes
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-direct-entrypoints
+    description: The actor accurately explains how each canonical runtime-agent binding reaches its directly exported Functional API entrypoint.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: explains-positive-patterns
+    description: The actor identifies the supported direct task, previous-state, and final-state evidence without treating TypeScript types as executable schemas.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: respects-static-boundary
+    description: The actor does not turn workflow tasks into manifest tools, skills, subagents, or handoffs and does not infer provider, model, routing, approval, or schema relationships.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: validates-without-churn
+    description: Every independent validation check accepts the project without changing it during inspection.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

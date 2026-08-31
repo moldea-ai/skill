@@ -1,0 +1,17 @@
+version: 1
+context:
+  /moldea/context/billing.md:
+    affectedBy:
+      - /src/billing.ts
+agents:
+  support:
+    runtime:
+      id: langgraph
+    bindings:
+      runtimeAgent:
+        path: /src/support-workflow.ts
+        symbol: supportWorkflow
+    context:
+      - /moldea/context/billing.md
+    affectedBy:
+      - /src/support-workflow.ts

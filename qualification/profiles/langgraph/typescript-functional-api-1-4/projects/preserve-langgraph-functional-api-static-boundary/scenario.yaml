@@ -1,0 +1,84 @@
+version: 2
+id: preserve-langgraph-functional-api-static-boundary
+title: Preserve the LangGraph Functional API static boundary
+purpose: Verify conservative handling of lexical task limits, ordinary control flow, TypeScript-only schemas, and runtime-owned semantics.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: [instruction-loader, tool-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: [instruction-loader, tool-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      src/support-workflow.ts,
+      src/dynamic-support-workflow.ts,
+      src/runtime-boundaries.ts,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      moldea/agents/dynamic-support/description.md,
+      moldea/agents/dynamic-support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    [
+      src/support-workflow.ts,
+      src/dynamic-support-workflow.ts,
+      src/runtime-boundaries.ts,
+      moldea/moldea.yaml,
+    ]
+  mustNotExistPaths: []
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: [moldea/runtimes/**/*.md]
+  mustChangePathPatterns: [moldea/runtimes/**/*.md]
+judgeRequirements:
+  - id: preserves-direct-patterns
+    description: For support, the actor preserves the proved runtime-agent binding plus direct task, interrupt, previous-state, and final-state patterns without schema inference.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-typescript-schema-boundary
+    description: For both agents, TypeScript input, output, and saved-state types remain runtime contracts rather than executable manifest schema relationships.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-control-flow-boundary
+    description: Runtime-selected tasks plus nested callback and transitive helper calls remain unresolved without invented routing targets, handoffs, subagents, or topology claims.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: keeps-tasks-outside-capabilities
+    description: The actor does not declare Functional API tasks as manifest tools, skills, handoffs, or subagents.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-runtime-semantics-boundary
+    description: Checkpoint persistence, replay determinism, task idempotency, interrupt safety, and human approval remain explicit unresolved runtime guidance rather than static evidence.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
+  - id: records-focused-guidance
+    description: Both agents reference the sole new runtime-guidance file under /moldea/runtimes/**/*.md, which explains the exact lexical, capability, schema, routing, and runtime-semantic boundaries.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
+  - id: validates-project
+    description: Every deterministic layer accepts the project, relationship-local evidence remains exact, and all source and agent instruction files remain unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

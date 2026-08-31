@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the obsolete canonical support-agent setup. The manifest no longer registers the support agent, Eve runtime, instruction loader, output schema, or affected runtime relationship; the canonical support description and instruction were removed. Remaining source and project context were preserved.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "The pre-existing deletion of agent/agent.ts removed the only repository Eve defineAgent root and was preserved unchanged.",
+    "Pre-change moldea inspection returned schema 2 structural invalidity with MOLDEA_REFERENCE_MISSING for /agent/agent.ts under the support runtimeAgent binding.",
+    "README.md and moldea/project.md independently state that the support agent was retired.",
+    "Post-change @moldea.ai/cli 5.0.0 inspection returned valid with no diagnostics and an empty agent inventory.",
+    "TypeScript validation (`tsc --noEmit`) and the final Git diff whitespace check passed.",
+    "The final diff was inspected; unrelated source files, README.md, moldea/project.md, runner-mounted inputs, and existing untracked content were not changed."
+  ],
+  "unresolved": [
+    "No runtime was invoked. Repository evidence does not establish whether the preserved source-only instruction, loader, or schema modules have consumers outside this working tree, so no external runtime behavior is claimed."
+  ]
+}

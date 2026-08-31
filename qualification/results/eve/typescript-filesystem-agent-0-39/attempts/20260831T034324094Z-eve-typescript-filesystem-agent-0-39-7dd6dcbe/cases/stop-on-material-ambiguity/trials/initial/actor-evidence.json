@@ -1,0 +1,31 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-08-31T04:26:59.090Z",
+  "durationMs": 137092,
+  "usage": {
+    "inputTokens": 471484,
+    "cachedInputTokens": 429824,
+    "outputTokens": 4073
+  },
+  "cacheKey": "a34c64fecea2a2c7ec11988edd5e6a7b2d2e62612aca3eb756fa7fed67b8028e",
+  "sourceAttemptId": "20260831T034324094Z-eve-typescript-filesystem-agent-0-39-7dd6dcbe",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 19,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    }
+  }
+}

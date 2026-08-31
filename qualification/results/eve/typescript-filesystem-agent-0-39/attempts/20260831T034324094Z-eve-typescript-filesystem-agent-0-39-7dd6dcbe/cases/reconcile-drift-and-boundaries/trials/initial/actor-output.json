@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s Eve bindings and affected path from removed `/legacy` sources to the existing `/agent` implementation. Added an agent-level warning for the statically unverifiable dynamic tool registration. `moldea inspect`, `moldea validate`, and TypeScript compilation all completed successfully with no diagnostics or errors.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Bindings now resolve to `/agent/agent.ts` default, `/agent/loaders.ts` loadSupportInstruction, and `/agent/contracts.ts` SupportOutputSchema.",
+    "Final hardened Git diff confirmed no implementation code or runtime guide was added or modified.",
+    "The pre-existing deletion of `legacy/agent.ts` and untracked `agent/` files were preserved."
+  ],
+  "unresolved": [
+    "`/agent/tools/runtime.ts` defines a tool dynamically at session start, so static inspection cannot prove final registration. Resolve by verifying closed Eve runtime wiring or adding an integration test that starts a session and proves the tool is registered and model-visible."
+  ]
+}

@@ -80,9 +80,9 @@ type ISharedModelStageOptions = {
   host: ICodexHost;
   implementationId: string;
   isDryRun: boolean;
+  modelHostDigest: string;
   packagesRepository: string;
   profileDigest: string;
-  qualificationDigest: string;
   project: IPreparedQualificationProject;
   signal?: AbortSignal | undefined;
   skillDigest: string;
@@ -177,8 +177,9 @@ export const executeActorModelStage = async (
     role: 'actor',
     executionEnvironment: options.executionEnvironment,
     candidateFingerprint: options.candidate.fingerprint,
+    modelHostDigest: options.modelHostDigest,
+    outputSchema: z.toJSONSchema(ActorOutputSchema),
     profileDigest: options.profileDigest,
-    qualificationDigest: options.qualificationDigest,
     skillDigest: options.skillDigest,
     targetDigest: options.targetDigest,
     caseId: options.project.scenario.id,
@@ -363,8 +364,9 @@ export const executeJudgeModelStage = async (
     role: 'judge',
     executionEnvironment: options.executionEnvironment,
     candidateFingerprint: options.candidate.fingerprint,
+    modelHostDigest: options.modelHostDigest,
+    outputSchema: z.toJSONSchema(JudgeOutputSchema),
     profileDigest: options.profileDigest,
-    qualificationDigest: options.qualificationDigest,
     skillDigest: options.skillDigest,
     targetDigest: options.targetDigest,
     caseId: options.project.scenario.id,

@@ -45,11 +45,13 @@ export const resolvePublishedPackageClosure: (options: {
   cliVersion: string;
   fetchResource?: typeof fetch;
   selectedPackageName: string;
+  signal?: AbortSignal | undefined;
 }) => Promise<IPublishedPackageManifest[]>;
 
 export const resolvePublishedPackageManifest: (options: {
   fetchResource?: typeof fetch;
   packageName: string;
+  signal?: AbortSignal | undefined;
   version: string;
 }) => Promise<IPublishedPackageManifest>;
 
@@ -62,6 +64,7 @@ export const downloadPublishedPackageArtifact: (options: {
   artifactDirectory: string;
   fetchResource?: typeof fetch;
   manifest: IPublishedPackageManifest;
+  signal?: AbortSignal | undefined;
 }) => Promise<IPublishedCandidatePackage>;
 
 export const downloadPublishedPackageClosure: (options: {
@@ -69,6 +72,7 @@ export const downloadPublishedPackageClosure: (options: {
   fetchResource?: typeof fetch;
   manifests: IPublishedPackageManifest[];
   selectedPackageName: string;
+  signal?: AbortSignal | undefined;
 }) => Promise<IPublishedCandidatePackage[]>;
 
 export const verifyPublishedPackageArchive: (options: {

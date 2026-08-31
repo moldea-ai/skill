@@ -1,8 +1,12 @@
 import { spawn } from 'node:child_process';
 
-import { MAX_PROCESS_OUTPUT_BYTES } from '../constants/index.ts';
+import {
+  MAX_PROCESS_OUTPUT_BYTES,
+  PROCESS_TERMINATION_GRACE_PERIOD_MS,
+} from '../constants/index.ts';
 import type { IProcessExecutionOptions, IProcessExecutionResult } from './types.ts';
 
+/** Creates the diagnostic error for one completed command with an unexpected exit. */
 const createProcessError = (
   options: IProcessExecutionOptions,
   exitCode: number | null,
@@ -37,6 +41,7 @@ export const executeProcess = async (
   return new Promise<IProcessExecutionResult>((resolve, reject) => {
     const childProcess = spawn(options.command, [...options.args], {
       cwd: options.cwd,
+      detached: process.platform !== 'win32',
       env: options.environment,
       shell: false,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -45,13 +50,19 @@ export const executeProcess = async (
     const stderrChunks: Buffer[] = [];
     let outputBytes = 0;
     let hasSettled = false;
+    let hasClosed = false;
+    let hasForcedTermination = false;
+    let pendingError: Error | null = null;
+    let terminationTimeout: NodeJS.Timeout | undefined;
 
+    /** Rejects once and releases process lifecycle resources. */
     const settleWithError = (error: unknown): void => {
       if (hasSettled) {
         return;
       }
 
       hasSettled = true;
+      clearTimeout(terminationTimeout);
       options.signal?.removeEventListener('abort', abortProcess);
       reject(
         error instanceof Error
@@ -60,17 +71,75 @@ export const executeProcess = async (
       );
     };
 
-    const abortProcess = (): void => {
-      childProcess.kill('SIGTERM');
-      settleWithError(new Error('Process execution was aborted.'));
+    /** Checks whether the owned POSIX process group can still execute. */
+    const isProcessGroupRunning = (): boolean => {
+      if (process.platform === 'win32' || childProcess.pid === undefined) {
+        return !hasClosed;
+      }
+
+      try {
+        process.kill(-childProcess.pid, 0);
+        return true;
+      } catch (error) {
+        return !(error instanceof Error && 'code' in error && error.code === 'ESRCH');
+      }
     };
 
+    /** Signals the owned POSIX process group or the exact child on other platforms. */
+    const signalProcess = (signal: NodeJS.Signals): boolean => {
+      if (process.platform !== 'win32' && childProcess.pid !== undefined) {
+        try {
+          process.kill(-childProcess.pid, signal);
+          return true;
+        } catch (error) {
+          if (!(error instanceof Error && 'code' in error && error.code === 'ESRCH')) {
+            return childProcess.kill(signal);
+          }
+        }
+      }
+
+      return childProcess.kill(signal);
+    };
+
+    /** Rejects a terminated execution only after its owned processes are no longer active. */
+    const settleTerminatedProcess = (): void => {
+      if (
+        pendingError !== null &&
+        hasClosed &&
+        (hasForcedTermination || !isProcessGroupRunning())
+      ) {
+        settleWithError(pendingError);
+      }
+    };
+
+    /** Starts graceful process-group termination with forced escalation. */
+    const terminateProcess = (error: Error): void => {
+      if (pendingError !== null || hasSettled) return;
+
+      pendingError = error;
+      signalProcess('SIGTERM');
+      terminationTimeout = setTimeout(() => {
+        hasForcedTermination = signalProcess('SIGKILL');
+
+        if (hasClosed && (hasForcedTermination || !isProcessGroupRunning())) {
+          settleWithError(pendingError);
+        }
+      }, PROCESS_TERMINATION_GRACE_PERIOD_MS);
+    };
+
+    /** Cancels the active process for the caller's abort signal. */
+    const abortProcess = (): void => {
+      terminateProcess(new Error('Process execution was aborted.'));
+    };
+
+    /** Captures one output chunk without exceeding the shared process bound. */
     const captureChunk = (chunks: Buffer[], chunk: Buffer): void => {
+      if (pendingError !== null) return;
+
       outputBytes += chunk.byteLength;
 
       if (outputBytes > MAX_PROCESS_OUTPUT_BYTES) {
-        childProcess.kill('SIGTERM');
-        settleWithError(
+        terminateProcess(
           new Error(`Command output exceeded ${MAX_PROCESS_OUTPUT_BYTES} bytes and was stopped.`),
         );
         return;
@@ -81,13 +150,24 @@ export const executeProcess = async (
 
     childProcess.stdout.on('data', (chunk: Buffer) => captureChunk(stdoutChunks, chunk));
     childProcess.stderr.on('data', (chunk: Buffer) => captureChunk(stderrChunks, chunk));
-    childProcess.once('error', settleWithError);
+    childProcess.stdin.on('error', () => {
+      // process close owns termination and command failure reporting
+    });
+    childProcess.once('error', (error) => settleWithError(pendingError ?? error));
     childProcess.once('close', (exitCode) => {
       if (hasSettled) {
         return;
       }
 
+      hasClosed = true;
+
+      if (pendingError !== null) {
+        settleTerminatedProcess();
+        return;
+      }
+
       hasSettled = true;
+      clearTimeout(terminationTimeout);
       options.signal?.removeEventListener('abort', abortProcess);
       const stdout = Buffer.concat(stdoutChunks).toString('utf8');
       const stderr = Buffer.concat(stderrChunks).toString('utf8');

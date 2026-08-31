@@ -35,6 +35,12 @@ export type IQualificationExecutionDigestRoots = {
   repositoryRoot: string;
 };
 
+// roots whose production behavior can change actor or judge model execution
+export type IQualificationModelHostDigestRoots = Pick<
+  IQualificationExecutionDigestRoots,
+  'evaluationHostRoot' | 'qualificationRoot' | 'repositoryRoot'
+>;
+
 // selected execution inputs whose behavior must remain current for adapter evidence
 export type IQualificationExecutionDigestOptions = {
   caseIds: readonly string[];
@@ -48,6 +54,9 @@ const DEFAULT_QUALIFICATION_EXECUTION_DIGEST_ROOTS: IQualificationExecutionDiges
   qualificationRoot: QUALIFICATION_ROOT,
   repositoryRoot: SKILL_REPOSITORY_ROOT,
 };
+
+const DEFAULT_QUALIFICATION_MODEL_HOST_DIGEST_ROOTS: IQualificationModelHostDigestRoots =
+  DEFAULT_QUALIFICATION_EXECUTION_DIGEST_ROOTS;
 
 /** Removes publication metadata while retaining every behavioral compatibility field. */
 const normalizeCompatibilityInput = (input: unknown): unknown => {
@@ -140,6 +149,50 @@ export const calculateQualificationProfileDigest = async (
   profileDirectory: string,
 ): Promise<string> => {
   const entries = await collectQualificationProfileEntries(profileDirectory);
+  return calculateSha256(`${JSON.stringify(entries)}\n`);
+};
+
+/**
+ * Calculates the production host identity that can change actor or judge execution.
+ * @returns A promise resolving to the model-host digest without unrelated orchestration code.
+ */
+export const calculateQualificationModelHostDigest = async (
+  roots: IQualificationModelHostDigestRoots = DEFAULT_QUALIFICATION_MODEL_HOST_DIGEST_ROOTS,
+): Promise<string> => {
+  const qualificationModelHostRoot = path.join(roots.qualificationRoot, 'src', 'codex-host');
+  const toolingPackageManifestPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_MANIFEST_PATH);
+  const toolingPackageLockPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_LOCK_PATH);
+  const [qualificationModelHostEntries, evaluationHostEntries, packageManifest, packageLock] =
+    await Promise.all([
+      collectPrefixedSourceEntries(qualificationModelHostRoot, 'qualification/src/codex-host'),
+      collectPrefixedSourceEntries(roots.evaluationHostRoot, 'tooling/codex-evaluation-host'),
+      readFile(toolingPackageManifestPath, 'utf8'),
+      readFile(toolingPackageLockPath, 'utf8'),
+    ]);
+  const normalizedEntries = await Promise.all([
+    createNormalizedFileEntry(
+      toolingPackageManifestPath,
+      'package.json',
+      normalizeQualificationToolingPackageManifest(
+        JSON.parse(packageManifest) as unknown,
+        QUALIFICATION_SHARED_TOOLING_PACKAGE_NAMES,
+      ),
+    ),
+    createNormalizedFileEntry(
+      toolingPackageLockPath,
+      'package-lock.json',
+      normalizeQualificationToolingPackageLock(
+        JSON.parse(packageLock) as unknown,
+        QUALIFICATION_SHARED_TOOLING_PACKAGE_NAMES,
+      ),
+    ),
+  ]);
+  const entries = [
+    ...qualificationModelHostEntries,
+    ...evaluationHostEntries,
+    ...normalizedEntries,
+  ].sort((left, right) => left.path.localeCompare(right.path, 'en'));
+
   return calculateSha256(`${JSON.stringify(entries)}\n`);
 };
 

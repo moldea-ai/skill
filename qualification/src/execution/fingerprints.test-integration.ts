@@ -8,9 +8,11 @@ import { ensureDirectory } from '../filesystem/index.ts';
 import {
   calculatePackagesQualificationDigest,
   calculateQualificationExecutionDigest,
+  calculateQualificationModelHostDigest,
   calculateQualificationProfileDigest,
   calculateQualificationTargetDigest,
   type IQualificationExecutionDigestRoots,
+  type IQualificationModelHostDigestRoots,
 } from './fingerprints.ts';
 
 const createPackageManifest = (adapterVersion: string, runtimeVersion: string): string =>
@@ -101,6 +103,48 @@ describe('qualification input fingerprint', () => {
     if (temporaryRoot !== null) {
       await rm(temporaryRoot, { force: true, recursive: true });
     }
+  });
+
+  test('isolates model-host behavior from qualification orchestration', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-model-host-fingerprint-'));
+    const roots: IQualificationModelHostDigestRoots = {
+      evaluationHostRoot: path.join(temporaryRoot, 'tooling/codex-evaluation-host'),
+      qualificationRoot: path.join(temporaryRoot, 'qualification'),
+      repositoryRoot: temporaryRoot,
+    };
+    const paths = {
+      evaluationHost: path.join(roots.evaluationHostRoot, 'host.mjs'),
+      modelHost: path.join(roots.qualificationRoot, 'src/codex-host/codex-host.ts'),
+      orchestration: path.join(roots.qualificationRoot, 'src/execution/executor.ts'),
+      packageCandidate: path.join(temporaryRoot, 'tooling/package-candidate/published.mjs'),
+      packageLock: path.join(temporaryRoot, 'package-lock.json'),
+      packageManifest: path.join(temporaryRoot, 'package.json'),
+    };
+    await Promise.all(
+      Object.values(paths).map((filePath) => ensureDirectory(path.dirname(filePath))),
+    );
+    await Promise.all([
+      writeFile(paths.evaluationHost, 'export const evaluationHostVersion = 1;\n'),
+      writeFile(paths.modelHost, 'export const modelHostVersion = 1;\n'),
+      writeFile(paths.orchestration, 'export const orchestrationVersion = 1;\n'),
+      writeFile(paths.packageCandidate, 'export const packageCandidateVersion = 1;\n'),
+      writeFile(paths.packageLock, createToolingPackageLock('5.0.0', '7.8.5')),
+      writeFile(paths.packageManifest, createToolingPackageManifest('5.0.0', '7.8.5')),
+    ]);
+    const initialDigest = await calculateQualificationModelHostDigest(roots);
+
+    await Promise.all([
+      writeFile(paths.orchestration, 'export const orchestrationVersion = 2;\n'),
+      writeFile(paths.packageCandidate, 'export const packageCandidateVersion = 2;\n'),
+    ]);
+    expect(await calculateQualificationModelHostDigest(roots)).toBe(initialDigest);
+
+    await writeFile(paths.modelHost, 'export const modelHostVersion = 2;\n');
+    const changedModelHostDigest = await calculateQualificationModelHostDigest(roots);
+    expect(changedModelHostDigest).not.toBe(initialDigest);
+
+    await writeFile(paths.evaluationHost, 'export const evaluationHostVersion = 2;\n');
+    expect(await calculateQualificationModelHostDigest(roots)).not.toBe(changedModelHostDigest);
   });
 
   test('isolates one adapter while retaining selected and shared execution behavior', async () => {

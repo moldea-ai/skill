@@ -48,3 +48,6 @@ export const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_back
 
 // bounded process output protects local runs from unbounded child-process memory use
 export const MAX_PROCESS_OUTPUT_BYTES = 16 * 1024 * 1024;
+
+// local processes receive the same graceful-shutdown period as the evaluation relay
+export const PROCESS_TERMINATION_GRACE_PERIOD_MS = 5_000;

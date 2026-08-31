@@ -31,11 +31,9 @@ const createRegistryFetch = (metadataByIdentity) => async (url) => {
     decodedUrl.endsWith(`/${identity}`),
   )?.[1];
 
-  return {
-    json: async () => metadata,
-    ok: metadata !== undefined,
+  return new Response(metadata === undefined ? null : JSON.stringify(metadata), {
     status: metadata === undefined ? 404 : 200,
-  };
+  });
 };
 
 test('resolves the exact dependency-first published closure from the CLI', async () => {
@@ -200,11 +198,7 @@ test('downloads one exact artifact only when both registry digests match', async
   const manifest = createMetadata('typescript', '6.0.3');
   manifest.dist.integrity = `sha512-${createHash('sha512').update(archive).digest('base64')}`;
   manifest.dist.shasum = createHash('sha1').update(archive).digest('hex');
-  const fetchResource = async () => ({
-    arrayBuffer: async () => archive,
-    ok: true,
-    status: 200,
-  });
+  const fetchResource = async () => new Response(archive);
 
   const artifact = await downloadPublishedPackageArtifact({
     artifactDirectory,
@@ -226,6 +220,66 @@ test('downloads one exact artifact only when both registry digests match', async
       },
     }),
     /Registry integrity mismatch/u,
+  );
+});
+
+test('forwards caller cancellation to registry requests', async () => {
+  const abortController = new AbortController();
+  const request = resolvePublishedPackageManifest({
+    fetchResource: async (_url, options) =>
+      new Promise((_resolve, reject) => {
+        options.signal.addEventListener('abort', () => reject(options.signal.reason), {
+          once: true,
+        });
+      }),
+    packageName: 'typescript',
+    signal: abortController.signal,
+    version: '6.0.3',
+  });
+  const cancellation = new Error('Operator cancelled registry acquisition.');
+
+  abortController.abort(cancellation);
+
+  await assert.rejects(request, cancellation);
+});
+
+test('times out stalled registry requests', async (context) => {
+  context.mock.timers.enable({ apis: ['setTimeout'] });
+  const request = resolvePublishedPackageManifest({
+    fetchResource: async (_url, options) =>
+      new Promise((_resolve, reject) => {
+        options.signal.addEventListener('abort', () => reject(options.signal.reason), {
+          once: true,
+        });
+      }),
+    packageName: 'typescript',
+    version: '6.0.3',
+  });
+
+  await Promise.resolve();
+  context.mock.timers.tick(300_000);
+
+  await assert.rejects(request, /npm registry request exceeded 300000 milliseconds/u);
+});
+
+test('rejects registry bodies that exceed the bounded archive capacity', async (context) => {
+  const artifactDirectory = await mkdtemp(join(tmpdir(), 'moldea-published-artifact-bound-'));
+  context.after(async () => rm(artifactDirectory, { force: true, recursive: true }));
+  const manifest = createMetadata('typescript', '6.0.3');
+  const oversizedBody = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new Uint8Array(16 * 1024 * 1024 + 1));
+      controller.close();
+    },
+  });
+
+  await assert.rejects(
+    downloadPublishedPackageArtifact({
+      artifactDirectory,
+      fetchResource: async () => new Response(oversizedBody),
+      manifest,
+    }),
+    /npm registry response exceeded 16777216 bytes/u,
   );
 });
 

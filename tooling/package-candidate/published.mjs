@@ -10,6 +10,8 @@ const CLI_PACKAGE_NAME = '@moldea.ai/cli';
 const ADAPTER_PACKAGE_PREFIX = '@moldea.ai/adapter-';
 const MOLDEA_PACKAGE_PREFIX = '@moldea.ai/';
 const NPM_REGISTRY_ORIGIN = 'https://registry.npmjs.org';
+const NPM_REGISTRY_REQUEST_TIMEOUT_MS = 300_000;
+const MAXIMUM_NPM_REGISTRY_RESPONSE_BYTES = 16 * 1024 * 1024;
 const STABLE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/u;
 const SHA1_PATTERN = /^[a-f0-9]{40}$/u;
 
@@ -71,15 +73,91 @@ const parsePublishedPackage = (input, expectedName, expectedVersion) => {
   };
 };
 
-const fetchRegistryResource = async (url, fetchResource) => {
-  const response = await fetchResource(url, {
-    headers: { accept: 'application/json' },
-    redirect: 'error',
-  });
-  if (!response.ok) {
-    throw new Error(`npm registry request failed with HTTP ${response.status}: ${url}`);
+/** Fetches one cancellable npm registry resource into a bounded buffer. */
+const fetchRegistryResource = async (url, fetchResource, signal) => {
+  const requestController = new AbortController();
+  const timeoutError = new Error(
+    `npm registry request exceeded ${NPM_REGISTRY_REQUEST_TIMEOUT_MS} milliseconds: ${url}`,
+  );
+  const abortFromCaller = () => requestController.abort(signal?.reason);
+  const timeout = setTimeout(
+    () => requestController.abort(timeoutError),
+    NPM_REGISTRY_REQUEST_TIMEOUT_MS,
+  );
+  timeout.unref?.();
+
+  if (signal?.aborted === true) {
+    abortFromCaller();
+  } else {
+    signal?.addEventListener('abort', abortFromCaller, { once: true });
   }
-  return response;
+
+  try {
+    const response = await fetchResource(url, {
+      headers: { accept: 'application/json' },
+      redirect: 'error',
+      signal: requestController.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`npm registry request failed with HTTP ${response.status}: ${url}`);
+    }
+
+    const contentLength = response.headers.get('content-length');
+    if (
+      contentLength !== null &&
+      /^\d+$/u.test(contentLength) &&
+      Number(contentLength) > MAXIMUM_NPM_REGISTRY_RESPONSE_BYTES
+    ) {
+      try {
+        await response.body?.cancel();
+      } catch {
+        // the bounded response failure remains the actionable error
+      }
+      throw new Error(
+        `npm registry response exceeded ${MAXIMUM_NPM_REGISTRY_RESPONSE_BYTES} bytes: ${url}`,
+      );
+    }
+    if (response.body === null) return Buffer.alloc(0);
+
+    const chunks = [];
+    const reader = response.body.getReader();
+    let responseBytes = 0;
+
+    try {
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        responseBytes += value.byteLength;
+        if (responseBytes > MAXIMUM_NPM_REGISTRY_RESPONSE_BYTES) {
+          try {
+            await reader.cancel();
+          } catch {
+            // the bounded response failure remains the actionable error
+          }
+          throw new Error(
+            `npm registry response exceeded ${MAXIMUM_NPM_REGISTRY_RESPONSE_BYTES} bytes: ${url}`,
+          );
+        }
+        chunks.push(Buffer.from(value));
+      }
+    } finally {
+      reader.releaseLock();
+    }
+
+    return Buffer.concat(chunks, responseBytes);
+  } catch (error) {
+    if (requestController.signal.reason === timeoutError) throw timeoutError;
+    if (signal?.aborted === true) {
+      throw signal.reason instanceof Error
+        ? signal.reason
+        : new Error('npm registry request was aborted.', { cause: signal.reason });
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
+    signal?.removeEventListener('abort', abortFromCaller);
+  }
 };
 
 const getInternalDependencies = (manifest) =>
@@ -95,14 +173,15 @@ const getInternalDependencies = (manifest) =>
 export const resolvePublishedPackageManifest = async ({
   fetchResource = fetch,
   packageName,
+  signal,
   version,
 }) => {
   assert.equal(typeof packageName, 'string');
   assert.ok(packageName.length > 0);
   assertExactSemver(version);
   const metadataUrl = `${NPM_REGISTRY_ORIGIN}/${encodeURIComponent(packageName)}/${version}`;
-  const response = await fetchRegistryResource(metadataUrl, fetchResource);
-  return parsePublishedPackage(await response.json(), packageName, version);
+  const response = await fetchRegistryResource(metadataUrl, fetchResource, signal);
+  return parsePublishedPackage(JSON.parse(response.toString('utf8')), packageName, version);
 };
 
 /** Resolves the exact published moldea runtime closure rooted at one CLI release. */
@@ -110,6 +189,7 @@ export const resolvePublishedPackageClosure = async ({
   cliVersion,
   fetchResource = fetch,
   selectedPackageName,
+  signal,
 }) => {
   assert.match(cliVersion, STABLE_VERSION_PATTERN);
   assert.ok(isMoldeaPackageName(selectedPackageName));
@@ -153,6 +233,7 @@ export const resolvePublishedPackageClosure = async ({
     const manifest = await resolvePublishedPackageManifest({
       fetchResource,
       packageName,
+      signal,
       version,
     });
     manifests.set(packageName, manifest);
@@ -271,10 +352,10 @@ export const downloadPublishedPackageArtifact = async ({
   artifactDirectory,
   fetchResource = fetch,
   manifest,
+  signal,
 }) => {
   mkdirSync(artifactDirectory, { recursive: true });
-  const response = await fetchRegistryResource(manifest.dist.tarball, fetchResource);
-  const archive = Buffer.from(await response.arrayBuffer());
+  const archive = await fetchRegistryResource(manifest.dist.tarball, fetchResource, signal);
   const { sha256, tarballName } = verifyPublishedPackageArchive({ archive, manifest });
   const tarballPath = join(artifactDirectory, tarballName);
   writeFileSync(tarballPath, archive, { flag: 'wx' });
@@ -296,6 +377,7 @@ export const downloadPublishedPackageClosure = async ({
   fetchResource = fetch,
   manifests,
   selectedPackageName,
+  signal,
 }) => {
   mkdirSync(artifactDirectory, { recursive: true });
   const packages = [];
@@ -306,6 +388,7 @@ export const downloadPublishedPackageClosure = async ({
         artifactDirectory,
         fetchResource,
         manifest,
+        signal,
       }),
     );
   }

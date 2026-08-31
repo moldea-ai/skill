@@ -70,6 +70,7 @@ import { getLocalAttemptDirectory } from './attempts.ts';
 import {
   calculatePackagesQualificationDigest,
   calculateQualificationExecutionDigest,
+  calculateQualificationModelHostDigest,
 } from './fingerprints.ts';
 import {
   executeActorModelStage,
@@ -129,20 +130,22 @@ const inspectQualificationInputState = async (
   skillRepository: string,
   target: IResolvedQualificationTarget,
 ): Promise<IQualificationInputState> => {
-  const [packagesState, qualificationDigest, qualificationState, skillState] = await Promise.all([
-    inspectGitRepositoryState(packagesRepository, {
-      excludedRelativePathPrefixes: ['qualification'],
-    }),
-    calculateQualificationExecutionDigest({
-      caseIds: target.profile.cases.map(({ id }) => id),
-      profileDirectory: target.profileDirectory,
-    }),
-    inspectGitRepositoryState(SKILL_REPOSITORY_ROOT, {
-      includedRelativePathPrefixes: QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
-      excludedRelativePathPrefixes: ['qualification/results'],
-    }),
-    inspectGitRepositoryState(skillRepository),
-  ]);
+  const [modelHostDigest, packagesState, qualificationDigest, qualificationState, skillState] =
+    await Promise.all([
+      calculateQualificationModelHostDigest(),
+      inspectGitRepositoryState(packagesRepository, {
+        excludedRelativePathPrefixes: ['qualification'],
+      }),
+      calculateQualificationExecutionDigest({
+        caseIds: target.profile.cases.map(({ id }) => id),
+        profileDirectory: target.profileDirectory,
+      }),
+      inspectGitRepositoryState(SKILL_REPOSITORY_ROOT, {
+        includedRelativePathPrefixes: QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
+        excludedRelativePathPrefixes: ['qualification/results'],
+      }),
+      inspectGitRepositoryState(skillRepository),
+    ]);
   const packagesDigest = calculatePackagesQualificationDigest({
     adapter: target.adapter,
     matrixVersion: target.matrix.version,
@@ -153,6 +156,7 @@ const inspectQualificationInputState = async (
   );
 
   return {
+    modelHostDigest,
     packagesDigest,
     packagesState,
     qualificationBaselineDigest,
@@ -346,7 +350,7 @@ export const runQualification = async (
     checkpoint.skillRepository,
     target,
   );
-  const { packagesState, qualificationState, skillState } = inputState;
+  const { modelHostDigest, packagesState, qualificationState, skillState } = inputState;
   const { qualificationDigest } = inputState;
 
   if (
@@ -885,8 +889,8 @@ export const runQualification = async (
                 ? {}
                 : { operationalRetry: options.operationalRetry }),
               packagesRepository: checkpoint.packagesRepository,
+              modelHostDigest,
               profileDigest: checkpoint.profileDigest,
-              qualificationDigest,
               project,
               restorePreActorState: () =>
                 restoreQualificationProjectSnapshot(project, preActorSnapshotDirectory),
@@ -1108,8 +1112,8 @@ export const runQualification = async (
                   ? {}
                   : { operationalRetry: options.operationalRetry }),
                 packagesRepository: checkpoint.packagesRepository,
+                modelHostDigest,
                 profileDigest: checkpoint.profileDigest,
-                qualificationDigest,
                 project,
                 signal: options.signal,
                 skillDigest: checkpoint.skillDigest,

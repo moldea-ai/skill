@@ -248,7 +248,7 @@ describe('qualification model stages', () => {
       isDryRun: true,
       packagesRepository: '/packages',
       profileDigest: 'd'.repeat(64),
-      qualificationDigest: 'e'.repeat(64),
+      modelHostDigest: 'e'.repeat(64),
       project,
       skillDigest: 'f'.repeat(64),
       targetDigest: '1'.repeat(64),
@@ -365,7 +365,7 @@ describe('qualification model stages', () => {
         judgeWorkspaceDirectory: path.join(temporaryRoot, 'judge-workspace'),
         packagesRepository: '/packages',
         profileDigest: 'd'.repeat(64),
-        qualificationDigest: 'e'.repeat(64),
+        modelHostDigest: 'e'.repeat(64),
         project,
         skillDigest: 'f'.repeat(64),
         targetDigest: '1'.repeat(64),
@@ -504,7 +504,7 @@ describe('qualification model stages', () => {
         isDryRun: false,
         packagesRepository: '/packages',
         profileDigest: 'd'.repeat(64),
-        qualificationDigest: 'e'.repeat(64),
+        modelHostDigest: 'e'.repeat(64),
         project,
         skillDigest: 'f'.repeat(64),
         targetDigest: '1'.repeat(64),
@@ -653,7 +653,7 @@ describe('qualification model stages', () => {
       },
       packagesRepository: '/packages',
       profileDigest: 'd'.repeat(64),
-      qualificationDigest: 'e'.repeat(64),
+      modelHostDigest: 'e'.repeat(64),
       project,
       restorePreActorState: () =>
         restoreQualificationWorkspaceSnapshot(workspaceDirectory, preActorSnapshotDirectory),
@@ -838,7 +838,7 @@ describe('qualification model stages', () => {
       },
       packagesRepository: '/packages',
       profileDigest: 'd'.repeat(64),
-      qualificationDigest: 'e'.repeat(64),
+      modelHostDigest: 'e'.repeat(64),
       project,
       skillDigest: 'f'.repeat(64),
       targetDigest: '1'.repeat(64),
@@ -861,6 +861,7 @@ describe('qualification model stages', () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-model-stage-cache-recovery-'));
     const workspaceDirectory = path.join(temporaryRoot, 'workspace');
     const cacheRoot = path.join(temporaryRoot, 'cache');
+    const changedHostArtifactDirectory = path.join(temporaryRoot, 'changed-host-artifacts');
     const sourceArtifactDirectory = path.join(temporaryRoot, 'source-artifacts');
     const cachedArtifactDirectory = path.join(temporaryRoot, 'cached-artifacts');
     const confirmationArtifactDirectory = path.join(temporaryRoot, 'confirmation-artifacts');
@@ -870,6 +871,7 @@ describe('qualification model stages', () => {
     const skillDirectory = path.join(workspaceDirectory, MOUNTED_SKILL_RELATIVE_PATH);
     await Promise.all([
       ensureDirectory(candidateDirectory),
+      ensureDirectory(changedHostArtifactDirectory),
       ensureDirectory(sourceArtifactDirectory),
       ensureDirectory(cachedArtifactDirectory),
       ensureDirectory(confirmationArtifactDirectory),
@@ -944,7 +946,7 @@ describe('qualification model stages', () => {
       isDryRun: false,
       packagesRepository: '/packages',
       profileDigest: 'd'.repeat(64),
-      qualificationDigest: 'e'.repeat(64),
+      modelHostDigest: 'e'.repeat(64),
       project,
       skillDigest: 'f'.repeat(64),
       targetDigest: '1'.repeat(64),
@@ -1046,6 +1048,34 @@ describe('qualification model stages', () => {
       useCache: true,
       workspaceAssertions,
     });
+    let changedHostCalls = 0;
+    await executeActorModelStage({
+      ...commonOptions,
+      attemptId: 'changed-host-attempt',
+      caseArtifactDirectory: changedHostArtifactDirectory,
+      host: new FakeCodexHost({
+        actor: (input) => {
+          changedHostCalls += 1;
+          return Promise.resolve({
+            output: {
+              outcome: input.scenario.expectedActorOutcome,
+              summary: 'Executed for the changed model host.',
+              changedFiles: [],
+              observations: [],
+              unresolved: [],
+            },
+            usage: null,
+            durationMs: 0,
+            commandPolicy: emptyCommandPolicy,
+            events: '',
+          });
+        },
+      }),
+      modelHostDigest: '2'.repeat(64),
+      snapshotDirectory: path.join(temporaryRoot, 'changed-host-actor-snapshot'),
+      trialId: 'initial',
+      useCache: true,
+    });
     let confirmationActorCalls = 0;
     let confirmationJudgeCalls = 0;
     const confirmationHost = new FakeCodexHost({
@@ -1115,6 +1145,7 @@ describe('qualification model stages', () => {
     expect(cachedActor.evidence.cacheSourceAttemptId).toBe('source-attempt');
     expect(cachedJudge.evidence.cacheSourceAttemptId).toBe('source-attempt');
     expect(cachedJudge.output.verdict).toBe('fail');
+    expect(changedHostCalls).toBe(1);
     expect(confirmationActorCalls).toBe(1);
     expect(confirmationJudgeCalls).toBe(1);
     expect(confirmationActor.evidence.cacheSourceAttemptId).toBeNull();

@@ -272,10 +272,11 @@ export const prepareCandidateClosure = async (
   const manifests = await resolvePublishedPackageClosure({
     cliVersion,
     selectedPackageName: options.adapterPackage,
+    signal: options.signal,
   });
   const runtimePackageManifests = await Promise.all(
     (options.runtimePackages ?? []).map(({ name, version }) =>
-      resolvePublishedPackageManifest({ packageName: name, version }),
+      resolvePublishedPackageManifest({ packageName: name, signal: options.signal, version }),
     ),
   );
   const candidateOwnedPackageNames = new Set([...manifests.map(({ name }) => name), 'typescript']);
@@ -290,6 +291,7 @@ export const prepareCandidateClosure = async (
   }
   const typeScriptManifest = await resolvePublishedPackageManifest({
     packageName: 'typescript',
+    signal: options.signal,
     version: qualificationManifest.devDependencies.typescript,
   });
   const fingerprint = createCandidateFingerprint(
@@ -317,10 +319,12 @@ export const prepareCandidateClosure = async (
       artifactDirectory: cacheDirectory,
       manifests,
       selectedPackageName: options.adapterPackage,
+      signal: options.signal,
     });
     const typeScriptPackage = await downloadPublishedPackageArtifact({
       artifactDirectory: path.join(cacheDirectory, 'fixture-tools'),
       manifest: typeScriptManifest,
+      signal: options.signal,
     });
     const runtimePackages = [];
 
@@ -329,6 +333,7 @@ export const prepareCandidateClosure = async (
         await downloadPublishedPackageArtifact({
           artifactDirectory: path.join(cacheDirectory, 'fixture-runtime'),
           manifest: runtimePackageManifest,
+          signal: options.signal,
         }),
       );
     }

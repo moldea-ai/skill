@@ -19,7 +19,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(customProfileLink.locator('img')).toHaveCount(0);
   await expect(
     customProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('5');
+  ).toContainText('8');
 
   const anthropicProfileLink = page.getByRole('link', {
     name: /Anthropic Messages API qualification/,
@@ -31,18 +31,18 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(anthropicCompanyLogo).toBeVisible();
   await expect(
     anthropicProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('1');
+  ).toContainText('3');
 
   const claudeProfileLink = page.getByRole('link', {
     name: /Claude Agent SDK qualification/,
   });
   await expect(
-    claudeProfileLink.locator('[data-evidence-status][data-evidence-status="failed"]'),
+    claudeProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
   ).toBeVisible();
   await expect(claudeProfileLink.getByAltText('Anthropic company logo')).toBeVisible();
   await expect(
     claudeProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('1');
+  ).toContainText('4');
 
   const vercelProfileLink = page.getByRole('link', {
     name: /Vercel AI SDK direct generation qualification/,
@@ -53,7 +53,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(vercelProfileLink.getByAltText('Vercel company logo')).toBeVisible();
   await expect(
     vercelProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('2');
+  ).toContainText('3');
 
   const toolLoopProfileLink = page.getByRole('link', {
     name: /Vercel AI SDK ToolLoopAgent qualification/,
@@ -64,7 +64,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(toolLoopProfileLink.getByAltText('Vercel company logo')).toBeVisible();
   await expect(
     toolLoopProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('2');
+  ).toContainText('3');
 
   const openAiResponsesProfileLink = page.getByRole('link', {
     name: /OpenAI Responses API qualification/,
@@ -84,19 +84,36 @@ test('represents the current qualification evidence state', async ({ page }) => 
   ).toBeVisible();
   await expect(eveProfileLink.getByAltText('Vercel company logo')).toBeVisible();
   await expect(eveProfileLink.getByText('Attempts', { exact: true }).locator('..')).toContainText(
-    '1',
+    '5',
   );
 
+  const langGraphStateGraphProfileLink = page.getByRole('link', {
+    name: /LangGraph StateGraph qualification/,
+  });
+  await expect(langGraphStateGraphProfileLink).toBeVisible();
+  await expect(langGraphStateGraphProfileLink.getByAltText('LangChain company logo')).toBeVisible();
+
   const anthropicCompanyLogos = page.getByAltText('Anthropic company logo');
+  const langChainCompanyLogos = page.getByAltText('LangChain company logo');
   const openAiCompanyLogos = page.getByAltText('OpenAI company logo');
   const vercelCompanyLogos = page.getByAltText('Vercel company logo');
 
   await expect(anthropicCompanyLogos).toHaveCount(2);
+  await expect(langChainCompanyLogos).toHaveCount(2);
   await expect(openAiCompanyLogos).toHaveCount(2);
   await expect(vercelCompanyLogos).toHaveCount(3);
   await expect
     .poll(() =>
       vercelCompanyLogos.evaluateAll((images) =>
+        images.every(
+          (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
+        ),
+      ),
+    )
+    .toBe(true);
+  await expect
+    .poll(() =>
+      langChainCompanyLogos.evaluateAll((images) =>
         images.every(
           (image) => image instanceof HTMLImageElement && image.complete && image.naturalWidth > 0,
         ),
@@ -130,6 +147,11 @@ test('represents the current qualification evidence state', async ({ page }) => 
   expect(
     await openAiCompanyLogos.first().evaluate((element) => getComputedStyle(element).filter),
   ).not.toBe('none');
+  expect(
+    await langChainCompanyLogos.evaluateAll((images) =>
+      images.every((image) => getComputedStyle(image).filter !== 'none'),
+    ),
+  ).toBe(true);
   expect(
     await anthropicCompanyLogos.evaluateAll((images) =>
       images.every((image) => getComputedStyle(image).filter === 'none'),
@@ -259,6 +281,8 @@ test('replays qualification evidence through human-readable and technical views'
 });
 
 test('keeps qualification evidence accessible at 320px in both themes', async ({ browser }) => {
+  test.slow();
+
   for (const colorScheme of ['light', 'dark'] as const) {
     const context = await browser.newContext({
       colorScheme,
@@ -284,6 +308,9 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
     const eveProfileRoute = toPublicPath(
       '/evidence/qualification/eve/typescript-filesystem-agent-0-39/',
     );
+    const langGraphStateGraphProfileRoute = toPublicPath(
+      '/evidence/qualification/langgraph/typescript-state-graph-1-4/',
+    );
     const routes = [
       toPublicPath('/evidence/qualification/'),
       profileRoute,
@@ -291,6 +318,7 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
       openAiResponsesProfileRoute,
       openAiAgentsProfileRoute,
       eveProfileRoute,
+      langGraphStateGraphProfileRoute,
       vercelProfileRoute,
       toolLoopProfileRoute,
     ];

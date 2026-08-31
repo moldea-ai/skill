@@ -1,0 +1,25 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: langgraph
+    bindings:
+      runtimeAgent:
+        path: /src/support-workflow.ts
+        symbol: supportWorkflow
+      inputSchema:
+        path: /src/support-workflow.ts
+        symbol: SupportInputSchema
+      outputSchema:
+        path: /src/support-workflow.ts
+        symbol: SupportOutputSchema
+    affectedBy:
+      - /src/**
+    unresolved:
+      dynamic-command-routing:
+        category: routing
+        effect: warning
+        description: Command destinations are selected from runtime input and cannot be reconstructed as a complete static topology.
+        resolution: Replace runtime-selected destinations with supported direct static edges when canonical routing evidence is required, or retain this explicit boundary.
+        related:
+          - path: /src/dynamic-routing.ts

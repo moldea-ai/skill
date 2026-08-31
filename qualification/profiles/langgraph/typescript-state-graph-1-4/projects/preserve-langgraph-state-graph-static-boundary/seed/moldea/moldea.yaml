@@ -1,0 +1,28 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: langgraph
+    bindings:
+      runtimeAgent:
+        path: /src/support-graph.ts
+        symbol: supportGraph
+      inputSchema:
+        path: /src/support-graph.ts
+        symbol: SupportInputSchema
+      outputSchema:
+        path: /src/support-graph.ts
+        symbol: SupportOutputSchema
+    affectedBy:
+      - /src/support-graph.ts
+  dynamic-support:
+    runtime:
+      id: langgraph
+    bindings:
+      runtimeAgent:
+        path: /src/dynamic-support-graph.ts
+        symbol: dynamicSupportGraph
+    affectedBy:
+      - /src/dynamic-support-graph.ts
+      - /src/runtime-boundaries.ts
+      - /src/prebuilt-boundary.ts

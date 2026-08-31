@@ -140,3 +140,13 @@ cases:
     layer: adapter-specific
     description: Represent dynamic capabilities and unsupported filesystem sources without claiming evidence that the adapter cannot prove.
     challenge: Tests conservative handling of dynamic tools, Markdown skills, single-file subagents, remote agents, extensions, and instruction composition.
+  - id: repair-langgraph-state-schema
+    title: Repair LangGraph StateGraph schema binding
+    layer: adapter-specific
+    description: Reconcile a declared agent input schema with the direct schema wired by a closed StateGraph initializer using exact adapter diagnostics and source evidence.
+    challenge: Requires correcting canonical schema identity without changing the valid compiled graph, graph operations, or schema declarations.
+  - id: preserve-langgraph-state-graph-static-boundary
+    title: Preserve the LangGraph StateGraph static boundary
+    layer: adapter-specific
+    description: Represent dynamic routing, opaque schemas, runtime semantics, and higher-level graph surfaces without claiming evidence that the adapter cannot prove.
+    challenge: Tests conservative handling of Command and Send destinations, graph-node non-capabilities, partial topology, persistence, runtime context, prebuilt agents, and supervisor composition.

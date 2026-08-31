@@ -1,0 +1,64 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: langgraph
+      guidance: /moldea/runtimes/langgraph-state-graph-static-boundaries.md
+    bindings:
+      runtimeAgent:
+        path: /src/support-graph.ts
+        symbol: supportGraph
+      inputSchema:
+        path: /src/support-graph.ts
+        symbol: SupportInputSchema
+      outputSchema:
+        path: /src/support-graph.ts
+        symbol: SupportOutputSchema
+    affectedBy:
+      - /src/support-graph.ts
+    unresolved:
+      runtime-semantics:
+        category: runtime-binding
+        effect: warning
+        description: Node metadata, compiled descriptions, reducers, subgraphs, persistence, stores, caches, runtime context, prebuilt agents, and supervisor composition are not semantically established by static graph evidence.
+        resolution: Keep repository-specific runtime behavior in the shared runtime guide and verify it at the owning integration boundary.
+        related:
+          - path: /src/support-graph.ts
+          - path: /src/runtime-boundaries.ts
+          - path: /src/prebuilt-boundary.ts
+      node-capabilities:
+        category: tool-registration
+        effect: warning
+        description: Graph position and node-local lookup behavior do not establish manifest tools, skills, handoffs, or subagents.
+        resolution: Declare a capability only through a separately supported canonical and runtime registration relationship.
+        related:
+          - path: /src/support-graph.ts
+          - path: /src/prebuilt-boundary.ts
+  dynamic-support:
+    runtime:
+      id: langgraph
+      guidance: /moldea/runtimes/langgraph-state-graph-static-boundaries.md
+    bindings:
+      runtimeAgent:
+        path: /src/dynamic-support-graph.ts
+        symbol: dynamicSupportGraph
+    affectedBy:
+      - /src/dynamic-support-graph.ts
+      - /src/runtime-boundaries.ts
+      - /src/prebuilt-boundary.ts
+    unresolved:
+      opaque-schema:
+        category: schema
+        effect: warning
+        description: The state schema comes from a factory, so static inspection cannot establish canonical input- or output-schema relationships.
+        resolution: Use direct immutable schema values in one closed modern StateGraph initializer when canonical schema evidence is required.
+        related:
+          - path: /src/dynamic-support-graph.ts
+      dynamic-routing:
+        category: routing
+        effect: warning
+        description: Conditional routing plus Command and Send destinations depend on runtime values and do not prove static destinations, handoffs, subagents, parent navigation, or complete topology.
+        resolution: Use supported direct static edges for invariant routes, and retain explicit runtime guidance for genuinely dynamic destinations.
+        related:
+          - path: /src/dynamic-support-graph.ts
+          - path: /src/runtime-boundaries.ts

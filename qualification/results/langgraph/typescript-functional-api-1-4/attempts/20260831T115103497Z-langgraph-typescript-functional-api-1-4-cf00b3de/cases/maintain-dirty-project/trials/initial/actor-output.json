@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing guidance, bound it to `classifyBillingQuestion`, and attached it to the `support` agent for refund and invoice questions. Moldea inspect/validate returned valid with no diagnostics, and TypeScript checking passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md"
+  ],
+  "observations": [
+    "The Functional API entrypoint and direct `answer_support_question` task remain unchanged.",
+    "No manifest tool, schema, routing, handoff, or approval behavior was added.",
+    "The complete tracked diff and new untracked context file were reviewed. Pre-existing changes in `src/operator-notes.ts` and `notes/` remain untouched.",
+    "Canonical state now records the billing implementation binding, billing impact paths, and support’s context relationship."
+  ],
+  "unresolved": [
+    "Repository evidence does not establish runtime loading of canonical instructions or context into a model invocation; the direct task still returns its existing review-required response. No unsupported runtime-consumption claim was made."
+  ]
+}

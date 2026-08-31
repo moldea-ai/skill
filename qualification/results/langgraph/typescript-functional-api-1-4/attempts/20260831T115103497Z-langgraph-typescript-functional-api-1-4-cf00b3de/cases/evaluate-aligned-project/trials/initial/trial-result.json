@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 450919,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 708766,
+    "cachedInputTokens": 618496,
+    "outputTokens": 4518
+  },
+  "judgeUsage": {
+    "inputTokens": 434995,
+    "cachedInputTokens": 361984,
+    "outputTokens": 3389
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T11:55:31.985Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T11:58:46.267Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-entrypoints",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds support to /src/workflows.ts#supportWorkflow and summary to /src/workflows.ts#summaryWorkflow. src/workflows.ts directly exports both symbols using entrypoint(...), matching the actor’s explanation. Deterministic inspection reports valid."
+    },
+    {
+      "id": "explains-positive-patterns",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/workflows.ts shows supportWorkflow calling getPreviousState<ISupportSavedState>(), awaiting imported lookupOrder, and returning entrypoint.final with value and save; summaryWorkflow directly awaits/returns imported summarizeRequest. src/tasks.ts defines lookup_order and summarize_request with task(...). The actor identifies these patterns and explicitly treats the interfaces only as static types, not executable schemas."
+    },
+    {
+      "id": "respects-static-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains only runtime IDs, runtimeAgent bindings, and affectedBy paths; the canonical agent tree contains only descriptions and instructions. No manifest tools, skills, schemas, subagents, handoffs, provider, model, routing, or approval relationships are present. The actor explicitly declined those inferences. Deterministic evidence reports no diagnostics and repositoryUnchanged=true."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

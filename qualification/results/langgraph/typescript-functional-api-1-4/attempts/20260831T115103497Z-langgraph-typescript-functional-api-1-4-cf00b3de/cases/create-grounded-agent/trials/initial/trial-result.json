@@ -1,0 +1,62 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 581079,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1292125,
+    "cachedInputTokens": 1205760,
+    "outputTokens": 6950
+  },
+  "judgeUsage": {
+    "inputTokens": 411114,
+    "cachedInputTokens": 367104,
+    "outputTokens": 3714
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T12:12:33.221Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T12:16:13.152Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `description.md` says the agent classifies orders for human review and cannot approve refunds. `instruction.md` specifies `refund-review` for `R-` IDs, `fulfillment` otherwise, always requires human review, and prohibits refund approval and account changes. This matches `src/order-triage-workflow.ts`, where both categories set `requiresHumanReview: true`. Workspace assertions identify only these canonical additions and the manifest update, with current hashes matching the asserted after-state."
+    },
+    {
+      "id": "binds-direct-entrypoint",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` binds `runtimeAgent` to `/src/order-triage-workflow.ts` with symbol `orderTriageWorkflow`. The source directly exports that exact symbol as the `entrypoint(...)` result. The manifest declares no schemas or relationships derived from `IOrderTriageResult`. Deterministic inspection and validation are valid, and type-checking passed."
+    },
+    {
+      "id": "preserves-task-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The complete manifest contains only the `langgraph` runtime and `runtimeAgent` binding for this agent. It does not register `classifyOrder`, `classify_order`, `interrupt`, tools, skills, subagents, handoffs, routing targets, schemas, providers, models, or approval authority. The source retains `task(...)` and `interrupt(...)` solely as runtime implementation patterns. Workspace assertions show no changed paths beyond the manifest and two agent prose assets, while deterministic post-actor checks passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

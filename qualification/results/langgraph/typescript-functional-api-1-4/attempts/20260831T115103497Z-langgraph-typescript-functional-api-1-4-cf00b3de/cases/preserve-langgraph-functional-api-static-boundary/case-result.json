@@ -1,0 +1,84 @@
+{
+  "caseId": "preserve-langgraph-functional-api-static-boundary",
+  "title": "Preserve the LangGraph Functional API static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 760786,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 760786,
+      "deterministicBeforePath": "cases/preserve-langgraph-functional-api-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-langgraph-functional-api-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-langgraph-functional-api-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-langgraph-functional-api-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-langgraph-functional-api-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-langgraph-functional-api-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1595184,
+        "cachedInputTokens": 1510400,
+        "outputTokens": 8694
+      },
+      "judgeUsage": {
+        "inputTokens": 388811,
+        "cachedInputTokens": 346880,
+        "outputTokens": 3860
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T13:18:53.939Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T13:22:36.427Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "preserves-direct-patterns",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/support-workflow.ts retains the supportWorkflow binding, direct lookupOrder task call, getPreviousState read, interrupt call, and entrypoint.final separation of value and save. Its before/after SHA-256 is unchanged, and the guide records these patterns without schema inference."
+        },
+        {
+          "id": "preserves-typescript-schema-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Both workflow sources retain their TypeScript input/result/state contracts unchanged. moldea/moldea.yaml declares runtime schemas from TypeScript types unresolved, while the guide explicitly says the types are not runtime schema bindings. No schema relationships appear in the manifest."
+        },
+        {
+          "id": "preserves-control-flow-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/dynamic-support-workflow.ts remains unchanged and still selects a task from input.route, invokes it transitively through runSelectedTask, and calls summarize inside a callback. The guide states this does not establish a complete task graph, routing, handoffs, subagents, or topology; no such relationships were added."
+        },
+        {
+          "id": "keeps-tasks-outside-capabilities",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The current manifest contains only unresolved, agents, runtime, bindings, guidance, and affectedBy entries. It declares no tools, skills, handoffs, subagents, or task capabilities. The workspace patch changes only the manifest and runtime guide."
+        },
+        {
+          "id": "preserves-runtime-semantics-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest leaves checkpointer, replay, idempotency, interrupt, and approval semantics unresolved. The runtime guide says RUNTIME_COMPOSITION labels ownership but does not configure or prove those behaviors and requires runtime configuration or integration evidence."
+        },
+        {
+          "id": "records-focused-guidance",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Both support and dynamic-support reference /moldea/runtimes/langgraph-functional-api.md. It is the sole file under moldea/runtimes and concisely covers lexical/direct-call limits, dynamic callbacks/helpers, task capability limits, TypeScript schema limits, routing/topology limits, and unresolved runtime semantics."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

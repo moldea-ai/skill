@@ -102,8 +102,16 @@ test('represents the current qualification evidence state', async ({ page }) => 
     name: /LangGraph Functional API qualification/,
   });
   await expect(
+    langGraphFunctionalApiProfileLink.locator(
+      '[data-evidence-status][data-evidence-status="passed"]',
+    ),
+  ).toBeVisible();
+  await expect(
     langGraphFunctionalApiProfileLink.getByAltText('LangChain company logo'),
   ).toBeVisible();
+  await expect(
+    langGraphFunctionalApiProfileLink.getByText('Attempts', { exact: true }).locator('..'),
+  ).toContainText('1');
 
   const anthropicCompanyLogos = page.getByAltText('Anthropic company logo');
   const langChainCompanyLogos = page.getByAltText('LangChain company logo');

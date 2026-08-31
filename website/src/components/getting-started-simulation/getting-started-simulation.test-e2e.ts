@@ -27,7 +27,9 @@ test('shows the complete initialization journey including conditional clarificat
     page.getByRole('heading', { level: 2, name: 'One install. One ordinary request.' }),
   ).toBeVisible();
   await expect(simulation.getByText('npx skills add moldea-ai/skill')).toBeVisible();
-  await expect(simulation.getByText('Initialize moldea')).toBeVisible();
+  const initializationRequest = simulation.getByText('Initialize moldea', { exact: true });
+  await expect(initializationRequest).toBeVisible();
+  await expect(initializationRequest.locator('code')).toHaveText('moldea');
   await expect(simulation.getByText('Reads your project')).toBeVisible();
   await expect(simulation.getByText('Clarifies only when needed')).toBeVisible();
   await expect(

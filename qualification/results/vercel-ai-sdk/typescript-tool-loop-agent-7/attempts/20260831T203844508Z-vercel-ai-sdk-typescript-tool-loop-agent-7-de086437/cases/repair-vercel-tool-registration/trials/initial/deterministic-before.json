@@ -1,0 +1,449 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "invalid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "invalid",
+    "cliInspectStatus": "invalid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 2912
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "VERCEL_AI_SDK_TOOL_NAME_MISMATCH"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 8,
+        "agentCount": 0
+      },
+      "memory": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "VERCEL_AI_SDK_TOOL_NAME_MISMATCH"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 8,
+        "agentCount": 0
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "invalid",
+      "result": {
+        "diagnostics": [
+          {
+            "code": "VERCEL_AI_SDK_TOOL_NAME_MISMATCH",
+            "details": {},
+            "entity": {
+              "adapterId": "vercel-ai-sdk",
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool"
+            },
+            "message": "The declared tool name does not match the detected Vercel AI SDK tools-map key.",
+            "path": "/src/tools.ts",
+            "pointer": null,
+            "range": {
+              "end": {
+                "column": 2,
+                "line": 10,
+                "offset": 306
+              },
+              "start": {
+                "column": 37,
+                "line": 6,
+                "offset": 199
+              }
+            },
+            "source": "vercel-ai-sdk"
+          }
+        ],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "invalid",
+      "result": {
+        "inspection": {
+          "diagnostics": [
+            {
+              "code": "VERCEL_AI_SDK_TOOL_NAME_MISMATCH",
+              "details": {},
+              "entity": {
+                "adapterId": "vercel-ai-sdk",
+                "agentId": "support",
+                "capabilityId": "lookup-order",
+                "capabilityKind": "tool"
+              },
+              "message": "The declared tool name does not match the detected Vercel AI SDK tools-map key.",
+              "path": "/src/tools.ts",
+              "pointer": null,
+              "range": {
+                "end": {
+                  "column": 2,
+                  "line": 10,
+                  "offset": 306
+                },
+                "start": {
+                  "column": 37,
+                  "line": 6,
+                  "offset": 199
+                }
+              },
+              "source": "vercel-ai-sdk"
+            }
+          ],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "support-runtime",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/agent.ts"
+                },
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "7.0.77",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "configurationProperty": "callOptionsSchema",
+                "schemaRole": "agent-input",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/agent.ts"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportInputSchema"
+                }
+              ],
+              "runtimeName": "SupportInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/agent.ts"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "inputSchema",
+                "schemaRole": "tool-input"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "LookupOrderInputSchema"
+                },
+                {
+                  "path": "/src/tools.ts"
+                }
+              ],
+              "runtimeName": "LookupOrderInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "outputSchema",
+                "schemaRole": "tool-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "LookupOrderOutputSchema"
+                },
+                {
+                  "path": "/src/tools.ts"
+                }
+              ],
+              "runtimeName": "LookupOrderOutputSchema",
+              "source": "vercel-ai-sdk"
+            }
+          ],
+          "formatVersion": 1,
+          "project": null,
+          "valid": false
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

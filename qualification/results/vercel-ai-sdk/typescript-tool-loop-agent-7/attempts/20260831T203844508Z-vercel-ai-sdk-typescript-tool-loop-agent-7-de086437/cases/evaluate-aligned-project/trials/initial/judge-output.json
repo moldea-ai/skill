@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The actor report, current workspace, and deterministic post-actor evidence agree: canonical declarations match the two direct ToolLoopAgent definitions, their loaders and schemas, and the closed support-tool relationship. Validation passed and the repository remained unchanged.",
+  "requirements": [
+    {
+      "id": "explains-direct-patterns",
+      "verdict": "pass",
+      "evidence": "The actor explains that supportAgent and summaryAgent are direct ToolLoopAgent definitions in /src/agents.ts, that loadSupportInstruction and loadSummaryInstruction load the corresponding canonical instruction.md files, and that SupportInputSchema and SummaryInputSchema match callOptionsSchema. The inspected source confirms each complete binding, and deterministic inspection reports valid."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "verdict": "pass",
+      "evidence": "The actor states that each declared output schema matches Output.object({ schema: ... }) and that only support registers find_order, with matching registration, implementation, input schema, and output schema. Current files confirm SupportOutputSchema and SummaryOutputSchema bindings plus findOrderTool -> findOrder with FindOrderInputSchema and FindOrderOutputSchema. Deterministic validation passed."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "The actor explicitly reports that it inferred no provider, model, routing, handoff, subagent, or related runtime-pattern relationships. Its substantive observations remain limited to direct ToolLoopAgent construction, instruction loading, schemas, structured output, and the closed function-tool registration."
+    }
+  ],
+  "failures": []
+}

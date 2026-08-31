@@ -1,0 +1,84 @@
+{
+  "caseId": "preserve-vercel-static-boundary",
+  "title": "Preserve the Vercel static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 610242,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 610242,
+      "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1456343,
+        "cachedInputTokens": 1372416,
+        "outputTokens": 8109
+      },
+      "judgeUsage": {
+        "inputTokens": 341958,
+        "cachedInputTokens": 268544,
+        "outputTokens": 3079
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T21:57:02.023Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T22:00:17.062Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "preserves-prepare-call-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml registers only supportAgent's runtimeAgent and SupportCallOptionsSchema bindings. Its separate warning states that prepareCall leaves the instruction loader, output schema, and tools unresolved. The deterministic post-actor checks passed."
+        },
+        {
+          "id": "preserves-prepare-step-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml preserves stepSupportAgent's runtimeAgent, inputSchema, outputSchema, and complete get_status tool bindings while omitting only instructionLoader and recording prepareStep instruction provenance as a warning. This agrees with src/step-support-agent.ts and the valid deterministic result."
+        },
+        {
+          "id": "does-not-infer-subagent-handoff",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The delegating-support manifest entry preserves delegate_support implementation, registration, input-schema, and output-schema bindings, with no routing, handoff, or subagent declaration. src/delegation.ts directly calls stepSupportAgent.generate, and workspace assertions show all delegation source files were unchanged."
+        },
+        {
+          "id": "keeps-workflow-agent-outside-target",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/workflow-agent.mts still exports workflowSupportAgent using WorkflowAgent, but moldea/moldea.yaml contains no workflow target or relationship. Workspace assertions show the source file was preserved unchanged, and the patch changed only canonical manifest/guidance files."
+        },
+        {
+          "id": "records-focused-guidance",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Both support and step-support reference /moldea/runtimes/vercel-preparation-boundaries.md. It is the sole file under moldea/runtimes and distinctly documents the prepareCall and prepareStep inspection limits as project-specific static boundaries without claiming provider behavior."
+        },
+        {
+          "id": "records-unresolved-boundaries",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml contains separate prepare-call-static-boundary and prepare-step-instruction-static-boundary entries, both with effect: warning. Each names the affected callback and related source symbols and specifies repository-local integration tests proving the relationship-specific effective settings."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

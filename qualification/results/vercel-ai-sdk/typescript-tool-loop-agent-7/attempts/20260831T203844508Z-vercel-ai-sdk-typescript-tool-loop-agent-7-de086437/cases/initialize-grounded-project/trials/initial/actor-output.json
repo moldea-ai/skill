@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized moldea with evidence-backed project context, preserved the existing README, added the standard awareness block, and validated the resulting canonical state. Local CLI inspection returned valid with schema 2, CLI 5.0.0, format version 1, and no diagnostics. TypeScript validation also passed.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "README.md establishes that the service extracts invoice anomalies for operator review and never approves payment or changes invoices.",
+    "src/invoice-review.ts establishes that reviewInvoice calculates total minus expectedTotal and flags differing totals for operator review.",
+    "The final hardened Git status showed only README.md modified and moldea/ added; the tracked README diff and both untracked canonical files were inspected.",
+    "The project is now adopted: moldea/moldea.yaml and moldea/project.md are valid and the README contains one correctly ordered awareness block.",
+    "No agent, runtime guide, decision, focused context, or unresolved requirement was created because repository evidence did not justify one."
+  ],
+  "unresolved": []
+}

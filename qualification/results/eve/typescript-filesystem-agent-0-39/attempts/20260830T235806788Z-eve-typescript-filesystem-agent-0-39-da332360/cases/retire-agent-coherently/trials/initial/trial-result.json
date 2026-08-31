@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 376391,
+  "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 706466,
+    "cachedInputTokens": 650752,
+    "outputTokens": 5454
+  },
+  "judgeUsage": {
+    "inputTokens": 705341,
+    "cachedInputTokens": 660224,
+    "outputTokens": 4465
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T00:41:14.490Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T00:43:58.584Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "removes-obsolete-declaration",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml contains only `version: 1`; the support description and instruction paths are absent. The Git diff removes the complete `agents.support` declaration, including Eve runtime, runtimeAgent, instructionLoader, outputSchema, and `/agent/**` relationship, and deletes both canonical support assets. Deterministic post-actor inspection and validation are valid with no failures, and workspace assertions confirm exactly those three actor-changed paths while preserving the remaining source files."
+    },
+    {
+      "id": "removes-orphaned-assets",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "preserves-surviving-context",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,72 @@
+{
+  "caseId": "evaluate-aligned-project",
+  "title": "Evaluate an aligned project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 350826,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 350826,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 989878,
+        "cachedInputTokens": 923648,
+        "outputTokens": 5679
+      },
+      "judgeUsage": {
+        "inputTokens": 585312,
+        "cachedInputTokens": 537856,
+        "outputTokens": 4115
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T00:01:25.159Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T00:04:08.788Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-filesystem-definitions",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`agent/agent.ts` defines the root Eve agent represented by `support`; `agent/subagents/summary/agent.ts` defines the directory-backed local `summary` subagent. `moldea/moldea.yaml` binds those exact paths and default exports. The actor identifies both mappings accurately, and deterministic inspection reports valid."
+        },
+        {
+          "id": "explains-exclusive-instructions",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/moldea.yaml` binds support's instruction loader to `loadSupportInstruction` in `agent/loaders.ts`, while summary is bound directly to the lowercase Markdown path `agent/subagents/summary/instructions.md`. The actor distinguishes these exclusive sources accurately."
+        },
+        {
+          "id": "explains-capability-bindings",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest binds `SupportOutputSchema`, `SummaryOutputSchema`, `FindOrderInputSchema`, and `FindOrderOutputSchema` from `agent/contracts.ts`; `find_order` is registered at `agent/tools/find_order.ts` and executes `findOrder` from `agent/implementations.ts`; `analyze` is defined and registered from `agent/skills/analyze.ts`. The summary agent exists under `agent/subagents/summary`, and its canonical handoff description matches its description. These facts agree with the actor report and valid deterministic inspection/typecheck results."
+        },
+        {
+          "id": "respects-static-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor explicitly limits its conclusions to repository, type-system, and deterministic Eve adapter evidence and states that it inferred no provider, model, remote-agent, extension, connection, or runtime-only relationship. Although model literals exist in agent source, the report does not interpret or claim relationships from them."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

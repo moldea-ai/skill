@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Preserved all source files and existing supported Eve relationships. Added four focused warning requirements and one concise Eve runtime guide. TypeScript validation passed; moldea CLI 5.0.0 inspection returned schema 2, status valid, and no diagnostics. Final worktree changes were reviewed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/eve.md"
+  ],
+  "observations": [
+    "Canonical relationships remain limited to the nested support agent, exact lowercase Markdown instructions, output schema, static status tool, TypeScript triage skill, and runtime guide.",
+    "No provider, model, agent, subagent, or network operation was invoked.",
+    "The repository is moldea-adopted; canonical state changed coherently and all working source files remain unchanged."
+  ],
+  "unresolved": [
+    "Runtime registration and behavior of the dynamic tool remain unproven.",
+    "The flat and packaged Markdown skills remain unproven as registered capabilities.",
+    "The single-file subagent candidate remains unproven as a routed local subagent.",
+    "The case-varied, composed, and legacy instruction examples remain unproven as active instructions.",
+    "Remote agents, extension contributions, connection and framework tools, filesystem collisions, reserved names, and advanced runtime behavior still require runtime evidence or a supported static form."
+  ]
+}

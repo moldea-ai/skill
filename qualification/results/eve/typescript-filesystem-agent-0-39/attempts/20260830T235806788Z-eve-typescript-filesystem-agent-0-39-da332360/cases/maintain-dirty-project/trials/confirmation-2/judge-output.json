@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "Repository state, deterministic evidence, and workspace patch agree: billing guidance is canonical and correctly wired, while all Eve agent wiring remains unchanged. Validation and type checking passed, and unrelated dirty work was preserved.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "Current `moldea/context/billing.md` canonically defines refund and invoice classifications and human-review limits. `moldea/moldea.yaml` globally registers that context, binds it exactly to `/src/billing.ts` symbol `classifyBillingQuestion`, and assigns it to `support`. `moldea/agents/support/instruction.md` supplies the same refund/invoice behavior to the agent. Workspace patch evidence identifies exactly these three changed paths, and deterministic inspection reports valid Core/adapter state with no failures."
+    },
+    {
+      "id": "preserves-eve-wiring",
+      "verdict": "pass",
+      "evidence": "Current state retains `support.runtime.id: eve`; `/agent/agent.ts` still default-exports the same `defineAgent` root with `SupportOutputSchema`; `/agent/instructions.ts` exclusively loads `loadSupportInstruction()` through `defineInstructions`; `/agent/loaders.ts` still reads the canonical support instruction; and the manifest retains the exact runtimeAgent, instructionLoader, and outputSchema bindings. Before/after hashes for all four agent TypeScript files are identical, none appears in `changedPaths`, deterministic validation passed, and TypeScript checking passed."
+    }
+  ],
+  "failures": []
+}

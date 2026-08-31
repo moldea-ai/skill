@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace and runner-owned patch evidence agree: initialization added only moldea/moldea.yaml, moldea/project.md, and the README awareness block. The project context accurately describes invoice anomaly review, numeric difference reporting, operator-review flagging, and the boundary that the service does not approve payment or change invoices. No agent, runtime guide, decision, focused context, or unresolved requirement exists or is referenced.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service compares invoice totals, reports the numeric difference, flags differing totals for operator review, and does not approve payment or change invoices. This agrees with README.md and src/invoice-review.ts, whose return value contains only difference and requiresOperatorReview."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "Runner-owned changedPaths contains exactly README.md, moldea/moldea.yaml, and moldea/project.md. The manifest contains only version: 1; targeted canonical inspection found no moldea/agents, moldea/runtimes, moldea/decisions, or moldea/context paths, and no Eve agent, runtime relationship, or unresolved requirement is declared."
+    }
+  ],
+  "failures": []
+}

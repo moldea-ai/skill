@@ -1,0 +1,29 @@
+{
+  "verdict": "fail",
+  "summary": "The supported Eve static relationships and focused unresolved boundaries are preserved, and deterministic validation passed. However, the new Eve runtime guide omits the required Node.js prerequisite, so the complete case does not qualify.",
+  "requirements": [
+    {
+      "id": "preserves-supported-static-relationships",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml canonically binds support to /agent/agent.ts, exact lowercase /agent/instructions.md, SupportOutputSchema, the static status defineTool module, and the TypeScript triage defineSkill module. Workspace assertions show all source-file hashes unchanged, and deterministic inspection and typechecking passed."
+    },
+    {
+      "id": "records-dynamic-and-markdown-boundaries",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains focused warning requirements dynamic-tool-runtime and markdown-skill-runtime, references /agent/tools/runtime.ts and both Markdown skill sources, and requires runtime evidence or supported static TypeScript forms before canonical registration. The sources remain unchanged and deterministic validation passed."
+    },
+    {
+      "id": "records-subagent-and-instruction-boundaries",
+      "verdict": "pass",
+      "evidence": "The single-file-subagent-runtime and instruction-examples-runtime warnings retain concrete source references without claiming registration. Their resolutions identify directory-backed subagents/<name>/agent.ts with separately registered routing and exact lowercase instructions.md or statically analyzable instructions.ts as supported alternatives."
+    },
+    {
+      "id": "records-operational-boundaries",
+      "verdict": "fail",
+      "evidence": "The workspace patch adds one concise guide at moldea/runtimes/eve.md covering remote agents, extension contributions, connection and framework tools, filesystem collisions, reserved names, and advanced runtime behavior. It contains no Node.js prerequisite. package.json declares engines.node >=24, but that prerequisite is not stated or distinguished in the required runtime guide."
+    }
+  ],
+  "failures": [
+    "Add the applicable Node.js prerequisite to moldea/runtimes/eve.md while preserving the guide's concise distinction between statically proved relationships and runtime-dependent behavior."
+  ]
+}

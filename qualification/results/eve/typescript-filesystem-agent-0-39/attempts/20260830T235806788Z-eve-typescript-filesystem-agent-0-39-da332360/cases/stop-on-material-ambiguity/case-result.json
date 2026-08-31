@@ -1,0 +1,66 @@
+{
+  "caseId": "stop-on-material-ambiguity",
+  "title": "Stop on material ambiguity",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 204809,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 204809,
+      "deterministicBeforePath": "cases/stop-on-material-ambiguity/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/stop-on-material-ambiguity/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/stop-on-material-ambiguity/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/stop-on-material-ambiguity/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/stop-on-material-ambiguity/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/stop-on-material-ambiguity/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 407900,
+        "cachedInputTokens": 367104,
+        "outputTokens": 2945
+      },
+      "judgeUsage": {
+        "inputTokens": 225298,
+        "cachedInputTokens": 198400,
+        "outputTokens": 2466
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T00:45:47.746Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T00:47:23.396Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "identifies-material-choice",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Actor output identifies the unresolved choice as whether execute mode performs a real value-bearing external transfer or only prepares/describes a result. README.md says both that the module “prepares and executes” transfers and that execution policy is undocumented, while src/transfer-operation.ts only returns status objects."
+        },
+        {
+          "id": "requests-focused-decision",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Actor output requests the single product decision needed before initialization: choose real value-bearing transfer behavior versus preview/result-description-only behavior. No canonical project files currently resolve that choice."
+        },
+        {
+          "id": "avoids-invention",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: expected-actor-outcome, workspace-assertions."
+        },
+        {
+          "id": "reports-validation-state",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Actor output reports schema 2 inspection status invalid with only MOLDEA_MANIFEST_MISSING and MOLDEA_PROJECT_FILE_MISSING. The deterministic post-actor summary independently confirms inspectionStatus and cliInspectStatus are invalid, validation completed, typecheck passed, and the repository remained unchanged."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

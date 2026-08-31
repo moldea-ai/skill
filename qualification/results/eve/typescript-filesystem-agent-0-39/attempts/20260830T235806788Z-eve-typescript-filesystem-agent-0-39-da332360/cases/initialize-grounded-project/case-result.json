@@ -1,0 +1,66 @@
+{
+  "caseId": "initialize-grounded-project",
+  "title": "Initialize a grounded project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 312018,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 312018,
+      "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 845103,
+        "cachedInputTokens": 747264,
+        "outputTokens": 5644
+      },
+      "judgeUsage": {
+        "inputTokens": 303870,
+        "cachedInputTokens": 267520,
+        "outputTokens": 3517
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T00:07:20.168Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T00:09:20.810Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-project",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/project.md states that the service compares invoice totals, reports the numeric difference, flags differing totals for operator review, and does not approve payment or change invoices. This agrees with README.md and src/invoice-review.ts, whose return value contains only difference and requiresOperatorReview."
+        },
+        {
+          "id": "keeps-foundation-minimal",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Runner-owned changedPaths contains exactly README.md, moldea/moldea.yaml, and moldea/project.md. The manifest contains only version: 1; targeted canonical inspection found no moldea/agents, moldea/runtimes, moldea/decisions, or moldea/context paths, and no Eve agent, runtime relationship, or unresolved requirement is declared."
+        },
+        {
+          "id": "preserves-existing-work",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

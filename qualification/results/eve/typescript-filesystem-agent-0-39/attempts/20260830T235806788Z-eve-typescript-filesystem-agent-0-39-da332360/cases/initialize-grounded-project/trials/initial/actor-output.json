@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized moldea from README and source evidence. Canonical state changed and the project is now adopted. Repository-local moldea CLI 5.0.0 inspection returned schema 2, status valid, format version 1, and zero diagnostics.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "README content was preserved and one correctly ordered standard moldea awareness block was added.",
+    "README establishes anomaly extraction for operator review and prohibits payment approval or invoice changes; src/invoice-review.ts corroborates total comparison, difference reporting, and operator-review flagging.",
+    "No agent, runtime guide, decision, or unresolved requirement was created.",
+    "Invocation, result delivery, persistence, and external integration behavior are not established by current evidence; this limitation is recorded in moldea/project.md.",
+    "Final hardened Git status and tracked README diff were reviewed. The two new canonical files were inspected directly.",
+    "Next actions: review the foundation if desired, or continue ordinary development."
+  ],
+  "unresolved": []
+}

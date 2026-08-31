@@ -1,0 +1,65 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "passed": false,
+  "durationMs": 379209,
+  "deterministicBeforePath": "cases/preserve-eve-static-boundary/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-eve-static-boundary/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-eve-static-boundary/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-eve-static-boundary/trials/confirmation-1/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-eve-static-boundary/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/preserve-eve-static-boundary/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1795039,
+    "cachedInputTokens": 1633792,
+    "outputTokens": 8558
+  },
+  "judgeUsage": {
+    "inputTokens": 327687,
+    "cachedInputTokens": 282112,
+    "outputTokens": 3585
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T01:14:32.445Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T01:16:16.247Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-supported-static-relationships",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml canonically binds support to /agent/agent.ts, exact lowercase /agent/instructions.md, SupportOutputSchema, the static status defineTool module, and the TypeScript triage defineSkill module. Workspace assertions show all source-file hashes unchanged, and deterministic inspection and typechecking passed."
+    },
+    {
+      "id": "records-dynamic-and-markdown-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains focused warning requirements dynamic-tool-runtime and markdown-skill-runtime, references /agent/tools/runtime.ts and both Markdown skill sources, and requires runtime evidence or supported static TypeScript forms before canonical registration. The sources remain unchanged and deterministic validation passed."
+    },
+    {
+      "id": "records-subagent-and-instruction-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The single-file-subagent-runtime and instruction-examples-runtime warnings retain concrete source references without claiming registration. Their resolutions identify directory-backed subagents/<name>/agent.ts with separately registered routing and exact lowercase instructions.md or statically analyzable instructions.ts as supported alternatives."
+    },
+    {
+      "id": "records-operational-boundaries",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "The workspace patch adds one concise guide at moldea/runtimes/eve.md covering remote agents, extension contributions, connection and framework tools, filesystem collisions, reserved names, and advanced runtime behavior. It contains no Node.js prerequisite. package.json declares engines.node >=24, but that prerequisite is not stated or distinguished in the required runtime guide."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": [
+    "Requirement records-operational-boundaries failed: The workspace patch adds one concise guide at moldea/runtimes/eve.md covering remote agents, extension contributions, connection and framework tools, filesystem collisions, reserved names, and advanced runtime behavior. It contains no Node.js prerequisite. package.json declares engines.node >=24, but that prerequisite is not stated or distinguished in the required runtime guide.",
+    "Add the applicable Node.js prerequisite to moldea/runtimes/eve.md while preserving the guide's concise distinction between statically proved relationships and runtime-dependent behavior."
+  ]
+}

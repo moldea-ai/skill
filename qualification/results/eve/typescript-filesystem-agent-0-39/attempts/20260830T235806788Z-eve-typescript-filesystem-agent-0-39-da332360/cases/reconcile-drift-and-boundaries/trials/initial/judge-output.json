@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, runner-owned post-actor validation, and isolated manifest change agree: Eve bindings now target the existing /agent implementation, while dynamic tool registration remains an agent-level warning with a concrete integration-test resolution. No files were modified during judging.",
+  "requirements": [
+    {
+      "id": "repairs-direct-bindings",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /agent/agent.ts#default, instructionLoader to /agent/loaders.ts#loadSupportInstruction, and outputSchema to /agent/contracts.ts#SupportOutputSchema. Those exact exports exist in the corresponding current files; legacy/agent.ts is absent, and affectedBy is /agent/**. Runner-owned assertions isolate the change to moldea/moldea.yaml, while deterministic inspect/validate and TypeScript typechecking passed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "verdict": "pass",
+      "evidence": "agent/tools/runtime.ts exports a dynamic session.started definition, whose final registration cannot be proven statically. moldea/moldea.yaml does not invent a static tool binding; it records agent-level unresolved.dynamic-tool-registration with effect warning, a concrete repository-local Eve-session integration-test resolution, and related source /agent/tools/runtime.ts#default. Deterministic inspection is valid with no diagnostics."
+    }
+  ],
+  "failures": []
+}

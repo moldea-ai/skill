@@ -1,0 +1,29 @@
+{
+  "verdict": "fail",
+  "summary": "Three requirements pass: the supported Eve relationships remain canonical, unsupported dynamic/Markdown surfaces are warnings, and subagent/instruction boundaries have concrete alternatives. The operational requirement fails because the new Eve runtime guide omits the required Node.js prerequisite.",
+  "requirements": [
+    {
+      "id": "preserves-supported-static-relationships",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml canonically binds support to /agent/agent.ts default, /agent/instructions.md, SupportOutputSchema, the static status defineTool registration and schemas, and the TypeScript triage defineSkill. Workspace hashes show all source files were preserved, and deterministic inspection and typechecking passed."
+    },
+    {
+      "id": "records-dynamic-and-markdown-boundaries",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains warning requirements dynamic-tool-runtime-evidence and markdown-skill-runtime-evidence, referencing /agent/tools/runtime.ts and both Markdown skill paths. They require runtime wiring/tests or supported TypeScript defineTool/defineSkill forms and do not register those unsupported surfaces canonically."
+    },
+    {
+      "id": "records-subagent-and-instruction-boundaries",
+      "verdict": "pass",
+      "evidence": "The warning requirements single-file-subagent-runtime-evidence and instruction-form-runtime-evidence retain concrete source references and prescribe directory-backed local subagents or supported exclusive lowercase/TypeScript instruction forms. No unsupported subagent or example instruction relationship appears in the canonical bindings."
+    },
+    {
+      "id": "records-operational-boundaries",
+      "verdict": "fail",
+      "evidence": "moldea/runtimes/eve.md concisely covers supported alternatives plus remote agents, extensions, connection/framework tools, collisions, reserved names, and advanced runtime behavior, but it contains no Node.js prerequisite. package.json declares Node.js >=24, yet the requirement specifically calls for that prerequisite in the runtime guide."
+    }
+  ],
+  "failures": [
+    "Add the authoritative Node.js prerequisite to moldea/runtimes/eve.md, keeping it concise and aligned with the project/runtime compatibility contract."
+  ]
+}

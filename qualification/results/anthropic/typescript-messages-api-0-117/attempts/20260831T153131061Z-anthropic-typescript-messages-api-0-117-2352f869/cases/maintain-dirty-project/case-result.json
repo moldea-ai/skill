@@ -1,0 +1,66 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 560941,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 560941,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1213006,
+        "cachedInputTokens": 1141760,
+        "outputTokens": 7929
+      },
+      "judgeUsage": {
+        "inputTokens": 397218,
+        "cachedInputTokens": 354816,
+        "outputTokens": 3752
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T16:01:02.396Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T16:04:06.935Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/context/billing.md` canonically defines refund-review and invoice-question guidance. `moldea/moldea.yaml` globally registers `/moldea/context/billing.md`, binds it to `/src/billing.ts` symbol `classifyBillingQuestion`, and assigns it to `agents.support.context`. The support instruction includes matching refund and invoice behavior. Runner-owned validation passed, and changed-path evidence limits the change to the context, manifest, and support instruction."
+        },
+        {
+          "id": "preserves-sdk-wiring",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`src/support-agent.ts` still imports `@anthropic-ai/sdk`, calls `client.messages.create`, loads the canonical instruction through `loadSupportInstruction`, and passes it as `system`. Workspace assertions show identical before/after SHA-256 values for `src/support-agent.ts` and `src/billing.ts`; deterministic inspection and TypeScript checking passed."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

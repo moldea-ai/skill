@@ -1,0 +1,508 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1893
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "instruction-loader",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 2
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "instruction-loader",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 2
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "requestProperty": "system"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/agents.ts"
+                },
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "anthropic"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "dynamicSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "anthropic"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "anthropic"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "0.117.1",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@anthropic-ai/sdk",
+              "source": "anthropic"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "0.117.1",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@anthropic-ai/sdk",
+              "source": "anthropic"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "api": "messages"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "messages.create",
+              "source": "anthropic"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/agents.ts"
+                  ],
+                  "bindings": {
+                    "runtimeAgent": {
+                      "path": "/src/agents.ts",
+                      "symbol": "dynamicSupportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "id": "anthropic"
+                  },
+                  "unresolved": {
+                    "indirect-request-construction": {
+                      "category": "runtime-pattern",
+                      "description": "The Messages API request is assembled as an intermediate object, so the adapter cannot prove its runtime relationships.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/src/agents.ts",
+                          "symbol": "dynamicSupportAgent"
+                        }
+                      ],
+                      "resolution": "Pass a closed request object directly to messages.create or document the relationship through a supported adapter pattern."
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Answers support questions through an indirectly assembled Anthropic request.\n",
+                    "digest": "sha256:3dec4ef187bfffd6b96789d69ae29e31a180120ca0f8e6dc74f4fffa5d481b7c",
+                    "path": "/moldea/agents/dynamic-support/description.md",
+                    "scalarLength": 77,
+                    "utf8ByteLength": 77
+                  },
+                  "scalarLength": 76,
+                  "value": "Answers support questions through an indirectly assembled Anthropic request."
+                },
+                "handoffDescription": null,
+                "id": "dynamic-support",
+                "instruction": {
+                  "content": "# Dynamic support agent\n\nYou are the `dynamic-support` agent. Answer support questions from verified project evidence.\n",
+                  "digest": "sha256:10f809f5c859c509c710797066b0a8f69b6d86fc0b0c33dd52cbd1e36b7a8807",
+                  "path": "/moldea/agents/dynamic-support/instruction.md",
+                  "scalarLength": 119,
+                  "utf8ByteLength": 119
+                },
+                "mirrors": []
+              },
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/agents.ts"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/src/agents.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/agents.ts",
+                      "symbol": "supportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "id": "anthropic"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Answers support questions through a direct Anthropic Messages API wrapper.\n",
+                    "digest": "sha256:0de068e3643b27a469cef731ff03278f269287410e6763a4bd92cd49c7564f82",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 75,
+                    "utf8ByteLength": 75
+                  },
+                  "scalarLength": 74,
+                  "value": "Answers support questions through a direct Anthropic Messages API wrapper."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer support questions from verified project evidence.\n",
+                  "digest": "sha256:e7ab796d00d12f27c4cfb05cdfacff7704106cf90c5c6d261e2016239248ba91",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 103,
+                  "utf8ByteLength": 103
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: anthropic\n    bindings:\n      runtimeAgent:\n        path: /src/agents.ts\n        symbol: supportAgent\n      instructionLoader:\n        path: /src/agents.ts\n        symbol: loadSupportInstruction\n    affectedBy:\n      - /src/agents.ts\n  dynamic-support:\n    runtime:\n      id: anthropic\n    bindings:\n      runtimeAgent:\n        path: /src/agents.ts\n        symbol: dynamicSupportAgent\n    affectedBy:\n      - /src/agents.ts\n    unresolved:\n      indirect-request-construction:\n        category: runtime-pattern\n        effect: warning\n        description: The Messages API request is assembled as an intermediate object, so the adapter cannot prove its runtime relationships.\n        resolution: Pass a closed request object directly to messages.create or document the relationship through a supported adapter pattern.\n        related:\n          - path: /src/agents.ts\n            symbol: dynamicSupportAgent\n",
+                "digest": "sha256:1bbc13c7f7e9e4157b800f89caa61d626463358974a8495c58bcb9941909c482",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 962,
+                "utf8ByteLength": 962
+              },
+              "value": {
+                "agents": {
+                  "dynamic-support": {
+                    "affectedBy": [
+                      "/src/agents.ts"
+                    ],
+                    "bindings": {
+                      "runtimeAgent": {
+                        "path": "/src/agents.ts",
+                        "symbol": "dynamicSupportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "id": "anthropic"
+                    },
+                    "unresolved": {
+                      "indirect-request-construction": {
+                        "category": "runtime-pattern",
+                        "description": "The Messages API request is assembled as an intermediate object, so the adapter cannot prove its runtime relationships.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/src/agents.ts",
+                            "symbol": "dynamicSupportAgent"
+                          }
+                        ],
+                        "resolution": "Pass a closed request object directly to messages.create or document the relationship through a supported adapter pattern."
+                      }
+                    }
+                  },
+                  "support": {
+                    "affectedBy": [
+                      "/src/agents.ts"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/src/agents.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/agents.ts",
+                        "symbol": "supportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "id": "anthropic"
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Anthropic support boundaries\n\nThis project exposes direct and indirect Anthropic Messages API support wrappers while preserving the limits of static repository evidence.\n",
+              "digest": "sha256:d1273a468848ef38698566bef48d8de0a64674165b256764af7ece9f276b6ef8",
+              "path": "/moldea/project.md",
+              "scalarLength": 172,
+              "utf8ByteLength": 172
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

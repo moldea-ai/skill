@@ -1,0 +1,41 @@
+{
+  "verdict": "fail",
+  "summary": "Four boundary-preservation requirements pass, and deterministic validation/typechecking succeeded. However, the new runtime guidance is not referenced by either prepared agent and provides no closed-constructor alternatives; the unresolved warning resolutions likewise specify callback-aware evidence instead of the required relationship-specific closed-constructor resolution.",
+  "requirements": [
+    {
+      "id": "preserves-prepare-call-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml registers only support.runtimeAgent and support.inputSchema. Its prepare-call-static-boundary warning explicitly leaves the instruction loader, output schema, and tool wiring unresolved because prepareCall can replace call settings. Deterministic post-actor inspection is valid."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml preserves step-support runtimeAgent, inputSchema, outputSchema, and the complete get_status tool bindings. Only the instruction loader is omitted and covered by prepare-step-instruction-boundary because prepareStep can replace instructions. Deterministic inspection is valid."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "verdict": "pass",
+      "evidence": "The delegating-support manifest preserves delegate_support registration, implementation, and schemas without routing, handoff, or subagent relationships. src/delegation.ts calls stepSupportAgent.generate only inside the tool implementation. Workspace assertions show all relevant source files unchanged."
+    },
+    {
+      "id": "keeps-workflow-agent-outside-target",
+      "verdict": "pass",
+      "evidence": "src/workflow-agent.mts remains unchanged and exports workflowSupportAgent using WorkflowAgent. No workflow agent appears in moldea/moldea.yaml; the only reference in canonical material states that it is outside the ToolLoopAgent target."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "fail",
+      "evidence": "moldea/runtimes/vercel-ai-sdk.md is the sole new runtime-guidance file and correctly distinguishes prepareCall from prepareStep without provider claims. However, neither support nor step-support references /moldea/runtimes/vercel-ai-sdk.md in moldea/moldea.yaml, and the guidance gives no closed-constructor alternatives."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "verdict": "fail",
+      "evidence": "moldea/moldea.yaml contains separate warning requirements with boundary-specific descriptions and related source symbols. Their resolution fields request callback-aware evidence that preparation outcomes preserve relationships; they do not state the required relationship-specific closed-constructor resolution."
+    }
+  ],
+  "failures": [
+    "Reference /moldea/runtimes/vercel-ai-sdk.md from both support and step-support canonical agent entries.",
+    "Add concise, appropriate closed-constructor alternatives for prepareCall and prepareStep to the runtime guidance.",
+    "Update each unresolved warning’s resolution criteria to name the relationship-specific closed-constructor resolution, while retaining its preparation-boundary source references."
+  ]
+}

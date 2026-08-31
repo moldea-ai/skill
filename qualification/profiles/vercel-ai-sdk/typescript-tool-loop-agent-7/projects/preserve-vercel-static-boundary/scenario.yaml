@@ -81,12 +81,12 @@ judgeRequirements:
       kind: judge
       evidenceSources: [current-workspace, deterministic-after, workspace-patch]
   - id: records-focused-guidance
-    description: Both prepared agents reference the sole new runtime-guidance file under /moldea/runtimes/**/*.md, which distinguishes prepareCall from prepareStep and gives the appropriate closed-constructor alternatives without claiming provider behavior.
+    description: Both prepared agents reference the sole new runtime-guidance file under /moldea/runtimes/**/*.md, which distinguishes the project-specific prepareCall and prepareStep static boundaries without claiming provider behavior.
     evaluation:
       kind: judge
       evidenceSources: [current-workspace, workspace-patch]
   - id: records-unresolved-boundaries
-    description: Separate unresolved warnings name each preparation boundary, its related source, and the relationship-specific closed-constructor resolution.
+    description: Separate unresolved entries use effect warning, name each preparation boundary and its related source, and give a concrete relationship-specific resolver such as closed wiring or deterministic tests that prove the callback preserves the relationship.
     evaluation:
       kind: judge
       evidenceSources: [current-workspace, deterministic-after, workspace-patch]

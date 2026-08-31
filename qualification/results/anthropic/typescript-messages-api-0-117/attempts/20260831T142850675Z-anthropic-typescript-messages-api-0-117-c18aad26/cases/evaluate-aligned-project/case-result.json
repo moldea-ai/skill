@@ -1,0 +1,66 @@
+{
+  "caseId": "evaluate-aligned-project",
+  "title": "Evaluate an aligned project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 424512,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 424512,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 532499,
+        "cachedInputTokens": 486656,
+        "outputTokens": 3588
+      },
+      "judgeUsage": {
+        "inputTokens": 468020,
+        "cachedInputTokens": 393728,
+        "outputTokens": 3881
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T14:32:12.260Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T14:36:05.512Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-patterns",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/agents.ts defines supportAgent and summaryAgent as direct client.messages.create wrappers whose system fields await loadSupportInstruction and loadSummaryInstruction. src/instructions.ts loads the corresponding canonical support and summary instruction.md files, matching the runtimeAgent and instructionLoader bindings in moldea/moldea.yaml. The actor accurately reports these paths, and deterministic-after reports valid inspection and typechecking."
+        },
+        {
+          "id": "explains-closed-bindings",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml binds support tool find-order to registration symbol findOrderTool and input schema FindOrderInputSchema. src/agents.ts registers findOrderTool in the support wrapper; src/tools.ts declares the matching find_order name and description and assigns input_schema to FindOrderInputSchema; src/contracts.ts requires a string orderId and rejects additional properties. The actor's explanation matches this closed wiring, and deterministic-after reports valid adapter inspection."
+        },
+        {
+          "id": "respects-static-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor states that findOrder in src/implementations.ts was preserved and explicitly limits Anthropic adapter evidence to detectable implementation rather than successful runtime execution. It also declines to infer output-schema, routing, handoff, subagent, or agent-level input-schema relationships. The manifest contains no such declarations, both expected handoff-description paths are absent, and workspace assertions plus deterministic-after establish an unchanged repository with no changed paths."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

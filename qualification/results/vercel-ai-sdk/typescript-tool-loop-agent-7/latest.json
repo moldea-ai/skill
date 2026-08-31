@@ -2,8 +2,8 @@
   "protocolVersion": 6,
   "adapterId": "vercel-ai-sdk",
   "implementationId": "typescript-tool-loop-agent-7",
-  "latestAttemptId": "20260830T115041130Z-vercel-ai-sdk-typescript-tool-loop-agent-7-6549a435",
-  "latestStatus": "passed",
+  "latestAttemptId": "20260831T164504913Z-vercel-ai-sdk-typescript-tool-loop-agent-7-0a12c9ce",
+  "latestStatus": "failed",
   "lastPassingAttemptId": "20260830T115041130Z-vercel-ai-sdk-typescript-tool-loop-agent-7-6549a435",
-  "updatedAt": "2026-08-30T12:43:04.348Z"
+  "updatedAt": "2026-08-31T18:13:13.482Z"
 }

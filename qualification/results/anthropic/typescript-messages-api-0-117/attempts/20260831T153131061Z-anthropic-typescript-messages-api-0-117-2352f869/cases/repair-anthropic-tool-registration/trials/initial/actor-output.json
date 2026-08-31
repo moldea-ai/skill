@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s canonical Anthropic tool name from `find_order` to the source-backed runtime name `lookup_order`. Preserved the wrapper, tool declaration, implementation, and input schema. TypeScript compilation passed; Moldea inspect and validate both returned `status: valid` with no diagnostics. Inspection emitted the complete declaration, schema, and client-tool registration evidence.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The final Git diff contains exactly one line change.",
+    "Anthropic registration evidence identifies `lookup_order` as a client tool bound to `lookupOrderTool`.",
+    "The `ANTHROPIC_TOOL_NAME_MISMATCH` diagnostic is absent after the repair.",
+    "No provider, agent, model, subagent, or network access was used."
+  ],
+  "unresolved": []
+}

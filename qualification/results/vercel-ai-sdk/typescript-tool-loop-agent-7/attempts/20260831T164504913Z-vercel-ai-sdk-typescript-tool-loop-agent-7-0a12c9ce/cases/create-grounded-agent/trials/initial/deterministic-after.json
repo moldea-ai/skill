@@ -1,0 +1,570 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 3209
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 9,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 9,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "order-triage",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/order-triage-agent.ts",
+                  "symbol": "orderTriageAgent"
+                }
+              ],
+              "runtimeName": "order-triage-runtime",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/order-triage-agent.ts"
+                },
+                {
+                  "path": "/src/order-triage-agent.ts",
+                  "symbol": "loadOrderTriageInstruction"
+                }
+              ],
+              "runtimeName": "loadOrderTriageInstruction",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/order-triage-agent.ts",
+                  "symbol": "orderTriageAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "7.0.77",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "configurationProperty": "callOptionsSchema",
+                "schemaRole": "agent-input",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/order-triage-agent.ts"
+                },
+                {
+                  "path": "/src/order-triage-agent.ts",
+                  "symbol": "OrderTriageInputSchema"
+                }
+              ],
+              "runtimeName": "OrderTriageInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/order-triage-agent.ts"
+                },
+                {
+                  "path": "/src/order-triage-agent.ts",
+                  "symbol": "OrderTriageOutputSchema"
+                }
+              ],
+              "runtimeName": "OrderTriageOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": "classify-order",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "inputSchema",
+                "schemaRole": "tool-input"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/order-triage-agent.ts"
+                },
+                {
+                  "path": "/src/order-triage-agent.ts",
+                  "symbol": "ClassifyOrderInputSchema"
+                }
+              ],
+              "runtimeName": "ClassifyOrderInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": "classify-order",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "outputSchema",
+                "schemaRole": "tool-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/order-triage-agent.ts"
+                },
+                {
+                  "path": "/src/order-triage-agent.ts",
+                  "symbol": "ClassifyOrderOutputSchema"
+                }
+              ],
+              "runtimeName": "ClassifyOrderOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "order-triage",
+              "capabilityId": "classify-order",
+              "capabilityKind": "tool",
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7",
+                "toolType": "function"
+              },
+              "kind": "tool-registration",
+              "references": [
+                {
+                  "path": "/src/order-triage-agent.ts"
+                },
+                {
+                  "path": "/src/order-triage-agent.ts",
+                  "symbol": "ClassifyOrderInputSchema"
+                },
+                {
+                  "path": "/src/order-triage-agent.ts",
+                  "symbol": "ClassifyOrderOutputSchema"
+                },
+                {
+                  "path": "/src/order-triage-agent.ts",
+                  "symbol": "classifyOrder"
+                },
+                {
+                  "path": "/src/order-triage-agent.ts",
+                  "symbol": "classifyOrderTool"
+                }
+              ],
+              "runtimeName": "classify_order",
+              "source": "vercel-ai-sdk"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "bindings": {
+                    "inputSchema": {
+                      "path": "/src/order-triage-agent.ts",
+                      "symbol": "OrderTriageInputSchema"
+                    },
+                    "instructionLoader": {
+                      "path": "/src/order-triage-agent.ts",
+                      "symbol": "loadOrderTriageInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/src/order-triage-agent.ts",
+                      "symbol": "OrderTriageOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/order-triage-agent.ts",
+                      "symbol": "orderTriageAgent"
+                    }
+                  },
+                  "runtime": {
+                    "id": "vercel-ai-sdk"
+                  },
+                  "tools": {
+                    "classify-order": {
+                      "description": "Classifies an order as fulfillment or refund-review from its order ID.",
+                      "implementation": {
+                        "path": "/src/order-triage-agent.ts",
+                        "symbol": "classifyOrder"
+                      },
+                      "inputSchema": {
+                        "path": "/src/order-triage-agent.ts",
+                        "symbol": "ClassifyOrderInputSchema"
+                      },
+                      "name": "classify_order",
+                      "outputSchema": {
+                        "path": "/src/order-triage-agent.ts",
+                        "symbol": "ClassifyOrderOutputSchema"
+                      },
+                      "registration": {
+                        "path": "/src/order-triage-agent.ts",
+                        "symbol": "classifyOrderTool"
+                      }
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Classifies orders for human review and cannot approve refunds.\n",
+                    "digest": "sha256:f56bf1dc627f338ae21a043204c7f5c394c0f2bfa782c9f5e2d1b3f06d75ba31",
+                    "path": "/moldea/agents/order-triage/description.md",
+                    "scalarLength": 63,
+                    "utf8ByteLength": 63
+                  },
+                  "scalarLength": 62,
+                  "value": "Classifies orders for human review and cannot approve refunds."
+                },
+                "handoffDescription": null,
+                "id": "order-triage",
+                "instruction": {
+                  "content": "`order-triage`\n\nClassify each order for human review. Call `classify_order` with the order ID, then return its category with `requiresHumanReview` set to `true`. Refund cases require human review; you cannot approve refunds.\n",
+                  "digest": "sha256:60177fc779675c301996afe3884387a7a87a90fbb1a6d8b6e27e72c7a822cece",
+                  "path": "/moldea/agents/order-triage/instruction.md",
+                  "scalarLength": 225,
+                  "utf8ByteLength": 225
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  order-triage:\n    runtime:\n      id: vercel-ai-sdk\n    bindings:\n      runtimeAgent:\n        path: /src/order-triage-agent.ts\n        symbol: orderTriageAgent\n      inputSchema:\n        path: /src/order-triage-agent.ts\n        symbol: OrderTriageInputSchema\n      outputSchema:\n        path: /src/order-triage-agent.ts\n        symbol: OrderTriageOutputSchema\n      instructionLoader:\n        path: /src/order-triage-agent.ts\n        symbol: loadOrderTriageInstruction\n    tools:\n      classify-order:\n        name: classify_order\n        description: Classifies an order as fulfillment or refund-review from its order ID.\n        implementation:\n          path: /src/order-triage-agent.ts\n          symbol: classifyOrder\n        registration:\n          path: /src/order-triage-agent.ts\n          symbol: classifyOrderTool\n        inputSchema:\n          path: /src/order-triage-agent.ts\n          symbol: ClassifyOrderInputSchema\n        outputSchema:\n          path: /src/order-triage-agent.ts\n          symbol: ClassifyOrderOutputSchema\n",
+                "digest": "sha256:2eda3157f6f2f669aaf6abdc1edd21b28da782d22383310e50d1da4d338cc896",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 1059,
+                "utf8ByteLength": 1059
+              },
+              "value": {
+                "agents": {
+                  "order-triage": {
+                    "bindings": {
+                      "inputSchema": {
+                        "path": "/src/order-triage-agent.ts",
+                        "symbol": "OrderTriageInputSchema"
+                      },
+                      "instructionLoader": {
+                        "path": "/src/order-triage-agent.ts",
+                        "symbol": "loadOrderTriageInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/src/order-triage-agent.ts",
+                        "symbol": "OrderTriageOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/order-triage-agent.ts",
+                        "symbol": "orderTriageAgent"
+                      }
+                    },
+                    "runtime": {
+                      "id": "vercel-ai-sdk"
+                    },
+                    "tools": {
+                      "classify-order": {
+                        "description": "Classifies an order as fulfillment or refund-review from its order ID.",
+                        "implementation": {
+                          "path": "/src/order-triage-agent.ts",
+                          "symbol": "classifyOrder"
+                        },
+                        "inputSchema": {
+                          "path": "/src/order-triage-agent.ts",
+                          "symbol": "ClassifyOrderInputSchema"
+                        },
+                        "name": "classify_order",
+                        "outputSchema": {
+                          "path": "/src/order-triage-agent.ts",
+                          "symbol": "ClassifyOrderOutputSchema"
+                        },
+                        "registration": {
+                          "path": "/src/order-triage-agent.ts",
+                          "symbol": "classifyOrderTool"
+                        }
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Order triage\n\nThis project classifies incoming orders for human review. It does not approve refunds or perform account changes.\n",
+              "digest": "sha256:47ef4ec4b1d3eabce19caaf0f5dcfe301880638ecb78f1ff07f95e6eb11fc848",
+              "path": "/moldea/project.md",
+              "scalarLength": 130,
+              "utf8ByteLength": 130
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

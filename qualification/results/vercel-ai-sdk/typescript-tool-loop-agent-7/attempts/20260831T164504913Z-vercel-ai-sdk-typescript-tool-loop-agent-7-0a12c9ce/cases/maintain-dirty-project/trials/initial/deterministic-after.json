@@ -1,0 +1,493 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 2944
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "support-runtime",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts"
+                },
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "7.0.77",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "configurationProperty": "callOptionsSchema",
+                "schemaRole": "agent-input",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts"
+                },
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "SupportInputSchema"
+                }
+              ],
+              "runtimeName": "SupportInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts"
+                },
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "SupportOutputSchema"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "vercel-ai-sdk"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [
+                  "/moldea/context/billing.md"
+                ],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/support-agent.ts"
+                  ],
+                  "bindings": {
+                    "inputSchema": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "SupportInputSchema"
+                    },
+                    "instructionLoader": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "supportAgent"
+                    }
+                  },
+                  "context": [
+                    "/moldea/context/billing.md"
+                  ],
+                  "runtime": {
+                    "id": "vercel-ai-sdk"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Streams evidence-based support responses.\n",
+                    "digest": "sha256:bfa76d3c425e23bfecbaf50b933a035fe1f531b838d0da58e2876e5d59ac0662",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 42,
+                    "utf8ByteLength": 42
+                  },
+                  "scalarLength": 41,
+                  "value": "Streams evidence-based support responses."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer only from available project evidence.\n\nFor refund and invoice questions, apply the billing classification supported by the project: a message containing the exact lowercase substring `refund` is a `refund-review`; any other billing message is an `invoice-question`. Treat this as routing evidence only. Do not claim that a refund was approved, that an invoice has a particular status, or that any billing action occurred unless available evidence establishes it.\n",
+                  "digest": "sha256:ee338d15a289b9c47bd18b4c00ac3e3afbc8144826829df177461c4f05a54015",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 516,
+                  "utf8ByteLength": 516
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [
+              {
+                "asset": {
+                  "content": "# Billing question classification\n\n`classifyBillingQuestion` in `/src/billing.ts` classifies a message containing the exact lowercase substring `refund` as `refund-review`. Every other message, including an invoice question without that substring, is classified as `invoice-question`.\n\nThe classifier establishes routing only. It does not approve or issue refunds, determine invoice status, or perform another billing action.\n",
+                  "digest": "sha256:4563f73547db9541053a0206ca3b1e96f66f3a942937f9342ea1235892b7f7f4",
+                  "path": "/moldea/context/billing.md",
+                  "scalarLength": 426,
+                  "utf8ByteLength": 426
+                },
+                "relationships": {
+                  "affectedBy": [
+                    "/src/billing.ts"
+                  ],
+                  "bindings": [
+                    {
+                      "path": "/src/billing.ts",
+                      "symbol": "classifyBillingQuestion"
+                    }
+                  ]
+                }
+              }
+            ],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\ncontext:\n  /moldea/context/billing.md:\n    bindings:\n      - path: /src/billing.ts\n        symbol: classifyBillingQuestion\n    affectedBy:\n      - /src/billing.ts\nagents:\n  support:\n    runtime:\n      id: vercel-ai-sdk\n    context:\n      - /moldea/context/billing.md\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.ts\n        symbol: supportAgent\n      instructionLoader:\n        path: /src/support-agent.ts\n        symbol: loadSupportInstruction\n      inputSchema:\n        path: /src/support-agent.ts\n        symbol: SupportInputSchema\n      outputSchema:\n        path: /src/support-agent.ts\n        symbol: SupportOutputSchema\n    affectedBy:\n      - /src/support-agent.ts\n",
+                "digest": "sha256:63435ad668bc868efc46bd9ff2c50290c93764688f56daa28080468fea47978e",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 705,
+                "utf8ByteLength": 705
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/src/support-agent.ts"
+                    ],
+                    "bindings": {
+                      "inputSchema": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "SupportInputSchema"
+                      },
+                      "instructionLoader": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "supportAgent"
+                      }
+                    },
+                    "context": [
+                      "/moldea/context/billing.md"
+                    ],
+                    "runtime": {
+                      "id": "vercel-ai-sdk"
+                    }
+                  }
+                },
+                "context": {
+                  "/moldea/context/billing.md": {
+                    "affectedBy": [
+                      "/src/billing.ts"
+                    ],
+                    "bindings": [
+                      {
+                        "path": "/src/billing.ts",
+                        "symbol": "classifyBillingQuestion"
+                      }
+                    ]
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Support operations\n\nThis project produces support responses through a direct Vercel AI SDK `ToolLoopAgent`.\n",
+              "digest": "sha256:c2ef4c2d531c5d92a1e899e8c12b117d93d6eb94cc5977d84624679cdf23adb4",
+              "path": "/moldea/project.md",
+              "scalarLength": 110,
+              "utf8ByteLength": 110
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

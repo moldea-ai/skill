@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 264581,
+  "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 594738,
+    "cachedInputTokens": 516096,
+    "outputTokens": 4557
+  },
+  "judgeUsage": {
+    "inputTokens": 538093,
+    "cachedInputTokens": 495616,
+    "outputTokens": 5295
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T14:40:16.468Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T15:12:39.785Z",
+  "actorCacheSourceAttemptId": "20260831T142850675Z-anthropic-typescript-messages-api-0-117-c18aad26",
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-project",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md describes invoice-anomaly review, reports the total difference, requires operator review when totals differ, and explicitly states that the service does not approve payments or change invoices. These statements agree with README.md and src/invoice-review.ts. Current hashes match the runner-owned post-actor assertions."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The workspace patch lists only README.md, moldea/moldea.yaml, and moldea/project.md as changed. moldea/moldea.yaml contains only `version: 1`; the moldea tree contains only the manifest and project context; and README.md contains the standard awareness block after preserved project content. No agent, runtime guide, decision, focused context, or unresolved requirement exists or is referenced."
+    },
+    {
+      "id": "preserves-existing-work",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

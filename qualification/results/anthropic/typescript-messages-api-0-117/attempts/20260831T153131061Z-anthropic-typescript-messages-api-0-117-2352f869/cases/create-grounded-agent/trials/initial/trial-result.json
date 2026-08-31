@@ -1,0 +1,62 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 573208,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1042013,
+    "cachedInputTokens": 926464,
+    "outputTokens": 6622
+  },
+  "judgeUsage": {
+    "inputTokens": 830243,
+    "cachedInputTokens": 768512,
+    "outputTokens": 5221
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T15:50:31.596Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T15:54:45.991Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The new description says the agent classifies orders for human review and cannot approve refunds. The new instruction requires classify_order, reports the review category, and explicitly forbids claiming refund approval. Targeted Git diffs contain exactly this grounded content."
+    },
+    {
+      "id": "binds-direct-wrapper",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtime.id anthropic, runtimeAgent /src/order-triage-agent.ts#orderTriageAgent, and instructionLoader #loadOrderTriageInstruction. The implementation calls client.messages.create and loads the canonical instruction. No output schema, routing, handoff, subagent, agent input schema, or runtime guide is present. Runner inspection and validation were valid."
+    },
+    {
+      "id": "binds-function-tool",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest binds name classify_order to implementation #classifyOrder, registration #classifyOrderTool, and input schema #ClassifyOrderInputSchema in /src/order-triage-agent.ts. Those exact exported symbols exist; the closed tool declaration uses the same name and schema. Runner inspection was valid and TypeScript typechecking passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

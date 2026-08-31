@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Project is adopted, valid, and aligned; no edits were needed. Canonical support and summary agents match their direct ToolLoopAgent definitions, instruction loaders, call-options schemas, structured outputs, and function-tool relationships. Moldea inspect/validate and TypeScript validation passed, and the final Git status and scoped diff were clean.",
+  "changedFiles": [],
+  "observations": [
+    "supportAgent binds loadSupportInstruction, SupportInputSchema, SupportOutputSchema, and find_order/findOrderTool exactly as declared.",
+    "findOrderTool binds findOrder plus the declared FindOrderInputSchema and FindOrderOutputSchema.",
+    "summaryAgent binds loadSummaryInstruction, SummaryInputSchema, and SummaryOutputSchema exactly as declared and registers no tools.",
+    "Both loaders read their respective canonical instruction.md files directly.",
+    "Moldea CLI 5.0.0 inspect and validate returned schemaVersion 2, status valid, and no diagnostics; TypeScript compilation exited successfully.",
+    "No provider, model, routing, handoff, or subagent relationships were inferred. No agent or model was invoked."
+  ],
+  "unresolved": []
+}

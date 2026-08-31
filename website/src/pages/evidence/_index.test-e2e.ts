@@ -32,7 +32,7 @@ test('presents both evidence types with their current status', async ({ page }) 
     'data-evidence-status',
     'passed',
   );
-  await expect(semanticLink).toContainText('54 of 54 scenarios successful for current assurance');
+  await expect(semanticLink).toContainText('57 of 57 scenarios successful for current assurance');
   await expect(qualificationLink.locator('[data-evidence-status]')).toHaveAttribute(
     'data-evidence-status',
     qualificationStatus,

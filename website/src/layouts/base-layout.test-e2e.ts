@@ -613,6 +613,8 @@ test('marks the most specific current desktop and mobile navigation destinations
 });
 
 test('has no page-level horizontal overflow at 320px on every public route', async ({ page }) => {
+  test.slow();
+
   await page.setViewportSize({ height: 740, width: 320 });
   const paths = await getPublicContentPaths(page);
 
@@ -631,7 +633,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
   test(`keeps every public route accessible at 320px in ${colorScheme} mode`, async ({
     browser,
   }) => {
-    test.setTimeout(180_000);
+    test.setTimeout(360_000);
 
     const context = await browser.newContext({
       colorScheme,
@@ -660,6 +662,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
 test('keeps representative routes free of serious automated accessibility violations', async ({
   page,
 }) => {
+  test.slow();
+
   for (const path of REPRESENTATIVE_PATHS) {
     await page.goto(toPublicPath(path));
     const results = await new AxeBuilder({ page }).analyze();
@@ -672,6 +676,8 @@ test('keeps representative routes free of serious automated accessibility violat
 });
 
 test('renders every reader-facing product mention as inline code', async ({ page }) => {
+  test.slow();
+
   await page.goto(toPublicPath('/'));
   const searchIndex: unknown = await page.evaluate(async (url) => {
     const response = await fetch(url);

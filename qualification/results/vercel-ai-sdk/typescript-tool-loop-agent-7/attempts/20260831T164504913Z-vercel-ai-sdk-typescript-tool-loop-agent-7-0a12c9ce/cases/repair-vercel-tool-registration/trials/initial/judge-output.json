@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, workspace patch, and deterministic post-actor results agree: only moldea/moldea.yaml changed, correcting find_order to lookup_order. Source bindings and runtime implementation remain intact, inspection and validation are valid with no failures, and typechecking passed. No repository files were modified during judging.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the original manifest name find_order and the closed Vercel tools-map key lookup_order. Current src/agent.ts registers tools: { lookup_order: lookupOrderTool }, while the Git diff shows the stale manifest value find_order being replaced by lookup_order. The deterministic post-actor inspection is valid with no failures."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml declares tools.lookup-order.name: lookup_order, exactly matching src/agent.ts. The Git diff contains only the one-line name change from find_order to lookup_order; workspace assertions and hardened Git status confirm moldea/moldea.yaml is the sole changed path."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains exact bindings for supportAgent, loadSupportInstruction, SupportInputSchema, SupportOutputSchema, lookupOrder, lookupOrderTool, LookupOrderInputSchema, and LookupOrderOutputSchema. The corresponding source files confirm the complete chain: supportAgent loads the canonical instruction and schemas, registers lookupOrderTool under lookup_order, and lookupOrderTool binds both tool schemas and execute: lookupOrder. Deterministic inspection and validation are valid, typechecking passed, and workspace hashes show every source and schema file unchanged."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s LangGraph runtime-agent, input-schema, and output-schema bindings with `/src/support-workflow.ts`. Added an agent-level warning for the runtime-derived `Command.goto` boundary. Validation passed with TypeScript compilation, Moldea CLI 5.0.0 `validate`, and final `inspect`; both Moldea checks returned schema 2 `valid` with no diagnostics. Final Git diff was reviewed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The support runtime now binds `supportWorkflow`, `SupportInputSchema`, and `SupportOutputSchema` from the existing implementation.",
+    "No implementation files were modified. The pre-existing deletion of `src/support-graph.ts` and untracked `src/support-workflow.ts` and `src/dynamic-routing.ts` were preserved."
+  ],
+  "unresolved": [
+    "Warning `dynamic-command-destination`: `/src/dynamic-routing.ts#createRoutingCommand` constructs `Command.goto` from runtime input, so static inspection cannot prove final routing. Resolve with closed workflow wiring or an integration test that constrains accepted destinations and proves each target against registered workflow nodes."
+  ]
+}

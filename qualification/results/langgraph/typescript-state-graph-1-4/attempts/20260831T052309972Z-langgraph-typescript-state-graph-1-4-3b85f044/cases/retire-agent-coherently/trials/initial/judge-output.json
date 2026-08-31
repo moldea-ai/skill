@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The final workspace, runner-owned deterministic results, and workspace-patch evidence agree that the obsolete support agent declaration and canonical assets were removed coherently.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` contains only `version: 1`, so it declares no `support` agent and no LangGraph runtime-agent, input-schema, or output-schema binding. The expected `src/support-graph.ts`, `moldea/agents/support/description.md`, and `moldea/agents/support/instruction.md` paths are absent. The current manifest SHA-256 matches the asserted after-state (`09bfcc6a...`), while workspace-patch evidence records the manifest change and deletion of both support canonical assets. Runner-owned post-actor inspection and validation are valid with no failures, and repository filesystem validation and TypeScript checking passed."
+    }
+  ],
+  "failures": []
+}

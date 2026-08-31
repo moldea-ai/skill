@@ -90,8 +90,13 @@ test('represents the current qualification evidence state', async ({ page }) => 
   const langGraphStateGraphProfileLink = page.getByRole('link', {
     name: /LangGraph StateGraph qualification/,
   });
-  await expect(langGraphStateGraphProfileLink).toBeVisible();
+  await expect(
+    langGraphStateGraphProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
+  ).toBeVisible();
   await expect(langGraphStateGraphProfileLink.getByAltText('LangChain company logo')).toBeVisible();
+  await expect(
+    langGraphStateGraphProfileLink.getByText('Attempts', { exact: true }).locator('..'),
+  ).toContainText('1');
 
   const anthropicCompanyLogos = page.getByAltText('Anthropic company logo');
   const langChainCompanyLogos = page.getByAltText('LangChain company logo');

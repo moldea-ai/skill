@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted project is aligned in the requested scope. Repository-local moldea inspection and validation both returned schema 2, CLI 5.0.0, status valid, with no diagnostics. TypeScript compilation passed. No edits were made, and the final Git diff and status were clean.",
+  "changedFiles": [],
+  "observations": [
+    "moldea/moldea.yaml binds support to /src/support-graph.ts symbols supportGraph, SupportInputSchema, and SupportOutputSchema.",
+    "src/support-graph.ts directly exports supportGraph, constructed as a StateGraph with explicit state, input, and output schemas and compiled as support_graph.",
+    "SupportInputSchema requires a string question; SupportOutputSchema requires a string answer.",
+    "Deterministic adapter evidence detected one direct addNode operation for answer-question and two direct addEdge operations: __start__ to answer-question and answer-question to __end__.",
+    "Validation completed with `moldea inspect --json`, `moldea validate --json`, and `tsc -p <workspace>/tsconfig.json --noEmit`, all exiting successfully."
+  ],
+  "unresolved": [
+    "The evidence establishes only the directly declared graph operations. Complete routing semantics and any tool or capability behavior are not established and were not inferred."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace and runner-owned patch evidence agree: initialization added only the minimal moldea foundation and README awareness block, grounded in the unchanged README and invoice-review source. Deterministic inspection, validation, and typecheck all passed.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service identifies invoice anomalies for operator review and never approves payment or changes an invoice. This matches README.md and src/invoice-review.ts, which compares invoice totals, reports the difference, and flags mismatches for operator review. Workspace assertions show the source remained unchanged and the patch changed only README.md plus the two moldea foundation files."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The canonical moldea inventory contains only moldea/moldea.yaml and moldea/project.md; the manifest contains only `version: 1` and references no agents, runtimes, decisions, or requirements. README.md contains one standard awareness block. Runner-owned changed-path evidence lists only README.md, moldea/moldea.yaml, and moldea/project.md, confirming no Eve agent or runtime relationship was introduced."
+    }
+  ],
+  "failures": []
+}

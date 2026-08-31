@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, Git patch, and deterministic post-actor evidence agree: Eve’s three direct bindings now target the existing root implementation, while the dynamically registered tool remains accurately documented as an agent-level warning rather than a fabricated static binding. Validation and typechecking passed.",
+  "requirements": [
+    {
+      "id": "repairs-direct-bindings",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` binds `runtimeAgent` to `/agent/agent.ts#default`, `instructionLoader` to `/agent/loaders.ts#loadSupportInstruction`, and `outputSchema` to `/agent/contracts.ts#SupportOutputSchema`. Those exact exports exist in the corresponding workspace files. The Git patch replaces all three `/legacy/...` bindings and `/legacy/**` with these `/agent/...` paths; the legacy files are absent. Deterministic inspection is valid and typechecking passed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "verdict": "pass",
+      "evidence": "Under agent `support`, `moldea/moldea.yaml` contains unresolved requirement `dynamic-tool-registration` with effect `warning`, source `/agent/tools/runtime.ts`, and a concrete resolution requiring a repository-local integration test of Eve’s `session.started` registration and runtime-exposed tool name/contract. The source defines the tool dynamically through `defineDynamic`; the manifest adds no invented static tool binding. The Git patch shows this warning was added, and deterministic inspection reports valid with no failures."
+    }
+  ],
+  "failures": []
+}

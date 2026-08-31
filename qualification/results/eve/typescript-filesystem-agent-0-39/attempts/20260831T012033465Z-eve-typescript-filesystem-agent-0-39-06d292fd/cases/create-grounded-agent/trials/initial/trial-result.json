@@ -1,0 +1,62 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 391463,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1877167,
+    "cachedInputTokens": 1761024,
+    "outputTokens": 8279
+  },
+  "judgeUsage": {
+    "inputTokens": 431040,
+    "cachedInputTokens": 363264,
+    "outputTokens": 3450
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T01:37:18.192Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T01:39:37.851Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md, moldea/agents/order-triage/description.md, and instruction.md consistently state that orders are classified for human review and refunds cannot be approved or promised. Workspace assertions show only these agent assets and moldea/moldea.yaml changed; the canonical inventory contains no runtime guide or other invented surface."
+    },
+    {
+      "id": "binds-filesystem-agent",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtime eve, runtimeAgent /agent/agent.ts#default, outputSchema /agent/contracts.ts#OrderTriageOutputSchema, and the sole instructionLoader /agent/loaders.ts#loadOrderTriageInstruction. Source inspection confirms those exact symbols and that agent/agent.ts is the nested default defineAgent definition using the schema. Deterministic inspection and validation were valid."
+    },
+    {
+      "id": "binds-filesystem-capabilities",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest registers tool ID classify-order with runtime name classify_order, implementation /agent/implementations.ts#classifyOrder, registration /agent/tools/classify_order.ts#default, and exact input/output schema symbols. It registers skill ID review-policy with runtime name review_policy and both implementation and registration at /agent/skills/review_policy.ts#default. The inspected TypeScript sources confirm every symbol, schema, registration, and path; deterministic validation, inspection, composition, and type-check all passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

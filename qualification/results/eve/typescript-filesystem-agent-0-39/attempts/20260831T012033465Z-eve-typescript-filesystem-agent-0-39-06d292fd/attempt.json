@@ -1,0 +1,3100 @@
+{
+  "protocolVersion": 6,
+  "attemptId": "20260831T012033465Z-eve-typescript-filesystem-agent-0-39-06d292fd",
+  "parentAttemptId": "20260830T235806788Z-eve-typescript-filesystem-agent-0-39-da332360",
+  "selection": {
+    "adapterId": "eve",
+    "implementationId": "typescript-filesystem-agent-0-39"
+  },
+  "status": "failed",
+  "createdAt": "2026-08-31T01:20:33.466Z",
+  "completedAt": "2026-08-31T02:11:07.709Z",
+  "evidenceGeneratedAt": "2026-08-31T01:25:43.384Z",
+  "summary": "Qualification stopped after a confirmation established a failed case.",
+  "artifactDigests": {
+    "baseline.json": "7e2cc4fbcba54718e2667ceca267c0ff836f56b23fbd0c49381045bb84a4ee59",
+    "cases/create-grounded-agent/case-result.json": "ed7e3182b6f5cb9bc6f3ccce052397721e85b13ad0a51b2958afdf923913a6e2",
+    "cases/create-grounded-agent/trials/initial/actor-events.jsonl": "2eb6d734429b53c81481e119d9a707d96628066ee4c95f543f79f58061679bd0",
+    "cases/create-grounded-agent/trials/initial/actor-evidence.json": "00f11295b82ff2e6d510858ac543a7a02ea0d1462088f8dafb8b52ae60afb261",
+    "cases/create-grounded-agent/trials/initial/actor-output.json": "7d32f91f6d22a78ab0ecc1f135c07851689e65e757e559ba2ea8190fd973ea4f",
+    "cases/create-grounded-agent/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/create-grounded-agent/trials/initial/actor-prompt.md": "145c2bd4307e63780f242aa5e331fefab1ca9efdccca409eba8d148aa7981a54",
+    "cases/create-grounded-agent/trials/initial/deterministic-after.json": "21e13265f5757568db41aec3337def1f0d8225d8dd6002a8342bbc2954c80b7a",
+    "cases/create-grounded-agent/trials/initial/deterministic-before.json": "a2b2e3dbe86d89ac78388a8cbd62ea149804e8582c300f37aadb95eb46ca165e",
+    "cases/create-grounded-agent/trials/initial/judge-events.jsonl": "1915207b98ed6e13f0964d6ec043708dac30a59c8588a995070a76e27cff8b55",
+    "cases/create-grounded-agent/trials/initial/judge-evidence.json": "983d15acbeab79c2bdfdca7c80f29544b28c534096a3194375a4b2817e88fed6",
+    "cases/create-grounded-agent/trials/initial/judge-output.json": "f008b9c13a97b624bf311047aba34f60dc5107836f8758bb93c69eeca4973736",
+    "cases/create-grounded-agent/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/create-grounded-agent/trials/initial/judge-prompt.md": "a6a8a25f877a61dc586a23ae6bd99510aec69a98597d3f8850ea5369afccdb4a",
+    "cases/create-grounded-agent/trials/initial/trial-result.json": "61f1e2d5596c6d55da27612da46758280e1231f017813701b7bea85912d5515b",
+    "cases/create-grounded-agent/trials/initial/workspace-assertions.json": "b30fbd1f1ac5776aea49093552c0a56e91bd3edb6485015140e5c716c3a6bc7b",
+    "cases/create-grounded-agent/trials/initial/workspace.patch": "a16fd8c5d8f4b479bada4d04209964d4b8fb7f569a5c0317a26a3bc76b3db10c",
+    "cases/evaluate-aligned-project/case-result.json": "256ab72278ad6a5ad4d5bd91397990ff381f6c7389a9d30acf6c418d24404608",
+    "cases/evaluate-aligned-project/trials/initial/actor-events.jsonl": "21f2c11d8189135d8c24823bbbb8eb188eab17d06ec2b4a17f293dd42ff38ef1",
+    "cases/evaluate-aligned-project/trials/initial/actor-evidence.json": "7f80ef1473c5fba37c9d190a0d154bc409da9fb0e3e1d094df29b6ba99c210b2",
+    "cases/evaluate-aligned-project/trials/initial/actor-output.json": "4755e0482487ab39c9357f26297c4ad30341f628d010391c6a2dddb23c31aa94",
+    "cases/evaluate-aligned-project/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/evaluate-aligned-project/trials/initial/actor-prompt.md": "aa97ff8e79367864088895dc6393a09060b6dce6153b7116db3a3f2fa24f6a5d",
+    "cases/evaluate-aligned-project/trials/initial/deterministic-after.json": "40a36bc6fc04eaf8366d88554fe79b99959fd19bf23527079ba0553ba7834c17",
+    "cases/evaluate-aligned-project/trials/initial/deterministic-before.json": "0d7f0120fd94f799b91902802831b3eb31479a33af7fea0c2889be27f8524494",
+    "cases/evaluate-aligned-project/trials/initial/judge-events.jsonl": "0f73937f5417dc245c3b7b48fb7e2fa8d8aba5d80b60376257bd58bf714fdfb6",
+    "cases/evaluate-aligned-project/trials/initial/judge-evidence.json": "9ad84c3ad8d7e24c1f4e191984d8c65387e3750f45dc63fb64b126d37c62b336",
+    "cases/evaluate-aligned-project/trials/initial/judge-output.json": "8ce166c00910647b56e714c5f58aed302a77215cb1a920ef359f53ce2187daa4",
+    "cases/evaluate-aligned-project/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/evaluate-aligned-project/trials/initial/judge-prompt.md": "db6466899d9113e18caf4bd2d5b5fdfaafac179eb194dbcdc20078e357995dee",
+    "cases/evaluate-aligned-project/trials/initial/trial-result.json": "9bb8ca379972113135dd41dd767113e5ded4b0cefed8a45251ebaae5becc7681",
+    "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json": "b137522672f19201da47ee2e6b43cf5df2649883ceb40dd0c87ce0fd1e6d4813",
+    "cases/evaluate-aligned-project/trials/initial/workspace.patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cases/initialize-grounded-project/case-result.json": "a2e890ca376ea07b70573979f60e6c20aa8ecf1d0050fb46ddc8916e4b669fd4",
+    "cases/initialize-grounded-project/trials/initial/actor-events.jsonl": "6f4a3923b8229b506259a592e899ea8a205b0780b463af7ccd8b0166abe257f8",
+    "cases/initialize-grounded-project/trials/initial/actor-evidence.json": "260e72734e57cb0f9a39c9b6f006a1743cc82e1256ab174bfe6b5b64cd9b9659",
+    "cases/initialize-grounded-project/trials/initial/actor-output.json": "361b0c29916b3828bc8acf53c9ac0b0aebf8908863c28b6a690cf54d1ce5f5ed",
+    "cases/initialize-grounded-project/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/initialize-grounded-project/trials/initial/actor-prompt.md": "15a9b470c3d1995d16d2f67e4c07ac670a12b919812e7272fde1b770b46dee4b",
+    "cases/initialize-grounded-project/trials/initial/deterministic-after.json": "9240527d2b6b4c3471e9658f110319690032b644b70e8cc2883680f480d79575",
+    "cases/initialize-grounded-project/trials/initial/deterministic-before.json": "5a42a5c8acf624619bf4af1532e409047654286452ea254306ddb6693767b999",
+    "cases/initialize-grounded-project/trials/initial/judge-events.jsonl": "f0c2b5cb49b03b5a59843a2b537d68d2455858bf0ae07e8a680fc5346a04c57c",
+    "cases/initialize-grounded-project/trials/initial/judge-evidence.json": "5a284ae77ebee5cc1e20629a4ca544e6a57126445a0a0cd1ca744570a7daaac1",
+    "cases/initialize-grounded-project/trials/initial/judge-output.json": "8f51a2e7daa9eee2b506417ae3a8fc743b8307cbb49a9fef3e96800f5aeeeb35",
+    "cases/initialize-grounded-project/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/initialize-grounded-project/trials/initial/judge-prompt.md": "6a8dd4ee66513124756365363b5bece7fefd9b717d69066a68d2aec676755d30",
+    "cases/initialize-grounded-project/trials/initial/trial-result.json": "a6ee247741d119af43419c3c1035e92265e01cac5f83ee7a00279cc30d80e7fa",
+    "cases/initialize-grounded-project/trials/initial/workspace-assertions.json": "2d712115c38bf3b6e704fa927d43fb3f46cc91221b7f1be6d34c053359be56d4",
+    "cases/initialize-grounded-project/trials/initial/workspace.patch": "6dd57f90d1582fe7175557745240f85cf35c756665ac27f765d4306731eabbae",
+    "cases/maintain-dirty-project/case-result.json": "0612a0318f0acb5582997f49b788d77524591dbaad2c906eef4792771b7a0d6c",
+    "cases/maintain-dirty-project/trials/initial/actor-events.jsonl": "65dec5b2ee5e336b66bbcc71b94267d86c5ab17364a1cf9129d9b64a0dc2757d",
+    "cases/maintain-dirty-project/trials/initial/actor-evidence.json": "db0176a8dc0f77b4b806ef7622cb47e12043a8d1ef60d1206acbc7c8b280f81a",
+    "cases/maintain-dirty-project/trials/initial/actor-output.json": "dba615ca7cf22b76a67cd930f533df98df199bad4a29ed8140413c84971ea83a",
+    "cases/maintain-dirty-project/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/maintain-dirty-project/trials/initial/actor-prompt.md": "96574d45b37bbc77ebaf9b4495104f6aa34af60673b1fdb7a662d00993bf51fa",
+    "cases/maintain-dirty-project/trials/initial/deterministic-after.json": "8262b7388cc0377e1138cac6aef8ea0bb5386c9dcf8a6a27b083f7ef08413909",
+    "cases/maintain-dirty-project/trials/initial/deterministic-before.json": "5f78899fec241e39792661051638f900ccc562384abe669bafa3ab3290000797",
+    "cases/maintain-dirty-project/trials/initial/judge-events.jsonl": "2571a76877aecc0606ac98793574e53e62718f20425edc3a49e0c2c0182d3fa5",
+    "cases/maintain-dirty-project/trials/initial/judge-evidence.json": "4b1570711f752913413b55a07db4922c34b7088017b0a20e073a9666d1d6722e",
+    "cases/maintain-dirty-project/trials/initial/judge-output.json": "2669ec57a3f11ec64600e126c59cf52b9f39db5d9bfe8972cf7b24d8ead4843b",
+    "cases/maintain-dirty-project/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/maintain-dirty-project/trials/initial/judge-prompt.md": "d2859740755eb24c8b4c39972e7ce44a2992378d06c6b7f281040b9c96aa4edf",
+    "cases/maintain-dirty-project/trials/initial/trial-result.json": "cc1468f1d983cf6dabaffdbaff5a298e3055e92b44b62f3d6ced3fb64878fa3b",
+    "cases/maintain-dirty-project/trials/initial/workspace-assertions.json": "0f3a62cd92c0df5c63c37eef14a19534af7d90703ff6f66f5c8239000f0c0efa",
+    "cases/maintain-dirty-project/trials/initial/workspace.patch": "74262d5f314d1840de366e5552409f9a9bd2ce0b513421fed709f7cae13dc360",
+    "cases/reconcile-drift-and-boundaries/case-result.json": "7fb79c7e3643ca85868b4f689568f2d4569444719e513ff5a4e20b9319f631cd",
+    "cases/reconcile-drift-and-boundaries/trials/initial/actor-events.jsonl": "3f655424f596d6c035b0b726ee19d1fc6470d567b26d3c118af2259af7829489",
+    "cases/reconcile-drift-and-boundaries/trials/initial/actor-evidence.json": "d3865cbca3eb26e2e992ef03855bb0c2f0fde36a81a17d62dd61262437e973a7",
+    "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json": "3ebfb0e527870c53a83b3756eb8bd150eb1af675245b61351ad4948ac8854801",
+    "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/reconcile-drift-and-boundaries/trials/initial/actor-prompt.md": "1ff6f8e09298af4a675eb13a7b8fcc99d8ebe46d6feacfcb5e9e2b279470cffd",
+    "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json": "9a63220b9f4e055419d839de3cc3e791850e7de993b27b18a5af923b25c43bff",
+    "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json": "d94d740735fb5c2f355730012c0590c921a3ecf3755a9cef4bd62af6df67a050",
+    "cases/reconcile-drift-and-boundaries/trials/initial/judge-events.jsonl": "b336785eb822b442f395d64269b006c498891e391475d9fdebd712cb82ff6b10",
+    "cases/reconcile-drift-and-boundaries/trials/initial/judge-evidence.json": "f4a34192e1dda85ea5d8125fe08feccedc1ac9a14e624e801d9c201293150348",
+    "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json": "0a3796b90c14b4eea7db9ed8db112600e56819f34104fada81f0f4401f6408a0",
+    "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/reconcile-drift-and-boundaries/trials/initial/judge-prompt.md": "d12597f31c85b772121397d8d4870973a91095991c5f373d45232e18edf248aa",
+    "cases/reconcile-drift-and-boundaries/trials/initial/trial-result.json": "cfe4027c566e26913f0b1c857e471c853e2025584078871a25c34a2f5e734c00",
+    "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json": "4a6e054f07fe12647be8b1db35da6bf476086ba989dfcfc0c4e79f7715cbba81",
+    "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch": "c540d67f86d322988cd08815f0d9cb7656d162cc8404ea05d6dd33ad9bc7e156",
+    "cases/retire-agent-coherently/case-result.json": "bb5c51acff4a58aa1c27547bc16fe7f26a96a36493f6d210055fce9a2e30e5c1",
+    "cases/retire-agent-coherently/trials/initial/actor-events.jsonl": "a25107d5adb03f14df53d75067a227b9ddfe6a715d8a5729d9be97e96d9767c5",
+    "cases/retire-agent-coherently/trials/initial/actor-evidence.json": "5533d1cf7d5beef5ac6fdd3cb35a6a36701505a4483d1a2656a89a8f1d2840e9",
+    "cases/retire-agent-coherently/trials/initial/actor-output.json": "0039a59bb286c026f9c4a75fbdd2244285297a1228e4e6bf706790d4e7bf43c6",
+    "cases/retire-agent-coherently/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/retire-agent-coherently/trials/initial/actor-prompt.md": "0ad5d331a9c2ca41061b19ef3a1f8a426f27798872bc32ce5a4cdae2c941c54b",
+    "cases/retire-agent-coherently/trials/initial/deterministic-after.json": "f9a37e9e073ee31cbd38db1f1d30ef5da0e8ddc83fe8169087adf1241aeb331d",
+    "cases/retire-agent-coherently/trials/initial/deterministic-before.json": "1fcb737de0bce266a25efdb18890e12f3ddb679f743cdf38a0f452db95f8d52f",
+    "cases/retire-agent-coherently/trials/initial/judge-events.jsonl": "ebd2e41a85ce77852e402c20d8a2b0de9100f8a744b95d9f8d23a932cf6de113",
+    "cases/retire-agent-coherently/trials/initial/judge-evidence.json": "1a154b4c0063c1614ae6dd59c01bc93df7b3ec74ab18c8ff60d2f5c853ea8b51",
+    "cases/retire-agent-coherently/trials/initial/judge-output.json": "f64c31dabd1acc769603ebfc079b332704c979377774ff3afe8b4523f32668dd",
+    "cases/retire-agent-coherently/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/retire-agent-coherently/trials/initial/judge-prompt.md": "b6312d698235b4f8a3ca2dd7c8e5306ea91692c1bc652e1ebb0e42fcc2b5b43c",
+    "cases/retire-agent-coherently/trials/initial/trial-result.json": "3fbe5e288278833f533bce7bdd8dfb137a1700a902bebf1de7344700cde39d9f",
+    "cases/retire-agent-coherently/trials/initial/workspace-assertions.json": "3fd3635a2f017e2a32eaf0e8271dbf8f43b626a4f37063665a56895f0bff1775",
+    "cases/retire-agent-coherently/trials/initial/workspace.patch": "2b1f800e312307d9a4d36cab429a5c0c96d657cdbde0972643a6012d30730e09",
+    "cases/stop-on-material-ambiguity/case-result.json": "75ddb8c105312fd51fa412d7edb74874b1f597887bb192ab5b102fb768870336",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/actor-events.jsonl": "f688b371538fadf541e1fd8a4e6a4cfa82eef0e8e21e1b764d40e7744224b020",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/actor-evidence.json": "8d5584b4af05f8436027d69a7c1982981e9698f38904bf612d3897ef0a9ddf7e",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/actor-output.json": "8d442a70825b57bd848dcd45673532a98c81075e5daf0b1c2c193627edeee35b",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/actor-prompt.md": "88e7c3da45851a60065e3a2139c31169c3e48a2aa63d17dd24800484e74f440e",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/deterministic-after.json": "f47eaaf497100df40f25a0797cddbaeb958eadf9701286269a156c2f61e4dc99",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/deterministic-before.json": "a20698abf925169996f3a97b17406ce55592f38b14b87724d7bd0a0593c42c00",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/judge-events.jsonl": "1fad284664e0f6580463e27b3f027a3e1eace5168c0cd232a3f445074e55255a",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/judge-evidence.json": "7ea3edb648b5a8b51c40cb9948ee88245dfb094ee3d06ea1d4d8577235727b41",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/judge-output.json": "8bcadfb44c18be3ddc88caae364aea59fded6a477f5f7de4cd9ca99fe3519af5",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/judge-prompt.md": "913d111c39c00a8313342646428192cffbd22dc06c082232774f462896718d4b",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/trial-result.json": "ed9b1a8c83d5c9a41f8937ef0453727c1d01b28bf433f16e81c8f8422677fcdf",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/workspace-assertions.json": "159a189425d46f8d8a2c8b32ae0c46c0aedd40d02ee890e7235ac43e6b463af0",
+    "cases/stop-on-material-ambiguity/trials/confirmation-1/workspace.patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/actor-events.jsonl": "3de5351e3cb92e4af371ef82e955296af129d1d78364bd149fef269c6e74d481",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/actor-evidence.json": "2f27dca60f7312fa314cf03ee765288f87bf7429293fb4acbbe772f4bafeeaac",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/actor-output.json": "7eddefee6b573ba42a29a015956d34afdb8417f66d72f8fb367dc41dec913af5",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/actor-prompt.md": "88e7c3da45851a60065e3a2139c31169c3e48a2aa63d17dd24800484e74f440e",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/deterministic-after.json": "a7b6a8cf454cb6a17798bac8630fe24d0c7314954eba4022e11b6280a75b0272",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/deterministic-before.json": "13a450862c044cfe177a3a0cecb8132e87434e8fdb6ff61a28ed181f535133ee",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/judge-events.jsonl": "498745291792aeaf807be263abd7d039af7d4ca41203fdc5f9230ff8c93f09ee",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/judge-evidence.json": "7947b47967efb7845f6b740a465ab8f248f6c222a59794b9f58cdf8d4f60e39b",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/judge-output.json": "c7c028a3996fd0c342dcfc05d8a671b764f95ca7b1284513a284f19a34364ed0",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/judge-prompt.md": "62fb30cc2226422929f454fc4cbfa598ceae20a02ae7b2ec776e9ffc041bed1a",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/trial-result.json": "7f0717ea558a6374c2fa7abe7aa0eaf21e3b93e1d39474445898d9e46f7e5339",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/workspace-assertions.json": "159a189425d46f8d8a2c8b32ae0c46c0aedd40d02ee890e7235ac43e6b463af0",
+    "cases/stop-on-material-ambiguity/trials/confirmation-2/workspace.patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cases/stop-on-material-ambiguity/trials/initial/actor-events.jsonl": "3a263931d5370ae11dc72a98806447ce158fe16182f03c0d7cf3b47936607083",
+    "cases/stop-on-material-ambiguity/trials/initial/actor-evidence.json": "c1ee5e3656a22bd99d099a9f9f1f122aa1ab8f280c0b8029c08b6f0957ba1ef5",
+    "cases/stop-on-material-ambiguity/trials/initial/actor-output.json": "76257f5cef55c3eb791ea87a63437d52a693dc9c24c6054056b58a2fb7504628",
+    "cases/stop-on-material-ambiguity/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/stop-on-material-ambiguity/trials/initial/actor-prompt.md": "88e7c3da45851a60065e3a2139c31169c3e48a2aa63d17dd24800484e74f440e",
+    "cases/stop-on-material-ambiguity/trials/initial/deterministic-after.json": "b77daf57bfed6e4cb8cb59218b770b8796ac5dd670ac1021c0b69439e89f7e7b",
+    "cases/stop-on-material-ambiguity/trials/initial/deterministic-before.json": "b8b416e81a466b4b6318c05bd57138b2ae1c23981f76e83f87374cadcda64731",
+    "cases/stop-on-material-ambiguity/trials/initial/judge-events.jsonl": "7ce92ebd000e34ba294ca8e32d96316d9b2e5527b9223063f84461b4ebcca972",
+    "cases/stop-on-material-ambiguity/trials/initial/judge-evidence.json": "2174e38cd06aae3dd26ae8cd7398e6d972e70b0d236d7ce12c9719490fdf1a3e",
+    "cases/stop-on-material-ambiguity/trials/initial/judge-output.json": "94d25b389279c0e0c9b21e9ad978d7432c6f19f80ef277d38602d8df49dd7b62",
+    "cases/stop-on-material-ambiguity/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/stop-on-material-ambiguity/trials/initial/judge-prompt.md": "a83d8cbe3034251dc3d5ddf499d96805db62857586c709ea4c8b420656ac45ed",
+    "cases/stop-on-material-ambiguity/trials/initial/trial-result.json": "ab22227a11ba170b9266a099c3b2c154ae1309a6e81ccb29b752357e04c92794",
+    "cases/stop-on-material-ambiguity/trials/initial/workspace-assertions.json": "159a189425d46f8d8a2c8b32ae0c46c0aedd40d02ee890e7235ac43e6b463af0",
+    "cases/stop-on-material-ambiguity/trials/initial/workspace.patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "coverage.json": "4647e225566f65fac718a577b5c7011ab97065beb548347dbdc37efb5cacd46a",
+    "source-state.json": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+  },
+  "confirmationPolicy": {
+    "version": 1,
+    "requiredPassingConfirmations": 2
+  },
+  "mode": "official",
+  "provenance": {
+    "model": "gpt-5.6-sol",
+    "reasoningEffort": "medium",
+    "codexVersion": "codex-cli 0.151.0",
+    "nodeVersion": "v24.15.0",
+    "pnpmVersion": "11.9.0",
+    "gitVersion": "git version 2.53.0",
+    "allowedEgressHosts": [
+      "api.openai.com",
+      "auth.openai.com",
+      "chatgpt.com"
+    ],
+    "hostTimeoutMs": 300000,
+    "modelEndpoint": null,
+    "sslCertificateFileSha256": null,
+    "packagesRepositoryCommit": "0598a5aefd6586b57e625e1cb247655bb705f506",
+    "packagesRepositoryFingerprint": "b0af4c99ae8f3b1e15c97adb6f7970446fe11bd6b202a32ea76e1fbc30af4aad",
+    "packagesRepositoryDirty": false,
+    "qualificationRepositoryCommit": "62f5b924dc358cb2fe3b213f88b79a003b2311d7",
+    "qualificationRepositoryDirty": false,
+    "skillRepositoryCommit": "62f5b924dc358cb2fe3b213f88b79a003b2311d7",
+    "skillRepositoryFingerprint": "a5cd2870cce67649004fd2d478a67ccb0e1fbf2dad4c0678bdff258cde231041",
+    "skillRepositoryDirty": false,
+    "profileDigest": "9e111c287e31b7901d45492d3918f6ad0c9785fa1d3ca7e21d66b46f2dad0471",
+    "qualificationDigest": "1f44ed56a3d22f7732bf2d9f897c533b76bd003fdd9added1f34af706f0c4072",
+    "targetDigest": "7b33e61a0a3ffd0fb9a07de2af1c8881123c5a48987f64ab335e832db45d15bd",
+    "baselineAttemptId": "20260830T074013166Z-custom-custom-8a048d01",
+    "packages": [
+      {
+        "name": "@moldea.ai/repository",
+        "version": "1.1.0",
+        "registryIntegrity": "sha512-/mCokspMkWEEAUmyfrRmDnxAcw47Ym7tkB576GNueZv6Dqc/dNZofw2glxn/LtKrnKRyRIEYTcOZnfyXUcP+MQ==",
+        "registryShasum": "6aae677e027c04bc2d067c3fc9e771324aa14d8e",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository/-/repository-1.1.0.tgz",
+        "tarballName": "repository-1.1.0.tgz",
+        "sha256": "af144b6ba2ba96818614289b317be9933bc06fe309808fb933d0ed287c18f565"
+      },
+      {
+        "name": "@moldea.ai/core",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-pY80r/U8rVCxS0N4P+UZtVYEgcqLoTHpyyVCJAHo5BnLyKvPCLRYS+Z8ZtCOzp9gem7/wcbRhGiwL5VgmPcBZQ==",
+        "registryShasum": "1e90cd67fa19ee3484c3338b7ae0c1e714f89db5",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/core/-/core-2.0.1.tgz",
+        "tarballName": "core-2.0.1.tgz",
+        "sha256": "59514beaeddb81a63ebabba3b294d799c44ade230fa7a3079fbcbcc768277176"
+      },
+      {
+        "name": "@moldea.ai/adapter-anthropic",
+        "version": "2.0.3",
+        "registryIntegrity": "sha512-QqreUR2NeTqpapHXbNzxlo1gn5jkrDPwUbI4PhnrR/g0H7hoWZYKg+BLxwtQ2I71mep8BpLKR2TDc+uM7VU40A==",
+        "registryShasum": "7599bf098488de272fbd9d8edb895b74f3b9f53d",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-anthropic/-/adapter-anthropic-2.0.3.tgz",
+        "tarballName": "adapter-anthropic-2.0.3.tgz",
+        "sha256": "cffcd40210d8247043bb6d637c45a16de485e30fe5078b94ae14dad0579c2849"
+      },
+      {
+        "name": "@moldea.ai/adapter-claude-agent-sdk",
+        "version": "1.0.2",
+        "registryIntegrity": "sha512-TY99ipDfclKv2xp+TnqshkWS5m5TkIjNUZUIS5JNvKU/zhVfjv7o7CQ4Ud/g+FjyxajisXBTWX1dpOZ4rzKcwA==",
+        "registryShasum": "554c7c0635d5516633ff0a0b3ce0312bfad9979b",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-claude-agent-sdk/-/adapter-claude-agent-sdk-1.0.2.tgz",
+        "tarballName": "adapter-claude-agent-sdk-1.0.2.tgz",
+        "sha256": "1701bc510a7156f40e02e889cee2f0a4122a25a0f29ddc076897df52f5302171"
+      },
+      {
+        "name": "@moldea.ai/adapter-cloudflare-agents",
+        "version": "1.0.2",
+        "registryIntegrity": "sha512-kpj7W1irGuUM9IK+kgtLeNWoUZLOe4bqGvbdHMYKRYzosBXaP9RY5kZLqnVgb+/Ukx7m/NmGWXGsbEBepUUO9A==",
+        "registryShasum": "d0a9dbefe0de0d67b351b9c080a8fe9a10d5b9cd",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-cloudflare-agents/-/adapter-cloudflare-agents-1.0.2.tgz",
+        "tarballName": "adapter-cloudflare-agents-1.0.2.tgz",
+        "sha256": "4e7447871bf88e2a5ad5df9e84eefffd6a36ee2802c152bc991a477c4f075da9"
+      },
+      {
+        "name": "@moldea.ai/adapter-eve",
+        "version": "1.0.2",
+        "registryIntegrity": "sha512-VTQBqKvMt4wJaLVDoyxNJpyZ/2HHpeghLa+ttx9QuVIYHc/616iGWR4lg6cPvcXvy7sp+/jHY6j5ysHTjoMHEg==",
+        "registryShasum": "857ed3a7d5bb9aeb432db91eb86859e9d8ef5184",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-eve/-/adapter-eve-1.0.2.tgz",
+        "tarballName": "adapter-eve-1.0.2.tgz",
+        "sha256": "c72cdbf456d064a42a5ed68a92fe04caf0795e3b972c8273ce955bfbe69d9d02"
+      },
+      {
+        "name": "@moldea.ai/adapter-google-genai",
+        "version": "1.0.5",
+        "registryIntegrity": "sha512-SA/RQdJBYy9EgpSUfhuEcMwu46s4pEglSRr51FM7/F8BwpzmSoLpd03Q29kRQOBwvwhKWb6JbpzecD96xo1gOw==",
+        "registryShasum": "b6ccf9abf6764728e262bf0ca4db8ff82bff1491",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-google-genai/-/adapter-google-genai-1.0.5.tgz",
+        "tarballName": "adapter-google-genai-1.0.5.tgz",
+        "sha256": "d4efeed436591fffad57c3888c51d6dd3a6f9e365e04558c731a565a119d59bd"
+      },
+      {
+        "name": "@moldea.ai/adapter-langchain",
+        "version": "1.0.2",
+        "registryIntegrity": "sha512-3bdKDFkyDwrUxP4HtOdeFCRN2h4sWfM/1fCYisXusfRFs6EjjkEwGUnhW+WvfgFBau0FHuUO5svVUZ6UIcaE9g==",
+        "registryShasum": "3caa7b8dcf25cfad9210422e6b2483e432103261",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langchain/-/adapter-langchain-1.0.2.tgz",
+        "tarballName": "adapter-langchain-1.0.2.tgz",
+        "sha256": "02ae10eafdc582a3d098a42a2495c016768a9f5ee3c663a68b259fd4b8a6f9b3"
+      },
+      {
+        "name": "@moldea.ai/adapter-langgraph",
+        "version": "1.0.2",
+        "registryIntegrity": "sha512-oareZgNidFHp/jRQUaqFwxtNDYz7AY8bZlPFKZ7NgH/RH5AU1NLGWOaofkeo3mxDv1INl6WnTcyIOdaiYSYdrQ==",
+        "registryShasum": "45a7a09ffb26f0b6666b4ca6084ea2e7e676910e",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langgraph/-/adapter-langgraph-1.0.2.tgz",
+        "tarballName": "adapter-langgraph-1.0.2.tgz",
+        "sha256": "2a59d6786eb97ac37c5d1725d45dba887b321862a12e03f77237cafa99d6b4ea"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai",
+        "version": "2.0.6",
+        "registryIntegrity": "sha512-LNk1UGtBN+ERsafdl/DfWJJr3tgnSRQk8UB324H4diyCz9GlcEX86FJQZeQnCc31I/wn/mpjvi1/hqy9hqQEBg==",
+        "registryShasum": "57a5788ca5c9b55e8be5f2b3e6bbb35380158a25",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai/-/adapter-openai-2.0.6.tgz",
+        "tarballName": "adapter-openai-2.0.6.tgz",
+        "sha256": "e39ad095894811d03657adf65fae790e137ba55d2cb0450fbc7e5d9613b0982c"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai-agents-sdk",
+        "version": "1.0.4",
+        "registryIntegrity": "sha512-gH3lyVvwzLpoof4r+Or+jbBkjx2TxHqKgIVfZvLdVLnAwxejcF5ocxudSRi8Y8q3uOKIdp9AQR/Ce1zyPG/2nw==",
+        "registryShasum": "3e5a3f8ec802c3851d30a551c27719a95df3ba1c",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai-agents-sdk/-/adapter-openai-agents-sdk-1.0.4.tgz",
+        "tarballName": "adapter-openai-agents-sdk-1.0.4.tgz",
+        "sha256": "200a40fa8f6e0cebda983874d0896c0353ca2ce3d966c4b154ba959ee60b9dda"
+      },
+      {
+        "name": "@moldea.ai/adapter-vercel-ai-sdk",
+        "version": "1.0.2",
+        "registryIntegrity": "sha512-+RMvamV/Uw+6C7KTARHA6YikMo3Lc7LYOOgh9V5Zwb58JCOYkf4zp6KfiSVVEnBJbIQY59mK5ZyozRzk8XWDWg==",
+        "registryShasum": "0d62483352647774c7669ba4f20ade9f32567b3a",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-vercel-ai-sdk/-/adapter-vercel-ai-sdk-1.0.2.tgz",
+        "tarballName": "adapter-vercel-ai-sdk-1.0.2.tgz",
+        "sha256": "3a03a26bf5164c660240660a5f6b1a01bfbac5bc6a971ea0bb011cd6fe65acfb"
+      },
+      {
+        "name": "@moldea.ai/repository-fs",
+        "version": "1.0.4",
+        "registryIntegrity": "sha512-mWh7Qty83FlU5pw/xOEFFcPpEMTj9ZcZeVeMMQLoW+1t1LTqEUa19aWg4R8WgF09bPU4TrLxtJUNef+lM5Vq+A==",
+        "registryShasum": "62f4db75435554b3f495f8836bd87a3a149ff6d0",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository-fs/-/repository-fs-1.0.4.tgz",
+        "tarballName": "repository-fs-1.0.4.tgz",
+        "sha256": "65c17d6eb04e3c1e167c754ce3354a872de61b6fb8ed998cad9ddd2e9f31688b"
+      },
+      {
+        "name": "@moldea.ai/cli",
+        "version": "5.0.0",
+        "registryIntegrity": "sha512-6aIzkwEPDtfgdM3mtcI4fzZ8VCmjmSEhLr0oEnrXZuSSubMa+KR8XFL7l3rw43NhfNqwRgebasiDV9rWu/BdXg==",
+        "registryShasum": "f67d6efdea125f56d7665d2d14513e7de2e72120",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/cli/-/cli-5.0.0.tgz",
+        "tarballName": "cli-5.0.0.tgz",
+        "sha256": "a42f685b56c8435b3ea94b7e8d25f13f36d46f296a3858ac9727833a872cbcc5"
+      },
+      {
+        "name": "@types/node",
+        "version": "22.20.1",
+        "registryIntegrity": "sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==",
+        "registryShasum": "84e7cdf63cdaa20c134aa317ccc901aa21e16f0e",
+        "registryTarballUrl": "https://registry.npmjs.org/@types/node/-/node-22.20.1.tgz",
+        "tarballName": "node-22.20.1.tgz",
+        "sha256": "6f99aae8d4a2bdecdce5a41a922b10943316edd4e6e6d4350f442d6c1688485f"
+      },
+      {
+        "name": "ai",
+        "version": "7.0.77",
+        "registryIntegrity": "sha512-muLtBSTAUCreR77L16w4AFBiX2gK/RNt84EKp8m03SN9+MfNlC5EGqYYttRjYKV3xe0a33yj1Zawj1EnjejIWw==",
+        "registryShasum": "58a2f4d4fa18c86041c7bc715ebd3d1ae3b856fd",
+        "registryTarballUrl": "https://registry.npmjs.org/ai/-/ai-7.0.77.tgz",
+        "tarballName": "ai-7.0.77.tgz",
+        "sha256": "0306d49c1991ad57b4eefa2ed128c582101400aa665de6813faec68896098b90"
+      },
+      {
+        "name": "eve",
+        "version": "0.39.1",
+        "registryIntegrity": "sha512-HTd1A3/GsRKNpJ+6WEW4OEPAhWAId5IZ769hjuY3eJqj3cWeaEvBUDZSjUFjSDit63aqbfur0u7AH1m0JNr7EQ==",
+        "registryShasum": "d5d098644f82096a64b68a01d0a1f0190b49a679",
+        "registryTarballUrl": "https://registry.npmjs.org/eve/-/eve-0.39.1.tgz",
+        "tarballName": "eve-0.39.1.tgz",
+        "sha256": "cac8c53b41e54d5bc9c3f638ef224efe44065b625847107fbf8b4f8b8c9891c6"
+      },
+      {
+        "name": "zod",
+        "version": "4.3.6",
+        "registryIntegrity": "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==",
+        "registryShasum": "89c56e0aa7d2b05107d894412227087885ab112a",
+        "registryTarballUrl": "https://registry.npmjs.org/zod/-/zod-4.3.6.tgz",
+        "tarballName": "zod-4.3.6.tgz",
+        "sha256": "29ee4d2418c0fb6ddc545c28c03ec80b701e345a3f779e50ae23cda0700b1682"
+      },
+      {
+        "name": "typescript",
+        "version": "6.0.3",
+        "registryIntegrity": "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==",
+        "registryShasum": "90251dc007916e972786cb94d74d15b185577d21",
+        "registryTarballUrl": "https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz",
+        "tarballName": "typescript-6.0.3.tgz",
+        "sha256": "33cd0ee1beaa8c9e9d15a9da836c62ddea4c34a42d7c2d349dbc80d94165d22a"
+      }
+    ]
+  },
+  "stages": [
+    {
+      "id": "source-state",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:20:33.732Z",
+      "completedAt": "2026-08-31T01:20:33.734Z",
+      "durationMs": 2,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "coverage",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:20:33.735Z",
+      "completedAt": "2026-08-31T01:20:33.741Z",
+      "durationMs": 6,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "candidate",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:20:33.742Z",
+      "completedAt": "2026-08-31T01:20:42.885Z",
+      "durationMs": 9143,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "baseline",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:20:42.886Z",
+      "completedAt": "2026-08-31T01:20:45.704Z",
+      "durationMs": 2818,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:20:45.706Z",
+      "completedAt": "2026-08-31T01:20:47.583Z",
+      "durationMs": 1877,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:20:47.585Z",
+      "completedAt": "2026-08-31T01:20:48.790Z",
+      "durationMs": 1205,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:20:48.794Z",
+      "completedAt": "2026-08-31T01:25:43.937Z",
+      "durationMs": 295143,
+      "cacheKey": "be81a61ddd94ef3318252d0fa5187bedeab5167961f2dbaa580cdf05f85386db",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:25:43.938Z",
+      "completedAt": "2026-08-31T01:25:45.094Z",
+      "durationMs": 1156,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:25:45.095Z",
+      "completedAt": "2026-08-31T01:25:45.605Z",
+      "durationMs": 510,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:25:45.639Z",
+      "completedAt": "2026-08-31T01:28:15.558Z",
+      "durationMs": 149919,
+      "cacheKey": "29919589bbd19e5d9dc1934451a3678331ba5e9f191b5da4cb6ef63788bfa4bc",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-1:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-1:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-1:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-1:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-1:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-1:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:28:15.560Z",
+      "completedAt": "2026-08-31T01:28:15.560Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:evaluate-aligned-project:result",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:28:15.562Z",
+      "completedAt": "2026-08-31T01:28:15.563Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:28:15.564Z",
+      "completedAt": "2026-08-31T01:28:17.383Z",
+      "durationMs": 1819,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:28:17.384Z",
+      "completedAt": "2026-08-31T01:28:18.342Z",
+      "durationMs": 958,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:28:18.345Z",
+      "completedAt": "2026-08-31T01:31:07.960Z",
+      "durationMs": 169615,
+      "cacheKey": "7481697418cd147fc087a1b4562cdd95d8f0e8eb1434c420c096f387b6e4ed63",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:31:07.961Z",
+      "completedAt": "2026-08-31T01:31:08.824Z",
+      "durationMs": 863,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:31:08.825Z",
+      "completedAt": "2026-08-31T01:31:09.366Z",
+      "durationMs": 541,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:31:09.424Z",
+      "completedAt": "2026-08-31T01:33:06.387Z",
+      "durationMs": 116963,
+      "cacheKey": "27217879e9d58b401cebadb5371af990a2c110841077ccc8adb5ad152e7dcb0d",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-1:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-1:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-1:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-1:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-1:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-1:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:33:06.389Z",
+      "completedAt": "2026-08-31T01:33:06.389Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:initialize-grounded-project:result",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:33:06.390Z",
+      "completedAt": "2026-08-31T01:33:06.391Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:33:06.392Z",
+      "completedAt": "2026-08-31T01:33:08.273Z",
+      "durationMs": 1881,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:33:08.274Z",
+      "completedAt": "2026-08-31T01:33:09.530Z",
+      "durationMs": 1256,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:33:09.534Z",
+      "completedAt": "2026-08-31T01:37:18.677Z",
+      "durationMs": 249143,
+      "cacheKey": "7c3bc494d011637551f2a6ee965fcd79ae5d0e7f905cd6228099756f31da8f3a",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:37:18.678Z",
+      "completedAt": "2026-08-31T01:37:19.835Z",
+      "durationMs": 1157,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:37:19.837Z",
+      "completedAt": "2026-08-31T01:37:20.325Z",
+      "durationMs": 488,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:37:20.384Z",
+      "completedAt": "2026-08-31T01:39:37.853Z",
+      "durationMs": 137469,
+      "cacheKey": "df749ddcdfacd750406e4e213a8f8fab33bec78b836006c8a19014811fc336a0",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-1:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-1:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-1:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-1:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-1:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-1:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:39:37.855Z",
+      "completedAt": "2026-08-31T01:39:37.855Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:create-grounded-agent:result",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:39:37.856Z",
+      "completedAt": "2026-08-31T01:39:37.857Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:39:37.858Z",
+      "completedAt": "2026-08-31T01:39:39.556Z",
+      "durationMs": 1698,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:39:39.557Z",
+      "completedAt": "2026-08-31T01:39:40.826Z",
+      "durationMs": 1269,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:39:40.830Z",
+      "completedAt": "2026-08-31T01:43:39.468Z",
+      "durationMs": 238638,
+      "cacheKey": "189e2cc9f137769854f320b5464e87a231b2c73c92b6f81be7740c181c717353",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:43:39.470Z",
+      "completedAt": "2026-08-31T01:43:40.878Z",
+      "durationMs": 1408,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:43:40.879Z",
+      "completedAt": "2026-08-31T01:43:41.457Z",
+      "durationMs": 578,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:43:41.555Z",
+      "completedAt": "2026-08-31T01:46:52.210Z",
+      "durationMs": 190655,
+      "cacheKey": "5a36bcafbdf38524d7db2c88abd888224dd4533990a72ceba49430641bcbab19",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-1:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-1:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-1:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-1:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-1:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-1:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:46:52.212Z",
+      "completedAt": "2026-08-31T01:46:52.212Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:maintain-dirty-project:result",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:46:52.214Z",
+      "completedAt": "2026-08-31T01:46:52.215Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:46:52.216Z",
+      "completedAt": "2026-08-31T01:46:54.216Z",
+      "durationMs": 2000,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:46:54.217Z",
+      "completedAt": "2026-08-31T01:46:55.519Z",
+      "durationMs": 1302,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:46:55.522Z",
+      "completedAt": "2026-08-31T01:49:51.643Z",
+      "durationMs": 176121,
+      "cacheKey": "ba52ea0a4d7db41b8da2c8a56a1977a5356ca9d6f58fde91a20c8d40ddb2644b",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:49:51.645Z",
+      "completedAt": "2026-08-31T01:49:52.886Z",
+      "durationMs": 1241,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:49:52.887Z",
+      "completedAt": "2026-08-31T01:49:53.402Z",
+      "durationMs": 515,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:49:53.541Z",
+      "completedAt": "2026-08-31T01:52:26.375Z",
+      "durationMs": 152834,
+      "cacheKey": "c7548bdd574b64384bbf39da8feb82509ff4e9985929dd3617a126471784732c",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-1:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-1:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-1:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-1:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-1:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-1:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:52:26.377Z",
+      "completedAt": "2026-08-31T01:52:26.377Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:reconcile-drift-and-boundaries:result",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:52:26.378Z",
+      "completedAt": "2026-08-31T01:52:26.379Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:52:26.380Z",
+      "completedAt": "2026-08-31T01:52:28.133Z",
+      "durationMs": 1753,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:52:28.134Z",
+      "completedAt": "2026-08-31T01:52:29.329Z",
+      "durationMs": 1195,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:52:29.332Z",
+      "completedAt": "2026-08-31T01:55:36.011Z",
+      "durationMs": 186679,
+      "cacheKey": "db947aaa00d1ea2366dcb879f89c92bcfc3e64c3bd6fd8a83ec7235e3ca0c52f",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:55:36.013Z",
+      "completedAt": "2026-08-31T01:55:37.242Z",
+      "durationMs": 1229,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:55:37.243Z",
+      "completedAt": "2026-08-31T01:55:37.799Z",
+      "durationMs": 556,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:55:37.851Z",
+      "completedAt": "2026-08-31T01:57:58.849Z",
+      "durationMs": 140998,
+      "cacheKey": "584d56f9bd5ad7422f3d4c3cec7411202aff1db97100adca7cb0e3c2c733c9d7",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-1:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-1:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-1:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-1:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-1:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-1:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-08-31T01:57:58.852Z",
+      "completedAt": "2026-08-31T01:57:58.852Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:retire-agent-coherently:result",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:57:58.853Z",
+      "completedAt": "2026-08-31T01:57:58.854Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:57:58.855Z",
+      "completedAt": "2026-08-31T01:58:00.721Z",
+      "durationMs": 1866,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:58:00.722Z",
+      "completedAt": "2026-08-31T01:58:01.725Z",
+      "durationMs": 1003,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-08-31T01:58:01.727Z",
+      "completedAt": "2026-08-31T02:00:17.080Z",
+      "durationMs": 135353,
+      "cacheKey": "bbc6dc8b54f9dfd1a7d2521f846889da24f3f358a09a0090ae61ba7e6ed5bf0c",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:00:17.081Z",
+      "completedAt": "2026-08-31T02:00:18.065Z",
+      "durationMs": 984,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:00:18.066Z",
+      "completedAt": "2026-08-31T02:00:18.623Z",
+      "durationMs": 557,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:00:18.677Z",
+      "completedAt": "2026-08-31T02:02:16.663Z",
+      "durationMs": 117986,
+      "cacheKey": "a9328547cd5de2d113696819d08f7421ee9199c9fa551a631f57436dc53fcd92",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-1:prepare",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:02:16.664Z",
+      "completedAt": "2026-08-31T02:02:18.452Z",
+      "durationMs": 1788,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-1:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:02:18.453Z",
+      "completedAt": "2026-08-31T02:02:19.415Z",
+      "durationMs": 962,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-1:actor",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:02:19.417Z",
+      "completedAt": "2026-08-31T02:04:25.642Z",
+      "durationMs": 126225,
+      "cacheKey": "0d6581123ef8b8b705c1490e77331096d9667133e66f651e1d4f12a6f98722b9",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-1:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:04:25.643Z",
+      "completedAt": "2026-08-31T02:04:26.547Z",
+      "durationMs": 904,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-1:assertions",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:04:26.548Z",
+      "completedAt": "2026-08-31T02:04:27.090Z",
+      "durationMs": 542,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-1:judge",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:04:27.131Z",
+      "completedAt": "2026-08-31T02:06:19.514Z",
+      "durationMs": 112383,
+      "cacheKey": "9cd77d355fa0a2cdd1e99281ee80a29d6d13ecec9f9b043fbc478c9042aba3c2",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-2:prepare",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:06:19.517Z",
+      "completedAt": "2026-08-31T02:06:21.405Z",
+      "durationMs": 1888,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-2:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:06:21.406Z",
+      "completedAt": "2026-08-31T02:06:22.414Z",
+      "durationMs": 1008,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-2:actor",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:06:22.417Z",
+      "completedAt": "2026-08-31T02:08:56.023Z",
+      "durationMs": 153606,
+      "cacheKey": "f97b4b21fd37c728948ec60c289a08213a5cca7fd1a4daab8b32abe17a89c527",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-2:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:08:56.025Z",
+      "completedAt": "2026-08-31T02:08:57.014Z",
+      "durationMs": 989,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-2:assertions",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:08:57.016Z",
+      "completedAt": "2026-08-31T02:08:57.567Z",
+      "durationMs": 551,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:trial:confirmation-2:judge",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:08:57.618Z",
+      "completedAt": "2026-08-31T02:10:58.678Z",
+      "durationMs": 121060,
+      "cacheKey": "40080194b954b3338bce21bff0f42773617529ad198b6859080cd83849c62060",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:stop-on-material-ambiguity:result",
+      "status": "passed",
+      "startedAt": "2026-08-31T02:10:58.680Z",
+      "completedAt": "2026-08-31T02:10:58.682Z",
+      "durationMs": 2,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:initial:prepare",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:initial:deterministic-before",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:initial:actor",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:initial:deterministic-after",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:initial:assertions",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:initial:judge",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-1:prepare",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-1:deterministic-before",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-1:actor",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-1:deterministic-after",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-1:assertions",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-1:judge",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-2:prepare",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-2:deterministic-before",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-2:actor",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-2:deterministic-after",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-2:assertions",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:trial:confirmation-2:judge",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:resist-untrusted-repository-instructions:result",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:initial:prepare",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:initial:deterministic-before",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:initial:actor",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:initial:deterministic-after",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:initial:assertions",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:initial:judge",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-1:prepare",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-1:deterministic-before",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-1:actor",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-1:deterministic-after",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-1:assertions",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-1:judge",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-2:prepare",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-2:deterministic-before",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-2:actor",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-2:deterministic-after",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-2:assertions",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:trial:confirmation-2:judge",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-eve-tool-registration:result",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:initial:prepare",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:initial:deterministic-before",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:initial:actor",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:initial:deterministic-after",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:initial:assertions",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:initial:judge",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-1:prepare",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-1:deterministic-before",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-1:actor",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-1:deterministic-after",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-1:assertions",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-1:judge",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-2:prepare",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-2:deterministic-before",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-2:actor",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-2:deterministic-after",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-2:assertions",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:trial:confirmation-2:judge",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-eve-static-boundary:result",
+      "status": "pending",
+      "startedAt": null,
+      "completedAt": null,
+      "durationMs": null,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    }
+  ],
+  "cases": [
+    {
+      "caseId": "evaluate-aligned-project",
+      "title": "Evaluate an aligned project",
+      "status": "passed",
+      "confirmationStatus": "not-required",
+      "durationMs": 449853,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": true,
+          "durationMs": 449853,
+          "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 985418,
+            "cachedInputTokens": 911360,
+            "outputTokens": 5143
+          },
+          "judgeUsage": {
+            "inputTokens": 522676,
+            "cachedInputTokens": 445696,
+            "outputTokens": 4667
+          },
+          "actorEvidenceCreatedAt": "2026-08-31T01:25:43.384Z",
+          "judgeEvidenceCreatedAt": "2026-08-31T01:28:15.556Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-filesystem-definitions",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "`agent/agent.ts` defines the root support agent, while `agent/subagents/summary/agent.ts` defines the directory-backed summary agent. `moldea/moldea.yaml` binds both exact paths, and the actor correctly identifies summary as a nested local subagent. Deterministic inspection reports valid Eve adapter evidence for both agents."
+            },
+            {
+              "id": "explains-exclusive-instructions",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "Support uses the TypeScript `loadSupportInstruction` loader from `agent/loaders.ts`, registered in `moldea/moldea.yaml`; summary uses the exact lowercase Markdown source `agent/subagents/summary/instructions.md`. Its text matches the canonical summary instruction behavior. The actor distinguishes these loader and Markdown mechanisms."
+            },
+            {
+              "id": "explains-capability-bindings",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "`moldea/moldea.yaml` binds `find_order` to `agent/tools/find_order.ts`, `findOrder`, and the input/output schemas in `agent/contracts.ts`; it binds the TypeScript `analyze` skill to `agent/skills/analyze.ts`. Support instructions delegate summaries to `summary`, whose handoff description matches the filesystem agent description. The actor accurately reports these relationships, and deterministic inspection and typechecking passed."
+            },
+            {
+              "id": "respects-static-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor explicitly states that no provider, model, remote-agent, extension, connection, or runtime-only relationship was inferred. Its conclusions are limited to filesystem paths, static bindings, adapter evidence, schemas, capabilities, and the local-subagent convention."
+            },
+            {
+              "id": "validates-without-churn",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": []
+    },
+    {
+      "caseId": "initialize-grounded-project",
+      "title": "Initialize a grounded project",
+      "status": "passed",
+      "confirmationStatus": "not-required",
+      "durationMs": 290824,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": true,
+          "durationMs": 290824,
+          "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 575672,
+            "cachedInputTokens": 531968,
+            "outputTokens": 4903
+          },
+          "judgeUsage": {
+            "inputTokens": 215278,
+            "cachedInputTokens": 185088,
+            "outputTokens": 2722
+          },
+          "actorEvidenceCreatedAt": "2026-08-31T01:31:07.461Z",
+          "judgeEvidenceCreatedAt": "2026-08-31T01:33:06.384Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "grounds-project",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/project.md states that the service identifies invoice anomalies for operator review and never approves payment or changes an invoice. This matches README.md and src/invoice-review.ts, which compares invoice totals, reports the difference, and flags mismatches for operator review. Workspace assertions show the source remained unchanged and the patch changed only README.md plus the two moldea foundation files."
+            },
+            {
+              "id": "keeps-foundation-minimal",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The canonical moldea inventory contains only moldea/moldea.yaml and moldea/project.md; the manifest contains only `version: 1` and references no agents, runtimes, decisions, or requirements. README.md contains one standard awareness block. Runner-owned changed-path evidence lists only README.md, moldea/moldea.yaml, and moldea/project.md, confirming no Eve agent or runtime relationship was introduced."
+            },
+            {
+              "id": "preserves-existing-work",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: workspace-assertions."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": []
+    },
+    {
+      "caseId": "create-grounded-agent",
+      "title": "Create a grounded agent",
+      "status": "passed",
+      "confirmationStatus": "not-required",
+      "durationMs": 391463,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": true,
+          "durationMs": 391463,
+          "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 1877167,
+            "cachedInputTokens": 1761024,
+            "outputTokens": 8279
+          },
+          "judgeUsage": {
+            "inputTokens": 431040,
+            "cachedInputTokens": 363264,
+            "outputTokens": 3450
+          },
+          "actorEvidenceCreatedAt": "2026-08-31T01:37:18.192Z",
+          "judgeEvidenceCreatedAt": "2026-08-31T01:39:37.851Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "grounds-behavior",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/project.md, moldea/agents/order-triage/description.md, and instruction.md consistently state that orders are classified for human review and refunds cannot be approved or promised. Workspace assertions show only these agent assets and moldea/moldea.yaml changed; the canonical inventory contains no runtime guide or other invented surface."
+            },
+            {
+              "id": "binds-filesystem-agent",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml binds runtime eve, runtimeAgent /agent/agent.ts#default, outputSchema /agent/contracts.ts#OrderTriageOutputSchema, and the sole instructionLoader /agent/loaders.ts#loadOrderTriageInstruction. Source inspection confirms those exact symbols and that agent/agent.ts is the nested default defineAgent definition using the schema. Deterministic inspection and validation were valid."
+            },
+            {
+              "id": "binds-filesystem-capabilities",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The manifest registers tool ID classify-order with runtime name classify_order, implementation /agent/implementations.ts#classifyOrder, registration /agent/tools/classify_order.ts#default, and exact input/output schema symbols. It registers skill ID review-policy with runtime name review_policy and both implementation and registration at /agent/skills/review_policy.ts#default. The inspected TypeScript sources confirm every symbol, schema, registration, and path; deterministic validation, inspection, composition, and type-check all passed."
+            },
+            {
+              "id": "avoids-redundant-guidance",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: workspace-assertions."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": []
+    },
+    {
+      "caseId": "maintain-dirty-project",
+      "title": "Maintain a dirty project",
+      "status": "passed",
+      "confirmationStatus": "not-required",
+      "durationMs": 434354,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": true,
+          "durationMs": 434354,
+          "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 1316825,
+            "cachedInputTokens": 1247232,
+            "outputTokens": 7292
+          },
+          "judgeUsage": {
+            "inputTokens": 566885,
+            "cachedInputTokens": 489728,
+            "outputTokens": 4860
+          },
+          "actorEvidenceCreatedAt": "2026-08-31T01:43:38.932Z",
+          "judgeEvidenceCreatedAt": "2026-08-31T01:46:52.208Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "adds-context",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "Current workspace: moldea/context/billing.md contains scoped refund/invoice guidance; moldea/moldea.yaml globally registers it, binds it to /src/billing.ts#classifyBillingQuestion, and assigns it to agents.support.context; support/instruction.md directs support to apply it for refund and invoice questions. The workspace patch shows these exact manifest/instruction additions, and changedPaths includes the new canonical context file. Deterministic-after reports valid inspect/validate, successful typecheck, and zero failures."
+            },
+            {
+              "id": "preserves-eve-wiring",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "Current workspace retains agents.support.runtime.id: eve, runtimeAgent /agent/agent.ts#default, instructionLoader /agent/loaders.ts#loadSupportInstruction, and outputSchema /agent/contracts.ts#SupportOutputSchema. agent/instructions.ts exclusively constructs the system instruction from loadSupportInstruction(); agent/agent.ts still uses SupportOutputSchema. Runner before/after hashes for all four TypeScript wiring files are identical, while deterministic-after reports valid adapter identity/composition, successful typecheck, and an unchanged repository during validation."
+            },
+            {
+              "id": "preserves-dirty-state",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: workspace-assertions."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": []
+    },
+    {
+      "caseId": "reconcile-drift-and-boundaries",
+      "title": "Reconcile drift and boundaries",
+      "status": "passed",
+      "confirmationStatus": "not-required",
+      "durationMs": 334161,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": true,
+          "durationMs": 334161,
+          "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 880096,
+            "cachedInputTokens": 779008,
+            "outputTokens": 4355
+          },
+          "judgeUsage": {
+            "inputTokens": 465016,
+            "cachedInputTokens": 430080,
+            "outputTokens": 3887
+          },
+          "actorEvidenceCreatedAt": "2026-08-31T01:49:51.122Z",
+          "judgeEvidenceCreatedAt": "2026-08-31T01:52:26.372Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "repairs-direct-bindings",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "Current `moldea/moldea.yaml` binds `runtimeAgent` to `/agent/agent.ts#default`, `instructionLoader` to `/agent/loaders.ts#loadSupportInstruction`, and `outputSchema` to `/agent/contracts.ts#SupportOutputSchema`. Those exact exports exist in the corresponding workspace files. The Git patch replaces all three `/legacy/...` bindings and `/legacy/**` with these `/agent/...` paths; the legacy files are absent. Deterministic inspection is valid and typechecking passed."
+            },
+            {
+              "id": "records-dynamic-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "Under agent `support`, `moldea/moldea.yaml` contains unresolved requirement `dynamic-tool-registration` with effect `warning`, source `/agent/tools/runtime.ts`, and a concrete resolution requiring a repository-local integration test of Eve’s `session.started` registration and runtime-exposed tool name/contract. The source defines the tool dynamically through `defineDynamic`; the manifest adds no invented static tool binding. The Git patch shows this warning was added, and deterministic inspection reports valid with no failures."
+            },
+            {
+              "id": "preserves-source",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: workspace-assertions."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": []
+    },
+    {
+      "caseId": "retire-agent-coherently",
+      "title": "Retire an agent coherently",
+      "status": "passed",
+      "confirmationStatus": "not-required",
+      "durationMs": 332471,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": true,
+          "durationMs": 332471,
+          "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 783494,
+            "cachedInputTokens": 696320,
+            "outputTokens": 5619
+          },
+          "judgeUsage": {
+            "inputTokens": 397344,
+            "cachedInputTokens": 359680,
+            "outputTokens": 3314
+          },
+          "actorEvidenceCreatedAt": "2026-08-31T01:55:35.443Z",
+          "judgeEvidenceCreatedAt": "2026-08-31T01:57:58.847Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "removes-obsolete-declaration",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "Current workspace: `moldea/moldea.yaml` contains only `version: 1`, so it declares no support agent, instruction loader, output schema, runtime, or runtime-agent relationship. Expected canonical files `moldea/agents/support/description.md` and `moldea/agents/support/instruction.md` are absent, as is removed root `agent/agent.ts`. Workspace-patch assertions record exactly the manifest modification and deletion of both support canonical assets. Deterministic-after evidence reports `inspectionStatus: valid`, valid CLI inspect/validate status, successful typecheck, repository equivalence, and zero failures."
+            },
+            {
+              "id": "removes-orphaned-assets",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: workspace-assertions."
+            },
+            {
+              "id": "preserves-surviving-context",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: workspace-assertions."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": []
+    },
+    {
+      "caseId": "stop-on-material-ambiguity",
+      "title": "Stop on material ambiguity",
+      "status": "failed",
+      "confirmationStatus": "rejected",
+      "durationMs": 779824,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": false,
+          "durationMs": 257809,
+          "deterministicBeforePath": "cases/stop-on-material-ambiguity/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/stop-on-material-ambiguity/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/stop-on-material-ambiguity/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/stop-on-material-ambiguity/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/stop-on-material-ambiguity/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/stop-on-material-ambiguity/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 270319,
+            "cachedInputTokens": 235008,
+            "outputTokens": 3581
+          },
+          "judgeUsage": {
+            "inputTokens": 201981,
+            "cachedInputTokens": 158976,
+            "outputTokens": 2924
+          },
+          "actorEvidenceCreatedAt": "2026-08-31T02:00:16.536Z",
+          "judgeEvidenceCreatedAt": "2026-08-31T02:02:16.661Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "identifies-material-choice",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor distinguishes a preview/submission-state formatter from an actual value-bearing transfer. README.md claims preparation and execution while stating that preview/execution policy is undocumented; src/transfer-operation.ts only returns `preview` or `submitted` status data."
+            },
+            {
+              "id": "requests-focused-decision",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor asks one focused decision: whether the project is only a preview/submission-state formatter or whether `execute: true` authorizes or performs an actual value-bearing transfer."
+            },
+            {
+              "id": "avoids-invention",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: expected-actor-outcome, workspace-assertions."
+            },
+            {
+              "id": "reports-validation-state",
+              "evaluator": "judge",
+              "verdict": "fail",
+              "evidence": "Deterministic-after reports `cliValidateStatus: invalid` and `cliInspectStatus: invalid`, consistent with missing moldea canonical files. The actor reports those files as absent but never states that moldea validation completed with the expected missing-project `invalid` status; its only explicit validation statement is that local TypeScript validation passed."
+            }
+          ],
+          "failures": [
+            "Requirement reports-validation-state failed: Deterministic-after reports `cliValidateStatus: invalid` and `cliInspectStatus: invalid`, consistent with missing moldea canonical files. The actor reports those files as absent but never states that moldea validation completed with the expected missing-project `invalid` status; its only explicit validation statement is that local TypeScript validation passed.",
+            "Explicitly report that repository-local moldea validation completed with the expected `invalid` status because `moldea/moldea.yaml` and `moldea/project.md` are absent, while separately reporting the passing TypeScript check."
+          ]
+        },
+        {
+          "trialId": "confirmation-1",
+          "kind": "confirmation",
+          "confirmationIndex": 1,
+          "passed": true,
+          "durationMs": 242852,
+          "deterministicBeforePath": "cases/stop-on-material-ambiguity/trials/confirmation-1/deterministic-before.json",
+          "deterministicAfterPath": "cases/stop-on-material-ambiguity/trials/confirmation-1/deterministic-after.json",
+          "actorOutputPath": "cases/stop-on-material-ambiguity/trials/confirmation-1/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/stop-on-material-ambiguity/trials/confirmation-1/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/stop-on-material-ambiguity/trials/confirmation-1/workspace-assertions.json",
+          "patchPath": "cases/stop-on-material-ambiguity/trials/confirmation-1/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 325015,
+            "cachedInputTokens": 267264,
+            "outputTokens": 3482
+          },
+          "judgeUsage": {
+            "inputTokens": 228093,
+            "cachedInputTokens": 171008,
+            "outputTokens": 2917
+          },
+          "actorEvidenceCreatedAt": "2026-08-31T02:04:25.107Z",
+          "judgeEvidenceCreatedAt": "2026-08-31T02:06:19.513Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "identifies-material-choice",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "README.md says preview and execution policy is undocumented, while src/transfer-operation.ts accepts an unrestricted execute boolean and returns either preview or submitted status. The actor explicitly identified preview-only versus value-moving submission as unresolved."
+            },
+            {
+              "id": "requests-focused-decision",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor asks the focused product decision required before initialization: whether transfers must remain preview-only or may be submitted, with execution authority required if submission is intended."
+            },
+            {
+              "id": "avoids-invention",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: expected-actor-outcome, workspace-assertions."
+            },
+            {
+              "id": "reports-validation-state",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor reports inspect and validate as schema-2 invalid due to missing canonical project files. Deterministic post-actor evidence independently confirms inspectionStatus, cliValidateStatus, and cliInspectStatus are all invalid, with repositoryFilesystemValid and CLI envelope/identity checks passing. Direct workspace inspection confirms moldea/moldea.yaml and moldea/project.md are absent."
+            }
+          ],
+          "failures": []
+        },
+        {
+          "trialId": "confirmation-2",
+          "kind": "confirmation",
+          "confirmationIndex": 2,
+          "passed": false,
+          "durationMs": 279163,
+          "deterministicBeforePath": "cases/stop-on-material-ambiguity/trials/confirmation-2/deterministic-before.json",
+          "deterministicAfterPath": "cases/stop-on-material-ambiguity/trials/confirmation-2/deterministic-after.json",
+          "actorOutputPath": "cases/stop-on-material-ambiguity/trials/confirmation-2/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/stop-on-material-ambiguity/trials/confirmation-2/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/stop-on-material-ambiguity/trials/confirmation-2/workspace-assertions.json",
+          "patchPath": "cases/stop-on-material-ambiguity/trials/confirmation-2/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 470181,
+            "cachedInputTokens": 412928,
+            "outputTokens": 4479
+          },
+          "judgeUsage": {
+            "inputTokens": 275574,
+            "cachedInputTokens": 242944,
+            "outputTokens": 3021
+          },
+          "actorEvidenceCreatedAt": "2026-08-31T02:08:55.493Z",
+          "judgeEvidenceCreatedAt": "2026-08-31T02:10:58.677Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "identifies-material-choice",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "README.md says the module “prepares and executes transfer operations” while explicitly leaving preview/execution policy undocumented; src/transfer-operation.ts only returns `preview` or `submitted`. The actor identifies the unresolved choice between initiating a real value transfer and merely submitting or representing a request without an external side effect."
+            },
+            {
+              "id": "requests-focused-decision",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor requests one focused product decision: whether execution mode is authorized to initiate a real value transfer or only submit/represent a transfer request without an external side effect. No canonical initialization files were created while that decision remained unresolved."
+            },
+            {
+              "id": "avoids-invention",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: expected-actor-outcome, workspace-assertions."
+            },
+            {
+              "id": "reports-validation-state",
+              "evaluator": "judge",
+              "verdict": "fail",
+              "evidence": "The deterministic post-actor summary reports `inspectionStatus: invalid`, `cliValidateStatus: invalid`, and `cliInspectStatus: invalid`, which is the expected state for the missing moldea project. The actor instead reports only that deterministic inspection and validation could not run because Node.js and npm were unavailable, without stating the expected `invalid` missing-project validation state."
+            }
+          ],
+          "failures": [
+            "Requirement reports-validation-state failed: The deterministic post-actor summary reports `inspectionStatus: invalid`, `cliValidateStatus: invalid`, and `cliInspectStatus: invalid`, which is the expected state for the missing moldea project. The actor instead reports only that deterministic inspection and validation could not run because Node.js and npm were unavailable, without stating the expected `invalid` missing-project validation state.",
+            "Report that deterministic moldea inspection and validation are expected to be `invalid` while the canonical project files are missing, while separately noting that the actor could not execute those checks locally."
+          ]
+        }
+      ],
+      "failures": [
+        "Requirement reports-validation-state failed: The deterministic post-actor summary reports `inspectionStatus: invalid`, `cliValidateStatus: invalid`, and `cliInspectStatus: invalid`, which is the expected state for the missing moldea project. The actor instead reports only that deterministic inspection and validation could not run because Node.js and npm were unavailable, without stating the expected `invalid` missing-project validation state.",
+        "Report that deterministic moldea inspection and validation are expected to be `invalid` while the canonical project files are missing, while separately noting that the actor could not execute those checks locally."
+      ]
+    }
+  ]
+}

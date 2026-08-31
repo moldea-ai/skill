@@ -1,0 +1,452 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1405
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema"
+        ],
+        "evidenceCount": 5,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema"
+        ],
+        "evidenceCount": 5,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "agentKind": "root",
+                "agentRoot": "/agent",
+                "layout": "nested",
+                "targetId": "typescript-filesystem-agent-0-39"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/agent/agent.ts",
+                  "symbol": "default"
+                }
+              ],
+              "runtimeName": "moldea-qualification-eve-dirty",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {},
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/agent/loaders.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/agent/agent.ts",
+                  "symbol": "default"
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "declaredRange": "0.39.1",
+                "dependencyKind": "dependencies",
+                "packageClassification": "supported",
+                "targetId": "typescript-filesystem-agent-0-39"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/agent/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "eve"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [
+                  "/moldea/context/billing.md"
+                ],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/agent/**",
+                    "/src/billing.ts"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/agent/loaders.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/agent/contracts.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/agent/agent.ts",
+                      "symbol": "default"
+                    }
+                  },
+                  "context": [
+                    "/moldea/context/billing.md"
+                  ],
+                  "runtime": {
+                    "id": "eve"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Answers support questions from available project evidence.\n",
+                    "digest": "sha256:c940628e825d5567bb1b6b82f960926949cca02b0d86f8845c688f213e3982d8",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 59,
+                    "utf8ByteLength": 59
+                  },
+                  "scalarLength": 58,
+                  "value": "Answers support questions from available project evidence."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer only from available project evidence.\n\nFor refund and invoice questions, follow the billing guidance in `/moldea/context/billing.md`:\n\n- A message containing the exact lowercase text `refund` is classified as `refund-review`. Explain that it requires human review and do not promise approval.\n- An invoice question is classified as `invoice-question`. Answer only from available project evidence and state when human review is needed.\n- Apply these classifications only to refund and invoice questions; the implementation fallback does not prove that every other message is an invoice question.\n",
+                  "digest": "sha256:4019843e053cb56b0d09f242793e3f172590cb086df2503aa2285ede9a41b194",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 648,
+                  "utf8ByteLength": 648
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [
+              {
+                "asset": {
+                  "content": "# Billing disputes\n\n`classifyBillingQuestion` in `/src/billing.ts` owns the current billing classification. A message containing the exact lowercase text `refund` is classified as `refund-review`; every other message is classified as `invoice-question`.\n\nThe fallback is an implementation detail, not evidence that every non-refund message is an invoice question. The `support` agent applies this classification only to refund and invoice questions. A `refund-review` classification requires human review and is not a promise that a refund will be approved. For an `invoice-question`, support answers only from available project evidence and states when human review is needed.\n",
+                  "digest": "sha256:996e259668edd553e39386f3ce60ee893a97dc88334ac40912e36e1b96c85c11",
+                  "path": "/moldea/context/billing.md",
+                  "scalarLength": 678,
+                  "utf8ByteLength": 678
+                },
+                "relationships": {
+                  "bindings": [
+                    {
+                      "path": "/src/billing.ts",
+                      "symbol": "classifyBillingQuestion"
+                    }
+                  ]
+                }
+              }
+            ],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\ncontext:\n  /moldea/context/billing.md:\n    bindings:\n      - path: /src/billing.ts\n        symbol: classifyBillingQuestion\nagents:\n  support:\n    runtime:\n      id: eve\n    context:\n      - /moldea/context/billing.md\n    bindings:\n      runtimeAgent:\n        path: /agent/agent.ts\n        symbol: default\n      instructionLoader:\n        path: /agent/loaders.ts\n        symbol: loadSupportInstruction\n      outputSchema:\n        path: /agent/contracts.ts\n        symbol: SupportOutputSchema\n    affectedBy:\n      - /agent/**\n      - /src/billing.ts\n",
+                "digest": "sha256:ece21a5ab52348e41992dd720422b940972490bfd7963882cda796d8229ce07b",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 560,
+                "utf8ByteLength": 560
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/agent/**",
+                      "/src/billing.ts"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/agent/loaders.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/agent/contracts.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/agent/agent.ts",
+                        "symbol": "default"
+                      }
+                    },
+                    "context": [
+                      "/moldea/context/billing.md"
+                    ],
+                    "runtime": {
+                      "id": "eve"
+                    }
+                  }
+                },
+                "context": {
+                  "/moldea/context/billing.md": {
+                    "bindings": [
+                      {
+                        "path": "/src/billing.ts",
+                        "symbol": "classifyBillingQuestion"
+                      }
+                    ]
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Support billing project\n\nThis project answers support questions and routes billing classifications to human review.\n",
+              "digest": "sha256:65c3b5065bfcc168bb88080947fbb5250d95b4cd94e7e561ceb4e47af2525451",
+              "path": "/moldea/project.md",
+              "scalarLength": 118,
+              "utf8ByteLength": 118
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

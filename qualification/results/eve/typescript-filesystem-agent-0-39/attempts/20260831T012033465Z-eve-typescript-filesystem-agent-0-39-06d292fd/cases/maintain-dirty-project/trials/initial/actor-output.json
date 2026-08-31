@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to `classifyBillingQuestion`, registered it for `support`, and incorporated conservative refund/invoice guidance into the exclusively loaded canonical instruction. Moldea inspect and validate completed successfully with zero diagnostics; TypeScript compilation and Git diff whitespace checks passed. The complete tracked diff and new context file were inspected.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The Eve runtime, `loadSupportInstruction` binding, and `SupportOutputSchema` binding remain intact.",
+    "Pre-existing `src/operator-notes.ts` changes and the untracked `notes/` directory were preserved without modification.",
+    "The implementation’s non-refund fallback was documented conservatively and is not presented as evidence that every other message is an invoice question."
+  ],
+  "unresolved": [
+    "Live provider behavior was not exercised because invoking an agent or provider was prohibited; validation establishes the static loader, context, and schema connections only."
+  ]
+}

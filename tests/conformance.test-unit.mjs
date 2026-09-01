@@ -2173,6 +2173,40 @@ describe('source repository conformance', () => {
     assert.doesNotMatch(workflow, /add .* --list/);
   });
 
+  test('runs root source checks across every supported Node.js line', () => {
+    for (const scriptName of [
+      'eval:semantic',
+      'eval:semantic:preflight',
+      'eval:semantic:verify',
+      'release:check',
+      'release:identity:check',
+      'test:unit',
+      'test:integration',
+    ]) {
+      assert.match(ROOT_PACKAGE_MANIFEST.scripts[scriptName], /node --experimental-strip-types\b/u);
+    }
+  });
+
+  test('website CI retains immutable qualification contract history', () => {
+    for (const [workflowPath, jobName] of [
+      ['.github/workflows/website.yml', 'verify'],
+      ['.github/workflows/pages.yml', 'build'],
+    ]) {
+      const document = parseDocument(readRepositoryFile(workflowPath), { uniqueKeys: true });
+      const workflow = document.toJS();
+      const checkoutStep = workflow.jobs[jobName].steps.find(
+        (step) => step.uses === 'actions/checkout@v6',
+      );
+
+      assert.equal(
+        document.errors.length,
+        0,
+        document.errors.map((error) => error.message).join('\n'),
+      );
+      assert.equal(checkoutStep?.with?.['fetch-depth'], 0);
+    }
+  });
+
   test('CI derives one exact release CLI across every package manager', () => {
     const workflow = readRepositoryFile('.github/workflows/conformance.yml');
     const packageManifest = JSON.parse(readRepositoryFile('package.json'));

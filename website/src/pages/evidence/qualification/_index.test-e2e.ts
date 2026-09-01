@@ -19,7 +19,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(customProfileLink.locator('img')).toHaveCount(0);
   await expect(
     customProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('8');
+  ).toContainText('10');
 
   const anthropicProfileLink = page.getByRole('link', {
     name: /Anthropic Messages API qualification/,
@@ -31,7 +31,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(anthropicCompanyLogo).toBeVisible();
   await expect(
     anthropicProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('6');
+  ).toContainText('7');
 
   const claudeProfileLink = page.getByRole('link', {
     name: /Claude Agent SDK qualification/,
@@ -42,7 +42,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(claudeProfileLink.getByAltText('Anthropic company logo')).toBeVisible();
   await expect(
     claudeProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('4');
+  ).toContainText('5');
 
   const vercelProfileLink = page.getByRole('link', {
     name: /Vercel AI SDK direct generation qualification/,
@@ -53,7 +53,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(vercelProfileLink.getByAltText('Vercel company logo')).toBeVisible();
   await expect(
     vercelProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('3');
+  ).toContainText('4');
 
   const toolLoopProfileLink = page.getByRole('link', {
     name: /Vercel AI SDK ToolLoopAgent qualification/,
@@ -64,7 +64,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(toolLoopProfileLink.getByAltText('Vercel company logo')).toBeVisible();
   await expect(
     toolLoopProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('6');
+  ).toContainText('7');
 
   const openAiResponsesProfileLink = page.getByRole('link', {
     name: /OpenAI Responses API qualification/,
@@ -84,7 +84,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   ).toBeVisible();
   await expect(eveProfileLink.getByAltText('Vercel company logo')).toBeVisible();
   await expect(eveProfileLink.getByText('Attempts', { exact: true }).locator('..')).toContainText(
-    '5',
+    '6',
   );
 
   const langGraphStateGraphProfileLink = page.getByRole('link', {
@@ -96,7 +96,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(langGraphStateGraphProfileLink.getByAltText('LangChain company logo')).toBeVisible();
   await expect(
     langGraphStateGraphProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('1');
+  ).toContainText('2');
 
   const langGraphFunctionalApiProfileLink = page.getByRole('link', {
     name: /LangGraph Functional API qualification/,
@@ -111,7 +111,7 @@ test('represents the current qualification evidence state', async ({ page }) => 
   ).toBeVisible();
   await expect(
     langGraphFunctionalApiProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('1');
+  ).toContainText('2');
 
   const anthropicCompanyLogos = page.getByAltText('Anthropic company logo');
   const langChainCompanyLogos = page.getByAltText('LangChain company logo');

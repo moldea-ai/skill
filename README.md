@@ -239,6 +239,8 @@ npm run test:unit
 npm run test:integration
 ```
 
+Root conformance and release scripts pass Node.js type stripping directly to repository-owned processes so the supported Node.js 22 line can consume the shared qualification TypeScript contracts. The option is not inherited by tested package managers or CLI subprocesses.
+
 Keep the current release bound to one published CLI version with:
 
 ```bash
@@ -279,7 +281,7 @@ Run the local website with:
 npm run website:dev
 ```
 
-The static build defaults to `SITE_URL=https://skill.moldea.ai` and `BASE_PATH=/`. The build derives documentation routes, the `/evidence/**` hierarchy, semantic and qualification attempt routes, navigation, local search, and public `llms.txt` from repository-owned sources. It verifies immutable evidence digests and the independent latest and last-passing pointers, then presents current failures and incomplete runs without treating them as release passes. The separate release gate still requires current passing semantic and qualification evidence. Generated model output is ignored and must not be edited directly.
+The static build defaults to `SITE_URL=https://skill.moldea.ai` and `BASE_PATH=/`. The build derives documentation routes, the `/evidence/**` hierarchy, semantic and qualification attempt routes, navigation, local search, and public `llms.txt` from repository-owned sources. It verifies immutable evidence digests and the independent latest and last-passing pointers, then validates each qualification attempt against the profile, probes, and scenarios at its recorded commit. Website verification and deployment therefore use complete Git history. The build presents current failures and incomplete runs without treating them as release passes. The separate release gate still requires current passing semantic and qualification evidence. Generated model output is ignored and must not be edited directly.
 
 The Pages deployment reads the repository's configured host and base path, builds for that canonical HTTPS origin, and publishes through GitHub's official Pages artifact flow. Keep the GitHub Pages custom-domain setting and DNS record aligned with `CNAME`; the canonical production origin is [`https://skill.moldea.ai`](https://skill.moldea.ai). After a successful push deployment, the workflow submits `https://skill.moldea.ai/sitemap-index.xml` to the `sc-domain:moldea.ai` Google Search Console property.
 

@@ -13,7 +13,8 @@
   "scripts": {
     "docs:check": "npm --prefix website run docs:check",
     "docs:generate": "npm --prefix website run docs:generate",
-    "eval:semantic": "node --experimental-strip-types tests/semantic-evaluation-runner.mjs",
+    "eval:semantic": "node --experimental-strip-types tooling/evidence-identity/run-semantic-evaluation.mjs",
+    "eval:semantic:identity": "node --experimental-strip-types tooling/evidence-identity/record-semantic-identity.mjs",
     "eval:semantic:preflight": "node --experimental-strip-types tests/semantic-evaluation-runner.mjs --preflight",
     "eval:semantic:verify": "node --experimental-strip-types tests/semantic-evaluation-runner.mjs --verify-attempts",
     "qualification": "npm --prefix qualification run qualification --",

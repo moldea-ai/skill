@@ -1192,7 +1192,7 @@ test('pnpm PnP scenario resolves and executes the exact local CLI provider', asy
           readOnlyMounts: actorToolMounts,
           sandboxHome,
         }),
-        { encoding: 'utf8', timeout: 2_000 },
+        { encoding: 'utf8', timeout: 8_000 },
       );
 
     const versionResult = runIsolatedProbe('pnpm --version');

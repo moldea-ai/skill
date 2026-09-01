@@ -55,7 +55,12 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
-          cache-dependency-path: website/package-lock.json
+          cache-dependency-path: |
+            package-lock.json
+            website/package-lock.json
+
+      - name: Install root verification dependencies
+        run: npm ci --ignore-scripts
 
       - name: Install website dependencies
         run: npm --prefix website ci --ignore-scripts

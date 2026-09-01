@@ -2187,15 +2187,23 @@ describe('source repository conformance', () => {
     }
   });
 
-  test('website CI retains immutable qualification contract history', () => {
+  test('website CI installs complete source inputs and retains contract history', () => {
     for (const [workflowPath, jobName] of [
       ['.github/workflows/website.yml', 'verify'],
       ['.github/workflows/pages.yml', 'build'],
     ]) {
-      const document = parseDocument(readRepositoryFile(workflowPath), { uniqueKeys: true });
+      const document = parseDocument(readRepositoryFile(workflowPath), {
+        uniqueKeys: true,
+      });
       const workflow = document.toJS();
       const checkoutStep = workflow.jobs[jobName].steps.find(
         (step) => step.uses === 'actions/checkout@v6',
+      );
+      const rootInstallStep = workflow.jobs[jobName].steps.find(
+        (step) => step.run === 'npm ci --ignore-scripts',
+      );
+      const setupNodeStep = workflow.jobs[jobName].steps.find(
+        (step) => step.uses === 'actions/setup-node@v6',
       );
 
       assert.equal(
@@ -2204,6 +2212,11 @@ describe('source repository conformance', () => {
         document.errors.map((error) => error.message).join('\n'),
       );
       assert.equal(checkoutStep?.with?.['fetch-depth'], 0);
+      assert.equal(rootInstallStep?.name, 'Install root verification dependencies');
+      assert.equal(
+        setupNodeStep?.with?.['cache-dependency-path'],
+        'package-lock.json\nwebsite/package-lock.json\n',
+      );
     }
   });
 
@@ -2216,8 +2229,9 @@ describe('source repository conformance', () => {
     assert.match(workflow, /\/ release CLI/);
     assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 2);
     assert.equal(
-      workflow.match(/sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap/g)
-        ?.length,
+      workflow.match(
+        /sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap socat/g,
+      )?.length,
       1,
     );
     assert.equal(

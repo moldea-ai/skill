@@ -51,4 +51,4 @@ Search Console submission authenticates with the `GOOGLE_SEARCH_CONSOLE_CREDENTI
 
 ## Boundaries
 
-The website dependency closure requires Node.js 24.15.0 and remains isolated from the portable skill's Node.js compatibility boundary. The pinned Website UI release shares the same exact Astro and Tailwind versions as the application. The site is static, uses no hosted search or analytics service, and keeps essential documentation available without JavaScript.
+The website dependency closure requires Node.js 24.15.0 and remains isolated from the portable skill's Node.js compatibility boundary. Clean verification installs both the root development dependencies used by repository-owned evidence tooling and the website dependencies. The pinned Website UI release shares the same exact Astro and Tailwind versions as the application. The site is static, uses no hosted search or analytics service, and keeps essential documentation available without JavaScript.

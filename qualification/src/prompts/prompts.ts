@@ -6,6 +6,27 @@ import type {
   IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
 
+/** Excludes wall-clock telemetry that has no bearing on judge criteria or cache identity. */
+const createJudgeDeterministicEvidence = (
+  verification: IDeterministicVerification,
+): Omit<IDeterministicVerification, 'durationMs'> => ({
+  passed: verification.passed,
+  inspectionStatus: verification.inspectionStatus,
+  repositoryFilesystemValid: verification.repositoryFilesystemValid,
+  memoryRepositoryEquivalent: verification.memoryRepositoryEquivalent,
+  coreValid: verification.coreValid,
+  cliCompositionValid: verification.cliCompositionValid,
+  cliIdentityValid: verification.cliIdentityValid,
+  cliPackageInventoryValid: verification.cliPackageInventoryValid,
+  cliAdapterInventoryValid: verification.cliAdapterInventoryValid,
+  cliEnvelopeValid: verification.cliEnvelopeValid,
+  cliValidateStatus: verification.cliValidateStatus,
+  cliInspectStatus: verification.cliInspectStatus,
+  typecheckPassed: verification.typecheckPassed,
+  repositoryUnchanged: verification.repositoryUnchanged,
+  failures: verification.failures,
+});
+
 /** Builds the fixed actor prompt around one transparent project task. */
 export const buildActorPrompt = (options: {
   task: string;
@@ -38,6 +59,7 @@ export const buildJudgePrompt = (options: {
   const judgeRequirements = options.scenario.judgeRequirements.filter(
     (requirement) => requirement.evaluation.kind === 'judge',
   );
+  const deterministicEvidence = createJudgeDeterministicEvidence(options.deterministicAfter);
 
   return `You are the independent judge for a moldea adapter qualification case.
 
@@ -79,7 +101,7 @@ ${JSON.stringify(options.actorCommandPolicy, null, 2)}
 
 Deterministic post-actor summary:
 
-${JSON.stringify(options.deterministicAfter, null, 2)}
+${JSON.stringify(deterministicEvidence, null, 2)}
 
 Workspace assertions:
 

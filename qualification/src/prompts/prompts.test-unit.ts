@@ -134,5 +134,23 @@ describe('qualification prompts', () => {
     expect(prompt).toContain(
       'preserves-unrelated-work: The unrelated dirty state remains byte-identical.',
     );
+    expect(prompt).not.toContain('"durationMs"');
+    expect(prompt).toBe(
+      buildJudgePrompt({
+        actorCommandPolicy: {
+          completedCommandCount: 0,
+          credentialExposure: { status: 'not-observed', observedCount: 0 },
+          networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+          sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+        },
+        actorOutput,
+        adapterId: 'custom',
+        deterministicAfter: { ...deterministicVerification, durationMs: 10_000 },
+        implementationId: 'custom',
+        scenario,
+        task: '# Update the moldea project',
+        workspaceAssertions,
+      }),
+    );
   });
 });

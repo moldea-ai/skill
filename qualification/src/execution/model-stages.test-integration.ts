@@ -1041,7 +1041,7 @@ describe('qualification model stages', () => {
       actorOutput: cachedActor.output,
       attemptId: 'current-attempt',
       caseArtifactDirectory: cachedArtifactDirectory,
-      deterministicAfter,
+      deterministicAfter: { ...deterministicAfter, durationMs: 10_000 },
       host: cachedHost,
       judgeWorkspaceDirectory: path.join(temporaryRoot, 'cached-judge-workspace'),
       trialId: 'initial',

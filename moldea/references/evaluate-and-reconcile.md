@@ -33,8 +33,6 @@ An explicit agent, Agent Skill, capability, domain, path, runtime, change, or co
 
 Semantic alignment requires reliable evidence of each material behavior's intended meaning and relevant consumption. A relationship proves scope and implementation proves current behavior; neither alone proves agreement. Report an exact evidence limitation instead of claiming alignment when intent or consumption remains unknown.
 
-When alignment depends on several distinct bindings, enumerate the material relationships from canonical state and inspected source before concluding; examples in the request and category summaries do not narrow or replace that set. Attribute definitions and wiring to source inspection; describe adapter evidence only as detected patterns or relationships, and keep runtime-evidence limitations separate from the source-backed account.
-
 For every scoped agent, establish how canonical instruction content reaches each material runtime invocation or provider-side configuration. An unused canonical instruction, independent runtime instruction, or material path that bypasses canonical provenance is a confirmed semantic problem. Bindings, mirrors, and deterministic inspection do not alone prove consumption. Unavailable implementation creates an evidence limitation, not an assumed connection or disconnection.
 
 For runtime description consumers, establish the consumer purpose, required canonical source, selected source, and resolver using `agent-design.md`. An absent handoff description is aligned fallback when the consumer uses the agent description. Under unresolved dynamic wiring, state conditional outcomes and call a source required, never current, effective, absent, correct, or wrong.

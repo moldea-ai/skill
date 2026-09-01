@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 33793,
+  "deterministicBeforePath": "cases/repair-langchain-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-langchain-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-langchain-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-langchain-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-langchain-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-langchain-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 890446,
+    "cachedInputTokens": 842240,
+    "outputTokens": 4542
+  },
+  "judgeUsage": {
+    "inputTokens": 363328,
+    "cachedInputTokens": 320512,
+    "outputTokens": 3712
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T18:41:47.581Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T18:43:44.204Z",
+  "actorCacheSourceAttemptId": "20260830T175520100Z-langchain-typescript-create-agent-1-5-e5f26b07",
+  "judgeCacheSourceAttemptId": "20260830T175520100Z-langchain-typescript-create-agent-1-5-e5f26b07",
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the stale canonical name find_order and the source-defined name lookup_order, attributing the correction to the closed LangChain wiring. This is corroborated by src/tools.ts, where lookupOrderTool declares name: 'lookup_order', and src/agent.ts, where tools: [lookupOrderTool] closes the agent tool array. The deterministic post-actor inspection reports status valid with no failures."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now declares tools.lookup-order.name: lookup_order, exactly matching lookupOrderTool in src/tools.ts. Workspace assertions show moldea/moldea.yaml as the only changed path, while src/agent.ts, src/tools.ts, and src/implementations.ts retain identical before/after hashes. Deterministic validation and inspection are valid and type checking passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest binds runtimeAgent to /src/agent.ts#supportAgent, instructionLoader to /src/agent.ts#loadSupportInstruction, outputSchema to /src/contracts.ts#SupportOutputSchema, implementation to /src/implementations.ts#lookupOrder, registration to /src/tools.ts#lookupOrderTool, and inputSchema to /src/contracts.ts#LookupOrderInputSchema. Current source confirms every symbol and its import/registration chain. All corresponding source and agent files have unchanged before/after hashes, and deterministic inspection reports complete valid evidence with no failures."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

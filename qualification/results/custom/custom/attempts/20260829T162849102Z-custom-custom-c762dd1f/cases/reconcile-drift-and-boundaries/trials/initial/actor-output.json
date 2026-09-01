@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s runtime binding to `/src/support-assistant.ts#supportAssistant` and added an agent-level warning for the dynamically assembled tool relationship. Moldea validate and inspect returned valid CLI 5.0.0/schema 2 results; TypeScript compilation passed. Final Git status and diffs were inspected.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The removed `src/support-agent.ts` and untracked `src/support-assistant.ts` and `src/dynamic-tools.ts` were pre-existing changes and were preserved without modification.",
+    "No tool binding was invented, and implementation code was not changed.",
+    "Canonical state now binds the support agent to the existing renamed runtime export.",
+    "The unresolved warning relates directly to `/src/dynamic-tools.ts` and specifies an integration test over final runtime composition as its resolution."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove that every tool named by the support assistant resolves to the intended dynamically registered implementation; the recorded warning remains until the specified integration test supplies that evidence."
+  ]
+}

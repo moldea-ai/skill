@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-routing context, bound it to classifyBillingQuestion, attached it to support, and embedded conservative refund/invoice guidance in support’s loaded instruction. Preserved the direct Anthropic Messages API wrapper and loader unchanged. Moldea inspection, TypeScript compilation, and Git diff checks passed; the complete worktree diff was inspected.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Moldea inspect returned schema 2, CLI 5.0.0, status valid, with no diagnostics.",
+    "Billing classification is case-sensitive: messages containing `refund` route to `refund-review`; all others route to `invoice-question`. Guidance explicitly avoids implying billing actions or outcomes.",
+    "Pre-existing src/operator-notes.ts changes and the untracked notes/ directory were preserved unchanged.",
+    "No provider, model, subagent, or network access was used."
+  ],
+  "unresolved": []
+}

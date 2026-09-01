@@ -1,0 +1,56 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "passed": true,
+  "durationMs": 268977,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/confirmation-1/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1489275,
+    "cachedInputTokens": 1389056,
+    "outputTokens": 7831
+  },
+  "judgeUsage": {
+    "inputTokens": 172792,
+    "cachedInputTokens": 138752,
+    "outputTokens": 2021
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T07:00:48.585Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T07:01:43.494Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`src/order-triage-agent.ts` fixes `action` as `classify-for-human-review` and `canApproveRefunds` as false. The newly added description says it classifies orders for human review without approving refunds, while the instruction directs classification for a human reviewer and explicitly prohibits refund approval, claimed refund authority, financial mutations, and invented facts."
+    },
+    {
+      "id": "binds-implementation",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` registers `order-triage` with runtime `custom`, binds `runtimeAgent.path` to `/src/order-triage-agent.ts` and `runtimeAgent.symbol` to `createOrderTriageAgent`, and lists the same source under `affectedBy`. The export exists at that path, and deterministic inspection and validation reported valid with no failures."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest references `/moldea/runtimes/custom.md`, the sole new file under `moldea/runtimes/**/*.md`. That guidance accurately states that the runtime supplies `loadCanonicalInstruction`, which the factory calls with `/moldea/agents/order-triage/instruction.md` and whose returned content becomes the agent instruction. It conservatively states that no provider integration, tools, executable schemas, or repository-local loader implementation are established."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

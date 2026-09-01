@@ -1,0 +1,31 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-08-30T06:54:43.358Z",
+  "durationMs": 73208,
+  "usage": {
+    "inputTokens": 269526,
+    "cachedInputTokens": 230144,
+    "outputTokens": 3069
+  },
+  "cacheKey": "fd6ca01e37ccc4fa72eaa71999882aeffacef48c46994aad21120fd12f6ae34e",
+  "sourceAttemptId": "20260830T064216740Z-custom-custom-35e84860",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 11,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1
+    }
+  }
+}

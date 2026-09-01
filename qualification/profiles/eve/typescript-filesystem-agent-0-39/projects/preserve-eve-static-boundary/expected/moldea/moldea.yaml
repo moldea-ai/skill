@@ -1,0 +1,80 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: eve
+      guidance: /moldea/runtimes/eve-static-boundaries.md
+    bindings:
+      runtimeAgent:
+        path: /agent/agent.ts
+        symbol: default
+      instructionLoader:
+        path: /agent/instructions.md
+      outputSchema:
+        path: /agent/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      status:
+        name: status
+        description: Reads one support ticket status.
+        implementation:
+          path: /agent/implementations.ts
+          symbol: getStatus
+        registration:
+          path: /agent/tools/status.ts
+          symbol: default
+        inputSchema:
+          path: /agent/contracts.ts
+          symbol: StatusInputSchema
+        outputSchema:
+          path: /agent/contracts.ts
+          symbol: StatusOutputSchema
+    skills:
+      triage:
+        name: triage
+        description: Applies the support triage boundary.
+        implementation:
+          path: /agent/skills/triage.ts
+          symbol: default
+        registration:
+          path: /agent/skills/triage.ts
+          symbol: default
+    affectedBy:
+      - /agent/**
+    unresolved:
+      dynamic-tool-registration:
+        category: tool-registration
+        effect: warning
+        description: The runtime tool is produced by defineDynamic, so its final registration cannot be proved from static repository evidence.
+        resolution: Replace runtime selection with one static defineTool module or prove the effective registration with a repository-local integration test.
+        related:
+          - path: /agent/tools/runtime.ts
+      markdown-skill-registration:
+        category: skill-registration
+        effect: warning
+        description: Flat and packaged Markdown skills do not establish the closed TypeScript defineSkill registration required by this adapter target.
+        resolution: Move each canonical skill to one direct TypeScript defineSkill module or retain the Markdown content as runtime-dependent implementation detail.
+        related:
+          - path: /agent/skills/reference.md
+          - path: /agent/skills/guide/SKILL.md
+      single-file-subagent-registration:
+        category: handoff-registration
+        effect: warning
+        description: The quick single-file subagent candidate does not establish a supported directory-backed local-subagent registration.
+        resolution: Move the agent to subagents/quick/agent.ts with an aligned routing description or retain it as unregistered runtime-dependent source.
+        related:
+          - path: /agent/subagents/quick.ts
+      unsupported-instruction-forms:
+        category: instruction-loader
+        effect: warning
+        description: Case-varied, legacy system, and composed instruction examples do not establish an exclusive supported instruction binding.
+        resolution: Use one exact instructions.md file or one exact instructions.ts defineInstructions module per agent root.
+        related:
+          - path: /examples/instructions/Instructions.md
+          - path: /examples/instructions/system.md
+          - path: /examples/instructions/instructions/part.md
+      operational-runtime-surfaces:
+        category: runtime-pattern
+        effect: warning
+        description: Remote agents, extensions, connections, framework tools, collisions, reserved names, and advanced runtime behavior are outside the proved static relationships.
+        resolution: Use supported collision-free static filesystem forms or add focused runtime evidence before declaring any corresponding canonical relationship.

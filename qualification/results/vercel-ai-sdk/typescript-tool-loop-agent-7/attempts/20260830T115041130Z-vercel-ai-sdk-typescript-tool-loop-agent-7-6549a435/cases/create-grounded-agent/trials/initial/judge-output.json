@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical files, implementation, workspace patch assertions, and deterministic post-actor validation agree. The agent is grounded in human-review classification without refund authority, and every required Vercel AI SDK agent and classify_order tool binding names the exact existing implementation symbol.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/agents/order-triage/description.md says it classifies incoming orders for human review and cannot approve refunds; instruction.md requires classification, requiresHumanReview=true, and states refund review is review only. Workspace assertions identify both files as newly added and moldea/moldea.yaml as the only modified existing file; no runtime guide or handoff asset exists under moldea."
+    },
+    {
+      "id": "binds-direct-agent",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent/orderTriageAgent, instructionLoader/loadOrderTriageInstruction, inputSchema/OrderTriageInputSchema, and outputSchema/OrderTriageOutputSchema at /src/order-triage-agent.ts. Those exact exported symbols are used by the direct ToolLoopAgent construction, including callOptionsSchema and Output.object. Deterministic post-actor inspection and validation are valid, with typecheckPassed=true."
+    },
+    {
+      "id": "binds-function-tool",
+      "verdict": "pass",
+      "evidence": "The manifest registers runtime name classify_order and binds classifyOrder, classifyOrderTool, ClassifyOrderInputSchema, and ClassifyOrderOutputSchema at /src/order-triage-agent.ts. The implementation defines the closed tool with those exact symbols and registers it as tools.classify_order. Deterministic inspection, validation, and type checking all passed."
+    }
+  ],
+  "failures": []
+}

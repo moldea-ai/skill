@@ -1,0 +1,66 @@
+{
+  "caseId": "reconcile-drift-and-boundaries",
+  "title": "Reconcile drift and boundaries",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 467865,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 467865,
+      "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 719502,
+        "cachedInputTokens": 667648,
+        "outputTokens": 4073
+      },
+      "judgeUsage": {
+        "inputTokens": 767364,
+        "cachedInputTokens": 713216,
+        "outputTokens": 4587
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T16:07:47.107Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T16:11:54.805Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "repairs-direct-bindings",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current workspace: moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts#supportAssistant and instructionLoader to /src/support-assistant.ts#loadSupportInstruction. src/support-assistant.ts exports both symbols, uses loadSupportInstruction() as the Anthropic Messages API system value, and src/support-agent.ts is absent. Workspace-patch evidence identifies moldea/moldea.yaml as the only changed path; deterministic-after reports valid inspect/validate results and passing typecheck."
+        },
+        {
+          "id": "records-dynamic-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current workspace: agent support owns unresolved requirement dynamic-tool-registry-membership with effect warning, describing the unprovable relationship, prescribing closed runtime wiring or an integration test, and relating /src/dynamic-tools.ts#assembleTools plus /src/support-assistant.ts#supportAssistant. The manifest creates no tool binding. Workspace-patch evidence limits the change to moldea/moldea.yaml, while deterministic-after reports valid inspection and validation."
+        },
+        {
+          "id": "preserves-source",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

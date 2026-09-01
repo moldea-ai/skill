@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical state, runner-owned validation, and workspace patch agree: billing guidance is registered and wired to support and /src/billing.ts, while the Eve runtime, exclusive instruction loader, and output schema wiring remain unchanged.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "moldea/context/billing.md canonically documents the exact classifyBillingQuestion behavior from src/billing.ts and its human-review boundary. moldea/moldea.yaml globally registers that context, relates it through affectedBy to the exact path /src/billing.ts, and assigns it to agents.support.context. The support instruction applies the refund/invoice classifications. Workspace-patch evidence limits changes to the billing context, support instruction, and manifest, and deterministic inspection reports valid with no failures."
+    },
+    {
+      "id": "preserves-eve-wiring",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains support.runtime.id: eve and the bindings to agent/agent.ts default, loadSupportInstruction, and SupportOutputSchema. Current TypeScript shows defineAgent using SupportOutputSchema and the exclusive defineInstructions path using loadSupportInstruction(). Runner-owned before/after hashes for agent/agent.ts, agent/instructions.ts, agent/loaders.ts, and agent/contracts.ts are identical; deterministic validation and typechecking passed."
+    }
+  ],
+  "failures": []
+}

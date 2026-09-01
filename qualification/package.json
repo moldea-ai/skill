@@ -1,0 +1,55 @@
+{
+  "name": "@moldea.ai/adapter-qualification",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Local adapter support qualification for the moldea Agent Skill.",
+  "type": "module",
+  "engines": {
+    "node": "^24.15.0",
+    "npm": ">=10.9.0 <12.0.0"
+  },
+  "scripts": {
+    "format": "prettier --write --config .prettierrc . ../tooling/package-candidate/index.d.mts ../tooling/codex-evaluation-host/execution-evidence.mjs ../tooling/codex-evaluation-host/execution-evidence.test-unit.mjs ../tooling/codex-evaluation-host/git-command-policy-boundary.mjs ../tooling/codex-evaluation-host/git-command-policy-boundary.test-integration.mjs ../tooling/codex-evaluation-host/host.mjs ../tooling/codex-evaluation-host/host.test-unit.mjs ../tooling/codex-evaluation-host/host.test-integration.mjs ../tooling/codex-evaluation-host/index.d.mts ../tooling/codex-evaluation-host/index.mjs ../tooling/codex-evaluation-host/operational-retry.mjs ../tooling/codex-evaluation-host/operational-retry.test-unit.mjs ../README.md ../package.json",
+    "format:check": "prettier --check --config .prettierrc . ../tooling/package-candidate/index.d.mts ../tooling/codex-evaluation-host/execution-evidence.mjs ../tooling/codex-evaluation-host/execution-evidence.test-unit.mjs ../tooling/codex-evaluation-host/git-command-policy-boundary.mjs ../tooling/codex-evaluation-host/git-command-policy-boundary.test-integration.mjs ../tooling/codex-evaluation-host/host.mjs ../tooling/codex-evaluation-host/host.test-unit.mjs ../tooling/codex-evaluation-host/host.test-integration.mjs ../tooling/codex-evaluation-host/index.d.mts ../tooling/codex-evaluation-host/index.mjs ../tooling/codex-evaluation-host/operational-retry.mjs ../tooling/codex-evaluation-host/operational-retry.test-unit.mjs ../README.md ../package.json",
+    "lint": "eslint eslint.config.js profiles src vitest",
+    "qualification": "node src/bin/index.ts",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:integration": "vitest run --config vitest/test-integration.config.ts",
+    "test:unit": "vitest run --config vitest/test-unit.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@inquirer/prompts": "8.4.1",
+    "semver": "7.8.5",
+    "yaml": "2.9.0",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "0.3.234",
+    "@anthropic-ai/sdk": "0.117.1",
+    "@cloudflare/ai-chat": "0.10.2",
+    "@cloudflare/think": "0.16.0",
+    "@cloudflare/workers-types": "5.20260830.1",
+    "@eslint/js": "10.0.1",
+    "@google/genai": "2.17.1",
+    "@langchain/core": "1.2.9",
+    "@langchain/langgraph": "1.4.12",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@openai/agents": "0.16.1",
+    "@openai/agents-realtime": "0.16.1",
+    "@types/node": "22.20.1",
+    "@types/semver": "7.8.0",
+    "agents": "0.21.0",
+    "ai": "7.0.77",
+    "eslint": "10.8.1",
+    "eslint-config-prettier": "10.1.8",
+    "eve": "0.39.1",
+    "globals": "17.9.0",
+    "langchain": "1.5.9",
+    "openai": "7.8.0",
+    "prettier": "3.9.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.66.0",
+    "vitest": "4.1.10"
+  }
+}

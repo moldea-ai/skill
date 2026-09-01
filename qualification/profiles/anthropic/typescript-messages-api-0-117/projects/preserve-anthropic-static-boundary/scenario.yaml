@@ -1,0 +1,71 @@
+version: 2
+id: preserve-anthropic-static-boundary
+title: Preserve the Anthropic static boundary
+purpose: Verify conservative treatment of provider tools and indirect Messages API request construction.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [instruction-loader, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: [agent-definition, schema, tool-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [instruction-loader, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: [agent-definition, schema, tool-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: unchanged
+  mustPreservePaths:
+    [
+      moldea/moldea.yaml,
+      moldea/project.md,
+      moldea/agents/support/instruction.md,
+      moldea/agents/dynamic-support/instruction.md,
+      src/agents.ts,
+      package.json,
+    ]
+  mustChangePaths: []
+  mustExistPaths:
+    [
+      moldea/moldea.yaml,
+      moldea/project.md,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      moldea/agents/dynamic-support/description.md,
+      moldea/agents/dynamic-support/instruction.md,
+      src/agents.ts,
+      package.json,
+    ]
+  mustNotExistPaths: [moldea/runtimes]
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-direct-evidence
+    description: The actor grounds the support agent's direct Messages API pattern and system instruction loader in deterministic adapter evidence.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-provider-tool-boundary
+    description: The actor treats the provider-hosted web search tool as outside client-tool registration and schema evidence instead of inventing canonical tool relationships.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-indirect-request-boundary
+    description: The actor explains that the dynamic-support request object does not establish a direct runtime pattern and retains the existing unresolved warning with a concrete resolution.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: validates-without-churn
+    description: Every deterministic layer accepts the project and the workspace remains unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

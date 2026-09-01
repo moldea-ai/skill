@@ -1,0 +1,666 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 2833
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern"
+        ],
+        "evidenceCount": 12,
+        "agentCount": 2
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern"
+        ],
+        "evidenceCount": 12,
+        "agentCount": 2
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "apiKind": "functional",
+                "targetId": "typescript-functional-api-1-4"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-workflow.ts",
+                  "symbol": "dynamicSupportWorkflow"
+                }
+              ],
+              "runtimeName": "dynamic_support_workflow",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "apiKind": "functional",
+                "targetId": "typescript-functional-api-1-4"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts",
+                  "symbol": "supportWorkflow"
+                }
+              ],
+              "runtimeName": "support_workflow",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript",
+                "moduleKind": "esm"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-workflow.ts",
+                  "symbol": "dynamicSupportWorkflow"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript",
+                "moduleKind": "esm"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts",
+                  "symbol": "supportWorkflow"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.2.9",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/core",
+                "packageRole": "companion",
+                "targetClassification": "supported"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.4.12",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/langgraph",
+                "packageRole": "primary",
+                "targetClassification": "supported"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/langgraph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.2.9",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/core",
+                "packageRole": "companion",
+                "targetClassification": "supported"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.4.12",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/langgraph",
+                "packageRole": "primary",
+                "targetClassification": "supported"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/langgraph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "apiKind": "functional",
+                "patternId": "functional-final-state",
+                "targetId": "typescript-functional-api-1-4"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "apiKind": "functional",
+                "patternId": "functional-interrupt",
+                "targetId": "typescript-functional-api-1-4"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "apiKind": "functional",
+                "patternId": "functional-previous-state",
+                "targetId": "typescript-functional-api-1-4"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "apiKind": "functional",
+                "patternId": "functional-task",
+                "targetId": "typescript-functional-api-1-4",
+                "taskForm": "module-local",
+                "taskName": "lookup_order"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/support-workflow.ts"
+                }
+              ],
+              "runtimeName": "lookup_order",
+              "source": "langgraph"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/dynamic-support-workflow.ts",
+                    "/src/runtime-boundaries.ts"
+                  ],
+                  "bindings": {
+                    "runtimeAgent": {
+                      "path": "/src/dynamic-support-workflow.ts",
+                      "symbol": "dynamicSupportWorkflow"
+                    }
+                  },
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/langgraph-functional-api.md",
+                    "id": "langgraph"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Processes support work through runtime-selected task control flow without claiming agent routing.\n",
+                    "digest": "sha256:c1f5d7eef2bc16a1d01c38e2a7950711ae9e604ad22c87ae120f50187bd5c4d0",
+                    "path": "/moldea/agents/dynamic-support/description.md",
+                    "scalarLength": 98,
+                    "utf8ByteLength": 98
+                  },
+                  "scalarLength": 97,
+                  "value": "Processes support work through runtime-selected task control flow without claiming agent routing."
+                },
+                "handoffDescription": null,
+                "id": "dynamic-support",
+                "instruction": {
+                  "content": "# Dynamic support agent\n\nYou are the `dynamic-support` agent. Process support work only through behavior authorized by runtime configuration. Do not present task selection as a tool, handoff, subagent, route, or approval authority.\n",
+                  "digest": "sha256:039f1e0344f887cf7a39b550c2bf236b9d072017262603f98fdbde7e84bf1994",
+                  "path": "/moldea/agents/dynamic-support/instruction.md",
+                  "scalarLength": 232,
+                  "utf8ByteLength": 232
+                },
+                "mirrors": []
+              },
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/support-workflow.ts"
+                  ],
+                  "bindings": {
+                    "runtimeAgent": {
+                      "path": "/src/support-workflow.ts",
+                      "symbol": "supportWorkflow"
+                    }
+                  },
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/langgraph-functional-api.md",
+                    "id": "langgraph"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Produces support responses through a Functional API workflow with explicit human review.\n",
+                    "digest": "sha256:f52d112690e28447502b802168ec333e5d5cc9ee5f3adc10d6e393c6ef5539cb",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 89,
+                    "utf8ByteLength": 89
+                  },
+                  "scalarLength": 88,
+                  "value": "Produces support responses through a Functional API workflow with explicit human review."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer only from verified project evidence.\n",
+                  "digest": "sha256:b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 90,
+                  "utf8ByteLength": 90
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nunresolved:\n  langgraph-functional-api-static-boundaries:\n    category: runtime\n    effect: informational\n    description: Static inspection does not establish nested or callback-reached task calls, runtime-selected control-flow outcomes, task capability registration, routing or topology, runtime schemas from TypeScript types, or configured checkpointer, replay, idempotency, interrupt, and approval semantics.\n    resolution: Establish each claim independently from runtime wiring, runtime configuration, and focused integration tests before adding a canonical relationship or behavioral claim.\n    related:\n      - path: /src/support-workflow.ts\n      - path: /src/dynamic-support-workflow.ts\n      - path: /src/runtime-boundaries.ts\n      - path: /moldea/runtimes/langgraph-functional-api.md\nagents:\n  support:\n    runtime:\n      id: langgraph\n      guidance: /moldea/runtimes/langgraph-functional-api.md\n    bindings:\n      runtimeAgent:\n        path: /src/support-workflow.ts\n        symbol: supportWorkflow\n    affectedBy:\n      - /src/support-workflow.ts\n  dynamic-support:\n    runtime:\n      id: langgraph\n      guidance: /moldea/runtimes/langgraph-functional-api.md\n    bindings:\n      runtimeAgent:\n        path: /src/dynamic-support-workflow.ts\n        symbol: dynamicSupportWorkflow\n    affectedBy:\n      - /src/dynamic-support-workflow.ts\n      - /src/runtime-boundaries.ts\n",
+                "digest": "sha256:acffdd09ad0ba34e59c1a3b0891697236903013cf6419e62831a810011cbe700",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 1400,
+                "utf8ByteLength": 1400
+              },
+              "value": {
+                "agents": {
+                  "dynamic-support": {
+                    "affectedBy": [
+                      "/src/dynamic-support-workflow.ts",
+                      "/src/runtime-boundaries.ts"
+                    ],
+                    "bindings": {
+                      "runtimeAgent": {
+                        "path": "/src/dynamic-support-workflow.ts",
+                        "symbol": "dynamicSupportWorkflow"
+                      }
+                    },
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/langgraph-functional-api.md",
+                      "id": "langgraph"
+                    }
+                  },
+                  "support": {
+                    "affectedBy": [
+                      "/src/support-workflow.ts"
+                    ],
+                    "bindings": {
+                      "runtimeAgent": {
+                        "path": "/src/support-workflow.ts",
+                        "symbol": "supportWorkflow"
+                      }
+                    },
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/langgraph-functional-api.md",
+                      "id": "langgraph"
+                    }
+                  }
+                },
+                "unresolved": {
+                  "langgraph-functional-api-static-boundaries": {
+                    "category": "runtime",
+                    "description": "Static inspection does not establish nested or callback-reached task calls, runtime-selected control-flow outcomes, task capability registration, routing or topology, runtime schemas from TypeScript types, or configured checkpointer, replay, idempotency, interrupt, and approval semantics.",
+                    "effect": "informational",
+                    "related": [
+                      {
+                        "path": "/moldea/runtimes/langgraph-functional-api.md"
+                      },
+                      {
+                        "path": "/src/dynamic-support-workflow.ts"
+                      },
+                      {
+                        "path": "/src/runtime-boundaries.ts"
+                      },
+                      {
+                        "path": "/src/support-workflow.ts"
+                      }
+                    ],
+                    "resolution": "Establish each claim independently from runtime wiring, runtime configuration, and focused integration tests before adding a canonical relationship or behavioral claim."
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Support workflow boundaries\n\nThis project uses Functional API entrypoints while leaving runtime-selected control flow and deployment-owned persistence and approval semantics explicit.\n",
+              "digest": "sha256:5ca7c9762af50a64e49d1cac8cf01e99f47dee9c1961b943faad4dbf94d319ee",
+              "path": "/moldea/project.md",
+              "scalarLength": 186,
+              "utf8ByteLength": 186
+            },
+            "runtimes": [
+              {
+                "asset": {
+                  "content": "# LangGraph Functional API static boundary\n\nStatic inspection binds `supportWorkflow` and `dynamicSupportWorkflow` to their canonical agents. For `supportWorkflow`, it also detects the module-local `lookup_order` task, previous-state read, interrupt, and final returned-versus-saved state pattern. The source uses TypeScript input and result types, but those types are not runtime schema bindings.\n\nThe dynamic source selects tasks from `input.route`, reaches a selected task through `runSelectedTask`, and calls `summarize` inside a callback. This source structure does not establish a complete static task graph, task capabilities, routing, handoffs, subagents, or topology.\n\n`RUNTIME_COMPOSITION` labels ownership but does not configure or prove checkpointer, replay, idempotency, interrupt, or approval behavior. Those semantics remain deployment/runtime concerns and require direct configuration or integration evidence.\n",
+                  "digest": "sha256:7efa9f72b5ef4438bd8030cb5bd2f05c53c732de93c0da2b25919160f2045edf",
+                  "path": "/moldea/runtimes/langgraph-functional-api.md",
+                  "scalarLength": 926,
+                  "utf8ByteLength": 926
+                }
+              }
+            ],
+            "unresolved": {
+              "langgraph-functional-api-static-boundaries": {
+                "category": "runtime",
+                "description": "Static inspection does not establish nested or callback-reached task calls, runtime-selected control-flow outcomes, task capability registration, routing or topology, runtime schemas from TypeScript types, or configured checkpointer, replay, idempotency, interrupt, and approval semantics.",
+                "effect": "informational",
+                "related": [
+                  {
+                    "path": "/moldea/runtimes/langgraph-functional-api.md"
+                  },
+                  {
+                    "path": "/src/dynamic-support-workflow.ts"
+                  },
+                  {
+                    "path": "/src/runtime-boundaries.ts"
+                  },
+                  {
+                    "path": "/src/support-workflow.ts"
+                  }
+                ],
+                "resolution": "Establish each claim independently from runtime wiring, runtime configuration, and focused integration tests before adding a canonical relationship or behavioral claim."
+              }
+            }
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

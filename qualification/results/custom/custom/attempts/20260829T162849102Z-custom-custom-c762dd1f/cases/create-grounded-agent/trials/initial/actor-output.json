@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Created the canonical order-triage agent for the custom runtime. Its description and instruction limit it to classifying orders for human review and explicitly prohibit refund approval. Registered `createOrderTriageAgent` as the runtime-agent binding, linked the affected source file, and added focused runtime guidance. TypeScript compilation, Moldea validation, and complete post-write inspection passed with no diagnostics. Final Git changes were reviewed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The existing implementation loads `/moldea/agents/order-triage/instruction.md`, sets `canApproveRefunds` to false, and uses the `classify-for-human-review` action.",
+    "The manifest uses runtime ID `custom` and binds `/src/order-triage-agent.ts` symbol `createOrderTriageAgent`.",
+    "No tools, provider capabilities, or additional decision authority were declared.",
+    "`tsc -p <workspace>/tsconfig.json` passed.",
+    "Moldea CLI 5.0.0 `validate --json` and post-write `inspect --json` returned schema version 2, status `valid`, and no diagnostics."
+  ],
+  "unresolved": [
+    "The canonical instruction loader implementation is supplied by the factory caller and is not present in this repository; runtime guidance records this boundary without claiming end-to-end provider execution."
+  ]
+}

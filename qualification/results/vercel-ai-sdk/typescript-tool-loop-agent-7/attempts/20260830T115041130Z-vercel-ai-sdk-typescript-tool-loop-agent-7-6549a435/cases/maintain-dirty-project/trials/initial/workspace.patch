@@ -1,0 +1,80 @@
+diff --git a/moldea/agents/support/instruction.md b/moldea/agents/support/instruction.md
+index 9b54eaa..bf761c4 100644
+--- a/moldea/agents/support/instruction.md
++++ b/moldea/agents/support/instruction.md
+@@ -1,3 +1,11 @@
+ # Support agent
+ 
+ You are the `support` agent. Answer only from available project evidence.
++
++For refund and invoice questions, follow the billing classification implemented by
++`classifyBillingQuestion`: a prompt containing the exact lowercase text `refund` is a
++`refund-review`; every other billing prompt, including an invoice question, is an
++`invoice-question`.
++
++Classification does not establish refund eligibility, invoice correctness, account
++facts, or authority to change billing. Do not invent or promise those outcomes.
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 1113f7c..c076cf7 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,8 +1,17 @@
+ version: 1
++context:
++  /moldea/context/billing.md:
++    bindings:
++      - path: /src/billing.ts
++        symbol: classifyBillingQuestion
++    affectedBy:
++      - /src/billing.ts
+ agents:
+   support:
+     runtime:
+       id: vercel-ai-sdk
++    context:
++      - /moldea/context/billing.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -17,4 +26,5 @@ agents:
+         path: /src/support-agent.ts
+         symbol: SupportOutputSchema
+     affectedBy:
++      - /src/billing.ts
+       - /src/support-agent.ts
+diff --git a/src/operator-notes.ts b/src/operator-notes.ts
+index 4c10137..c85298a 100644
+--- a/src/operator-notes.ts
++++ b/src/operator-notes.ts
+@@ -1 +1 @@
+-export const operatorNote = 'existing tracked work';
++export const operatorNote = 'developer is testing a separate escalation path';
+
+diff --git a/moldea/context/billing.md b/moldea/context/billing.md
+new file mode 100644
+index 0000000..7e889a2
+--- /dev/null
++++ b/moldea/context/billing.md
+@@ -0,0 +1,14 @@
++# Billing disputes
++
++Billing support uses `classifyBillingQuestion` in `/src/billing.ts` to distinguish
++refund and invoice questions:
++
++- A message containing the exact lowercase text `refund` is classified as
++  `refund-review`.
++- Every other billing message, including an invoice question, is classified as
++  `invoice-question`.
++
++This classification selects only the question category. It does not establish refund
++eligibility, invoice correctness, account facts, or authority to make billing changes.
++Support responses must stay within available project evidence and must not invent or
++promise those outcomes.
+
+diff --git a/notes/local-observation.md b/notes/local-observation.md
+new file mode 100644
+index 0000000..c97f13a
+--- /dev/null
++++ b/notes/local-observation.md
+@@ -0,0 +1 @@
++The staging invoice feed can arrive late. This untracked note is unrelated to canonical agent context.

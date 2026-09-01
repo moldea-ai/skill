@@ -1,0 +1,69 @@
+diff --git a/moldea/agents/support/description.md b/moldea/agents/support/description.md
+deleted file mode 100644
+index 6cb5229..0000000
+--- a/moldea/agents/support/description.md
++++ /dev/null
+@@ -1 +0,0 @@
+-Produces structured support responses.
+diff --git a/moldea/agents/support/instruction.md b/moldea/agents/support/instruction.md
+deleted file mode 100644
+index eee7bf5..0000000
+--- a/moldea/agents/support/instruction.md
++++ /dev/null
+@@ -1,3 +0,0 @@
+-# Support agent
+-
+-You are the `support` agent. Answer from verified project evidence.
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 7b7f1d0..b825518 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,17 +1 @@
+ version: 1
+-agents:
+-  support:
+-    runtime:
+-      id: langgraph
+-    bindings:
+-      runtimeAgent:
+-        path: /src/support-graph.ts
+-        symbol: supportGraph
+-      inputSchema:
+-        path: /src/support-graph.ts
+-        symbol: SupportInputSchema
+-      outputSchema:
+-        path: /src/support-graph.ts
+-        symbol: SupportOutputSchema
+-    affectedBy:
+-      - /src/support-graph.ts
+diff --git a/src/support-graph.ts b/src/support-graph.ts
+deleted file mode 100644
+index bc04aa5..0000000
+--- a/src/support-graph.ts
++++ /dev/null
+@@ -1,25 +0,0 @@
+-import { END, START, StateGraph } from '@langchain/langgraph';
+-import { z } from 'zod';
+-
+-export const SupportStateSchema = z.object({
+-  question: z.string(),
+-  answer: z.string().optional(),
+-});
+-export const SupportInputSchema = z.object({ question: z.string() });
+-export const SupportOutputSchema = z.object({ answer: z.string() });
+-
+-type ISupportState = z.infer<typeof SupportStateSchema>;
+-
+-const answerQuestion = (state: ISupportState): Partial<ISupportState> => ({
+-  answer: state.question,
+-});
+-
+-export const supportGraph = new StateGraph({
+-  state: SupportStateSchema,
+-  input: SupportInputSchema,
+-  output: SupportOutputSchema,
+-})
+-  .addNode('answer-question', answerQuestion)
+-  .addEdge(START, 'answer-question')
+-  .addEdge('answer-question', END)
+-  .compile({ name: 'support_graph' });

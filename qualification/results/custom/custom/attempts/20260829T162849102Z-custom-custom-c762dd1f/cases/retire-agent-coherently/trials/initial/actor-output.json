@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the stale support-agent setup. Removed its manifest registration, canonical description/instruction, and custom runtime guidance. Local Moldea inspection now reports valid with zero diagnostics and zero agents; TypeScript validation passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The pre-existing deletion of src/support-agent.ts established that the supportAgent implementation no longer exists and was preserved unchanged.",
+    "moldea/project.md canonically states that the former email support agent was removed from runtime implementation.",
+    "Before editing, Moldea inspection reported the support manifest binding referenced missing /src/support-agent.ts.",
+    "moldea/runtimes/custom.md only claimed that the removed supportAgent export was the runtime-owned definition, making that guidance obsolete.",
+    "Final `moldea inspect --json` completed valid with no diagnostics; `tsc -p tsconfig.json` exited successfully.",
+    "Final Git status contains only the requested canonical cleanup plus the pre-existing src/support-agent.ts deletion. Runner-mounted skill and qualification inputs were not modified."
+  ],
+  "unresolved": []
+}

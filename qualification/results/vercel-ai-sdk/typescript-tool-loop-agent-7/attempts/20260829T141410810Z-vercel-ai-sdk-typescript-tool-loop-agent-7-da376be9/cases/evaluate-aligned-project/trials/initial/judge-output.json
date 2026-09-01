@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The actor report matches the repository and deterministic post-actor evidence. Both agents have closed, direct ToolLoopAgent bindings to their canonical instruction loaders and call-options schemas; structured outputs and the support-only function tool are accurately described. The report makes no prohibited runtime relationship inferences, and the repository remained unchanged with validation and type-checking passing.",
+  "requirements": [
+    {
+      "id": "explains-direct-patterns",
+      "verdict": "pass",
+      "evidence": "src/agents.ts constructs supportAgent and summaryAgent directly with ToolLoopAgent. Their instructions await loadSupportInstruction/loadSummaryInstruction and their callOptionsSchema values are SupportInputSchema/SummaryInputSchema. src/instructions.ts reads the corresponding canonical moldea/agents/<id>/instruction.md files. The actor explicitly reports these relationships, and deterministic inspection is valid."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "verdict": "pass",
+      "evidence": "src/agents.ts binds SupportOutputSchema and SummaryOutputSchema through Output.object. Support registers find_order to findOrderTool; src/tools.ts binds its input/output schemas and execute implementation to findOrder, matching moldea/moldea.yaml. Summary declares no tools. The actor accurately explains all these closed relationships, and deterministic validation reports no failures."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "The actor confines its conclusions to direct ToolLoopAgent definitions, instruction loaders, schemas, structured output, and function-tool bindings. It does not infer provider, model, routing, handoff, subagent, or direct-generation runtime-pattern relationships. Repository and deterministic evidence support that bounded account."
+    }
+  ],
+  "failures": []
+}

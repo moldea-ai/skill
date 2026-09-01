@@ -1,0 +1,62 @@
+version: 2
+id: retire-agent-coherently
+title: Retire an agent coherently
+purpose: Verify that removing an agent definition removes its complete canonical surface.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: [src/support-agent.ts]
+expectedRemovePaths: [moldea/agents/support/description.md, moldea/agents/support/instruction.md]
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: [agent-definition, runtime-pattern]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: [agent-definition, runtime-pattern, instruction-loader, schema]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths: [moldea/project.md, src/project-state.ts]
+  mustChangePaths:
+    [moldea/moldea.yaml, moldea/agents/support/description.md, moldea/agents/support/instruction.md]
+  mustExistPaths: [moldea/moldea.yaml, moldea/project.md, src/project-state.ts]
+  mustNotExistPaths:
+    [
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      src/support-agent.ts,
+      moldea/runtimes,
+    ]
+  allowedChangePaths:
+    [moldea/moldea.yaml, moldea/agents/support/description.md, moldea/agents/support/instruction.md]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: removes-obsolete-declaration
+    description: The final manifest no longer declares the removed agent or any LangChain agent definition, loader, or output-schema binding.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: removes-orphaned-assets
+    description: Obsolete description and instruction files are deleted rather than left as misleading canonical state.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: preserves-surviving-context
+    description: Project context and unrelated source remain byte-for-byte unchanged.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: validates-project
+    description: Every deterministic layer accepts the reconciled project without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

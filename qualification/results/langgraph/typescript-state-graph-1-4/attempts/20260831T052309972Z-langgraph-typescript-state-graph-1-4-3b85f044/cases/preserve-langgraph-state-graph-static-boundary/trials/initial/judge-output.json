@@ -1,0 +1,37 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical manifest and sole LangGraph runtime guide preserve the static inspection boundary exactly. Runner-owned assertions show only those two canonical files changed, all source and agent files retained their hashes, and deterministic validation, inspection, repository checks, and TypeScript typechecking passed.",
+  "requirements": [
+    {
+      "id": "preserves-closed-bindings",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml retains support bindings to supportGraph, SupportInputSchema, and SupportOutputSchema. src/support-graph.ts uses the closed object-form StateGraph initializer and direct addNode/addEdge/compile operations. Deterministic post-actor inspection and validation are valid."
+    },
+    {
+      "id": "preserves-opaque-schema-boundary",
+      "verdict": "pass",
+      "evidence": "dynamic-support has exactly one binding, runtimeAgent -> /src/dynamic-support-graph.ts#dynamicSupportGraph, with no inputSchema or outputSchema binding. The source still obtains state from getDynamicSupportStateSchema(), and deterministic checks passed."
+    },
+    {
+      "id": "preserves-routing-boundary",
+      "verdict": "pass",
+      "evidence": "The manifest records dynamic-routing as unresolved for conditional-edge, Command, and Send destinations and requires closed runtime wiring or integration tests. It declares no routing targets, handoffs, subagents, parent navigation, or topology. Workspace assertions show routing source files were unchanged and only moldea/moldea.yaml plus moldea/runtimes/langgraph.md changed."
+    },
+    {
+      "id": "keeps-nodes-outside-capabilities",
+      "verdict": "pass",
+      "evidence": "The manifest declares no tools, skills, handoffs, or subagents. src/support-graph.ts keeps lookupOrder as a node callback, while src/prebuilt-boundary.ts keeps an unregistered ToolNode. The bounded canonical inventory contains no capability or handoff artifacts, and the workspace patch changed only the manifest and runtime guide."
+    },
+    {
+      "id": "preserves-runtime-semantics-boundary",
+      "verdict": "pass",
+      "evidence": "The runtime-composition warning explicitly leaves reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, ToolNode registration, and supervisor composition unresolved pending runtime/deployment configuration and integration evidence. The runtime guide reinforces the same boundary."
+    },
+    {
+      "id": "records-focused-guidance",
+      "verdict": "pass",
+      "evidence": "Both support and dynamic-support reference /moldea/runtimes/langgraph.md. It is the sole Markdown file under moldea/runtimes and concisely distinguishes explicit canonical input/output schemas from the opaque factory-created state schema, while documenting routing, node, ToolNode, and runtime-composition boundaries."
+    }
+  ],
+  "failures": []
+}

@@ -36,7 +36,7 @@ jobs:
       - name: Install semantic sandbox dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap
+          sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap socat
           sudo install -m 0644 \
             /usr/share/apparmor/extra-profiles/bwrap-userns-restrict \
             /etc/apparmor.d/bwrap-userns-restrict
@@ -66,7 +66,7 @@ jobs:
           diff --recursive --brief moldea "$SKILLS_TEST_HOME/.agents/skills/moldea"
 
   package-managers:
-    name: ${{ matrix.manager }} ${{ matrix.version }} / CLI ${{ matrix.cli_version }}
+    name: ${{ matrix.manager }} ${{ matrix.version }} / release CLI
     runs-on: ubuntu-latest
     timeout-minutes: 10
     strategy:
@@ -76,27 +76,21 @@ jobs:
           - manager: npm
             package: npm
             version: "10.9.0"
-            cli_version: "3.1.3"
           - manager: npm
             package: npm
             version: "11.19.0"
-            cli_version: "3.1.3"
           - manager: pnpm
             package: pnpm
             version: "11.20.0"
-            cli_version: "3.1.3"
           - manager: pnpm
             package: pnpm
             version: "11.21.0"
-            cli_version: "3.1.3"
           - manager: yarn
             package: "@yarnpkg/cli-dist"
             version: "4.0.0"
-            cli_version: "3.1.3"
           - manager: yarn
             package: "@yarnpkg/cli-dist"
             version: "4.18.0"
-            cli_version: "3.1.3"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -110,5 +104,4 @@ jobs:
         env:
           MOLDEA_TEST_MANAGER: ${{ matrix.manager }}
           MOLDEA_TEST_MANAGER_VERSION: ${{ matrix.version }}
-          MOLDEA_TEST_CLI_VERSION: ${{ matrix.cli_version }}
         run: node --test tests/package-manager.test-integration.mjs

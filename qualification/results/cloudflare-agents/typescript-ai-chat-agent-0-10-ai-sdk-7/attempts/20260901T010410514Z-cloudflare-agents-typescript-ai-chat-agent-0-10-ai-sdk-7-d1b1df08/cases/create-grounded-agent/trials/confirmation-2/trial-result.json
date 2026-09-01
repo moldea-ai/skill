@@ -1,0 +1,62 @@
+{
+  "trialId": "confirmation-2",
+  "kind": "confirmation",
+  "confirmationIndex": 2,
+  "passed": true,
+  "durationMs": 420189,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/confirmation-2/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/confirmation-2/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/confirmation-2/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/confirmation-2/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/confirmation-2/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/confirmation-2/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1929577,
+    "cachedInputTokens": 1815808,
+    "outputTokens": 7445
+  },
+  "judgeUsage": {
+    "inputTokens": 534967,
+    "cachedInputTokens": 472064,
+    "outputTokens": 4206
+  },
+  "actorEvidenceCreatedAt": "2026-09-01T01:15:42.051Z",
+  "judgeEvidenceCreatedAt": "2026-09-01T01:18:10.404Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace: `description.md` says the agent classifies orders for human review and cannot approve refunds; `instruction.md` directs classification for human review and says never to approve a refund. This matches `loadOrderTriageInstruction`, the schemas’ literal `requiresHumanReview: true`, and the source class description. Workspace-patch assertions show only these two canonical assets and `moldea/moldea.yaml` were added/changed; `src/order-triage-agent.ts` was unchanged."
+    },
+    {
+      "id": "binds-direct-agent",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` binds `/src/order-triage-agent.ts` symbols `OrderTriageAgent`, `loadOrderTriageInstruction`, and `OrderTriageOutputSchema`. The source directly exports all three, with `OrderTriageAgent extends AIChatAgent` and `OrderTriageOutputSchema` passed to `Output.object`. The manifest contains no agent input-schema binding. Deterministic post-actor inspection and validation are valid with zero failures."
+    },
+    {
+      "id": "binds-function-tool",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest declares runtime name `classify_order` and binds implementation `classifyOrder`, registration `classifyOrderTool`, input schema `ClassifyOrderInputSchema`, and output schema `ClassifyOrderOutputSchema`, all at `/src/order-triage-agent.ts`. The source exports those exact symbols and registers `classify_order: classifyOrderTool`; the tool uses the bound schemas and `execute: classifyOrder`. Deterministic inspection, validation, and typecheck all passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

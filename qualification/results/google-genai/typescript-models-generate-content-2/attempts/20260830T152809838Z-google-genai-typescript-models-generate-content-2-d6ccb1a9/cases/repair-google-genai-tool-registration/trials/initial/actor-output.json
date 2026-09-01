@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support tool’s canonical name from `find_order` to the source-established Google Gen AI declaration name `lookup_order`. TypeScript validation passed, and moldea inspection returned schema 2, CLI 5.0.0, status `valid`, complete supported tool-registration evidence, and no diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the direct wrapper, closed function-declaration array, `lookupOrder` implementation, `lookupOrderDeclaration`, and `LookupOrderInputSchema`.",
+    "Final adapter evidence includes tool registration as a `function-declaration` named `lookup_order`, plus the input schema, instruction loader, language, supported runtime package, and `models.generateContent` pattern.",
+    "No provider, agent, model, subagent, or network service was invoked.",
+    "Final Git diff contains only the one canonical tool-name correction; no unrelated changes or untracked files were present."
+  ],
+  "unresolved": [
+    "The static adapter evidence establishes detectable wiring, not actual provider-side runtime execution; runtime execution was intentionally not attempted."
+  ]
+}

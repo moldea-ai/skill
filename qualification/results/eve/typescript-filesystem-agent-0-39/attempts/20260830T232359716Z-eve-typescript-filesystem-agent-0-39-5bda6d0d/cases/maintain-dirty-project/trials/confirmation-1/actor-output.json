@@ -1,0 +1,21 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to `classifyBillingQuestion`, assigned it to `support`, and loaded it through the existing canonical instruction loader. TypeScript, loader assertions, moldea inspection/validation, and diff checks passed.",
+  "changedFiles": [
+    "agent/loaders.ts",
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Canonical state changed coherently in the adopted moldea repository; inspection reported format version 1 valid with no diagnostics.",
+    "The Eve filesystem agent, sole `loadSupportInstruction` binding, and `SupportOutputSchema` binding remain intact.",
+    "The complete tracked diff and new context file were inspected.",
+    "Pre-existing modified `src/operator-notes.ts` and untracked `notes/` remain unrelated and untouched.",
+    "Validation passed: TypeScript typecheck, direct loader content assertion, `moldea inspect --json`, `moldea validate --json`, and `git diff --check`."
+  ],
+  "unresolved": [
+    "No agent or provider was invoked, as prohibited; model-level response quality was therefore not evaluated.",
+    "No deployment or packaging configuration exists to prove canonical Markdown availability outside the validated local filesystem runtime."
+  ]
+}

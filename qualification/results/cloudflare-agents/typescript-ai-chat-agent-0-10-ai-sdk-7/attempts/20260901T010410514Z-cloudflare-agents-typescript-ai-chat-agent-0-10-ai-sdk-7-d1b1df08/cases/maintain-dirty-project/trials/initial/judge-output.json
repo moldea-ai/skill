@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, deterministic post-actor validation, and workspace assertions agree: billing context is canonically wired to the exact billing implementation and support agent, while the Cloudflare AIChatAgent implementation and instruction-loader relationship remain unchanged.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` globally registers `/moldea/context/billing.md`, binds it to `/src/billing.ts` symbol `classifyBillingQuestion`, lists `/src/billing.ts` in `affectedBy`, and assigns the context to `support`. The context accurately documents the classifier, and `support/instruction.md` directs refund and invoice questions to it. Workspace assertions identify exactly these three changed paths, while deterministic inspect/validate passed as valid."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` still directly exports `SupportAgent extends AIChatAgent`, directly invokes `streamText`, and passes `loadSupportInstruction()` as generation instructions. Workspace assertions show its SHA-256 is identical before and after (`6c5961c6a8387c92d3f52e77239f5e367d5ecdb2aa5a75adc46cfaa965d86732`); the manifest retains runtime-agent and instruction-loader bindings to the same file and symbols. Deterministic typecheck and repository validation passed."
+    }
+  ],
+  "failures": []
+}

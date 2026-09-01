@@ -1,0 +1,66 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 382688,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 382688,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1322677,
+        "cachedInputTokens": 1260288,
+        "outputTokens": 8880
+      },
+      "judgeUsage": {
+        "inputTokens": 676218,
+        "cachedInputTokens": 627456,
+        "outputTokens": 3876
+      },
+      "actorEvidenceCreatedAt": "2026-08-29T09:39:09.527Z",
+      "judgeEvidenceCreatedAt": "2026-08-29T09:41:25.375Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current workspace: moldea/context/billing.md canonically documents refund/invoice classification and its limits; moldea/moldea.yaml globally registers it, binds it to /src/billing.ts symbol classifyBillingQuestion, and assigns it to agents.support.context; support/instruction.md directs support to apply that guidance. The workspace patch changes only these three Moldea files, and deterministic inspect/validate report valid with zero failures."
+        },
+        {
+          "id": "preserves-sdk-wiring",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/support-agent.ts still directly calls streamText, loads moldea/agents/support/instruction.md through loadSupportInstruction, and passes output: Output.object({ schema: SupportOutputSchema }). Its before/after SHA-256 is identical, as are src/billing.ts and unrelated dirty files. Deterministic validation and TypeScript typechecking passed."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

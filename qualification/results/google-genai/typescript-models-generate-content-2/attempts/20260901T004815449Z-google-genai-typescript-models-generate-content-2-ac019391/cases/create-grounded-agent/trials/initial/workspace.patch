@@ -1,0 +1,50 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index b825518..ad4eed9 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1 +1,25 @@
+ version: 1
++agents:
++  order-triage:
++    runtime:
++      id: google-genai
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: orderTriageAgent
++      instructionLoader:
++        path: /src/order-triage-agent.ts
++        symbol: loadOrderTriageInstruction
++    tools:
++      classify-order:
++        name: classify_order
++        description: Classifies an order for human review.
++        implementation:
++          path: /src/implementations.ts
++          symbol: classifyOrder
++        registration:
++          path: /src/tools.ts
++          symbol: classifyOrderDeclaration
++        inputSchema:
++          path: /src/contracts.ts
++          symbol: ClassifyOrderInputSchema
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..f908009
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review. It cannot approve refunds.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..063757a
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,5 @@
++# Order triage
++
++`order-triage`
++
++Classify orders for human review. Use `classify_order` with the order ID when an order needs classification. You cannot approve refunds; leave refund decisions to human review.

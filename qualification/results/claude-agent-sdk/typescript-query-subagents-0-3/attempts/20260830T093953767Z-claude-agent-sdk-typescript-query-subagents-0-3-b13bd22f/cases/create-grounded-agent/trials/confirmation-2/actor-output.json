@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Created the canonical order-triage agent with implementation-grounded description and instruction. Bound the Claude Agent SDK query wrapper, instruction loader, and classify-order MCP tool implementation/input schema to their exact exported symbols. Moldea inspection passed with no diagnostics, and TypeScript validation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md"
+  ],
+  "observations": [
+    "Runtime binding: src/order-triage-agent.ts#orderTriageAgent.",
+    "Instruction loader binding: src/order-triage-agent.ts#loadOrderTriageInstruction.",
+    "Tool name: mcp__orders__classify_order; implementation: classifyOrder; input schema: ClassifyOrderInputSchema.",
+    "No runtime guide, output schema, routing, handoff, subagent, agent input schema, or refund authority was added.",
+    "Final moldea inspect --json returned valid with no diagnostics; tsc -p tsconfig.json --noEmit exited successfully.",
+    "Final Git status contains only the intended modified manifest and new order-triage agent directory."
+  ],
+  "unresolved": []
+}

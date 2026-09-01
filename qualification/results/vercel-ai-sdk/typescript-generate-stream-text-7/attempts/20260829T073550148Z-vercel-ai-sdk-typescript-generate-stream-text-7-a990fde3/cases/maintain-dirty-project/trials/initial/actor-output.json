@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Added canonical billing-dispute guidance, bound it to `classifyBillingQuestion`, assigned it to `support`, and updated the runtime-loaded support instruction for refund and invoice questions. Moldea validate/inspect passed without diagnostics, TypeScript passed, and the complete tracked diff was reviewed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md"
+  ],
+  "observations": [
+    "The direct Vercel AI SDK wrapper, instruction loader, structured output schema, and `src/billing.ts` remain unchanged.",
+    "Pre-existing tracked `src/operator-notes.ts` and untracked `notes/local-observation.md` content retained identical hashes.",
+    "Runtime responses were not exercised because provider/model invocation was prohibited; verification was local and deterministic."
+  ],
+  "unresolved": []
+}

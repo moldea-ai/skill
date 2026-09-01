@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized moldea from README and source evidence only. The project is now adopted: canonical state was created, the existing README was preserved and extended with the standard awareness block, and canonical state is changed. Validation passed: moldea inspect returned schema 2, CLI 5.0.0, status valid, and zero diagnostics; TypeScript checking also passed. Final status and content review showed only the intended README and moldea changes. Next actions are foundation review or ordinary development.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "README.md establishes an invoice-anomaly review service for an operator and explicitly excludes payment approval and invoice modification.",
+    "src/invoice-review.ts implements total-difference reporting and flags unequal totals for operator review.",
+    "moldea/moldea.yaml contains format version 1; moldea/project.md records only the evidenced purpose and boundaries.",
+    "No agent, runtime guide, decision, focused context asset, or unresolved requirement was created because repository evidence did not justify one.",
+    "The exact repository-local @moldea.ai/cli 5.0.0 was declared and installed; npm 11.12.1 satisfied the supported range.",
+    "No provider, agent, model, subagent, network access, or runner-mounted input mutation was used."
+  ],
+  "unresolved": []
+}

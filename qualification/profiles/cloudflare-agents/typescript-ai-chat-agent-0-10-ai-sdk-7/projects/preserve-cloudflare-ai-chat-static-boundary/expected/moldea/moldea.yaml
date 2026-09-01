@@ -1,0 +1,69 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: cloudflare-agents
+      guidance: /moldea/runtimes/cloudflare-ai-chat-static-boundaries.md
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.ts
+        symbol: SupportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadSupportInstruction
+    affectedBy:
+      - /src/**
+    unresolved:
+      dynamic-tool-map:
+        category: tool-registration
+        effect: warning
+        description: The spread in SupportAgent.onChatMessage leaves the final generation-request tool map open.
+        resolution: Replace the spread with one explicit closed request map or retain this documented boundary.
+        related:
+          - path: /src/support-agent.ts
+  step-support:
+    runtime:
+      id: cloudflare-agents
+      guidance: /moldea/runtimes/cloudflare-ai-chat-static-boundaries.md
+    bindings:
+      runtimeAgent:
+        path: /src/step-support-agent.ts
+        symbol: StepSupportAgent
+    affectedBy:
+      - /src/**
+    unresolved:
+      prepare-step-instructions:
+        category: instruction-loader
+        effect: warning
+        description: StepSupportAgent.prepareStep can replace the request instruction, so one canonical loader cannot be proven.
+        resolution: Remove prepareStep instruction replacement or retain this documented boundary.
+        related:
+          - path: /src/step-support-agent.ts
+  delegating-support:
+    runtime:
+      id: cloudflare-agents
+    bindings:
+      runtimeAgent:
+        path: /src/delegating-agent.ts
+        symbol: DelegatingSupportAgent
+      instructionLoader:
+        path: /src/instructions.ts
+        symbol: loadDelegatingSupportInstruction
+    tools:
+      delegate-support:
+        name: delegate_support
+        description: Delegates one focused support question to another agent.
+        implementation:
+          path: /src/delegation.ts
+          symbol: delegateSupport
+        registration:
+          path: /src/delegation-tool.ts
+          symbol: delegateSupportTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: DelegateSupportInputSchema
+        outputSchema:
+          path: /src/contracts.ts
+          symbol: DelegateSupportOutputSchema
+    affectedBy:
+      - /src/**

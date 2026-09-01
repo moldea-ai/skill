@@ -1,0 +1,70 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 68b7ac0..35e0f95 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: langchain
++      guidance: /moldea/runtimes/langchain-static-boundaries.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -13,9 +14,21 @@ agents:
+       - /src/instructions.ts
+       - /src/status-tools.ts
+       - /src/implementations.ts
++    unresolved:
++      middleware-relationships:
++        category: runtime-inspection
++        effect: informational
++        description: Static inspection cannot prove the effective instruction, output schema, or tool registration for supportAgent because its non-empty middleware may alter those invocation relationships.
++        resolution: Closed runtime wiring or integration tests must prove the post-middleware instruction, response format, and registered tools before these relationships are declared.
++        related:
++          - path: /src/support-agent.ts
++          - path: /src/instructions.ts
++          - path: /src/contracts.ts
++          - path: /src/status-tools.ts
+   step-support:
+     runtime:
+       id: langchain
++      guidance: /moldea/runtimes/langchain-static-boundaries.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+@@ -28,9 +41,20 @@ agents:
+       - /src/contracts.ts
+       - /src/instructions.ts
+       - /src/status-tools.ts
++    unresolved:
++      unsupported-static-relationships:
++        category: runtime-inspection
++        effect: informational
++        description: Static inspection does not establish agent input, agent output, or repository-local tool relationships from the state and context schemas, multiple response formats, and headless client tool configured on stepSupportAgent.
++        resolution: Source-owned runtime documentation or closed wiring and integration tests must establish canonical schema mappings and a qualifying repository-local tool implementation before these relationships are declared.
++        related:
++          - path: /src/step-support-agent.ts
++          - path: /src/contracts.ts
++          - path: /src/status-tools.ts
+   delegating-support:
+     runtime:
+       id: langchain
++      guidance: /moldea/runtimes/langchain-static-boundaries.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/langchain-static-boundaries.md b/moldea/runtimes/langchain-static-boundaries.md
+new file mode 100644
+index 0000000..0606b77
+--- /dev/null
++++ b/moldea/runtimes/langchain-static-boundaries.md
+@@ -0,0 +1,8 @@
++# LangChain static boundaries
++
++The registered agents are directly exported LangChain `createAgent` definitions, and inspection does not execute middleware or client callbacks.
++
++- `supportAgent` has non-empty middleware, so its effective instruction, response format, and tools may change at invocation; only the direct runtime-agent binding is statically established.
++- `stepSupportAgent` has a proved instruction loader, but its response-format alternatives do not establish one output schema, its state and context schemas do not establish an agent input binding, and its headless client tool has no repository-local implementation to register.
++- `delegatingSupportAgent` has the declared loader, output schema, and normal function tool relationships. The tool implementation invokes `stepSupportAgent`, but that function call establishes no handoff, routing target, or subagent relationship.
++- `workflowSupportAgent` is a direct LangGraph `StateGraph` and remains outside this LangChain target.

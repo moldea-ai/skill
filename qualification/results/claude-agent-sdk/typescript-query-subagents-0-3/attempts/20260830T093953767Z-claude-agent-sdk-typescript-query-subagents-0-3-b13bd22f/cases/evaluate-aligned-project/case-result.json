@@ -1,0 +1,66 @@
+{
+  "caseId": "evaluate-aligned-project",
+  "title": "Evaluate an aligned project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 138370,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 138370,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 604939,
+        "cachedInputTokens": 554240,
+        "outputTokens": 3900
+      },
+      "judgeUsage": {
+        "inputTokens": 524386,
+        "cachedInputTokens": 475136,
+        "outputTokens": 4114
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T09:37:24.686Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T09:42:29.973Z",
+      "actorCacheSourceAttemptId": "20260830T093458691Z-claude-agent-sdk-typescript-query-subagents-0-3-e285f333",
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-patterns",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/instructions.ts loads each canonical instruction.md. src/agents.ts passes loadSupportInstruction() into supportAgent's direct query options and appends loadSummaryInstruction() in summaryAgent's direct query options; billing and orders loaders populate AgentDefinition prompts registered by supportAgent. The actor accurately described these paths, and deterministic inspection was valid."
+        },
+        {
+          "id": "explains-closed-bindings",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/agents.ts registers billingAgent and ordersAgent under supportAgent, with descriptions exactly matching their canonical handoff-description.md files. Billing explicitly declares mcp__support__find_order, while orders omits tools; the actor reports deterministic adapter evidence classifying orders' availability as inherited. supportAgent declares Agent and mcp__support__find_order, mounts supportServer, and binds SupportOutputSchema as json_schema output. src/tools.ts registers findOrderTool in supportServer, matching the canonical tool bindings. Deterministic inspect/validate both returned valid."
+        },
+        {
+          "id": "respects-static-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor expressly limited conclusions to repository source, canonical declarations, static type checking, and local adapter evidence, and stated that runtime execution was not tested. It did not infer agent input-schema, tool output-schema, provider, model, external MCP, runtime execution, or actual invocation relationships."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

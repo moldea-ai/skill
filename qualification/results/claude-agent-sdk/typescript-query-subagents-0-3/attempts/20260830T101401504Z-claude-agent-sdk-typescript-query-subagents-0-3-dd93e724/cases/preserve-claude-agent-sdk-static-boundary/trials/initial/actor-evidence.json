@@ -1,0 +1,31 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-08-30T10:58:31.829Z",
+  "durationMs": 184456,
+  "usage": {
+    "inputTokens": 1073236,
+    "cachedInputTokens": 963072,
+    "outputTokens": 5364
+  },
+  "cacheKey": "509a44250ceee9fde587cfc042b0e0dced995ab6bbbf9942e7b906ec7486f1e6",
+  "sourceAttemptId": "20260830T101401504Z-claude-agent-sdk-typescript-query-subagents-0-3-dd93e724",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 46,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3
+    }
+  }
+}

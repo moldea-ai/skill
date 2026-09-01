@@ -1,0 +1,179 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "recovered",
+  "confirmationStatus": "passed",
+  "durationMs": 977447,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": false,
+      "durationMs": 257278,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+      "judgeStatus": "skipped",
+      "judgeOutputPath": null,
+      "judgeSkippedPath": "cases/maintain-dirty-project/trials/initial/judge-skipped.json",
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1311883,
+        "cachedInputTokens": 1199616,
+        "outputTokens": 7835
+      },
+      "judgeUsage": null,
+      "actorEvidenceCreatedAt": "2026-08-31T00:19:45.918Z",
+      "judgeEvidenceCreatedAt": null,
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "preserves-eve-wiring",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "fail",
+          "evidence": "Runner checks failed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": [
+        "Actor command policy observed prohibited credential, network, or sensitive evaluator access.",
+        "Changes escaped the declared allowlist: agent/loaders.ts.",
+        "Required preserved path changed: agent/loaders.ts.",
+        "Requirement preserves-dirty-state failed: Runner checks failed: workspace-assertions."
+      ]
+    },
+    {
+      "trialId": "confirmation-1",
+      "kind": "confirmation",
+      "confirmationIndex": 1,
+      "passed": true,
+      "durationMs": 397287,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/confirmation-1/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/confirmation-1/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/confirmation-1/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/maintain-dirty-project/trials/confirmation-1/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/confirmation-1/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/confirmation-1/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1224145,
+        "cachedInputTokens": 1084416,
+        "outputTokens": 8169
+      },
+      "judgeUsage": {
+        "inputTokens": 517164,
+        "cachedInputTokens": 480768,
+        "outputTokens": 4691
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T00:23:55.888Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T00:26:25.500Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/context/billing.md` canonically documents refund and invoice classification and human-review safeguards. `moldea/moldea.yaml` globally registers it, binds it to `/src/billing.ts` symbol `classifyBillingQuestion`, lists that exact source under `affectedBy`, and assigns the context to `support`. The support description and instruction consume this guidance. The workspace patch identifies only these four canonical changes, and deterministic inspection was valid with typechecking passed."
+        },
+        {
+          "id": "preserves-eve-wiring",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current state retains runtime `eve`, runtime-agent binding `/agent/agent.ts` symbol `default`, the sole instruction-loader binding `/agent/loaders.ts` symbol `loadSupportInstruction`, and output-schema binding `/agent/contracts.ts` symbol `SupportOutputSchema`. Source confirms the default Eve agent uses `SupportOutputSchema` and the default TypeScript instruction definition exclusively calls `loadSupportInstruction()`. Runner before/after hashes for `agent/agent.ts`, `agent/instructions.ts`, `agent/loaders.ts`, and `agent/contracts.ts` are identical, and deterministic inspection remains valid."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    },
+    {
+      "trialId": "confirmation-2",
+      "kind": "confirmation",
+      "confirmationIndex": 2,
+      "passed": true,
+      "durationMs": 322882,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/confirmation-2/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/confirmation-2/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/confirmation-2/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/maintain-dirty-project/trials/confirmation-2/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/confirmation-2/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/confirmation-2/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1170278,
+        "cachedInputTokens": 1066752,
+        "outputTokens": 5257
+      },
+      "judgeUsage": {
+        "inputTokens": 486449,
+        "cachedInputTokens": 436224,
+        "outputTokens": 3410
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T00:29:35.048Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T00:31:48.382Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current `moldea/context/billing.md` canonically defines refund and invoice classifications and human-review limits. `moldea/moldea.yaml` globally registers that context, binds it exactly to `/src/billing.ts` symbol `classifyBillingQuestion`, and assigns it to `support`. `moldea/agents/support/instruction.md` supplies the same refund/invoice behavior to the agent. Workspace patch evidence identifies exactly these three changed paths, and deterministic inspection reports valid Core/adapter state with no failures."
+        },
+        {
+          "id": "preserves-eve-wiring",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current state retains `support.runtime.id: eve`; `/agent/agent.ts` still default-exports the same `defineAgent` root with `SupportOutputSchema`; `/agent/instructions.ts` exclusively loads `loadSupportInstruction()` through `defineInstructions`; `/agent/loaders.ts` still reads the canonical support instruction; and the manifest retains the exact runtimeAgent, instructionLoader, and outputSchema bindings. Before/after hashes for all four agent TypeScript files are identical, none appears in `changedPaths`, deterministic validation passed, and TypeScript checking passed."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

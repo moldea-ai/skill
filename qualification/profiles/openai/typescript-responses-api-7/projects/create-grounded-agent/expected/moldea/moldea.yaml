@@ -1,0 +1,27 @@
+version: 1
+agents:
+  order-triage:
+    runtime:
+      id: openai
+    bindings:
+      runtimeAgent:
+        path: /src/order-triage-agent.ts
+        symbol: orderTriageAgent
+      instructionLoader:
+        path: /src/order-triage-agent.ts
+        symbol: loadOrderTriageInstruction
+    tools:
+      classify-order:
+        name: classify_order
+        description: Classifies an order for human review.
+        implementation:
+          path: /src/order-triage-agent.ts
+          symbol: classifyOrder
+        registration:
+          path: /src/order-triage-agent.ts
+          symbol: classifyOrderTool
+        inputSchema:
+          path: /src/order-triage-agent.ts
+          symbol: ClassifyOrderInputSchema
+    affectedBy:
+      - /src/order-triage-agent.ts

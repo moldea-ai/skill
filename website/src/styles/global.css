@@ -1,8 +1,1 @@
 @import '@moldea.ai/website-ui/styles.css';
-
-@layer components {
-  /* the wrapper owns table spacing so its border stays flush with the table */
-  .prose-moldea .table-scroll > table {
-    margin-block: 0;
-  }
-}

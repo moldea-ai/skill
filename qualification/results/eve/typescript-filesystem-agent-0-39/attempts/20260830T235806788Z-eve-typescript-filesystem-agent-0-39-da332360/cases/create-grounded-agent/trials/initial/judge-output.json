@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, workspace patch, and deterministic post-actor validation agree: the order-triage agent is grounded in the Eve implementation, all requested filesystem bindings are exact, and no prohibited runtime configuration or refund authority was added.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "The added description states that the agent classifies orders for human review without approving refunds; the added instruction says to classify for human review and never approve or promise a refund. These match agent/agent.ts and agent/loaders.ts. Git diff shows only these canonical assets and the manifest were added or changed."
+    },
+    {
+      "id": "binds-filesystem-agent",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtime eve, runtimeAgent /agent/agent.ts#default, instructionLoader /agent/loaders.ts#loadOrderTriageInstruction, and outputSchema /agent/contracts.ts#OrderTriageOutputSchema. Each symbol exists in the cited source, and deterministic inspection and validation completed valid."
+    },
+    {
+      "id": "binds-filesystem-capabilities",
+      "verdict": "pass",
+      "evidence": "The manifest registers classify_order with /agent/implementations.ts#classifyOrder, /agent/tools/classify_order.ts#default, and the exact ClassifyOrderInputSchema and ClassifyOrderOutputSchema symbols. It registers review_policy with /agent/skills/review_policy.ts#default for both implementation and registration. The names are path-derived and deterministic validation passed with zero failures."
+    }
+  ],
+  "failures": []
+}

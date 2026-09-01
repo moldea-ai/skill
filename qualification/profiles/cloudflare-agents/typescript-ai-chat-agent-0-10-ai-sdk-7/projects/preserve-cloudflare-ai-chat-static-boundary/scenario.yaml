@@ -1,0 +1,122 @@
+version: 2
+id: preserve-cloudflare-ai-chat-static-boundary
+title: Preserve the Cloudflare AIChatAgent static boundary
+purpose: Verify conservative handling of dynamic requests, unsupported output, indirect generation, and initialization-sensitive classes.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [
+        agent-definition,
+        instruction-loader,
+        language,
+        runtime-package,
+        runtime-pattern,
+        schema,
+        tool-registration,
+      ]
+    forbiddenEvidenceKinds: [handoff-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [
+        agent-definition,
+        instruction-loader,
+        language,
+        runtime-package,
+        runtime-pattern,
+        schema,
+        tool-registration,
+      ]
+    forbiddenEvidenceKinds: [handoff-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      src/support-agent.ts,
+      src/step-support-agent.ts,
+      src/delegating-agent.ts,
+      src/indirect-agent.ts,
+      src/unsupported-output-agent.ts,
+      src/contracts.ts,
+      src/instructions.ts,
+      src/implementations.ts,
+      src/status-tools.ts,
+      src/delegation.ts,
+      src/delegation-tool.ts,
+      src/workflow-agent.mts,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      moldea/agents/step-support/description.md,
+      moldea/agents/step-support/instruction.md,
+      moldea/agents/delegating-support/description.md,
+      moldea/agents/delegating-support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    [
+      src/support-agent.ts,
+      src/step-support-agent.ts,
+      src/delegating-agent.ts,
+      src/indirect-agent.ts,
+      src/unsupported-output-agent.ts,
+      src/delegation.ts,
+      src/workflow-agent.mts,
+      moldea/moldea.yaml,
+    ]
+  mustNotExistPaths: []
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: [moldea/runtimes/**/*.md]
+  mustChangePathPatterns: [moldea/runtimes/**/*.md]
+judgeRequirements:
+  - id: preserves-open-tool-boundary
+    description: For SupportAgent, the actor preserves the proved class, runtime pattern, and instruction loader while recording the open request tools as unresolved instead of binding a partial tool set.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-prepare-step-boundary
+    description: For StepSupportAgent, the actor preserves the direct class and runtime pattern without inventing an instruction-loader relationship through prepareStep.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: does-not-infer-subagent-handoff
+    description: The actor preserves the delegate_support function tool and its direct bindings without adding a handoff or routing relationship from ordinary function-tool delegation.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-unsupported-generation-boundaries
+    description: The actor preserves IndirectSupportAgent and UnsupportedOutputAgent as source without inventing a direct runtime pattern or supported object-schema binding for them.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: keeps-initialized-class-outside-target
+    description: The actor preserves RuntimeInitializedAgent as source but does not register its initialization-sensitive class shape as a supported AIChatAgent target.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: records-focused-guidance
+    description: Both boundary agents reference the sole new runtime-guidance file under /moldea/runtimes/**/*.md, which covers static alternatives plus Cloudflare bindings, SQLite Durable Object migrations, provider bindings, and Worker deployment configuration.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
+  - id: records-unresolved-boundaries
+    description: Focused unresolved warnings distinguish the open request tools from prepareStep instruction replacement and name the relevant source paths and resolutions.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: validates-project
+    description: Every deterministic layer accepts the project, relationship-local evidence remains exact, and every source and agent instruction file remains unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

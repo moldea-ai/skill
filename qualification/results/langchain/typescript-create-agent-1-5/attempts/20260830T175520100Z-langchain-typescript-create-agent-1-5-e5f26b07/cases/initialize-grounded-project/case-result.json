@@ -1,0 +1,66 @@
+{
+  "caseId": "initialize-grounded-project",
+  "title": "Initialize a grounded project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 357480,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 357480,
+      "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 925861,
+        "cachedInputTokens": 861184,
+        "outputTokens": 5370
+      },
+      "judgeUsage": {
+        "inputTokens": 743882,
+        "cachedInputTokens": 686592,
+        "outputTokens": 5261
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T18:02:04.954Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T18:04:55.794Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-project",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/project.md` states that the service identifies invoice-total anomalies for operator review, reports the difference and mismatch status, and does not approve payment or change invoices. This matches `src/invoice-review.ts`, which computes `total - expectedTotal` and flags unequal totals, and the preserved README description."
+        },
+        {
+          "id": "keeps-foundation-minimal",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The workspace contains only `moldea/moldea.yaml` and `moldea/project.md` under `moldea/`; the manifest contains only `version: 1`. Workspace patch assertions list exactly README.md and those two canonical files as changed, while package.json and source hashes remain unchanged. No agent, runtime guide, decision, focused context, or unresolved requirement exists or is referenced. The README contains the standard single awareness block."
+        },
+        {
+          "id": "preserves-existing-work",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

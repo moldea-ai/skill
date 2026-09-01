@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 35243,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1051427,
+    "cachedInputTokens": 965120,
+    "outputTokens": 5269
+  },
+  "judgeUsage": {
+    "inputTokens": 551426,
+    "cachedInputTokens": 506368,
+    "outputTokens": 4323
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T17:53:17.016Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T18:18:46.314Z",
+  "actorCacheSourceAttemptId": "20260830T175014464Z-langchain-typescript-create-agent-1-5-215d7a50",
+  "judgeCacheSourceAttemptId": "20260830T175520100Z-langchain-typescript-create-agent-1-5-e5f26b07",
+  "requirementAssessments": [
+    {
+      "id": "repairs-direct-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts#supportAssistant, instructionLoader to /src/support-assistant.ts#loadSupportInstruction, and outputSchema to /src/support-assistant.ts#SupportOutputSchema. src/support-assistant.ts exports and directly uses all three symbols; src/support-agent.ts is absent. The Git diff shows precisely these binding replacements, and deterministic inspection, validation, and TypeScript type-checking all passed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The support agent's unresolved.dynamic-tool-registry-wiring entry has effect: warning, states that static inspection cannot establish whether assembleTools output reaches the runtime agent, gives a concrete resolution through closed wiring or an integration test followed by registration of established tools, and relates /src/dynamic-tools.ts#assembleTools. The source exports assembleTools, the Git diff adds only this unresolved boundary rather than a tool binding, and workspace assertions show implementation files were unchanged."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

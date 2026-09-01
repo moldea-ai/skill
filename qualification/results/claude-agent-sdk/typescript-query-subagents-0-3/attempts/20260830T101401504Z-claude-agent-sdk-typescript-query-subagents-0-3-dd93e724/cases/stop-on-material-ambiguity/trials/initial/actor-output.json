@@ -1,0 +1,14 @@
+{
+  "outcome": "blocked",
+  "summary": "Initialization stopped without writes because the repository provides only a partial foundation. The README says the module prepares and executes transfers while explicitly leaving preview/execution policy undocumented; the implementation merely returns `preview` or `submitted` status objects and does not establish what is transferred or whether execution causes an external/value-bearing effect. Canonical state is blocked rather than invented.",
+  "changedFiles": [],
+  "observations": [
+    "The project is unadopted: `/moldea/moldea.yaml`, `/moldea/project.md`, and the README awareness block are all absent.",
+    "The exact local `@moldea.ai/cli` 5.0.0 is declared and installed; `inspect --json` returned a valid schema-2 `invalid` envelope containing only `MOLDEA_MANIFEST_MISSING` and `MOLDEA_PROJECT_FILE_MISSING`.",
+    "`./node_modules/.bin/tsc --noEmit` passed.",
+    "The final hardened Git diff and status were empty; qualification inputs and unrelated files remained unchanged."
+  ],
+  "unresolved": [
+    "Decision required: does `execute: true` represent authorization to cause an actual external or value-bearing transfer, or does it only prepare/label a transfer as `submitted`? The transfer domain and served user/system also remain unidentified, so choosing a durable project purpose would invent consequential behavior."
+  ]
+}

@@ -1,16 +1,15 @@
 ---
-import { ArrowLeft, ArrowRight, ExternalLink, Menu } from '@lucide/astro';
+import { ExternalLink } from '@lucide/astro';
 import ActionLink from '@moldea.ai/website-ui/action-link';
-import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
-import { withBase } from '@moldea.ai/website-ui/site';
+import DocumentationShell from '@moldea.ai/website-ui/documentation-shell';
+import type { IRenderedMarkdownHeading } from '@moldea.ai/website-ui/markdown';
 
-import type { IRenderedMarkdownHeading } from '../../lib/content/markdown.ts';
 import { SKILLS_DIRECTORY_URL, SOURCE_REPOSITORY_URL } from '../../lib/model/constants.ts';
 import type { INavigationGroup, ISkillMetadata, IWebsiteDocument } from '../../lib/model/types.ts';
 
 interface Props {
   currentDocument: IWebsiteDocument;
-  headings: IRenderedMarkdownHeading[];
+  headings: readonly IRenderedMarkdownHeading[];
   navigation: INavigationGroup[];
   orderedDocuments: IWebsiteDocument[];
   skill: ISkillMetadata;
@@ -24,6 +23,24 @@ const nextDocument =
   currentIndex >= 0 && currentIndex < orderedDocuments.length - 1
     ? orderedDocuments[currentIndex + 1]
     : undefined;
+const adjacentPages = {
+  ...(previousDocument === undefined
+    ? {}
+    : {
+        previousPage: {
+          href: previousDocument.route,
+          label: previousDocument.navigationTitle,
+        },
+      }),
+  ...(nextDocument === undefined
+    ? {}
+    : {
+        nextPage: {
+          href: nextDocument.route,
+          label: nextDocument.navigationTitle,
+        },
+      }),
+};
 const isExample = currentDocument.section === 'examples';
 const breadcrumbs = [
   { href: '/', label: 'Home' },
@@ -39,215 +56,71 @@ const breadcrumbs = [
         { label: currentDocument.title },
       ]),
 ];
+const navigationGroups = navigation.map((group) => ({
+  items: group.documents.map((document) => ({
+    href: document.route,
+    label: document.navigationTitle,
+  })),
+  label: group.label,
+}));
 ---
 
-<div class="docs-shell pt-7">
-  <Breadcrumbs
-    basePath={basePath}
-    items={breadcrumbs}
-  />
-
-  <details class="surface-card mt-6 lg:hidden">
-    <summary
-      class="flex min-h-12 list-none items-center gap-2 px-4 font-semibold [&::-webkit-details-marker]:hidden"
-    >
-      <Menu
-        class="size-4"
-        aria-hidden="true"
-      />
-      Documentation navigation
-    </summary>
-    <nav
-      class="grid gap-5 border-t border-border p-4"
-      aria-label="Documentation navigation"
-    >
-      {
-        navigation.map((group) => (
-          <div>
-            <p class="eyebrow mb-2 px-2">{group.label}</p>
-            <div class="grid gap-1">
-              {group.documents.map((document) => (
-                <a
-                  class:list={[
-                    'rounded-lg px-3 py-2.5 text-sm font-medium',
-                    document.route === currentDocument.route
-                      ? 'bg-accent text-accent-foreground'
-                      : 'hover:bg-muted',
-                  ]}
-                  href={withBase(document.route, basePath)}
-                  aria-current={document.route === currentDocument.route ? 'page' : undefined}
-                >
-                  {document.navigationTitle}
-                </a>
-              ))}
-            </div>
-          </div>
-        ))
-      }
-    </nav>
-  </details>
-
-  <div
-    class="mt-7 grid min-w-0 gap-10 lg:grid-cols-[16rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)_13rem]"
+<DocumentationShell
+  {basePath}
+  {breadcrumbs}
+  currentRoute={currentDocument.route}
+  {headings}
+  navigationAriaLabel="Documentation navigation"
+  {navigationGroups}
+  {...adjacentPages}
+>
+  <header
+    slot="header"
+    class="mb-10 border-b border-border pb-8"
   >
-    <aside class="hidden lg:block">
-      <div class="sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pe-2">
-        <nav
-          class="grid gap-6"
-          aria-label="Documentation navigation"
-        >
-          {
-            navigation.map((group) => (
-              <div>
-                <p class="eyebrow mb-2 px-2">{group.label}</p>
-                <div class="grid gap-1">
-                  {group.documents.map((document) => (
-                    <a
-                      class:list={[
-                        'rounded-lg px-3 py-2 text-sm font-medium',
-                        document.route === currentDocument.route
-                          ? 'bg-accent text-accent-foreground'
-                          : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                      ]}
-                      href={withBase(document.route, basePath)}
-                      aria-current={document.route === currentDocument.route ? 'page' : undefined}
-                    >
-                      {document.navigationTitle}
-                    </a>
-                  ))}
-                </div>
-              </div>
-            ))
-          }
-        </nav>
-      </div>
-    </aside>
-
-    <article class="min-w-0">
-      <header class="mb-10 border-b border-border pb-8">
-        <div class="mb-4 flex flex-wrap items-center gap-2 text-sm">
-          <span
-            class="inline-flex items-center rounded-full border bg-muted px-3 py-1.5 font-semibold"
-          >
-            v{skill.version}
-          </span>
-          <span class="text-muted-foreground">Portable Agent Skill</span>
-        </div>
-        <h1
-          class="text-4xl leading-tight font-semibold tracking-[-0.045em] break-words sm:text-5xl"
-        >
-          {currentDocument.title}
-        </h1>
-        <p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
-          {currentDocument.description}
-        </p>
-        <div class="mt-6 flex flex-wrap gap-3">
-          <ActionLink
-            class="font-bold"
-            href={SKILLS_DIRECTORY_URL}
-            size="md"
-            target="_blank"
-            rel="noopener noreferrer"
-            data-primary-action
-          >
-            Get the skill
-            <ExternalLink
-              class="size-3.5"
-              aria-hidden="true"
-            />
-          </ActionLink>
-          <ActionLink
-            class="font-bold"
-            href={`${SOURCE_REPOSITORY_URL}/blob/main/${currentDocument.sourcePath}`}
-            size="md"
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="outline"
-          >
-            View source
-            <ExternalLink
-              class="size-3.5"
-              aria-hidden="true"
-            />
-          </ActionLink>
-        </div>
-      </header>
-
-      <slot />
-
-      <nav
-        class="mt-14 grid gap-3 border-t border-border pt-8 sm:grid-cols-2"
-        aria-label="Previous and next documentation"
+    <div class="mb-4 flex flex-wrap items-center gap-2 text-sm">
+      <span class="inline-flex items-center rounded-full border bg-muted px-3 py-1.5 font-semibold">
+        v{skill.version}
+      </span>
+      <span class="text-muted-foreground">Portable Agent Skill</span>
+    </div>
+    <h1 class="text-4xl leading-tight font-semibold tracking-[-0.045em] break-words sm:text-5xl">
+      {currentDocument.title}
+    </h1>
+    <p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
+      {currentDocument.description}
+    </p>
+    <div class="mt-6 flex flex-wrap gap-3">
+      <ActionLink
+        class="font-bold"
+        href={SKILLS_DIRECTORY_URL}
+        size="md"
+        target="_blank"
+        rel="noopener noreferrer"
+        data-primary-action
       >
-        {
-          previousDocument ? (
-            <a
-              class="surface-card interactive-card flex min-h-24 items-center gap-3 p-4"
-              href={withBase(previousDocument.route, basePath)}
-            >
-              <ArrowLeft
-                class="size-4 shrink-0"
-                aria-hidden="true"
-              />
-              <span>
-                <span class="block text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                  Previous
-                </span>
-                <span class="mt-1 block font-semibold">{previousDocument.navigationTitle}</span>
-              </span>
-            </a>
-          ) : (
-            <span />
-          )
-        }
-        {
-          nextDocument && (
-            <a
-              class="surface-card interactive-card flex min-h-24 items-center justify-between gap-3 p-4"
-              href={withBase(nextDocument.route, basePath)}
-            >
-              <span class="min-w-0 flex-1 text-end">
-                <span class="block text-xs font-bold tracking-wide text-muted-foreground uppercase">
-                  Next
-                </span>
-                <span class="mt-1 block font-semibold">{nextDocument.navigationTitle}</span>
-              </span>
-              <ArrowRight
-                class="size-4 shrink-0"
-                aria-hidden="true"
-              />
-            </a>
-          )
-        }
-      </nav>
-    </article>
+        Get the skill
+        <ExternalLink
+          class="size-3.5"
+          aria-hidden="true"
+        />
+      </ActionLink>
+      <ActionLink
+        class="font-bold"
+        href={`${SOURCE_REPOSITORY_URL}/blob/main/${currentDocument.sourcePath}`}
+        size="md"
+        target="_blank"
+        rel="noopener noreferrer"
+        variant="outline"
+      >
+        View source
+        <ExternalLink
+          class="size-3.5"
+          aria-hidden="true"
+        />
+      </ActionLink>
+    </div>
+  </header>
 
-    <aside class="hidden xl:block">
-      <div class="sticky top-24">
-        <p class="eyebrow mb-4">On this page</p>
-        {
-          headings.length > 0 ? (
-            <nav
-              class="grid gap-2 border-s ps-4"
-              aria-label="On this page"
-            >
-              {headings.map((heading) => (
-                <a
-                  class:list={[
-                    'text-sm leading-5 text-muted-foreground hover:text-foreground',
-                    heading.depth === 3 && 'ps-3',
-                  ]}
-                  href={`#${heading.id}`}
-                >
-                  <span set:html={heading.html} />
-                </a>
-              ))}
-            </nav>
-          ) : (
-            <p class="text-sm text-muted-foreground">A concise overview.</p>
-          )
-        }
-      </div>
-    </aside>
-  </div>
-</div>
+  <slot />
+</DocumentationShell>

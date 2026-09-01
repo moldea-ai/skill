@@ -1,0 +1,62 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index e2c0ffe..59e5a1e 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: eve
++      guidance: /moldea/runtimes/eve.md
+     bindings:
+       runtimeAgent:
+         path: /agent/agent.ts
+@@ -40,3 +41,35 @@ agents:
+           symbol: default
+     affectedBy:
+       - /agent/**
++    unresolved:
++      dynamic-tool-registration:
++        category: runtime-evidence
++        effect: warning
++        description: The dynamic tool contribution in /agent/tools/runtime.ts is not a supported static Eve tool relationship, so its runtime name, registration, and availability to the support agent are unestablished.
++        resolution: Provide repository-local runtime wiring and tests that establish the contribution's registration and model-visible contract, or expose the intended capability through a non-colliding TypeScript defineTool module under /agent/tools and register that supported static relationship.
++        related:
++          - path: /agent/tools/runtime.ts
++      markdown-skill-registration:
++        category: runtime-evidence
++        effect: warning
++        description: The flat and packaged Markdown skill candidates are preserved, but static inspection does not establish either candidate as a registered support-agent skill.
++        resolution: Provide repository-local runtime registration evidence and tests for each intended Markdown skill, or express each intended capability as a non-colliding TypeScript defineSkill module under /agent/skills and register that supported static relationship.
++        related:
++          - path: /agent/skills/reference.md
++          - path: /agent/skills/guide/SKILL.md
++      single-file-subagent-registration:
++        category: runtime-evidence
++        effect: warning
++        description: The single-file subagent candidate in /agent/subagents/quick.ts is preserved, but the supported static Eve local-subagent form is directory-backed and this candidate's registration and routing are unestablished.
++        resolution: Provide repository-local runtime registration and routing evidence with tests, or use a directory-backed /agent/subagents/quick/agent.ts definition and register the local subagent and its routing description in supported canonical agent state.
++        related:
++          - path: /agent/subagents/quick.ts
++      alternate-instruction-forms:
++        category: instruction-provenance
++        effect: warning
++        description: The case-varied, directory-composed, and legacy instruction examples are preserved as examples; static inspection does not establish them as active instructions for the support agent.
++        resolution: Provide repository-local loader and runtime-consumption evidence for any form intended to be active, or use one exclusive exact lowercase instructions.md or supported instructions.ts surface and bind that supported static relationship.
++        related:
++          - path: /examples/instructions/Instructions.md
++          - path: /examples/instructions/instructions/part.md
++          - path: /examples/instructions/system.md
+
+diff --git a/moldea/runtimes/eve.md b/moldea/runtimes/eve.md
+new file mode 100644
+index 0000000..5b105f3
+--- /dev/null
++++ b/moldea/runtimes/eve.md
+@@ -0,0 +1,7 @@
++# Eve runtime boundary
++
++Run this project with Node.js 24 or newer, as declared in `/package.json`.
++
++For Eve `0.39.x`, prefer statically inspectable filesystem forms: a flat `/agent.ts` or nested `/agent/agent.ts` root; one exclusive exact lowercase `instructions.md` or supported `instructions.ts`; recursive TypeScript `defineTool(...)` modules under `tools/`; TypeScript `defineSkill(...)` modules under `skills/`; directory-backed local subagents at `subagents/<name>/agent.ts`; and direct schema bindings.
++
++Static inspection proves only those supported relationships. Dynamic registrations and Markdown skill candidates require repository-local runtime wiring and tests, or conversion to a supported static form. Remote agents, extension contributions, connection and framework tools, filesystem name collisions, reserved names, and advanced runtime behavior likewise require runtime evidence or a supported static form before they become canonical. Do not infer provider, model, routing, registration, or execution behavior from source presence alone.

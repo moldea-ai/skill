@@ -1,0 +1,269 @@
+---
+import { ArrowRight, BookOpen, ExternalLink } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import EvidenceStatus from '../../../components/evidence-status/evidence-status.astro';
+import SemanticEvaluationCase from '../../../components/semantic-evaluation-case/semantic-evaluation-case.astro';
+import BaseLayout from '../../../layouts/base-layout.astro';
+import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
+
+const { semanticEvaluation } = loadWebsiteModel();
+const basePath = import.meta.env.BASE_URL;
+const breadcrumbs = [
+  { href: '/', label: 'Home' },
+  { href: '/evidence/', label: 'Evidence' },
+  { label: 'Semantic evaluation' },
+];
+let caseNumber = 0;
+const successfulCaseCount =
+  semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount;
+---
+
+<BaseLayout
+  title="Semantic evaluation evidence"
+  description={`Review current semantic assurance, immutable attempt history, and ${semanticEvaluation.caseCount} behavioral scenarios.`}
+  {breadcrumbs}
+>
+  <div class="page-shell pt-7">
+    <Breadcrumbs
+      basePath={basePath}
+      items={breadcrumbs}
+    />
+
+    <header class="mt-7 border-b border-border pb-10">
+      <div class="flex flex-wrap items-center gap-3">
+        <EvidenceStatus status={semanticEvaluation.status} />
+        <span class="font-mono text-sm font-bold">
+          {successfulCaseCount}/{semanticEvaluation.caseCount} scenarios
+        </span>
+      </div>
+      <p class="eyebrow mt-5">Behavioral release evidence</p>
+      <h1 class="section-title mt-3 max-w-5xl font-semibold">Semantic evaluation</h1>
+      <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+        Every immutable attempt is shown as it happened, but only evidence matching the current Sol
+        protocol and exact release inputs counts as release assurance. Each completed scenario uses
+        a blind actor and an independent judge. Open a scenario to replay the recorded interaction,
+        safe command results, workspace changes, and verdict before inspecting its evaluation
+        criteria.
+      </p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <ActionLink
+          class="font-bold"
+          href={withBase(semanticEvaluation.methodologyUrl, basePath)}
+          variant="primary"
+        >
+          Read the methodology
+          <BookOpen
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+        {
+          semanticEvaluation.latest !== null && (
+            <ActionLink
+              class="font-bold"
+              href={semanticEvaluation.latest.rawEvidenceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="outline"
+            >
+              Inspect latest raw evidence
+              <ExternalLink
+                class="size-4"
+                aria-hidden="true"
+              />
+            </ActionLink>
+          )
+        }
+        <ActionLink
+          class="font-bold"
+          href={semanticEvaluation.coverageUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="outline"
+        >
+          Inspect coverage map
+          <ExternalLink
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+      </div>
+    </header>
+
+    <section
+      class="grid gap-3 border-b border-border py-10 sm:grid-cols-2 lg:grid-cols-4"
+      aria-label="Semantic evaluation summary"
+    >
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Scenarios passed</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{semanticEvaluation.passedCaseCount}</p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Recovered after confirmation</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{semanticEvaluation.recoveredCaseCount}</p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Failed</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{semanticEvaluation.failedCaseCount}</p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Pending</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{semanticEvaluation.pendingCaseCount}</p>
+      </div>
+    </section>
+
+    <div class="py-12">
+      {
+        semanticEvaluation.groups.map((group) => (
+          <section
+            id={group.id}
+            class="scroll-mt-24 border-b border-border py-10 first:pt-0 last:border-0 last:pb-0"
+            aria-labelledby={`${group.id}-title`}
+          >
+            <div class="max-w-3xl">
+              <p class="eyebrow mb-3">
+                {group.cases.length} {group.cases.length === 1 ? 'scenario' : 'scenarios'}
+              </p>
+              <h2
+                id={`${group.id}-title`}
+                class="text-3xl font-semibold tracking-tight"
+              >
+                {group.title}
+              </h2>
+              <p class="mt-3 leading-7 text-muted-foreground">
+                <InlineBrandText
+                  text={group.description}
+                  variant="compact"
+                />
+              </p>
+            </div>
+            <div class="mt-7 grid gap-3">
+              {group.cases.map((evaluationCase) => {
+                caseNumber += 1;
+                return (
+                  <SemanticEvaluationCase
+                    evaluationCase={evaluationCase}
+                    number={caseNumber}
+                  />
+                );
+              })}
+            </div>
+          </section>
+        ))
+      }
+    </div>
+
+    <section
+      class="border-t border-border py-10"
+      aria-labelledby="semantic-history-title"
+    >
+      <div class="max-w-3xl">
+        <p class="eyebrow mb-3">Immutable history</p>
+        <h2
+          id="semantic-history-title"
+          class="text-3xl font-semibold tracking-tight"
+        >
+          Every recorded outcome remains available.
+        </h2>
+        <p class="mt-4 leading-7 text-muted-foreground">
+          Latest and last passing are independent pointers. A later failure never replaces or hides
+          earlier evidence, and an earlier pass never makes a newer attempt look successful.
+        </p>
+      </div>
+      {
+        semanticEvaluation.attempts.length === 0 ? (
+          <p class="surface-card mt-7 p-5 text-muted-foreground sm:p-6">
+            No semantic attempt has been recorded for this release candidate yet.
+          </p>
+        ) : (
+          <ol class="mt-7 grid gap-3">
+            {[...semanticEvaluation.attempts].reverse().map(({ result, route }) => (
+              <li>
+                <a
+                  class="surface-card interactive-card flex min-w-0 flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+                  href={withBase(route, basePath)}
+                >
+                  <span class="min-w-0">
+                    <span class="flex flex-wrap items-center gap-2">
+                      <EvidenceStatus status={result.status} />
+                      {result.attemptId === semanticEvaluation.latestPointer?.latestAttemptId && (
+                        <span class="text-xs font-bold text-muted-foreground">Latest</span>
+                      )}
+                      {result.attemptId ===
+                        semanticEvaluation.latestPointer?.lastPassingAttemptId && (
+                        <span class="text-xs font-bold text-muted-foreground">Last passing</span>
+                      )}
+                    </span>
+                    <span class="mt-3 block font-mono text-sm break-all">{result.attemptId}</span>
+                    <span class="mt-2 block text-sm text-muted-foreground">
+                      {result.passedCaseCount + result.recoveredCaseCount}/{result.totalCaseCount}{' '}
+                      scenarios successful, {result.failedCaseCount} failed,{' '}
+                      {result.pendingCaseCount} pending
+                    </span>
+                  </span>
+                  <span class="inline-flex shrink-0 items-center gap-2 font-semibold text-link">
+                    Inspect attempt
+                    <ArrowRight
+                      class="size-4"
+                      aria-hidden="true"
+                    />
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        )
+      }
+    </section>
+
+    <section class="border-t border-border py-10">
+      <details class="surface-card p-5 sm:p-6">
+        <summary
+          class="cursor-pointer font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        >
+          Technical provenance
+        </summary>
+        <dl class="mt-5 grid min-w-0 gap-4 text-sm sm:grid-cols-2">
+          <div>
+            <dt class="text-muted-foreground">Evaluated at</dt>
+            <dd class="mt-1 font-mono break-all">
+              {semanticEvaluation.evaluatedAt ?? 'Not recorded'}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">CLI</dt>
+            <dd class="mt-1 font-mono break-all">{semanticEvaluation.cli.version}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Actor and judge</dt>
+            <dd class="mt-1 font-mono break-all">
+              {semanticEvaluation.evaluationModel}, medium
+            </dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Portable artifact digest</dt>
+            <dd class="mt-1 font-mono text-xs break-all">
+              {semanticEvaluation.artifactDigest}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Case suite digest</dt>
+            <dd class="mt-1 font-mono text-xs break-all">
+              {semanticEvaluation.caseSuiteDigest}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Coverage digest</dt>
+            <dd class="mt-1 font-mono text-xs break-all">
+              {semanticEvaluation.coverageDigest}
+            </dd>
+          </div>
+        </dl>
+      </details>
+    </section>
+  </div>
+</BaseLayout>

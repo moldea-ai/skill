@@ -1,0 +1,66 @@
+{
+  "caseId": "repair-eve-tool-registration",
+  "title": "Repair Eve tool registration",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 312726,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 312726,
+      "deterministicBeforePath": "cases/repair-eve-tool-registration/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-eve-tool-registration/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-eve-tool-registration/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-eve-tool-registration/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-eve-tool-registration/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-eve-tool-registration/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 885013,
+        "cachedInputTokens": 798720,
+        "outputTokens": 3672
+      },
+      "judgeUsage": {
+        "inputTokens": 416675,
+        "cachedInputTokens": 372480,
+        "outputTokens": 3265
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T00:55:26.493Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T00:58:06.165Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-name-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor identifies the stale declared name find_order and explains that Eve derives orders-find from /agent/tools/orders/find.ts. Current source confirms the nested orders/find.ts path, the manifest now declares orders-find, workspace assertions isolate the change to moldea/moldea.yaml, and deterministic inspection/validation are valid."
+        },
+        {
+          "id": "repairs-canonical-name",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml declares tools.find-order.name as orders-find while retaining registration path /agent/tools/orders/find.ts. Workspace assertions show only moldea/moldea.yaml changed; deterministic inspect and validate both report valid with no failures."
+        },
+        {
+          "id": "preserves-binding-closure",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current workspace preserves exact bindings: runtime agent /agent/agent.ts default; instruction loader /agent/instructions.md; agent output schema /agent/contracts.ts#SupportOutputSchema; implementation /agent/implementations.ts#findOrder; registration /agent/tools/orders/find.ts#default; input schema FindOrderInputSchema; and tool output schema FindOrderOutputSchema. Source imports and defineTool wiring confirm the implementation and both schemas, while before/after hashes show every binding file unchanged. Deterministic inspection reports complete valid evidence."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

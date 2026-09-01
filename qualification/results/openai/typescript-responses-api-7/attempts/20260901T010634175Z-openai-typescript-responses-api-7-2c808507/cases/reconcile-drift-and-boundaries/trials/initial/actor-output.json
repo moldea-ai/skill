@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the adopted project’s support-agent bindings with `/src/support-assistant.ts` and recorded the dynamic tool-registry boundary as an agent-level warning. Canonical state changed only in `moldea/moldea.yaml`; implementation and pre-existing worktree changes were preserved. Moldea inspection and validation returned valid with no diagnostics, and TypeScript compilation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The runtime-agent binding now targets `supportAssistant`; the instruction-loader binding now targets `loadSupportInstruction`.",
+    "OpenAI adapter inspection confirmed the direct `responses.create` runtime pattern and instruction-loader wiring.",
+    "`moldea validate --json`, `moldea inspect --json`, and `tsc --noEmit` completed successfully.",
+    "Final Git inspection showed the pre-existing deletion of `src/support-agent.ts` and untracked `src/support-assistant.ts` and `src/dynamic-tools.ts` remained intact."
+  ],
+  "unresolved": [
+    "Warning `dynamic-tool-registry-wiring`: static inspection cannot establish whether the registry returned by `/src/dynamic-tools.ts` symbol `assembleTools` is supplied to `supportAssistant`. Resolve by closing the runtime wiring or adding an integration test that proves whether it reaches the Responses API `tools` input."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, deterministic validation, and workspace patch agree: billing context was added and connected correctly while the existing Eve agent wiring and unrelated dirty work were preserved.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` canonically documents refund and invoice classification and human-review safeguards. `moldea/moldea.yaml` globally registers it, binds it to `/src/billing.ts` symbol `classifyBillingQuestion`, lists that exact source under `affectedBy`, and assigns the context to `support`. The support description and instruction consume this guidance. The workspace patch identifies only these four canonical changes, and deterministic inspection was valid with typechecking passed."
+    },
+    {
+      "id": "preserves-eve-wiring",
+      "verdict": "pass",
+      "evidence": "Current state retains runtime `eve`, runtime-agent binding `/agent/agent.ts` symbol `default`, the sole instruction-loader binding `/agent/loaders.ts` symbol `loadSupportInstruction`, and output-schema binding `/agent/contracts.ts` symbol `SupportOutputSchema`. Source confirms the default Eve agent uses `SupportOutputSchema` and the default TypeScript instruction definition exclusively calls `loadSupportInstruction()`. Runner before/after hashes for `agent/agent.ts`, `agent/instructions.ts`, `agent/loaders.ts`, and `agent/contracts.ts` are identical, and deterministic inspection remains valid."
+    }
+  ],
+  "failures": []
+}

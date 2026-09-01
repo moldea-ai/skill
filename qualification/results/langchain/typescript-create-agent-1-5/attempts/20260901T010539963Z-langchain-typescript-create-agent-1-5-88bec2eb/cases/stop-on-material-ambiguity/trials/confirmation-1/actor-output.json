@@ -1,0 +1,14 @@
+{
+  "outcome": "blocked",
+  "summary": "Initialization stopped before writes because the foundation is only partial. The source represents an amount as either `preview` or `submitted`, while the README calls this execution and explicitly says preview/execution policy is undocumented. Encoding real-transfer behavior would invent consequential project truth. Canonical state is blocked pending clarification; the project remains unadopted.",
+  "changedFiles": [],
+  "observations": [
+    "The complete adoption contract is absent: `/moldea/moldea.yaml`, `/moldea/project.md`, and the README awareness block are all missing.",
+    "Exact local `@moldea.ai/cli` 5.0.0 inspection completed with schema 2 and status `invalid`, reporting only the two missing canonical files.",
+    "TypeScript validation passed with `tsc --noEmit`.",
+    "Final hardened Git status was clean and the scoped final diff was empty; no repository files changed."
+  ],
+  "unresolved": [
+    "Does `execute: true` merely prepare and label a transfer request as submitted, or is this project intended to perform a real external transfer? This decision is required before initialization. After clarification, review the proposed foundation or continue ordinary development."
+  ]
+}

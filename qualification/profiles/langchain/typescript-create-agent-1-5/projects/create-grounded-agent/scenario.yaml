@@ -1,0 +1,76 @@
+version: 2
+id: create-grounded-agent
+title: Create a grounded agent
+purpose: Verify evidence-backed canonical creation across every supported createAgent relationship.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: [agent-definition, runtime-pattern]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [agent-definition, instruction-loader, language, runtime-package, schema, tool-registration]
+    forbiddenEvidenceKinds: [runtime-pattern]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths: [src/order-triage-agent.ts, moldea/project.md]
+  mustChangePaths:
+    [
+      moldea/moldea.yaml,
+      moldea/agents/order-triage/description.md,
+      moldea/agents/order-triage/instruction.md,
+    ]
+  mustExistPaths:
+    [
+      moldea/moldea.yaml,
+      moldea/agents/order-triage/description.md,
+      moldea/agents/order-triage/instruction.md,
+      src/order-triage-agent.ts,
+    ]
+  mustNotExistPaths: [moldea/runtimes]
+  allowedChangePaths:
+    [
+      moldea/moldea.yaml,
+      moldea/agents/order-triage/description.md,
+      moldea/agents/order-triage/instruction.md,
+    ]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: grounds-behavior
+    description: Canonical assets reflect classification, human review, and the explicit absence of refund authority.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
+  - id: binds-direct-agent
+    description: The manifest binds the existing direct createAgent definition, loader, and responseFormat output schema.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
+  - id: binds-function-tool
+    description: The classify_order name and implementation, registration, and input-schema symbols match the existing normal function tool.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
+  - id: avoids-redundant-guidance
+    description: No runtime guide is added because the integration uses supported closed constructor settings without repository-specific behavior.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: validates-project
+    description: Every deterministic layer accepts the completed project without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

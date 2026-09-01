@@ -1,0 +1,67 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index a5ba2f9..33f0848 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -4,3 +4,15 @@ context:
+   /moldea/project.md:
+     affectedBy:
+       - /src/**
++
++agents:
++  order-triage:
++    runtime:
++      id: custom
++      guidance: /moldea/runtimes/custom.md
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: createOrderTriageAgent
++    affectedBy:
++      - /src/order-triage-agent.ts
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..368b3c4
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review without approving refunds.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..b51ffc9
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,3 @@
++`order-triage`
++
++Classify orders for human review. You cannot approve refunds or perform financial mutations. Do not claim that a refund has been approved.
+
+diff --git a/moldea/runtimes/custom.md b/moldea/runtimes/custom.md
+new file mode 100644
+index 0000000..987e21c
+--- /dev/null
++++ b/moldea/runtimes/custom.md
+@@ -0,0 +1,5 @@
++# Custom runtime
++
++`createOrderTriageAgent` receives an asynchronous canonical-instruction loader from its caller. The factory requests `/moldea/agents/order-triage/instruction.md`, awaits the returned text, and assigns it to the runtime agent's `instruction` field.
++
++The factory fixes the agent ID to `order-triage`, its action to `classify-for-human-review`, and `canApproveRefunds` to `false`. The loader implementation is caller-owned; this repository does not establish a provider, tools, or refund-approval support.
+
+diff --git a/README.md b/README.md
+new file mode 100644
+index 0000000..914541d
+--- /dev/null
++++ b/README.md
+@@ -0,0 +1,10 @@
++<!-- moldea:start -->
++
++## `moldea`
++
++This repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.
++
++When sharing potentially durable project knowledge or making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.
++
++A relevant change requires reconsideration of the affected `moldea` state; it does not require editing `/moldea/**` when established project truth and declared agent behavior remain unchanged.
++<!-- moldea:end -->

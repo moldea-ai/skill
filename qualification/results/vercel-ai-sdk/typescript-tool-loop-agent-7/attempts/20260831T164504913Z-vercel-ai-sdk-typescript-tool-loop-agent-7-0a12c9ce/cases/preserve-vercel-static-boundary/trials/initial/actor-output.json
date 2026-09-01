@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Updated the adopted canonical moldea setup to match static Vercel ToolLoopAgent evidence. Support now retains only its proved runtime-agent and input-schema bindings; step-support retains its proved runtime-agent, input/output schemas, and tool wiring. Added explicit warning requirements for preparation-callback evidence gaps and concise runtime guidance. TypeScript compilation and moldea inspection passed; moldea reported CLI 5.0.0, schema 2, valid status, and no diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/vercel-ai-sdk.md"
+  ],
+  "observations": [
+    "All source files and working integrations were preserved unchanged.",
+    "Every proved delegating-support relationship remains registered unchanged.",
+    "No handoff, routing target, subagent relationship, or workflowSupportAgent target was added.",
+    "The final Git state contains only the intended modified manifest and new runtime-guidance file."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove support instruction, output, or tool wiring because prepareCall can replace call settings.",
+    "Static inspection cannot prove the step-support instruction loader because prepareStep can replace per-step instructions."
+  ]
+}

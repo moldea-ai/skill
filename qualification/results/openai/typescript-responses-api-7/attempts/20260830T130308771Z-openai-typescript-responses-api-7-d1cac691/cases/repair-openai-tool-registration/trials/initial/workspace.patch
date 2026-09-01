@@ -1,0 +1,13 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index cb146bc..4a23976 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -12,7 +12,7 @@ agents:
+         symbol: loadSupportInstruction
+     tools:
+       lookup-order:
+-        name: find_order
++        name: lookup_order
+         description: Looks up one order by identifier.
+         implementation:
+           path: /src/implementations.ts

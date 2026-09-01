@@ -1,0 +1,65 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": false,
+  "durationMs": 444522,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 2861404,
+    "cachedInputTokens": 2655744,
+    "outputTokens": 8953
+  },
+  "judgeUsage": {
+    "inputTokens": 577303,
+    "cachedInputTokens": 527616,
+    "outputTokens": 4847
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T21:22:09.969Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T21:24:36.879Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/agents/order-triage/description.md states classification for human review without refund authority; instruction.md says to classify for human review and never approve a refund. This agrees with src/order-triage-agent.ts and the workspace patch’s limited changed paths."
+    },
+    {
+      "id": "binds-direct-agent",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "moldea/moldea.yaml correctly binds runtimeAgent to OrderTriageAgent and instructionLoader to loadOrderTriageInstruction, and invents no agent input schema. However, it contains no agent output-schema binding to the directly exported OrderTriageOutputSchema used by Output.object in src/order-triage-agent.ts. Deterministic validation passing establishes structural validity, not this omitted required binding."
+    },
+    {
+      "id": "binds-function-tool",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest’s classify-order tool binds runtime name classify_order, implementation classifyOrder, registration classifyOrderTool, input schema ClassifyOrderInputSchema, and output schema ClassifyOrderOutputSchema. Each exact exported symbol exists and is wired accordingly in src/order-triage-agent.ts; deterministic inspection and typecheck passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Requirement binds-direct-agent failed: moldea/moldea.yaml correctly binds runtimeAgent to OrderTriageAgent and instructionLoader to loadOrderTriageInstruction, and invents no agent input schema. However, it contains no agent output-schema binding to the directly exported OrderTriageOutputSchema used by Output.object in src/order-triage-agent.ts. Deterministic validation passing establishes structural validity, not this omitted required binding.",
+    "Add the agent output-schema binding in moldea/moldea.yaml to /src/order-triage-agent.ts symbol OrderTriageOutputSchema, without adding an agent input schema."
+  ]
+}

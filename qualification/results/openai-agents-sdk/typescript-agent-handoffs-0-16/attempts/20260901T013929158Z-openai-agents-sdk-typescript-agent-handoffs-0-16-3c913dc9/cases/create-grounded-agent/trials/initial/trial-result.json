@@ -1,0 +1,62 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 436034,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1717116,
+    "cachedInputTokens": 1621248,
+    "outputTokens": 7141
+  },
+  "judgeUsage": {
+    "inputTokens": 405896,
+    "cachedInputTokens": 361984,
+    "outputTokens": 3181
+  },
+  "actorEvidenceCreatedAt": "2026-09-01T01:54:07.210Z",
+  "judgeEvidenceCreatedAt": "2026-09-01T01:56:43.197Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/agents/order-triage/description.md and instruction.md state that the agent classifies incoming orders for human review and cannot approve refunds; instruction.md also forbids account changes. This agrees with moldea/project.md and src/order-triage-agent.ts. Workspace-patch assertions identify only these agent assets and moldea/moldea.yaml as changed."
+    },
+    {
+      "id": "binds-direct-wrapper",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/order-triage-agent.ts#orderTriageAgent, instructionLoader to #loadOrderTriageInstruction, and outputSchema to #OrderTriageOutputSchema. Those exact exports exist and are wired into the direct new Agent construction. The manifest contains no routing, handoff, subagent, or agent-input-schema relationship. Deterministic inspect and validate report valid."
+    },
+    {
+      "id": "binds-function-tool",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest records runtime name classify_order and exact symbols classifyOrder, classifyOrderTool, ClassifyOrderInputSchema, and ClassifyOrderOutputSchema from /src/order-triage-agent.ts. The implementation registers those same schemas and execute function through tool({...}). No canonical asset claims static adapter evidence proves runtime execution. Deterministic validation and TypeScript typechecking passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

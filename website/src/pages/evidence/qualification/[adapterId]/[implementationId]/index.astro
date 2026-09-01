@@ -1,0 +1,475 @@
+---
+import { ArrowRight, ExternalLink } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { renderMarkdownDocument } from '@moldea.ai/website-ui/markdown';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import EvidenceStatus from '../../../../../components/evidence-status/evidence-status.astro';
+import BaseLayout from '../../../../../layouts/base-layout.astro';
+import { loadWebsiteModel } from '../../../../../lib/generation/generation.ts';
+import type { IQualificationProfileModel } from '../../../../../lib/qualification/index.ts';
+
+interface Props {
+  profile: IQualificationProfileModel;
+}
+
+export const getStaticPaths = () => {
+  return loadWebsiteModel().qualification.profiles.map((profile) => ({
+    params: {
+      adapterId: profile.adapterId,
+      implementationId: profile.implementationId,
+    },
+    props: { profile },
+  }));
+};
+
+const { profile } = Astro.props;
+const basePath = import.meta.env.BASE_URL;
+const latestAttempt = profile.currentLatest;
+const latestAttemptLinkLabel =
+  latestAttempt === null
+    ? null
+    : latestAttempt.result.status === 'passed'
+      ? 'Inspect the passing attempt'
+      : latestAttempt.result.status === 'failed'
+        ? 'Inspect the failed attempt'
+        : 'Inspect the execution-error attempt';
+const renderedCases = await Promise.all(
+  profile.cases.map(async (profileCase) => ({
+    ...profileCase,
+    renderedExplanation: await renderMarkdownDocument(profileCase.projectExplanation, {
+      basePath,
+      productNameTreatment: 'code',
+    }),
+    renderedTask: await renderMarkdownDocument(profileCase.task, {
+      basePath,
+      productNameTreatment: 'code',
+    }),
+  })),
+);
+const breadcrumbs = [
+  { href: '/', label: 'Home' },
+  { href: '/evidence/', label: 'Evidence' },
+  { href: '/evidence/qualification/', label: 'Qualification' },
+  { label: profile.title },
+];
+---
+
+<BaseLayout
+  title={profile.title}
+  description={profile.description}
+  {breadcrumbs}
+>
+  <div class="page-shell pt-7">
+    <Breadcrumbs
+      basePath={basePath}
+      items={breadcrumbs}
+    />
+
+    <header class="mt-7 border-b border-border pb-10">
+      <div class="flex flex-wrap items-center gap-3">
+        <EvidenceStatus status={profile.currentLatest?.result.status ?? 'not-recorded'} />
+        <code class="text-sm text-muted-foreground">
+          {profile.adapterId}/{profile.implementationId}
+        </code>
+      </div>
+      <h1
+        class="mt-5 max-w-5xl text-4xl leading-tight font-semibold tracking-[-0.045em] break-words sm:text-5xl"
+      >
+        {profile.title}
+      </h1>
+      <p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
+        <InlineBrandText
+          text={profile.description}
+          variant="compact"
+        />
+      </p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <ActionLink
+          class="font-bold"
+          href={profile.sourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="outline"
+        >
+          View profile source
+          <ExternalLink
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+        <ActionLink
+          class="font-bold"
+          href={profile.probesSourceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="outline"
+        >
+          View matrix probes
+          <ExternalLink
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+        <ActionLink
+          class="font-bold"
+          href={withBase('/docs/adapter-qualification/', basePath)}
+          variant="link"
+        >
+          Methodology
+          <ArrowRight
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+      </div>
+    </header>
+
+    <section
+      class="py-10"
+      aria-labelledby="qualification-status-summary"
+    >
+      <h2
+        id="qualification-status-summary"
+        class="sr-only"
+      >
+        Qualification status summary
+      </h2>
+      <div
+        class="surface-card grid gap-6 p-5 sm:p-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center"
+      >
+        {
+          latestAttempt === null ? (
+            <article>
+              <p class="eyebrow">Current result</p>
+              <div class="mt-4">
+                <EvidenceStatus status="not-recorded" />
+              </div>
+              <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
+                No protocol 6 Sol attempt has been committed. Projects, requirements, and matrix
+                coverage remain inspectable below.
+              </p>
+            </article>
+          ) : (
+            <>
+              <article>
+                <p class="eyebrow">Current result</p>
+                <div class="mt-4 flex flex-wrap items-center gap-3">
+                  <EvidenceStatus status={latestAttempt.result.status} />
+                  <time
+                    class="text-sm text-muted-foreground"
+                    datetime={latestAttempt.result.createdAt}
+                  >
+                    {latestAttempt.result.createdAt}
+                  </time>
+                </div>
+                <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
+                  <InlineBrandText
+                    text={latestAttempt.result.summary}
+                    variant="compact"
+                  />
+                </p>
+              </article>
+              <a
+                class="inline-flex items-center gap-2 font-semibold text-link hover:underline"
+                href={withBase(latestAttempt.route, basePath)}
+              >
+                {latestAttemptLinkLabel}
+                <ArrowRight
+                  class="size-4"
+                  aria-hidden="true"
+                />
+              </a>
+            </>
+          )
+        }
+      </div>
+    </section>
+
+    <section
+      class="border-t border-border py-10"
+      aria-labelledby="qualification-projects-title"
+    >
+      <div class="max-w-3xl">
+        <p class="eyebrow mb-3">Transparent projects</p>
+        <h2
+          id="qualification-projects-title"
+          class="text-3xl font-semibold tracking-tight"
+        >
+          {profile.cases.length} realistic journey{profile.cases.length === 1 ? '' : 's'}
+        </h2>
+        <p class="mt-4 leading-7 text-muted-foreground">
+          Each project publishes its purpose, adversarial challenge, natural task, expected state,
+          and judge requirements before any attempt runs.
+        </p>
+      </div>
+
+      <div class="mt-8 grid gap-5">
+        {
+          renderedCases.map((profileCase, index) => (
+            <article class="surface-card min-w-0 p-5 sm:p-7">
+              <div class="flex flex-wrap items-center gap-3">
+                <span class="font-mono text-xs font-bold text-muted-foreground">
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+                <code class="text-xs text-muted-foreground">{profileCase.id}</code>
+              </div>
+              <h3 class="mt-4 text-2xl font-semibold tracking-tight">{profileCase.title}</h3>
+              <p class="mt-3 max-w-4xl leading-7 text-muted-foreground">
+                <InlineBrandText
+                  text={profileCase.catalogDescription}
+                  variant="compact"
+                />
+              </p>
+
+              <div class="mt-6 grid gap-4 lg:grid-cols-2">
+                <div class="rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
+                  <h4 class="font-semibold">Why this is difficult</h4>
+                  <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                    <InlineBrandText
+                      text={profileCase.catalogChallenge}
+                      variant="compact"
+                    />
+                  </p>
+                  <p class="mt-3 text-sm leading-6 text-muted-foreground">
+                    <InlineBrandText
+                      text={profileCase.purpose}
+                      variant="compact"
+                    />
+                  </p>
+                </div>
+                <div class="rounded-xl border border-border bg-muted/30 p-4 sm:p-5">
+                  <h4 class="font-semibold">Expected project state</h4>
+                  <dl class="mt-3 grid gap-2 text-sm">
+                    <div class="flex justify-between gap-3">
+                      <dt class="text-muted-foreground">Before inspection</dt>
+                      <dd class="font-mono">{profileCase.scenario.inspection.before}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <dt class="text-muted-foreground">After inspection</dt>
+                      <dd class="font-mono">{profileCase.scenario.inspection.after}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <dt class="text-muted-foreground">Workspace</dt>
+                      <dd class="font-mono">{profileCase.scenario.workspace.expectation}</dd>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <dt class="text-muted-foreground">Actor outcome</dt>
+                      <dd class="font-mono">{profileCase.scenario.expectedActorOutcome}</dd>
+                    </div>
+                  </dl>
+                </div>
+              </div>
+
+              <div class="mt-6 grid gap-6 lg:grid-cols-2">
+                <div>
+                  <h4 class="font-semibold">Project explanation</h4>
+                  <div
+                    class="prose-moldea prose-moldea-wrap-code mt-3 text-sm"
+                    set:html={profileCase.renderedExplanation.html}
+                  />
+                </div>
+                <div>
+                  <h4 class="font-semibold">Judge requirements</h4>
+                  <ol class="mt-3 grid gap-3">
+                    {profileCase.scenario.judgeRequirements.map((requirement) => (
+                      <li class="rounded-lg border border-border p-3">
+                        <code class="text-xs font-bold">{requirement.id}</code>
+                        <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                          <InlineBrandText
+                            text={requirement.description}
+                            variant="compact"
+                          />
+                        </p>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              </div>
+
+              <details class="mt-6 rounded-xl border border-border">
+                <summary class="min-h-12 cursor-pointer px-4 py-3 font-semibold">
+                  Read the natural actor task
+                </summary>
+                <div
+                  class="prose-moldea prose-moldea-wrap-code border-t border-border p-4"
+                  set:html={profileCase.renderedTask.html}
+                />
+              </details>
+
+              <div class="mt-5 flex flex-wrap gap-4 text-sm">
+                <a
+                  class="inline-flex items-center gap-1.5 font-semibold text-link hover:underline"
+                  href={profileCase.projectSourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Inspect complete project
+                  <ExternalLink
+                    class="size-3.5"
+                    aria-hidden="true"
+                  />
+                </a>
+                <a
+                  class="inline-flex items-center gap-1.5 font-semibold text-link hover:underline"
+                  href={profileCase.scenarioSourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Scenario source
+                  <ExternalLink
+                    class="size-3.5"
+                    aria-hidden="true"
+                  />
+                </a>
+                <a
+                  class="inline-flex items-center gap-1.5 font-semibold text-link hover:underline"
+                  href={profileCase.taskSourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Task source
+                  <ExternalLink
+                    class="size-3.5"
+                    aria-hidden="true"
+                  />
+                </a>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </section>
+
+    <section
+      class="border-t border-border py-10"
+      aria-labelledby="qualification-claims-title"
+    >
+      <p class="eyebrow mb-3">Matrix probes</p>
+      <h2
+        id="qualification-claims-title"
+        class="text-3xl font-semibold tracking-tight"
+      >
+        {profile.probes.length} behavior claim{profile.probes.length === 1 ? '' : 's'} covered
+      </h2>
+      <div
+        class="table-scroll mt-7 overflow-x-auto rounded-xl border border-border"
+        tabindex="0"
+        role="region"
+        aria-label="Scrollable qualification claims"
+      >
+        <table class="w-full min-w-[52rem] border-collapse text-left text-sm">
+          <thead class="bg-muted">
+            <tr>
+              <th class="px-4 py-3 font-semibold">Claim</th>
+              <th class="px-4 py-3 font-semibold">Kind</th>
+              <th class="px-4 py-3 font-semibold">Coverage</th>
+              <th class="px-4 py-3 font-semibold">Purpose</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border">
+            {
+              profile.probes.map((probe) => (
+                <tr>
+                  <td class="px-4 py-3 align-top">
+                    <code class="break-all">{probe.matrixPath}</code>
+                  </td>
+                  <td class="px-4 py-3 align-top">{probe.kind}</td>
+                  <td class="px-4 py-3 align-top">
+                    <ul class="grid gap-1">
+                      {probe.coveredBy.map((caseId) => (
+                        <li>
+                          <code>{caseId}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  </td>
+                  <td class="px-4 py-3 leading-6 text-muted-foreground">
+                    <InlineBrandText
+                      text={probe.description}
+                      variant="compact"
+                    />
+                  </td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section
+      class="border-t border-border py-10"
+      aria-labelledby="qualification-history-title"
+    >
+      <p class="eyebrow mb-3">Append-only evidence</p>
+      <h2
+        id="qualification-history-title"
+        class="text-3xl font-semibold tracking-tight"
+      >
+        Complete attempt history
+      </h2>
+      {
+        profile.attempts.length === 0 ? (
+          <div class="mt-7 rounded-xl border border-dashed border-border bg-muted/30 p-6">
+            <p class="font-semibold">No official attempt has been committed.</p>
+            <p class="mt-2 max-w-3xl leading-7 text-muted-foreground">
+              The projects and requirements above remain inspectable now. Passing, failing, and
+              execution-error attempts will appear here without replacing prior history.
+            </p>
+          </div>
+        ) : (
+          <div
+            class="table-scroll mt-7 overflow-x-auto rounded-xl border border-border"
+            tabindex="0"
+            role="region"
+            aria-label="Scrollable qualification attempt history"
+          >
+            <table class="w-full min-w-[56rem] border-collapse text-left text-sm">
+              <thead class="bg-muted">
+                <tr>
+                  <th class="px-4 py-3 font-semibold">Attempt</th>
+                  <th class="px-4 py-3 font-semibold">Status</th>
+                  <th class="px-4 py-3 font-semibold">Assurance</th>
+                  <th class="px-4 py-3 font-semibold">Created</th>
+                  <th class="px-4 py-3 font-semibold">Summary</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-border">
+                {profile.attempts.toReversed().map(({ result, route }) => (
+                  <tr>
+                    <td class="px-4 py-3 align-top">
+                      <a
+                        class="font-mono font-semibold text-link hover:underline"
+                        href={withBase(route, basePath)}
+                      >
+                        {result.attemptId}
+                      </a>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                      <EvidenceStatus status={result.status} />
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                      <span class="font-mono text-xs">Current Sol</span>
+                    </td>
+                    <td class="px-4 py-3 align-top">
+                      <time datetime={result.createdAt}>{result.createdAt}</time>
+                    </td>
+                    <td class="max-w-xl px-4 py-3 leading-6 text-muted-foreground">
+                      <InlineBrandText
+                        text={result.summary}
+                        variant="compact"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
+    </section>
+  </div>
+</BaseLayout>

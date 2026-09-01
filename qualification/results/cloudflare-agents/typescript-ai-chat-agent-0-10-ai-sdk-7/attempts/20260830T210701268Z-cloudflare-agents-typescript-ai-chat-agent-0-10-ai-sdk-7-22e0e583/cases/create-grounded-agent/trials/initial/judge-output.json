@@ -1,0 +1,24 @@
+{
+  "verdict": "fail",
+  "summary": "Behavior and function-tool bindings are grounded and exact, but the agent-level Output.object schema is not bound in moldea/moldea.yaml. Runner-owned validation and typecheck passed, yet the current manifest does not satisfy the complete direct-agent binding requirement.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "moldea/agents/order-triage/description.md states classification for human review without refund authority; instruction.md says to classify for human review and never approve a refund. This agrees with src/order-triage-agent.ts and the workspace patch’s limited changed paths."
+    },
+    {
+      "id": "binds-direct-agent",
+      "verdict": "fail",
+      "evidence": "moldea/moldea.yaml correctly binds runtimeAgent to OrderTriageAgent and instructionLoader to loadOrderTriageInstruction, and invents no agent input schema. However, it contains no agent output-schema binding to the directly exported OrderTriageOutputSchema used by Output.object in src/order-triage-agent.ts. Deterministic validation passing establishes structural validity, not this omitted required binding."
+    },
+    {
+      "id": "binds-function-tool",
+      "verdict": "pass",
+      "evidence": "The manifest’s classify-order tool binds runtime name classify_order, implementation classifyOrder, registration classifyOrderTool, input schema ClassifyOrderInputSchema, and output schema ClassifyOrderOutputSchema. Each exact exported symbol exists and is wired accordingly in src/order-triage-agent.ts; deterministic inspection and typecheck passed."
+    }
+  ],
+  "failures": [
+    "Add the agent output-schema binding in moldea/moldea.yaml to /src/order-triage-agent.ts symbol OrderTriageOutputSchema, without adding an agent input schema."
+  ]
+}

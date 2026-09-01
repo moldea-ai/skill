@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 305971,
+  "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 704908,
+    "cachedInputTokens": 618752,
+    "outputTokens": 4796
+  },
+  "judgeUsage": {
+    "inputTokens": 336838,
+    "cachedInputTokens": 299008,
+    "outputTokens": 3587
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T11:58:12.440Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T12:00:23.092Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-project",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service extracts invoice anomalies for operator review and does not approve payment or change invoices. README.md independently states the same boundary, while src/invoice-review.ts reports total minus expectedTotal and requires operator review when totals differ. The workspace patch lists only README.md and the two new moldea files; the source hash is unchanged."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The bounded moldea inventory contains only moldea/moldea.yaml and moldea/project.md. The manifest contains only `version: 1`, with no agent, runtime, relationship, requirement, decision, or context registration. README.md contains one correctly ordered standard awareness block. Deterministic changedPaths are exactly README.md, moldea/moldea.yaml, and moldea/project.md, and validation reports valid with no failures."
+    },
+    {
+      "id": "preserves-existing-work",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

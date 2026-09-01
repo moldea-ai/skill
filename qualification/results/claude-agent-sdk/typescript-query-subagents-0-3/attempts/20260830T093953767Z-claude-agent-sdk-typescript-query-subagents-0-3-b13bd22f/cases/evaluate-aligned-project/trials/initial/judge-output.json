@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The actor report is aligned with the current TypeScript implementation, canonical moldea declarations, and deterministic post-actor evidence. The repository remained unchanged, validation and type checking passed, and no prohibited static-boundary inferences were made.",
+  "requirements": [
+    {
+      "id": "explains-direct-patterns",
+      "verdict": "pass",
+      "evidence": "src/instructions.ts loads each canonical instruction.md. src/agents.ts passes loadSupportInstruction() into supportAgent's direct query options and appends loadSummaryInstruction() in summaryAgent's direct query options; billing and orders loaders populate AgentDefinition prompts registered by supportAgent. The actor accurately described these paths, and deterministic inspection was valid."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "verdict": "pass",
+      "evidence": "src/agents.ts registers billingAgent and ordersAgent under supportAgent, with descriptions exactly matching their canonical handoff-description.md files. Billing explicitly declares mcp__support__find_order, while orders omits tools; the actor reports deterministic adapter evidence classifying orders' availability as inherited. supportAgent declares Agent and mcp__support__find_order, mounts supportServer, and binds SupportOutputSchema as json_schema output. src/tools.ts registers findOrderTool in supportServer, matching the canonical tool bindings. Deterministic inspect/validate both returned valid."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "The actor expressly limited conclusions to repository source, canonical declarations, static type checking, and local adapter evidence, and stated that runtime execution was not tested. It did not infer agent input-schema, tool output-schema, provider, model, external MCP, runtime execution, or actual invocation relationships."
+    }
+  ],
+  "failures": []
+}

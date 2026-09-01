@@ -1,7 +1,8 @@
 ---
+import { renderMarkdownDocument } from '@moldea.ai/website-ui/markdown';
+
 import DocumentationPage from '../../components/documentation-page/documentation-page.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
-import { renderMarkdown } from '../../lib/content/markdown.ts';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 import type { IWebsiteDocument } from '../../lib/model/types.ts';
 
@@ -22,7 +23,11 @@ export const getStaticPaths = () => {
 
 const { document } = Astro.props;
 const model = loadWebsiteModel();
-const rendered = await renderMarkdown(document.markdown);
+const rendered = await renderMarkdownDocument(document.markdown, {
+  basePath: import.meta.env.BASE_URL,
+  productNameTreatment: 'code',
+  strongLabelBadges: [{ id: 'supported', label: 'Supported', tone: 'success' }],
+});
 const breadcrumbs = [
   { href: '/', label: 'Home' },
   ...(document.route === '/examples/' ? [] : [{ href: '/examples/', label: 'Examples' }]),

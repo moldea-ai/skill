@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 346867,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1297067,
+    "cachedInputTokens": 1207296,
+    "outputTokens": 8338
+  },
+  "judgeUsage": {
+    "inputTokens": 306185,
+    "cachedInputTokens": 263680,
+    "outputTokens": 2846
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T13:52:03.572Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T13:53:27.843Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/agents/order-triage/description.md` says the agent classifies orders for human review and cannot approve refunds. `instruction.md` directs the `order-triage` agent to classify orders for human review and explicitly forbids approving or implying approval of refunds. This matches `src/order-triage-agent.ts`, which returns `action: 'classify-for-human-review'` and `canApproveRefunds: false`."
+    },
+    {
+      "id": "binds-implementation",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` registers `order-triage` with `runtime.id: custom`, binds `runtimeAgent.path` to `/src/order-triage-agent.ts` and `symbol` to `createOrderTriageAgent`, and lists that source under `affectedBy`. The export exists at that path. Deterministic post-actor validation reports valid inspect/validate results, successful typechecking, and no failures."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest references `/moldea/runtimes/order-triage.md`, the sole new file under `moldea/runtimes/**/*.md`. It accurately explains that the runtime-owned asynchronous loader supplies `/moldea/agents/order-triage/instruction.md` to the factory, which returns the loaded content. It explicitly avoids inferring failure handling, enforcement, tools, provider capabilities, or decision authority."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

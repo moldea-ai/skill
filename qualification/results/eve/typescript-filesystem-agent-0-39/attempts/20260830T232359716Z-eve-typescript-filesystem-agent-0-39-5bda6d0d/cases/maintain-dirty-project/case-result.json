@@ -1,0 +1,123 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "failed",
+  "confirmationStatus": "rejected",
+  "durationMs": 827899,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": false,
+      "durationMs": 593191,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+      "judgeStatus": "skipped",
+      "judgeOutputPath": null,
+      "judgeSkippedPath": "cases/maintain-dirty-project/trials/initial/judge-skipped.json",
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1739930,
+        "cachedInputTokens": 1651712,
+        "outputTokens": 8675
+      },
+      "judgeUsage": null,
+      "actorEvidenceCreatedAt": "2026-08-30T23:48:53.867Z",
+      "judgeEvidenceCreatedAt": null,
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "preserves-eve-wiring",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "fail",
+          "evidence": "Runner checks failed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": [
+        "Changes escaped the declared allowlist: agent/loaders.ts.",
+        "Requirement preserves-dirty-state failed: Runner checks failed: workspace-assertions."
+      ]
+    },
+    {
+      "trialId": "confirmation-1",
+      "kind": "confirmation",
+      "confirmationIndex": 1,
+      "passed": false,
+      "durationMs": 234708,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/confirmation-1/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/confirmation-1/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/confirmation-1/actor-output.json",
+      "judgeStatus": "skipped",
+      "judgeOutputPath": null,
+      "judgeSkippedPath": "cases/maintain-dirty-project/trials/confirmation-1/judge-skipped.json",
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/confirmation-1/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/confirmation-1/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1452589,
+        "cachedInputTokens": 1375488,
+        "outputTokens": 7866
+      },
+      "judgeUsage": null,
+      "actorEvidenceCreatedAt": "2026-08-30T23:52:48.492Z",
+      "judgeEvidenceCreatedAt": null,
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "preserves-eve-wiring",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "fail",
+          "evidence": "Runner checks failed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": [
+        "Changes escaped the declared allowlist: agent/loaders.ts.",
+        "Requirement preserves-dirty-state failed: Runner checks failed: workspace-assertions."
+      ]
+    }
+  ],
+  "failures": [
+    "Changes escaped the declared allowlist: agent/loaders.ts.",
+    "Requirement preserves-dirty-state failed: Runner checks failed: workspace-assertions."
+  ]
+}

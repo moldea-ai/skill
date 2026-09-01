@@ -1,0 +1,31 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-08-31T17:59:44.833Z",
+  "durationMs": 348218,
+  "usage": {
+    "inputTokens": 1210453,
+    "cachedInputTokens": 1145856,
+    "outputTokens": 7897
+  },
+  "cacheKey": "c29d0702e76f6db6a6b4865234171c99d2e74f8486b766dfcf24a3fde59370ae",
+  "sourceAttemptId": "20260831T164504913Z-vercel-ai-sdk-typescript-tool-loop-agent-7-0a12c9ce",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 58,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    }
+  }
+}

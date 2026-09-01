@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted project is aligned: `support` accurately represents the direct Google Gen AI wrapper and canonical instruction. No repository files changed; the final Git diff and status were clean.",
+  "changedFiles": [],
+  "observations": [
+    "`moldea/moldea.yaml` registers runtime `google-genai`, `supportAgent`, and `loadSupportInstruction` at `/src/support-agent.ts`; all bindings match the implementation.",
+    "`supportAgent` directly calls `client.models.generateContent` using `gemini-2.5-flash`, passes the prompt as `contents`, and loads the canonical instruction into `config.systemInstruction`.",
+    "The loader reads `/moldea/agents/support/instruction.md` directly, establishing canonical instruction provenance.",
+    "The description's structured-response claim is consistent with the wrapper returning the SDK's `GenerateContentResponse`; no repository evidence claims schema-constrained JSON output.",
+    "Moldea inspection completed valid with schema 2, CLI 5.0.0, no diagnostics, and Google Gen AI adapter evidence for the loader, runtime package, and `models.generateContent` pattern.",
+    "Moldea validation completed valid with no diagnostics. TypeScript validation completed successfully.",
+    "No confirmed semantic problems, material ambiguities, or relevant unresolved requirements were found."
+  ],
+  "unresolved": [
+    "Provider execution, authentication, and actual model output were not tested because the task prohibited provider calls and agent execution; therefore live runtime behavior and schema-constrained output are not asserted."
+  ]
+}

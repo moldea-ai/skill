@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, patch, and runner-owned evidence agree: moldea initialization preserves the original README, adds the standard awareness block, and creates only the canonical manifest and grounded project context. Validation and typechecking passed.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "README.md states that the service reviews invoice lines for duplicate references and arithmetic mismatches, returns findings to a human finance operator, and never authorizes or sends payment. moldea/project.md preserves those boundaries and accurately notes that src/invoice-review.ts currently implements only sorted duplicate-reference detection."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "Targeted inspection finds only moldea/moldea.yaml and moldea/project.md under /moldea; the manifest contains only `version: 1` and references no additional assets. The README diff adds only the standard moldea awareness block while preserving all prior content. Git status and workspace assertions identify exactly README.md, moldea/moldea.yaml, and moldea/project.md as changed; source, package metadata, and TypeScript configuration remain unchanged. No agent, decision, runtime guide, focused context, or unresolved requirement exists."
+    }
+  ],
+  "failures": []
+}

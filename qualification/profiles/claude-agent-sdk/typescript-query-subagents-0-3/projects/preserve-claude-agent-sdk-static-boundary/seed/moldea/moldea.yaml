@@ -1,0 +1,51 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: claude-agent-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/agents.ts
+        symbol: supportAgent
+      instructionLoader:
+        path: /src/agents.ts
+        symbol: loadSupportInstruction
+    affectedBy:
+      - /src/agents.ts
+  dynamic-support:
+    runtime:
+      id: claude-agent-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/agents.ts
+        symbol: dynamicSupportAgent
+    affectedBy:
+      - /.claude/**
+      - /CLAUDE.md
+      - /src/agents.ts
+    unresolved:
+      dynamic-query-configuration:
+        category: runtime-pattern
+        effect: warning
+        description: Query options are factory-produced, so the adapter cannot prove prompt, output, delegation, or tool relationships.
+        resolution: Pass closed object-literal query options directly or preserve the dynamic behavior as an explicit project boundary.
+        related:
+          - path: /src/agents.ts
+            symbol: dynamicSupportAgent
+      dynamic-routing-and-tools:
+        category: routing
+        effect: warning
+        description: Dynamic agent definitions, routing descriptions, restrictions, aliases, and main-thread selection prevent closed delegation and tool-availability conclusions.
+        resolution: Use immutable programmatic definitions and supported closed availability rules when these relationships must become canonical.
+        related:
+          - path: /src/agents.ts
+            symbol: buildDynamicOptions
+      sdk-and-filesystem-features:
+        category: runtime-boundary
+        effect: informational
+        description: Observer fields, critical reminders, server instructions, external MCP configuration, settings, skills, hooks, and filesystem agents are outside canonical relationship inference.
+        resolution: Keep these features as repository evidence unless a supported adapter target establishes the required canonical relationship.
+        related:
+          - path: /.claude/settings.json
+          - path: /CLAUDE.md
+          - path: /src/agents.ts

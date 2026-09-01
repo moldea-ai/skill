@@ -1,0 +1,17 @@
+{
+  "name": "moldea-qualification-cloudflare-agents-create",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@cloudflare/ai-chat": "0.10.2",
+    "agents": "0.21.0",
+    "ai": "7.0.85",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20260830.1",
+    "@types/node": "22.20.1",
+    "typescript": "6.0.3"
+  }
+}

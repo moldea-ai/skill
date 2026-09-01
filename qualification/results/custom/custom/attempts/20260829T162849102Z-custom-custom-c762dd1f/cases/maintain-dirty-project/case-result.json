@@ -1,0 +1,66 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 313372,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 313372,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1548998,
+        "cachedInputTokens": 1463552,
+        "outputTokens": 7510
+      },
+      "judgeUsage": {
+        "inputTokens": 415965,
+        "cachedInputTokens": 376320,
+        "outputTokens": 2507
+      },
+      "actorEvidenceCreatedAt": "2026-08-29T16:44:55.116Z",
+      "judgeEvidenceCreatedAt": "2026-08-29T16:46:27.263Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current workspace contains `/moldea/context/billing.md` with durable refund and invoice guidance. `moldea/moldea.yaml` globally registers it, binds it to `/src/billing.ts#refundWindowDays`, declares `affectedBy: /src/billing.ts`, and assigns it under `agents.support.context`. Workspace assertions identify exactly these intended Moldea changes, and deterministic inspection reports valid with no failures."
+        },
+        {
+          "id": "updates-instruction",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The workspace patch preserves the original opening (`# Support agent` and `You are the support agent`) and adds explicit direction to use the assigned billing context for refund and invoice questions, apply the implemented refund window without implying approval, avoid invented records or unavailable actions, and escalate unsupported disputes."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

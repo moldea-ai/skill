@@ -1,0 +1,209 @@
+version: 2
+adapterId: vercel-ai-sdk
+implementationId: typescript-generate-stream-text-7
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The exact published package composition exercises the compatible Core range through both repository implementations.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: Cases distinguish direct supported integrations, which need no redundant guide, from unsupported indirection, which requires a focused project-local boundary.
+    coveredBy: [evaluate-aligned-project, preserve-vercel-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes all universal journeys and two Vercel-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-vercel-tool-registration,
+        preserve-vercel-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare the exact published npm runtime package and inspect package-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Direct generation sources are strict TypeScript ESM and typecheck with the exact project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: target-runtime-package
+    kind: compatibility
+    matrixPath: target.package.npm.ai.primary.>=7.0.66 <8.0.0
+    description: Every fixture pins and installs the verified ai package before offline project preparation.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-vercel-tool-registration,
+        preserve-vercel-static-boundary,
+      ]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Direct wrapper symbols are bound explicitly, repaired after drift, and omitted when unsupported indirection cannot prove the runtime pattern.
+    coveredBy:
+      [evaluate-aligned-project, reconcile-drift-and-boundaries, preserve-vercel-static-boundary]
+  - id: output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.output-schema
+    description: Output.object relationships are bound through exact source symbols and preserved across maintenance.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-vercel-tool-registration]
+  - id: instruction-loader-binding
+    kind: binding-support
+    matrixPath: target.binding-support.instruction-loader
+    description: Direct instruction loaders are bound through instructions and the supported system fallback.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: tool-implementation-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-implementation
+    description: Function-tool execution binds to a repository-local implementation without executing it.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: tool-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-registration
+    description: Closed tools-map registration is validated and repaired from a concrete name mismatch.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: tool-input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-input-schema
+    description: Direct tool input schema relationships remain visible through the registered function tool.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: tool-output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-output-schema
+    description: Direct tool output schema relationships remain visible through the registered function tool.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: instruction-loader-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.instruction-loader
+    description: Aligned direct wrappers must emit instruction-loader evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct wrappers must emit TypeScript language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct wrappers must emit supported ai package evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-pattern-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-pattern
+    description: Both direct generation APIs emit runtime-pattern evidence while indirect calls deliberately do not.
+    coveredBy: [evaluate-aligned-project, preserve-vercel-static-boundary]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Output and function-tool schema bindings emit normalized schema evidence.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: tool-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.tool-registration
+    description: Correct closed tools maps emit tool-registration evidence after name reconciliation.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: direct-generate-text-wrapper
+    kind: pattern
+    matrixPath: target.pattern.direct-generate-text-wrapper
+    description: A directly exported generateText wrapper is recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-stream-text-wrapper
+    kind: pattern
+    matrixPath: target.pattern.direct-stream-text-wrapper
+    description: A directly exported streamText wrapper is recognized without execution.
+    coveredBy: [evaluate-aligned-project, maintain-dirty-project]
+  - id: instructions-system-precedence
+    kind: pattern
+    matrixPath: target.pattern.instructions-system-precedence
+    description: Separate aligned agents exercise authoritative instructions and the supported system absence fallback.
+    coveredBy: [evaluate-aligned-project]
+  - id: direct-generation-instruction-loader
+    kind: pattern
+    matrixPath: target.pattern.direct-generation-instruction-loader
+    description: Direct loader calls remain lexically visible in supported generation settings.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: object-output-schema
+    kind: pattern
+    matrixPath: target.pattern.object-output-schema
+    description: Structured agent output uses only Output.object with an explicit schema binding.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: closed-tools-map
+    kind: pattern
+    matrixPath: target.pattern.closed-tools-map
+    description: Function tools are registered through immutable closed object maps with exact own-property names.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: direct-function-tool-bindings
+    kind: pattern
+    matrixPath: target.pattern.direct-function-tool-bindings
+    description: Tool implementation and both schema relationships use direct symbols.
+    coveredBy: [evaluate-aligned-project, repair-vercel-tool-registration]
+  - id: prepare-step-overrides
+    kind: pattern
+    matrixPath: target.pattern.prepare-step-instruction-overrides
+    description: Unsupported prepareStep instruction replacement remains explicitly unresolved.
+    coveredBy: [preserve-vercel-static-boundary]
+  - id: indirect-generation-wrapper
+    kind: pattern
+    matrixPath: target.pattern.indirect-generation-wrapper
+    description: Arbitrary request-builder indirection produces no invented direct runtime-pattern relationship.
+    coveredBy: [preserve-vercel-static-boundary]
+  - id: direct-agent-input-schema
+    kind: pattern
+    matrixPath: target.pattern.direct-agent-input-schema
+    description: Direct generation fixtures do not claim an unsupported agent input-schema relationship.
+    coveredBy: [evaluate-aligned-project, preserve-vercel-static-boundary]
+  - id: direct-lexical-body-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.648bc9f894dcc49c
+    description: The boundary case keeps indirect generation outside runtime-pattern evidence.
+    coveredBy: [preserve-vercel-static-boundary]
+  - id: typescript-esm-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.20c98b6726812c72
+    description: Supported cases use exact TypeScript ESM files and direct relative imports only.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: provider-routing-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.d726f04f065f6b4e
+    description: Canonical state never infers provider, model, routing, handoff, or subagent relationships from runtime calls.
+    coveredBy: [evaluate-aligned-project, preserve-vercel-static-boundary]
+  - id: output-object-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.5aecb5b32aedc9b1
+    description: Only Output.object is bound as agent output schema in supported fixtures.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: prepare-step-body-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.0205425e4e091621
+    description: The boundary fixture records that prepareStep function bodies cannot establish instruction wiring.
+    coveredBy: [preserve-vercel-static-boundary]
+  - id: installed-version-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.f0d470d8093d63ba
+    description: Qualification independently pins, verifies, and installs the runtime tarball because adapter inspection reads manifests rather than lockfiles or node_modules.
+    coveredBy: [evaluate-aligned-project]

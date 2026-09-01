@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 236940,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 551776,
+    "cachedInputTokens": 505856,
+    "outputTokens": 3401
+  },
+  "judgeUsage": {
+    "inputTokens": 278064,
+    "cachedInputTokens": 245248,
+    "outputTokens": 2838
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T14:19:57.497Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T14:21:39.499Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-patterns",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/agents.ts constructs supportAgent and summaryAgent directly with ToolLoopAgent. Their instructions await loadSupportInstruction/loadSummaryInstruction and their callOptionsSchema values are SupportInputSchema/SummaryInputSchema. src/instructions.ts reads the corresponding canonical moldea/agents/<id>/instruction.md files. The actor explicitly reports these relationships, and deterministic inspection is valid."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/agents.ts binds SupportOutputSchema and SummaryOutputSchema through Output.object. Support registers find_order to findOrderTool; src/tools.ts binds its input/output schemas and execute implementation to findOrder, matching moldea/moldea.yaml. Summary declares no tools. The actor accurately explains all these closed relationships, and deterministic validation reports no failures."
+    },
+    {
+      "id": "respects-static-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor confines its conclusions to direct ToolLoopAgent definitions, instruction loaders, schemas, structured output, and function-tool bindings. It does not infer provider, model, routing, handoff, subagent, or direct-generation runtime-pattern relationships. Repository and deterministic evidence support that bounded account."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

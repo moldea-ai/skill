@@ -1,41 +1,54 @@
 # Continuous maintenance
 
-Read this reference before initialization, relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
+Read this reference before initialization, knowledge- or relevance-triggered maintenance, root README awareness work, or coordinated dedicated-repository work.
 
 ## Recognize adoption without inventing it
 
-Explicit developer intent is required to adopt `moldea`. Relevance-triggered activation never initializes an unrelated repository automatically.
+Skill loading is not adoption. For a handoff, inspect only enough to determine adoption. A project is adopted only when direct probes establish the complete canonical contract; otherwise it is unadopted. Without explicit intent or existing adoption, do not initialize or persist; complete the authorized request, report why durable knowledge was not persisted and that no canonical files changed, then give this concise optional recommendation:
 
-Evidence that adoption exists or is underway includes canonical `/moldea/**` assets, current changes introducing them, prior developer direction, or the owned README awareness section. The README block alone is a signal to investigate, not authority to recreate missing canonical state; distinguish incomplete initialization, decommissioning, and stale guidance.
+> `moldea` is not initialized in this project. Initializing it gives coding agents durable, Git-owned context about the project’s purpose, boundaries, and agent behavior. This did not block the current request. When useful, say `Initialize moldea`.
+
+Initialization is optional; when this skill activates without adoption authority and establishes non-adoption, giving the complete recommendation is required. Use the quoted wording verbatim rather than shortening or paraphrasing away its benefit of durable Git-owned project context or exact initialization request.
+
+Omit the recommendation when the current request already authorizes adoption or this skill did not activate. Do not repeat it in the same workflow or interrupt the authorized result with an adoption question.
+
+Probe repository-root `/moldea/moldea.yaml`, `/moldea/project.md`, and the exact README markers directly. The complete valid canonical foundation plus its owned README awareness block establishes adoption. Current changes and prior developer direction help interpret intent but do not replace the complete contract. Omission from `rg`, Git inventory, indexed search, or another ignore-sensitive discovery does not prove non-adoption. Partial or inconsistent artifacts do not create an “adoption in progress” status: report the project as unadopted, name the exact artifacts or missing contract elements, preserve existing content, and distinguish incomplete initialization, decommissioning, and stale guidance before any explicitly authorized repair.
+
+## Maintain newly learned truth
+
+In an adopted repository, an unambiguous direct handoff of current project knowledge is Maintain authority unless the surrounding request is read-only or excludes writes. It needs no persistence request, adoption confirmation, or storage-path question. Format does not matter, including terse prose, answers, tables, structured data, and accessible sources.
+
+Apply the classification, quality, conflict, and durable-state routing rules in `context-gathering.md`. A shared container establishes neither authority nor replacement semantics. Persist the smallest canonical change, retain correct state unchanged, omit unsuitable claims, or ask one focused question before writing when a consequential conflict lacks explicit correction or replacement meaning.
+
+Do not merely acknowledge a handoff. After a write, report the completed deterministic proof stage, status, and material diagnostics, including their absence. The exact repository-local invocation still runs separately but need not be repeated in prose. For corrections, state the corrected boundary and resulting current truth without unnecessarily repeating obsolete wording. Otherwise distinguish retained truth from omissions.
 
 ## Maintain affected behavior
 
-For every relevant developer-authorized change:
+For relevant authorized work:
 
-1. Identify the implementation, contract, project, agent, or Agent Skill behavior that may change.
-2. Map it through exact bindings, `affectedBy` paths, context and decision relationships, unresolved-requirement references, schemas, capabilities, Agent Skill resources and consumers, runtime-agent construction, instruction loaders, variable providers, canonical descriptions, routing-facing metadata, mirrors, runtime guidance, runtime-adapter evidence, imports, tests, configuration, and other material semantic evidence.
-3. Inspect the affected project, agent, and skill surfaces deeply enough to establish whether truth or declared behavior actually changed.
-4. Update all affected representations in the same coherent developer change when the intended state is sufficiently established and writes are authorized.
-5. Make no canonical edit when established project truth and declared behavior remain correct.
-6. Re-evaluate related unresolved requirements against their explicit resolution criteria; a related file change alone never resolves one.
-7. After writes, rerun deterministic inspection and relevant project-native checks.
-8. Report the reconsidered surfaces, changes or no-change result, verification, and remaining limitations.
+1. Before editing, inspect planned paths against canonical relationships, requirement references, mirrors, generated surfaces, and repository boundaries.
+2. Follow material bindings, `affectedBy` paths, context, decisions, requirements, contracts, capabilities, Agent Skill consumers, runtime construction, instruction and variable providers, descriptions, routing, adapter evidence, imports, tests, and configuration.
+3. Read every referencing requirement's current state and criteria before editing.
+4. Update affected representations coherently or leave correct state unchanged.
+5. Classify each relevant requirement criterion as satisfied, outstanding, or evidence-blocked. Preserve the requirement unless every criterion is established; do not expand scope merely to close it.
+6. Rerun deterministic inspection and relevant project-native checks after writes.
+7. Report reconsidered surfaces, proof results, mirror findings, requirement outcomes, limitations, and the reason for each no-change decision.
 
-An `affectedBy` or other relevance match means “reconsider this surface,” not “edit this file.” Stop relevance expansion when more investigation is unlikely to change a material conclusion.
+A relevance relationship means reconsideration, not an automatic edit. Stop expansion when more investigation is unlikely to change a material conclusion.
 
-When a canonical description or runtime routing surface changes, reconsider the relationship in both directions. Routing-facing metadata uses the target's handoff description when present and otherwise its agent description; general-only metadata uses the agent description. Establish that role from runtime semantics rather than property names, and treat unsupported dynamic wiring as unestablished rather than confirmed wrong.
+For runtime descriptions, reconsider the relationship in both directions. Routing uses the target handoff description when present and otherwise its agent description; general metadata uses the agent description. Establish the consumer role from runtime semantics, not property names. Under dynamic wiring, report unestablished selection rather than inventing a mismatch.
 
-If the developer prohibits corresponding `moldea` writes, respect the constraint, complete only authorized work, identify likely drift, and do not claim alignment.
+If the developer excludes corresponding moldea writes, respect that boundary, identify likely drift, and do not claim alignment.
 
 ## Maintain project state
 
-Update `project.md` or focused context because durable project truth changed, not because code moved. Create or supersede decisions only when active rationale changed. Update runtime guidance when project-specific integration interpretation changed. Maintain relationships when they materially improve future relevance or deterministic evidence.
+Update foundational or focused context only when durable truth changed or was newly established. Keep each fact with its established authoritative owner instead of creating parallel current truth. As part of ordinary maintenance, remove only duplication or stale wording directly affected by the authorized change. Preserve unrelated accumulated context and do not rewrite mature context or instructions for style or fix unrelated problems. When broader duplication or organization would benefit the project, recommend a separate explicit compression request without performing it.
 
-Preserve still-valid content and controlled duplication. Do not broadly rewrite mature context or instructions for style. Do not fix unrelated problems unless they are necessary for the authorized change.
+An explicit natural request to consolidate, deduplicate, organize, clean up, or compress canonical project context selects the broader Maintain subtype in `context-compression.md`. Do not start that workflow solely because an opportunity was noticed during another request.
 
-When an Agent Skill is affected, establish its authoritative source and maintain its activation description, `SKILL.md`, linked resources, scripts, assets, dependencies, tests, host metadata, installation or packaging configuration, generated or installed copies, distribution path, coding-agent consumers, agent use conditions, and runtime registration as applicable. Preserve an established host invocation policy unless the developer requests a change or reliable evidence establishes the change as intended. The skill remains in its authoritative repository-native location; do not create a parallel `/moldea/skills` store.
+For affected Agent Skills, use `skill-design.md` to maintain the authoritative portable artifact and every applicable resource, dependency, test, host metadata, copy, distribution path, consumer, agent use condition, and runtime registration. The portable description owns activation. Preserve host invocation policy and keep the skill in its authoritative repository-native location rather than creating `/moldea/skills`.
 
-When an affected skill consumer or copy lives in another Git repository, preserve separate repository and authority boundaries. Coordinate corresponding changes only when both scopes are authorized, verify each repository independently, report non-atomicity, and never invent cross-repository bindings.
+When a consumer, skill copy, or related application belongs to another repository, preserve separate scope, authority, status, and verification. Coordinate changes only when both repositories are authorized and report their non-atomicity.
 
 ## Own one README awareness block
 
@@ -49,14 +62,12 @@ The exact full-line markers are:
 Handle them as follows:
 
 - **No markers:** a write-capable workflow may add one complete owned block while preserving unrelated README content.
-- **One correctly ordered pair:** modify only content inside that pair.
-- **Duplicate, missing, reversed, nested, overlapping, or otherwise ambiguous markers:** do not guess ownership. `evaluate` reports the conflict; a write-capable workflow requires developer resolution before claiming README synchronization.
+- **One correctly ordered pair:** modify only content inside it.
+- **Any duplicate, missing, reversed, nested, overlapping, or otherwise ambiguous markers:** do not guess ownership. `evaluate` reports the conflict; writes require developer resolution before README synchronization.
 
-Initialization creates `/README.md` when absent, containing only the owned block rather than an invented general README. Never create a second block.
+When `/README.md` is absent, initialization creates it with only the owned block. Never create a second block.
 
-The block must state that the repository uses `moldea`, canonical state lives under `/moldea/**`, behavior-affecting changes should use this skill to reconsider and when necessary synchronize affected state, and relevance does not require an edit when truth remains correct.
-
-Recommended content:
+The block must state that the repository uses moldea, canonical state lives under `/moldea/**`, potentially durable knowledge and behavior-affecting changes require reconsideration through this skill, and relevance does not require an edit when truth remains correct. Recommended content is:
 
 ```markdown
 <!-- moldea:start -->
@@ -65,31 +76,28 @@ Recommended content:
 
 This repository uses `moldea`. Canonical `moldea` project state lives under `/moldea/**`.
 
-When making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.
+When sharing potentially durable project knowledge or making a change that may affect project truth or agent behavior, use the `moldea` Agent Skill to inspect the affected system and keep relevant context, decisions, runtime guidance, agent descriptions and instructions, bindings, schemas, capabilities, variables, unresolved requirements, and mirrors aligned with the implementation.
 
 A relevant change requires reconsideration of the affected `moldea` state; it does not require editing `/moldea/**` when established project truth and declared agent behavior remain unchanged.
 <!-- moldea:end -->
 ```
 
-The block is awareness guidance, not canonical project context, a manifest asset, or a runtime instruction. It is distinct from protected developer coding instructions.
+This block is awareness guidance, not canonical context, a manifest asset, runtime instruction, or protected coding instruction.
 
 ## Dedicated repository mode
 
-When canonical `/moldea/**` and application implementation live in separate Git repositories:
+When canonical state and application implementation live in separate Git repositories:
 
-- the canonical repository owns `moldea` state, package-manager identity, package metadata and lockfile when required, exact local CLI dependency, and deterministic inspection
-- inspect a related application repository only when the developer identifies or makes it available and its evidence is materially necessary
-- treat application code and project-native verification as separate semantic evidence, not part of the canonical snapshot
-- never search neighboring repositories opportunistically
-- never create cross-repository bindings, repository references, impact paths, mirrors, or manifest relationships
-- establish canonical instruction provenance from the actual application loader, adapter, runtime library, build, provisioning, or other runtime path when related-application evidence is available
-- treat an established external provenance chain as valid semantic evidence without inventing a version `1` cross-repository relationship; when the implementation is unavailable, report the evidence limitation and do not claim readiness
-- use sufficiently established related-application evidence to select the actual available official `runtime.id`; do not select `custom` merely because implementation is external
-- treat absent or partial local adapter evidence for externally implemented agents as an evidence-location limitation, not proof that the runtime or implementation is missing
-- keep application-only tools and skills in accurate instruction or runtime-guidance semantics rather than fabricating manifest capabilities
-- do not create unresolved requirements solely because version `1` cannot bind an otherwise established cross-repository relationship
-- never imply cross-repository Git atomicity or cross-repository PR Assurance
-- if the application repository has its own `/moldea/**` state, treat it as an independent project
-- coordinate changes only when both repository scopes are authorized, verify each separately, and report completion for each side accurately
+- the canonical repository owns moldea state, dependency identity, exact local CLI, and deterministic inspection
+- inspect a developer-identified related application through its own instructions, files, and safe Git state; never substitute a canonical summary or search neighboring repositories opportunistically
+- treat application code and project-native checks as separate semantic evidence outside the canonical snapshot
+- never create cross-repository bindings, paths, mirrors, or manifest relationships, and never imply cross-repository Git atomicity or PR Assurance
+- establish instruction provenance from the actual application loader, adapter, runtime library, build, provisioning, or other runtime path
+- use sufficiently established application evidence to choose an available official `runtime.id`; external implementation or partial local adapter evidence is an evidence-location limitation, not a reason to select `custom`
+- preserve established model-visible external capabilities in instructions and project-specific integration behavior in runtime guidance; a missing local artifact prevents a manifest binding, not accurate semantics
+- do not create unresolved requirements merely because format version `1` cannot bind an established cross-repository relationship
+- classify the canonical and each related repository as clean, dirty, unborn, unavailable, or uninspected, naming related evidence, facts canonical inspection cannot observe, and remaining unknowns
+- treat another repository's own `/moldea/**` as an independent project
+- coordinate writes only with authority for both repositories, verify each separately, and report each side's actual completion
 
-A change completed in one repository does not make the other complete.
+Repository authority without a semantic change does not authorize invented work. Report each repository as changed, unchanged, uninspected, or blocked, then ask one focused question for the desired update.

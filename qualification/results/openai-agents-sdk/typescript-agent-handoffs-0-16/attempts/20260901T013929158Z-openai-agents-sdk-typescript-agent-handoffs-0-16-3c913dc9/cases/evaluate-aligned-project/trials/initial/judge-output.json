@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The actor report agrees with the current workspace and deterministic post-actor evidence. The canonical loaders, agent wrappers, support output schema, closed tool bindings, and both handoff forms are accurately described; the repository remained unchanged and the report preserves the adapter’s static-evidence boundary.",
+  "requirements": [
+    {
+      "id": "explains-direct-patterns",
+      "verdict": "pass",
+      "evidence": "In src/instructions.ts, loadSupportInstruction and loadSummaryInstruction read the corresponding canonical support and summary instruction.md files. In src/agents.ts, those loaders are bound directly to supportAgent and summaryAgent respectively. The actor accurately reports these relationships, and deterministic inspection reports status valid."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds supportAgent to SupportOutputSchema and find-order to findOrderTool, findOrder, FindOrderInputSchema, and FindOrderOutputSchema. src/agents.ts binds SupportOutputSchema, registers findOrderTool, and declares handoffs as both summaryAgent and configuredSummaryHandoff; src/tools.ts closes the registration-to-implementation and schema chain. The actor reports all these relationships consistently."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "Workspace assertions show identical before/after hashes and no changed paths, preserving src/implementations.ts. The actor explicitly states that no agent or provider was invoked and that runtime execution, schema enforcement, routing or handoff execution, subagent behavior, and agent input schemas remain unproven; adapter evidence is characterized as detection only. Deterministic evidence also reports repositoryUnchanged true and a passing typecheck."
+    }
+  ],
+  "failures": []
+}

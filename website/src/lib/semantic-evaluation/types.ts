@@ -1,0 +1,105 @@
+import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
+
+import type { ISemanticCliIdentity } from '../../../../tooling/release-identity/identity.mjs';
+import type {
+  ISemanticCaseDefinition as ISemanticCaseContract,
+  ISemanticCriterion as ISemanticCriterionContract,
+} from '../../../../tooling/semantic-evaluation/index.mjs';
+
+import type { SEMANTIC_CASE_PRESENTATION, SEMANTIC_EVALUATION_GROUPS } from './constants.ts';
+import type { ISemanticAttemptRecord, ISemanticLatestResult } from './validations.ts';
+
+export type ISemanticEvaluationGroupId = keyof typeof SEMANTIC_EVALUATION_GROUPS;
+export type ISemanticEvaluationCaseId = keyof typeof SEMANTIC_CASE_PRESENTATION;
+export type ISemanticEvaluationCaseStatus = 'failed' | 'passed' | 'pending' | 'recovered';
+
+// exact actor or judge host shown with one trial
+export interface ISemanticEvaluationHostModel {
+  model: 'gpt-5.6-sol';
+  name: string;
+  reasoningEffort: 'medium';
+  version: string;
+}
+
+// exact current trial provenance shown on public attempt pages
+export interface ISemanticAttemptTrialModel {
+  actorCommandPolicyEvidence: {
+    completedCommandCount: number;
+    indeterminateCommandCount: number;
+    packageManagerExecution: 'indeterminate' | 'not-observed' | 'observed';
+    packageManagerInvocationCount: number;
+  };
+  actorHost: ISemanticEvaluationHostModel;
+  confirmationIndex: 1 | 2 | null;
+  evaluatedAt: string;
+  forbidden: string[];
+  judgeHost: ISemanticEvaluationHostModel;
+  kind: 'confirmation' | 'initial';
+  observed: string[];
+  passed: boolean;
+  rationale: string;
+}
+
+// semantic contracts consumed directly from the repository-owned evaluator
+export type ISemanticCriterion = ISemanticCriterionContract;
+export type ISemanticCaseDefinition = ISemanticCaseContract;
+
+// current case state derived from the latest immutable attempt
+export interface ISemanticEvaluationCaseModel {
+  confirmationStatus: ISemanticAttemptRecord['cases'][number]['confirmationStatus'] | null;
+  developerDirection: string | null;
+  evaluatedAt: string | null;
+  expectedCriteria: ISemanticCriterion[];
+  forbiddenCriteria: ISemanticCriterion[];
+  groupId: ISemanticEvaluationGroupId | null;
+  hasCurrentCaseDefinition: boolean;
+  id: string;
+  rationale: string | null;
+  replay: IEvaluationReplayModel | null;
+  scenario: string;
+  status: ISemanticEvaluationCaseStatus;
+  title: string;
+  trials: ISemanticAttemptTrialModel[];
+}
+
+// readable collection of related semantic cases
+export interface ISemanticEvaluationGroupModel {
+  cases: ISemanticEvaluationCaseModel[];
+  description: string;
+  id: ISemanticEvaluationGroupId;
+  title: string;
+}
+
+// one immutable attempt with public routes to its summary and exact evidence
+export interface ISemanticAttemptModel {
+  cases: ISemanticEvaluationCaseModel[];
+  rawAttemptUrl: string;
+  rawEvidenceUrl: string;
+  result: ISemanticAttemptRecord;
+  route: string;
+}
+
+// verified semantic attempt history embedded in the static website model
+export interface ISemanticEvaluationWebsiteModel {
+  artifactDigest: string;
+  attempts: ISemanticAttemptModel[];
+  caseCount: number;
+  caseSuiteDigest: string;
+  cli: ISemanticCliIdentity;
+  coverageDigest: string;
+  coverageUrl: string;
+  evaluatedAt: string | null;
+  evaluationModel: ISemanticEvaluationHostModel['model'];
+  failedCaseCount: number;
+  groups: ISemanticEvaluationGroupModel[];
+  hasAttempt: boolean;
+  lastPassing: ISemanticAttemptModel | null;
+  latest: ISemanticAttemptModel | null;
+  latestPointer: ISemanticLatestResult | null;
+  methodologyUrl: string;
+  passedCaseCount: number;
+  pendingCaseCount: number;
+  recoveredCaseCount: number;
+  route: string;
+  status: ISemanticAttemptRecord['status'] | 'not-recorded';
+}

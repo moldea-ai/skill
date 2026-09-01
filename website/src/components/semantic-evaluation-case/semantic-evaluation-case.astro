@@ -1,0 +1,203 @@
+---
+import { ChevronDown } from '@lucide/astro';
+import EvaluationReplay from '@moldea.ai/website-ui/evaluation-replay';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import TabbedPanels from '@moldea.ai/website-ui/tabbed-panels';
+
+import type { ISemanticEvaluationCaseModel } from '../../lib/semantic-evaluation/index.ts';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import SemanticTrialProvenance from '../semantic-trial-provenance/semantic-trial-provenance.astro';
+
+interface Props {
+  evaluationCase: ISemanticEvaluationCaseModel;
+  number: number;
+  showTrialProvenance?: boolean;
+}
+
+const TABS = [
+  { id: 'replay', label: 'Replay', slotName: 'replay' },
+  { id: 'evidence', label: 'Evidence', slotName: 'evidence' },
+] as const;
+
+const { evaluationCase, number, showTrialProvenance = false } = Astro.props;
+const resultHeading =
+  evaluationCase.status === 'failed'
+    ? 'Why it failed'
+    : evaluationCase.status === 'pending'
+      ? 'Not evaluated in this attempt'
+      : evaluationCase.status === 'recovered'
+        ? 'Why it recovered'
+        : 'Why it passed';
+const resultClass =
+  evaluationCase.status === 'failed'
+    ? 'border-destructive/40 bg-destructive/10'
+    : evaluationCase.status === 'pending'
+      ? 'border-border bg-muted/30'
+      : 'border-success/40 bg-success/10';
+const rationaleHtml =
+  evaluationCase.rationale === null
+    ? null
+    : await renderMarkdownFragment(evaluationCase.rationale, {
+        basePath: import.meta.env.BASE_URL,
+        localLinks: 'unwrap',
+        productNameTreatment: 'code',
+      });
+---
+
+<details class="group surface-card min-w-0 overflow-hidden">
+  <summary
+    class="flex cursor-pointer list-none items-start gap-3 p-5 marker:content-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:gap-4 sm:p-6"
+  >
+    <span class="mt-0.5 font-mono text-xs font-bold text-muted-foreground">
+      {String(number).padStart(2, '0')}
+    </span>
+    <span class="min-w-0 flex-1">
+      <span class="flex flex-wrap items-center gap-2">
+        <span class="text-lg font-semibold tracking-tight">
+          <InlineBrandText
+            text={evaluationCase.title}
+            variant="compact"
+          />
+        </span>
+        <EvidenceStatus status={evaluationCase.status} />
+      </span>
+      <span class="mt-2 block text-sm leading-6 text-muted-foreground">
+        <InlineBrandText
+          text={evaluationCase.scenario}
+          variant="compact"
+        />
+      </span>
+    </span>
+    <ChevronDown
+      class="mt-1 size-5 shrink-0 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none"
+      aria-hidden="true"
+    />
+  </summary>
+
+  <div class="border-t border-border px-5 py-6 sm:px-6">
+    <TabbedPanels
+      ariaLabel="Scenario views"
+      id={`semantic-${evaluationCase.id}`}
+      items={TABS}
+    >
+      <EvaluationReplay
+        slot="replay"
+        id={`semantic-${evaluationCase.id}`}
+        replay={evaluationCase.replay}
+      />
+
+      <div slot="evidence">
+        {
+          evaluationCase.hasCurrentCaseDefinition ? (
+            <div class="grid gap-6 lg:grid-cols-2">
+              <section aria-labelledby={`${evaluationCase.id}-expected`}>
+                <h4
+                  id={`${evaluationCase.id}-expected`}
+                  class="font-semibold"
+                >
+                  What had to happen
+                </h4>
+                <ul class="mt-3 grid gap-3 text-sm leading-6">
+                  {evaluationCase.expectedCriteria.map(({ criterion }) => (
+                    <li class="rounded-lg border border-border bg-muted/30 p-3 text-muted-foreground">
+                      <InlineBrandText
+                        text={criterion}
+                        variant="compact"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+
+              <section aria-labelledby={`${evaluationCase.id}-forbidden`}>
+                <h4
+                  id={`${evaluationCase.id}-forbidden`}
+                  class="font-semibold"
+                >
+                  What must not happen
+                </h4>
+                <ul class="mt-3 grid gap-3 text-sm leading-6">
+                  {evaluationCase.forbiddenCriteria.map(({ criterion }) => (
+                    <li class="rounded-lg border border-border bg-muted/30 p-3 text-muted-foreground">
+                      <InlineBrandText
+                        text={criterion}
+                        variant="compact"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </div>
+          ) : (
+            <section
+              class="rounded-xl border border-border bg-muted/30 p-4"
+              aria-labelledby={`${evaluationCase.id}-historical-criteria`}
+            >
+              <h4
+                id={`${evaluationCase.id}-historical-criteria`}
+                class="font-semibold"
+              >
+                Historical criteria unavailable
+              </h4>
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                This attempt records the case-definition digest but not the criterion text. The
+                replay remains grounded in its immutable trial evidence and shows the original
+                developer direction when the artifact retained it.
+              </p>
+            </section>
+          )
+        }
+
+        <section
+          class:list={['mt-6 rounded-xl border p-4 sm:p-5', resultClass]}
+          aria-labelledby={`${evaluationCase.id}-result`}
+        >
+          <h4
+            id={`${evaluationCase.id}-result`}
+            class="font-semibold"
+          >
+            {resultHeading}
+          </h4>
+          {
+            rationaleHtml === null ? (
+              <p class="mt-2 text-sm leading-6 text-muted-foreground">
+                This scenario remains pending because the recorded run stopped at an earlier
+                failure.
+              </p>
+            ) : (
+              <>
+                <div
+                  class="prose-moldea prose-moldea-wrap-code replay-markdown mt-2 min-w-0 text-muted-foreground"
+                  set:html={rationaleHtml}
+                />
+                <p class="mt-3 font-mono text-xs text-muted-foreground">
+                  Evaluated{' '}
+                  <time datetime={evaluationCase.evaluatedAt ?? undefined}>
+                    {evaluationCase.evaluatedAt}
+                  </time>
+                </p>
+                {evaluationCase.confirmationStatus !== null &&
+                  evaluationCase.confirmationStatus !== 'not-required' && (
+                    <p class="mt-2 text-sm text-muted-foreground">
+                      Confirmation status: {evaluationCase.confirmationStatus}. Recorded trials:{' '}
+                      {evaluationCase.trials.length}.
+                    </p>
+                  )}
+              </>
+            )
+          }
+        </section>
+
+        {
+          showTrialProvenance && (
+            <SemanticTrialProvenance
+              scenarioId={evaluationCase.id}
+              trials={evaluationCase.trials}
+            />
+          )
+        }
+      </div>
+    </TabbedPanels>
+  </div>
+</details>

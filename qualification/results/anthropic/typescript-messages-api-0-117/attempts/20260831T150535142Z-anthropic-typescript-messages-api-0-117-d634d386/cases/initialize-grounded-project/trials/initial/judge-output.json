@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace contains an evidence-grounded, minimal moldea initialization. Repository contents and hashes match the runner-owned workspace patch: only README.md, moldea/moldea.yaml, and moldea/project.md changed, while source and package files remained unchanged. Deterministic inspection and validation are valid with no diagnostics.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md describes invoice-anomaly review, reports the total difference, requires operator review when totals differ, and explicitly states that the service does not approve payments or change invoices. These statements agree with README.md and src/invoice-review.ts. Current hashes match the runner-owned post-actor assertions."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The workspace patch lists only README.md, moldea/moldea.yaml, and moldea/project.md as changed. moldea/moldea.yaml contains only `version: 1`; the moldea tree contains only the manifest and project context; and README.md contains the standard awareness block after preserved project content. No agent, runtime guide, decision, focused context, or unresolved requirement exists or is referenced."
+    }
+  ],
+  "failures": []
+}

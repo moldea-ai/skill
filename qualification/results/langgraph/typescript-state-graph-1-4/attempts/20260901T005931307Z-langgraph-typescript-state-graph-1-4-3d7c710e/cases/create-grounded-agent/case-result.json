@@ -1,0 +1,72 @@
+{
+  "caseId": "create-grounded-agent",
+  "title": "Create a grounded agent",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 32308,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 32308,
+      "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1791015,
+        "cachedInputTokens": 1662208,
+        "outputTokens": 7524
+      },
+      "judgeUsage": {
+        "inputTokens": 418199,
+        "cachedInputTokens": 374272,
+        "outputTokens": 3620
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T05:37:09.612Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T05:39:27.871Z",
+      "actorCacheSourceAttemptId": "20260831T052309972Z-langgraph-typescript-state-graph-1-4-3b85f044",
+      "judgeCacheSourceAttemptId": "20260831T052309972Z-langgraph-typescript-state-graph-1-4-3b85f044",
+      "requirementAssessments": [
+        {
+          "id": "grounds-behavior",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/agents/order-triage/description.md` and `instruction.md` state that the agent classifies orders for human review, always requires human review, and cannot approve refunds. This matches `src/order-triage-graph.ts`, where classification produces `fulfillment` or `refund-review` and always sets `requiresHumanReview: true`. Workspace assertions identify both canonical assets as newly added."
+        },
+        {
+          "id": "binds-direct-graph",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/moldea.yaml` binds `runtimeAgent` to `/src/order-triage-graph.ts#orderTriageGraph`, `inputSchema` to `OrderTriageInputSchema`, and `outputSchema` to `OrderTriageOutputSchema`. The source directly exports all three symbols, and `orderTriageGraph` is the compiled `StateGraph`. Deterministic inspection and validation passed with zero failures."
+        },
+        {
+          "id": "preserves-node-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`classifyOrder` remains an unexported implementation function registered only as the runtime graph node `classify-order`. The manifest contains only the agent runtime and graph/schema bindings; it declares no tool, skill, subagent, handoff, or routing target. The canonical inventory contains no runtime guide, and workspace assertions limit changes to the manifest plus the two agent prose assets. Deterministic validation passed."
+        },
+        {
+          "id": "avoids-redundant-guidance",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

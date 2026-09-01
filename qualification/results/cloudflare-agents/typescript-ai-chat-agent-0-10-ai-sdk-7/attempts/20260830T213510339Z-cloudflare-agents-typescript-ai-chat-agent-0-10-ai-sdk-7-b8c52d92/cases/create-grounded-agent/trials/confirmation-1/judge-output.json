@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, runner-owned deterministic results, and workspace patch evidence agree: the canonical order-triage agent is grounded in the existing TypeScript implementation, all required symbols are bound exactly, no agent input schema or unsupported behavior was added, and validation/typechecking passed.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "`moldea/agents/order-triage/description.md` states that the agent classifies orders for human review without refund authority. `instruction.md` requires human review and says never to approve a refund, matching `loadOrderTriageInstruction`, the class documentation, and schemas requiring `requiresHumanReview: true`. Workspace assertions show only these two assets and `moldea/moldea.yaml` changed."
+    },
+    {
+      "id": "binds-direct-agent",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` binds `/src/order-triage-agent.ts` symbols `OrderTriageAgent`, `loadOrderTriageInstruction`, and `OrderTriageOutputSchema`. The source directly exports all three and uses the schema through `Output.object({ schema: OrderTriageOutputSchema })`. No agent input-schema binding exists. Deterministic inspection and validation were valid."
+    },
+    {
+      "id": "binds-function-tool",
+      "verdict": "pass",
+      "evidence": "The manifest declares runtime name `classify_order` and exactly binds implementation `classifyOrder`, registration `classifyOrderTool`, input schema `ClassifyOrderInputSchema`, and output schema `ClassifyOrderOutputSchema` in `/src/order-triage-agent.ts`. The source exports those symbols and registers the tool as `tools: { classify_order: classifyOrderTool }`. Deterministic inspection accepted all bindings."
+    }
+  ],
+  "failures": []
+}

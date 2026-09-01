@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted project is aligned; no edits were needed. Local moldea inspection returned schema 2 / CLI 5.0.0 with status valid and no diagnostics, TypeScript validation passed, and the final Git diff and status were clean.",
+  "changedFiles": [],
+  "observations": [
+    "Eve adapter evidence identifies support as a flat, package-root agent at /agent.ts with default export, agentRoot /, and layout flat.",
+    "The exclusive runtime instruction surface is /instructions.ts; it uses defineInstructions and obtains content solely from loadSupportInstruction in /loaders.ts. No competing Eve Markdown instruction file exists.",
+    "The canonical support instruction and runtime-loaded instruction share the same substantive rule: answer support requests only from available repository evidence.",
+    "The manifest outputSchema binding targets /contracts.ts#SupportOutputSchema; /agent.ts imports that symbol and passes it directly to defineAgent. The schema requires an object containing a string answer.",
+    "The manifest runtimeAgent, instructionLoader, outputSchema, and affectedBy relationships match the inspected TypeScript implementation.",
+    "TypeScript compilation completed successfully with tsc -p <workspace>/tsconfig.json --noEmit.",
+    "No repository files changed; hardened Git diff and final status were empty."
+  ],
+  "unresolved": [
+    "End-to-end Eve/model execution was intentionally not performed, so runtime behavior beyond static adapter evidence and TypeScript validation was not observed."
+  ]
+}

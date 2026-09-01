@@ -1,0 +1,22 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized moldea from repository-supported context only. The project is now adopted: canonical state is valid, the existing README content is preserved, and the standard awareness block was added. Next actions are to review the foundation when desired or continue ordinary development.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "README.md establishes that the service extracts invoice anomalies for operator review and never approves payment or changes invoices.",
+    "src/invoice-review.ts establishes that it calculates total minus expected total and requires operator review when the values differ.",
+    "Created only the required canonical foundation files; no agent, runtime guide, decision, focused context, or unresolved requirement was created.",
+    "No runtime integration behavior was established by the README or source, so none was invented or recorded as declared behavior.",
+    "Initial moldea inspection used repository-local @moldea.ai/cli 5.0.0 with schema 2 and reported only the two missing canonical files.",
+    "Final `moldea inspect --json` exited 0 with status `valid`, format version 1, and no diagnostics.",
+    "README marker inspection found exactly one correctly ordered awareness block at lines 5–14.",
+    "The final hardened Git status contains only README.md and the new moldea directory; the worktree was clean before the task.",
+    "The tracked README diff was inspected and contains only the appended awareness block. The untracked canonical files were inspected directly; an attempted no-index Git diff was blocked by the evaluator command policy.",
+    "Runner-mounted qualification inputs and unrelated files were unchanged."
+  ],
+  "unresolved": []
+}

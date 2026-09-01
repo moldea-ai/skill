@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s canonical Vercel tool name from `find_order` to the closed tools-map key `lookup_order`. Preserved the wrapper, declaration, implementation, and schemas. TypeScript compilation passed; Moldea validation and inspection returned `valid` with no diagnostics and complete tool-registration evidence.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Final diff contains only the canonical tool-name correction.",
+    "`moldea inspect --json` used CLI 5.0.0/schema 2 and emitted tool-registration references for src/agent.ts, src/tools.ts, src/implementations.ts, and both schemas in src/contracts.ts.",
+    "`moldea validate --json` returned `valid` with no diagnostics.",
+    "Final Git status shows only moldea/moldea.yaml modified."
+  ],
+  "unresolved": []
+}

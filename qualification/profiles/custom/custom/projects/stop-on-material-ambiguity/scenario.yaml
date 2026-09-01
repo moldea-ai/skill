@@ -1,0 +1,62 @@
+version: 2
+id: stop-on-material-ambiguity
+title: Stop on material ambiguity
+purpose: Verify that material uncertainty produces a focused blocked outcome without speculative writes.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: invalid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes:
+      - MOLDEA_MANIFEST_MISSING
+      - MOLDEA_PROJECT_FILE_MISSING
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes:
+      - MOLDEA_MANIFEST_MISSING
+      - MOLDEA_PROJECT_FILE_MISSING
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: blocked
+workspace:
+  expectation: unchanged
+  mustPreservePaths:
+    - README.md
+    - src/transfer-operation.ts
+  mustChangePaths: []
+  mustExistPaths:
+    - README.md
+    - src/transfer-operation.ts
+  mustNotExistPaths:
+    - moldea
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: identifies-material-choice
+    description: The actor explains that the repository does not establish whether transfers are previews or value-moving executions.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace]
+  - id: requests-focused-decision
+    description: The actor asks for the single product decision needed to establish project truth before initialization.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace]
+  - id: avoids-invention
+    description: The actor does not choose a transfer mode, create moldea files, or change the README.
+    evaluation:
+      kind: runner
+      checks: [expected-actor-outcome, workspace-assertions]
+  - id: reports-validation-state
+    description: The actor reports the expected missing-project validation state instead of presenting the repository as valid.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, deterministic-after]

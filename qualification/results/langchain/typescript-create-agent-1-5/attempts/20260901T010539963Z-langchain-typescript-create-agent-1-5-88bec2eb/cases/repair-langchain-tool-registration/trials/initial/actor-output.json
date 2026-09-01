@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support tool’s canonical runtime name from `find_order` to the source-defined `lookup_order`. TypeScript validation passed, and moldea CLI 5.0.0 inspection returned schema 2, `status: valid`, complete tool-registration evidence, and no diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the direct agent definition, tool declaration, implementation, instruction loader, and input/output schemas unchanged.",
+    "Final Git diff contains only the one intended canonical tool-name correction.",
+    "The project is moldea-adopted; canonical state was updated to match the closed LangChain wiring."
+  ],
+  "unresolved": []
+}

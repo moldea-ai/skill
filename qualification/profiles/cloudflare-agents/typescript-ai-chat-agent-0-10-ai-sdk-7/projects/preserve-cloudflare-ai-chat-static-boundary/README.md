@@ -1,0 +1,3 @@
+# Cloudflare AIChatAgent static-boundary fixture
+
+The project exercises runtime-selected request tools, `prepareStep` instruction replacement, indirect generation, an unsupported output variant, and an initialization-sensitive subclass outside supported static relationships. It also contains an ordinary AI SDK function tool whose implementation references another `AIChatAgent` subclass without using `agentTool`. Expected state preserves only supported relationship proof and does not invent tools, instruction bindings, schemas, handoffs, routing, or runtime-agent bindings across those boundaries.

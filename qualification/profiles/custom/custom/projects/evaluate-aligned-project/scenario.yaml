@@ -1,0 +1,57 @@
+version: 2
+id: evaluate-aligned-project
+title: Evaluate an aligned project
+purpose: Verify that the skill can inspect a correct Custom project and leave it untouched.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
+workspace:
+  expectation: unchanged
+  mustPreservePaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/instruction.md
+    - moldea/runtimes/custom.md
+    - src/support-agent.ts
+  mustChangePaths: []
+  mustExistPaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/runtimes/custom.md
+    - src/support-agent.ts
+  mustNotExistPaths: []
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-alignment
+    description: The actor identifies the registered agent, custom runtime guidance, and explicit runtime binding using repository evidence.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: avoids-churn
+    description: The actor makes no project-visible changes because the repository is already valid and aligned.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: validates-project
+    description: Every independent validation check confirms the valid project without changing it during inspection.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

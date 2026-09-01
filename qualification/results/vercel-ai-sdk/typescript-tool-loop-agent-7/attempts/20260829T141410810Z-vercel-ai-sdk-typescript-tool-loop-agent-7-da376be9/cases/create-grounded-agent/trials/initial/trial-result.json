@@ -1,0 +1,62 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 386194,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1677899,
+    "cachedInputTokens": 1590272,
+    "outputTokens": 7109
+  },
+  "judgeUsage": {
+    "inputTokens": 471956,
+    "cachedInputTokens": 424960,
+    "outputTokens": 3417
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T14:31:00.710Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T14:33:14.839Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/agents/order-triage/description.md and instruction.md state that orders are classified as fulfillment or refund-review for human review, requiresHumanReview is true, and refunds cannot be approved. This matches src/order-triage-agent.ts and the workspace patch changed only those canonical assets plus moldea/moldea.yaml."
+    },
+    {
+      "id": "binds-direct-agent",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to orderTriageAgent, instructionLoader to loadOrderTriageInstruction, inputSchema to OrderTriageInputSchema, and outputSchema to OrderTriageOutputSchema in /src/order-triage-agent.ts. The source uses ToolLoopAgent, callOptionsSchema: OrderTriageInputSchema, and Output.object({ schema: OrderTriageOutputSchema }). Deterministic inspection and complete validation were valid."
+    },
+    {
+      "id": "binds-function-tool",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtime name classify_order, implementation classifyOrder, registration classifyOrderTool, input ClassifyOrderInputSchema, and output ClassifyOrderOutputSchema, all at /src/order-triage-agent.ts. The source registers tools: { classify_order: classifyOrderTool } and defines the closed tool with those exact execute and schema symbols. Deterministic inspection passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

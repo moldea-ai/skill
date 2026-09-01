@@ -1,0 +1,72 @@
+{
+  "caseId": "create-grounded-agent",
+  "title": "Create a grounded agent",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 352204,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 352204,
+      "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1524294,
+        "cachedInputTokens": 1324544,
+        "outputTokens": 6774
+      },
+      "judgeUsage": {
+        "inputTokens": 336043,
+        "cachedInputTokens": 294144,
+        "outputTokens": 3146
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T15:41:05.462Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T15:42:59.161Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-behavior",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/agents/order-triage/description.md states that the agent classifies orders for human review and cannot approve refunds. instruction.md directs classification through classify_order and leaves refund decisions to human review. This matches moldea/project.md and src/implementations.ts. Workspace assertions identify only these canonical agent assets and moldea/moldea.yaml as changed."
+        },
+        {
+          "id": "binds-direct-wrapper",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/order-triage-agent.ts#orderTriageAgent and instructionLoader to /src/order-triage-agent.ts#loadOrderTriageInstruction. The source exports those exact symbols, directly calls client.models.generateContent, and loads the canonical instruction file. The manifest contains no output-schema, routing, handoff, subagent, or agent-input-schema relationship. Deterministic inspection and validation were valid."
+        },
+        {
+          "id": "binds-function-declaration",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest tool name classify_order matches src/tools.ts. Its implementation binding is /src/implementations.ts#classifyOrder, registration is /src/tools.ts#classifyOrderDeclaration, and inputSchema is /src/contracts.ts#ClassifyOrderInputSchema; all exact symbols exist and are wired together in source. No manifest language claims static adapter evidence proves runtime invocation. Deterministic inspection was valid and TypeScript typechecking passed."
+        },
+        {
+          "id": "avoids-redundant-guidance",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

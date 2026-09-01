@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical assets, implementation files, workspace patch assertions, and deterministic post-actor validation agree. The agent is grounded in order classification for human review with no refund authority; the manifest binds the exact direct Google Gen AI wrapper, instruction loader, function implementation, declaration, and input schema without unsupported relationships or runtime-execution claims.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "moldea/agents/order-triage/description.md states that the agent classifies orders for human review and cannot approve refunds. instruction.md directs classification through classify_order and leaves refund decisions to human review. This matches moldea/project.md and src/implementations.ts. Workspace assertions identify only these canonical agent assets and moldea/moldea.yaml as changed."
+    },
+    {
+      "id": "binds-direct-wrapper",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/order-triage-agent.ts#orderTriageAgent and instructionLoader to /src/order-triage-agent.ts#loadOrderTriageInstruction. The source exports those exact symbols, directly calls client.models.generateContent, and loads the canonical instruction file. The manifest contains no output-schema, routing, handoff, subagent, or agent-input-schema relationship. Deterministic inspection and validation were valid."
+    },
+    {
+      "id": "binds-function-declaration",
+      "verdict": "pass",
+      "evidence": "The manifest tool name classify_order matches src/tools.ts. Its implementation binding is /src/implementations.ts#classifyOrder, registration is /src/tools.ts#classifyOrderDeclaration, and inputSchema is /src/contracts.ts#ClassifyOrderInputSchema; all exact symbols exist and are wired together in source. No manifest language claims static adapter evidence proves runtime invocation. Deterministic inspection was valid and TypeScript typechecking passed."
+    }
+  ],
+  "failures": []
+}

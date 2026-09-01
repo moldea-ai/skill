@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The `support` agent is aligned with its direct Vercel AI SDK wrapper and canonical instruction, so no files were edited. Moldea inspection and validation returned valid schema-2 envelopes with no diagnostics; TypeScript compilation passed; the final scoped Git diff and status were empty.",
+  "changedFiles": [],
+  "observations": [
+    "`src/support-agent.ts` directly calls Vercel AI SDK `generateText`, passes the caller prompt, loads `moldea/agents/support/instruction.md` through `loadSupportInstruction`, and enforces the structured `{ answer: string }` output through `Output.object`.",
+    "`moldea/moldea.yaml` accurately declares runtime `vercel-ai-sdk` and binds `supportAgent`, `loadSupportInstruction`, and `SupportOutputSchema` to their actual implementation symbols.",
+    "The description accurately states that the agent produces a structured support response. The instruction identifies `support` and constrains answers to verified project evidence; the wrapper demonstrably loads that exact canonical file.",
+    "Deterministic diagnostics: none. Confirmed semantic problems: none. Material ambiguities: none requiring a repository change. Relevant unresolved requirements: none declared.",
+    "Runtime output was not exercised because the task prohibited provider and agent invocation. Static evidence proves instruction consumption and wrapper structure, but not the provenance of project evidence supplied through runtime prompts.",
+    "Checks completed: Moldea CLI 5.0.0 `inspect --json` valid; `validate --json` valid with no diagnostics; TypeScript 6.0.3 compilation successful; final relevant-path Git diff empty; final Git status clean."
+  ],
+  "unresolved": [
+    "No integration test establishes what caller-owned prompt content qualifies as verified project evidence; resolving that runtime-only question would require closed caller wiring or a local integration test that does not invoke a provider."
+  ]
+}

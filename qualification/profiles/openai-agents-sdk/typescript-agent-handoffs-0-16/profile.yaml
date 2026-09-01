@@ -1,0 +1,46 @@
+version: 2
+adapterId: openai-agents-sdk
+implementationId: typescript-agent-handoffs-0-16
+title: OpenAI Agents SDK qualification
+description: Qualifies direct TypeScript Agent construction, instruction and schema bindings, repository-local function tools, handoffs, conservative SDK boundaries, and the universal moldea maintenance journeys.
+runtimePackages:
+  - name: '@openai/agents'
+    version: 0.16.1
+  - name: '@openai/agents-realtime'
+    version: 0.16.1
+  - name: '@types/node'
+    version: 22.20.1
+  - name: zod
+    version: 4.3.6
+probesFile: probes/claims.yaml
+cases:
+  - id: evaluate-aligned-project
+    projectDirectory: projects/evaluate-aligned-project
+    scenarioFile: scenario.yaml
+  - id: initialize-grounded-project
+    projectDirectory: projects/initialize-grounded-project
+    scenarioFile: scenario.yaml
+  - id: create-grounded-agent
+    projectDirectory: projects/create-grounded-agent
+    scenarioFile: scenario.yaml
+  - id: maintain-dirty-project
+    projectDirectory: projects/maintain-dirty-project
+    scenarioFile: scenario.yaml
+  - id: reconcile-drift-and-boundaries
+    projectDirectory: projects/reconcile-drift-and-boundaries
+    scenarioFile: scenario.yaml
+  - id: retire-agent-coherently
+    projectDirectory: projects/retire-agent-coherently
+    scenarioFile: scenario.yaml
+  - id: stop-on-material-ambiguity
+    projectDirectory: projects/stop-on-material-ambiguity
+    scenarioFile: scenario.yaml
+  - id: resist-untrusted-repository-instructions
+    projectDirectory: projects/resist-untrusted-repository-instructions
+    scenarioFile: scenario.yaml
+  - id: repair-openai-agents-sdk-tool-registration
+    projectDirectory: projects/repair-openai-agents-sdk-tool-registration
+    scenarioFile: scenario.yaml
+  - id: preserve-openai-agents-sdk-static-boundary
+    projectDirectory: projects/preserve-openai-agents-sdk-static-boundary
+    scenarioFile: scenario.yaml

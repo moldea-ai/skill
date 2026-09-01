@@ -1,0 +1,314 @@
+---
+import { ChevronDown } from '@lucide/astro';
+import EvaluationReplay from '@moldea.ai/website-ui/evaluation-replay';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { renderMarkdownFragment } from '@moldea.ai/website-ui/markdown';
+import TabbedPanels from '@moldea.ai/website-ui/tabbed-panels';
+import { prettifyTime } from 'web-utils-kit';
+
+import type {
+  IQualificationAttemptCaseModel,
+  IQualificationProfileCaseModel,
+} from '../../lib/qualification/index.ts';
+import EvidenceStatus from '../evidence-status/evidence-status.astro';
+import QualificationTrialEvidence from '../qualification-trial-evidence/qualification-trial-evidence.astro';
+
+interface Props {
+  evidence: IQualificationAttemptCaseModel;
+  number: number;
+  profileCase: IQualificationProfileCaseModel;
+}
+
+const TABS = [
+  { id: 'replay', label: 'Replay', slotName: 'replay' },
+  { id: 'evidence', label: 'Evidence', slotName: 'evidence' },
+  { id: 'technical', label: 'Technical', slotName: 'technical' },
+] as const;
+
+const { evidence, number, profileCase } = Astro.props;
+const { result, trials } = evidence;
+const terminalTrial = trials.at(-1);
+if (terminalTrial === undefined) {
+  throw new Error(`Qualification case ${result.caseId} has no trial evidence.`);
+}
+const scenario = profileCase.scenario;
+const requiredCriteria = [
+  scenario.expectedActorOutcome === 'completed'
+    ? 'The coding agent had to complete the requested project task.'
+    : 'The coding agent had to stop without inventing a resolution.',
+  scenario.workspace.expectation === 'changed'
+    ? 'The final workspace had to contain only the expected project changes.'
+    : 'The final workspace had to remain unchanged.',
+  ...scenario.judgeRequirements.map(({ description }) => description),
+];
+const explicitForbiddenCriteria = [
+  ...scenario.workspace.mustPreservePaths.map(
+    (path) => `The coding agent could not modify or remove \`${path}\`.`,
+  ),
+  ...scenario.workspace.mustNotExistPaths.map(
+    (path) => `The coding agent could not create \`${path}\`.`,
+  ),
+  ...(scenario.workspace.allowedChangePaths.length +
+    scenario.workspace.allowedChangePathPatterns.length >
+  0
+    ? ['Project-visible changes could not escape the declared workspace allowlist.']
+    : []),
+];
+const forbiddenCriteria =
+  explicitForbiddenCriteria.length > 0
+    ? explicitForbiddenCriteria
+    : [
+        'The coding agent could not make project-visible changes that the scenario did not authorize.',
+      ];
+const markdownOptions = {
+  basePath: import.meta.env.BASE_URL,
+  localLinks: 'unwrap',
+  productNameTreatment: 'code',
+} as const;
+const renderedRequiredCriteria = await Promise.all(
+  requiredCriteria.map((criterion) => renderMarkdownFragment(criterion, markdownOptions)),
+);
+const renderedForbiddenCriteria = await Promise.all(
+  forbiddenCriteria.map((criterion) => renderMarkdownFragment(criterion, markdownOptions)),
+);
+const requirementsById = new Map(
+  scenario.judgeRequirements.map((requirement) => [requirement.id, requirement]),
+);
+const renderedRequirements = await Promise.all(
+  terminalTrial.result.requirementAssessments.map(async (assessment) => ({
+    ...assessment,
+    description: requirementsById.get(assessment.id)?.description ?? assessment.id,
+    evidenceHtml: await renderMarkdownFragment(assessment.evidence, markdownOptions),
+  })),
+);
+const resultHeading =
+  result.status === 'failed'
+    ? 'Why it failed'
+    : result.status === 'recovered'
+      ? 'Why it recovered'
+      : 'Why it passed';
+const resultClass =
+  result.status === 'failed'
+    ? 'border-destructive/40 bg-destructive/10'
+    : 'border-success/40 bg-success/10';
+const resultRationale = [
+  ...(result.status === 'recovered'
+    ? [
+        'The initial trial failed, then two fresh confirmation trials independently passed the complete case.',
+      ]
+    : []),
+  terminalTrial.judge?.summary ??
+    terminalTrial.judgeSkipped?.reason ??
+    'No semantic judge rationale was recorded.',
+  ...(result.failures.length === 0
+    ? []
+    : [`**Recorded failures**\n\n${result.failures.map((failure) => `- ${failure}`).join('\n')}`]),
+].join('\n\n');
+const resultRationaleHtml = await renderMarkdownFragment(resultRationale, markdownOptions);
+---
+
+<details class="group surface-card min-w-0 overflow-hidden">
+  <summary
+    class="flex cursor-pointer list-none items-start gap-3 p-5 marker:content-none focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring sm:gap-4 sm:p-6"
+  >
+    <span class="mt-0.5 font-mono text-xs font-bold text-muted-foreground">
+      {String(number).padStart(2, '0')}
+    </span>
+    <span class="min-w-0 flex-1">
+      <span class="flex flex-wrap items-center gap-2">
+        <h3 class="text-lg font-semibold tracking-tight">
+          <InlineBrandText
+            text={result.title}
+            variant="compact"
+          />
+        </h3>
+        <EvidenceStatus status={result.status} />
+      </span>
+      <span class="mt-2 block text-sm leading-6 text-muted-foreground">
+        <InlineBrandText
+          text={profileCase.catalogDescription}
+          variant="compact"
+        />
+      </span>
+      {
+        result.status === 'recovered' && (
+          <span class="mt-2 block text-sm font-medium text-foreground">
+            Recovered after two fresh passing confirmations.
+          </span>
+        )
+      }
+    </span>
+    <span class="flex shrink-0 items-center gap-3">
+      <time
+        class="hidden text-sm text-muted-foreground sm:inline"
+        datetime={`PT${result.durationMs / 1_000}S`}
+      >
+        {prettifyTime(result.durationMs)}
+      </time>
+      <ChevronDown
+        class="mt-1 size-5 text-muted-foreground transition-transform group-open:rotate-180 motion-reduce:transition-none"
+        aria-hidden="true"
+      />
+    </span>
+  </summary>
+
+  <div class="border-t border-border px-5 py-6 sm:px-6">
+    <TabbedPanels
+      ariaLabel="Qualification journey views"
+      id={`qualification-${result.caseId}`}
+      items={TABS}
+    >
+      <EvaluationReplay
+        slot="replay"
+        id={`qualification-${result.caseId}`}
+        replay={evidence.replay}
+      />
+
+      <div slot="evidence">
+        <div class="grid gap-6 lg:grid-cols-2">
+          <section aria-labelledby={`${result.caseId}-expected`}>
+            <h4
+              id={`${result.caseId}-expected`}
+              class="font-semibold"
+            >
+              What had to happen
+            </h4>
+            <ul class="mt-3 grid gap-3 text-sm leading-6">
+              {
+                renderedRequiredCriteria.map((criterionHtml) => (
+                  <li
+                    class="prose-moldea prose-moldea-wrap-code replay-markdown min-w-0 rounded-lg border border-border bg-muted/30 p-3 text-muted-foreground"
+                    set:html={criterionHtml}
+                  />
+                ))
+              }
+            </ul>
+          </section>
+
+          <section aria-labelledby={`${result.caseId}-forbidden`}>
+            <h4
+              id={`${result.caseId}-forbidden`}
+              class="font-semibold"
+            >
+              What must not happen
+            </h4>
+            <ul class="mt-3 grid gap-3 text-sm leading-6">
+              {
+                renderedForbiddenCriteria.map((criterionHtml) => (
+                  <li
+                    class="prose-moldea prose-moldea-wrap-code replay-markdown min-w-0 rounded-lg border border-border bg-muted/30 p-3 text-muted-foreground"
+                    set:html={criterionHtml}
+                  />
+                ))
+              }
+            </ul>
+          </section>
+        </div>
+
+        <section
+          class:list={['mt-6 rounded-xl border p-4 sm:p-5', resultClass]}
+          aria-labelledby={`${result.caseId}-result`}
+        >
+          <h4
+            id={`${result.caseId}-result`}
+            class="font-semibold"
+          >
+            {resultHeading}
+          </h4>
+          <div
+            class="prose-moldea prose-moldea-wrap-code replay-markdown mt-2 min-w-0 text-muted-foreground"
+            set:html={resultRationaleHtml}
+          />
+          {
+            terminalTrial.actor.unresolved.length > 0 && (
+              <div class="mt-4 border-t border-current/15 pt-4">
+                <p class="text-sm font-semibold text-foreground">Remaining uncertainty</p>
+                <ul class="mt-2 list-disc space-y-1 ps-5 text-sm leading-6 text-muted-foreground">
+                  {terminalTrial.actor.unresolved.map((item) => (
+                    <li>
+                      <InlineBrandText
+                        text={item}
+                        variant="compact"
+                      />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          }
+        </section>
+
+        <section
+          class="mt-6"
+          aria-labelledby={`${result.caseId}-requirements`}
+        >
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <h4
+              id={`${result.caseId}-requirements`}
+              class="font-semibold"
+            >
+              Requirement results
+            </h4>
+            <p class="text-xs text-muted-foreground">Final recorded trial</p>
+          </div>
+          <ul class="mt-3 grid gap-3 lg:grid-cols-2">
+            {
+              renderedRequirements.map((requirement) => (
+                <li class="min-w-0 rounded-lg border border-border p-3 sm:p-4">
+                  <div class="flex flex-wrap items-start justify-between gap-2">
+                    <p class="font-semibold">
+                      <InlineBrandText
+                        text={requirement.description}
+                        variant="compact"
+                      />
+                    </p>
+                    <EvidenceStatus
+                      status={
+                        requirement.verdict === 'pass'
+                          ? 'passed'
+                          : requirement.verdict === 'not-evaluated'
+                            ? 'skipped'
+                            : 'failed'
+                      }
+                    />
+                  </div>
+                  <div
+                    class="prose-moldea prose-moldea-wrap-code replay-markdown mt-2 min-w-0 text-sm text-muted-foreground"
+                    set:html={requirement.evidenceHtml}
+                  />
+                </li>
+              ))
+            }
+          </ul>
+        </section>
+      </div>
+
+      <div
+        slot="technical"
+        class="grid gap-4"
+      >
+        <div>
+          <h4 class="font-semibold">Complete trial evidence</h4>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+            Deterministic checks, model provenance, retry records, and raw artifacts remain
+            available here without interrupting the replay.
+          </p>
+        </div>
+        <ol class="grid gap-4">
+          {
+            trials.map((trial, index) => (
+              <li>
+                <QualificationTrialEvidence
+                  caseId={result.caseId}
+                  evidence={trial}
+                  index={index}
+                  scenario={scenario}
+                />
+              </li>
+            ))
+          }
+        </ol>
+      </div>
+    </TabbedPanels>
+  </div>
+</details>

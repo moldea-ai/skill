@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support tool declaration from stale `find_order` to the runtime-registered `lookup_order`. Preserved the wrapper, declaration, implementation, and schemas. TypeScript passed; Moldea inspection and validation both returned valid with zero diagnostics, and inspection emitted complete tool-registration evidence.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Final Git diff contains only the intended tool-name change.",
+    "Tool evidence links `lookup_order` to `supportAgent`, `lookupOrderTool`, `lookupOrder`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema`.",
+    "No Vercel wiring diagnostic remains."
+  ],
+  "unresolved": []
+}

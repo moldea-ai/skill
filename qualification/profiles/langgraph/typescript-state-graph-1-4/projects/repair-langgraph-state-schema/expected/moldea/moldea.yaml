@@ -1,0 +1,18 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: langgraph
+    bindings:
+      runtimeAgent:
+        path: /src/graph.ts
+        symbol: supportGraph
+      inputSchema:
+        path: /src/contracts.ts
+        symbol: SupportInputSchema
+      outputSchema:
+        path: /src/contracts.ts
+        symbol: SupportOutputSchema
+    affectedBy:
+      - /src/graph.ts
+      - /src/contracts.ts

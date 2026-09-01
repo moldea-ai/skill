@@ -1,0 +1,56 @@
+{
+  "trialId": "confirmation-2",
+  "kind": "confirmation",
+  "confirmationIndex": 2,
+  "passed": true,
+  "durationMs": 226395,
+  "deterministicBeforePath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/deterministic-after.json",
+  "actorOutputPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/workspace-assertions.json",
+  "patchPath": "cases/repair-anthropic-tool-registration/trials/confirmation-2/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 551696,
+    "cachedInputTokens": 504320,
+    "outputTokens": 3277
+  },
+  "judgeUsage": {
+    "inputTokens": 377818,
+    "cachedInputTokens": 309248,
+    "outputTokens": 3101
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T17:59:51.211Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T18:01:40.959Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies the original canonical `find_order` versus source-backed `lookup_order` mismatch and cites the initial Anthropic tool-name diagnostic. Repository source confirms `lookupOrderTool.name` is `lookup_order`, while the task confirms the prior declared/client-tool mismatch."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now sets the support tool name to `lookup_order`, exactly matching `src/tools.ts`. Workspace assertions show `moldea/moldea.yaml` is the only changed path, and deterministic inspection and validation both return `valid`."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains runtimeAgent `/src/agent.ts#supportAgent`, instructionLoader `/src/agent.ts#loadSupportInstruction`, registration `/src/tools.ts#lookupOrderTool`, inputSchema `/src/contracts.ts#LookupOrderInputSchema`, and implementation `/src/implementations.ts#lookupOrder`. Source confirms the agent loads the canonical instruction and passes `[lookupOrderTool]`, whose `input_schema` is `LookupOrderInputSchema`; workspace hashes show all source and instruction files unchanged, while deterministic validation reports complete evidence, no failures, and a passing typecheck."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

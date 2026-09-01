@@ -1,0 +1,72 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index ca097e3..7332716 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -5,13 +5,22 @@ agents:
+       id: langchain
+     bindings:
+       runtimeAgent:
+-        path: /src/support-agent.ts
+-        symbol: supportAgent
++        path: /src/support-assistant.ts
++        symbol: supportAssistant
+       instructionLoader:
+-        path: /src/support-agent.ts
++        path: /src/support-assistant.ts
+         symbol: loadSupportInstruction
+       outputSchema:
+-        path: /src/support-agent.ts
++        path: /src/support-assistant.ts
+         symbol: SupportOutputSchema
+     affectedBy:
+       - /src/**
++    unresolved:
++      dynamic-tool-registry-wiring:
++        category: capability-registration
++        effect: warning
++        description: Static inspection cannot establish whether the tools returned by assembleTools are supplied to the support runtime agent.
++        resolution: Add closed runtime wiring or an integration test that proves whether assembleTools output is passed to supportAssistant, then register any established model-visible tools and their implementation or registration bindings.
++        related:
++          - path: /src/dynamic-tools.ts
++            symbol: assembleTools
+diff --git a/src/support-agent.ts b/src/support-agent.ts
+deleted file mode 100644
+index 04f0cf4..0000000
+--- a/src/support-agent.ts
++++ /dev/null
+@@ -1 +0,0 @@
+-export const supportAgent = { removed: true } as const;
+
+diff --git a/src/dynamic-tools.ts b/src/dynamic-tools.ts
+new file mode 100644
+index 0000000..db9e8a9
+--- /dev/null
++++ b/src/dynamic-tools.ts
+@@ -0,0 +1,5 @@
++import type { StructuredToolInterface } from '@langchain/core/tools';
++
++export const assembleTools = (
++  registries: readonly (readonly StructuredToolInterface[])[],
++): readonly StructuredToolInterface[] => registries.flat();
+
+diff --git a/src/support-assistant.ts b/src/support-assistant.ts
+new file mode 100644
+index 0000000..b7a0a3c
+--- /dev/null
++++ b/src/support-assistant.ts
+@@ -0,0 +1,15 @@
++import { readFile } from 'node:fs/promises';
++
++import { createAgent, providerStrategy } from 'langchain';
++import { z } from 'zod';
++
++export const SupportOutputSchema = z.object({ answer: z.string() });
++export const loadSupportInstruction = async (): Promise<string> =>
++  readFile(new URL('../moldea/agents/support/instruction.md', import.meta.url), 'utf8');
++
++export const supportAssistant = createAgent({
++  model: 'openai:gpt-4o',
++  name: 'support-runtime',
++  systemPrompt: await loadSupportInstruction(),
++  responseFormat: providerStrategy(SupportOutputSchema),
++});

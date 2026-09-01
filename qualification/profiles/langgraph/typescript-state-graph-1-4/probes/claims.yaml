@@ -1,0 +1,266 @@
+version: 2
+adapterId: langgraph
+implementationId: typescript-state-graph-1-4
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The exact published adapter and StateGraph runtime composition exercises the compatible Core range through aligned and newly registered graphs.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: Closed supported graphs need no redundant guide, while the boundary case records repository-specific state, routing, persistence, and control limits explicitly.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-state-graph-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes all universal journeys and two StateGraph-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-langgraph-state-schema,
+        preserve-langgraph-state-graph-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare the exact published npm runtime packages and inspect project-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Supported StateGraph sources are strict TypeScript ESM and typecheck with the exact project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: target-primary-package
+    kind: compatibility
+    matrixPath: target.package.npm.@langchain/langgraph.primary.>=1.4.12 <1.5.0
+    description: Every fixture pins and installs the verified LangGraph package before offline project preparation.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        create-grounded-agent,
+        preserve-langgraph-state-graph-static-boundary,
+      ]
+  - id: target-companion-package
+    kind: compatibility
+    matrixPath: target.package.npm.@langchain/core.companion.>=1.2.9 <1.3.0
+    description: Every fixture pins the compatible LangChain Core companion required by the selected runtime.
+    coveredBy: [evaluate-aligned-project, repair-langgraph-state-schema]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Direct compiled graph symbols are bound explicitly, repaired after drift, and retained when subordinate behavior remains unresolved.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        reconcile-drift-and-boundaries,
+        preserve-langgraph-state-graph-static-boundary,
+      ]
+  - id: input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.input-schema
+    description: Direct immutable graph input schemas bind exact source symbols and a stale relationship is repaired from adapter diagnostics.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-langgraph-state-schema]
+  - id: output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.output-schema
+    description: Direct immutable graph output schemas bind exact source symbols when the constructor shape is closed.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-langgraph-state-schema]
+  - id: agent-definition-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.agent-definition
+    description: Directly exported compiled StateGraph definitions emit normalized agent-definition evidence without execution.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        create-grounded-agent,
+        preserve-langgraph-state-graph-static-boundary,
+      ]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct graph definitions emit TypeScript ESM language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct graph definitions emit supported primary and companion package evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-pattern-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-pattern
+    description: Supported direct node, edge, waiting-edge, and conditional-edge operations emit positive runtime-pattern evidence.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Closed modern graph initialization emits normalized input- and output-schema evidence according to relationship closure.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-langgraph-state-schema]
+  - id: direct-compiled-state-graph
+    kind: pattern
+    matrixPath: target.pattern.direct-compiled-state-graph
+    description: A directly exported const compiled from a supported package-root StateGraph builder is recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: inline-state-graph-builder
+    kind: pattern
+    matrixPath: target.pattern.inline-state-graph-builder
+    description: The created order-triage graph uses one supported inline fluent builder ending in compile.
+    coveredBy: [create-grounded-agent]
+  - id: single-owner-state-graph-builder
+    kind: pattern
+    matrixPath: target.pattern.single-owner-state-graph-builder
+    description: The aligned support graph uses one module-local builder with deterministic top-level ownership and one compile call.
+    coveredBy: [evaluate-aligned-project]
+  - id: graph-input-output-schemas
+    kind: pattern
+    matrixPath: target.pattern.graph-input-output-schemas
+    description: Direct immutable state, input, and output schema values establish exact canonical relationships.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-langgraph-state-schema]
+  - id: direct-node-registration
+    kind: pattern
+    matrixPath: target.pattern.direct-node-registration
+    description: Direct named addNode calls emit positive node patterns for supported local actions.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-edge-registration
+    kind: pattern
+    matrixPath: target.pattern.direct-edge-registration
+    description: Direct and waiting addEdge calls emit positive edge patterns without claiming full topology.
+    coveredBy: [evaluate-aligned-project]
+  - id: conditional-edge-registration
+    kind: pattern
+    matrixPath: target.pattern.conditional-edge-registration
+    description: A direct conditional edge emits control-flow evidence without inferring destinations or handoffs.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-state-graph-static-boundary]
+  - id: compile-runtime-name
+    kind: pattern
+    matrixPath: target.pattern.compile-runtime-name
+    description: Static compile names establish evidence-safe runtime identities for canonical graph definitions.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: compile-description-routing
+    kind: pattern
+    matrixPath: target.pattern.compile-description-routing
+    description: Compiled descriptions remain outside canonical routing without a supported supervisor registration.
+    coveredBy: [preserve-langgraph-state-graph-static-boundary]
+  - id: dynamic-command-and-send-routing
+    kind: pattern
+    matrixPath: target.pattern.dynamic-command-and-send-routing
+    description: Command, Send, parent navigation, and runtime-generated destinations remain explicit unresolved boundaries.
+    coveredBy: [reconcile-drift-and-boundaries, preserve-langgraph-state-graph-static-boundary]
+  - id: graph-node-capabilities
+    kind: pattern
+    matrixPath: target.pattern.graph-node-capabilities
+    description: Graph nodes and node-local behavior remain runtime patterns rather than manifest tools, skills, subagents, or handoffs.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-state-graph-static-boundary]
+  - id: prebuilt-and-supervisor-agents
+    kind: pattern
+    matrixPath: target.pattern.prebuilt-and-supervisor-agents
+    description: Prebuilt agents, ToolNode, Deep Agents, and supervisor composition remain outside the direct StateGraph target.
+    coveredBy: [preserve-langgraph-state-graph-static-boundary]
+  - id: typescript-esm-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.20c98b6726812c72
+    description: Supported cases use exact TypeScript ESM files and documented direct relative imports.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-export-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.47f25a816dc23456
+    description: Canonical runtime bindings use directly exported compiled graphs with inline or single-owner builders.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: constructor-classification-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.be217f917ac6f77c
+    description: The boundary case preserves only target-viable constructor forms and records opaque or excluded initializers conservatively.
+    coveredBy: [preserve-langgraph-state-graph-static-boundary]
+  - id: schema-classification-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.d68ede1b7e6a143e
+    description: Closed direct immutable schema values bind canonically while opaque and raw-map schema meanings remain unresolved.
+    coveredBy: [repair-langgraph-state-schema, preserve-langgraph-state-graph-static-boundary]
+  - id: node-collection-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.d0f62050ef9a9b1c
+    description: Object-map, tuple-array, and addSequence collections remain outside positive node and edge expansion.
+    coveredBy: [preserve-langgraph-state-graph-static-boundary]
+  - id: aggregate-use-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.039fe8cdac46bc81
+    description: The boundary case avoids inferring escaped or mutated aggregate bindings.
+    coveredBy: [preserve-langgraph-state-graph-static-boundary]
+  - id: node-identity-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.ebcbcec13816ad5b
+    description: Reserved, separator-bearing, and unsupported node forms remain outside positive node evidence.
+    coveredBy: [preserve-langgraph-state-graph-static-boundary]
+  - id: edge-endpoint-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.859d5d4896b831cd
+    description: Separator-bearing and otherwise excluded endpoints remain outside positive edge evidence.
+    coveredBy: [preserve-langgraph-state-graph-static-boundary]
+  - id: conditional-router-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.5613764675a21b84
+    description: Conditional routing evidence stays limited to supported direct router forms without destination inference.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-state-graph-static-boundary]
+  - id: excluded-runnable-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.da9ec52b75052447
+    description: Mutable, aliased, re-exported, computed, optional, and structurally open runnable forms remain unverified.
+    coveredBy: [preserve-langgraph-state-graph-static-boundary]
+  - id: runtime-semantics-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.aea1c0a66974d3bf
+    description: Node metadata, reducers, subgraphs, persistence, stores, caches, transforms, destinations, and runtime context remain explicit runtime guidance.
+    coveredBy: [preserve-langgraph-state-graph-static-boundary]
+  - id: arity-and-role-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.7615962263bc96b5
+    description: Fixtures use supported call arities and preserve excluded operation roles as unresolved rather than optimistic evidence.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-state-graph-static-boundary]
+  - id: safe-runtime-name-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.6cad56b0c1a88b49
+    description: Static compile names stay within the evidence-safe runtime identity grammar.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: partial-topology-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.1dd1a9da62033182
+    description: Positive runtime patterns are reported without claiming a complete, reachable, or executable topology.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-state-graph-static-boundary]
+  - id: edge-sentinel-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.5964082f704f3005
+    description: Direct and waiting edges use role-valid sentinels and avoid interpreting excluded endpoint pairs.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-state-graph-static-boundary]
+  - id: dynamic-routing-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.d22bda93fd776fe2
+    description: Command, Send, router-body destinations, and other dynamic routing remain unresolved.
+    coveredBy: [reconcile-drift-and-boundaries, preserve-langgraph-state-graph-static-boundary]
+  - id: node-capability-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.6540c5d04b9dea39
+    description: Nodes do not become manifest tools, skills, subagents, or handoffs from graph position.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-state-graph-static-boundary]
+  - id: compile-description-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.6d6acdedd0b2d228
+    description: Compiled graph descriptions remain outside routing validation without a supported supervisor registration.
+    coveredBy: [preserve-langgraph-state-graph-static-boundary]
+  - id: installed-version-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.f0d470d8093d63ba
+    description: Qualification independently pins and verifies runtime tarballs because adapter inspection reads manifests rather than lockfiles or node_modules.
+    coveredBy: [evaluate-aligned-project]

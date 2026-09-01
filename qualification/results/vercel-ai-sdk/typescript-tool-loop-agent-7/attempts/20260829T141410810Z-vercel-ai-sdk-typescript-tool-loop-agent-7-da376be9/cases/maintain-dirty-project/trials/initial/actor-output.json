@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to `classifyBillingQuestion`, and connected it to the runtime-loaded `support` instruction. TypeScript compilation and Moldea validation/inspection pass with no diagnostics. The complete tracked diff and new context file were inspected.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The direct Vercel AI SDK ToolLoopAgent definition, instruction loader, call-options input schema, and structured output remain unchanged.",
+    "Billing guidance conservatively reflects implementation: lowercase `refund` selects `refund-review`; other billing input selects `invoice-question`; no refund or invoice mutation is claimed.",
+    "Pre-existing src/operator-notes.ts and notes/local-observation.md developer work remains untouched.",
+    "No provider, agent, model, subagent, or network access was used.",
+    "Live model behavior was not exercised due the execution rules; static loader wiring and valid Moldea adapter evidence establish instruction consumption."
+  ],
+  "unresolved": []
+}

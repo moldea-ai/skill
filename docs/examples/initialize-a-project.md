@@ -12,14 +12,14 @@ order: 120
 
 **Developer**
 
-> Initialize `moldea` for this repository.
+> `Initialize moldea`
 
 **Coding agent**
 
 ```text
-I could not infer meaningful project context from the repository name, generic package metadata, or placeholder source file. I have not created speculative canonical project truth or claimed initialization is complete.
+`moldea` keeps durable project context in the repository so coding agents can understand the project consistently over time. The README and source do not establish what this project is for, so I haven’t initialized it yet.
 
-What does this project do, and who or what is it intended to serve?
+What does the project do, and who or what does it serve?
 ```
 
 Initialization resumes after the developer answers.
@@ -41,7 +41,7 @@ The supported inference remains separate from the unresolved boundary until the 
 **Developer**
 
 ```text
-Initialize moldea for this repository. I’ve made my current product brief available as product-brief.md. Use it as supporting context and preserve only durable, relevant facts.
+Initialize moldea. I’ve made my current product brief available as product-brief.md. Use it as supporting context and preserve only durable, relevant facts.
 ```
 
 **Coding agent**
@@ -70,7 +70,7 @@ Next actions:
 
 ## Coding agent and `moldea` under the hood
 
-1. The explicit initialization request establishes adoption intent.
+1. The exact `Initialize moldea` request establishes adoption intent.
 2. The coding agent verifies local tooling and runs initial `inspect --json`; a missing-project diagnostic is expected evidence.
 3. It begins with the root README and other high-information project surfaces.
 4. It distinguishes durable foundational truth from temporary, speculative, or easily rediscovered details and determines whether the foundation is insufficient, partial, or sufficient.
@@ -88,3 +88,5 @@ moldea/
 ```
 
 No empty agent, context, decision, runtime, or requirements directories are created.
+
+Partial or inconsistent `moldea` artifacts do not create a separate status. Until the complete foundation and owned README awareness block are established, the project is unadopted. The coding agent reports the exact existing artifacts and missing contract elements, preserves valid content, and waits for explicit authority and any needed clarification before repairing them.

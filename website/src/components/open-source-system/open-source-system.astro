@@ -1,0 +1,137 @@
+---
+import {
+  Blocks,
+  Braces,
+  FileCheck,
+  FolderGit2,
+  Network,
+  SearchCheck,
+  type Icon,
+} from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import { withBase } from '@moldea.ai/website-ui/site';
+
+import { EVIDENCE_ROUTE, PACKAGES_WEBSITE_URL } from '../../lib/model/constants.ts';
+
+const systemLayers = [
+  {
+    description:
+      'Defines canonical Git-owned project and agent state plus explicit relationships instead of a bespoke prompt-folder convention.',
+    icon: FolderGit2,
+    label: 'Format',
+    title: 'Repository Format',
+  },
+  {
+    description:
+      'Gives coding agents the activation, authority, evidence, planning, maintenance, evaluation, and reconciliation workflow.',
+    icon: Blocks,
+    label: 'Skill',
+    title: 'Agent Skill',
+  },
+  {
+    description:
+      'Parse, index, validate, check composition, and return machine-readable diagnostics through an exact local toolchain.',
+    icon: Braces,
+    label: 'CLI · Core',
+    title: 'Deterministic contracts',
+  },
+  {
+    description:
+      'Provide bounded, coherent repository evidence instead of ad hoc filesystem and Git ingestion.',
+    icon: FileCheck,
+    label: 'Repository',
+    title: 'Coherent source evidence',
+  },
+  {
+    description:
+      'Mechanically inspect declared relationships against supported integration patterns without guessing unsupported wiring.',
+    icon: Network,
+    label: 'Adapters',
+    title: 'Runtime-specific evidence',
+  },
+  {
+    description:
+      'Publish transparent behavioral and adapter proof, including failed and incomplete attempts, before a release ships.',
+    icon: SearchCheck,
+    label: 'Evidence',
+    title: 'Evaluation and qualification',
+  },
+] satisfies Array<{
+  description: string;
+  icon: typeof Icon;
+  label: string;
+  title: string;
+}>;
+const basePath = import.meta.env.BASE_URL;
+---
+
+<section
+  class="border-b border-border bg-background py-section-gap"
+  aria-labelledby="open-source-system-title"
+  data-open-source-system
+>
+  <div class="page-shell">
+    <header class="mb-12 grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+      <div>
+        <p class="eyebrow mb-4">
+          What <span class="normal-case"><InlineBrandText text="moldea" /></span> replaces
+        </p>
+        <h2
+          id="open-source-system-title"
+          class="section-title max-w-4xl font-semibold"
+        >
+          The alternative is building this infrastructure yourself.
+        </h2>
+        <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+          Every layer can be built internally. <InlineBrandText
+            text="moldea lets your team reuse and extend one open system instead of repeatedly inventing the format, methodology, validation, runtime evidence, and release discipline around it."
+          />
+        </p>
+      </div>
+      <div class="flex flex-wrap items-center gap-3 lg:justify-end">
+        <ActionLink
+          class="font-bold"
+          href={PACKAGES_WEBSITE_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="link"
+        >
+          Explore packages
+        </ActionLink>
+        <ActionLink
+          class="font-bold"
+          href={withBase(EVIDENCE_ROUTE, basePath)}
+          variant="link"
+        >
+          Review release evidence
+        </ActionLink>
+      </div>
+    </header>
+
+    <ol class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {
+        systemLayers.map(({ description, icon: LayerIcon, label, title }, index) => (
+          <li class="surface-card min-w-0 p-6">
+            <div class="mb-8 flex items-center justify-between gap-4">
+              <span class="inline-flex size-10 items-center justify-center rounded-xl bg-muted">
+                <LayerIcon
+                  class="size-5"
+                  aria-hidden="true"
+                />
+              </span>
+              <div class="flex items-center gap-3">
+                <span class="rounded-full border bg-muted px-2.5 py-1 font-mono text-xs font-bold">
+                  {label}
+                </span>
+                <span class="font-mono text-xs font-bold text-muted-foreground">0{index + 1}</span>
+              </div>
+            </div>
+            <h3 class="text-xl font-semibold tracking-tight">{title}</h3>
+            <p class="mt-3 text-sm leading-6 text-muted-foreground">{description}</p>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+</section>

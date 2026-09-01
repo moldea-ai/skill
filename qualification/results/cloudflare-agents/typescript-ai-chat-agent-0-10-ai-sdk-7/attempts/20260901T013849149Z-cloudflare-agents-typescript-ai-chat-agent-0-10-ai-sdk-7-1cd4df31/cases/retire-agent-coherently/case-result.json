@@ -1,0 +1,66 @@
+{
+  "caseId": "retire-agent-coherently",
+  "title": "Retire an agent coherently",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 41067,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 41067,
+      "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 752516,
+        "cachedInputTokens": 694272,
+        "outputTokens": 4438
+      },
+      "judgeUsage": {
+        "inputTokens": 608196,
+        "cachedInputTokens": 532736,
+        "outputTokens": 4359
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T22:16:12.684Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T22:18:55.133Z",
+      "actorCacheSourceAttemptId": "20260830T213510339Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-b8c52d92",
+      "judgeCacheSourceAttemptId": "20260830T213510339Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-b8c52d92",
+      "requirementAssessments": [
+        {
+          "id": "removes-obsolete-declaration",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current `moldea/moldea.yaml` contains only `version: 1`, so it declares no agent, Cloudflare AIChatAgent definition, instruction loader, runtime binding, or output-schema binding. The expected canonical files under `moldea/agents/support/` are absent, and targeted searches found no `SupportAgent`, `loadSupportInstruction`, `AIChatAgent`, loader, schema, or runtime-agent references. Workspace-patch evidence records deletion of both support canonical assets and modification of the manifest. Deterministic post-actor evidence reports valid inspect/validate results, no failures, successful typecheck, and an unchanged repository during validation."
+        },
+        {
+          "id": "removes-orphaned-assets",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "preserves-surviving-context",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

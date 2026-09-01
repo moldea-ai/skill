@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The support agent setup is structurally valid and agrees with the implementation, so no files were edited. Repository-local Moldea inspection and validation both returned valid schema-2 envelopes with CLI 5.0.0 and no diagnostics; TypeScript compilation passed; the final Git diff was empty.",
+  "changedFiles": [],
+  "observations": [
+    "moldea/moldea.yaml registers support with the custom runtime, runtime guidance, and a runtimeAgent binding to /src/support-agent.ts#supportAgent.",
+    "moldea/runtimes/custom.md identifies supportAgent as the runtime-owned definition and says to preserve its identifier and channel.",
+    "src/support-agent.ts exports supportAgent with id 'support' and channel 'email', agreeing with the canonical agent ID and description.md's email-channel responsibility.",
+    "instruction.md begins with the support identity and provides scoped support and escalation guidance.",
+    "No pre-existing or task-created worktree changes were reported, and the final hardened Git diff was empty."
+  ],
+  "unresolved": [
+    "The custom runtime has no adapter evidence, model-invocation boundary, or instruction-loading path in the inspected source. Therefore runtime consumption of canonical instruction.md cannot be proven; resolving this would require inspectable runtime wiring or an integration test demonstrating instruction loading."
+  ]
+}

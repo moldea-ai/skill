@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent registration by changing the canonical tool name from `find_order` to the closed Cloudflare Think tools-map key `lookup_order`. Moldea inspection now reports `status: valid`, complete tool registration/implementation/input-schema/output-schema evidence, and no diagnostics. TypeScript validation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the direct SupportAgent definition, lookupOrderTool declaration, lookupOrder implementation, and both Zod schemas unchanged.",
+    "Final Git diff contains only the one-line canonical tool-name correction.",
+    "Validated with @moldea.ai/cli 5.0.0 (`inspect --json`, exit 0) and TypeScript (`tsc --noEmit`, exit 0).",
+    "The runner-mounted Moldea skill and qualification input remained unchanged."
+  ],
+  "unresolved": []
+}

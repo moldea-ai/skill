@@ -1,0 +1,59 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index b825518..dffc75b 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1 +1,34 @@
+ version: 1
++agents:
++  order-triage:
++    runtime:
++      id: vercel-ai-sdk
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: orderTriageAgent
++      inputSchema:
++        path: /src/order-triage-agent.ts
++        symbol: OrderTriageInputSchema
++      outputSchema:
++        path: /src/order-triage-agent.ts
++        symbol: OrderTriageOutputSchema
++      instructionLoader:
++        path: /src/order-triage-agent.ts
++        symbol: loadOrderTriageInstruction
++    tools:
++      classify-order:
++        name: classify_order
++        description: Classifies an order as fulfillment or refund-review for human review.
++        implementation:
++          path: /src/order-triage-agent.ts
++          symbol: classifyOrder
++        registration:
++          path: /src/order-triage-agent.ts
++          symbol: classifyOrderTool
++        inputSchema:
++          path: /src/order-triage-agent.ts
++          symbol: ClassifyOrderInputSchema
++        outputSchema:
++          path: /src/order-triage-agent.ts
++          symbol: ClassifyOrderOutputSchema
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..f76b302
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders as fulfillment or refund-review for human review; it cannot approve refunds.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..a2a4756
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,5 @@
++`order-triage`
++
++Classify each order for human review. Use `classify_order` with the order ID to determine whether its category is `fulfillment` or `refund-review`. Return the category and set `requiresHumanReview` to `true`.
++
++You cannot approve refunds. A `refund-review` classification only sends the order for human review.

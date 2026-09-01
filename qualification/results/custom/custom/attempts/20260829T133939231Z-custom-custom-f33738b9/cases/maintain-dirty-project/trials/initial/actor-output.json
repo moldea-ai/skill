@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to `/src/billing.ts#refundWindowDays`, registered it with the `support` agent, and instructed the agent to consult it for refund and invoice questions. Moldea inspection and validation returned valid schema-2 results with no diagnostics; TypeScript checking passed. Reviewed the complete tracked diff and the new untracked context file.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md"
+  ],
+  "observations": [
+    "The existing Custom runtime ID, guidance, runtime-agent binding, and implementation were preserved unchanged.",
+    "The pre-existing `src/operator-notes.ts` modification and untracked `notes/local-observation.md` were preserved exactly.",
+    "Invoice details unsupported by project evidence must be escalated rather than invented."
+  ],
+  "unresolved": [
+    "The Custom runtime produces no adapter evidence, so deterministic validation proves canonical registration and consistency but not invocation-time context consumption."
+  ]
+}

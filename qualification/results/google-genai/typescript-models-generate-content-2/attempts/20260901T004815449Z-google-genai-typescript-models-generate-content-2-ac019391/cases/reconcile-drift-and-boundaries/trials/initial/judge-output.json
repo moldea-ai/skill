@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current manifest, implementation, deterministic validation, and workspace patch evidence agree: direct bindings target the existing support-assistant exports, and the dynamic tool relationship is recorded as an agent-level warning without an invented tool binding. Only moldea/moldea.yaml changed.",
+  "requirements": [
+    {
+      "id": "repairs-direct-bindings",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts#supportAssistant and instructionLoader to /src/support-assistant.ts#loadSupportInstruction. src/support-assistant.ts exports both symbols and uses loadSupportInstruction for config.systemInstruction; src/support-agent.ts is absent. Deterministic inspection is valid, typechecking passed, and workspace assertions show only moldea/moldea.yaml changed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml records agents.support.unresolved.dynamic-tool-registry-relationship with effect: warning, explains that static evidence cannot establish whether assembleTools supplies supportAssistant, provides a concrete wiring-or-integration-test resolution, and relates /src/dynamic-tools.ts#assembleTools. No tool binding is declared; src/dynamic-tools.ts only defines the dynamic assembleTools function. Deterministic validation passed and the workspace patch changed only the manifest."
+    }
+  ],
+  "failures": []
+}

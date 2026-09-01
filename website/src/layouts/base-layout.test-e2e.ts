@@ -5,7 +5,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { parseSearchDocuments } from '@moldea.ai/website-ui/search';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { PACKAGES_WEBSITE_URL, SKILLS_DIRECTORY_URL } from '../lib/model/constants.ts';
+import { SKILLS_DIRECTORY_URL } from '../lib/model/constants.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
@@ -15,10 +15,16 @@ const REPRESENTATIVE_PATHS = [
   '/docs/capabilities/',
   '/docs/coding-agent-compatibility/',
   '/docs/how-it-works/',
+  '/docs/adapter-qualification/',
+  '/docs/repository-format/',
   '/docs/safety-and-privacy/',
   '/examples/',
   '/examples/create-a-support-agent/',
   '/examples/evaluate-and-reconcile/',
+  '/evidence/',
+  '/evidence/semantic/',
+  '/evidence/qualification/',
+  '/evidence/qualification/custom/custom/',
   '/search/',
 ] as const;
 const CODING_AGENT_MARKS = [
@@ -87,28 +93,9 @@ const getPublicContentPaths = async (page: Page): Promise<string[]> => {
 test('makes skills.sh the primary distribution path on desktop and mobile', async ({ page }) => {
   await page.goto(toPublicPath('/'));
 
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'You keep shipping. Agents stay grounded.' }),
-  ).toBeVisible();
-  const heroTitleLineTops = await page.locator('[data-hero-title]').evaluate((element) => {
-    const range = document.createRange();
-    range.selectNodeContents(element);
-
-    return [...range.getClientRects()].map(({ top }) => Math.round(top));
-  });
-  expect(new Set(heroTitleLineTops).size).toBe(2);
-
   const faviconLink = page.locator('link[rel="icon"]');
   await expect(faviconLink).toHaveAttribute('href', `${toPublicPath('/favicon.ico')}?v=a8cfe06f`);
   await expect(faviconLink).toHaveAttribute('type', 'image/x-icon');
-
-  const outcomeHeading = page.getByRole('heading', {
-    level: 2,
-    name: 'Outcomes, not moldea operations.',
-  });
-  const brandedProductName = outcomeHeading.locator('code');
-  await expect(brandedProductName).toHaveText('moldea');
-  await expect(brandedProductName).toHaveClass(/bg-code/);
 
   const primaryLink = page
     .getByRole('link', { name: 'Get moldea on skills.sh', exact: true })
@@ -139,15 +126,10 @@ test('presents project and Agent Skill design as first-class landing capabilitie
 }) => {
   await page.goto(toPublicPath('/'));
 
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute(
-    'content',
-    /reusable Agent Skills/,
-  );
-  await expect(page.locator('main > section').first()).toContainText('reusable Agent Skills');
   await expect(
     page.getByRole('heading', {
       level: 2,
-      name: 'One operating layer for agents and Agent Skills.',
+      name: 'One operating layer across the agent lifecycle.',
     }),
   ).toBeVisible();
 
@@ -192,6 +174,7 @@ test('shows compatible coding agents with source-owned marks and a complete docs
     name: 'Use the coding agent you already trust.',
   });
   await expect(compatibilitySection).toBeVisible();
+  await compatibilitySection.scrollIntoViewIfNeeded();
 
   const codingAgentMarks = compatibilitySection.locator('img');
   await expect(codingAgentMarks).toHaveCount(6);
@@ -285,37 +268,11 @@ test('renders source-owned coding agent marks clearly in both themes', async ({ 
   }
 });
 
-test('presents the package foundation and links to the packages website', async ({ page }) => {
-  await page.goto(toPublicPath('/'));
-
-  const packageFoundation = page.getByRole('region', {
-    name: 'More than instructions. A tested software foundation.',
-  });
-  await expect(packageFoundation).toBeVisible();
-  await expect(
-    packageFoundation.getByRole('heading', { name: 'Verified local execution' }),
-  ).toBeVisible();
-  await expect(
-    packageFoundation.getByRole('heading', { name: 'Deterministic contracts' }),
-  ).toBeVisible();
-  await expect(
-    packageFoundation.getByRole('heading', { name: 'Coherent source evidence' }),
-  ).toBeVisible();
-  await expect(
-    packageFoundation.getByRole('heading', { name: 'Runtime-specific evidence' }),
-  ).toBeVisible();
-
-  const packagesLink = packageFoundation.getByRole('link', { name: 'Explore moldea packages' });
-  await expect(packagesLink).toHaveAttribute('href', PACKAGES_WEBSITE_URL);
-  await expect(packagesLink).toHaveAttribute('target', '_blank');
-  await expect(packagesLink).toHaveAttribute('rel', 'noopener noreferrer');
-});
-
 test('uses the shared primary action interaction states across public surfaces', async ({
   browser,
 }) => {
   const routesWithExpectedActionCounts = [
-    ['/', 5],
+    ['/', 6],
     ['/404.html', 3],
     ['/search/', 3],
     ['/docs/getting-started/', 3],
@@ -420,6 +377,38 @@ test('keeps documentation samples and navigation readable at 320px', async ({ pa
     .getByText('Next', { exact: true })
     .locator('..');
   expect(await nextPageText.evaluate((element) => getComputedStyle(element).textAlign)).toBe('end');
+});
+
+test('presents Supported maturity as a consistent badge', async ({ page }) => {
+  await page.goto(toPublicPath('/docs/adapter-qualification/'));
+
+  const maturityBadges = page.locator('.prose-moldea [data-markdown-badge="supported"]');
+  await expect(maturityBadges).toHaveCount(2);
+
+  const eligibilityHeading = page.getByRole('heading', {
+    level: 2,
+    name: 'Supported maturity eligibility',
+  });
+  await expect(eligibilityHeading.locator('[data-markdown-badge="supported"]')).toHaveCount(0);
+
+  for (const maturityBadge of await maturityBadges.all()) {
+    await expect(maturityBadge).toHaveText('Supported');
+    await expect(maturityBadge).toBeVisible();
+  }
+
+  const styles = await maturityBadges.first().evaluate((element) => {
+    const computedStyles = getComputedStyle(element);
+
+    return {
+      borderRadius: computedStyles.borderRadius,
+      display: computedStyles.display,
+      textTransform: computedStyles.textTransform,
+    };
+  });
+
+  expect(Number.parseFloat(styles.borderRadius)).toBeGreaterThan(0);
+  expect(styles.display).toBe('inline-flex');
+  expect(styles.textTransform).toBe('uppercase');
 });
 
 test('keeps wrapped documentation tables flush with their scroll containers', async ({
@@ -573,6 +562,9 @@ test('marks the most specific current desktop and mobile navigation destinations
     await page.goto(toPublicPath('/docs/coding-agent-compatibility/'));
     await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Docs');
 
+    await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
+    await expect(primaryNavigation.locator('a[aria-current="page"]')).toHaveText('Evidence');
+
     const navigationMarker = await page.evaluate(() => {
       const marker = crypto.randomUUID();
       (window as Window & { __moldeaNavigationMarker?: string }).__moldeaNavigationMarker = marker;
@@ -621,6 +613,8 @@ test('marks the most specific current desktop and mobile navigation destinations
 });
 
 test('has no page-level horizontal overflow at 320px on every public route', async ({ page }) => {
+  test.slow();
+
   await page.setViewportSize({ height: 740, width: 320 });
   const paths = await getPublicContentPaths(page);
 
@@ -639,7 +633,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
   test(`keeps every public route accessible at 320px in ${colorScheme} mode`, async ({
     browser,
   }) => {
-    test.slow();
+    test.setTimeout(360_000);
 
     const context = await browser.newContext({
       colorScheme,
@@ -668,6 +662,8 @@ for (const colorScheme of ['light', 'dark'] as const) {
 test('keeps representative routes free of serious automated accessibility violations', async ({
   page,
 }) => {
+  test.slow();
+
   for (const path of REPRESENTATIVE_PATHS) {
     await page.goto(toPublicPath(path));
     const results = await new AxeBuilder({ page }).analyze();
@@ -680,6 +676,8 @@ test('keeps representative routes free of serious automated accessibility violat
 });
 
 test('renders every reader-facing product mention as inline code', async ({ page }) => {
+  test.slow();
+
   await page.goto(toPublicPath('/'));
   const searchIndex: unknown = await page.evaluate(async (url) => {
     const response = await fetch(url);
@@ -707,7 +705,9 @@ test('renders every reader-facing product mention as inline code', async ({ page
         if (
           /\bmoldea\b/iu.test(text) &&
           parent &&
-          !parent.closest('code, script, style, noscript, [data-brand-plain]')
+          !parent.closest(
+            'code, script, style, noscript, [data-brand-plain], [aria-label="On this page"]',
+          )
         ) {
           matches.push(text.trim());
         }

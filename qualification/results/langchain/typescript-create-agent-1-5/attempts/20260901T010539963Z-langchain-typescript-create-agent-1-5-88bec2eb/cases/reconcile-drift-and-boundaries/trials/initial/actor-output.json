@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the adopted project's support agent bindings with the existing direct LangChain implementation. Canonical state changed only in moldea/moldea.yaml. Validation passed: moldea inspect reported valid with no diagnostics and detected all three bindings; moldea validate reported valid; TypeScript type-checking passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "runtimeAgent now binds /src/support-assistant.ts#supportAssistant.",
+    "instructionLoader now binds /src/support-assistant.ts#loadSupportInstruction.",
+    "outputSchema now binds /src/support-assistant.ts#SupportOutputSchema.",
+    "No implementation code or runner-mounted inputs were modified.",
+    "Pre-existing deletion of src/support-agent.ts and untracked src/support-assistant.ts and src/dynamic-tools.ts were preserved."
+  ],
+  "unresolved": [
+    "Agent-level warning dynamic-tool-registry-wiring records that static inspection cannot establish whether /src/dynamic-tools.ts#assembleTools output reaches supportAssistant. Resolution requires closed runtime wiring or an integration test proving the relationship, followed by registration of any established model-visible tools and bindings."
+  ]
+}

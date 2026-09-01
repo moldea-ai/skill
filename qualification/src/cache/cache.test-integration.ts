@@ -1,0 +1,248 @@
+// @vitest-environment node
+import { access, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import { afterEach, describe, expect, test } from 'vitest';
+
+import { ensureDirectory } from '../filesystem/index.ts';
+import {
+  calculateModelCacheKey,
+  readActorCache,
+  readJudgeCache,
+  writeActorCache,
+  writeJudgeCache,
+} from './cache.ts';
+
+const emptyCommandPolicy = {
+  completedCommandCount: 0,
+  credentialExposure: { status: 'not-observed', observedCount: 0 },
+  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+  sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+} as const;
+
+const pathExists = async (candidatePath: string): Promise<boolean> => {
+  try {
+    await access(candidatePath);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+describe('qualification model cache', () => {
+  let temporaryRoot: string | null = null;
+
+  afterEach(async () => {
+    if (temporaryRoot !== null) {
+      await rm(temporaryRoot, { force: true, recursive: true });
+    }
+  });
+
+  test('binds cache keys to exact structured inputs independent of object key order', () => {
+    const firstKey = calculateModelCacheKey({
+      role: 'actor',
+      executionEnvironment: { codexVersion: 'codex-cli 1', nodeVersion: 'v24.15.0' },
+    });
+    const reorderedKey = calculateModelCacheKey({
+      executionEnvironment: { nodeVersion: 'v24.15.0', codexVersion: 'codex-cli 1' },
+      role: 'actor',
+    });
+    const changedKey = calculateModelCacheKey({
+      role: 'actor',
+      executionEnvironment: { codexVersion: 'codex-cli 2', nodeVersion: 'v24.15.0' },
+    });
+
+    expect(reorderedKey).toBe(firstKey);
+    expect(changedKey).not.toBe(firstKey);
+  });
+
+  test('binds model cache keys to the exact trial identity', () => {
+    const initialKey = calculateModelCacheKey({
+      role: 'actor',
+      caseId: 'evaluate-project',
+      trialId: 'initial',
+    });
+    const confirmationKey = calculateModelCacheKey({
+      role: 'actor',
+      caseId: 'evaluate-project',
+      trialId: 'confirmation-1',
+    });
+
+    expect(confirmationKey).not.toBe(initialKey);
+  });
+
+  test('restores exact actor state and preserves immutable source provenance', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-cache-'));
+    const cacheRoot = path.join(temporaryRoot, 'cache');
+    const workspaceDirectory = path.join(temporaryRoot, 'workspace');
+    await ensureDirectory(path.join(workspaceDirectory, '.git'));
+    await ensureDirectory(path.join(workspaceDirectory, '.agents', 'skills', 'moldea'));
+    await ensureDirectory(path.join(workspaceDirectory, 'node_modules', 'candidate'));
+    await writeFile(path.join(workspaceDirectory, '.git', 'sentinel'), 'git-state\n', 'utf8');
+    await writeFile(
+      path.join(workspaceDirectory, '.agents', 'project-policy.md'),
+      'cached policy\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(workspaceDirectory, '.agents', 'skills', 'moldea', 'SKILL.md'),
+      'mounted skill\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(workspaceDirectory, 'node_modules', 'candidate', 'index.js'),
+      'candidate runtime\n',
+      'utf8',
+    );
+    await writeFile(path.join(workspaceDirectory, 'project.txt'), 'cached project\n', 'utf8');
+    const cacheKey = calculateModelCacheKey({ role: 'actor', input: 'stable' });
+
+    await writeActorCache({
+      cacheKey,
+      sourceAttemptId: 'source-attempt',
+      output: {
+        outcome: 'completed',
+        summary: 'Completed the cached task.',
+        changedFiles: ['project.txt'],
+        observations: ['The project is valid.'],
+        unresolved: [],
+      },
+      durationMs: 4,
+      commandPolicy: emptyCommandPolicy,
+      events:
+        '{"eventType":"command.completed","exitCode":0,"outputByteCount":0,"status":"completed"}\n',
+      usage: { inputTokens: 8, cachedInputTokens: 2, outputTokens: 4 },
+      workspaceDirectory,
+      cacheRoot,
+    });
+    await writeFile(path.join(workspaceDirectory, 'project.txt'), 'mutated\n', 'utf8');
+    await writeFile(
+      path.join(workspaceDirectory, '.agents', 'project-policy.md'),
+      'mutated policy\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(workspaceDirectory, '.agents', 'skills', 'moldea', 'SKILL.md'),
+      'current mounted skill\n',
+      'utf8',
+    );
+    await writeFile(
+      path.join(workspaceDirectory, 'node_modules', 'candidate', 'index.js'),
+      'current candidate runtime\n',
+      'utf8',
+    );
+    await writeFile(path.join(workspaceDirectory, 'unexpected.txt'), 'remove me\n', 'utf8');
+    const hit = await readActorCache(cacheKey, workspaceDirectory, cacheRoot);
+
+    expect(hit).toMatchObject({
+      metadata: {
+        cacheKey,
+        commandPolicy: emptyCommandPolicy,
+        role: 'actor',
+        sourceAttemptId: 'source-attempt',
+      },
+      output: { outcome: 'completed', changedFiles: ['project.txt'] },
+      events:
+        '{"eventType":"command.completed","exitCode":0,"outputByteCount":0,"status":"completed"}\n',
+    });
+    expect(await readFile(path.join(workspaceDirectory, 'project.txt'), 'utf8')).toBe(
+      'cached project\n',
+    );
+    expect(await pathExists(path.join(workspaceDirectory, 'unexpected.txt'))).toBe(false);
+    expect(await readFile(path.join(workspaceDirectory, '.git', 'sentinel'), 'utf8')).toBe(
+      'git-state\n',
+    );
+    expect(
+      await readFile(path.join(workspaceDirectory, '.agents', 'project-policy.md'), 'utf8'),
+    ).toBe('cached policy\n');
+    expect(
+      await readFile(
+        path.join(workspaceDirectory, '.agents', 'skills', 'moldea', 'SKILL.md'),
+        'utf8',
+      ),
+    ).toBe('current mounted skill\n');
+    expect(
+      await readFile(
+        path.join(workspaceDirectory, 'node_modules', 'candidate', 'index.js'),
+        'utf8',
+      ),
+    ).toBe('current candidate runtime\n');
+  });
+
+  test('rejects corrupted or partial actor entries before changing the live workspace', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-cache-'));
+    const cacheRoot = path.join(temporaryRoot, 'cache');
+    const workspaceDirectory = path.join(temporaryRoot, 'workspace');
+    const cacheKey = calculateModelCacheKey({ role: 'actor', input: 'corruption-check' });
+    await ensureDirectory(workspaceDirectory);
+    await writeFile(path.join(workspaceDirectory, 'project.txt'), 'cached project\n', 'utf8');
+    await writeActorCache({
+      cacheKey,
+      sourceAttemptId: 'source-attempt',
+      output: {
+        outcome: 'completed',
+        summary: 'Completed the cached task.',
+        changedFiles: ['project.txt'],
+        observations: [],
+        unresolved: [],
+      },
+      durationMs: 4,
+      commandPolicy: emptyCommandPolicy,
+      events:
+        '{"eventType":"command.completed","exitCode":0,"outputByteCount":0,"status":"completed"}\n',
+      usage: null,
+      workspaceDirectory,
+      cacheRoot,
+    });
+    await writeFile(path.join(workspaceDirectory, 'project.txt'), 'live project\n', 'utf8');
+    await writeFile(
+      path.join(cacheRoot, cacheKey, 'workspace', 'project.txt'),
+      'corrupted snapshot\n',
+      'utf8',
+    );
+
+    expect(await readActorCache(cacheKey, workspaceDirectory, cacheRoot)).toBeNull();
+    expect(await readFile(path.join(workspaceDirectory, 'project.txt'), 'utf8')).toBe(
+      'live project\n',
+    );
+
+    await rm(path.join(cacheRoot, cacheKey, 'metadata.json'));
+    expect(await readActorCache(cacheKey, workspaceDirectory, cacheRoot)).toBeNull();
+    expect(await readFile(path.join(workspaceDirectory, 'project.txt'), 'utf8')).toBe(
+      'live project\n',
+    );
+  });
+
+  test('round-trips a judge decision and rejects corrupted structured output', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-cache-'));
+    const cacheRoot = path.join(temporaryRoot, 'cache');
+    const cacheKey = calculateModelCacheKey({ role: 'judge', input: 'stable' });
+
+    await writeJudgeCache({
+      cacheKey,
+      sourceAttemptId: 'judge-source',
+      output: {
+        verdict: 'pass',
+        summary: 'Every declared requirement passed.',
+        requirements: [],
+        failures: [],
+      },
+      durationMs: 2,
+      commandPolicy: emptyCommandPolicy,
+      events: '',
+      usage: null,
+      cacheRoot,
+    });
+
+    expect(await readJudgeCache(cacheKey, cacheRoot)).toMatchObject({
+      metadata: { sourceAttemptId: 'judge-source', role: 'judge' },
+      output: { verdict: 'pass' },
+    });
+
+    await writeFile(path.join(cacheRoot, cacheKey, 'output.json'), '{}\n', 'utf8');
+    expect(await readJudgeCache(cacheKey, cacheRoot)).toBeNull();
+
+    await rm(path.join(cacheRoot, cacheKey, 'metadata.json'));
+    expect(await readJudgeCache(cacheKey, cacheRoot)).toBeNull();
+  });
+});

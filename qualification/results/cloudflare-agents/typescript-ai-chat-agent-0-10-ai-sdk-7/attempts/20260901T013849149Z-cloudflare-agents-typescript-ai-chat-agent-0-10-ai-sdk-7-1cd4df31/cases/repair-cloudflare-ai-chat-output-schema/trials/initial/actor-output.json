@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the adopted project’s support-agent output schema by changing only the canonical binding from LegacySupportOutputSchema to SupportOutputSchema. Complete moldea inspection and validation now report valid with zero diagnostics; TypeScript compilation also passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Initial moldea inspect (CLI 5.0.0, schema 2) reported CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED.",
+    "SupportAgent directly supplies SupportOutputSchema to Output.object in its streamText request.",
+    "Final moldea inspect and validate both returned status valid with no diagnostics.",
+    "Final inspection detects SupportOutputSchema as the agent-output schema while preserving the AIChatAgent, instruction loader, generation request, tool implementation and registration, and tool schemas.",
+    "The final Git diff contains exactly the one requested symbol replacement; TypeScript compilation completed successfully.",
+    "No provider, agent, model, subagent, or network access was used. Canonical state changed only at the stale output-schema binding."
+  ],
+  "unresolved": []
+}

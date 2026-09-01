@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the stale canonical `support` agent setup. Removed its manifest registration, runtime-agent and instruction-loader bindings, affected path, description, and instruction. Final Moldea inspection is valid with zero diagnostics and no registered agents; TypeScript validation passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "The project is Moldea-adopted: canonical foundation files and the README awareness block are intact.",
+    "The pre-existing deletion of `src/support-agent.ts` removed `SupportAgent`, `loadSupportInstruction`, and the direct Cloudflare Think implementation; it was preserved unchanged.",
+    "`src/project-state.ts` independently reports `activeAgents: 0`.",
+    "Before cleanup, Moldea inspection reported three diagnostics: the missing `/src/support-agent.ts` impact path and missing runtime-agent/instruction-loader references.",
+    "After cleanup, Moldea CLI 5.0.0 inspection returned schema 2, `status: valid`, an empty agent list, and zero diagnostics.",
+    "The final stale-reference scan found no remaining canonical or source claims for `SupportAgent`, `loadSupportInstruction`, `/src/support-agent.ts`, or a registered `support` agent.",
+    "The final Git diff contains the pre-existing `src/support-agent.ts` deletion and only the three intended canonical changes. Runner-mounted skill and qualification inputs remained untouched."
+  ],
+  "unresolved": []
+}

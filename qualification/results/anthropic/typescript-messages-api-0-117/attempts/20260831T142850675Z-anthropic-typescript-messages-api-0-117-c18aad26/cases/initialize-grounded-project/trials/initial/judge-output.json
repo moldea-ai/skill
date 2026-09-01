@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace and deterministic workspace patch agree: initialization added only moldea/moldea.yaml, moldea/project.md, and the standard README awareness block. The canonical context accurately reflects the README and source, while runner-owned inspection and validation are valid with no diagnostics.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md identifies invoice-anomaly review for an operator, reports the total difference, requires operator review when totals differ, and explicitly says the service does not approve payments or change invoices. This matches README.md and src/invoice-review.ts. The workspace patch limits relevant changes to README.md and the two canonical moldea files."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains only `version: 1`; moldea/project.md is the sole project context; README.md contains one correctly ordered standard awareness block. The bounded project inventory and deterministic changedPaths show no agent, runtime guide, decision, focused context, or unresolved requirement, and package.json/source/tsconfig hashes are unchanged."
+    }
+  ],
+  "failures": []
+}

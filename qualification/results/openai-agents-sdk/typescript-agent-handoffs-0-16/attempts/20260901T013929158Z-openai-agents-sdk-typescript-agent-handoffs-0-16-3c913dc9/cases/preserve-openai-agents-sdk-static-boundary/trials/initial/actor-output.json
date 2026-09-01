@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "The existing OpenAI static boundary is accurate and was left unchanged. Moldea inspection and validation both returned schema 2, CLI 5.0.0, status valid, with zero diagnostics; TypeScript checking passed. The final scoped Git diff and status were clean.",
+  "changedFiles": [],
+  "observations": [
+    "The adopted project directly binds `supportAgent` as the `support` Agent definition and `loadSupportInstruction` as its instruction loader.",
+    "Adapter evidence reports no function-tool, schema, routing, handoff, RealtimeAgent, or dynamic Agent-definition relationships for hosted web search, agent-as-tool delegation, transformed handoff text, RealtimeAgent, or indirect configuration.",
+    "For `dynamic-support`, the adapter establishes only language and runtime-package evidence. The canonical warning accurately records that indirect configuration prevents proof of an Agent definition or related relationships."
+  ],
+  "unresolved": [
+    "The `dynamic-support` Agent definition and relationships remain intentionally unproven until configuration uses a supported closed static pattern."
+  ]
+}

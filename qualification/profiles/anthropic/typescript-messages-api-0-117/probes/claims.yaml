@@ -1,0 +1,169 @@
+version: 2
+adapterId: anthropic
+implementationId: typescript-messages-api-0-117
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The exact published adapter and SDK composition exercises the compatible Core range through supported Messages API integrations.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: Cases distinguish direct supported integrations, which need no redundant guide, from unsupported indirection, which requires a focused project-local boundary.
+    coveredBy: [evaluate-aligned-project, preserve-anthropic-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes all universal journeys and two Anthropic-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-anthropic-tool-registration,
+        preserve-anthropic-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare the exact published npm SDK package and inspect package-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Supported Messages API sources are strict TypeScript ESM and typecheck with the exact project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: target-runtime-package
+    kind: compatibility
+    matrixPath: target.package.npm.@anthropic-ai/sdk.primary.>=0.117.1 <0.118.0
+    description: Every fixture pins and installs the verified Anthropic SDK before offline project preparation.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-anthropic-tool-registration,
+        preserve-anthropic-static-boundary,
+      ]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Direct Messages API wrappers are bound explicitly, repaired after drift, and omitted when unsupported request indirection cannot prove the runtime pattern.
+    coveredBy:
+      [evaluate-aligned-project, reconcile-drift-and-boundaries, preserve-anthropic-static-boundary]
+  - id: instruction-loader-binding
+    kind: binding-support
+    matrixPath: target.binding-support.instruction-loader
+    description: Direct instruction loaders are bound through the top-level system request property.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: tool-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-registration
+    description: Closed client-tool arrays are validated and repaired from a concrete name mismatch.
+    coveredBy: [evaluate-aligned-project, repair-anthropic-tool-registration]
+  - id: tool-input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-input-schema
+    description: Direct client-tool input-schema relationships remain visible through registered tools.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-anthropic-tool-registration]
+  - id: instruction-loader-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.instruction-loader
+    description: Aligned direct wrappers must emit instruction-loader evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct wrappers must emit TypeScript language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct wrappers must emit supported Anthropic SDK evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-pattern-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-pattern
+    description: Direct Messages API calls emit runtime-pattern evidence while dynamic request construction deliberately does not.
+    coveredBy: [evaluate-aligned-project, preserve-anthropic-static-boundary]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Direct client-tool input-schema bindings emit normalized schema evidence.
+    coveredBy: [evaluate-aligned-project, repair-anthropic-tool-registration]
+  - id: tool-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.tool-registration
+    description: Correct closed client-tool arrays emit tool-registration evidence after name reconciliation.
+    coveredBy: [evaluate-aligned-project, repair-anthropic-tool-registration]
+  - id: direct-messages-create
+    kind: pattern
+    matrixPath: target.pattern.direct-messages-create
+    description: A directly exported wrapper with a module-local Anthropic client and direct messages.create call is recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, maintain-dirty-project]
+  - id: direct-system-loader
+    kind: pattern
+    matrixPath: target.pattern.direct-system-loader
+    description: Direct loader calls remain lexically visible in the top-level system request property.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: closed-client-tool-array
+    kind: pattern
+    matrixPath: target.pattern.closed-client-tool-array
+    description: Client tools are registered through immutable closed arrays with exact declared names.
+    coveredBy: [evaluate-aligned-project, repair-anthropic-tool-registration]
+  - id: direct-tool-input-schema
+    kind: pattern
+    matrixPath: target.pattern.direct-tool-input-schema
+    description: Client-tool input schemas use direct source symbols through input_schema.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-anthropic-tool-registration]
+  - id: dynamic-request-construction
+    kind: pattern
+    matrixPath: target.pattern.dynamic-request-construction
+    description: An intermediate Messages request object produces no invented direct runtime-pattern relationship.
+    coveredBy: [preserve-anthropic-static-boundary]
+  - id: provider-server-tools
+    kind: pattern
+    matrixPath: target.pattern.provider-server-tools
+    description: An Anthropic provider tool remains explicitly unresolved and is not treated as a supported client tool.
+    coveredBy: [preserve-anthropic-static-boundary]
+  - id: client-tool-name
+    kind: provider-limit
+    matrixPath: target.provider-limit.client-tool-name
+    description: The repair case uses a valid client-tool name and requires exact agreement between runtime registration and canonical state.
+    coveredBy: [repair-anthropic-tool-registration]
+  - id: module-resolution-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.371e1f11760d978b
+    description: Supported cases use direct relative imports without compiler aliases, directory indexes, package exports, or re-export graphs.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: resource-helper-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.db0cd8d1001c6359
+    description: The profile uses direct messages.create calls and does not infer beta resources, stream helpers, parse helpers, or tool runners.
+    coveredBy: [evaluate-aligned-project, preserve-anthropic-static-boundary]
+  - id: input-schema-validation-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.2ef3928759b3c357
+    description: Qualification establishes direct input-schema wiring without claiming that the adapter validates schema contents.
+    coveredBy: [evaluate-aligned-project, repair-anthropic-tool-registration]
+  - id: initial-target-boundary
+    kind: known-limitation
+    matrixPath: target.known-limitation.d9c1f84f416cf0e7
+    description: The boundary case preserves unresolved dynamic requests and provider tools without inventing output-schema, runtime-variable, routing, or handoff relationships.
+    coveredBy: [preserve-anthropic-static-boundary]

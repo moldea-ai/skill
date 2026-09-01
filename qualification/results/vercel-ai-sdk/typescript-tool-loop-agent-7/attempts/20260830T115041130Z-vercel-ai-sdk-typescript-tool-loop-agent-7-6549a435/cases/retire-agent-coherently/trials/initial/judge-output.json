@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The repository consistently retires the support agent: the canonical manifest contains only `version: 1`, obsolete canonical assets and implementation are absent, workspace-patch evidence records their deletion and manifest update, and deterministic post-actor validation passed with zero agents and no diagnostics.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current workspace: `moldea/moldea.yaml` contains only `version: 1` and has no support, Vercel, runtime-agent, instruction-loader, input-schema, output-schema, or agent declaration. Expected paths `moldea/agents/support/description.md`, `moldea/agents/support/instruction.md`, and `src/support-agent.ts` are absent. Workspace assertions identify exactly the two canonical asset deletions and manifest modification, with the current manifest hash matching the asserted after-state. Deterministic post-actor evidence reports valid inspection, zero failures, passing typecheck, and an unchanged repository during validation."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,66 @@
+{
+  "caseId": "retire-agent-coherently",
+  "title": "Retire an agent coherently",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 345380,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 345380,
+      "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 878460,
+        "cachedInputTokens": 805376,
+        "outputTokens": 4971
+      },
+      "judgeUsage": {
+        "inputTokens": 411483,
+        "cachedInputTokens": 370176,
+        "outputTokens": 3179
+      },
+      "actorEvidenceCreatedAt": "2026-08-31T05:56:53.927Z",
+      "judgeEvidenceCreatedAt": "2026-08-31T05:59:12.035Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "removes-obsolete-declaration",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current `moldea/moldea.yaml` contains only `version: 1`, so it declares no `support` agent and no LangGraph runtime-agent, input-schema, or output-schema binding. The expected `src/support-graph.ts`, `moldea/agents/support/description.md`, and `moldea/agents/support/instruction.md` paths are absent. The current manifest SHA-256 matches the asserted after-state (`09bfcc6a...`), while workspace-patch evidence records the manifest change and deletion of both support canonical assets. Runner-owned post-actor inspection and validation are valid with no failures, and repository filesystem validation and TypeScript checking passed."
+        },
+        {
+          "id": "removes-orphaned-assets",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "preserves-surviving-context",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

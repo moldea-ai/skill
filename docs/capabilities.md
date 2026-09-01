@@ -56,15 +56,23 @@ The skill checks that declared behavior is supported by implementation and does 
 
 The coding agent first decides whether the behavior belongs in a skill, protected coding instructions, an agent instruction, a tool, deterministic software, or ordinary documentation. It does not create a parallel `/moldea/skills` store or treat a skill directory as proof that a runtime agent receives the skill.
 
-## Maintain context during ordinary development
+## Maintain context as understanding evolves
 
-Once a repository adopts `moldea`, an ordinary behavior-affecting change can activate continuous maintenance even when your request does not mention `moldea`.
+Once a repository adopts `moldea`, sharing potentially durable project knowledge or requesting a behavior-affecting change can activate continuous maintenance even when your request does not mention `moldea`.
 
-The coding agent traces the affected implementation, contracts, context, decisions, agents, Agent Skills, schemas, capabilities, variables, runtime guidance, mirrors, and unresolved requirements. It updates only representations whose truth actually changed. A correct outcome can be no `/moldea/**` edit.
+The coding agent classifies supplied knowledge by meaning rather than format, traces affected context and behavior, and updates only representations whose truth actually changed. Clear current truth and explicit corrections can be maintained. Proposed, transient, speculative, secret, or materially ambiguous information is omitted or clarified first. Each affected fact stays with its established authoritative owner, so ordinary maintenance does not create parallel current truth. A correct outcome can be no `/moldea/**` edit.
+
+If direct probes do not establish the complete canonical foundation and owned README awareness block, the project is unadopted. Partial or inconsistent artifacts do not create a separate status. The coding agent completes the authorized request, reports the precise gap, preserves existing content, and may recommend `Initialize moldea` as an optional way to give future coding agents durable Git-owned context.
+
+## Compress accumulated project context
+
+A natural request to consolidate, deduplicate, organize, clean up, or compress canonical context selects explicit compression within Maintain. The coding agent can consolidate proven duplicates into their established owner, split mixed-responsibility documents, remove proven superseded wording, and synchronize manifest relationships, references, consumers, and directly affected documentation.
+
+Compression preserves every distinct established fact, accepted rationale, relevant requirement, unresolved boundary, relationship, and consumer. Consequential conflicting claims stop the operation before writes and produce one focused question. This capability reorganizes repository-owned context only. It does not manage host context windows, conversation compaction, prompt caches, token budgets, or model internals, and it does not claim token savings.
 
 ## Evaluate alignment
 
-Evaluation is read-only. It combines deterministic inspection with proportional semantic analysis and reports:
+Evaluation is read-only. It first reports whether the project is adopted or unadopted, then combines deterministic inspection with proportional semantic analysis and reports:
 
 - deterministic diagnostics
 - confirmed semantic problems
@@ -72,7 +80,7 @@ Evaluation is read-only. It combines deterministic inspection with proportional 
 - relevant unresolved requirements
 - material evidence limitations
 
-Evaluation never repairs tooling, changes dependencies, or writes repository files.
+Evaluation never repairs tooling, changes dependencies, or writes repository files. These concrete findings remain separate, and project status is only adopted or unadopted.
 
 ## Reconcile drift
 

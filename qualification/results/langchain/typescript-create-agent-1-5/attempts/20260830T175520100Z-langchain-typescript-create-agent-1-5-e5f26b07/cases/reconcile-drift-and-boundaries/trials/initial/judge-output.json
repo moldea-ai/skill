@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, deterministic post-actor checks, and manifest patch agree: all three stale bindings now target the existing support-assistant exports, while uncertain dynamic tool wiring is recorded as an agent-level warning rather than a fabricated capability. No files were modified during judging.",
+  "requirements": [
+    {
+      "id": "repairs-direct-bindings",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts#supportAssistant, instructionLoader to /src/support-assistant.ts#loadSupportInstruction, and outputSchema to /src/support-assistant.ts#SupportOutputSchema. src/support-assistant.ts exports and directly uses all three symbols; src/support-agent.ts is absent. The Git diff shows precisely these binding replacements, and deterministic inspection, validation, and TypeScript type-checking all passed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "verdict": "pass",
+      "evidence": "The support agent's unresolved.dynamic-tool-registry-wiring entry has effect: warning, states that static inspection cannot establish whether assembleTools output reaches the runtime agent, gives a concrete resolution through closed wiring or an integration test followed by registration of established tools, and relates /src/dynamic-tools.ts#assembleTools. The source exports assembleTools, the Git diff adds only this unresolved boundary rather than a tool binding, and workspace assertions show implementation files were unchanged."
+    }
+  ],
+  "failures": []
+}

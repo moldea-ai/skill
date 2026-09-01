@@ -1,0 +1,31 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-08-31T06:13:39.091Z",
+  "durationMs": 179081,
+  "usage": {
+    "inputTokens": 555331,
+    "cachedInputTokens": 508416,
+    "outputTokens": 3144
+  },
+  "cacheKey": "57d890cf614b8ad2890e290b464b0d8da9093336edfe0227fa3da1aa8e9d6bdd",
+  "sourceAttemptId": "20260831T052309972Z-langgraph-typescript-state-graph-1-4-3b85f044",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 24,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    }
+  }
+}

@@ -1,0 +1,326 @@
+version: 2
+adapterId: eve
+implementationId: typescript-filesystem-agent-0-39
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The published adapter and exact Eve runtime composition exercise the compatible Core range.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: The boundary case records dynamic and unsupported Eve behavior outside static inspection.
+    coveredBy: [evaluate-aligned-project, preserve-eve-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes every universal journey and two Eve-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-eve-tool-registration,
+        preserve-eve-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures pin the published npm runtime and inspect project-owned filesystem sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Supported Eve modules are strict TypeScript ESM and typecheck with the exact project compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: eve-package
+    kind: compatibility
+    matrixPath: target.package.npm.eve.primary.>=0.39.1 <0.40.0
+    description: Every fixture pins the verified Eve package.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-eve-static-boundary]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Exact root and directory-backed local-subagent definitions remain bound to their filesystem slots.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, reconcile-drift-and-boundaries]
+  - id: output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.output-schema
+    description: Direct defineAgent output schemas bind exact repository-local symbols.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, reconcile-drift-and-boundaries]
+  - id: instruction-loader-binding
+    kind: binding-support
+    matrixPath: target.binding-support.instruction-loader
+    description: Exclusive Markdown and TypeScript instruction slots bind exact canonical loaders.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-eve-static-boundary]
+  - id: tool-implementation-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-implementation
+    description: Direct defineTool execution binds repository-local implementations without invocation.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-eve-tool-registration]
+  - id: tool-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-registration
+    description: Filesystem registration paths remain exact across direct and recursively nested tools.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-eve-tool-registration]
+  - id: tool-input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-input-schema
+    description: Direct defineTool input schemas bind exact repository-local symbols.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-eve-tool-registration]
+  - id: tool-output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-output-schema
+    description: Direct defineTool output schemas bind exact repository-local symbols.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-eve-tool-registration]
+  - id: skill-implementation-binding
+    kind: binding-support
+    matrixPath: target.binding-support.skill-implementation
+    description: TypeScript skill implementation paths bind their discovered filesystem artifacts.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: skill-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.skill-registration
+    description: Closed TypeScript defineSkill modules bind their direct default registrations.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: agent-definition-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.agent-definition
+    description: Supported root and local-subagent definitions emit normalized agent evidence.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: handoff-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.handoff-registration
+    description: A unique directory-backed local subagent with aligned routing text emits handoff evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: instruction-loader-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.instruction-loader
+    description: Exclusive supported instruction slots emit loader evidence.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-eve-static-boundary]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Supported direct definitions emit TypeScript language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Supported definitions emit exact Eve package-range evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Agent-output and tool schema bindings emit normalized schema evidence.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-eve-tool-registration]
+  - id: skill-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.skill-registration
+    description: Registration-eligible TypeScript skills emit normalized skill evidence.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: tool-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.tool-registration
+    description: Correct path-derived names emit tool evidence after canonical reconciliation.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-eve-tool-registration]
+  - id: nested-root-agent
+    kind: pattern
+    matrixPath: target.pattern.nested-root-agent
+    description: Exact package-relative agent/agent.ts definitions are exercised directly.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: flat-root-agent
+    kind: pattern
+    matrixPath: target.pattern.flat-root-agent
+    description: The untrusted-instruction case preserves a supported package-root agent.ts definition.
+    coveredBy: [resist-untrusted-repository-instructions]
+  - id: directory-local-subagent
+    kind: pattern
+    matrixPath: target.pattern.directory-local-subagent
+    description: The aligned project binds one unique immediate directory-backed subagent.
+    coveredBy: [evaluate-aligned-project]
+  - id: effective-routing-description
+    kind: pattern
+    matrixPath: target.pattern.effective-routing-description
+    description: Local-subagent routing text matches the canonical handoff description.
+    coveredBy: [evaluate-aligned-project]
+  - id: local-subagent-tool-namespace
+    kind: pattern
+    matrixPath: target.pattern.local-subagent-tool-namespace
+    description: The aligned subagent remains unique beside the prepared authored tool namespace.
+    coveredBy: [evaluate-aligned-project, preserve-eve-static-boundary]
+  - id: single-file-local-subagent
+    kind: pattern
+    matrixPath: target.pattern.single-file-local-subagent
+    description: The boundary case preserves a single-file candidate without claiming handoff evidence.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: remote-agents
+    kind: pattern
+    matrixPath: target.pattern.remote-agents
+    description: The boundary guidance keeps remote agents outside canonical relationships.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: exact-lowercase-markdown-instruction
+    kind: pattern
+    matrixPath: target.pattern.exact-lowercase-markdown-instruction
+    description: Exact instructions.md slots are bound for supported agents.
+    coveredBy: [evaluate-aligned-project, preserve-eve-static-boundary]
+  - id: exclusive-typescript-instruction-loader
+    kind: pattern
+    matrixPath: target.pattern.exclusive-typescript-instruction-loader
+    description: Exact-shape defineInstructions sources bind their direct loaders.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: case-varied-markdown-instruction
+    kind: pattern
+    matrixPath: target.pattern.case-varied-markdown-instruction
+    description: The boundary case leaves case-varied instruction candidates unclaimed.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: legacy-system-instruction
+    kind: pattern
+    matrixPath: target.pattern.legacy-system-instruction
+    description: The boundary guidance preserves deprecated system sources as unresolved.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: directory-instruction-composition
+    kind: pattern
+    matrixPath: target.pattern.directory-instruction-composition
+    description: Composed instruction directories remain outside complete positive evidence.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: recursive-filesystem-tool
+    kind: pattern
+    matrixPath: target.pattern.recursive-filesystem-tool
+    description: The repair case exercises an exact nested tools/orders/find.ts module.
+    coveredBy: [repair-eve-tool-registration]
+  - id: flattened-tool-runtime-name
+    kind: pattern
+    matrixPath: target.pattern.flattened-tool-runtime-name
+    description: Canonical repair follows Eve's orders-find flattened runtime identity.
+    coveredBy: [repair-eve-tool-registration]
+  - id: tool-runtime-name-collision
+    kind: pattern
+    matrixPath: target.pattern.tool-runtime-name-collision
+    description: Boundary guidance records flattened-name collisions without inventing a winner.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: connections-and-framework-tools
+    kind: pattern
+    matrixPath: target.pattern.connections-and-framework-tools
+    description: Provider, connection, framework, disabled, and Workflow tools remain outside canonical claims.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: typescript-skill
+    kind: pattern
+    matrixPath: target.pattern.typescript-skill
+    description: Closed static defineSkill modules are bound and evidenced.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: flat-markdown-skill
+    kind: pattern
+    matrixPath: target.pattern.flat-markdown-skill
+    description: A flat Markdown skill path remains implementation-only and unregistered.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: packaged-skill
+    kind: pattern
+    matrixPath: target.pattern.packaged-skill
+    description: A packaged Markdown skill path remains implementation-only and unregistered.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: dynamic-capabilities
+    kind: pattern
+    matrixPath: target.pattern.dynamic-capabilities
+    description: A dynamic tool definition remains unresolved instead of receiving static evidence.
+    coveredBy: [reconcile-drift-and-boundaries, preserve-eve-static-boundary]
+  - id: extension-contributions
+    kind: pattern
+    matrixPath: target.pattern.extension-contributions
+    description: Extension-mounted capabilities remain outside the canonical target.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: filesystem-slot-collisions
+    kind: pattern
+    matrixPath: target.pattern.filesystem-slot-collisions
+    description: Boundary guidance requires collision removal rather than optimistic selection.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: filesystem-tool-path-segment-pattern
+    kind: provider-limit
+    matrixPath: target.provider-limit.filesystem-tool-path-segment-pattern
+    description: Nested tool paths use valid Eve path segments and the boundary guide records the limit.
+    coveredBy: [repair-eve-tool-registration, preserve-eve-static-boundary]
+  - id: filesystem-tool-reserved-name
+    kind: provider-limit
+    matrixPath: target.provider-limit.filesystem-tool-reserved-name
+    description: The boundary guide keeps Eve's reserved Workflow identity unavailable to authored tools.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: closed-agent-definition-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.cf48ade6adfbc526
+    description: Positive fixtures use only model, description, and outputSchema; advanced options remain unresolved.
+    coveredBy: [evaluate-aligned-project, preserve-eve-static-boundary]
+  - id: exact-agent-slot-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.a64463c09d43c871
+    description: Only exact root and directory-backed subagent slots receive positive agent evidence.
+    coveredBy: [evaluate-aligned-project, preserve-eve-static-boundary]
+  - id: direct-module-resolution-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.0afa2510dd1335bc
+    description: Fixtures preserve exact imports and record wrappers and arbitrary resolution as unsupported.
+    coveredBy: [evaluate-aligned-project, preserve-eve-static-boundary]
+  - id: typescript-source-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.ca80194c60ee11ad
+    description: Positive authored modules use .ts while alternate extensions remain collision-only inputs.
+    coveredBy: [evaluate-aligned-project, preserve-eve-static-boundary]
+  - id: exclusive-instruction-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.b8751daf3c9c0128
+    description: Boundary guidance keeps composed, case-varied, legacy, and dynamic instructions unresolved.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: dynamic-tool-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.ddd9cbcf525e85ac
+    description: Static tools remain proved while dynamic and framework availability remains unresolved.
+    coveredBy: [repair-eve-tool-registration, preserve-eve-static-boundary]
+  - id: extension-namespace-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.9c57bc4c1f180ce7
+    description: Extension namespaces remain conservative and unregistered.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: semantic-description-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.d7c51f8e2e71ceb8
+    description: Semantic alignment of tool and skill descriptions remains judge-owned.
+    coveredBy: [create-grounded-agent, evaluate-aligned-project]
+  - id: tool-behavior-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.cadf75bc27fc3c7e
+    description: The profile binds tool identity and schemas without claiming approval or model-output behavior.
+    coveredBy: [evaluate-aligned-project, preserve-eve-static-boundary]
+  - id: skill-package-content-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.e30fbd02a488e97f
+    description: Positive TypeScript skills use closed string records; dynamic and byte content remains unresolved.
+    coveredBy: [create-grounded-agent, preserve-eve-static-boundary]
+  - id: schema-content-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.ee89f4235ac62f28
+    description: The profile proves schema bindings without claiming schema-content validation.
+    coveredBy: [evaluate-aligned-project, repair-eve-tool-registration]
+  - id: markdown-skill-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.51d4c14058c328e8
+    description: Markdown skill paths remain unregistered and are documented as runtime-dependent.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: runtime-surface-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.6e23821448d9e3cf
+    description: Dynamic and operational Eve surfaces remain outside canonical static relationships.
+    coveredBy: [preserve-eve-static-boundary]
+  - id: node-runtime-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.fe2e33838aefa597
+    description: Fixtures declare Eve's Node.js 24 application prerequisite without treating it as adapter evidence.
+    coveredBy: [evaluate-aligned-project]

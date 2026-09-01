@@ -1,0 +1,780 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 2704
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "instruction-loader",
+          "instruction-loader",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 15,
+        "agentCount": 2
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "instruction-loader",
+          "instruction-loader",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 15,
+        "agentCount": 2
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "summary",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "summaryAgent"
+                }
+              ],
+              "runtimeName": "summary-runtime",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "support-runtime",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "summary",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/agents.ts"
+                },
+                {
+                  "path": "/src/instructions.ts",
+                  "symbol": "loadSummaryInstruction"
+                }
+              ],
+              "runtimeName": "loadSummaryInstruction",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/agents.ts"
+                },
+                {
+                  "path": "/src/instructions.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "summary",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "summaryAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/agents.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "summary",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "7.0.77",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "7.0.77",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "summary",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "configurationProperty": "callOptionsSchema",
+                "schemaRole": "agent-input",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/agents.ts"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SummaryInputSchema"
+                }
+              ],
+              "runtimeName": "SummaryInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "summary",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/agents.ts"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SummaryOutputSchema"
+                }
+              ],
+              "runtimeName": "SummaryOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "configurationProperty": "callOptionsSchema",
+                "schemaRole": "agent-input",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/agents.ts"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportInputSchema"
+                }
+              ],
+              "runtimeName": "SupportInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output",
+                "targetId": "typescript-tool-loop-agent-7"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/agents.ts"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "find-order",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "inputSchema",
+                "schemaRole": "tool-input"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "FindOrderInputSchema"
+                },
+                {
+                  "path": "/src/tools.ts"
+                }
+              ],
+              "runtimeName": "FindOrderInputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "find-order",
+              "capabilityKind": "tool",
+              "details": {
+                "configurationProperty": "outputSchema",
+                "schemaRole": "tool-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "FindOrderOutputSchema"
+                },
+                {
+                  "path": "/src/tools.ts"
+                }
+              ],
+              "runtimeName": "FindOrderOutputSchema",
+              "source": "vercel-ai-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "find-order",
+              "capabilityKind": "tool",
+              "details": {
+                "targetId": "typescript-tool-loop-agent-7",
+                "toolType": "function"
+              },
+              "kind": "tool-registration",
+              "references": [
+                {
+                  "path": "/src/agents.ts"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "FindOrderInputSchema"
+                },
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "FindOrderOutputSchema"
+                },
+                {
+                  "path": "/src/implementations.ts",
+                  "symbol": "findOrder"
+                },
+                {
+                  "path": "/src/tools.ts",
+                  "symbol": "findOrderTool"
+                }
+              ],
+              "runtimeName": "find_order",
+              "source": "vercel-ai-sdk"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/**"
+                  ],
+                  "bindings": {
+                    "inputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "SummaryInputSchema"
+                    },
+                    "instructionLoader": {
+                      "path": "/src/instructions.ts",
+                      "symbol": "loadSummaryInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "SummaryOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/agents.ts",
+                      "symbol": "summaryAgent"
+                    }
+                  },
+                  "runtime": {
+                    "id": "vercel-ai-sdk"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Streams a concise summary of a customer support request.\n",
+                    "digest": "sha256:691597041e3bfbaac12f18a9194b44c9881767cabbc6a212b8d7961955d1c584",
+                    "path": "/moldea/agents/summary/description.md",
+                    "scalarLength": 57,
+                    "utf8ByteLength": 57
+                  },
+                  "scalarLength": 56,
+                  "value": "Streams a concise summary of a customer support request."
+                },
+                "handoffDescription": null,
+                "id": "summary",
+                "instruction": {
+                  "content": "# Summary agent\n\nYou are the `summary` agent. Summarize the request without adding facts that are not present.\n",
+                  "digest": "sha256:f52c42abf98299651f470d9535d955c59a1edb029cbb12980884354b6ae8263d",
+                  "path": "/moldea/agents/summary/instruction.md",
+                  "scalarLength": 111,
+                  "utf8ByteLength": 111
+                },
+                "mirrors": []
+              },
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/**"
+                  ],
+                  "bindings": {
+                    "inputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "SupportInputSchema"
+                    },
+                    "instructionLoader": {
+                      "path": "/src/instructions.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/agents.ts",
+                      "symbol": "supportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "id": "vercel-ai-sdk"
+                  },
+                  "tools": {
+                    "find-order": {
+                      "description": "Finds one order by identifier.",
+                      "implementation": {
+                        "path": "/src/implementations.ts",
+                        "symbol": "findOrder"
+                      },
+                      "inputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "FindOrderInputSchema"
+                      },
+                      "name": "find_order",
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "FindOrderOutputSchema"
+                      },
+                      "registration": {
+                        "path": "/src/tools.ts",
+                        "symbol": "findOrderTool"
+                      }
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Answers support requests and looks up orders when an order identifier is available.\n",
+                    "digest": "sha256:53ae7f61ec2efd17535480232f56c720e32d6239218dfe198d51cfc7b65f3f22",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 84,
+                    "utf8ByteLength": 84
+                  },
+                  "scalarLength": 83,
+                  "value": "Answers support requests and looks up orders when an order identifier is available."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer from available order evidence and escalate requests that cannot be verified.\n",
+                  "digest": "sha256:31ec265be4124fac1e491ee9a345b7e1cfead6dbd9768d98cfb98195c9038b80",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 130,
+                  "utf8ByteLength": 130
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: vercel-ai-sdk\n    bindings:\n      runtimeAgent:\n        path: /src/agents.ts\n        symbol: supportAgent\n      instructionLoader:\n        path: /src/instructions.ts\n        symbol: loadSupportInstruction\n      inputSchema:\n        path: /src/contracts.ts\n        symbol: SupportInputSchema\n      outputSchema:\n        path: /src/contracts.ts\n        symbol: SupportOutputSchema\n    tools:\n      find-order:\n        name: find_order\n        description: Finds one order by identifier.\n        implementation:\n          path: /src/implementations.ts\n          symbol: findOrder\n        registration:\n          path: /src/tools.ts\n          symbol: findOrderTool\n        inputSchema:\n          path: /src/contracts.ts\n          symbol: FindOrderInputSchema\n        outputSchema:\n          path: /src/contracts.ts\n          symbol: FindOrderOutputSchema\n    affectedBy:\n      - /src/**\n  summary:\n    runtime:\n      id: vercel-ai-sdk\n    bindings:\n      runtimeAgent:\n        path: /src/agents.ts\n        symbol: summaryAgent\n      instructionLoader:\n        path: /src/instructions.ts\n        symbol: loadSummaryInstruction\n      inputSchema:\n        path: /src/contracts.ts\n        symbol: SummaryInputSchema\n      outputSchema:\n        path: /src/contracts.ts\n        symbol: SummaryOutputSchema\n    affectedBy:\n      - /src/**\n",
+                "digest": "sha256:7434225daee0c23059f391982a23353a049b77f29b85a48c79b4a1fafbad0219",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 1381,
+                "utf8ByteLength": 1381
+              },
+              "value": {
+                "agents": {
+                  "summary": {
+                    "affectedBy": [
+                      "/src/**"
+                    ],
+                    "bindings": {
+                      "inputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SummaryInputSchema"
+                      },
+                      "instructionLoader": {
+                        "path": "/src/instructions.ts",
+                        "symbol": "loadSummaryInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SummaryOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/agents.ts",
+                        "symbol": "summaryAgent"
+                      }
+                    },
+                    "runtime": {
+                      "id": "vercel-ai-sdk"
+                    }
+                  },
+                  "support": {
+                    "affectedBy": [
+                      "/src/**"
+                    ],
+                    "bindings": {
+                      "inputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportInputSchema"
+                      },
+                      "instructionLoader": {
+                        "path": "/src/instructions.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/agents.ts",
+                        "symbol": "supportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "id": "vercel-ai-sdk"
+                    },
+                    "tools": {
+                      "find-order": {
+                        "description": "Finds one order by identifier.",
+                        "implementation": {
+                          "path": "/src/implementations.ts",
+                          "symbol": "findOrder"
+                        },
+                        "inputSchema": {
+                          "path": "/src/contracts.ts",
+                          "symbol": "FindOrderInputSchema"
+                        },
+                        "name": "find_order",
+                        "outputSchema": {
+                          "path": "/src/contracts.ts",
+                          "symbol": "FindOrderOutputSchema"
+                        },
+                        "registration": {
+                          "path": "/src/tools.ts",
+                          "symbol": "findOrderTool"
+                        }
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Support operations project\n\nThis project answers support questions, looks up orders, and summarizes requests through direct Vercel AI SDK `ToolLoopAgent` definitions.\n",
+              "digest": "sha256:df7f7951564fe4365c65ae1f7fbb3876c91e47f115d0d0c36cf4bf7e9acccbdb",
+              "path": "/moldea/project.md",
+              "scalarLength": 169,
+              "utf8ByteLength": 169
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

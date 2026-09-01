@@ -1,0 +1,73 @@
+{
+  "passed": true,
+  "failures": [],
+  "before": [
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b1ca2dc9625e48890d2c0855baff45a30d11e123bcaeb7736eed0a46452eac8c"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "ffabc4083a1ac956cd5663614429080e1d5ea8feca6a0dbf274aa4776d5cbcf9"
+    },
+    {
+      "path": "src/invoice-review.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "790a6b7ba5392654bf96da24b6a84801bb8c8076cb1d1f594ee2a6605d368380"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "7618798c77f948fc8b2a75fa7accecd8222ffc47e53ccd5461da03116901576a"
+    }
+  ],
+  "after": [
+    {
+      "path": "moldea/moldea.yaml",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "09bfcc6a14b83e2192b8673677725c84883ee9cd0c70e45c9ec09daa8f2b2847"
+    },
+    {
+      "path": "moldea/project.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b26d0dba866aace404ad60b4cb09d588af4c15597bad649acc020a03a3b0227c"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b1ca2dc9625e48890d2c0855baff45a30d11e123bcaeb7736eed0a46452eac8c"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "f6610088f296f3ec101f780782e0bef29a405cb8d5f02ef018deb458676ca4ac"
+    },
+    {
+      "path": "src/invoice-review.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "790a6b7ba5392654bf96da24b6a84801bb8c8076cb1d1f594ee2a6605d368380"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "7618798c77f948fc8b2a75fa7accecd8222ffc47e53ccd5461da03116901576a"
+    }
+  ],
+  "changedPaths": [
+    "moldea/moldea.yaml",
+    "moldea/project.md",
+    "README.md"
+  ]
+}

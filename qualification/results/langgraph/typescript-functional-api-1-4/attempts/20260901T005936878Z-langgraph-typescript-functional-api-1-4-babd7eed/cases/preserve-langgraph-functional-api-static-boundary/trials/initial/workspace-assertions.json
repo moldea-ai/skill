@@ -1,0 +1,162 @@
+{
+  "passed": true,
+  "failures": [],
+  "before": [
+    {
+      "path": "moldea/agents/dynamic-support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "c1f5d7eef2bc16a1d01c38e2a7950711ae9e604ad22c87ae120f50187bd5c4d0"
+    },
+    {
+      "path": "moldea/agents/dynamic-support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "039f1e0344f887cf7a39b550c2bf236b9d072017262603f98fdbde7e84bf1994"
+    },
+    {
+      "path": "moldea/agents/support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "f52d112690e28447502b802168ec333e5d5cc9ee5f3adc10d6e393c6ef5539cb"
+    },
+    {
+      "path": "moldea/agents/support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46"
+    },
+    {
+      "path": "moldea/moldea.yaml",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "3a7edaa6ac8702c42a115f0bd957e7ab44efd4fecb5ebd5a1e62cf2a6311b980"
+    },
+    {
+      "path": "moldea/project.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "5ca7c9762af50a64e49d1cac8cf01e99f47dee9c1961b943faad4dbf94d319ee"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "c39d051fd84a031e8267a0d6d7b82610a7a932354583f0b8daaca7126e899e62"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b4a0aa5fddb4d6b5f0b769bcbfaa48952fd0b8b9a309045121f1751694c4a2eb"
+    },
+    {
+      "path": "src/dynamic-support-workflow.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "cc76bee05d960cca70c8bd2c320f052f58866e56bc9c2a4d9cbf0c9bcc3ce8fd"
+    },
+    {
+      "path": "src/runtime-boundaries.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "971d85938c3535e657f582eab47553d18d28b85d7771d7917fa6404aa0d322b6"
+    },
+    {
+      "path": "src/support-workflow.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "84b7ee2ae530974c83c327e241717aa76c00ae91acffef999ed0e0e0ad6bcdda"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "db0f58d67938a74c706f519ce791f0125cff26fb63b2a5d300010eec24a6a3b2"
+    }
+  ],
+  "after": [
+    {
+      "path": "moldea/agents/dynamic-support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "c1f5d7eef2bc16a1d01c38e2a7950711ae9e604ad22c87ae120f50187bd5c4d0"
+    },
+    {
+      "path": "moldea/agents/dynamic-support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "039f1e0344f887cf7a39b550c2bf236b9d072017262603f98fdbde7e84bf1994"
+    },
+    {
+      "path": "moldea/agents/support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "f52d112690e28447502b802168ec333e5d5cc9ee5f3adc10d6e393c6ef5539cb"
+    },
+    {
+      "path": "moldea/agents/support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46"
+    },
+    {
+      "path": "moldea/moldea.yaml",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "acffdd09ad0ba34e59c1a3b0891697236903013cf6419e62831a810011cbe700"
+    },
+    {
+      "path": "moldea/project.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "5ca7c9762af50a64e49d1cac8cf01e99f47dee9c1961b943faad4dbf94d319ee"
+    },
+    {
+      "path": "moldea/runtimes/langgraph-functional-api.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "7efa9f72b5ef4438bd8030cb5bd2f05c53c732de93c0da2b25919160f2045edf"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "c39d051fd84a031e8267a0d6d7b82610a7a932354583f0b8daaca7126e899e62"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b4a0aa5fddb4d6b5f0b769bcbfaa48952fd0b8b9a309045121f1751694c4a2eb"
+    },
+    {
+      "path": "src/dynamic-support-workflow.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "cc76bee05d960cca70c8bd2c320f052f58866e56bc9c2a4d9cbf0c9bcc3ce8fd"
+    },
+    {
+      "path": "src/runtime-boundaries.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "971d85938c3535e657f582eab47553d18d28b85d7771d7917fa6404aa0d322b6"
+    },
+    {
+      "path": "src/support-workflow.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "84b7ee2ae530974c83c327e241717aa76c00ae91acffef999ed0e0e0ad6bcdda"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "db0f58d67938a74c706f519ce791f0125cff26fb63b2a5d300010eec24a6a3b2"
+    }
+  ],
+  "changedPaths": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/langgraph-functional-api.md"
+  ]
+}

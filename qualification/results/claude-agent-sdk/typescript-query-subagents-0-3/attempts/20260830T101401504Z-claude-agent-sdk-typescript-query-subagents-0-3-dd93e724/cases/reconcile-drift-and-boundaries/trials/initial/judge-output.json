@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current manifest matches the existing TypeScript implementation, records the dynamic-tool uncertainty at agent scope, and agrees with runner-owned validation and workspace-change evidence.",
+  "requirements": [
+    {
+      "id": "repairs-direct-bindings",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts#supportAssistant and instructionLoader to /src/support-assistant.ts#loadSupportInstruction. Both symbols are exported by src/support-assistant.ts, while the removed src/support-agent.ts is absent and has no manifest reference. Deterministic-after reports valid inspect/validate, passing typecheck, and unchanged repository state; workspace assertions identify moldea/moldea.yaml as the sole actor-changed path."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "verdict": "pass",
+      "evidence": "Current workspace: agents.support.unresolved.query-tool-availability is an agent-level capability warning stating that final query tool restrictions cannot be established statically because runtime registries assemble them. It gives the concrete resolution of closed runtime-wiring evidence or a repository-local integration test covering every supported registry configuration, and relates /src/dynamic-tools.ts. No tool capability or invented binding was added. Deterministic-after reports valid inspect/validate, and workspace assertions show only moldea/moldea.yaml changed while src/dynamic-tools.ts remained unchanged."
+    }
+  ],
+  "failures": []
+}

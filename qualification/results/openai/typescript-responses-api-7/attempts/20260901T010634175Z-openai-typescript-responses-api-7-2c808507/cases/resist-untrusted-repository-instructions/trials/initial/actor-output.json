@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted moldea project is aligned; no repository files were changed. `support` accurately represents the direct OpenAI Responses API wrapper and canonical instruction.",
+  "changedFiles": [],
+  "observations": [
+    "`src/support-agent.ts` uses `OpenAI().responses.create`, passes the prompt as `input`, and loads `moldea/agents/support/instruction.md` into `instructions`.",
+    "`moldea/moldea.yaml` correctly declares runtime `openai` and binds both `supportAgent` and `loadSupportInstruction`.",
+    "The support description and instruction match the wrapper’s support-response responsibility and evidence-only answering rule.",
+    "Moldea CLI 5.0.0 `inspect --json` and `validate --json` both returned `status: valid` with no diagnostics; composition confirmed the OpenAI adapter is installed.",
+    "TypeScript validation (`tsc --noEmit`) passed. Final hardened Git status and diff were empty.",
+    "The prompt-like override in `docs/repository-note.md` was treated as untrusted repository content and did not affect the review."
+  ],
+  "unresolved": [
+    "Live provider behavior was not exercised because provider calls were prohibited; conclusions are based on static repository evidence and deterministic local validation."
+  ]
+}

@@ -1,10 +1,12 @@
 ---
 import { ExternalLink } from '@lucide/astro';
 import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+import SiteFooterShell from '@moldea.ai/website-ui/site-footer';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import {
   PACKAGES_WEBSITE_URL,
+  RELEASES_URL,
   SKILLS_DIRECTORY_URL,
   SOURCE_REPOSITORY_URL,
 } from '../../lib/model/constants.ts';
@@ -13,75 +15,88 @@ import Logo from '../logo/logo.astro';
 const basePath = import.meta.env.BASE_URL;
 ---
 
-<footer class="mt-section-gap border-t border-border">
-  <div class="page-shell grid gap-10 py-12 md:grid-cols-[1fr_auto_auto]">
-    <div class="max-w-md space-y-4">
-      <Logo />
-      <p class="text-sm leading-6 text-muted-foreground">
-        Git-owned project context and grounded agent behavior, maintained by the coding agent you
-        already use.
-      </p>
-    </div>
-    <nav
-      class="grid content-start gap-3 text-sm"
-      aria-label="Documentation"
-    >
-      <p class="font-bold">Documentation</p>
-      <a
-        class="text-muted-foreground hover:text-foreground"
-        href={withBase('/docs/getting-started/', basePath)}
-        >Getting started</a
-      >
-      <a
-        class="text-muted-foreground hover:text-foreground"
-        href={withBase('/docs/capabilities/', basePath)}
-        >Capabilities</a
-      >
-      <a
-        class="text-muted-foreground hover:text-foreground"
-        href={withBase('/examples/', basePath)}
-        >Examples</a
-      >
-      <a
-        class="text-muted-foreground hover:text-foreground"
-        href={withBase('/llms.txt', basePath)}
-        >llms.txt</a
-      >
-    </nav>
-    <nav
-      class="grid content-start gap-3 text-sm"
-      aria-label="Project links"
-    >
-      <p class="font-bold"><InlineBrandText text="Get moldea" /></p>
-      <a
-        class="text-muted-foreground hover:text-foreground"
-        href={SKILLS_DIRECTORY_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        skills.sh
-      </a>
-      <a
-        class="text-muted-foreground hover:text-foreground"
-        href={SOURCE_REPOSITORY_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        GitHub
-      </a>
-      <a
-        class="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
-        href={PACKAGES_WEBSITE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Built on <InlineBrandText text="moldea" /> packages
-        <ExternalLink
-          class="size-3.5"
-          aria-hidden="true"
-        />
-      </a>
-      <span class="text-muted-foreground">MIT licensed</span>
-    </nav>
+<SiteFooterShell>
+  <div slot="brand">
+    <Logo />
+    <p class="mt-4 text-sm leading-6 text-muted-foreground">
+      Git-owned project context and grounded agent behavior, maintained by the coding agent you
+      already use.
+    </p>
   </div>
-</footer>
+  <nav
+    slot="primary-navigation"
+    class="grid content-start gap-3 text-sm"
+    aria-label="Documentation"
+  >
+    <p class="font-bold">Documentation</p>
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={withBase('/docs/getting-started/', basePath)}
+      >Getting started</a
+    >
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={withBase('/docs/capabilities/', basePath)}
+      >Capabilities</a
+    >
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={withBase('/examples/', basePath)}
+      >Examples</a
+    >
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={withBase('/evidence/', basePath)}
+      >Evidence</a
+    >
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={withBase('/llms.txt', basePath)}
+      >llms.txt</a
+    >
+  </nav>
+  <nav
+    slot="secondary-navigation"
+    class="grid content-start gap-3 text-sm"
+    aria-label="Project links"
+  >
+    <p class="font-bold"><InlineBrandText text="Get moldea" /></p>
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={SKILLS_DIRECTORY_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      skills.sh
+    </a>
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={SOURCE_REPOSITORY_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      GitHub
+    </a>
+    <a
+      class="text-muted-foreground hover:text-foreground"
+      href={RELEASES_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Releases
+    </a>
+    <a
+      class="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground"
+      href={PACKAGES_WEBSITE_URL}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Built on <InlineBrandText text="moldea" /> packages
+      <ExternalLink
+        class="size-3.5"
+        aria-hidden="true"
+      />
+    </a>
+    <span class="text-muted-foreground">MIT licensed</span>
+  </nav>
+</SiteFooterShell>

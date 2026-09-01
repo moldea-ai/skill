@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical manifest declares `orders-find`, matching the Eve runtime name derived from `/agent/tools/orders/find.ts`. Current file hashes match the runner-owned after-state; deterministic inspection and validation are valid with zero failures, and only `moldea/moldea.yaml` changed while all implementation and binding files remained unchanged.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the stale declaration `find_order` and explains that the nested Eve filesystem path derives runtime name `orders-find`. The workspace contains `/agent/tools/orders/find.ts`, the repaired manifest declares `name: orders-find`, and deterministic post-actor inspection reports valid status with no diagnostics."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` currently declares tool ID `find-order` with runtime `name: orders-find`. Workspace assertions identify only this manifest as changed, its current SHA-256 matches the asserted after-state, and deterministic inspection and validation both pass."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings for runtime agent `/agent/agent.ts#default`, Markdown instruction `/agent/instructions.md`, agent output schema `/agent/contracts.ts#SupportOutputSchema`, implementation `/agent/implementations.ts#findOrder`, filesystem registration `/agent/tools/orders/find.ts#default`, input schema `/agent/contracts.ts#FindOrderInputSchema`, and tool output schema `/agent/contracts.ts#FindOrderOutputSchema`. Targeted source reads confirm every path and symbol, their hashes match the unchanged before/after assertions, and deterministic inspection reports the repository and adapter evidence valid."
+    }
+  ],
+  "failures": []
+}

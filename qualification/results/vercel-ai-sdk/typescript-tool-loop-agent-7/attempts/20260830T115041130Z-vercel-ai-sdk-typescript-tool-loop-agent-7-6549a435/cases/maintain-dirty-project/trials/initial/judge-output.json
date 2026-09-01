@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "Repository state, deterministic validation, workspace assertions, and Git evidence agree. Billing guidance is canonical and connected to support and the exact billing classifier, while the Vercel AI SDK wiring remains byte-for-byte unchanged. Pre-existing dirty work was preserved.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` canonically documents refund and invoice classification matching `src/billing.ts`. `moldea/moldea.yaml` globally registers that context, binds it to `/src/billing.ts` symbol `classifyBillingQuestion`, and assigns it to `support`. The support instruction applies the guidance. Git diff and workspace assertions identify only the intended three changed paths, and deterministic inspection reports valid."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` still directly constructs `new ToolLoopAgent`, loads the canonical instruction through `loadSupportInstruction`, uses `callOptionsSchema: SupportInputSchema`, and uses `Output.object({ schema: SupportOutputSchema })`. Workspace assertions show its SHA-256 unchanged before and after. Deterministic inspection and TypeScript checking passed."
+    }
+  ],
+  "failures": []
+}

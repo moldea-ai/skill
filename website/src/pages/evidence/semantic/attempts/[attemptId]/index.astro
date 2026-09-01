@@ -1,0 +1,175 @@
+---
+import { ExternalLink } from '@lucide/astro';
+import ActionLink from '@moldea.ai/website-ui/action-link';
+import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
+
+import EvidenceStatus from '../../../../../components/evidence-status/evidence-status.astro';
+import SemanticEvaluationCase from '../../../../../components/semantic-evaluation-case/semantic-evaluation-case.astro';
+import BaseLayout from '../../../../../layouts/base-layout.astro';
+import { loadWebsiteModel } from '../../../../../lib/generation/generation.ts';
+import type { ISemanticAttemptModel } from '../../../../../lib/semantic-evaluation/index.ts';
+
+interface Props {
+  attempt: ISemanticAttemptModel;
+}
+
+export const getStaticPaths = () =>
+  loadWebsiteModel().semanticEvaluation.attempts.map((attempt) => ({
+    params: { attemptId: attempt.result.attemptId },
+    props: { attempt },
+  }));
+
+const { attempt } = Astro.props;
+const { result } = attempt;
+const evaluationModel = result.hostContract.model;
+const basePath = import.meta.env.BASE_URL;
+const successfulCaseCount = result.passedCaseCount + result.recoveredCaseCount;
+const breadcrumbs = [
+  { href: '/', label: 'Home' },
+  { href: '/evidence/', label: 'Evidence' },
+  { href: '/evidence/semantic/', label: 'Semantic evaluation' },
+  { label: result.attemptId },
+];
+---
+
+<BaseLayout
+  title={`Semantic attempt: ${result.attemptId}`}
+  description={`Review immutable ${result.status} semantic attempt ${result.attemptId}, with ${successfulCaseCount} of ${result.totalCaseCount} scenarios successful and complete actor and judge evidence.`}
+  {breadcrumbs}
+>
+  <div class="page-shell pt-7">
+    <Breadcrumbs
+      basePath={basePath}
+      items={breadcrumbs}
+    />
+
+    <header class="mt-7 border-b border-border pb-10">
+      <div class="flex flex-wrap items-center gap-3">
+        <EvidenceStatus status={result.status} />
+        <span class="font-mono text-sm font-bold">
+          {successfulCaseCount}/{result.totalCaseCount} scenarios
+        </span>
+      </div>
+      <p class="eyebrow mt-5">Immutable semantic attempt</p>
+      <h1
+        class="mt-3 max-w-5xl font-mono text-3xl leading-tight font-semibold break-all sm:text-4xl"
+      >
+        {result.attemptId}
+      </h1>
+      <p class="mt-5 max-w-3xl text-lg leading-8 text-muted-foreground">
+        This page presents the attempt without converting failures or pending scenarios into passes.
+        Open a completed scenario for an evidence-grounded replay of the developer request, recorded
+        agent response, safe command facts, changed paths, independent judge rationale, and verdict.
+        The exact source artifact remains available for technical inspection.
+      </p>
+      <div class="mt-7 flex flex-wrap gap-3">
+        <ActionLink
+          class="font-bold"
+          href={attempt.rawAttemptUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="outline"
+        >
+          Inspect raw summary
+          <ExternalLink
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+        <ActionLink
+          class="font-bold"
+          href={attempt.rawEvidenceUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          variant="outline"
+        >
+          Inspect exact evidence
+          <ExternalLink
+            class="size-4"
+            aria-hidden="true"
+          />
+        </ActionLink>
+      </div>
+    </header>
+
+    <section
+      class="grid gap-3 border-b border-border py-10 sm:grid-cols-2 lg:grid-cols-4"
+      aria-label="Semantic attempt summary"
+    >
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Passed</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{result.passedCaseCount}</p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Recovered</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{result.recoveredCaseCount}</p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Failed</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{result.failedCaseCount}</p>
+      </div>
+      <div class="surface-card p-4">
+        <p class="text-sm text-muted-foreground">Pending</p>
+        <p class="mt-2 font-mono text-2xl font-bold">{result.pendingCaseCount}</p>
+      </div>
+    </section>
+
+    <section
+      class="border-b border-border py-10"
+      aria-labelledby="semantic-attempt-cases-title"
+    >
+      <div class="max-w-3xl">
+        <p class="eyebrow mb-3">Completed scenarios</p>
+        <h2
+          id="semantic-attempt-cases-title"
+          class="text-3xl font-semibold tracking-tight"
+        >
+          Every actor and judge trial in this attempt
+        </h2>
+      </div>
+      <div class="mt-7 grid gap-3">
+        {
+          attempt.cases.map((evaluationCase, index) => (
+            <SemanticEvaluationCase
+              evaluationCase={evaluationCase}
+              number={index + 1}
+              showTrialProvenance
+            />
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="py-10">
+      <details class="surface-card p-5 sm:p-6">
+        <summary
+          class="cursor-pointer font-semibold focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+        >
+          Technical provenance
+        </summary>
+        <dl class="mt-5 grid min-w-0 gap-4 text-sm sm:grid-cols-2">
+          <div>
+            <dt class="text-muted-foreground">Recorded at</dt>
+            <dd class="mt-1 font-mono break-all">{result.recordedAt}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Stop reason</dt>
+            <dd class="mt-1 font-mono break-all">{result.stopReason}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Model configuration</dt>
+            <dd class="mt-1 font-mono break-all">{evaluationModel}, medium</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Portable artifact digest</dt>
+            <dd class="mt-1 font-mono text-xs break-all">{result.artifactDigest}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Evidence digest</dt>
+            <dd class="mt-1 font-mono text-xs break-all">{result.evidence.sha256}</dd>
+          </div>
+        </dl>
+      </details>
+    </section>
+  </div>
+</BaseLayout>

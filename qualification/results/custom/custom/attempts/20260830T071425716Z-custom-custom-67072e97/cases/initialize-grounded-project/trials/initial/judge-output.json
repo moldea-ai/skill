@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace and Git patch agree with the actor report: initialization adds only the canonical manifest, evidence-grounded project context, and standard README awareness block. Runner-owned validation also reports valid structure, passing typecheck, and no post-validation repository mutation.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service reviews invoice line items, returns findings to a human finance operator, detects unique sorted duplicate references, and does not authorize or send payments. README.md and src/invoice-review.ts support these claims; the README patch preserves the original invoice-review and non-authorizing description."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "Git status shows only README.md modified and moldea/ newly added. The README diff adds exactly the standard awareness block while preserving prior content. A targeted moldea inventory contains only moldea/moldea.yaml and moldea/project.md; the manifest contains only version: 1 and references no agents, runtimes, decisions, guides, or requirements."
+    }
+  ],
+  "failures": []
+}

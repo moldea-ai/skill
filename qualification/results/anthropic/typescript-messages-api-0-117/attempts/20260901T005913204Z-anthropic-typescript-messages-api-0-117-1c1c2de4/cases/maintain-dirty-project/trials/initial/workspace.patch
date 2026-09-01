@@ -1,0 +1,64 @@
+diff --git a/moldea/agents/support/instruction.md b/moldea/agents/support/instruction.md
+index 9b54eaa..9e63b0e 100644
+--- a/moldea/agents/support/instruction.md
++++ b/moldea/agents/support/instruction.md
+@@ -1,3 +1,5 @@
+ # Support agent
+ 
+ You are the `support` agent. Answer only from available project evidence.
++
++For billing disputes, distinguish refund requests from invoice questions. Refund requests require review; do not promise approval, amounts, or timing without evidence. For invoice questions, explain only invoice facts present in the request or project evidence and identify any information needed to answer safely.
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 1ab2ad7..3abfa59 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,8 +1,17 @@
+ version: 1
++context:
++  /moldea/context/billing.md:
++    bindings:
++      - path: /src/billing.ts
++        symbol: classifyBillingQuestion
++    affectedBy:
++      - /src/billing.ts
+ agents:
+   support:
+     runtime:
+       id: anthropic
++    context:
++      - /moldea/context/billing.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -12,3 +21,4 @@ agents:
+         symbol: loadSupportInstruction
+     affectedBy:
+       - /src/support-agent.ts
++      - /src/billing.ts
+diff --git a/src/operator-notes.ts b/src/operator-notes.ts
+index 4c10137..c85298a 100644
+--- a/src/operator-notes.ts
++++ b/src/operator-notes.ts
+@@ -1 +1 @@
+-export const operatorNote = 'existing tracked work';
++export const operatorNote = 'developer is testing a separate escalation path';
+
+diff --git a/moldea/context/billing.md b/moldea/context/billing.md
+new file mode 100644
+index 0000000..a2840de
+--- /dev/null
++++ b/moldea/context/billing.md
+@@ -0,0 +1,5 @@
++# Billing disputes
++
++Billing support distinguishes refund requests from invoice questions. The billing classifier routes messages containing `refund` to `refund-review` and other billing questions to `invoice-question`.
++
++A refund classification starts a review; it does not establish approval, amount, or payment timing. Invoice answers must stay within the facts available in the request or project evidence and identify missing information rather than inventing invoice details.
+
+diff --git a/notes/local-observation.md b/notes/local-observation.md
+new file mode 100644
+index 0000000..c97f13a
+--- /dev/null
++++ b/notes/local-observation.md
+@@ -0,0 +1 @@
++The staging invoice feed can arrive late. This untracked note is unrelated to canonical agent context.

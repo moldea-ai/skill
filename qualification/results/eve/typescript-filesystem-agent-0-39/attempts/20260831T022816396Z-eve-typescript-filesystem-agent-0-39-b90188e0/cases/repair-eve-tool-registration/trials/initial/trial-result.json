@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 395716,
+  "deterministicBeforePath": "cases/repair-eve-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-eve-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-eve-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-eve-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-eve-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-eve-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 987092,
+    "cachedInputTokens": 919040,
+    "outputTokens": 4127
+  },
+  "judgeUsage": {
+    "inputTokens": 639420,
+    "cachedInputTokens": 590848,
+    "outputTokens": 5015
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T03:28:15.446Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T03:31:28.751Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the stale declaration `find_order` and explains that the nested Eve filesystem path derives runtime name `orders-find`. The workspace contains `/agent/tools/orders/find.ts`, the repaired manifest declares `name: orders-find`, and deterministic post-actor inspection reports valid status with no diagnostics."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` currently declares tool ID `find-order` with runtime `name: orders-find`. Workspace assertions identify only this manifest as changed, its current SHA-256 matches the asserted after-state, and deterministic inspection and validation both pass."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings for runtime agent `/agent/agent.ts#default`, Markdown instruction `/agent/instructions.md`, agent output schema `/agent/contracts.ts#SupportOutputSchema`, implementation `/agent/implementations.ts#findOrder`, filesystem registration `/agent/tools/orders/find.ts#default`, input schema `/agent/contracts.ts#FindOrderInputSchema`, and tool output schema `/agent/contracts.ts#FindOrderOutputSchema`. Targeted source reads confirm every path and symbol, their hashes match the unchanged before/after assertions, and deterministic inspection reports the repository and adapter evidence valid."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

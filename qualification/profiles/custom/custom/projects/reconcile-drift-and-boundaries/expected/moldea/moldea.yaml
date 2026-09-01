@@ -1,0 +1,20 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: custom
+      guidance: /moldea/runtimes/custom.md
+    bindings:
+      runtimeAgent:
+        path: /src/support-assistant.ts
+        symbol: supportAssistant
+    affectedBy:
+      - /src/**
+    unresolved:
+      dynamic-tool-registration:
+        category: tool-registration
+        effect: warning
+        description: The final tool registry is assembled dynamically and cannot be proven from static repository evidence.
+        resolution: Replace dynamic assembly with an explicit immutable registration or document the runtime registration through a supported adapter pattern.
+        related:
+          - path: /src/dynamic-tools.ts

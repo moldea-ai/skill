@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The existing `support` agent setup is structurally valid and agrees with the available source, so no files were edited. Moldea CLI 5.0.0 inspection and validation both returned schema 2, status `valid`, with no diagnostics; TypeScript compilation passed; the final Git status and scoped diff were empty.",
+  "changedFiles": [],
+  "observations": [
+    "`moldea/moldea.yaml` registers agent `support`, uses runtime `custom`, links `/moldea/runtimes/custom.md`, and binds runtimeAgent to `/src/support-agent.ts` symbol `supportAgent`.",
+    "`moldea/agents/support/description.md` describes customer support through email; `src/support-agent.ts` exports `supportAgent` with `id: 'support'` and `channel: 'email'`.",
+    "The custom runtime guidance correctly identifies the exported record as runtime-owned and requires preserving its identifier and channel, matching the implementation.",
+    "The canonical instruction identifies the `support` agent, requires evidence-based answers, and directs escalation for uncertain requests; no contradictory instruction source was found.",
+    "The repository-local `@moldea.ai/cli` declaration and installed provider are both exactly version 5.0.0."
+  ],
+  "unresolved": [
+    "No runtime invocation, instruction loader, or integration test exists in the inspected repository, so actual runtime consumption of `moldea/agents/support/instruction.md` cannot be proven. Project-owned runtime wiring or an integration test showing that canonical instructions reach the model invocation would resolve this evidence limitation."
+  ]
+}

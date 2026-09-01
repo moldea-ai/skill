@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 23516,
+  "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 352075,
+    "cachedInputTokens": 326912,
+    "outputTokens": 4078
+  },
+  "judgeUsage": {
+    "inputTokens": 413972,
+    "cachedInputTokens": 348416,
+    "outputTokens": 4195
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T15:41:50.857Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T15:45:12.781Z",
+  "actorCacheSourceAttemptId": "20260831T153131061Z-anthropic-typescript-messages-api-0-117-2352f869",
+  "judgeCacheSourceAttemptId": "20260831T153131061Z-anthropic-typescript-messages-api-0-117-2352f869",
+  "requirementAssessments": [
+    {
+      "id": "grounds-project",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service identifies invoice anomalies for operator review, compares actual and expected totals, reports the difference, and neither approves payment nor changes invoices. This is grounded by README.md and src/invoice-review.ts, whose implementation returns the total difference and sets requiresOperatorReview when totals differ."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The current moldea tree contains only moldea/moldea.yaml and moldea/project.md; the manifest contains only `version: 1` and therefore registers no agent, runtime, relationship, decision, context, or unresolved requirement. Workspace-patch assertions identify exactly three changed paths: those two canonical files and README.md, whose appended block is the standard awareness block."
+    },
+    {
+      "id": "preserves-existing-work",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

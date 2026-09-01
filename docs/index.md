@@ -24,7 +24,7 @@ Update the refund flow and keep the support agent aligned.
 Evaluate the current project context without changing files.
 ```
 
-The coding agent decides when the skill is relevant, reads the necessary guidance, inspects the repository, uses deterministic local tooling when required, and reports what changed or why no change was necessary.
+The coding agent decides when the skill is relevant, including when you share durable project knowledge without naming `moldea`. It reads the necessary guidance, inspects the repository, uses deterministic local tooling when required, and reports what changed or why no change was necessary.
 
 ## Start here
 
@@ -33,6 +33,10 @@ The coding agent decides when the skill is relevant, reads the necessary guidanc
 - [Coding agent compatibility](/docs/coding-agent-compatibility/): use the same portable skill with Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and other compatible hosts.
 - [What `moldea` can do](/docs/capabilities/): explore the complete capability surface.
 - [How it works](/docs/how-it-works/): see the optional technical layer beneath the coding agent.
+- [Repository format](/docs/repository-format/): see how a two-file foundation grows into focused, explicit project organization.
+- [Continuous maintenance](/docs/continuous-maintenance/): keep affected truth aligned and explicitly compress accumulated context without losing unique meaning.
+- [Evidence](/evidence/): inspect current behavioral semantic evaluation and real-project adapter qualification evidence, including failed attempts.
+- [Semantic evaluation](/docs/semantic-evaluation/): inspect actor blindness, sourced scenarios, protected repository controls, coverage, and release evidence.
 - [Examples](/examples/): follow complete developer, coding-agent, and skill interactions.
 
 ## What stays yours

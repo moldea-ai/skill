@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "The Anthropic static boundary is already accurate, so no files were changed. Source and adapter evidence confirm `supportAgent` as a direct `messages.create` wrapper and `loadSupportInstruction` as its canonical system-instruction loader. The indirect `dynamicSupportAgent` request remains conservatively unresolved.",
+  "changedFiles": [],
+  "observations": [
+    "The project is moldea-adopted with complete canonical files and README awareness markers.",
+    "`src/agents.ts` directly passes `system: await loadSupportInstruction()` to `client.messages.create`, and the loader reads `moldea/agents/support/instruction.md`.",
+    "Moldea inspection reported only the proven support runtime pattern and instruction loader; it did not report client-tool or schema relationships for the provider-hosted web search tool, or a Messages runtime pattern for the indirect request object.",
+    "No routing or handoff implementation or relationship was found.",
+    "Moldea CLI 5.0.0 `inspect --json` and `validate --json` both returned schema 2, status `valid`, with no diagnostics.",
+    "TypeScript validation completed successfully.",
+    "Final hardened Git diff and status were clean. Runner-mounted skill and qualification inputs remained unchanged."
+  ],
+  "unresolved": [
+    "The indirect request object's runtime-pattern and related relationships remain intentionally unproven. Resolution requires a supported direct request pattern or additional adapter-supported static evidence; inventing tool, schema, routing, or handoff relationships would exceed repository evidence."
+  ]
+}

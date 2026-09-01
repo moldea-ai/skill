@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the stale canonical support-agent setup while preserving project context and the pre-existing deletion of src/support-agent.ts. Final Moldea inspection returned schema 2, CLI 5.0.0, status valid, zero agents, zero runtimes, and no diagnostics. TypeScript validation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "Initial hardened Git status established that src/support-agent.ts was already deleted before this work.",
+    "moldea/project.md independently states that the former email support agent was removed; it remained unchanged.",
+    "The obsolete manifest entry referenced missing /src/support-agent.ts and its supportAgent symbol; initial Moldea inspection reported MOLDEA_REFERENCE_MISSING.",
+    "The deleted description and instruction exclusively declared support-agent behavior, while the deleted runtime guidance exclusively claimed the removed supportAgent export existed.",
+    "A final residual-reference search found only historical removal statements in moldea/project.md and src/project-state.ts, not claims that the agent or integration still exists.",
+    "Final hardened Git diff review confirmed only the four intended canonical changes plus the preserved pre-existing implementation deletion.",
+    "The evaluator rejected the hardened git diff --check command shape; the completed Moldea inspection and TypeScript check provided the relevant repository validation instead."
+  ],
+  "unresolved": []
+}

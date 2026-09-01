@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized moldea with a minimal evidence-backed project foundation. Final `moldea inspect --json` and `moldea validate --json` both returned `valid` with schema 2, CLI 5.0.0, format version 1, and no diagnostics.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "README content was preserved and the standard, correctly ordered moldea awareness block was appended.",
+    "README establishes an invoice-anomaly review service for an operator and explicitly excludes payment approval and invoice changes.",
+    "Source establishes only calculation of the total difference and operator-review signaling when totals differ.",
+    "Canonical state changed; the complete foundation and README awareness block now establish moldea adoption.",
+    "No agent, runtime guide, decision, focused context, or unresolved requirement was created.",
+    "Unsupported details such as extraction mechanics, input validation, persistence, and runtime/provider integration were not invented or recorded.",
+    "Final hardened Git status reported only README.md and the new moldea directory; the README diff and final canonical file contents were inspected.",
+    "Next actions are optional foundation review or ordinary project development."
+  ],
+  "unresolved": []
+}

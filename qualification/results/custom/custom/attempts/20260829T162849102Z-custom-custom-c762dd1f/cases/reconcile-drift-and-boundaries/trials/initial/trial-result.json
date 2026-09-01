@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 276421,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1564814,
+    "cachedInputTokens": 1484544,
+    "outputTokens": 6328
+  },
+  "judgeUsage": {
+    "inputTokens": 283603,
+    "cachedInputTokens": 254208,
+    "outputTokens": 1822
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T16:49:58.309Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T16:51:03.688Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-binding",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts#supportAssistant, and src/support-assistant.ts exports that symbol. The Git diff shows replacement of /src/support-agent.ts#supportAgent; src/support-agent.ts remains deleted rather than recreated. Deterministic validation, inspection, and typechecking all passed."
+    },
+    {
+      "id": "records-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml contains agents.support.unresolved.dynamic-tool-registration with effect warning, explains that static inspection cannot prove dynamic registration, specifies an integration test over final runtime composition as resolution, and relates /src/dynamic-tools.ts. The patch adds this warning and no capability/tool binding; deterministic validation and inspection passed."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

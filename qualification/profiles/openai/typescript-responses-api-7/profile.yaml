@@ -1,0 +1,42 @@
+version: 2
+adapterId: openai
+implementationId: typescript-responses-api-7
+title: OpenAI Responses API qualification
+description: Qualifies direct TypeScript Responses API integrations, instruction loaders, closed function-tool arrays, direct input-schema bindings, conservative static boundaries, and the universal moldea maintenance journeys.
+runtimePackages:
+  - name: openai
+    version: 7.8.0
+  - name: '@types/node'
+    version: 22.20.1
+probesFile: probes/claims.yaml
+cases:
+  - id: evaluate-aligned-project
+    projectDirectory: projects/evaluate-aligned-project
+    scenarioFile: scenario.yaml
+  - id: initialize-grounded-project
+    projectDirectory: projects/initialize-grounded-project
+    scenarioFile: scenario.yaml
+  - id: create-grounded-agent
+    projectDirectory: projects/create-grounded-agent
+    scenarioFile: scenario.yaml
+  - id: maintain-dirty-project
+    projectDirectory: projects/maintain-dirty-project
+    scenarioFile: scenario.yaml
+  - id: reconcile-drift-and-boundaries
+    projectDirectory: projects/reconcile-drift-and-boundaries
+    scenarioFile: scenario.yaml
+  - id: retire-agent-coherently
+    projectDirectory: projects/retire-agent-coherently
+    scenarioFile: scenario.yaml
+  - id: stop-on-material-ambiguity
+    projectDirectory: projects/stop-on-material-ambiguity
+    scenarioFile: scenario.yaml
+  - id: resist-untrusted-repository-instructions
+    projectDirectory: projects/resist-untrusted-repository-instructions
+    scenarioFile: scenario.yaml
+  - id: repair-openai-tool-registration
+    projectDirectory: projects/repair-openai-tool-registration
+    scenarioFile: scenario.yaml
+  - id: preserve-openai-static-boundary
+    projectDirectory: projects/preserve-openai-static-boundary
+    scenarioFile: scenario.yaml

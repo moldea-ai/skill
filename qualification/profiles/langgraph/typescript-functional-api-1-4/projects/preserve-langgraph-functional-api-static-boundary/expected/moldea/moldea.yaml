@@ -1,0 +1,61 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: langgraph
+      guidance: /moldea/runtimes/langgraph-functional-api-static-boundaries.md
+    bindings:
+      runtimeAgent:
+        path: /src/support-workflow.ts
+        symbol: supportWorkflow
+    affectedBy:
+      - /src/support-workflow.ts
+    unresolved:
+      runtime-semantics:
+        category: runtime-binding
+        effect: warning
+        description: Static patterns do not validate checkpoint persistence, replay determinism, task idempotency, interrupt safety, or human approval semantics.
+        resolution: Keep these guarantees in the shared runtime guide and verify them at the owning runtime boundary.
+        related:
+          - path: /src/support-workflow.ts
+          - path: /src/runtime-boundaries.ts
+      task-capabilities:
+        category: tool-registration
+        effect: warning
+        description: Functional API tasks are durable workflow units and do not establish manifest tools, skills, handoffs, or subagents.
+        resolution: Declare a capability only through a separately supported canonical and runtime registration relationship.
+        related:
+          - path: /src/support-workflow.ts
+  dynamic-support:
+    runtime:
+      id: langgraph
+      guidance: /moldea/runtimes/langgraph-functional-api-static-boundaries.md
+    bindings:
+      runtimeAgent:
+        path: /src/dynamic-support-workflow.ts
+        symbol: dynamicSupportWorkflow
+    affectedBy:
+      - /src/dynamic-support-workflow.ts
+      - /src/runtime-boundaries.ts
+    unresolved:
+      lexical-control-flow:
+        category: runtime-binding
+        effect: warning
+        description: Runtime-selected tasks plus callback and helper calls are outside direct lexical task evidence and are not reconstructed as graph topology.
+        resolution: Use direct task-proxy calls in the entrypoint body when positive task-pattern evidence is required, or retain this explicit boundary.
+        related:
+          - path: /src/dynamic-support-workflow.ts
+      routing:
+        category: routing
+        effect: warning
+        description: Task selection and ordinary control flow do not establish agent routing, handoffs, or subagents.
+        resolution: Use separately bound direct entrypoints when canonical agent relationships are required, or retain this explicit boundary.
+        related:
+          - path: /src/dynamic-support-workflow.ts
+      typescript-schemas:
+        category: schema
+        effect: warning
+        description: TypeScript parameter and return types do not establish executable input, output, or saved-state schema bindings.
+        resolution: Keep runtime type contracts in source and declare canonical schemas only through a separately supported executable relationship.
+        related:
+          - path: /src/dynamic-support-workflow.ts

@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the obsolete `support` canonical agent setup. Removed its manifest registration, runtime-agent and instruction-loader bindings, impact path, description, and instruction. Preserved the pre-existing deletion of `src/support-agent.ts` and all unrelated project context. Final diff was inspected; moldea inspection and TypeScript validation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "The initial Git status showed `src/support-agent.ts` was already deleted before this task's edits.",
+    "The deleted implementation defined both `SupportAgent extends AIChatAgent` and `loadSupportInstruction`, establishing that the canonical bindings referred exclusively to the removed implementation.",
+    "`src/project-state.ts` independently declares `activeAgents: 0`.",
+    "Initial `moldea inspect --json` returned a valid schema-2/CLI-5.0.0 envelope with status `invalid` and exactly three diagnostics: missing runtime-agent reference, missing instruction-loader reference, and missing affected path for `/src/support-agent.ts`.",
+    "Final `moldea inspect --json` returned status `valid`, no diagnostics, and an empty agents collection.",
+    "`node_modules/.bin/tsc -p tsconfig.json --noEmit` completed successfully.",
+    "A final repository search found no remaining `SupportAgent`, `loadSupportInstruction`, `AIChatAgent`, agent registration, or support agent asset under README, project configuration, canonical state, or source.",
+    "Canonical state changed coherently; `moldea/project.md` remained unchanged because its statement that shared state remains after the support agent's retirement is still accurate."
+  ],
+  "unresolved": []
+}

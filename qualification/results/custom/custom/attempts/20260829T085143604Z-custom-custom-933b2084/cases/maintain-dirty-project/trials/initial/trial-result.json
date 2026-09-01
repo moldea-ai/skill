@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 302491,
+  "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1406343,
+    "cachedInputTokens": 1326848,
+    "outputTokens": 7126
+  },
+  "judgeUsage": {
+    "inputTokens": 364554,
+    "cachedInputTokens": 292096,
+    "outputTokens": 2795
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T09:06:59.442Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T09:08:23.960Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "adds-context",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` is present as canonical billing guidance. `moldea/moldea.yaml` globally registers it under `context`, binds it to `/src/billing.ts` symbol `refundWindowDays`, declares explicit `affectedBy: /src/billing.ts`, and assigns it to `agents.support.context`. Deterministic inspection and validation are valid, and workspace assertions identify only the three intended changed paths."
+    },
+    {
+      "id": "updates-instruction",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The diff preserves the required opening identity, `You are the support agent`, verbatim and adds guidance to use canonical billing context specifically for refund disputes and invoice questions, limit answers to established evidence, and escalate unresolved cases."
+    },
+    {
+      "id": "preserves-dirty-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s LangGraph runtime binding with the existing `supportWorkflow` export and recorded the dynamic task-selection boundary as an agent-level warning. Validation passed: `moldea inspect --json`, `moldea validate --json`, and TypeScript compilation with `--noEmit`.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The project is adopted under moldea format version 1.",
+    "The validated LangGraph adapter detected `supportWorkflow` at `/src/support-workflow.ts` as the `support_workflow` Functional API agent definition.",
+    "No implementation code was modified.",
+    "Pre-existing deletion of `src/removed-support-workflow.ts` and untracked `src/support-workflow.ts` and `src/dynamic-routing.ts` were preserved."
+  ],
+  "unresolved": [
+    "Agent warning `dynamic-task-routing-evidence`: static inspection cannot establish whether runtime-selected task execution in `/src/dynamic-routing.ts` is agent routing. Resolution requires source-owned routing documentation or an integration test proving whether it is routing and identifying any actual destinations."
+  ]
+}

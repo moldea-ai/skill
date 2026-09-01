@@ -1,0 +1,66 @@
+{
+  "caseId": "initialize-grounded-project",
+  "title": "Initialize a grounded project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 37975,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 37975,
+      "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 714343,
+        "cachedInputTokens": 667648,
+        "outputTokens": 5046
+      },
+      "judgeUsage": {
+        "inputTokens": 247959,
+        "cachedInputTokens": 200704,
+        "outputTokens": 3034
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T10:21:02.678Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T10:22:37.651Z",
+      "actorCacheSourceAttemptId": "20260830T101401504Z-claude-agent-sdk-typescript-query-subagents-0-3-dd93e724",
+      "judgeCacheSourceAttemptId": "20260830T101401504Z-claude-agent-sdk-typescript-query-subagents-0-3-dd93e724",
+      "requirementAssessments": [
+        {
+          "id": "grounds-project",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/project.md states that the service identifies invoice-total discrepancies for operator review, reports the difference and whether totals differ, and does not approve payment or change invoices. README.md and src/invoice-review.ts corroborate this purpose and non-authorizing behavior."
+        },
+        {
+          "id": "keeps-foundation-minimal",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Workspace assertions identify exactly three changed paths: README.md, moldea/moldea.yaml, and moldea/project.md. The manifest contains only `version: 1`; the README contains the standard awareness block; and expected agent, runtime, decision, context, requirement, and skill paths are absent. Package and source hashes remained unchanged."
+        },
+        {
+          "id": "preserves-existing-work",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

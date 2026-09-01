@@ -1,0 +1,21 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: langgraph
+    bindings:
+      runtimeAgent:
+        path: /src/support-workflow.ts
+        symbol: supportWorkflow
+    affectedBy:
+      - /src/support-workflow.ts
+  dynamic-support:
+    runtime:
+      id: langgraph
+    bindings:
+      runtimeAgent:
+        path: /src/dynamic-support-workflow.ts
+        symbol: dynamicSupportWorkflow
+    affectedBy:
+      - /src/dynamic-support-workflow.ts
+      - /src/runtime-boundaries.ts

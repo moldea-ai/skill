@@ -1,0 +1,66 @@
+{
+  "caseId": "repair-cloudflare-think-tool-registration",
+  "title": "Repair Cloudflare Think tool registration",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 304883,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 304883,
+      "deterministicBeforePath": "cases/repair-cloudflare-think-tool-registration/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-cloudflare-think-tool-registration/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 718659,
+        "cachedInputTokens": 678656,
+        "outputTokens": 3507
+      },
+      "judgeUsage": {
+        "inputTokens": 632919,
+        "cachedInputTokens": 585472,
+        "outputTokens": 5027
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T20:34:58.284Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T20:37:38.256Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-name-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor report identifies the stale `find_order` declaration and explains that the closed Cloudflare Think map in `src/agent.ts` uses `lookup_order`. The current source confirms `getTools()` returns `{ lookup_order: lookupOrderTool }`, and the deterministic inspection is valid with no failures."
+        },
+        {
+          "id": "repairs-canonical-name",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/moldea.yaml` declares `name: lookup_order`, exactly matching the key returned by `SupportAgent.getTools()`. Workspace assertions identify `moldea/moldea.yaml` as the sole changed path; all source hashes remain unchanged. Deterministic inspection and typechecking pass."
+        },
+        {
+          "id": "preserves-binding-closure",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest retains exact bindings for `SupportAgent` and `loadSupportInstruction` in `/src/agent.ts`, `lookupOrder` in `/src/implementations.ts`, `lookupOrderTool` in `/src/tools.ts`, and both `LookupOrderInputSchema` and `LookupOrderOutputSchema` in `/src/contracts.ts`. Those symbols exist and are connected in source, no agent schema was added, all relevant source hashes are unchanged, and deterministic inspection reports valid complete evidence with no failures."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

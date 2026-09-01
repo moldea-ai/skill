@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical files match the implementation and runner-owned post-actor evidence. Only the manifest and two agent assets changed, their hashes match workspace assertions, deterministic inspection/typecheck passed, and no prohibited runtime guide or invented behavior was added.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "moldea/project.md, description.md, and instruction.md consistently state order classification for human review and explicitly deny refund approval authority. Current hashes match the asserted post-actor hashes, and changedPaths contains only the manifest plus these two agent assets."
+    },
+    {
+      "id": "binds-direct-agent",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent=orderTriageAgent, instructionLoader=loadOrderTriageInstruction, inputSchema=OrderTriageInputSchema, and outputSchema=OrderTriageOutputSchema in /src/order-triage-agent.ts. That source uses the loader for ToolLoopAgent.instructions, the input schema as callOptionsSchema, and the output schema through Output.object. Deterministic inspection was valid and typecheckPassed=true."
+    },
+    {
+      "id": "binds-function-tool",
+      "verdict": "pass",
+      "evidence": "The manifest declares runtime name classify_order and binds implementation=classifyOrder, registration=classifyOrderTool, inputSchema=ClassifyOrderInputSchema, and outputSchema=ClassifyOrderOutputSchema. The source registers classifyOrderTool under tools.classify_order and its execute/schema symbols match exactly. Deterministic inspection reported no failures."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Preserved every source file and kept only statically proven Eve relationships canonical. Added five warning-level evidence requirements and a concise bound Eve runtime guide. Local moldea 5.0.0 inspection passed with zero diagnostics, and TypeScript typechecking passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/eve.md"
+  ],
+  "observations": [
+    "Canonical relationships remain limited to the nested support agent, exact lowercase Markdown instructions, direct output schema, static status tool, and TypeScript triage skill.",
+    "No files under agent/ or examples/ were changed.",
+    "Final Git status contains only the intended manifest modification and new runtime guide."
+  ],
+  "unresolved": [
+    "Dynamic tool registration and behavior require runtime wiring/tests or a supported static defineTool form.",
+    "Flat and packaged Markdown skills require runtime evidence or supported TypeScript defineSkill forms.",
+    "The single-file subagent requires runtime evidence or a registered directory-backed static form.",
+    "Case-varied, legacy, and composed instruction forms require runtime loading evidence or a supported exclusive instruction form.",
+    "Remote agents, extension contributions, connection and framework tools, collisions, reserved names, and advanced runtime behavior require focused runtime evidence or supported collision-free static forms."
+  ]
+}

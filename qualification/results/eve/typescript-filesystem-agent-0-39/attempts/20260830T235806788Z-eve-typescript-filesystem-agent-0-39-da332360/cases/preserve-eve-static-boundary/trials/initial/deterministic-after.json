@@ -1,0 +1,713 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1227
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "skill-registration",
+          "tool-registration"
+        ],
+        "evidenceCount": 9,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema",
+          "schema",
+          "schema",
+          "skill-registration",
+          "tool-registration"
+        ],
+        "evidenceCount": 9,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "agentKind": "root",
+                "agentRoot": "/agent",
+                "layout": "nested",
+                "targetId": "typescript-filesystem-agent-0-39"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/agent/agent.ts",
+                  "symbol": "default"
+                }
+              ],
+              "runtimeName": "moldea-qualification-eve-boundary",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {},
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/agent/instructions.md"
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/agent/agent.ts",
+                  "symbol": "default"
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "declaredRange": "0.39.1",
+                "dependencyKind": "dependencies",
+                "packageClassification": "supported",
+                "targetId": "typescript-filesystem-agent-0-39"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/agent/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "status",
+              "capabilityKind": "tool",
+              "details": {
+                "schemaRole": "tool-input"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/agent/contracts.ts",
+                  "symbol": "StatusInputSchema"
+                }
+              ],
+              "runtimeName": "StatusInputSchema",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "status",
+              "capabilityKind": "tool",
+              "details": {
+                "schemaRole": "tool-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/agent/contracts.ts",
+                  "symbol": "StatusOutputSchema"
+                }
+              ],
+              "runtimeName": "StatusOutputSchema",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "triage",
+              "capabilityKind": "skill",
+              "details": {
+                "registrationKind": "typescript"
+              },
+              "kind": "skill-registration",
+              "references": [
+                {
+                  "path": "/agent/skills/triage.ts"
+                }
+              ],
+              "runtimeName": "triage",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "status",
+              "capabilityKind": "tool",
+              "details": {
+                "implementationKind": "bound-function",
+                "pathDepth": 1,
+                "registrationKind": "filesystem-tool"
+              },
+              "kind": "tool-registration",
+              "references": [
+                {
+                  "path": "/agent/implementations.ts",
+                  "symbol": "getStatus"
+                },
+                {
+                  "path": "/agent/tools/status.ts"
+                }
+              ],
+              "runtimeName": "status",
+              "source": "eve"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/agent/**"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/agent/instructions.md"
+                    },
+                    "outputSchema": {
+                      "path": "/agent/contracts.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/agent/agent.ts",
+                      "symbol": "default"
+                    }
+                  },
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/eve.md",
+                    "id": "eve"
+                  },
+                  "skills": {
+                    "triage": {
+                      "description": "Applies the support triage boundary.",
+                      "implementation": {
+                        "path": "/agent/skills/triage.ts",
+                        "symbol": "default"
+                      },
+                      "name": "triage",
+                      "registration": {
+                        "path": "/agent/skills/triage.ts",
+                        "symbol": "default"
+                      }
+                    }
+                  },
+                  "tools": {
+                    "status": {
+                      "description": "Reads one support ticket status.",
+                      "implementation": {
+                        "path": "/agent/implementations.ts",
+                        "symbol": "getStatus"
+                      },
+                      "inputSchema": {
+                        "path": "/agent/contracts.ts",
+                        "symbol": "StatusInputSchema"
+                      },
+                      "name": "status",
+                      "outputSchema": {
+                        "path": "/agent/contracts.ts",
+                        "symbol": "StatusOutputSchema"
+                      },
+                      "registration": {
+                        "path": "/agent/tools/status.ts",
+                        "symbol": "default"
+                      }
+                    }
+                  },
+                  "unresolved": {
+                    "advanced-eve-runtime-evidence": {
+                      "category": "runtime-evidence",
+                      "description": "Remote agents, extension contributions, connection and framework tools, filesystem collisions, reserved names, and advanced runtime behavior are not established by the supported static relationships.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/agent/agent.ts"
+                        },
+                        {
+                          "path": "/moldea/runtimes/eve.md"
+                        }
+                      ],
+                      "resolution": "Supply source-owned runtime wiring and focused tests for the intended behavior, or represent it with a supported collision-free static Eve filesystem form before adding canonical relationships."
+                    },
+                    "dynamic-tool-runtime-evidence": {
+                      "category": "runtime-evidence",
+                      "description": "The dynamic tool module is preserved, but static inspection does not establish its runtime registration or behavior.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/agent/tools/runtime.ts"
+                        }
+                      ],
+                      "resolution": "Provide runtime wiring and tests that establish the dynamic contribution, or expose the capability as a supported static TypeScript defineTool module before declaring it canonical."
+                    },
+                    "instruction-form-runtime-evidence": {
+                      "category": "runtime-evidence",
+                      "description": "The case-varied, legacy, and composed instruction examples are preserved, but they do not prove an active Eve instruction relationship.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/examples/instructions/Instructions.md"
+                        },
+                        {
+                          "path": "/examples/instructions/instructions/part.md"
+                        },
+                        {
+                          "path": "/examples/instructions/system.md"
+                        }
+                      ],
+                      "resolution": "Provide runtime loading tests for an alternate form, or use one exclusive lowercase instructions.md file or a supported TypeScript instructions module at the agent root."
+                    },
+                    "markdown-skill-runtime-evidence": {
+                      "category": "runtime-evidence",
+                      "description": "The flat and packaged Markdown skills are preserved, but the supported Eve static relationship is a TypeScript defineSkill module.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/agent/skills/guide/SKILL.md"
+                        },
+                        {
+                          "path": "/agent/skills/reference.md"
+                        }
+                      ],
+                      "resolution": "Provide runtime wiring and tests for each Markdown skill, or express each canonical capability as a supported TypeScript defineSkill module."
+                    },
+                    "single-file-subagent-runtime-evidence": {
+                      "category": "runtime-evidence",
+                      "description": "The single-file quick subagent candidate is preserved, but supported static inspection requires a registered directory-backed local subagent.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/agent/subagents/quick.ts"
+                        }
+                      ],
+                      "resolution": "Provide runtime wiring and routing tests for the single-file candidate, or move the behavior to a registered directory-backed local subagent with an agent.ts definition and canonical description."
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Answers support questions from available evidence.\n",
+                    "digest": "sha256:a1b347193a1a978942f464c94efb7549c57470b7a5acada5319161e9db875590",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 51,
+                    "utf8ByteLength": 51
+                  },
+                  "scalarLength": 50,
+                  "value": "Answers support questions from available evidence."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer from available support evidence. Use only statically registered capabilities unless runtime evidence establishes more.\n",
+                  "digest": "sha256:2b09edcc1c27a196e1b353eab90e1123ddce14b5ac8d7f8c22203b76783eef0d",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 172,
+                  "utf8ByteLength": 172
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: eve\n      guidance: /moldea/runtimes/eve.md\n    bindings:\n      runtimeAgent:\n        path: /agent/agent.ts\n        symbol: default\n      instructionLoader:\n        path: /agent/instructions.md\n      outputSchema:\n        path: /agent/contracts.ts\n        symbol: SupportOutputSchema\n    tools:\n      status:\n        name: status\n        description: Reads one support ticket status.\n        implementation:\n          path: /agent/implementations.ts\n          symbol: getStatus\n        registration:\n          path: /agent/tools/status.ts\n          symbol: default\n        inputSchema:\n          path: /agent/contracts.ts\n          symbol: StatusInputSchema\n        outputSchema:\n          path: /agent/contracts.ts\n          symbol: StatusOutputSchema\n    skills:\n      triage:\n        name: triage\n        description: Applies the support triage boundary.\n        implementation:\n          path: /agent/skills/triage.ts\n          symbol: default\n        registration:\n          path: /agent/skills/triage.ts\n          symbol: default\n    unresolved:\n      dynamic-tool-runtime-evidence:\n        category: runtime-evidence\n        effect: warning\n        description: The dynamic tool module is preserved, but static inspection does not establish its runtime registration or behavior.\n        resolution: Provide runtime wiring and tests that establish the dynamic contribution, or expose the capability as a supported static TypeScript defineTool module before declaring it canonical.\n        related:\n          - path: /agent/tools/runtime.ts\n      markdown-skill-runtime-evidence:\n        category: runtime-evidence\n        effect: warning\n        description: The flat and packaged Markdown skills are preserved, but the supported Eve static relationship is a TypeScript defineSkill module.\n        resolution: Provide runtime wiring and tests for each Markdown skill, or express each canonical capability as a supported TypeScript defineSkill module.\n        related:\n          - path: /agent/skills/reference.md\n          - path: /agent/skills/guide/SKILL.md\n      single-file-subagent-runtime-evidence:\n        category: runtime-evidence\n        effect: warning\n        description: The single-file quick subagent candidate is preserved, but supported static inspection requires a registered directory-backed local subagent.\n        resolution: Provide runtime wiring and routing tests for the single-file candidate, or move the behavior to a registered directory-backed local subagent with an agent.ts definition and canonical description.\n        related:\n          - path: /agent/subagents/quick.ts\n      instruction-form-runtime-evidence:\n        category: runtime-evidence\n        effect: warning\n        description: The case-varied, legacy, and composed instruction examples are preserved, but they do not prove an active Eve instruction relationship.\n        resolution: Provide runtime loading tests for an alternate form, or use one exclusive lowercase instructions.md file or a supported TypeScript instructions module at the agent root.\n        related:\n          - path: /examples/instructions/Instructions.md\n          - path: /examples/instructions/system.md\n          - path: /examples/instructions/instructions/part.md\n      advanced-eve-runtime-evidence:\n        category: runtime-evidence\n        effect: warning\n        description: Remote agents, extension contributions, connection and framework tools, filesystem collisions, reserved names, and advanced runtime behavior are not established by the supported static relationships.\n        resolution: Supply source-owned runtime wiring and focused tests for the intended behavior, or represent it with a supported collision-free static Eve filesystem form before adding canonical relationships.\n        related:\n          - path: /agent/agent.ts\n          - path: /moldea/runtimes/eve.md\n    affectedBy:\n      - /agent/**\n",
+                "digest": "sha256:f554d1c7bea3242f7858a79d5b6932cf57e618236ace526ab2d358f65525edd5",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 3955,
+                "utf8ByteLength": 3955
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/agent/**"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/agent/instructions.md"
+                      },
+                      "outputSchema": {
+                        "path": "/agent/contracts.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/agent/agent.ts",
+                        "symbol": "default"
+                      }
+                    },
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/eve.md",
+                      "id": "eve"
+                    },
+                    "skills": {
+                      "triage": {
+                        "description": "Applies the support triage boundary.",
+                        "implementation": {
+                          "path": "/agent/skills/triage.ts",
+                          "symbol": "default"
+                        },
+                        "name": "triage",
+                        "registration": {
+                          "path": "/agent/skills/triage.ts",
+                          "symbol": "default"
+                        }
+                      }
+                    },
+                    "tools": {
+                      "status": {
+                        "description": "Reads one support ticket status.",
+                        "implementation": {
+                          "path": "/agent/implementations.ts",
+                          "symbol": "getStatus"
+                        },
+                        "inputSchema": {
+                          "path": "/agent/contracts.ts",
+                          "symbol": "StatusInputSchema"
+                        },
+                        "name": "status",
+                        "outputSchema": {
+                          "path": "/agent/contracts.ts",
+                          "symbol": "StatusOutputSchema"
+                        },
+                        "registration": {
+                          "path": "/agent/tools/status.ts",
+                          "symbol": "default"
+                        }
+                      }
+                    },
+                    "unresolved": {
+                      "advanced-eve-runtime-evidence": {
+                        "category": "runtime-evidence",
+                        "description": "Remote agents, extension contributions, connection and framework tools, filesystem collisions, reserved names, and advanced runtime behavior are not established by the supported static relationships.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/agent/agent.ts"
+                          },
+                          {
+                            "path": "/moldea/runtimes/eve.md"
+                          }
+                        ],
+                        "resolution": "Supply source-owned runtime wiring and focused tests for the intended behavior, or represent it with a supported collision-free static Eve filesystem form before adding canonical relationships."
+                      },
+                      "dynamic-tool-runtime-evidence": {
+                        "category": "runtime-evidence",
+                        "description": "The dynamic tool module is preserved, but static inspection does not establish its runtime registration or behavior.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/agent/tools/runtime.ts"
+                          }
+                        ],
+                        "resolution": "Provide runtime wiring and tests that establish the dynamic contribution, or expose the capability as a supported static TypeScript defineTool module before declaring it canonical."
+                      },
+                      "instruction-form-runtime-evidence": {
+                        "category": "runtime-evidence",
+                        "description": "The case-varied, legacy, and composed instruction examples are preserved, but they do not prove an active Eve instruction relationship.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/examples/instructions/Instructions.md"
+                          },
+                          {
+                            "path": "/examples/instructions/instructions/part.md"
+                          },
+                          {
+                            "path": "/examples/instructions/system.md"
+                          }
+                        ],
+                        "resolution": "Provide runtime loading tests for an alternate form, or use one exclusive lowercase instructions.md file or a supported TypeScript instructions module at the agent root."
+                      },
+                      "markdown-skill-runtime-evidence": {
+                        "category": "runtime-evidence",
+                        "description": "The flat and packaged Markdown skills are preserved, but the supported Eve static relationship is a TypeScript defineSkill module.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/agent/skills/guide/SKILL.md"
+                          },
+                          {
+                            "path": "/agent/skills/reference.md"
+                          }
+                        ],
+                        "resolution": "Provide runtime wiring and tests for each Markdown skill, or express each canonical capability as a supported TypeScript defineSkill module."
+                      },
+                      "single-file-subagent-runtime-evidence": {
+                        "category": "runtime-evidence",
+                        "description": "The single-file quick subagent candidate is preserved, but supported static inspection requires a registered directory-backed local subagent.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/agent/subagents/quick.ts"
+                          }
+                        ],
+                        "resolution": "Provide runtime wiring and routing tests for the single-file candidate, or move the behavior to a registered directory-backed local subagent with an agent.ts definition and canonical description."
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Support boundary project\n\nThis project demonstrates supported and runtime-dependent Eve filesystem surfaces.\n",
+              "digest": "sha256:4cfd33611157a9832ebbcac72c74f3d7e4b56c2951bca42321b11e240ff0283e",
+              "path": "/moldea/project.md",
+              "scalarLength": 111,
+              "utf8ByteLength": 111
+            },
+            "runtimes": [
+              {
+                "asset": {
+                  "content": "# Eve runtime boundary\n\nCanonical static relationships use the Eve `0.39.x` TypeScript filesystem forms proven by local inspection: a flat or nested `agent.ts`; one exclusive lowercase `instructions.md` or supported TypeScript instructions module at the agent root; recursive TypeScript `defineTool` modules; TypeScript `defineSkill` modules; direct schema bindings; and registered, directory-backed local subagents with canonical routing descriptions.\n\nPreserved dynamic tools, flat or packaged Markdown skills, single-file subagents, and case-varied, legacy, or composed instruction examples are not canonical without focused runtime wiring and tests. Prefer the corresponding supported static form when runtime evidence is unavailable.\n\nRemote agents, extension contributions, connection and framework tools, filesystem collisions, reserved names, and advanced runtime behavior likewise require source-owned runtime evidence or a supported, collision-free static filesystem form. Static discovery alone does not prove provider, model, routing, registration, or execution behavior.\n",
+                  "digest": "sha256:d02ffccd42fc28b22a5b3c54568fe4649f687f9abc8b8d0ce36f2567207cd24b",
+                  "path": "/moldea/runtimes/eve.md",
+                  "scalarLength": 1084,
+                  "utf8ByteLength": 1084
+                }
+              }
+            ],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

@@ -1,0 +1,156 @@
+---
+import { Braces, FileCode, FileText, Link2, type Icon } from '@lucide/astro';
+import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
+
+import Conversation from '../conversation/conversation.astro';
+import type { IConversationTurn } from '../conversation/types.ts';
+
+const alignmentConversation = [
+  {
+    role: 'developer',
+    message: 'Add manager approval to refunds over $500.',
+  },
+  {
+    role: 'skill',
+    message:
+      'Trace the affected project context and agent relationships. Reconsider every relevant surface, update only established changes, then run deterministic validation.',
+  },
+  {
+    role: 'agent',
+    message:
+      'I found the refund policy, implementation, support-agent behavior, approval tool, schemas, runtime binding, tests, and documentation. I’ll use current evidence to decide what changes and report what remains correct.',
+  },
+] satisfies IConversationTurn[];
+const affectedSurfaceGroups = [
+  {
+    description: 'The refund policy establishes when approval is required.',
+    icon: FileText,
+    label: 'Project truth',
+    surfaces: ['Refund policy'],
+  },
+  {
+    description: 'The support agent must understand the new authority boundary.',
+    icon: FileText,
+    label: 'Agent behavior',
+    surfaces: ['Support-agent instruction'],
+  },
+  {
+    description: 'Tool schemas and runtime wiring must still represent the declared capability.',
+    icon: Link2,
+    label: 'Runtime contracts',
+    surfaces: ['Approval tool contract', 'Schemas', 'Runtime binding'],
+  },
+  {
+    description: 'Code, tests, and current documentation must agree with the resulting behavior.',
+    icon: FileCode,
+    label: 'Implementation evidence',
+    surfaces: ['Implementation', 'Tests', 'Directly affected documentation'],
+  },
+] satisfies Array<{
+  description: string;
+  icon: typeof Icon;
+  label: string;
+  surfaces: string[];
+}>;
+---
+
+<section
+  id="behavior-alignment"
+  class="scroll-mt-24 border-b border-border bg-sidebar py-section-gap"
+  aria-labelledby="behavior-alignment-title"
+  data-behavior-alignment
+>
+  <div class="page-shell">
+    <header class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end">
+      <div>
+        <p class="eyebrow mb-4">Behavior alignment in practice</p>
+        <h2
+          id="behavior-alignment-title"
+          class="section-title max-w-4xl font-semibold"
+        >
+          One change can affect more than one file.
+        </h2>
+      </div>
+      <p class="text-lg leading-8 text-muted-foreground lg:justify-self-end">
+        <InlineBrandText
+          text="moldea gives the coding agent a disciplined way to trace the complete behavioral surface without turning every relevant relationship into an automatic edit."
+        />
+      </p>
+    </header>
+
+    <div class="grid gap-5 lg:grid-cols-[minmax(20rem,0.85fr)_minmax(0,1.15fr)] lg:items-stretch">
+      <div
+        class="lg:h-full lg:[&>section]:h-full"
+        data-behavior-alignment-column
+      >
+        <Conversation
+          eyebrow="A normal request"
+          title="Developer, skill, and coding agent"
+          description="The coding agent still makes the semantic decisions. The skill supplies the operating discipline."
+          turns={alignmentConversation}
+        />
+      </div>
+
+      <div
+        class="grid h-full gap-4"
+        data-behavior-alignment-column
+        data-behavior-alignment-flow
+      >
+        <ol class="grid gap-3 sm:grid-cols-2">
+          {
+            affectedSurfaceGroups.map(
+              ({ description, icon: SurfaceIcon, label, surfaces }, index) => (
+                <li class="surface-card min-w-0 p-5">
+                  <div class="flex items-center gap-3">
+                    <span class="inline-flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+                      <SurfaceIcon
+                        class="size-4"
+                        aria-hidden="true"
+                      />
+                    </span>
+                    <p class="eyebrow min-w-0">{label}</p>
+                    <span class="ml-auto font-mono text-xs font-bold text-muted-foreground">
+                      0{index + 1}
+                    </span>
+                  </div>
+                  <ul class="mt-5 flex flex-wrap gap-2">
+                    {surfaces.map((surface) => (
+                      <li class="rounded-full border bg-background px-3 py-1.5 text-xs font-semibold">
+                        {surface}
+                      </li>
+                    ))}
+                  </ul>
+                  <p class="mt-4 text-sm leading-6 text-muted-foreground">{description}</p>
+                </li>
+              ),
+            )
+          }
+        </ol>
+
+        <div
+          class="dark-surface-selection rounded-2xl bg-primary p-5 text-primary-foreground sm:p-6"
+        >
+          <div class="flex items-center gap-3">
+            <span
+              class="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-current/10"
+            >
+              <Braces
+                class="size-5"
+                aria-hidden="true"
+              />
+            </span>
+            <div>
+              <p class="eyebrow text-current/60">Deterministic boundary</p>
+              <h3 class="mt-1 text-xl font-semibold tracking-tight">Verify, then report.</h3>
+            </div>
+          </div>
+          <p class="mt-5 leading-7 text-current/70">
+            The local CLI validates structure and supported adapters inspect declared runtime
+            relationships. The final report separates changed surfaces from those reconsidered and
+            intentionally left unchanged.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

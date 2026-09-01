@@ -1,0 +1,31 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-08-30T13:25:04.177Z",
+  "durationMs": 121569,
+  "usage": {
+    "inputTokens": 622544,
+    "cachedInputTokens": 574464,
+    "outputTokens": 4120
+  },
+  "cacheKey": "68e7dec723ce39987277255252da06a2ce41e5fdaa14c74a9db5e1bc08ec013e",
+  "sourceAttemptId": "20260830T130308771Z-openai-typescript-responses-api-7-d1cac691",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 21,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1
+    }
+  }
+}

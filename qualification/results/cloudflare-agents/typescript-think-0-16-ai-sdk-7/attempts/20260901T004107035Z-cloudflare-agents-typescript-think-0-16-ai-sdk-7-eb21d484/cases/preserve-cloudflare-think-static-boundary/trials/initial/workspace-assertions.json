@@ -1,0 +1,270 @@
+{
+  "passed": true,
+  "failures": [],
+  "before": [
+    {
+      "path": "moldea/agents/delegating-support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "a8117aea31bc38216e01077f15274cf9a991062b8d572773837a18878ce7bc8d"
+    },
+    {
+      "path": "moldea/agents/delegating-support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "d60acb50fd78839aa7852812d99ef93b6634170434cd65085978b775debbd865"
+    },
+    {
+      "path": "moldea/agents/step-support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0756b0c13fe196cb4a2cb3e39de296a8b10be60f84a6b6bb31301de6c2dfe8da"
+    },
+    {
+      "path": "moldea/agents/step-support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0b3e175e2a6a8e5952010629d7c187bc234093d4e7f2e6a72d6fd2de965ef345"
+    },
+    {
+      "path": "moldea/agents/support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "ab6d3f651ca3971a36a0922b7ec353354febb630009c6ff5a3ca72d287c2bddc"
+    },
+    {
+      "path": "moldea/agents/support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46"
+    },
+    {
+      "path": "moldea/moldea.yaml",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "3e698c34db13de3bd65f48bba4749e2e296f67fe6d99eb5c1d4f743f652352c9"
+    },
+    {
+      "path": "moldea/project.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "6d2e8a76aae8e69de4a52231a88850dd3a0807ce364186617dc4c979cc872154"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "890534969239e8d6aab47f4a48583b42746e241184029fe7ad8c6954a2b446d6"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b4a0aa5fddb4d6b5f0b769bcbfaa48952fd0b8b9a309045121f1751694c4a2eb"
+    },
+    {
+      "path": "src/contracts.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "cd8cc02ac229c0bc9bc2982a5f4b9e279e32f8229ed07c79318d5aedff27d542"
+    },
+    {
+      "path": "src/delegating-agent.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "e280359f10aad40dc0c67454ed265b5b0de85216aeed13a6223b33f45183d50f"
+    },
+    {
+      "path": "src/delegation-tool.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "41a67832da75e13ca652672b5372577562cbce81daf698cef4710994fa6349c9"
+    },
+    {
+      "path": "src/delegation.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "04a0fc108f3d9a9e2158901ed1fe16302d96d183ef9a981b9826d9d592fc1b3a"
+    },
+    {
+      "path": "src/implementations.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "bae618508e287832ba2d2402c821c5b176f1f20e3a70dcb531ef66c6aae68f5d"
+    },
+    {
+      "path": "src/instructions.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "da6f91c40b77576a0e8086114940487480d98c143d26fd3b4a7d92a342336507"
+    },
+    {
+      "path": "src/status-tools.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "f3728b06fcf673891e52227c2349af009e3294a46f875f530d5c3adc456776c6"
+    },
+    {
+      "path": "src/step-support-agent.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "8ff608d10566225e1ba4418473f71a0f3bfeaec27be62c4bc1f5cb02ed31ceae"
+    },
+    {
+      "path": "src/support-agent.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "ea225df368272e70027d3f414d26d6ecc011174a7bff0a878ed8a07536467a59"
+    },
+    {
+      "path": "src/workflow-agent.mts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "7d9d7e100b723289aff766f0a3a909d7a42115428745a6afffb23dcc16cedd9b"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "a2d8515017a97cf7ea40b8e44e61d3d50b8ca7233a76b424e882ec6ba120385d"
+    }
+  ],
+  "after": [
+    {
+      "path": "moldea/agents/delegating-support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "a8117aea31bc38216e01077f15274cf9a991062b8d572773837a18878ce7bc8d"
+    },
+    {
+      "path": "moldea/agents/delegating-support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "d60acb50fd78839aa7852812d99ef93b6634170434cd65085978b775debbd865"
+    },
+    {
+      "path": "moldea/agents/step-support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0756b0c13fe196cb4a2cb3e39de296a8b10be60f84a6b6bb31301de6c2dfe8da"
+    },
+    {
+      "path": "moldea/agents/step-support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "0b3e175e2a6a8e5952010629d7c187bc234093d4e7f2e6a72d6fd2de965ef345"
+    },
+    {
+      "path": "moldea/agents/support/description.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "ab6d3f651ca3971a36a0922b7ec353354febb630009c6ff5a3ca72d287c2bddc"
+    },
+    {
+      "path": "moldea/agents/support/instruction.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46"
+    },
+    {
+      "path": "moldea/moldea.yaml",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b26610b288ea28311890388d2a809d4d324310464d00df2c8c16f69cdcb961a2"
+    },
+    {
+      "path": "moldea/project.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "6d2e8a76aae8e69de4a52231a88850dd3a0807ce364186617dc4c979cc872154"
+    },
+    {
+      "path": "moldea/runtimes/cloudflare-agents.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "308195efd872c461cff8742f3829bd37be8a7513e0561d31d2917e696fe6687d"
+    },
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "890534969239e8d6aab47f4a48583b42746e241184029fe7ad8c6954a2b446d6"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "b4a0aa5fddb4d6b5f0b769bcbfaa48952fd0b8b9a309045121f1751694c4a2eb"
+    },
+    {
+      "path": "src/contracts.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "cd8cc02ac229c0bc9bc2982a5f4b9e279e32f8229ed07c79318d5aedff27d542"
+    },
+    {
+      "path": "src/delegating-agent.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "e280359f10aad40dc0c67454ed265b5b0de85216aeed13a6223b33f45183d50f"
+    },
+    {
+      "path": "src/delegation-tool.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "41a67832da75e13ca652672b5372577562cbce81daf698cef4710994fa6349c9"
+    },
+    {
+      "path": "src/delegation.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "04a0fc108f3d9a9e2158901ed1fe16302d96d183ef9a981b9826d9d592fc1b3a"
+    },
+    {
+      "path": "src/implementations.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "bae618508e287832ba2d2402c821c5b176f1f20e3a70dcb531ef66c6aae68f5d"
+    },
+    {
+      "path": "src/instructions.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "da6f91c40b77576a0e8086114940487480d98c143d26fd3b4a7d92a342336507"
+    },
+    {
+      "path": "src/status-tools.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "f3728b06fcf673891e52227c2349af009e3294a46f875f530d5c3adc456776c6"
+    },
+    {
+      "path": "src/step-support-agent.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "8ff608d10566225e1ba4418473f71a0f3bfeaec27be62c4bc1f5cb02ed31ceae"
+    },
+    {
+      "path": "src/support-agent.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "ea225df368272e70027d3f414d26d6ecc011174a7bff0a878ed8a07536467a59"
+    },
+    {
+      "path": "src/workflow-agent.mts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "7d9d7e100b723289aff766f0a3a909d7a42115428745a6afffb23dcc16cedd9b"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "a2d8515017a97cf7ea40b8e44e61d3d50b8ca7233a76b424e882ec6ba120385d"
+    }
+  ],
+  "changedPaths": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ]
+}

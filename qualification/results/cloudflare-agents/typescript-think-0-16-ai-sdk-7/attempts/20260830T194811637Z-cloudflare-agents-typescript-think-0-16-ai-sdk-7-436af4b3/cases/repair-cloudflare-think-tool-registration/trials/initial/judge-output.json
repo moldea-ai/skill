@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository and runner evidence agree: the canonical manifest now names `lookup_order`, matching `SupportAgent.getTools()`, while all runtime, loader, implementation, registration, and schema bindings remain intact. Deterministic inspection and typechecking pass with no failures, and workspace assertions show only `moldea/moldea.yaml` changed.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the stale `find_order` declaration and explains that the closed Cloudflare Think map in `src/agent.ts` uses `lookup_order`. The current source confirms `getTools()` returns `{ lookup_order: lookupOrderTool }`, and the deterministic inspection is valid with no failures."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` declares `name: lookup_order`, exactly matching the key returned by `SupportAgent.getTools()`. Workspace assertions identify `moldea/moldea.yaml` as the sole changed path; all source hashes remain unchanged. Deterministic inspection and typechecking pass."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings for `SupportAgent` and `loadSupportInstruction` in `/src/agent.ts`, `lookupOrder` in `/src/implementations.ts`, `lookupOrderTool` in `/src/tools.ts`, and both `LookupOrderInputSchema` and `LookupOrderOutputSchema` in `/src/contracts.ts`. Those symbols exist and are connected in source, no agent schema was added, all relevant source hashes are unchanged, and deterministic inspection reports valid complete evidence with no failures."
+    }
+  ],
+  "failures": []
+}

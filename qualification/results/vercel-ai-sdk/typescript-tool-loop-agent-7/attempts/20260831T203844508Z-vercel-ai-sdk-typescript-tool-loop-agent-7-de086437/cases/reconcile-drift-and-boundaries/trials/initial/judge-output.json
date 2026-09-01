@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The canonical manifest now binds all four support-agent relationships to existing exports in /src/support-assistant.ts and records the dynamic tool assembly uncertainty as an agent-level warning. Runner-owned validation passed, and workspace assertions show only moldea/moldea.yaml changed.",
+  "requirements": [
+    {
+      "id": "repairs-direct-bindings",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to supportAssistant, instructionLoader to loadSupportInstruction, inputSchema to SupportInputSchema, and outputSchema to SupportOutputSchema, all at /src/support-assistant.ts. That source exports each symbol. Deterministic inspection and typecheck passed; workspace assertions identify only moldea/moldea.yaml as changed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "verdict": "pass",
+      "evidence": "The support agent has unresolved warning dynamic-tool-registry-relationship, stating static inspection cannot establish whether assembleTools is attached to supportAssistant. It provides a concrete resolution through closed runtime wiring or an integration test and relates /src/dynamic-tools.ts#assembleTools. No tool binding was invented; src/dynamic-tools.ts only defines dynamic ToolSet assembly. Deterministic inspection passed and the workspace patch is limited to moldea/moldea.yaml."
+    }
+  ],
+  "failures": []
+}

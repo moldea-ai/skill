@@ -1,0 +1,54 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index b825518..1def714 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1 +1,31 @@
+ version: 1
++agents:
++  order-triage:
++    runtime:
++      id: openai-agents-sdk
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: orderTriageAgent
++      outputSchema:
++        path: /src/order-triage-agent.ts
++        symbol: OrderTriageOutputSchema
++      instructionLoader:
++        path: /src/order-triage-agent.ts
++        symbol: loadOrderTriageInstruction
++    tools:
++      classify-order:
++        name: classify_order
++        description: Classifies an order for human review.
++        implementation:
++          path: /src/order-triage-agent.ts
++          symbol: classifyOrder
++        registration:
++          path: /src/order-triage-agent.ts
++          symbol: classifyOrderTool
++        inputSchema:
++          path: /src/order-triage-agent.ts
++          symbol: ClassifyOrderInputSchema
++        outputSchema:
++          path: /src/order-triage-agent.ts
++          symbol: ClassifyOrderOutputSchema
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..3354498
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies incoming orders for human review. It cannot approve refunds.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..a3f4af2
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,3 @@
++# Order triage
++
++`order-triage` classifies incoming orders for human review. Use `classify_order` with the order ID, then return an object whose `category` is the category produced by the tool. Do not approve refunds or perform account changes.

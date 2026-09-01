@@ -1,0 +1,86 @@
+version: 2
+id: preserve-langgraph-state-graph-static-boundary
+title: Preserve the LangGraph StateGraph static boundary
+purpose: Verify conservative handling of dynamic routing, opaque schemas, node-local behavior, and higher-level LangGraph surfaces.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern, schema]
+    forbiddenEvidenceKinds: [instruction-loader, tool-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern, schema]
+    forbiddenEvidenceKinds: [instruction-loader, tool-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      src/support-graph.ts,
+      src/dynamic-support-graph.ts,
+      src/runtime-boundaries.ts,
+      src/prebuilt-boundary.ts,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      moldea/agents/dynamic-support/description.md,
+      moldea/agents/dynamic-support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    [
+      src/support-graph.ts,
+      src/dynamic-support-graph.ts,
+      src/runtime-boundaries.ts,
+      src/prebuilt-boundary.ts,
+      moldea/moldea.yaml,
+    ]
+  mustNotExistPaths: []
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: [moldea/runtimes/**/*.md]
+  mustChangePathPatterns: [moldea/runtimes/**/*.md]
+judgeRequirements:
+  - id: preserves-closed-bindings
+    description: For support, the actor preserves the proved direct runtime-agent, input-schema, and output-schema bindings and supported graph patterns.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-opaque-schema-boundary
+    description: For dynamic-support, the actor preserves only the proved runtime-agent binding and does not invent input- or output-schema relationships from an opaque schema factory.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-routing-boundary
+    description: Runtime-selected conditional routes plus Command and Send destinations remain unresolved without invented routing targets, handoffs, subagents, parent navigation, or complete topology claims.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: keeps-nodes-outside-capabilities
+    description: The actor does not declare graph nodes, node-local lookup behavior, or the prebuilt ToolNode as manifest tools, skills, handoffs, or subagents.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-runtime-semantics-boundary
+    description: Reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, and supervisor composition remain explicit unresolved runtime guidance rather than static evidence.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
+  - id: records-focused-guidance
+    description: Both agents reference the sole new runtime-guidance file under /moldea/runtimes/**/*.md, which explains the exact static boundaries and the supported alternative for canonical schema evidence.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
+  - id: validates-project
+    description: Every deterministic layer accepts the project, relationship-local evidence remains exact, and all source and agent instruction files remain unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

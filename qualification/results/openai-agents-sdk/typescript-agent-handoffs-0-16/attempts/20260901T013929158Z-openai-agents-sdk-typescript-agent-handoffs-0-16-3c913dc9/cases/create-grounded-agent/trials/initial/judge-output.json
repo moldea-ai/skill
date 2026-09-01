@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical assets and manifest match the unchanged TypeScript implementation. Runner-owned workspace-patch evidence limits changes to the manifest and two agent assets, while deterministic validation, inspection, and typechecking all passed.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "moldea/agents/order-triage/description.md and instruction.md state that the agent classifies incoming orders for human review and cannot approve refunds; instruction.md also forbids account changes. This agrees with moldea/project.md and src/order-triage-agent.ts. Workspace-patch assertions identify only these agent assets and moldea/moldea.yaml as changed."
+    },
+    {
+      "id": "binds-direct-wrapper",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/order-triage-agent.ts#orderTriageAgent, instructionLoader to #loadOrderTriageInstruction, and outputSchema to #OrderTriageOutputSchema. Those exact exports exist and are wired into the direct new Agent construction. The manifest contains no routing, handoff, subagent, or agent-input-schema relationship. Deterministic inspect and validate report valid."
+    },
+    {
+      "id": "binds-function-tool",
+      "verdict": "pass",
+      "evidence": "The manifest records runtime name classify_order and exact symbols classifyOrder, classifyOrderTool, ClassifyOrderInputSchema, and ClassifyOrderOutputSchema from /src/order-triage-agent.ts. The implementation registers those same schemas and execute function through tool({...}). No canonical asset claims static adapter evidence proves runtime execution. Deterministic validation and TypeScript typechecking passed."
+    }
+  ],
+  "failures": []
+}

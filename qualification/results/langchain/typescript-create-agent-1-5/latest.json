@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 6,
+  "adapterId": "langchain",
+  "implementationId": "typescript-create-agent-1-5",
+  "latestAttemptId": "20260901T010539963Z-langchain-typescript-create-agent-1-5-88bec2eb",
+  "latestStatus": "passed",
+  "lastPassingAttemptId": "20260901T010539963Z-langchain-typescript-create-agent-1-5-88bec2eb",
+  "updatedAt": "2026-09-01T01:19:04.047Z"
+}

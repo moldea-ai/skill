@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 492908,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 992496,
+    "cachedInputTokens": 927744,
+    "outputTokens": 5032
+  },
+  "judgeUsage": {
+    "inputTokens": 434997,
+    "cachedInputTokens": 392704,
+    "outputTokens": 3571
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T12:33:11.303Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T12:36:22.924Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-direct-binding",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` declares `runtimeAgent.path: /src/support-workflow.ts` and `symbol: supportWorkflow` with no schema bindings. `src/support-workflow.ts` exports that Functional API entrypoint, while `src/removed-support-workflow.ts` is absent. Deterministic inspection, validation, and typechecking passed; workspace assertions identify only the manifest as changed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Agent `support` owns unresolved requirement `dynamic-task-routing-evidence` with category `routing`, effect `warning`, a description identifying the static-inspection boundary, a concrete resolution requiring source-owned documentation or an integration test, and related path `/src/dynamic-routing.ts`. The manifest invents no destinations, handoffs, subagents, tools, or schema bindings. Workspace assertions show `src/dynamic-routing.ts` was unchanged, and deterministic validation passed."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

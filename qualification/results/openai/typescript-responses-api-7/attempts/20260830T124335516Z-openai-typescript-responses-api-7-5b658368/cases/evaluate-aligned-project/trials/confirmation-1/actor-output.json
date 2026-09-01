@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted moldea project is structurally valid and aligned with the inspected direct OpenAI Responses API wrappers and canonical instruction loaders. No repository files were changed. Local inspection, TypeScript checking, and final Git diff/status checks passed.",
+  "changedFiles": [],
+  "observations": [
+    "`moldea inspect --json` completed with schema 2, CLI 5.0.0, status `valid`, no diagnostics, and no unresolved requirements.",
+    "`supportAgent` and `summaryAgent` directly call `client.responses.create` and load their respective canonical instruction files through the declared loaders.",
+    "The support wrapper registers the `find_order` function tool. Its declared name, description, registration, implementation binding, and `FindOrderInputSchema` match the source; the schema requires one string `orderId` and rejects additional properties.",
+    "`<workspace>/node_modules/.bin/tsc --noEmit` passed.",
+    "The final hardened Git diff and status were empty; runner-mounted skill and qualification inputs remained unchanged."
+  ],
+  "unresolved": [
+    "Neither adapter evidence nor this read-only review proves actual provider execution or invocation of `findOrder`. Closed runtime wiring or an application-owned integration test would be required to establish that behavior.",
+    "No evidence-based claims are made about output schemas, routing, handoffs, subagents, or agent input schemas. No provider or network access was used."
+  ]
+}

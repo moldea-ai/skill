@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 299653,
+  "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 623680,
+    "cachedInputTokens": 578560,
+    "outputTokens": 5115
+  },
+  "judgeUsage": {
+    "inputTokens": 415632,
+    "cachedInputTokens": 382976,
+    "outputTokens": 4048
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T17:20:38.650Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T17:22:37.757Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-project",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service identifies invoice anomalies for operator review, compares actual and expected totals, returns their difference, requires review on mismatch, and never approves payment or changes invoices. This agrees with README.md and src/invoice-review.ts. Current hashes match the runner's after-state, while the unchanged source hash matches both before and after."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The runner-owned patch lists only README.md, moldea/moldea.yaml, and moldea/project.md as changed. The README's original first three lines hash exactly matches its before-state hash, proving preservation before the appended standard block. moldea/moldea.yaml contains only version: 1; targeted checks found no agents, runtimes, decisions, context, or requirements paths and no manifest relationships. Current file hashes match the asserted after-state."
+    },
+    {
+      "id": "preserves-existing-work",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

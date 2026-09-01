@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, one-line Git diff, workspace assertions, actor explanation, and deterministic validation agree: stale canonical `find_order` was corrected to `lookup_order`, matching the closed Vercel tools map while preserving every runtime and schema binding. Inspection and typecheck passed with no failures.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies the stale canonical `find_order` name versus the source tools-map key `lookup_order`. The Git diff independently proves that mismatch, while current `src/agent.ts` shows `tools: { lookup_order: lookupOrderTool }`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` declares `name: lookup_order`. The Git diff changes only `find_order` to `lookup_order`, and workspace assertions identify `moldea/moldea.yaml` as the sole changed path. Deterministic inspection and validation both report `valid`."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "Current workspace preserves `/src/agent.ts#supportAgent`, `/src/agent.ts#loadSupportInstruction`, `/src/contracts.ts#SupportInputSchema`, `/src/contracts.ts#SupportOutputSchema`, `/src/implementations.ts#lookupOrder`, `/src/tools.ts#lookupOrderTool`, `/src/contracts.ts#LookupOrderInputSchema`, and `/src/contracts.ts#LookupOrderOutputSchema`. Source confirms the direct `ToolLoopAgent`, canonical instruction loading, `lookup_order` registration, tool schemas, and `execute: lookupOrder`. Workspace hashes show all source and schema files unchanged; deterministic inspection is valid, typecheck passed, and failures are empty."
+    }
+  ],
+  "failures": []
+}

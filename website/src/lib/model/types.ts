@@ -1,3 +1,6 @@
+import type { IQualificationWebsiteModel } from '../qualification/index.ts';
+import type { ISemanticEvaluationWebsiteModel } from '../semantic-evaluation/index.ts';
+
 import type { DOCUMENT_SECTION_LABELS } from './constants.ts';
 
 // public documentation section identifiers
@@ -44,7 +47,9 @@ export interface IWebsiteModel {
   generatedNotice: string;
   llmsText: string;
   navigation: INavigationGroup[];
+  qualification: IQualificationWebsiteModel;
   routes: string[];
   searchRecords: ISearchRecord[];
+  semanticEvaluation: ISemanticEvaluationWebsiteModel;
   skill: ISkillMetadata;
 }

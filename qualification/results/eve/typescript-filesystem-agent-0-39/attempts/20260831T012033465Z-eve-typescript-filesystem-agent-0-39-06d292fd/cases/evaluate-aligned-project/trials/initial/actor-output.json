@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted moldea project is structurally valid and semantically aligned with the inspected Eve filesystem definitions. No edits were necessary; the final scoped diff and Git status were empty.",
+  "changedFiles": [],
+  "observations": [
+    "`moldea inspect --json` completed with schema 2, CLI 5.0.0, status `valid`, no diagnostics, and Eve adapter evidence for both agents.",
+    "`support` maps to `/agent/agent.ts`, `loadSupportInstruction`, and `SupportOutputSchema`; its canonical behavior matches the exclusive instructions and registered capabilities.",
+    "The recursive `find_order` tool is detected as a filesystem tool backed by `findOrder`, with matching input and output schemas.",
+    "The TypeScript `analyze` skill has matching implementation and registration at `/agent/skills/analyze.ts`.",
+    "`summary` maps to its nested filesystem agent, exclusive Markdown instructions, and `SummaryOutputSchema`. The adapter identifies it as a local subagent and confirms the `support` handoff uses its canonical handoff description.",
+    "`moldea validate --json` returned `valid` with no diagnostics, and `tsc --noEmit` passed.",
+    "No provider, model, remote-agent, extension, connection, or runtime-only relationship was inferred."
+  ],
+  "unresolved": []
+}

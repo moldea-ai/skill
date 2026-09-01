@@ -1,0 +1,56 @@
+version: 2
+id: reconcile-drift-and-boundaries
+title: Reconcile drift and boundaries
+purpose: Verify stale-reference repair alongside conservative treatment of dynamic SDK wiring.
+taskFile: task.md
+seedDirectory: seed
+overlayDirectory: overlay
+expectedDirectory: expected
+removePaths: [src/support-agent.ts]
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: [runtime-pattern]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [instruction-loader, language, runtime-package, runtime-pattern, schema]
+    forbiddenEvidenceKinds: [agent-definition, tool-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [src/support-assistant.ts, src/dynamic-tools.ts, moldea/agents/support/instruction.md]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths: [src/support-assistant.ts, src/dynamic-tools.ts, moldea/moldea.yaml]
+  mustNotExistPaths: [src/support-agent.ts, moldea/runtimes]
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: repairs-direct-bindings
+    description: Removed wrapper references are replaced with the existing supportAssistant, loadSupportInstruction, and SupportOutputSchema symbols.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: records-dynamic-boundary
+    description: Dynamic tool assembly is an unresolved warning with a concrete resolution and related source, not an invented tool binding.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-source
+    description: Existing implementation files and canonical agent assets remain unchanged, and removed source is not recreated.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: validates-project
+    description: The initially invalid project becomes valid through every deterministic layer without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

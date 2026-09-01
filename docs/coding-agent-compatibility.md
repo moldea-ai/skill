@@ -35,7 +35,7 @@ Project scope is recommended because the installed skill can travel with the rep
 
 Every compatible host consumes the same portable semantic core:
 
-- `SKILL.md` defines activation, authority, compatibility, operation selection, and reporting.
+- `SKILL.md` defines activation, authority, compatibility, operation selection, and reporting. Potentially durable knowledge is its first activation signal, regardless of whether it arrives as prose, an answer, a table, structured data, or an accessible source; loading then checks adoption and never establishes it.
 - Focused references are loaded only for the workflows that require them.
 - Repository-local `@moldea.ai/cli` tooling owns deterministic inspection and validation.
 - Canonical project and agent state remains under `/moldea/**`.
@@ -47,6 +47,8 @@ The optional `agents/openai.yaml` file adds OpenAI-host presentation, default-pr
 
 Coding agents can differ in how they discover and install skills, present them in the interface, apply invocation policies, combine them with project instructions, expose tools, and report work. Those host-level differences do not create separate `moldea` formats or sources of truth, and an installed copy does not prove activation or runtime registration.
 
+Use a frontier-capability coding model for the strongest results. Official release assurance runs with `gpt-5.6-sol` at `medium` reasoning effort.
+
 Before installation, confirm that the host supports Agent Skills or is recognized by the current `skills` CLI. A host logo on this site identifies compatibility; it does not imply sponsorship or endorsement by that vendor.
 
 ## Make the first request
@@ -54,7 +56,7 @@ Before installation, confirm that the host supports Agent Skills or is recognize
 After installation, use the host normally:
 
 ```text
-Initialize moldea for this repository.
+Initialize moldea
 ```
 
 Or ask directly for an outcome:

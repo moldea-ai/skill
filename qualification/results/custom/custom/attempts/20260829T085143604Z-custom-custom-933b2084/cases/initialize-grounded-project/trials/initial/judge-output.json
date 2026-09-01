@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, hardened README diff, direct review of the new Moldea files, workspace assertions, and deterministic validation results agree. Initialization accurately records the invoice-review purpose and non-authorizing boundary while adding only the minimal Moldea foundation.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "README.md states that the service reviews invoice line items, returns findings to a human finance operator, and never authorizes or sends payment. src/invoice-review.ts deterministically detects duplicate references. moldea/project.md accurately preserves that purpose and boundary while explicitly distinguishing the implemented duplicate-reference behavior from the unimplemented arithmetic-mismatch claim."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The workspace contains only moldea/moldea.yaml and moldea/project.md under moldea/. Hardened Git status/diff and runner-owned workspace assertions show exactly three changed paths: those two files and README.md. The manifest contains only version: 1, and no agent, decision, runtime guide, focused context, mirror, or unresolved requirement was created. README.md preserves its original content and appends one Moldea awareness block."
+    }
+  ],
+  "failures": []
+}

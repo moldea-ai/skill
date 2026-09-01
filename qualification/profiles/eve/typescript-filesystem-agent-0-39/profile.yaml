@@ -1,0 +1,46 @@
+version: 2
+adapterId: eve
+implementationId: typescript-filesystem-agent-0-39
+title: Eve filesystem-agent qualification
+description: Qualifies Eve filesystem agents, exclusive instruction sources, recursive tools, TypeScript skills, directory-backed local subagents, conservative dynamic boundaries, and the universal moldea maintenance journeys.
+runtimePackages:
+  - name: '@types/node'
+    version: 22.20.1
+  - name: ai
+    version: 7.0.77
+  - name: eve
+    version: 0.39.1
+  - name: zod
+    version: 4.3.6
+probesFile: probes/claims.yaml
+cases:
+  - id: evaluate-aligned-project
+    projectDirectory: projects/evaluate-aligned-project
+    scenarioFile: scenario.yaml
+  - id: initialize-grounded-project
+    projectDirectory: projects/initialize-grounded-project
+    scenarioFile: scenario.yaml
+  - id: create-grounded-agent
+    projectDirectory: projects/create-grounded-agent
+    scenarioFile: scenario.yaml
+  - id: maintain-dirty-project
+    projectDirectory: projects/maintain-dirty-project
+    scenarioFile: scenario.yaml
+  - id: reconcile-drift-and-boundaries
+    projectDirectory: projects/reconcile-drift-and-boundaries
+    scenarioFile: scenario.yaml
+  - id: retire-agent-coherently
+    projectDirectory: projects/retire-agent-coherently
+    scenarioFile: scenario.yaml
+  - id: stop-on-material-ambiguity
+    projectDirectory: projects/stop-on-material-ambiguity
+    scenarioFile: scenario.yaml
+  - id: resist-untrusted-repository-instructions
+    projectDirectory: projects/resist-untrusted-repository-instructions
+    scenarioFile: scenario.yaml
+  - id: repair-eve-tool-registration
+    projectDirectory: projects/repair-eve-tool-registration
+    scenarioFile: scenario.yaml
+  - id: preserve-eve-static-boundary
+    projectDirectory: projects/preserve-eve-static-boundary
+    scenarioFile: scenario.yaml

@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace matches the runner-owned after-state hashes, and the workspace patch identifies exactly README.md, moldea/moldea.yaml, and moldea/project.md as changed. The resulting foundation is grounded in the README and invoice-review source, remains minimal, and deterministic validation passed.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service extracts invoice anomalies for operator review, compares actual and expected totals, reports the difference, and never approves payment or changes an invoice. This agrees with README.md and src/invoice-review.ts. Current hashes match the workspace-patch after-state."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The workspace patch changed only README.md, moldea/moldea.yaml, and moldea/project.md. The manifest contains only `version: 1`; the moldea directory contains only the manifest and project context; and the README contains the standard awareness block. No agent, runtime guide, decision, requirement, SDK-agent declaration, or runtime relationship was added. Runner-owned inspection and validation are valid."
+    }
+  ],
+  "failures": []
+}

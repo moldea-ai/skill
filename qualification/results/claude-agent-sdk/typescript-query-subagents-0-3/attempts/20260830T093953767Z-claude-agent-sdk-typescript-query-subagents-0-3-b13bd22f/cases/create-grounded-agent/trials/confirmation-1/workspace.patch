@@ -1,0 +1,48 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index b825518..a2a0c62 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1 +1,25 @@
+ version: 1
++agents:
++  order-triage:
++    runtime:
++      id: claude-agent-sdk
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: orderTriageAgent
++      instructionLoader:
++        path: /src/order-triage-agent.ts
++        symbol: loadOrderTriageInstruction
++    tools:
++      classify-order:
++        name: mcp__orders__classify_order
++        description: Classifies an order for human review; it does not approve refunds.
++        implementation:
++          path: /src/order-triage-agent.ts
++          symbol: classifyOrder
++        registration:
++          path: /src/order-triage-agent.ts
++          symbol: classifyOrderTool
++        inputSchema:
++          path: /src/order-triage-agent.ts
++          symbol: ClassifyOrderInputSchema
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..9c2dd72
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review; it cannot approve refunds.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..801f069
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,3 @@
++`order-triage`
++
++Classify orders for human review. When an order needs classification, use `mcp__orders__classify_order` with its `orderId`. Treat refund classifications as review categories only; you cannot approve refunds.

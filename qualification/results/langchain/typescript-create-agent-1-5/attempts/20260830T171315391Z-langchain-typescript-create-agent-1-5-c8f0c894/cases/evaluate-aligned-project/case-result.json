@@ -1,0 +1,66 @@
+{
+  "caseId": "evaluate-aligned-project",
+  "title": "Evaluate an aligned project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 252351,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 252351,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 726422,
+        "cachedInputTokens": 653056,
+        "outputTokens": 3610
+      },
+      "judgeUsage": {
+        "inputTokens": 454080,
+        "cachedInputTokens": 388864,
+        "outputTokens": 4026
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T17:15:23.812Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T17:17:38.100Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-patterns",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "In src/agents.ts, supportAgent directly awaits loadSupportInstruction() for systemPrompt and binds SupportOutputSchema as responseFormat; summaryAgent directly awaits loadSummaryInstruction() and binds SummaryOutputSchema through toolStrategy. src/instructions.ts loads the corresponding canonical support and summary instruction.md files. This agrees with the actor explanation and deterministic valid inspection."
+        },
+        {
+          "id": "explains-closed-bindings",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml declares both output-schema bindings and the support find-order relationship. The implementation closes that chain: supportAgent registers findOrderTool; findOrderTool wraps findOrder with runtime name find_order, the declared description, and FindOrderInputSchema. summaryAgent has structured output but no tool registration. The actor reports these relationships accurately, and deterministic validation reports zero failures."
+        },
+        {
+          "id": "respects-static-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor limits its conclusions to directly observable createAgent definitions, instruction loaders, schemas, and the closed support tool chain, explicitly stating that it inferred no provider, model, routing, handoff, or subagent relationships. Current workspace evidence and deterministic validation introduce no conflicting claim."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

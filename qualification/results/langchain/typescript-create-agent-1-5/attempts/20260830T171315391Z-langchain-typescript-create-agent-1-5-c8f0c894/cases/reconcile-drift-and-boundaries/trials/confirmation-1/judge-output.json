@@ -1,0 +1,19 @@
+{
+  "verdict": "fail",
+  "summary": "The dynamic tool boundary is recorded correctly, but the required SupportInputSchema symbol and binding are absent. Deterministic validation passing does not satisfy that missing direct binding.",
+  "requirements": [
+    {
+      "id": "repairs-direct-bindings",
+      "verdict": "fail",
+      "evidence": "Current workspace: src/support-assistant.ts exports supportAssistant, loadSupportInstruction, and SupportOutputSchema, but contains no SupportInputSchema. moldea/moldea.yaml binds only runtimeAgent, instructionLoader, and outputSchema; it has no SupportInputSchema reference or input-schema binding. The deterministic summary is valid and typechecks, but confirms only structural validity. Workspace assertions show only moldea/moldea.yaml changed and src/support-assistant.ts remained unchanged."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml records agents.support.unresolved.dynamic-tool-registry-relationship with effect warning, explains that static inspection cannot establish whether assembleTools supplies supportAssistant, gives a concrete closed-wiring/integration-test resolution, and relates /src/dynamic-tools.ts#assembleTools and /src/support-assistant.ts#supportAssistant. No tool binding was invented. Runner-owned assertions show only the manifest changed, while implementation files remained unchanged; deterministic inspection and validation passed."
+    }
+  ],
+  "failures": [
+    "Add or restore the required existing SupportInputSchema relationship in the canonical support-agent bindings, ensuring the symbol actually exists at the declared implementation path, then rerun validation."
+  ]
+}

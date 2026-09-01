@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 307792,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1030221,
+    "cachedInputTokens": 955392,
+    "outputTokens": 4452
+  },
+  "judgeUsage": {
+    "inputTokens": 459741,
+    "cachedInputTokens": 417024,
+    "outputTokens": 4363
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T14:32:52.955Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T14:35:12.464Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-direct-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts#supportAssistant and instructionLoader to /src/support-assistant.ts#loadSupportInstruction. src/support-assistant.ts exports both symbols and loads the canonical support instruction. src/support-agent.ts is absent. Deterministic inspection was valid, typechecking passed, and workspace assertions show only moldea/moldea.yaml changed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml records agent-level unresolved requirement dynamic-tool-registry-wiring with effect warning, identifies the unproven relationship, gives a concrete closed-wiring-or-integration-test resolution, and relates /src/dynamic-tools.ts#assembleTools. No tool binding was added. The source exports assembleTools, remained unchanged, and deterministic inspection was valid."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

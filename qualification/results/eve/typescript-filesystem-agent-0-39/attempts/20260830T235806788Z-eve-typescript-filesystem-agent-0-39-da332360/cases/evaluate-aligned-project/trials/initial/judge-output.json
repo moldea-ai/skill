@@ -1,0 +1,27 @@
+{
+  "verdict": "pass",
+  "summary": "The actor report accurately matches the project-owned Eve filesystem definitions and the runner-owned deterministic evidence. The current files bind the root support agent, directory-backed summary subagent, exclusive instruction sources, schemas, recursive tool, TypeScript skill, and local handoff as reported. Deterministic validation passed, TypeScript typechecking passed, and before/after hashes show no repository changes.",
+  "requirements": [
+    {
+      "id": "explains-filesystem-definitions",
+      "verdict": "pass",
+      "evidence": "`agent/agent.ts` defines the root Eve agent represented by `support`; `agent/subagents/summary/agent.ts` defines the directory-backed local `summary` subagent. `moldea/moldea.yaml` binds those exact paths and default exports. The actor identifies both mappings accurately, and deterministic inspection reports valid."
+    },
+    {
+      "id": "explains-exclusive-instructions",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` binds support's instruction loader to `loadSupportInstruction` in `agent/loaders.ts`, while summary is bound directly to the lowercase Markdown path `agent/subagents/summary/instructions.md`. The actor distinguishes these exclusive sources accurately."
+    },
+    {
+      "id": "explains-capability-bindings",
+      "verdict": "pass",
+      "evidence": "The manifest binds `SupportOutputSchema`, `SummaryOutputSchema`, `FindOrderInputSchema`, and `FindOrderOutputSchema` from `agent/contracts.ts`; `find_order` is registered at `agent/tools/find_order.ts` and executes `findOrder` from `agent/implementations.ts`; `analyze` is defined and registered from `agent/skills/analyze.ts`. The summary agent exists under `agent/subagents/summary`, and its canonical handoff description matches its description. These facts agree with the actor report and valid deterministic inspection/typecheck results."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "The actor explicitly limits its conclusions to repository, type-system, and deterministic Eve adapter evidence and states that it inferred no provider, model, remote-agent, extension, connection, or runtime-only relationship. Although model literals exist in agent source, the report does not interpret or claim relationships from them."
+    }
+  ],
+  "failures": []
+}

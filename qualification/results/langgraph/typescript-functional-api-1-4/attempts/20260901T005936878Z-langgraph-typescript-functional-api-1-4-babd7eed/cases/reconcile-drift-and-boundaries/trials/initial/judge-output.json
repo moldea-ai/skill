@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current manifest binds the support agent directly to the existing `/src/support-workflow.ts` `supportWorkflow` export, adds no schema binding, and records dynamic task selection as an agent-owned routing warning with a concrete resolver and related source. Runner-owned validation and typechecking passed, and workspace assertions show only `moldea/moldea.yaml` changed while implementation files remained unchanged.",
+  "requirements": [
+    {
+      "id": "repairs-direct-binding",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` declares `runtimeAgent.path: /src/support-workflow.ts` and `symbol: supportWorkflow` with no schema bindings. `src/support-workflow.ts` exports that Functional API entrypoint, while `src/removed-support-workflow.ts` is absent. Deterministic inspection, validation, and typechecking passed; workspace assertions identify only the manifest as changed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "verdict": "pass",
+      "evidence": "Agent `support` owns unresolved requirement `dynamic-task-routing-evidence` with category `routing`, effect `warning`, a description identifying the static-inspection boundary, a concrete resolution requiring source-owned documentation or an integration test, and related path `/src/dynamic-routing.ts`. The manifest invents no destinations, handoffs, subagents, tools, or schema bindings. Workspace assertions show `src/dynamic-routing.ts` was unchanged, and deterministic validation passed."
+    }
+  ],
+  "failures": []
+}

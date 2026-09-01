@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 4398,
+  "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1599617,
+    "cachedInputTokens": 1504000,
+    "outputTokens": 7531
+  },
+  "judgeUsage": {
+    "inputTokens": 328525,
+    "cachedInputTokens": 297984,
+    "outputTokens": 2608
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T07:55:44.525Z",
+  "judgeEvidenceCreatedAt": "2026-09-01T00:08:01.171Z",
+  "actorCacheSourceAttemptId": "20260830T074013166Z-custom-custom-8a048d01",
+  "judgeCacheSourceAttemptId": "20260901T000301688Z-custom-custom-78d95787",
+  "requirementAssessments": [
+    {
+      "id": "adds-context",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` contains durable billing-dispute guidance consistent with `/src/billing.ts` (`refundWindowDays = 30`). `moldea/moldea.yaml` globally registers that context, binds it explicitly to `/src/billing.ts#refundWindowDays`, and assigns it to the `support` agent. The workspace assertions identify exactly these related additions/changes, and deterministic inspection reports valid status with no failures."
+    },
+    {
+      "id": "updates-instruction",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The Git diff for `moldea/agents/support/instruction.md` leaves the required opening identity—`You are the support agent`—unchanged and adds explicit direction to use billing context for refund and invoice questions, avoid unsupported promises, explain uncertainty, and escalate disputes."
+    },
+    {
+      "id": "preserves-dirty-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

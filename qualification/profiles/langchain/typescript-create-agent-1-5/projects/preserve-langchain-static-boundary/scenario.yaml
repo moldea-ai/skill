@@ -1,0 +1,97 @@
+version: 2
+id: preserve-langchain-static-boundary
+title: Preserve the LangChain static boundary
+purpose: Verify conservative handling of middleware and unsupported LangChain relationship shapes.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [agent-definition, instruction-loader, language, runtime-package, schema, tool-registration]
+    forbiddenEvidenceKinds: [runtime-pattern]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds:
+      [agent-definition, instruction-loader, language, runtime-package, schema, tool-registration]
+    forbiddenEvidenceKinds: [runtime-pattern]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      src/support-agent.ts,
+      src/step-support-agent.ts,
+      src/delegating-agent.ts,
+      src/contracts.ts,
+      src/instructions.ts,
+      src/implementations.ts,
+      src/status-tools.ts,
+      src/delegation.ts,
+      src/delegation-tool.ts,
+      src/workflow-agent.mts,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      moldea/agents/step-support/description.md,
+      moldea/agents/step-support/instruction.md,
+      moldea/agents/delegating-support/description.md,
+      moldea/agents/delegating-support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    [
+      src/support-agent.ts,
+      src/step-support-agent.ts,
+      src/delegating-agent.ts,
+      src/delegation.ts,
+      src/workflow-agent.mts,
+      moldea/moldea.yaml,
+    ]
+  mustNotExistPaths: []
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: [moldea/runtimes/**/*.md]
+  mustChangePathPatterns: [moldea/runtimes/**/*.md]
+judgeRequirements:
+  - id: preserves-middleware-boundary
+    description: For supportAgent, the actor preserves only the proved direct agent definition and records instruction-loader, output-schema, and tool-registration relationships as unresolved because middleware is non-empty.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-unsupported-shape-boundaries
+    description: For stepSupportAgent, the actor preserves the direct agent and instruction-loader bindings without inventing input-schema, output-schema, or repository-local tool relationships from multiple response formats, state and context schemas, or a headless client tool.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: does-not-infer-subagent-handoff
+    description: The actor preserves the delegate_support function tool and its direct bindings without adding routing, handoff, or subagent relationships from its call to stepSupportAgent.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: keeps-langgraph-outside-target
+    description: The actor preserves workflowSupportAgent as source but does not register the direct StateGraph application as a LangChain createAgent target.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: records-focused-guidance
+    description: Both boundary agents reference the sole new runtime-guidance file under /moldea/runtimes/**/*.md, which explains the precise supported alternatives without claiming provider behavior.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
+  - id: records-unresolved-boundaries
+    description: Focused unresolved warnings distinguish middleware effects from unsupported response, schema, and headless-tool shapes and name the relevant source paths and resolutions.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: validates-project
+    description: Every deterministic layer accepts the project, relationship-local evidence remains exact, and every source and agent instruction file remains unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

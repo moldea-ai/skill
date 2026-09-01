@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the adopted project’s canonical Eve tool declaration from stale `find_order` to path-derived runtime name `orders-find`. Final inspection is valid, emits complete tool-registration evidence, and reports no diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the support agent, instruction source, tool implementation, filesystem registration, and input/output schemas.",
+    "Tool evidence reports runtimeName `orders-find`, pathDepth 2, implementationKind `bound-function`, and registrationKind `filesystem-tool`.",
+    "`moldea inspect --json` and `moldea validate --json` passed with CLI 5.0.0/schema 2 and zero diagnostics.",
+    "TypeScript validation passed with `tsc --noEmit`.",
+    "Final Git diff contains only the canonical tool-name correction."
+  ],
+  "unresolved": []
+}

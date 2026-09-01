@@ -1,0 +1,84 @@
+version: 2
+id: repair-cloudflare-ai-chat-output-schema
+title: Repair Cloudflare AIChatAgent output schema
+purpose: Verify precise diagnostic-driven repair of direct Output.object schema identity.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: [CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED]
+    forbiddenDiagnosticCodes: [CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_SYMBOL_NOT_FOUND]
+    requiredEvidenceKinds:
+      [
+        agent-definition,
+        instruction-loader,
+        language,
+        runtime-package,
+        runtime-pattern,
+        schema,
+        tool-registration,
+      ]
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes:
+      [
+        CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED,
+        CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_SYMBOL_NOT_FOUND,
+      ]
+    requiredEvidenceKinds:
+      [
+        agent-definition,
+        instruction-loader,
+        language,
+        runtime-package,
+        runtime-pattern,
+        schema,
+        tool-registration,
+      ]
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      src/agent.ts,
+      src/contracts.ts,
+      src/implementations.ts,
+      src/tools.ts,
+      moldea/agents/support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    [moldea/moldea.yaml, src/agent.ts, src/contracts.ts, src/implementations.ts, src/tools.ts]
+  mustNotExistPaths: [moldea/runtimes]
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-output-schema-mismatch
+    description: The actor explains from validation evidence and repository source that canonical state points to LegacySupportOutputSchema while the direct Output.object request uses SupportOutputSchema.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after, workspace-patch]
+  - id: repairs-output-schema-binding
+    description: The manifest output-schema binding becomes SupportOutputSchema without changing valid source.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-binding-closure
+    description: Runtime-agent, instruction-loader, output-schema, tool implementation, registration, input-schema, and output-schema bindings remain exact and evidenced without inventing an agent input schema.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
+  - id: validates-project
+    description: The mismatch disappears and every deterministic layer passes without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

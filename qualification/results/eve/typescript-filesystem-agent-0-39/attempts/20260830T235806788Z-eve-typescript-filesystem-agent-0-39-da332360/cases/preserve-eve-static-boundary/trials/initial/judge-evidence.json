@@ -1,0 +1,31 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-08-31T01:09:57.037Z",
+  "durationMs": 98933,
+  "usage": {
+    "inputTokens": 316930,
+    "cachedInputTokens": 229376,
+    "outputTokens": 3431
+  },
+  "cacheKey": "0141924f064b5c983cb019e8924d30e7bc4e4c2e04f9743783e432e5e2b8df83",
+  "sourceAttemptId": "20260830T235806788Z-eve-typescript-filesystem-agent-0-39-da332360",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 38,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    }
+  }
+}

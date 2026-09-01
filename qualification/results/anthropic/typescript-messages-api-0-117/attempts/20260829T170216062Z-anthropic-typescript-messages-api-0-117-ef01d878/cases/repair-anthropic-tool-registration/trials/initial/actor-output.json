@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support tool’s canonical runtime name from `find_order` to the source-backed `lookup_order`. Final Moldea inspection is valid, emits complete Anthropic tool-registration evidence, and reports no diagnostics. TypeScript validation also passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the direct Messages API wrapper, `lookupOrderTool` declaration, `lookupOrder` implementation, and `LookupOrderInputSchema`.",
+    "Moldea CLI 5.0.0 inspection completed with schema version 2, status `valid`, six evidence entries, and an empty diagnostics array.",
+    "The final evidence includes Anthropic client-tool registration for runtime name `lookup_order` and its input schema.",
+    "`tsc --noEmit -p tsconfig.json` completed successfully.",
+    "Final Git diff contains only the intended one-line canonical tool-name correction."
+  ],
+  "unresolved": []
+}

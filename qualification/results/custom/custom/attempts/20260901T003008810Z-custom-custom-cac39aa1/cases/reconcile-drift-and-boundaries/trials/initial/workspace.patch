@@ -1,0 +1,55 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 0537cec..92cc9a9 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -6,7 +6,16 @@ agents:
+       guidance: /moldea/runtimes/custom.md
+     bindings:
+       runtimeAgent:
+-        path: /src/support-agent.ts
+-        symbol: supportAgent
++        path: /src/support-assistant.ts
++        symbol: supportAssistant
+     affectedBy:
+       - /src/**
++    unresolved:
++      dynamic-tool-registration:
++        category: runtime-integration
++        effect: warning
++        description: Static inspection cannot prove that the dynamically assembled tool registry supplies the tools declared by the support runtime agent.
++        resolution: Add a deterministic integration test that constructs the runtime tool registry and verifies that every tool named by supportAssistant.tools is registered.
++        related:
++          - path: /src/dynamic-tools.ts
++          - path: /src/support-assistant.ts
+diff --git a/src/support-agent.ts b/src/support-agent.ts
+deleted file mode 100644
+index 2c08d05..0000000
+--- a/src/support-agent.ts
++++ /dev/null
+@@ -1,4 +0,0 @@
+-export const supportAgent = {
+-  id: 'support',
+-  tools: ['lookupAccount'],
+-} as const;
+
+diff --git a/src/dynamic-tools.ts b/src/dynamic-tools.ts
+new file mode 100644
+index 0000000..e56d8b3
+--- /dev/null
++++ b/src/dynamic-tools.ts
+@@ -0,0 +1,4 @@
++const toolNames = ['lookupAccount'] as const;
++
++export const createToolRegistry = (): Readonly<Record<string, string>> =>
++  Object.fromEntries(toolNames.map((toolName) => [toolName, `dynamic:${toolName}`]));
+
+diff --git a/src/support-assistant.ts b/src/support-assistant.ts
+new file mode 100644
+index 0000000..928e6dd
+--- /dev/null
++++ b/src/support-assistant.ts
+@@ -0,0 +1,4 @@
++export const supportAssistant = {
++  id: 'support',
++  tools: ['lookupAccount'],
++} as const;

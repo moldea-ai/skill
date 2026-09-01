@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, runner-owned deterministic results, and Git diff agree: the manifest alone changed from `find_order` to `lookup_order`, matching the Anthropic client-tool registration while preserving all runtime, instruction-loader, implementation, registration, and schema bindings. Deterministic validation, inspection, and type-checking passed with no reported failures.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the stale manifest name `find_order` and source-proven name `lookup_order`. The Git diff confirms that exact mismatch and correction, while `src/tools.ts` declares `lookupOrderTool.name` as `lookup_order`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`. The Git diff shows the sole edit was `find_order` to `lookup_order`, and the deterministic post-actor summary reports valid inspection, validation, type-checking, and an unchanged repository during checks."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest still binds runtime agent `/src/agent.ts#supportAgent`, instruction loader `/src/agent.ts#loadSupportInstruction`, registration `/src/tools.ts#lookupOrderTool`, schema `/src/contracts.ts#LookupOrderInputSchema`, and implementation `/src/implementations.ts#lookupOrder`. Source confirms the instruction is loaded into `system`, the closed `tools` array is `[lookupOrderTool]`, the tool uses `LookupOrderInputSchema`, and the implementation symbol remains `lookupOrder`. The diff changes none of these bindings, and deterministic checks passed."
+    }
+  ],
+  "failures": []
+}

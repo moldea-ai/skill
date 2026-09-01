@@ -1,0 +1,14 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: openai
+    bindings:
+      runtimeAgent:
+        path: /src/support-agent.ts
+        symbol: supportAgent
+      instructionLoader:
+        path: /src/support-agent.ts
+        symbol: loadSupportInstruction
+    affectedBy:
+      - /src/support-agent.ts

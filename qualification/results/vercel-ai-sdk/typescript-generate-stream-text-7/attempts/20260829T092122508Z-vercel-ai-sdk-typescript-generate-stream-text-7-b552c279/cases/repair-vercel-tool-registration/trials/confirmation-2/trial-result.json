@@ -1,0 +1,56 @@
+{
+  "trialId": "confirmation-2",
+  "kind": "confirmation",
+  "confirmationIndex": 2,
+  "passed": true,
+  "durationMs": 239355,
+  "deterministicBeforePath": "cases/repair-vercel-tool-registration/trials/confirmation-2/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-vercel-tool-registration/trials/confirmation-2/deterministic-after.json",
+  "actorOutputPath": "cases/repair-vercel-tool-registration/trials/confirmation-2/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-vercel-tool-registration/trials/confirmation-2/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-vercel-tool-registration/trials/confirmation-2/workspace-assertions.json",
+  "patchPath": "cases/repair-vercel-tool-registration/trials/confirmation-2/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 549097,
+    "cachedInputTokens": 501248,
+    "outputTokens": 3206
+  },
+  "judgeUsage": {
+    "inputTokens": 560966,
+    "cachedInputTokens": 491264,
+    "outputTokens": 4911
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T10:07:30.177Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T10:09:35.907Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies the stale `find_order` declaration versus runtime `lookup_order`. Repository source confirms `src/agent.ts` registers `tools: { lookup_order: lookupOrderTool }`, while the reconstructed patch shows the prior manifest value was `find_order`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: lookup_order`. The sole patch changes `find_order` to `lookup_order`; workspace hashes show all runtime source files remained unchanged. Post-actor inspect and validate statuses are valid."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest exactly binds `supportAgent`, `loadSupportInstruction`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema` to their existing source definitions. Source hashes are identical before and after; deterministic inspection is valid, typechecking passed, and failures are empty."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

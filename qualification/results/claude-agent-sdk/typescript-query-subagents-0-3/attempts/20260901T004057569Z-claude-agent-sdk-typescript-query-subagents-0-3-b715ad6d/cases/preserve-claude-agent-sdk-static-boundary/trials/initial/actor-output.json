@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Reviewed the adopted moldea project and found the Claude Agent SDK static boundary accurate. The direct support query wrapper and instruction loader are evidenced; the normalization-requiring MCP server key produces the expected unsupported diagnostic. No repository files changed, and the final Git diff and status were clean.",
+  "changedFiles": [],
+  "observations": [
+    "Repository-local moldea CLI 5.0.0 inspection detected direct query wrappers for supportAgent and dynamicSupportAgent, but only loadSupportInstruction as a provable instruction loader.",
+    "Inspection and validation completed with the sole expected CLAUDE_AGENT_SDK_MCP_SERVER_KEY_UNSUPPORTED diagnostic for the support agent's 'boundary/tools' key; status was invalid rather than operationally failed.",
+    "The manifest conservatively records factory-built options, prompt arrays, dynamic subagents, routing, restrictions, aliases, preset tools, main-thread selection, observer fields, critical reminders, SDK MCP instructions, external MCP configuration, settings, skills, hooks, and filesystem agents as unresolved or non-canonical boundaries.",
+    "TypeScript validation passed with exit code 0.",
+    "The installed composition validly includes claude-agent-sdk adapter 1.0.2 for repository format version 1.",
+    "Final hardened Git diff contained no changes and final worktree status was clean."
+  ],
+  "unresolved": [
+    "Factory-produced dynamic query configuration cannot prove prompt, output, delegation, or tool relationships.",
+    "Dynamic agent definitions and availability rules cannot prove closed routing, delegation, alias, restriction, preset-tool, or main-thread-selection relationships.",
+    "Observer fields, critical reminders, SDK MCP instructions, external MCP configuration, settings, skills, hooks, and filesystem agents remain outside supported canonical relationship inference."
+  ]
+}

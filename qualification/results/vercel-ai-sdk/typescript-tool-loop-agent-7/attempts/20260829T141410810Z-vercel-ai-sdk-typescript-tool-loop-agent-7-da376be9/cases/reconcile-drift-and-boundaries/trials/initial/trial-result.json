@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 288341,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 892143,
+    "cachedInputTokens": 832768,
+    "outputTokens": 4832
+  },
+  "judgeUsage": {
+    "inputTokens": 403369,
+    "cachedInputTokens": 361984,
+    "outputTokens": 2350
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T14:42:28.520Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T14:44:05.788Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-direct-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent, instructionLoader, inputSchema, and outputSchema to /src/support-assistant.ts with symbols supportAssistant, loadSupportInstruction, SupportInputSchema, and SupportOutputSchema. src/support-assistant.ts exports all four symbols. The patch replaces only the stale /src/support-agent.ts bindings, and deterministic-after reports valid inspect/validate results and passing typecheck."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml adds agent-owned unresolved warning dynamic-tool-registry-relationship, describing the unprovable ToolSet relationship, relating /src/dynamic-tools.ts#assembleTools, and requiring closed runtime wiring or an integration test proving the connection and registrations. The patch adds no tool/capability binding, while src/dynamic-tools.ts confirms assembleTools dynamically combines registries. Deterministic-after reports valid inspection and validation."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

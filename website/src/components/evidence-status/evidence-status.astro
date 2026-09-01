@@ -1,0 +1,23 @@
+---
+import StatusBadge from '@moldea.ai/website-ui/status-badge';
+
+import { EVIDENCE_STATUS_PRESENTATION } from './constants.ts';
+import type { IEvidenceDisplayStatus } from './types.ts';
+
+interface Props {
+  status: IEvidenceDisplayStatus;
+}
+
+const { status } = Astro.props;
+const presentation = EVIDENCE_STATUS_PRESENTATION[status];
+---
+
+<span
+  class="inline-flex"
+  data-evidence-status={status}
+>
+  <StatusBadge
+    label={presentation.label}
+    tone={presentation.tone}
+  />
+</span>

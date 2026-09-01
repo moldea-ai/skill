@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s runtimeAgent and instructionLoader bindings with the direct Claude Agent SDK implementation in /src/support-assistant.ts. Added an agent-level warning for dynamically assembled query tool restrictions. Validation passed: moldea inspect and validate returned valid with no diagnostics, and TypeScript type-checking succeeded.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The adopted moldea project now binds supportAssistant and loadSupportInstruction from /src/support-assistant.ts.",
+    "The final inspect evidence identified the direct-query-wrapper pattern and query-system-prompt instruction loader.",
+    "Pre-existing deletion of src/support-agent.ts and untracked src/support-assistant.ts and src/dynamic-tools.ts were preserved without implementation edits."
+  ],
+  "unresolved": [
+    "Agent warning query-tool-availability remains: static inspection cannot establish the final tool restrictions assembled from runtime registries in /src/dynamic-tools.ts. Resolution requires closed runtime wiring evidence or a repository-local integration test asserting the exact tools supplied to query for every supported registry configuration."
+  ]
+}

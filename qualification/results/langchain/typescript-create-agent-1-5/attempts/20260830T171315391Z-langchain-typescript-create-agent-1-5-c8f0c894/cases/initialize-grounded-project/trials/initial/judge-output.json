@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state and deterministic workspace-patch evidence agree: initialization preserved the original README, appended the standard awareness block, and added only the minimal canonical foundation. The project context accurately reflects the invoice-review source and its non-authorizing boundary.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service identifies invoice anomalies for operator review, compares actual and expected totals, returns their difference, requires review on mismatch, and never approves payment or changes invoices. This agrees with README.md and src/invoice-review.ts. Current hashes match the runner's after-state, while the unchanged source hash matches both before and after."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The runner-owned patch lists only README.md, moldea/moldea.yaml, and moldea/project.md as changed. The README's original first three lines hash exactly matches its before-state hash, proving preservation before the appended standard block. moldea/moldea.yaml contains only version: 1; targeted checks found no agents, runtimes, decisions, context, or requirements paths and no manifest relationships. Current file hashes match the asserted after-state."
+    }
+  ],
+  "failures": []
+}

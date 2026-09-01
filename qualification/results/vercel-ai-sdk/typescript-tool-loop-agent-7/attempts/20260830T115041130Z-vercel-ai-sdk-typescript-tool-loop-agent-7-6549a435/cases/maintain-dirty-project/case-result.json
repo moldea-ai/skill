@@ -1,0 +1,66 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 422962,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 422962,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1164568,
+        "cachedInputTokens": 1106944,
+        "outputTokens": 8408
+      },
+      "judgeUsage": {
+        "inputTokens": 503394,
+        "cachedInputTokens": 458752,
+        "outputTokens": 4183
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T12:11:01.722Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T12:13:19.787Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/context/billing.md` canonically documents refund and invoice classification matching `src/billing.ts`. `moldea/moldea.yaml` globally registers that context, binds it to `/src/billing.ts` symbol `classifyBillingQuestion`, and assigns it to `support`. The support instruction applies the guidance. Git diff and workspace assertions identify only the intended three changed paths, and deterministic inspection reports valid."
+        },
+        {
+          "id": "preserves-sdk-wiring",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`src/support-agent.ts` still directly constructs `new ToolLoopAgent`, loads the canonical instruction through `loadSupportInstruction`, uses `callOptionsSchema: SupportInputSchema`, and uses `Output.object({ schema: SupportOutputSchema })`. Workspace assertions show its SHA-256 unchanged before and after. Deterministic inspection and TypeScript checking passed."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

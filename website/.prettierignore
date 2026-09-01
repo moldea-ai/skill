@@ -1,6 +1,7 @@
 node_modules
 .astro
 .generated
+.qualification-current-dist
 dist
 playwright-report
 test-results

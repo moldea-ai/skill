@@ -1,0 +1,454 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1303
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-think-0-16-ai-sdk-7"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/support-assistant.ts",
+                  "symbol": "SupportAssistant"
+                }
+              ],
+              "runtimeName": "SupportAssistant",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {},
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/support-assistant.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/support-assistant.ts",
+                  "symbol": "SupportAssistant"
+                }
+              ],
+              "runtimeName": null,
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "0.16.0",
+                "dependencyKind": "dependencies",
+                "targetId": "typescript-think-0-16-ai-sdk-7"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@cloudflare/think",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "0.21.0",
+                "dependencyKind": "dependencies",
+                "targetId": "typescript-think-0-16-ai-sdk-7"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "agents",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "7.0.85",
+                "dependencyKind": "dependencies",
+                "targetId": "typescript-think-0-16-ai-sdk-7"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "cloudflare-agents"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/**"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/src/support-assistant.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/support-assistant.ts",
+                      "symbol": "SupportAssistant"
+                    }
+                  },
+                  "runtime": {
+                    "id": "cloudflare-agents"
+                  },
+                  "unresolved": {
+                    "dynamic-tool-registry-wiring": {
+                      "category": "tool-registration",
+                      "description": "The final relationship between the dynamically assembled tool registry and the support agent cannot be proven statically.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/src/dynamic-tools.ts",
+                          "symbol": "assembleTools"
+                        }
+                      ],
+                      "resolution": "Add closed runtime wiring or an integration test that proves which assembled tool entries are exposed to SupportAssistant."
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Produces a structured response to a support request.\n",
+                    "digest": "sha256:70dd898ec16b544984ca6792d83b3d1512aed65a05837e03b61fb2909d33e229",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 53,
+                    "utf8ByteLength": 53
+                  },
+                  "scalarLength": 52,
+                  "value": "Produces a structured response to a support request."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer from verified project evidence.\n",
+                  "digest": "sha256:9fa5916b50ec2db879209f595df91348c576061533576ee93caf56b00a416434",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 85,
+                  "utf8ByteLength": 85
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: cloudflare-agents\n    bindings:\n      runtimeAgent:\n        path: /src/support-assistant.ts\n        symbol: SupportAssistant\n      instructionLoader:\n        path: /src/support-assistant.ts\n        symbol: loadSupportInstruction\n    affectedBy:\n      - /src/**\n    unresolved:\n      dynamic-tool-registry-wiring:\n        category: tool-registration\n        effect: warning\n        description: The final relationship between the dynamically assembled tool registry and the support agent cannot be proven statically.\n        resolution: Add closed runtime wiring or an integration test that proves which assembled tool entries are exposed to SupportAssistant.\n        related:\n          - path: /src/dynamic-tools.ts\n            symbol: assembleTools\n",
+                "digest": "sha256:87bbd2238be5c1c051e08dc08ef2fb7c4b4b1fec775c3b4e60d898c6f061134c",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 803,
+                "utf8ByteLength": 803
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/src/**"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/src/support-assistant.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/support-assistant.ts",
+                        "symbol": "SupportAssistant"
+                      }
+                    },
+                    "runtime": {
+                      "id": "cloudflare-agents"
+                    },
+                    "unresolved": {
+                      "dynamic-tool-registry-wiring": {
+                        "category": "tool-registration",
+                        "description": "The final relationship between the dynamically assembled tool registry and the support agent cannot be proven statically.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/src/dynamic-tools.ts",
+                            "symbol": "assembleTools"
+                          }
+                        ],
+                        "resolution": "Add closed runtime wiring or an integration test that proves which assembled tool entries are exposed to SupportAssistant."
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Support response project\n\nThis project produces support responses through a directly exported Cloudflare Think class.\n",
+              "digest": "sha256:edd13302f57fef0bda34a4b51843e13818b7e20a056d486dd8f190bd49404516",
+              "path": "/moldea/project.md",
+              "scalarLength": 120,
+              "utf8ByteLength": 120
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

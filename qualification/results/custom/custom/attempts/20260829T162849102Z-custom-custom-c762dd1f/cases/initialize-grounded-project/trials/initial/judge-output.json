@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, README diff, workspace hashes, and runner-owned validation agree: Moldea was initialized with a grounded invoice-review foundation and only the required minimal artifacts.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the project reviews invoice line items for duplicate references and arithmetic mismatches, returns findings to human finance operators, and never authorizes or sends payments. This matches README.md; src/invoice-review.ts confirms deterministic duplicate-reference detection, while project.md accurately notes that arithmetic-mismatch runtime behavior is not established."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "Workspace assertions and Git status identify only README.md, moldea/moldea.yaml, and moldea/project.md as changed. The manifest contains only `version: 1`; project.md contains foundation context only; and the README patch preserves its original content while appending the standard awareness block. No agent, decision, runtime guide, focused context, or unresolved requirement was created. Runner-owned inspection and validation were valid, typechecking passed, and observed file hashes match the assertions."
+    }
+  ],
+  "failures": []
+}

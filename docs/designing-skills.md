@@ -29,6 +29,8 @@ Different surfaces own different behavior:
 
 A skill is not an independently executing agent, hidden authority, or substitute for missing implementation.
 
+The coding agent names the owning surface before creating a skill. Selecting protected coding instructions as the owner never authorizes changing them, and predictable checksum or validation behavior remains in deterministic software.
+
 ## Define activation precisely
 
 Every skill has a stable lowercase kebab-case directory and matching frontmatter `name`. Its `description` explains what the skill enables and the concrete requests or situations that should activate it.
@@ -37,9 +39,9 @@ A useful description includes natural adjacent terminology without claiming unre
 
 ## Keep host metadata supplemental
 
-Host-specific metadata may add presentation, a default prompt, invocation policy, dependencies, installation, or discovery information. It remains aligned with the portable skill instead of redefining activation, authority, or limitations.
+Host-specific metadata may add presentation, a default prompt, invocation policy, dependencies, installation, or discovery information. The portable `SKILL.md` description remains authoritative for activation. When portable purpose, activation, or the default interaction changes, the coding agent updates the portable description first and synchronizes every affected host description or prompt. It then rereads or diffs both artifacts and reports only changes present in the workspace. A host-only change does not update portable behavior.
 
-An existing invocation policy is preserved unless you explicitly request a change or reliable host and repository evidence establishes that change as intended. Discoverability never grants authority for destructive or external actions.
+An existing invocation policy and unrelated supported host fields are preserved unless you explicitly request a change or reliable host and repository evidence establishes that change as intended. The resulting description is checked against representative requests that should activate the skill and adjacent requests that should not. Discoverability never grants authority for destructive or external actions.
 
 ## Disclose only what the workflow needs
 
@@ -62,6 +64,8 @@ Only necessary directories are created. Resources are linked directly from `SKIL
 ## Treat scripts as production code
 
 Skill scripts define their inputs, outputs, dependencies, supported environments, side effects, and exit behavior. They validate boundary input, fail clearly, avoid secrets, and require authority for destructive or external changes.
+
+When an established script already owns a deterministic check, the skill delegates through that script's real interface. It does not ask the model to recreate the check or supply a result the script owns unless the script contract genuinely requires independent evidence.
 
 Representative success, boundary, and failure cases are executed before readiness is claimed. Linking a script never grants authority to execute it during an unrelated task.
 

@@ -1,0 +1,76 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index fc5dfb6..7c6c952 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -5,10 +5,25 @@ agents:
+       id: google-genai
+     bindings:
+       runtimeAgent:
+-        path: /src/support-agent.ts
+-        symbol: supportAgent
++        path: /src/support-assistant.ts
++        symbol: supportAssistant
+       instructionLoader:
+-        path: /src/support-agent.ts
++        path: /src/support-assistant.ts
+         symbol: loadSupportInstruction
+     affectedBy:
+       - /src/**
++    unresolved:
++      dynamic-tool-registry-relationship:
++        category: capability-registration
++        effect: warning
++        description: >-
++          Static repository evidence does not establish the final relationship
++          between registrations assembled by assembleTools and the support agent.
++        resolution: >-
++          Add closed runtime wiring or an integration test that proves whether
++          assembleTools output is supplied to supportAssistant; then register only
++          qualifying support-agent tools with their real implementation and
++          registration bindings, or retain evidence that the registry is unrelated.
++        related:
++          - path: /src/dynamic-tools.ts
++            symbol: assembleTools
+diff --git a/src/support-agent.ts b/src/support-agent.ts
+deleted file mode 100644
+index 04f0cf4..0000000
+--- a/src/support-agent.ts
++++ /dev/null
+@@ -1 +0,0 @@
+-export const supportAgent = { removed: true } as const;
+
+diff --git a/src/dynamic-tools.ts b/src/dynamic-tools.ts
+new file mode 100644
+index 0000000..d0fdc2a
+--- /dev/null
++++ b/src/dynamic-tools.ts
+@@ -0,0 +1,5 @@
++type IToolRegistration = Readonly<Record<string, unknown>>;
++
++export const assembleTools = (
++  registries: readonly (readonly IToolRegistration[])[],
++): readonly IToolRegistration[] => registries.flat();
+
+diff --git a/src/support-assistant.ts b/src/support-assistant.ts
+new file mode 100644
+index 0000000..15d9f30
+--- /dev/null
++++ b/src/support-assistant.ts
+@@ -0,0 +1,17 @@
++import { readFile } from 'node:fs/promises';
++
++import { GoogleGenAI } from '@google/genai';
++
++export const loadSupportInstruction = async (): Promise<string> =>
++  readFile(new URL('../moldea/agents/support/instruction.md', import.meta.url), 'utf8');
++
++const client = new GoogleGenAI({});
++
++export const supportAssistant = async (prompt: string) =>
++  client.models.generateContent({
++    contents: prompt,
++    model: 'gemini-2.5-flash',
++    config: {
++      systemInstruction: await loadSupportInstruction(),
++    },
++  });

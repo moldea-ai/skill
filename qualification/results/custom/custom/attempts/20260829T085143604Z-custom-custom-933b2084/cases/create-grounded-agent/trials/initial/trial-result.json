@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 304817,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1667606,
+    "cachedInputTokens": 1584384,
+    "outputTokens": 7345
+  },
+  "judgeUsage": {
+    "inputTokens": 345265,
+    "cachedInputTokens": 303104,
+    "outputTokens": 2838
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T09:01:52.083Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T09:03:21.463Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `description.md` states that the agent classifies orders for human review and cannot approve refunds or perform financial mutations. Current `instruction.md` directs classification for human review, requires uncertainty instead of invented facts, and explicitly prohibits refund approval and financial actions. Workspace assertions identify both files as newly added and their after-state hashes match the inspected files."
+    },
+    {
+      "id": "binds-implementation",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` registers `order-triage` with runtime `custom`, runtimeAgent path `/src/order-triage-agent.ts`, symbol `createOrderTriageAgent`, and the same affected source path. The source exports that exact factory, returns `action: 'classify-for-human-review'`, and sets `canApproveRefunds: false`. Deterministic post-actor inspection was valid and typechecking passed."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest references `/moldea/runtimes/custom.md`, and it is the sole Markdown file under `moldea/runtimes`. The new guidance identifies the runtime-owned loader, canonical instruction path `/moldea/agents/order-triage/instruction.md`, and factory boundary while explicitly stating that the repository neither implements the supplied loader nor establishes model-provider behavior. Workspace assertions confirm this is the only newly added runtime-guidance path."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

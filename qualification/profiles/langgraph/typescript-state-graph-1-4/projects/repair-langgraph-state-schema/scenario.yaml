@@ -1,0 +1,65 @@
+version: 2
+id: repair-langgraph-state-schema
+title: Repair LangGraph StateGraph schema binding
+purpose: Verify precise diagnostic-driven repair of a closed graph input-schema relationship.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: [LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED]
+    forbiddenDiagnosticCodes:
+      [
+        LANGGRAPH_AGENT_INPUT_SCHEMA_SYMBOL_NOT_FOUND,
+        LANGGRAPH_AGENT_OUTPUT_SCHEMA_NOT_WIRED,
+        LANGGRAPH_AGENT_OUTPUT_SCHEMA_SYMBOL_NOT_FOUND,
+      ]
+    requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern, schema]
+    forbiddenEvidenceKinds: [instruction-loader, tool-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes:
+      [
+        LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED,
+        LANGGRAPH_AGENT_INPUT_SCHEMA_SYMBOL_NOT_FOUND,
+        LANGGRAPH_AGENT_OUTPUT_SCHEMA_NOT_WIRED,
+        LANGGRAPH_AGENT_OUTPUT_SCHEMA_SYMBOL_NOT_FOUND,
+      ]
+    requiredEvidenceKinds: [agent-definition, language, runtime-package, runtime-pattern, schema]
+    forbiddenEvidenceKinds: [instruction-loader, tool-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths: [src/graph.ts, src/contracts.ts, moldea/agents/support/instruction.md]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths: [moldea/moldea.yaml, src/graph.ts, src/contracts.ts]
+  mustNotExistPaths: [moldea/runtimes]
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-schema-mismatch
+    description: The actor explains from validation evidence and repository source that the declared input-schema symbol differs from the schema wired to the graph input role. Repeating the internal diagnostic code is not required.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after, workspace-patch]
+  - id: repairs-canonical-schema
+    description: The manifest inputSchema becomes SupportInputSchema, matching source without changing the valid compiled graph.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-binding-closure
+    description: Runtime-agent, input-schema, and output-schema bindings remain exact and evidenced, while nodes remain runtime patterns rather than manifest tools.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
+  - id: validates-project
+    description: The wiring diagnostic disappears and every deterministic layer passes without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

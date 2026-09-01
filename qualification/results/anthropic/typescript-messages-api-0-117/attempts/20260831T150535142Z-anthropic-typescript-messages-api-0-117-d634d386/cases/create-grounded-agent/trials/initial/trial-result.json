@@ -1,0 +1,60 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": false,
+  "durationMs": 9946,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "skipped",
+  "judgeOutputPath": null,
+  "judgeSkippedPath": "cases/create-grounded-agent/trials/initial/judge-skipped.json",
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1310542,
+    "cachedInputTokens": 1231360,
+    "outputTokens": 6409
+  },
+  "judgeUsage": null,
+  "actorEvidenceCreatedAt": "2026-08-31T14:54:24.921Z",
+  "judgeEvidenceCreatedAt": null,
+  "actorCacheSourceAttemptId": "20260831T142850675Z-anthropic-typescript-messages-api-0-117-c18aad26",
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "binds-direct-wrapper",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "binds-function-tool",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Actor command policy observed prohibited credential, network, or sensitive evaluator access."
+  ]
+}

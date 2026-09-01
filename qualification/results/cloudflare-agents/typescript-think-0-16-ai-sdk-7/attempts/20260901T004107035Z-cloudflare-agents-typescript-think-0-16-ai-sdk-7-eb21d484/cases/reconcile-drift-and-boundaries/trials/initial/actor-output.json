@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the adopted project's `support` agent manifest with the renamed Cloudflare Think implementation. Both direct bindings now reference `/src/support-assistant.ts`; deterministic inspection recognized `SupportAssistant` and the wired `loadSupportInstruction`. TypeScript checking, `moldea inspect --json`, and `moldea validate --json` all completed successfully with no diagnostics.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Added an agent-level `warning` requirement for the dynamically assembled registry, linked to `/src/dynamic-tools.ts#assembleTools` with a concrete closed-wiring or integration-test resolution.",
+    "No tool was invented, no removed source was recreated, and implementation files were not modified.",
+    "Final hardened Git diff confirmed only `moldea/moldea.yaml` was intentionally changed; pre-existing deletion and untracked source files were preserved."
+  ],
+  "unresolved": [
+    "Static inspection cannot establish which dynamically assembled tool entries, if any, are exposed to `SupportAssistant`; resolve by adding closed runtime wiring or an integration test proving the exposed entries."
+  ]
+}

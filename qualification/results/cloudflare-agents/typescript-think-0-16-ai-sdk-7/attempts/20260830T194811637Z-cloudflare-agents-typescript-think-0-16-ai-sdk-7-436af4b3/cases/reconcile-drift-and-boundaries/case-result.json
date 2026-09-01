@@ -1,0 +1,66 @@
+{
+  "caseId": "reconcile-drift-and-boundaries",
+  "title": "Reconcile drift and boundaries",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 439621,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 439621,
+      "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1364513,
+        "cachedInputTokens": 1281792,
+        "outputTokens": 6014
+      },
+      "judgeUsage": {
+        "inputTokens": 1000319,
+        "cachedInputTokens": 931328,
+        "outputTokens": 5765
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T20:15:05.994Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T20:18:24.804Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "repairs-direct-bindings",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts#SupportAssistant and instructionLoader to /src/support-assistant.ts#loadSupportInstruction. src/support-assistant.ts exports both symbols and SupportAssistant.getSystemPrompt() calls the loader. The bounded src inventory contains only support-assistant.ts and dynamic-tools.ts, so removed source was not recreated. Deterministic-after reports valid inspect/validate and passing typecheck; workspace-patch evidence identifies only moldea/moldea.yaml as changed."
+        },
+        {
+          "id": "records-dynamic-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The support agent's unresolved.dynamic-tool-registry-wiring entry has effect warning, explains that static inspection cannot prove the final relationship, resolves through closed runtime wiring or an integration test proving entries exposed to SupportAssistant, and relates /src/dynamic-tools.ts#assembleTools. No tools binding is present. src/dynamic-tools.ts dynamically merges runtime-selected ToolSet maps, remained hash-identical before and after, and workspace-patch evidence shows only moldea/moldea.yaml changed."
+        },
+        {
+          "id": "preserves-source",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

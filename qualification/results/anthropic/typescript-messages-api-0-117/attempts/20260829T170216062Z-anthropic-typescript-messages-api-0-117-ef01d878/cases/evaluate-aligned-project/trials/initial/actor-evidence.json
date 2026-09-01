@@ -1,0 +1,31 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-08-29T17:04:50.983Z",
+  "durationMs": 140843,
+  "usage": {
+    "inputTokens": 695084,
+    "cachedInputTokens": 609792,
+    "outputTokens": 3833
+  },
+  "cacheKey": "964979344596d8c3b953881b6c0eee919af0559863eeac27ef52ee04ff216ade",
+  "sourceAttemptId": "20260829T170216062Z-anthropic-typescript-messages-api-0-117-ef01d878",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 39,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 1
+    }
+  }
+}

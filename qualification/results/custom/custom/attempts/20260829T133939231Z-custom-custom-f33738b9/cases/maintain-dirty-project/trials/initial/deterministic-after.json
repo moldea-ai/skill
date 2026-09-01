@@ -1,0 +1,351 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1048
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [
+                  "/moldea/context/billing.md"
+                ],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/**"
+                  ],
+                  "bindings": {
+                    "runtimeAgent": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "supportAgent"
+                    }
+                  },
+                  "context": [
+                    "/moldea/context/billing.md"
+                  ],
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/custom.md",
+                    "id": "custom"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Answers account and billing questions through the project's email channel.\n",
+                    "digest": "sha256:73a65e696b94b9f8ba5456b85eb96fc0f3f9884bc7f0ccc051297b776b75a823",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 75,
+                    "utf8ByteLength": 75
+                  },
+                  "scalarLength": 74,
+                  "value": "Answers account and billing questions through the project's email channel."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Resolve customer questions with project evidence and escalate uncertain requests.\n\nFor refund disputes and invoice questions, consult the billing context. Apply only billing rules supported there, and escalate when the available evidence does not establish the requested invoice or refund outcome.\n",
+                  "digest": "sha256:bd70374c6168ea8178f4785bad7c6b857c87dc992bcf3d49d34dca091ca0ed99",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 344,
+                  "utf8ByteLength": 344
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [
+              {
+                "asset": {
+                  "content": "# Billing disputes\n\nThe billing implementation defines a 30-day refund window through `refundWindowDays` in `/src/billing.ts`.\n\nUse that window when answering refund disputes. For invoice questions, rely on available project evidence and escalate when invoice status, amounts, or eligibility cannot be established; do not invent billing details.\n",
+                  "digest": "sha256:d1c9890cf53b33c8e723e23b92292adbd3ccd128c6fe820c2575aee4d8cdc8ed",
+                  "path": "/moldea/context/billing.md",
+                  "scalarLength": 346,
+                  "utf8ByteLength": 346
+                },
+                "relationships": {
+                  "affectedBy": [
+                    "/src/billing.ts"
+                  ],
+                  "bindings": [
+                    {
+                      "path": "/src/billing.ts",
+                      "symbol": "refundWindowDays"
+                    }
+                  ]
+                }
+              }
+            ],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\ncontext:\n  /moldea/context/billing.md:\n    bindings:\n      - path: /src/billing.ts\n        symbol: refundWindowDays\n    affectedBy:\n      - /src/billing.ts\nagents:\n  support:\n    runtime:\n      id: custom\n      guidance: /moldea/runtimes/custom.md\n    context:\n      - /moldea/context/billing.md\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.ts\n        symbol: supportAgent\n    affectedBy:\n      - /src/**\n",
+                "digest": "sha256:bfd9804dcebc4cb82756c95c0a9aa07547fe0014f2fb145e26f53f811d1fccd9",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 438,
+                "utf8ByteLength": 438
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/src/**"
+                    ],
+                    "bindings": {
+                      "runtimeAgent": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "supportAgent"
+                      }
+                    },
+                    "context": [
+                      "/moldea/context/billing.md"
+                    ],
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/custom.md",
+                      "id": "custom"
+                    }
+                  }
+                },
+                "context": {
+                  "/moldea/context/billing.md": {
+                    "affectedBy": [
+                      "/src/billing.ts"
+                    ],
+                    "bindings": [
+                      {
+                        "path": "/src/billing.ts",
+                        "symbol": "refundWindowDays"
+                      }
+                    ]
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Qualification billing project\n\nThis project models a support agent that answers account and billing questions.\n",
+              "digest": "sha256:a33c8d33962f1af17c07b8f2ba2ad3655fff0bcd7f2d48a1d9972229c66bb59e",
+              "path": "/moldea/project.md",
+              "scalarLength": 113,
+              "utf8ByteLength": 113
+            },
+            "runtimes": [
+              {
+                "asset": {
+                  "content": "# Custom runtime guidance\n\nThe exported `supportAgent` record is the runtime-owned agent definition. Canonical context augments its instruction without changing runtime construction.\n",
+                  "digest": "sha256:34c2c6199b14ad2aa8d25ebdc8abbef949ebec518c7f118d9730355ed41705dc",
+                  "path": "/moldea/runtimes/custom.md",
+                  "scalarLength": 183,
+                  "utf8ByteLength": 183
+                }
+              }
+            ],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

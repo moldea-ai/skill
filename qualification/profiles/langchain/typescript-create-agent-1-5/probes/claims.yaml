@@ -1,0 +1,237 @@
+version: 2
+adapterId: langchain
+implementationId: typescript-create-agent-1-5
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The exact published adapter and runtime composition exercises the compatible Core range through aligned and newly registered createAgent definitions.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: Closed supported definitions need no redundant guide, while the boundary case records middleware and unsupported relationship limits explicitly.
+    coveredBy: [evaluate-aligned-project, preserve-langchain-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes all universal journeys and two LangChain-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-langchain-tool-registration,
+        preserve-langchain-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare the exact published npm runtime packages and inspect project-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Supported createAgent sources are strict TypeScript ESM and typecheck with the exact project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: target-primary-package
+    kind: compatibility
+    matrixPath: target.package.npm.langchain.primary.>=1.5.9 <1.6.0
+    description: Every fixture pins and installs the verified LangChain package before offline project preparation.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-langchain-static-boundary]
+  - id: target-companion-package
+    kind: compatibility
+    matrixPath: target.package.npm.@langchain/core.companion.>=1.2.8 <1.3.0
+    description: Every fixture pins the compatible LangChain Core companion used by normal function tools.
+    coveredBy: [evaluate-aligned-project, repair-langchain-tool-registration]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Direct createAgent symbols are bound explicitly, repaired after drift, and retained when middleware obscures subordinate relationships.
+    coveredBy:
+      [evaluate-aligned-project, reconcile-drift-and-boundaries, preserve-langchain-static-boundary]
+  - id: output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.output-schema
+    description: Direct and strategy-wrapped response schemas bind exact source symbols when middleware is inactive.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-langchain-tool-registration]
+  - id: instruction-loader-binding
+    kind: binding-support
+    matrixPath: target.binding-support.instruction-loader
+    description: Direct system-prompt loaders are evidenced from closed definitions and omitted when middleware may replace them.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-langchain-static-boundary]
+  - id: tool-implementation-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-implementation
+    description: Normal function-tool execution binds to a repository-local implementation without executing it.
+    coveredBy: [evaluate-aligned-project, repair-langchain-tool-registration]
+  - id: tool-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-registration
+    description: Closed tool-array registration is validated and repaired from a concrete runtime-name mismatch.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        repair-langchain-tool-registration,
+        preserve-langchain-static-boundary,
+      ]
+  - id: tool-input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-input-schema
+    description: Direct tool input-schema relationships remain visible through registered normal function tools.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-langchain-tool-registration]
+  - id: agent-definition-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.agent-definition
+    description: Directly exported createAgent definitions emit normalized agent-definition evidence even when middleware suppresses selected subordinate relationships.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-langchain-static-boundary]
+  - id: instruction-loader-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.instruction-loader
+    description: Closed createAgent definitions emit instruction-loader evidence through exact source symbols.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct definitions emit TypeScript language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct definitions emit supported LangChain package evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Structured-output and normal function-tool schema bindings emit normalized schema evidence according to relationship closure.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-langchain-tool-registration]
+  - id: tool-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.tool-registration
+    description: Correct closed tool arrays emit tool-registration evidence after runtime-name reconciliation.
+    coveredBy: [evaluate-aligned-project, repair-langchain-tool-registration]
+  - id: direct-create-agent
+    kind: pattern
+    matrixPath: target.pattern.direct-create-agent
+    description: A directly exported createAgent call with one closed object-literal configuration is recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: langchain-primary-boundary
+    kind: pattern
+    matrixPath: target.pattern.langchain-primary-boundary
+    description: Supported definitions remain LangChain targets without being reclassified as direct LangGraph applications.
+    coveredBy: [evaluate-aligned-project, preserve-langchain-static-boundary]
+  - id: direct-system-prompt-loader
+    kind: pattern
+    matrixPath: target.pattern.direct-system-prompt-loader
+    description: Direct loader calls and SystemMessage construction remain visible when middleware is inactive.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-response-format-schema
+    kind: pattern
+    matrixPath: target.pattern.direct-response-format-schema
+    description: One directly bound responseFormat schema establishes an agent output-schema relationship.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: structured-output-strategies
+    kind: pattern
+    matrixPath: target.pattern.structured-output-strategies
+    description: The aligned agents exercise providerStrategy and toolStrategy wrappers around one bound schema each.
+    coveredBy: [evaluate-aligned-project]
+  - id: normal-function-tools
+    kind: pattern
+    matrixPath: target.pattern.normal-function-tools
+    description: Two-argument tool declarations preserve implementation, runtime-name, and input-schema relationships.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, repair-langchain-tool-registration]
+  - id: closed-tool-collections
+    kind: pattern
+    matrixPath: target.pattern.closed-tool-collections
+    description: Function tools are registered through immutable closed arrays with exact runtime names.
+    coveredBy: [evaluate-aligned-project, repair-langchain-tool-registration]
+  - id: middleware-relationship-effects
+    kind: pattern
+    matrixPath: target.pattern.middleware-relationship-effects
+    description: The boundary agent retains identity while non-empty middleware suppresses prompt, output-schema, and tool-registration conclusions.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: response-format-arrays
+    kind: pattern
+    matrixPath: target.pattern.response-format-arrays
+    description: A developer-authored response-format array remains outside the single canonical output-schema relationship.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: state-and-context-input-schema
+    kind: pattern
+    matrixPath: target.pattern.state-and-context-input-schema
+    description: State and context schemas remain valid runtime configuration without becoming canonical agent input-schema bindings.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: headless-client-tools
+    kind: pattern
+    matrixPath: target.pattern.headless-client-tools
+    description: The profile does not treat headless client tools as repository-local normal function-tool implementations.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: direct-langgraph-graphs
+    kind: pattern
+    matrixPath: target.pattern.direct-langgraph-graphs
+    description: Direct LangGraph applications remain outside the selected LangChain createAgent target.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: legacy-langchain-agents
+    kind: pattern
+    matrixPath: target.pattern.legacy-langchain-agents
+    description: The profile selects the current createAgent boundary without treating legacy helper surfaces as supported targets.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: supervisor-routing
+    kind: pattern
+    matrixPath: target.pattern.supervisor-routing
+    description: Agent descriptions and tool calls do not establish supervisor routing, handoffs, or subagent control transfer.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: typescript-esm-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.03fcb3e64a65b00f
+    description: Supported cases use exact TypeScript ESM files and documented direct relative imports.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-export-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.20c98b6726812c72
+    description: Canonical runtime bindings use directly exported package-root createAgent definitions.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: middleware-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.7c24891a818b65c2
+    description: The boundary case suppresses middleware-sensitive relationships instead of inferring their runtime effect.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: multiple-response-format-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.82d400bc5c7220ea
+    description: A developer-authored multi-format array is not collapsed into one canonical output-schema binding.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: input-schema-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.b472593c4b7c64b7
+    description: State and context schemas remain outside canonical agent input-schema inference.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: unsupported-tool-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.c234f0e75ba3d681
+    description: Qualification binds normal function tools only and does not invent output-schema or unsupported tool relationships.
+    coveredBy: [evaluate-aligned-project, preserve-langchain-static-boundary]
+  - id: routing-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.f0d470d8093d63ba
+    description: Canonical state does not infer supervisors, routing targets, handoffs, or subagent control transfer.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: direct-langgraph-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.f1abe9ffc2c34b64
+    description: Direct LangGraph applications remain assigned to the separate LangGraph runtime boundary.
+    coveredBy: [preserve-langchain-static-boundary]
+  - id: installed-version-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.fc3aa26aba7a3618
+    description: Qualification independently pins and verifies runtime tarballs because adapter inspection reads manifests rather than lockfiles or node_modules.
+    coveredBy: [evaluate-aligned-project]

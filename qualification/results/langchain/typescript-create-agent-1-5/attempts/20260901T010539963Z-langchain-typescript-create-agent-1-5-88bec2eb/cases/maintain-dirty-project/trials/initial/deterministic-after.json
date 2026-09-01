@@ -1,0 +1,491 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 3879
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "schema"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "schema"
+        ],
+        "evidenceCount": 6,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "support-runtime",
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "instructionForm": "direct-loader-call",
+                "property": "systemPrompt",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "loadSupportInstruction"
+                },
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.2.9",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/core",
+                "packageRole": "companion",
+                "targetClassification": "supported",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.5.9",
+                "dependencyKind": "dependencies",
+                "packageName": "langchain",
+                "packageRole": "primary",
+                "targetClassification": "supported",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "langchain",
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "property": "responseFormat",
+                "schemaRole": "agent-output",
+                "schemaStrategy": "provider-strategy",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "SupportOutputSchema"
+                },
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "langchain"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [
+                  "/moldea/context/billing.md"
+                ],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/billing.ts",
+                    "/src/support-agent.ts"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "supportAgent"
+                    }
+                  },
+                  "context": [
+                    "/moldea/context/billing.md"
+                  ],
+                  "runtime": {
+                    "id": "langchain"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Streams evidence-based support responses.\n",
+                    "digest": "sha256:bfa76d3c425e23bfecbaf50b933a035fe1f531b838d0da58e2876e5d59ac0662",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 42,
+                    "utf8ByteLength": 42
+                  },
+                  "scalarLength": 41,
+                  "value": "Streams evidence-based support responses."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer only from available project evidence.\n\nFor refund and invoice questions, use the billing classification implemented by `classifyBillingQuestion`: messages containing the exact lowercase text `refund` are `refund-review`; all other messages are `invoice-question`. Treat this classification as categorization only. Do not claim refund eligibility, invoice correctness, or that a billing action occurred without supporting evidence.\n",
+                  "digest": "sha256:0d64af219f8c6b944223f9881ed863a5574967e834ea0615d8dd0599ae782970",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 484,
+                  "utf8ByteLength": 484
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [
+              {
+                "asset": {
+                  "content": "# Billing disputes\n\nBilling questions are categorized by `classifyBillingQuestion`. A message containing the exact lowercase text `refund` is classified as `refund-review`; every other message is classified as `invoice-question`.\n\nThis categorization does not establish refund eligibility, invoice correctness, or authorization to perform a billing action.\n",
+                  "digest": "sha256:2e71fad81effcba987b04dc49600330c7c59b1683c43036fd0da4c3ec0bdbf26",
+                  "path": "/moldea/context/billing.md",
+                  "scalarLength": 357,
+                  "utf8ByteLength": 357
+                },
+                "relationships": {
+                  "bindings": [
+                    {
+                      "path": "/src/billing.ts",
+                      "symbol": "classifyBillingQuestion"
+                    }
+                  ]
+                }
+              }
+            ],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\ncontext:\n  /moldea/context/billing.md:\n    bindings:\n      - path: /src/billing.ts\n        symbol: classifyBillingQuestion\nagents:\n  support:\n    runtime:\n      id: langchain\n    context:\n      - /moldea/context/billing.md\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.ts\n        symbol: supportAgent\n      instructionLoader:\n        path: /src/support-agent.ts\n        symbol: loadSupportInstruction\n      outputSchema:\n        path: /src/support-agent.ts\n        symbol: SupportOutputSchema\n    affectedBy:\n      - /src/billing.ts\n      - /src/support-agent.ts\n",
+                "digest": "sha256:96ebef85fa0f033ceb4312cad3aeef83c378ffd73d1abea7420ab3a7213691ea",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 595,
+                "utf8ByteLength": 595
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/src/billing.ts",
+                      "/src/support-agent.ts"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "supportAgent"
+                      }
+                    },
+                    "context": [
+                      "/moldea/context/billing.md"
+                    ],
+                    "runtime": {
+                      "id": "langchain"
+                    }
+                  }
+                },
+                "context": {
+                  "/moldea/context/billing.md": {
+                    "bindings": [
+                      {
+                        "path": "/src/billing.ts",
+                        "symbol": "classifyBillingQuestion"
+                      }
+                    ]
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Support operations\n\nThis project produces support responses through a direct LangChain `createAgent`.\n",
+              "digest": "sha256:50905fca84cbe8c018169718486a364383b51bfc4b85e5a3c967af81bc07d6e1",
+              "path": "/moldea/project.md",
+              "scalarLength": 104,
+              "utf8ByteLength": 104
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

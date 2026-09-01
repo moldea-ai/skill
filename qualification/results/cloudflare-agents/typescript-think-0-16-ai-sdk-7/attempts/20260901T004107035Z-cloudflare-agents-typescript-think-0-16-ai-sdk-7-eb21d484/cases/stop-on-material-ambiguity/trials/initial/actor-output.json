@@ -1,0 +1,14 @@
+{
+  "outcome": "blocked",
+  "summary": "Initialization stopped without writes because the repository establishes only a partial, consequentially ambiguous purpose. Canonical state is blocked: README.md says the module prepares and executes transfers but that preview/execution policy is undocumented; src/transfer-operation.ts maps execute=true to status \"submitted\" without establishing whether this represents authorized real submission or only preparation. Creating moldea context would invent that boundary.",
+  "changedFiles": [],
+  "observations": [
+    "The project is unadopted: /moldea/moldea.yaml and /moldea/project.md are absent, and README.md has no moldea awareness block.",
+    "The exact repository-local @moldea.ai/cli 5.0.0 is declared and installed. `inspect --json` produced a valid schema-2 envelope with status `invalid`, reporting only MOLDEA_MANIFEST_MISSING and MOLDEA_PROJECT_FILE_MISSING.",
+    "Local TypeScript validation passed: `tsc --noEmit -p <workspace>/tsconfig.json`.",
+    "The final hardened Git diff and status were empty; no repository files changed."
+  ],
+  "unresolved": [
+    "Decision required: Is execute=true intended to authorize and perform a real transfer submission, or is this project limited to preparing/previewing transfer operations?"
+  ]
+}

@@ -1,0 +1,316 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1007
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/order-triage-agent.ts"
+                  ],
+                  "bindings": {
+                    "runtimeAgent": {
+                      "path": "/src/order-triage-agent.ts",
+                      "symbol": "createOrderTriageAgent"
+                    }
+                  },
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/custom.md",
+                    "id": "custom"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Classifies orders for human review. It cannot approve refunds or perform financial mutations.\n",
+                    "digest": "sha256:64558419679f84713821eeb0bb633a4c367e8385cbe9b37283dc3a6bf2c796b2",
+                    "path": "/moldea/agents/order-triage/description.md",
+                    "scalarLength": 94,
+                    "utf8ByteLength": 94
+                  },
+                  "scalarLength": 93,
+                  "value": "Classifies orders for human review. It cannot approve refunds or perform financial mutations."
+                },
+                "handoffDescription": null,
+                "id": "order-triage",
+                "instruction": {
+                  "content": "# Order triage\n\nYou are the `order-triage` agent. Classify orders for human review.\n\nDo not approve refunds or perform financial mutations. Leave those decisions and actions to a human reviewer.\n",
+                  "digest": "sha256:a3364e44eb5d150e9e7caa4c579ed375d2a7d8772a6577ac28fb153438ce1de7",
+                  "path": "/moldea/agents/order-triage/instruction.md",
+                  "scalarLength": 195,
+                  "utf8ByteLength": 195
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n\nagents:\n  order-triage:\n    runtime:\n      id: custom\n      guidance: /moldea/runtimes/custom.md\n    bindings:\n      runtimeAgent:\n        path: /src/order-triage-agent.ts\n        symbol: createOrderTriageAgent\n    affectedBy:\n      - /src/order-triage-agent.ts\n",
+                "digest": "sha256:96b6a9b34d39865d341438093e5522351f7db151f589eb4bf31e518ebe558d20",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 338,
+                "utf8ByteLength": 338
+              },
+              "value": {
+                "agents": {
+                  "order-triage": {
+                    "affectedBy": [
+                      "/src/order-triage-agent.ts"
+                    ],
+                    "bindings": {
+                      "runtimeAgent": {
+                        "path": "/src/order-triage-agent.ts",
+                        "symbol": "createOrderTriageAgent"
+                      }
+                    },
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/custom.md",
+                      "id": "custom"
+                    }
+                  }
+                },
+                "context": {
+                  "/moldea/project.md": {
+                    "affectedBy": [
+                      "/src/**"
+                    ]
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Order triage project\n\nThis TypeScript project classifies orders for human review. Its runtime agent does not approve refunds or perform financial mutations.\n",
+              "digest": "sha256:50dad6fcb45b4b5fc6c43a213e97c28ef97d5b85eb60da11d6d30f45d3e978a3",
+              "path": "/moldea/project.md",
+              "scalarLength": 159,
+              "utf8ByteLength": 159
+            },
+            "runtimes": [
+              {
+                "asset": {
+                  "content": "# Order triage custom runtime\n\n`createOrderTriageAgent` receives an asynchronous canonical-instruction loader from its caller. During construction, the factory requests `/moldea/agents/order-triage/instruction.md` through that loader and waits for the returned content before creating the agent.\n\nThe factory fixes the runtime agent ID to `order-triage`, the action to `classify-for-human-review`, and `canApproveRefunds` to `false`. This repository does not define the loader implementation or an order input/output schema.\n",
+                  "digest": "sha256:ba4cd9a4d5aba22e6b2a9e9c71854968cd248b3b52cf41cbc1674d67eccc5036",
+                  "path": "/moldea/runtimes/custom.md",
+                  "scalarLength": 525,
+                  "utf8ByteLength": 525
+                }
+              }
+            ],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

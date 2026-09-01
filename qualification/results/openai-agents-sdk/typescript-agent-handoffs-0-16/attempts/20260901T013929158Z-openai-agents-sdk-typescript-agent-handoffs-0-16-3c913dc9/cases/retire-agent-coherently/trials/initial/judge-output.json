@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, deterministic post-actor validation, and workspace patch agree that the obsolete support-agent declaration and canonical assets were removed coherently.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml contains only `version: 1`, with no agent, OpenAI wrapper, runtime-agent, or instruction-loader binding. Expected canonical paths moldea/agents/support/description.md, moldea/agents/support/instruction.md, and src/support-agent.ts are absent. The workspace patch identifies deletion of both support canonical assets and modification of the manifest; deterministic-after reports valid inspection, passing typecheck, repository equivalence, and no failures."
+    }
+  ],
+  "failures": []
+}

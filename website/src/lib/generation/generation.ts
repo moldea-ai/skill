@@ -7,7 +7,17 @@ import { parse as parseYaml } from 'yaml';
 import { z } from 'zod';
 
 import {
+  assertPublishableQualificationEvidence,
+  loadQualificationWebsiteModel,
+  type IQualificationWebsiteModel,
+} from '../qualification/index.ts';
+import {
+  loadSemanticEvaluationWebsiteModel,
+  type ISemanticEvaluationWebsiteModel,
+} from '../semantic-evaluation/index.ts';
+import {
   DOCUMENT_SECTION_LABELS,
+  EVIDENCE_ROUTE,
   INSTALL_COMMAND,
   REQUIRED_DOCUMENT_ROUTES,
   SKILLS_DIRECTORY_URL,
@@ -25,7 +35,7 @@ import { DEFAULT_SITE_URL } from '../site/constants.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 const GENERATED_NOTICE =
-  'Generated from repository-owned documentation and moldea/SKILL.md metadata. Do not edit generated output.';
+  'Generated from repository-owned documentation, semantic evaluation, qualification evidence, and moldea/SKILL.md metadata. Do not edit generated output.';
 
 const DocumentFrontmatterSchema = z.strictObject({
   description: z.string().min(1),
@@ -199,8 +209,118 @@ export const createSearchRecords = (documents: IWebsiteDocument[]): ISearchRecor
   }));
 };
 
+/** Creates bounded search records for qualification profiles and attempts without transcripts. */
+export const createQualificationSearchRecords = (
+  qualification: IQualificationWebsiteModel,
+): ISearchRecord[] => {
+  const landingRecord: ISearchRecord = {
+    description:
+      'Inspect adapter support-gate methodology, transparent project profiles, and complete recorded evidence.',
+    route: qualification.route,
+    searchText: normalizeSearchText(
+      'Adapter qualification support gate methodology profiles projects attempts evidence results',
+    ),
+    title: 'Adapter qualification',
+  };
+  const profileRecords = qualification.profiles.flatMap((profile): ISearchRecord[] => {
+    const profileRecord: ISearchRecord = {
+      description: profile.description,
+      route: profile.route,
+      searchText: normalizeSearchText(
+        [
+          profile.title,
+          profile.adapterId,
+          profile.implementationId,
+          profile.description,
+          ...profile.cases.flatMap((profileCase) => [
+            profileCase.title,
+            profileCase.catalogDescription,
+            profileCase.catalogChallenge,
+            profileCase.purpose,
+          ]),
+          ...profile.probes.flatMap(({ description, matrixPath }) => [description, matrixPath]),
+        ].join(' '),
+      ),
+      title: profile.title,
+    };
+    const attemptRecords = profile.attempts.map(({ result, route }): ISearchRecord => ({
+      description: `Recorded ${result.status} qualification attempt for ${profile.adapterId}/${profile.implementationId}.`,
+      route,
+      searchText: normalizeSearchText(
+        [
+          result.attemptId,
+          result.status,
+          result.summary,
+          profile.adapterId,
+          profile.implementationId,
+          ...result.cases.flatMap(({ caseId, failures, title }) => [caseId, title, ...failures]),
+          ...result.provenance.packages.flatMap(({ name, version }) => [name, version]),
+        ].join(' '),
+      ),
+      title: `${profile.title}: ${result.attemptId}`,
+    }));
+
+    return [profileRecord, ...attemptRecords];
+  });
+
+  return [landingRecord, ...profileRecords];
+};
+
+/** Creates concise semantic evidence search records without indexing actor transcripts. */
+export const createSemanticEvaluationSearchRecords = (
+  semanticEvaluation: ISemanticEvaluationWebsiteModel,
+): ISearchRecord[] => {
+  const landingRecord: ISearchRecord = {
+    description: semanticEvaluation.hasAttempt
+      ? `Review the latest ${semanticEvaluation.status} semantic attempt, immutable history, and ${semanticEvaluation.caseCount} behavioral scenarios.`
+      : `Review ${semanticEvaluation.caseCount} behavioral scenarios and the semantic evaluation methodology before the first attempt is recorded.`,
+    route: semanticEvaluation.route,
+    searchText: normalizeSearchText(
+      'Semantic evaluation behavioral scenarios expected behavior forbidden behavior passing evidence',
+    ),
+    title: 'Semantic evaluation',
+  };
+  const groupRecords = semanticEvaluation.groups.map((group): ISearchRecord => ({
+    description: group.description,
+    route: `${semanticEvaluation.route}#${group.id}`,
+    searchText: normalizeSearchText(
+      [
+        group.title,
+        group.description,
+        ...group.cases.flatMap(({ expectedCriteria, forbiddenCriteria, scenario, title }) => [
+          title,
+          scenario,
+          ...expectedCriteria.map(({ criterion }) => criterion),
+          ...forbiddenCriteria.map(({ criterion }) => criterion),
+        ]),
+      ].join(' '),
+    ),
+    title: group.title,
+  }));
+  const attemptRecords = semanticEvaluation.attempts.map(({ result, route }): ISearchRecord => ({
+    description: `Recorded ${result.status} semantic attempt with ${result.passedCaseCount + result.recoveredCaseCount} of ${result.totalCaseCount} scenarios successful.`,
+    route,
+    searchText: normalizeSearchText(
+      [
+        result.attemptId,
+        result.status,
+        result.stopReason,
+        ...result.cases.flatMap(({ id, status }) => [id, status]),
+      ].join(' '),
+    ),
+    title: `Semantic attempt: ${result.attemptId}`,
+  }));
+
+  return [landingRecord, ...groupRecords, ...attemptRecords];
+};
+
 /** Creates the concise machine-oriented skill map from canonical public sources. */
-export const createLlmsText = (documents: IWebsiteDocument[], skill: ISkillMetadata): string => {
+export const createLlmsText = (
+  documents: IWebsiteDocument[],
+  skill: ISkillMetadata,
+  qualification: IQualificationWebsiteModel,
+  semanticEvaluation: ISemanticEvaluationWebsiteModel,
+): string => {
   const lines = [
     '# `moldea` Agent Skill',
     '',
@@ -233,6 +353,22 @@ export const createLlmsText = (documents: IWebsiteDocument[], skill: ISkillMetad
   }
 
   lines.push(
+    '## Evidence',
+    '',
+    `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
+    semanticEvaluation.hasAttempt
+      ? `- [Semantic evaluation](${semanticEvaluation.route}): Review the latest ${semanticEvaluation.status} attempt, ${semanticEvaluation.caseCount} scenarios, and immutable history.`
+      : `- [Semantic evaluation](${semanticEvaluation.route}): Review ${semanticEvaluation.caseCount} behavioral scenarios and the methodology before the first attempt is recorded.`,
+    `- [Adapter qualification](${qualification.route}): Inspect the support gate, transparent profiles, passing outcomes, and immutable attempt history.`,
+  );
+
+  for (const profile of qualification.profiles) {
+    lines.push(`- [${profile.title}](${profile.route}): ${profile.description}`);
+  }
+
+  lines.push('');
+
+  lines.push(
     '## Canonical references',
     '',
     `- [Source repository](${SOURCE_REPOSITORY_URL})`,
@@ -246,7 +382,11 @@ export const createLlmsText = (documents: IWebsiteDocument[], skill: ISkillMetad
 };
 
 /** Creates the unique deterministic public route manifest. */
-export const createRouteManifest = (documents: IWebsiteDocument[]): string[] => {
+export const createRouteManifest = (
+  documents: IWebsiteDocument[],
+  qualification: IQualificationWebsiteModel,
+  semanticEvaluation: ISemanticEvaluationWebsiteModel,
+): string[] => {
   const routes = new Set([
     '/',
     '/404.html',
@@ -254,6 +394,9 @@ export const createRouteManifest = (documents: IWebsiteDocument[]): string[] => 
     '/robots.txt',
     '/search/',
     '/search-index.json',
+    EVIDENCE_ROUTE,
+    semanticEvaluation.route,
+    ...semanticEvaluation.attempts.map(({ route }) => route),
   ]);
 
   for (const document of documents) {
@@ -262,16 +405,33 @@ export const createRouteManifest = (documents: IWebsiteDocument[]): string[] => 
     routes.add(document.route);
   }
 
+  for (const route of [
+    qualification.route,
+    ...qualification.profiles.flatMap((profile) => [
+      profile.route,
+      ...profile.attempts.map(({ route }) => route),
+    ]),
+  ]) {
+    if (routes.has(route)) throw new Error(`Two public items resolve to ${route}.`);
+    routes.add(route);
+  }
+
   return [...routes].sort();
 };
 
 /**
  * Builds the complete deterministic website model without writing generated output.
+ * @param qualificationRepositoryRoot Repository root used to load qualification evidence.
  * @returns The validated documentation, navigation, search, route, and LLM model.
  */
-export const createWebsiteModel = (): IWebsiteModel => {
+export const createWebsiteModel = (
+  qualificationRepositoryRoot: string = getRepositoryRoot(),
+): IWebsiteModel => {
   const repositoryRoot = getRepositoryRoot();
   const documents = discoverDocuments(repositoryRoot);
+  const qualification = loadQualificationWebsiteModel(qualificationRepositoryRoot);
+  assertPublishableQualificationEvidence(qualification);
+  const semanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
   const skill = readSkillMetadata(repositoryRoot);
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
@@ -290,10 +450,25 @@ export const createWebsiteModel = (): IWebsiteModel => {
   return {
     documents,
     generatedNotice: GENERATED_NOTICE,
-    llmsText: createLlmsText(documents, skill),
+    llmsText: createLlmsText(documents, skill, qualification, semanticEvaluation),
     navigation: createNavigation(documents),
-    routes: createRouteManifest(documents),
-    searchRecords: createSearchRecords(documents),
+    qualification,
+    routes: createRouteManifest(documents, qualification, semanticEvaluation),
+    searchRecords: [
+      ...createSearchRecords(documents),
+      {
+        description:
+          'Choose behavioral semantic evaluation or real-project adapter qualification evidence.',
+        route: EVIDENCE_ROUTE,
+        searchText: normalizeSearchText(
+          'Evidence testing evaluation semantic behavior qualification adapters projects proof',
+        ),
+        title: 'Evidence',
+      },
+      ...createSemanticEvaluationSearchRecords(semanticEvaluation),
+      ...createQualificationSearchRecords(qualification),
+    ],
+    semanticEvaluation,
     skill,
   };
 };

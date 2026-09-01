@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s runtime-agent and instruction-loader bindings with the existing OpenAI Agents SDK implementation. Added an agent-level warning for the unproven dynamic tool-registry relationship. Local moldea inspection returned valid with no diagnostics, and TypeScript compilation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Bindings now target `/src/support-assistant.ts` symbols `supportAssistant` and `loadSupportInstruction`.",
+    "No tool was invented or registered, and implementation code was not modified.",
+    "Pre-existing deletion of `src/support-agent.ts` and untracked `src/support-assistant.ts` and `src/dynamic-tools.ts` were preserved.",
+    "Final `moldea inspect --json` returned schema 2, CLI 5.0.0, status `valid`, with OpenAI Agents SDK evidence for the runtime agent and instruction loader.",
+    "`./node_modules/.bin/tsc -p tsconfig.json` completed successfully."
+  ],
+  "unresolved": [
+    "Warning `dynamic-tool-registry-wiring`: static inspection cannot establish whether `/src/dynamic-tools.ts` symbol `assembleTools` supplies tools to `supportAssistant`. Resolve with closed runtime wiring or an integration test, then register only tools established by that evidence."
+  ]
+}

@@ -1,0 +1,64 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index e2c0ffe..c9efae2 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: eve
++      guidance: /moldea/runtimes/eve.md
+     bindings:
+       runtimeAgent:
+         path: /agent/agent.ts
+@@ -38,5 +39,37 @@ agents:
+         registration:
+           path: /agent/skills/triage.ts
+           symbol: default
++    unresolved:
++      dynamic-tool-runtime:
++        category: runtime-capability
++        effect: warning
++        description: The event-created tool in /agent/tools/runtime.ts is not established as a statically registered support capability.
++        resolution: Establish its model-visible registration and contract with runtime evidence, or expose it as a supported static defineTool module before adding a canonical tool relationship.
++        related:
++          - path: /agent/tools/runtime.ts
++      markdown-skill-runtime:
++        category: runtime-capability
++        effect: warning
++        description: The flat and packaged Markdown skill sources are preserved, but static inspection does not establish either as a registered support skill.
++        resolution: Establish runtime registration and behavior, or use a supported TypeScript defineSkill module before adding a canonical skill relationship.
++        related:
++          - path: /agent/skills/reference.md
++          - path: /agent/skills/guide/SKILL.md
++      single-file-subagent-runtime:
++        category: routing
++        effect: warning
++        description: The single-file /agent/subagents/quick.ts candidate is not a statically established local subagent relationship.
++        resolution: Establish its runtime routing with evidence, or use a directory-backed subagents/<name>/agent.ts form with a separately registered canonical agent and proven routing.
++        related:
++          - path: /agent/subagents/quick.ts
++      instruction-examples-runtime:
++        category: instruction-provenance
++        effect: warning
++        description: The case-varied, composed, and legacy instruction examples are not established as active support instructions by static inspection.
++        resolution: Establish an evidenced runtime loader, or use one supported exact lowercase instructions.md or statically analyzable instructions.ts surface at the agent root.
++        related:
++          - path: /examples/instructions/Instructions.md
++          - path: /examples/instructions/instructions/part.md
++          - path: /examples/instructions/system.md
+     affectedBy:
+       - /agent/**
+
+diff --git a/moldea/runtimes/eve.md b/moldea/runtimes/eve.md
+new file mode 100644
+index 0000000..a97d225
+--- /dev/null
++++ b/moldea/runtimes/eve.md
+@@ -0,0 +1,7 @@
++# Eve runtime boundary
++
++The `support` agent uses the nested Eve filesystem layout at `/agent`. Its canonical static surfaces are `/agent/agent.ts`, exact lowercase `/agent/instructions.md`, the output schema in `/agent/contracts.ts`, the `status` `defineTool` module, and the `triage` TypeScript `defineSkill` module.
++
++Supported static alternatives are a flat or nested root `agent.ts`; one exact lowercase `instructions.md` or statically analyzable `instructions.ts`; recursive TypeScript `defineTool` modules; TypeScript `defineSkill` modules; direct schema relationships; and directory-backed local subagents at `subagents/<name>/agent.ts` with separately registered canonical agents and evidenced routing.
++
++Source presence alone does not establish dynamic tools, flat or packaged Markdown skills, single-file subagents, or case-varied, composed, and legacy instruction forms. Remote agents, extension contributions, connection and framework tools, filesystem collisions, reserved names, and advanced runtime behavior likewise require runtime evidence or a supported static form before they become canonical. This guide asserts no provider or model behavior.

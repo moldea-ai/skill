@@ -1,0 +1,135 @@
+{
+  "caseId": "evaluate-aligned-project",
+  "title": "Evaluate an aligned project",
+  "status": "failed",
+  "confirmationStatus": "rejected",
+  "durationMs": 334469,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": false,
+      "durationMs": 33831,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 534771,
+        "cachedInputTokens": 483328,
+        "outputTokens": 3537
+      },
+      "judgeUsage": {
+        "inputTokens": 368720,
+        "cachedInputTokens": 327424,
+        "outputTokens": 4182
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T13:56:29.289Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T13:58:38.887Z",
+      "actorCacheSourceAttemptId": "20260830T135404999Z-openai-agents-sdk-typescript-agent-handoffs-0-16-8336ce16",
+      "judgeCacheSourceAttemptId": "20260830T135404999Z-openai-agents-sdk-typescript-agent-handoffs-0-16-8336ce16",
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-patterns",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor identifies `supportAgent`/`loadSupportInstruction` and `summaryAgent`/`loadSummaryInstruction`. `src/agents.ts` binds those loaders directly as agent instructions, and `src/instructions.ts` reads the corresponding canonical support and summary `instruction.md` files."
+        },
+        {
+          "id": "explains-closed-bindings",
+          "evaluator": "judge",
+          "verdict": "fail",
+          "evidence": "The actor accurately covers `SupportOutputSchema` and the closed `find_order` implementation, registration, input-schema, and output-schema bindings. However, it never explains that `supportAgent` declares both the direct `summaryAgent` handoff and `configuredSummaryHandoff`, created with `handoff(summaryAgent, ...)` and explicit tool overrides in `src/agents.ts`."
+        },
+        {
+          "id": "respects-static-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor reports no edits and explicitly limits adapter evidence to detectable implementation, disclaiming proof of execution, effective output schemas, routing, handoffs, subagents, and agent input schemas. Deterministic evidence reports `repositoryUnchanged: true`; workspace assertions show identical before/after hashes and no changed paths."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": [
+        "Requirement explains-closed-bindings failed: The actor accurately covers `SupportOutputSchema` and the closed `find_order` implementation, registration, input-schema, and output-schema bindings. However, it never explains that `supportAgent` declares both the direct `summaryAgent` handoff and `configuredSummaryHandoff`, created with `handoff(summaryAgent, ...)` and explicit tool overrides in `src/agents.ts`.",
+        "Update the actor report to explicitly explain both handoff bindings: the direct `summaryAgent` entry and the configured `handoff(summaryAgent, ...)` entry with its overrides, while retaining the static-evidence limitation."
+      ]
+    },
+    {
+      "trialId": "confirmation-1",
+      "kind": "confirmation",
+      "confirmationIndex": 1,
+      "passed": false,
+      "durationMs": 300638,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/confirmation-1/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/confirmation-1/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/confirmation-1/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/evaluate-aligned-project/trials/confirmation-1/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/confirmation-1/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/confirmation-1/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 490555,
+        "cachedInputTokens": 446208,
+        "outputTokens": 3705
+      },
+      "judgeUsage": {
+        "inputTokens": 741941,
+        "cachedInputTokens": 699392,
+        "outputTokens": 4819
+      },
+      "actorEvidenceCreatedAt": "2026-09-01T01:14:12.953Z",
+      "judgeEvidenceCreatedAt": "2026-09-01T01:17:01.904Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-patterns",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor identifies supportAgent and summaryAgent as direct definitions and states that their asynchronous loaders read the corresponding canonical instruction.md files. This matches src/agents.ts and src/instructions.ts; deterministic inspection and typechecking passed."
+        },
+        {
+          "id": "explains-closed-bindings",
+          "evaluator": "judge",
+          "verdict": "fail",
+          "evidence": "The actor accurately covers SupportOutputSchema and the find_order tool’s registration, implementation, input schema, and output schema. However, it never explains that supportAgent declares both summaryAgent directly and configuredSummaryHandoff—created with handoff(summaryAgent, overrides)—in its handoffs array, as shown in src/agents.ts."
+        },
+        {
+          "id": "respects-static-boundary",
+          "evaluator": "judge",
+          "verdict": "fail",
+          "evidence": "The implementation was preserved: deterministic-after reports repositoryUnchanged, workspace assertions show identical before/after hashes, and changedPaths is empty. The actor correctly disclaims runtime execution, output-schema enforcement, routing, handoffs, subagents, and agent input schemas, but then says adapter inspection “establishes detected static SDK definitions,” contrary to the requirement not to claim adapter evidence proves agent definitions."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": [
+        "Requirement explains-closed-bindings failed: The actor accurately covers SupportOutputSchema and the find_order tool’s registration, implementation, input schema, and output schema. However, it never explains that supportAgent declares both summaryAgent directly and configuredSummaryHandoff—created with handoff(summaryAgent, overrides)—in its handoffs array, as shown in src/agents.ts.",
+        "Requirement respects-static-boundary failed: The implementation was preserved: deterministic-after reports repositoryUnchanged, workspace assertions show identical before/after hashes, and changedPaths is empty. The actor correctly disclaims runtime execution, output-schema enforcement, routing, handoffs, subagents, and agent input schemas, but then says adapter inspection “establishes detected static SDK definitions,” contrary to the requirement not to claim adapter evidence proves agent definitions.",
+        "Explain both handoff bindings explicitly: supportAgent includes summaryAgent directly and configuredSummaryHandoff produced by handoff(summaryAgent, overrides).",
+        "Do not attribute proof of agent definitions to adapter evidence; limit it to statically detected patterns or relationships and attribute definition confirmation to source inspection."
+      ]
+    }
+  ],
+  "failures": [
+    "Requirement explains-closed-bindings failed: The actor accurately covers SupportOutputSchema and the find_order tool’s registration, implementation, input schema, and output schema. However, it never explains that supportAgent declares both summaryAgent directly and configuredSummaryHandoff—created with handoff(summaryAgent, overrides)—in its handoffs array, as shown in src/agents.ts.",
+    "Requirement respects-static-boundary failed: The implementation was preserved: deterministic-after reports repositoryUnchanged, workspace assertions show identical before/after hashes, and changedPaths is empty. The actor correctly disclaims runtime execution, output-schema enforcement, routing, handoffs, subagents, and agent input schemas, but then says adapter inspection “establishes detected static SDK definitions,” contrary to the requirement not to claim adapter evidence proves agent definitions.",
+    "Explain both handoff bindings explicitly: supportAgent includes summaryAgent directly and configuredSummaryHandoff produced by handoff(summaryAgent, overrides).",
+    "Do not attribute proof of agent definitions to adapter evidence; limit it to statically detected patterns or relationships and attribute definition confirmation to source inspection."
+  ]
+}

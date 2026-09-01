@@ -1,0 +1,36 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: vercel-ai-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/agent.ts
+        symbol: supportAgent
+      instructionLoader:
+        path: /src/agent.ts
+        symbol: loadSupportInstruction
+      inputSchema:
+        path: /src/contracts.ts
+        symbol: SupportInputSchema
+      outputSchema:
+        path: /src/contracts.ts
+        symbol: SupportOutputSchema
+    tools:
+      lookup-order:
+        name: lookup_order
+        description: Looks up one order by identifier.
+        implementation:
+          path: /src/implementations.ts
+          symbol: lookupOrder
+        registration:
+          path: /src/tools.ts
+          symbol: lookupOrderTool
+        inputSchema:
+          path: /src/contracts.ts
+          symbol: LookupOrderInputSchema
+        outputSchema:
+          path: /src/contracts.ts
+          symbol: LookupOrderOutputSchema
+    affectedBy:
+      - /src/**

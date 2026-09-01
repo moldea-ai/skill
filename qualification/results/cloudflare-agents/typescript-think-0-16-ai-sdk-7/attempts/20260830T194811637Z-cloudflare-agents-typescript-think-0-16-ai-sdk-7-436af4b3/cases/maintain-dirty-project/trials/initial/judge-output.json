@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The canonical billing context, manifest relationships, support instruction, and billing implementation agree. Runner-owned validation and workspace assertions passed, and the Cloudflare Think class and instruction loader remained byte-identical.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` canonically documents `classifyBillingQuestion` behavior from `/src/billing.ts`. `moldea/moldea.yaml` globally registers that context with an exact `/src/billing.ts` + `classifyBillingQuestion` binding and assigns it to `support`. `moldea/agents/support/instruction.md` directs support to use the billing context for refund and invoice questions. Workspace assertions identify only these three intended changed paths, and deterministic inspect/validate passed."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` still directly exports `SupportAgent extends Think`; `getSystemPrompt()` still returns `loadSupportInstruction()`, and that loader remains directly exported. Runner-owned before/after SHA-256 values for this file are identical (`510fd1d23e6376e9c02f0f49b8c8adf2e51ce83b18456cdcb563e95bfc24ecd8`), while deterministic inspection and typechecking passed."
+    }
+  ],
+  "failures": []
+}

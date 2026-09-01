@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The canonical manifest and TypeScript implementation corroborate the actor report: both instruction loaders feed their corresponding direct generation wrappers, structured outputs are closed over the declared schemas, and support alone registers the fully bound find_order tool. No prohibited relationships were inferred. Deterministic validation passed, workspace hashes were unchanged, and runner-owned Git evidence reports an empty diff and status.",
+  "requirements": [
+    {
+      "id": "explains-direct-patterns",
+      "verdict": "pass",
+      "evidence": "Actor output states supportAgent directly calls generateText with the canonical support instruction and summaryAgent directly calls streamText with the canonical summary instruction. This is corroborated by src/agents.ts and src/instructions.ts, while moldea/moldea.yaml binds each runtimeAgent to its corresponding instructionLoader. Deterministic inspection is valid."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "verdict": "pass",
+      "evidence": "Actor output accurately identifies SupportOutputSchema and SummaryOutputSchema through Output.object and the closed find_order relationship. src/agents.ts, src/tools.ts, src/implementations.ts, and src/contracts.ts corroborate the output schemas, tool registration, implementation, and input/output schemas declared in moldea/moldea.yaml. Deterministic validation and typecheck both passed."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "The actor explicitly limits its account to directly evidenced wrappers, instruction loaders, structured outputs, and the declared function tool, and states that it did not infer provider, model, routing, handoff, subagent, or agent input-schema relationships. No such inferred relationship appears in its observations; deterministic inspection reports no diagnostics."
+    }
+  ],
+  "failures": []
+}

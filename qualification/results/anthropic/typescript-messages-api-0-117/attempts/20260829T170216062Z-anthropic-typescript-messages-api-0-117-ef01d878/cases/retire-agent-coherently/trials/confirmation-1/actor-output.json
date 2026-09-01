@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the obsolete canonical support-agent setup. The pre-existing deletion of src/support-agent.ts removed the Anthropic wrapper, supportAgent export, and loadSupportInstruction export; initial Moldea inspection confirmed all three canonical bindings were broken. After cleanup, Moldea inspection passed with no diagnostics and no registered agents, and TypeScript validation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "Preserved the pre-existing deletion of src/support-agent.ts and all unrelated project files.",
+    "Removed the support registration, runtimeAgent binding, instructionLoader binding, affectedBy reference, description, and instruction.",
+    "Initial @moldea.ai/cli 5.0.0 inspection returned invalid with MOLDEA_REFERENCE_MISSING for runtimeAgent and instructionLoader and MOLDEA_IMPACT_PATH_MISSING for affectedBy.",
+    "Final @moldea.ai/cli 5.0.0 inspection returned schema 2 status valid, zero diagnostics, and an empty agent list.",
+    "Local TypeScript validation completed successfully.",
+    "Final source and canonical-state search found no remaining supportAgent, loadSupportInstruction, support-agent, runtimeAgent, or instructionLoader claims.",
+    "Final hardened Git status contains only the pre-existing source deletion and the three intended canonical changes."
+  ],
+  "unresolved": []
+}

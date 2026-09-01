@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted project is structurally valid but not semantically aligned. `support` correctly binds the directly exported `SupportAgent` Cloudflare `AIChatAgent` class and exported `loadSupportInstruction` function, but the loader returns an independently maintained sentence instead of the canonical instruction. No repository files changed.",
+  "changedFiles": [],
+  "observations": [
+    "`moldea/moldea.yaml` binds `support` to `/src/support-agent.ts` symbols `SupportAgent` and `loadSupportInstruction`.",
+    "`SupportAgent` is directly exported, extends `AIChatAgent`, and supplies `loadSupportInstruction()` to `streamText`.",
+    "Canonical `instruction.md` says to answer only from verified project evidence; the runtime loader instead returns `Answer support requests from canonical project context.` Canonical instruction provenance is therefore broken.",
+    "Local `moldea inspect --json` completed with schema 2, CLI 5.0.0, status `valid`, no deterministic diagnostics, and detected both runtime bindings.",
+    "TypeScript validation passed with `tsc --noEmit`.",
+    "The final hardened Git diff and status were empty."
+  ],
+  "unresolved": [
+    "The runtime loader must derive from the canonical `support` instruction before semantic alignment can be claimed. No existing unresolved requirement records this gap."
+  ]
+}

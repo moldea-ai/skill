@@ -6,7 +6,12 @@ import { withBase } from '@moldea.ai/website-ui/site';
 
 import SiteFooter from '../components/site-footer/site-footer.astro';
 import SiteHeader from '../components/site-header/site-header.astro';
-import { THEME_STORAGE_KEY } from '../lib/site/constants.ts';
+import {
+  SITE_ALTERNATE_NAMES,
+  SITE_NAME,
+  SOCIAL_IMAGE,
+  THEME_STORAGE_KEY,
+} from '../lib/site/constants.ts';
 import '../styles/global.css';
 
 interface Props {
@@ -18,11 +23,22 @@ interface Props {
 
 const { breadcrumbs = [], description, noIndex = false, title } = Astro.props;
 const basePath = import.meta.env.BASE_URL;
-const pageTitle = title === 'moldea Agent Skill' ? title : `${title} · moldea Agent Skill`;
+const pageTitle = title === SITE_NAME ? title : `${title} · ${SITE_NAME}`;
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const homeUrl = new URL(withBase('/', basePath), Astro.site);
 // asset fingerprint prevents browsers from retaining an earlier local favicon state
 const faviconUrl = withBase('/favicon.ico?v=a8cfe06f', basePath);
-const openGraphImage = new URL(withBase('/open-graph/ogimage.png', basePath), Astro.site);
+const openGraphImage = new URL(withBase(SOCIAL_IMAGE.path, basePath), Astro.site);
+const structuredWebsite =
+  canonicalUrl.href === homeUrl.href
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        name: SITE_NAME,
+        alternateName: SITE_ALTERNATE_NAMES,
+        url: homeUrl.href,
+      }
+    : null;
 const structuredBreadcrumbs = breadcrumbs.length
   ? {
       '@context': 'https://schema.org',
@@ -35,6 +51,9 @@ const structuredBreadcrumbs = breadcrumbs.length
       })),
     }
   : null;
+const structuredWebsiteJson = structuredWebsite
+  ? JSON.stringify(structuredWebsite).replaceAll('<', '\\u003c')
+  : '';
 const structuredBreadcrumbJson = structuredBreadcrumbs
   ? JSON.stringify(structuredBreadcrumbs).replaceAll('<', '\\u003c')
   : '';
@@ -101,7 +120,11 @@ const structuredBreadcrumbJson = structuredBreadcrumbs
     />
     <meta
       property="og:site_name"
-      content="moldea Agent Skill"
+      content={SITE_NAME}
+    />
+    <meta
+      property="og:locale"
+      content="en_US"
     />
     <meta
       property="og:title"
@@ -120,12 +143,20 @@ const structuredBreadcrumbJson = structuredBreadcrumbs
       content={openGraphImage}
     />
     <meta
+      property="og:image:type"
+      content="image/png"
+    />
+    <meta
       property="og:image:width"
-      content="1730"
+      content={String(SOCIAL_IMAGE.width)}
     />
     <meta
       property="og:image:height"
-      content="909"
+      content={String(SOCIAL_IMAGE.height)}
+    />
+    <meta
+      property="og:image:alt"
+      content={SOCIAL_IMAGE.alt}
     />
     <meta
       name="twitter:card"
@@ -143,8 +174,21 @@ const structuredBreadcrumbJson = structuredBreadcrumbs
       name="twitter:image"
       content={openGraphImage}
     />
+    <meta
+      name="twitter:image:alt"
+      content={SOCIAL_IMAGE.alt}
+    />
     <title>{pageTitle}</title>
     <ThemeBootstrap storageKey={THEME_STORAGE_KEY} />
+    {
+      structuredWebsite && (
+        <script
+          is:inline
+          type="application/ld+json"
+          set:html={structuredWebsiteJson}
+        />
+      )
+    }
     {
       structuredBreadcrumbs && (
         <script
@@ -158,7 +202,7 @@ const structuredBreadcrumbJson = structuredBreadcrumbs
   <body>
     <NavigationProgress />
     <a
-      class="fixed start-3 top-3 z-[100] -translate-y-24 rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground focus:translate-y-0"
+      class="dark-surface-selection fixed start-3 top-3 z-[100] -translate-y-24 rounded-lg bg-primary px-4 py-2 font-semibold text-primary-foreground focus:translate-y-0"
       href="#main-content"
     >
       Skip to content

@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 274711,
+  "deterministicBeforePath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-vercel-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-vercel-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-vercel-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-vercel-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-vercel-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 517854,
+    "cachedInputTokens": 468992,
+    "outputTokens": 2778
+  },
+  "judgeUsage": {
+    "inputTokens": 542179,
+    "cachedInputTokens": 454912,
+    "outputTokens": 5030
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T11:41:28.814Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T11:44:12.157Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor identifies the original `find_order` versus `lookup_order` mismatch. Current `src/agent.ts` confirms the closed map key is `lookup_order`, while the runner records only `moldea/moldea.yaml` as changed and deterministic inspection reports valid with no failures."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml:18` declares `name: lookup_order`, exactly matching `tools: { lookup_order: lookupOrderTool }` in `src/agent.ts:16`. Workspace assertions show `moldea/moldea.yaml` is the sole changed path; all runtime source hashes are unchanged."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest retains exact bindings for `supportAgent`, `loadSupportInstruction`, `SupportOutputSchema`, `lookupOrder`, `lookupOrderTool`, `LookupOrderInputSchema`, and `LookupOrderOutputSchema`. Source confirms the instruction loader reads the canonical instruction, `generateText` uses the output schema and tool map, and `lookupOrderTool` connects both schemas to `lookupOrder`. Deterministic inspection is valid and typechecking passed."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

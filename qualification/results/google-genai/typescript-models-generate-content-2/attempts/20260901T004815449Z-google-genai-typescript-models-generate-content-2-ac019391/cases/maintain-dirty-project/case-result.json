@@ -1,0 +1,66 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 25006,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 25006,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1823671,
+        "cachedInputTokens": 1739776,
+        "outputTokens": 7861
+      },
+      "judgeUsage": {
+        "inputTokens": 272505,
+        "cachedInputTokens": 227840,
+        "outputTokens": 2741
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T15:47:53.983Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T15:49:27.202Z",
+      "actorCacheSourceAttemptId": "20260830T152809838Z-google-genai-typescript-models-generate-content-2-d6ccb1a9",
+      "judgeCacheSourceAttemptId": "20260830T152809838Z-google-genai-typescript-models-generate-content-2-d6ccb1a9",
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/context/billing.md contains refund and invoice classifications. moldea/moldea.yaml globally registers that path, binds it to /src/billing.ts symbol classifyBillingQuestion, and assigns it to agents.support.context. The support instruction includes matching billing-dispute guidance. Deterministic inspection/validation passed, and workspace-patch hashes identify only the three intended canonical changes."
+        },
+        {
+          "id": "preserves-sdk-wiring",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/support-agent.ts still directly constructs GoogleGenAI and calls client.models.generateContent with systemInstruction loaded by loadSupportInstruction from the canonical support instruction. Its SHA-256 b7ee996c... and src/billing.ts SHA-256 8b3760bd... exactly match runner-owned before/after assertions; deterministic typechecking passed."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

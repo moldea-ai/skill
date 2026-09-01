@@ -1,0 +1,31 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-08-29T17:53:43.008Z",
+  "durationMs": 164761,
+  "usage": {
+    "inputTokens": 777463,
+    "cachedInputTokens": 723712,
+    "outputTokens": 5051
+  },
+  "cacheKey": "40215f6e0ca58e62d6b18b65bfb15527d10fc7c60afc85118831fe6c221c620c",
+  "sourceAttemptId": "20260829T170216062Z-anthropic-typescript-messages-api-0-117-ef01d878",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 34,
+    "credentialExposure": {
+      "status": "observed",
+      "observedCount": 1
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 8
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 8
+    }
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 21639,
+  "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1514010,
+    "cachedInputTokens": 1421824,
+    "outputTokens": 7671
+  },
+  "judgeUsage": {
+    "inputTokens": 362133,
+    "cachedInputTokens": 326144,
+    "outputTokens": 2798
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T11:18:35.877Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T11:20:08.200Z",
+  "actorCacheSourceAttemptId": "20260830T110116351Z-vercel-ai-sdk-typescript-generate-stream-text-7-744d7d6e",
+  "judgeCacheSourceAttemptId": "20260830T110116351Z-vercel-ai-sdk-typescript-generate-stream-text-7-744d7d6e",
+  "requirementAssessments": [
+    {
+      "id": "adds-context",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` canonically documents billing classification and dispute limits. `moldea/moldea.yaml` globally registers that context, assigns it to `support`, and binds it to the exact `/src/billing.ts` symbol `classifyBillingQuestion`. The support instruction consumes the billing guidance. Workspace assertions identify only these coherent canonical changes, and deterministic inspection is valid."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `src/support-agent.ts` still imports and directly calls `streamText`, loads `moldea/agents/support/instruction.md` through `loadSupportInstruction`, and uses `Output.object({ schema: SupportOutputSchema })`. Its before/after SHA-256 is identical (`7c2c655f...205c8bb`), and deterministic typechecking passed."
+    },
+    {
+      "id": "preserves-dirty-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

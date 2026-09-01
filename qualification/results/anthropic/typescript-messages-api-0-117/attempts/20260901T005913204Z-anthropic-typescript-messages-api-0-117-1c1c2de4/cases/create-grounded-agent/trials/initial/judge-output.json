@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, targeted Git diff, and runner-owned deterministic results agree: the grounded order-triage agent uses the existing direct Anthropic Messages wrapper, canonical instruction loader, and exact classify_order tool symbols without unsupported relationships or authority.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "The new description says the agent classifies orders for human review and cannot approve refunds. The new instruction requires classify_order, reports the review category, and explicitly forbids claiming refund approval. Targeted Git diffs contain exactly this grounded content."
+    },
+    {
+      "id": "binds-direct-wrapper",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtime.id anthropic, runtimeAgent /src/order-triage-agent.ts#orderTriageAgent, and instructionLoader #loadOrderTriageInstruction. The implementation calls client.messages.create and loads the canonical instruction. No output schema, routing, handoff, subagent, agent input schema, or runtime guide is present. Runner inspection and validation were valid."
+    },
+    {
+      "id": "binds-function-tool",
+      "verdict": "pass",
+      "evidence": "The manifest binds name classify_order to implementation #classifyOrder, registration #classifyOrderTool, and input schema #ClassifyOrderInputSchema in /src/order-triage-agent.ts. Those exact exported symbols exist; the closed tool declaration uses the same name and schema. Runner inspection was valid and TypeScript typechecking passed."
+    }
+  ],
+  "failures": []
+}

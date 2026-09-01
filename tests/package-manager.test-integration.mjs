@@ -19,16 +19,29 @@ import test from 'node:test';
 import {
   createCandidateRegistry,
   loadCandidateArtifacts,
-} from './package-manager-candidate/index.mjs';
+} from '../tooling/package-candidate/index.mjs';
+import {
+  parseRuntimeCompatibilityPublication,
+  RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
+} from '../tooling/runtime-compatibility-publication/index.mjs';
 
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const LIFECYCLE_FIXTURE_PATH = join(REPOSITORY_ROOT, 'fixtures', 'tooling', 'lifecycle-cli');
 const LIFECYCLE_FIXTURE_MANIFEST = JSON.parse(
   readFileSync(join(LIFECYCLE_FIXTURE_PATH, 'package.json'), 'utf8'),
 );
+const RUNTIME_COMPATIBILITY_PUBLICATION_FIXTURE_PATH = join(
+  REPOSITORY_ROOT,
+  'fixtures',
+  'tooling',
+  'runtime-compatibility-publication.json',
+);
+const ROOT_PACKAGE_MANIFEST = JSON.parse(
+  readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf8'),
+);
 const MANAGER = process.env.MOLDEA_TEST_MANAGER ?? 'npm';
 const EXPECTED_MANAGER_VERSION = process.env.MOLDEA_TEST_MANAGER_VERSION;
-const PUBLISHED_CLI_VERSION = process.env.MOLDEA_TEST_CLI_VERSION ?? '3.1.3';
+const PUBLISHED_CLI_VERSION = ROOT_PACKAGE_MANIFEST.devDependencies['@moldea.ai/cli'];
 const EXECUTABLE = process.platform === 'win32' ? `${MANAGER}.cmd` : MANAGER;
 const CANDIDATE_ARTIFACT_DIRECTORY = process.env.MOLDEA_CLI_ARTIFACT_DIRECTORY;
 const REQUIRE_CANDIDATE_ARTIFACTS = process.env.MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS === '1';
@@ -46,11 +59,6 @@ const isSupportedVersion = (manager, version) => {
   if (manager === 'pnpm') return major === 11 && minor >= 20;
   if (manager === 'yarn') return major === 4;
   return false;
-};
-
-const isSupportedCliVersion = (version) => {
-  const [major, minor, patch] = parseVersion(version);
-  return major === 3 && minor === 1 && patch >= 3;
 };
 
 /** Returns whether the selected Yarn version supports its command-scoped age-gate override. */
@@ -322,7 +330,7 @@ const seedConformanceProject = (clientDirectory, { includeOpenAi }) => {
 
 /** Installs and exercises one real published or packed CLI dependency closure. */
 const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
-  assert.ok(isSupportedCliVersion(cliVersion), `Unsupported CLI candidate ${cliVersion}.`);
+  parseVersion(cliVersion);
   const actualManagerVersion = readPackageManagerVersion();
   const clientDirectory = mkdtempSync(join(tmpdir(), `moldea-${sourceLabel}-${MANAGER}-`));
   const lifecycleSentinelPath = join(clientDirectory, 'lifecycle-ran.txt');
@@ -417,17 +425,23 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
       env: gitEnvironment,
     });
     let versionOutput;
-    let compatibilityExecution;
+    let compositionExecution;
     let inspectionExecution;
+    let validationExecution;
 
     if (MANAGER === 'yarn') {
       versionOutput = await run(EXECUTABLE, ['exec', 'moldea', '--version'], {
         cwd: clientDirectory,
         env: managerEnvironment,
       });
-      compatibilityExecution = await runDetailed(
+      compositionExecution = await runDetailed(
         EXECUTABLE,
-        ['exec', 'moldea', 'compatibility', '--json'],
+        ['exec', 'moldea', 'composition', '--json'],
+        { cwd: clientDirectory, env: managerEnvironment },
+      );
+      validationExecution = await runDetailed(
+        EXECUTABLE,
+        ['exec', 'moldea', 'validate', '--json'],
         { cwd: clientDirectory, env: managerEnvironment },
       );
       inspectionExecution = await runDetailed(EXECUTABLE, ['exec', 'moldea', 'inspect', '--json'], {
@@ -439,7 +453,11 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
         cwd: clientDirectory,
         env: managerEnvironment,
       });
-      compatibilityExecution = await runDetailed(binaryPath, ['compatibility', '--json'], {
+      compositionExecution = await runDetailed(binaryPath, ['composition', '--json'], {
+        cwd: clientDirectory,
+        env: managerEnvironment,
+      });
+      validationExecution = await runDetailed(binaryPath, ['validate', '--json'], {
         cwd: clientDirectory,
         env: managerEnvironment,
       });
@@ -452,75 +470,55 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
     assert.ok(isPathWithin(clientDirectory, cliPackage.packageRoot));
     assert.equal(cliPackage.manifest.version, cliVersion);
     assert.equal(versionOutput, cliVersion);
-    assert.equal(compatibilityExecution.stderr, '');
+    assert.equal(compositionExecution.stderr, '');
+    assert.equal(validationExecution.stderr, '');
     assert.equal(inspectionExecution.stderr, '');
     assert.equal(
-      `${compatibilityExecution.stdout}${inspectionExecution.stdout}`.includes('\u001b['),
+      `${compositionExecution.stdout}${validationExecution.stdout}${inspectionExecution.stdout}`.includes(
+        '\u001b[',
+      ),
       false,
     );
 
-    const compatibilityEnvelope = JSON.parse(compatibilityExecution.stdout);
+    const compositionEnvelope = JSON.parse(compositionExecution.stdout);
+    const validationEnvelope = JSON.parse(validationExecution.stdout);
     const inspectionEnvelope = JSON.parse(inspectionExecution.stdout);
-    const internalPackageNames = [
-      '@moldea.ai/adapter-anthropic',
-      '@moldea.ai/adapter-google-genai',
-      '@moldea.ai/adapter-openai',
-      '@moldea.ai/core',
-      '@moldea.ai/repository',
-      '@moldea.ai/repository-fs',
-    ].filter((packageName) => cliPackage.manifest.dependencies?.[packageName] !== undefined);
-    const expectedPackages = internalPackageNames.map((packageName) => ({
-      name: packageName,
-      version: cliPackage.manifest.dependencies[packageName],
-    }));
-    const customAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'custom');
-    const anthropicAdapter = compatibilityEnvelope.result.adapters.find(
-      ({ id }) => id === 'anthropic',
-    );
-    const googleGenAiAdapter = compatibilityEnvelope.result.adapters.find(
-      ({ id }) => id === 'google-genai',
-    );
-    const openAiAdapter = compatibilityEnvelope.result.adapters.find(({ id }) => id === 'openai');
+    const expectedPackages = Object.entries(cliPackage.manifest.dependencies ?? {})
+      .filter(([packageName]) => packageName.startsWith('@moldea.ai/'))
+      .map(([name, version]) => ({ name, version }))
+      .sort(({ name: left }, { name: right }) => left.localeCompare(right));
+    const adapterIds = compositionEnvelope.result.adapters.map(({ id }) => id);
 
-    assert.equal(compatibilityEnvelope.cliVersion, cliVersion);
-    assert.equal(compatibilityEnvelope.command, 'compatibility');
-    assert.equal(compatibilityEnvelope.schemaVersion, 1);
-    assert.equal(compatibilityEnvelope.status, 'valid');
-    assert.deepEqual(compatibilityEnvelope.result.packages, expectedPackages);
-    assert.equal(customAdapter.active, true);
-    assert.equal(customAdapter.bundledVersion, cliPackage.manifest.dependencies['@moldea.ai/core']);
-    assert.equal(customAdapter.matrix.implementationStatus, 'available');
-    assert.equal(customAdapter.matrix.compatibleCoreRange, '^2.0.0');
-    assert.deepEqual(customAdapter.matrix.supportedRepositoryFormatVersions, [1]);
-    assert.equal(customAdapter.matrix.runtimeGuidance.expectation, 'required');
-    assert.equal(customAdapter.matrix.targets[0].id, 'custom');
-    assert.deepEqual(customAdapter.matrix.targets[0].patterns, [
-      {
-        description:
-          'Universal Core validation of explicit repository relationships without runtime-specific inference.',
-        id: 'explicit-repository-relationships',
-        kind: 'runtime',
-        support: 'full',
-      },
-    ]);
-    assert.equal(anthropicAdapter.active, true);
+    assert.equal(compositionEnvelope.cliVersion, cliVersion);
+    assert.equal(compositionEnvelope.command, 'composition');
     assert.equal(
-      anthropicAdapter.bundledVersion,
-      cliPackage.manifest.dependencies['@moldea.ai/adapter-anthropic'],
+      compositionEnvelope.schemaVersion,
+      ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion,
     );
-    assert.equal(googleGenAiAdapter.active, true);
+    assert.equal(compositionEnvelope.status, 'valid');
+    assert.deepEqual(compositionEnvelope.result.packages, expectedPackages);
+    assert.ok(adapterIds.includes('custom'));
+    assert.ok(adapterIds.includes('anthropic'));
+    assert.ok(adapterIds.includes('google-genai'));
+    assert.equal(adapterIds.includes('openai'), hasOpenAiAdapter);
+    for (const adapter of compositionEnvelope.result.adapters) {
+      assert.deepEqual(adapter.repositoryFormatVersions, [1]);
+    }
+    assert.equal(validationEnvelope.cliVersion, cliVersion);
+    assert.equal(validationEnvelope.command, 'validate');
     assert.equal(
-      googleGenAiAdapter.bundledVersion,
-      cliPackage.manifest.dependencies['@moldea.ai/adapter-google-genai'],
+      validationEnvelope.schemaVersion,
+      ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion,
     );
-    assert.equal(openAiAdapter.active, hasOpenAiAdapter);
-    assert.equal(
-      openAiAdapter.bundledVersion,
-      hasOpenAiAdapter ? cliPackage.manifest.dependencies['@moldea.ai/adapter-openai'] : null,
-    );
+    assert.equal(validationEnvelope.status, 'valid');
+    assert.deepEqual(validationEnvelope.result.diagnostics, []);
+    assert.equal(validationEnvelope.result.formatVersion, 1);
     assert.equal(inspectionEnvelope.cliVersion, cliVersion);
     assert.equal(inspectionEnvelope.command, 'inspect');
-    assert.equal(inspectionEnvelope.schemaVersion, 1);
+    assert.equal(
+      inspectionEnvelope.schemaVersion,
+      ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion,
+    );
     assert.equal(inspectionEnvelope.status, 'valid');
     assert.equal(inspectionEnvelope.result.inspection.valid, true);
     assert.deepEqual(inspectionEnvelope.result.inspection.diagnostics, []);
@@ -661,6 +659,9 @@ test('supported package-manager command exact-pins the CLI and suppresses lifecy
 });
 
 test('supported package manager installs and executes the published CLI closure', async () => {
+  parseRuntimeCompatibilityPublication(
+    readFileSync(RUNTIME_COMPATIBILITY_PUBLICATION_FIXTURE_PATH, 'utf8'),
+  );
   await exerciseRealCli({
     cliVersion: PUBLISHED_CLI_VERSION,
     registryUrl: NPM_REGISTRY_URL,
@@ -678,7 +679,17 @@ test(
       CANDIDATE_ARTIFACT_DIRECTORY,
       'MOLDEA_CLI_ARTIFACT_DIRECTORY is required for candidate conformance.',
     );
-    const { artifacts, cliVersion } = loadCandidateArtifacts(resolve(CANDIDATE_ARTIFACT_DIRECTORY));
+    const candidateArtifactDirectory = resolve(CANDIDATE_ARTIFACT_DIRECTORY);
+    parseRuntimeCompatibilityPublication(
+      readFileSync(
+        join(
+          candidateArtifactDirectory,
+          RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
+        ),
+        'utf8',
+      ),
+    );
+    const { artifacts, cliVersion } = loadCandidateArtifacts(candidateArtifactDirectory);
     const { registryUrl, server } = await createCandidateRegistry(artifacts);
 
     try {

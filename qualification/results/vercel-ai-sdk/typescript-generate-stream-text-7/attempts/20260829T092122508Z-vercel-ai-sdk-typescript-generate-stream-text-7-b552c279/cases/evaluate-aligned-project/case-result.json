@@ -1,0 +1,66 @@
+{
+  "caseId": "evaluate-aligned-project",
+  "title": "Evaluate an aligned project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 199074,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 199074,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 681349,
+        "cachedInputTokens": 627712,
+        "outputTokens": 3638
+      },
+      "judgeUsage": {
+        "inputTokens": 312545,
+        "cachedInputTokens": 278784,
+        "outputTokens": 2080
+      },
+      "actorEvidenceCreatedAt": "2026-08-29T09:23:23.818Z",
+      "judgeEvidenceCreatedAt": "2026-08-29T09:24:47.427Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-patterns",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Actor output identifies supportAgent → generateText → loadSupportInstruction and summaryAgent → streamText → loadSummaryInstruction. In src/agents.ts those loaders are passed directly to the respective SDK calls, while src/instructions.ts reads the corresponding canonical moldea/agents/{support,summary}/instruction.md files. Deterministic inspection was valid."
+        },
+        {
+          "id": "explains-closed-bindings",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Actor output accurately states that SupportOutputSchema and SummaryOutputSchema are passed through Output.object. It also describes find_order registration through findOrderTool and its binding to findOrder plus FindOrderInputSchema and FindOrderOutputSchema, matching moldea/moldea.yaml and src/agents.ts, src/tools.ts, src/contracts.ts, and src/implementations.ts. Deterministic inspection and typechecking passed."
+        },
+        {
+          "id": "respects-static-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor limited its conclusions to direct generation wrappers, instruction loading, structured output, and the closed function-tool relationship, and explicitly stated that no provider, model, routing, handoff, subagent, or agent input-schema relationships were inferred. Deterministic validation reported no failures, and before/after workspace hashes and changedPaths confirm an empty scoped change set."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

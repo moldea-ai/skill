@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 491545,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 820328,
+    "cachedInputTokens": 728832,
+    "outputTokens": 6137
+  },
+  "judgeUsage": {
+    "inputTokens": 738415,
+    "cachedInputTokens": 687360,
+    "outputTokens": 6267
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T03:06:32.620Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T03:10:27.403Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-direct-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /agent/agent.ts symbol default, instructionLoader to /agent/loaders.ts symbol loadSupportInstruction, and outputSchema to /agent/contracts.ts symbol SupportOutputSchema. Those exact exports exist in the named files, legacy/agent.ts is absent, and no legacy reference remains in the manifest. Workspace assertions identify moldea/moldea.yaml as the sole changed path and show all implementation files unchanged; deterministic validation and inspection were valid and typechecking passed."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Under agents.support.unresolved, moldea/moldea.yaml defines dynamic-tool-registration with effect warning, explains that static inspection cannot prove the final registration or runtime-facing name, supplies a concrete Eve-session integration-test resolution, and references /agent/tools/runtime.ts symbol default. That source dynamically returns defineTool from the session.started event, while the manifest contains no invented static tool binding. Workspace assertions show only moldea/moldea.yaml changed, and deterministic inspection and validation passed."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

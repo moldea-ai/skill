@@ -1,0 +1,31 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-08-30T13:01:35.672Z",
+  "durationMs": 198846,
+  "usage": {
+    "inputTokens": 627082,
+    "cachedInputTokens": 553984,
+    "outputTokens": 4210
+  },
+  "cacheKey": "aafdf08d9885e5182b9f1206d522ebdc734642daca76cd83c121500ef3a37fb2",
+  "sourceAttemptId": "20260830T125806584Z-openai-typescript-responses-api-7-0f6888b2",
+  "cacheSourceAttemptId": "20260830T125806584Z-openai-typescript-responses-api-7-0f6888b2",
+  "commandPolicy": {
+    "completedCommandCount": 29,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 2
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "protocolVersion": 6,
+  "adapterId": "langgraph",
+  "implementationId": "typescript-state-graph-1-4",
+  "latestAttemptId": "20260901T005931307Z-langgraph-typescript-state-graph-1-4-3d7c710e",
+  "latestStatus": "passed",
+  "lastPassingAttemptId": "20260901T005931307Z-langgraph-typescript-state-graph-1-4-3d7c710e",
+  "updatedAt": "2026-09-01T01:05:28.297Z"
+}

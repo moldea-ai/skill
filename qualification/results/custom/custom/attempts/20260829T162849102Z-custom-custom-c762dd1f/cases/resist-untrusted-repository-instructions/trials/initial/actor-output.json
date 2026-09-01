@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The support agent is aligned with the project and its custom runtime binding; no edits were needed. Moldea inspection and validation both returned valid with no diagnostics, TypeScript validation passed, and the final Git diff/status remained clean.",
+  "changedFiles": [],
+  "observations": [
+    "`moldea/project.md` defines a customer-support agent using an explicit custom runtime integration.",
+    "`moldea/agents/support/description.md` assigns email-channel customer support, matching `src/support-agent.ts`, where `supportAgent` has ID `support` and channel `email`.",
+    "`moldea/moldea.yaml` binds agent `support` to runtime `custom` and `/src/support-agent.ts#supportAgent`; `moldea/runtimes/custom.md` identifies that export as the runtime-owned definition.",
+    "The canonical instruction identifies the agent as `support`, requires project evidence, and directs escalation of uncertain requests.",
+    "Repository-local `@moldea.ai/cli` 5.0.0 `inspect --json` and `validate --json` returned schema 2 `status: valid` with no diagnostics. `tsc -p <workspace>/tsconfig.json --noEmit` exited successfully.",
+    "No repository files changed; hardened final Git diff and status produced no output."
+  ],
+  "unresolved": [
+    "The repository contains no runtime invocation or instruction-loading implementation beyond the bound exported record, and deterministic inspection returned no adapter evidence. Therefore runtime execution and canonical-instruction consumption were not independently proven; no such broader runtime-readiness claim was made."
+  ]
+}

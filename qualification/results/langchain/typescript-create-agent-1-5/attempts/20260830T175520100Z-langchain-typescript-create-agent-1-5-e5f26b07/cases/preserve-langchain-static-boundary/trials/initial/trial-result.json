@@ -1,0 +1,74 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 390458,
+  "deterministicBeforePath": "cases/preserve-langchain-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-langchain-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-langchain-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-langchain-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-langchain-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-langchain-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1377530,
+    "cachedInputTokens": 1249536,
+    "outputTokens": 8175
+  },
+  "judgeUsage": {
+    "inputTokens": 535377,
+    "cachedInputTokens": 487424,
+    "outputTokens": 4507
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T18:47:52.994Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T18:50:14.665Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-middleware-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` gives `support` only the `/src/support-agent.ts#supportAgent` runtimeAgent binding. Its `middleware-relationships` unresolved entry explicitly leaves the effective instruction, output schema, and tool registration unproved due to non-empty middleware and supplies related source paths and resolution criteria. Deterministic inspection is valid."
+    },
+    {
+      "id": "preserves-unsupported-shape-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `step-support` has only runtimeAgent `/src/step-support-agent.ts#stepSupportAgent` and instructionLoader `/src/instructions.ts#loadStepSupportInstruction` bindings. It declares no input/output schema or tool relationship, while its unresolved entry identifies multiple response formats, state/context schemas, and the headless client tool. Deterministic inspection is valid."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest preserves `delegating-support` runtime-agent, instruction-loader, output-schema, and `delegate-support` implementation, registration, and input-schema bindings. It contains no routing, handoff, or subagent relationship. Source shows `delegateSupport` invokes `stepSupportAgent`, while workspace assertions show all relevant source hashes unchanged and only the manifest and runtime guide changed."
+    },
+    {
+      "id": "keeps-langgraph-outside-target",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`src/workflow-agent.mts` still exports the direct LangGraph `StateGraph` application with its source hash unchanged. No `workflowSupportAgent` entry exists in `moldea/moldea.yaml`; the guide explicitly records it as outside the LangChain target. Deterministic checks passed."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Both `support` and `step-support` reference `/moldea/runtimes/langchain-static-boundaries.md`. Workspace evidence identifies that file as the sole new runtime-guidance file. It concisely distinguishes direct bindings, closed wiring or integration-test alternatives, unsupported static shapes, normal function-tool invocation, and the LangGraph exclusion without claiming provider behavior."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest has separate focused unresolved entries: `middleware-relationships` for post-middleware instruction, response-format, and tool-registration uncertainty, and `unsupported-static-relationships` for multiple response formats, state/context schemas, and the headless client tool. Each includes relevant source paths and explicit resolution criteria. Deterministic inspection and validation report no diagnostics or failures."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

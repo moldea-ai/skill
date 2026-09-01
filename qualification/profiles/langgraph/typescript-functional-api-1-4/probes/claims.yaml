@@ -1,0 +1,207 @@
+version: 2
+adapterId: langgraph
+implementationId: typescript-functional-api-1-4
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The exact published adapter and Functional API runtime composition exercises the compatible Core range through aligned and newly registered entrypoints.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: Closed supported entrypoints need no redundant guide, while the boundary case records project-specific task, persistence, interrupt, and control limits explicitly.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-functional-api-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes all universal journeys and two Functional API-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-langgraph-functional-runtime-binding,
+        preserve-langgraph-functional-api-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare the exact published npm runtime packages and inspect project-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Supported Functional API sources are strict TypeScript ESM and typecheck with the exact project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: target-primary-package
+    kind: compatibility
+    matrixPath: target.package.npm.@langchain/langgraph.primary.>=1.4.12 <1.5.0
+    description: Every fixture pins and installs the verified LangGraph package before offline project preparation.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        create-grounded-agent,
+        preserve-langgraph-functional-api-static-boundary,
+      ]
+  - id: target-companion-package
+    kind: compatibility
+    matrixPath: target.package.npm.@langchain/core.companion.>=1.2.9 <1.3.0
+    description: Every fixture pins the compatible LangChain Core companion required by the selected runtime.
+    coveredBy: [evaluate-aligned-project, repair-langgraph-functional-runtime-binding]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Direct Functional API entrypoint symbols are bound explicitly, repaired after drift, and retained when subordinate behavior remains unresolved.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        reconcile-drift-and-boundaries,
+        repair-langgraph-functional-runtime-binding,
+        preserve-langgraph-functional-api-static-boundary,
+      ]
+  - id: agent-definition-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.agent-definition
+    description: Directly exported Functional API entrypoints emit normalized agent-definition evidence without execution.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        create-grounded-agent,
+        preserve-langgraph-functional-api-static-boundary,
+      ]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct entrypoint definitions emit TypeScript ESM language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct entrypoint definitions emit supported primary and companion package evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-pattern-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-pattern
+    description: Supported direct task, interrupt, previous-state, and final-state calls emit positive runtime-pattern evidence.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-functional-entrypoint
+    kind: pattern
+    matrixPath: target.pattern.direct-functional-entrypoint
+    description: A directly exported const created by the package-root entrypoint helper is recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-functional-tasks
+    kind: pattern
+    matrixPath: target.pattern.direct-functional-tasks
+    description: Supported direct local and relative-import task calls emit positive workflow-pattern evidence.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: functional-interrupt
+    kind: pattern
+    matrixPath: target.pattern.functional-interrupt
+    description: A direct interrupt call records a human-in-the-loop runtime pattern without inferring approval semantics.
+    coveredBy: [create-grounded-agent, preserve-langgraph-functional-api-static-boundary]
+  - id: functional-previous-state
+    kind: pattern
+    matrixPath: target.pattern.functional-previous-state
+    description: A direct previous-state call records persistence-related runtime evidence without inferring a schema.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-functional-api-static-boundary]
+  - id: functional-final-state
+    kind: pattern
+    matrixPath: target.pattern.functional-final-state
+    description: A closed direct final-state call records saved-state separation without inferring value or persistence schemas.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-functional-api-static-boundary]
+  - id: functional-control-flow
+    kind: pattern
+    matrixPath: target.pattern.functional-control-flow
+    description: Branches, loops, callbacks, helpers, and dynamic task selection remain ordinary control flow rather than reconstructed graph topology.
+    coveredBy: [preserve-langgraph-functional-api-static-boundary]
+  - id: functional-agent-schemas
+    kind: pattern
+    matrixPath: target.pattern.functional-agent-schemas
+    description: TypeScript input, output, and saved-state types remain runtime contracts rather than executable manifest schema bindings.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-functional-api-static-boundary]
+  - id: functional-task-capabilities
+    kind: pattern
+    matrixPath: target.pattern.functional-task-capabilities
+    description: Functional tasks remain workflow units and are not promoted to manifest tools, skills, or handoffs.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-functional-api-static-boundary]
+  - id: functional-routing
+    kind: pattern
+    matrixPath: target.pattern.functional-routing
+    description: Entrypoint control flow and task calls do not establish agent routing targets, handoffs, or subagents.
+    coveredBy: [reconcile-drift-and-boundaries, preserve-langgraph-functional-api-static-boundary]
+  - id: typescript-esm-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.20c98b6726812c72
+    description: Supported cases use exact TypeScript ESM files and documented direct relative imports.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-export-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.d6d105a551ff8fbd
+    description: Canonical runtime bindings use directly exported entrypoints with inline or directly resolved non-generator workflows.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-options-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.892eee397f26dd94
+    description: Entrypoint and task options remain closed direct object literals where options are used.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-functional-api-static-boundary]
+  - id: task-declaration-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.0a9116c49cbf7238
+    description: Supported tasks are immutable local declarations or direct relative named imports with non-generator functions.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: safe-runtime-name-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.895b3e296a5ae090
+    description: Canonical entrypoint and task names stay within the evidence-safe runtime identity grammar.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-task-call-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.e6093f3ebb417b33
+    description: Positive task evidence is limited to exact non-optional, non-generic proxy calls in the entrypoint lexical body.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-functional-api-static-boundary]
+  - id: type-argument-and-final-state-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.d12800edb4f0164a
+    description: Fixtures use supported generic counts, non-generic task proxies, and closed direct final-state options.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-functional-api-static-boundary]
+  - id: lexical-body-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.fff654cc75213b3c
+    description: Nested callbacks, nested helpers, and transitive task-call graphs remain outside positive workflow evidence.
+    coveredBy: [preserve-langgraph-functional-api-static-boundary]
+  - id: control-flow-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.a0ca6fce7063ec88
+    description: Ordinary JavaScript control flow is not represented as a graph topology.
+    coveredBy: [preserve-langgraph-functional-api-static-boundary]
+  - id: schema-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.7bfb63013bc8cc0d
+    description: TypeScript parameter, return, and saved-state types remain outside executable schema relationships.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-functional-api-static-boundary]
+  - id: task-capability-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.a22391d58424c038
+    description: Tasks do not become manifest tools, skills, or handoffs merely because they are declared or invoked.
+    coveredBy: [evaluate-aligned-project, preserve-langgraph-functional-api-static-boundary]
+  - id: runtime-semantics-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.cde4bc071a0a9374
+    description: Interrupt, checkpoint, replay, idempotency, and approval semantics remain project-owned runtime guidance.
+    coveredBy: [preserve-langgraph-functional-api-static-boundary]
+  - id: installed-version-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.f0d470d8093d63ba
+    description: Qualification independently pins and verifies runtime tarballs because adapter inspection reads manifests rather than lockfiles or node_modules.
+    coveredBy: [evaluate-aligned-project]

@@ -10,8 +10,9 @@ const basePath = import.meta.env.BASE_URL;
 ---
 
 <section
-  class="border-b border-border bg-sidebar py-section-gap"
+  class="border-b border-border bg-background py-section-gap"
   aria-labelledby="getting-started-title"
+  data-getting-started
 >
   <div class="page-shell">
     <header class="mb-10 grid gap-6 lg:grid-cols-[minmax(0,1fr)_28rem] lg:items-end">
@@ -27,7 +28,7 @@ const basePath = import.meta.env.BASE_URL;
       <div class="lg:justify-self-end">
         <p class="text-lg leading-8 text-muted-foreground">
           Add the skill to your project, then tell your coding agent what you want. There is no
-          setup wizard, Cloud account, or new command language.
+          setup wizard or new command language.
         </p>
         <ActionLink
           class="mt-5 font-bold"
@@ -51,7 +52,7 @@ const basePath = import.meta.env.BASE_URL;
         <ol class="grid content-start gap-8 p-5 sm:p-8 lg:p-10">
           <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4">
             <span
-              class="inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
+              class="dark-surface-selection inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
               aria-hidden="true"
             >
               01
@@ -105,7 +106,7 @@ const basePath = import.meta.env.BASE_URL;
 
           <li class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4">
             <span
-              class="inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
+              class="dark-surface-selection inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
               aria-hidden="true"
             >
               02
@@ -115,7 +116,7 @@ const basePath = import.meta.env.BASE_URL;
               <h3 class="text-xl font-semibold tracking-tight">Describe the outcome naturally.</h3>
               <div class="mt-4 flex gap-3 rounded-xl border bg-background p-4">
                 <span
-                  class="inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+                  class="dark-surface-selection inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
                 >
                   <span
                     class="font-mono text-xs font-bold"
@@ -128,9 +129,12 @@ const basePath = import.meta.env.BASE_URL;
                   <p class="mb-1 text-xs font-bold tracking-wide text-muted-foreground uppercase">
                     Developer
                   </p>
-                  <code class="font-mono text-sm leading-6"
-                    >Initialize moldea for this repository.</code
-                  >
+                  <p class="font-mono text-sm leading-6">
+                    Initialize <code
+                      class="rounded-md bg-code px-1.5 py-1 font-mono text-[0.86em] font-semibold text-code-foreground"
+                      >moldea</code
+                    >
+                  </p>
                 </div>
               </div>
             </div>
@@ -138,7 +142,8 @@ const basePath = import.meta.env.BASE_URL;
         </ol>
 
         <div
-          class="border-t border-border bg-primary p-5 text-primary-foreground sm:p-8 lg:border-s lg:border-t-0 lg:p-10"
+          class="dark-surface-selection border-t border-border bg-primary p-5 text-primary-foreground sm:p-8 lg:border-s lg:border-t-0 lg:p-10"
+          data-getting-started-agent-panel
         >
           <div class="flex items-center gap-3">
             <span
@@ -198,7 +203,10 @@ const basePath = import.meta.env.BASE_URL;
             </li>
           </ol>
 
-          <div class="mt-8 rounded-xl bg-primary-foreground p-4 text-primary">
+          <div
+            class="light-surface-selection mt-8 rounded-xl bg-primary-foreground p-4 text-primary"
+            data-getting-started-completion
+          >
             <p class="text-xs font-bold tracking-wide uppercase">Done</p>
             <p class="mt-1 font-semibold">
               Project context initialized. Keep working with your coding agent as usual.

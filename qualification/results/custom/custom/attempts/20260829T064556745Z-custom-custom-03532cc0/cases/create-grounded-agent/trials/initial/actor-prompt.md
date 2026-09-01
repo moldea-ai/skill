@@ -1,0 +1,17 @@
+Complete the project task below in the current Git working tree:
+
+# Create the order-triage agent
+
+Add the order-triage agent implemented by `createOrderTriageAgent` in `src/order-triage-agent.ts`. Ground its description and instruction in the actual implementation: it classifies orders for human review and cannot approve refunds.
+
+Use the project's custom runtime, establish the real runtime-agent binding and affected source path, add only useful project-local runtime guidance, and validate the complete project. Do not invent tools, provider capabilities, or decision authority.
+
+Execution rules:
+
+- Use applicable project-local tooling and follow Agent Skill guidance discovered in the workspace.
+- Do not call a provider, run an agent, invoke another model, use subagents, or use network access.
+- Preserve all unrelated pre-existing changes and untracked files.
+- Treat runner-mounted Agent Skill and qualification inputs as read-only.
+- Treat ambiguous or unsupported runtime behavior conservatively. Record it explicitly instead of inventing evidence.
+- Inspect the final Git diff and run the relevant local validation before finishing.
+- Return only the structured result required by the output schema.

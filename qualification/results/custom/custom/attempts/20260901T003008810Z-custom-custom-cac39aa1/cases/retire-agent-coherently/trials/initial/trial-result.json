@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 4324,
+  "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 651539,
+    "cachedInputTokens": 612096,
+    "outputTokens": 4383
+  },
+  "judgeUsage": {
+    "inputTokens": 382767,
+    "cachedInputTokens": 342784,
+    "outputTokens": 2966
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T08:04:03.655Z",
+  "judgeEvidenceCreatedAt": "2026-09-01T00:10:45.361Z",
+  "actorCacheSourceAttemptId": "20260830T074013166Z-custom-custom-8a048d01",
+  "judgeCacheSourceAttemptId": "20260901T000301688Z-custom-custom-78d95787",
+  "requirementAssessments": [
+    {
+      "id": "removes-obsolete-declaration",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` contains only version and project-context registration, with no `agents`, `support`, `runtimeAgent`, or custom-runtime entries. The expected obsolete paths `moldea/agents/support/description.md`, `moldea/agents/support/instruction.md`, and `moldea/runtimes/custom.md` are absent. Git diff shows removal of the support manifest registration and `/src/support-agent.ts` binding, deletion of both support model-facing assets, and deletion of guidance claiming the missing `supportAgent` export was runtime-owned. `src/support-agent.ts` is also absent; workspace assertions identify its deletion as pre-existing and actor changes as exactly the four canonical retirement paths. Remaining mentions in `moldea/project.md` and `src/project-state.ts` describe the removal historically rather than claiming current existence. Runner-owned deterministic evidence reports `inspectionStatus: valid`, no failures, passing typecheck, unchanged validation workspace, and zero registered agents/runtimes."
+    },
+    {
+      "id": "removes-orphaned-assets",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "preserves-surviving-context",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

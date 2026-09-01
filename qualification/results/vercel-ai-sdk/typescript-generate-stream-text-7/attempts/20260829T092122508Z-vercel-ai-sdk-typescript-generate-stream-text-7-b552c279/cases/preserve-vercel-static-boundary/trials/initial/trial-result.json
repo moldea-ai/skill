@@ -1,0 +1,62 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 303998,
+  "deterministicBeforePath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-vercel-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-vercel-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-vercel-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1587004,
+    "cachedInputTokens": 1488640,
+    "outputTokens": 6889
+  },
+  "judgeUsage": {
+    "inputTokens": 412820,
+    "cachedInputTokens": 370176,
+    "outputTokens": 4270
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T10:12:51.517Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T10:14:39.904Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "identifies-unsupported-form",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor output identifies the indirect request and prepareStep limitation. Current `/src/support-agent.ts` confirms `generateText(buildRequest(prompt))`, while `buildRequest` supplies `prepareStep` that returns replacement instructions. The deterministic post-actor inspection is valid."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`/moldea/moldea.yaml` references `/moldea/runtimes/vercel-ai-sdk.md`, the sole new runtime-guidance file shown by the workspace patch. That file describes `buildRequest`, the indirect generateText call, and prepareStep, then gives direct `generateText({ ... })` or `streamText({ ... })` calls as the supported static-inspection pattern without asserting provider behavior."
+    },
+    {
+      "id": "records-unresolved-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Agent `support` owns the warning `vercel-static-boundary`, categorized `static-inspection`. Its description names the indirect request and prepareStep boundary; related paths include `/src/support-agent.ts` and the guidance file; its resolution concretely requires a directly exported function with direct `generateText({ ... })`, stable direct instructions, removal of prepareStep instruction replacement, tests, and Moldea inspection."
+    },
+    {
+      "id": "avoids-inference",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The final manifest contains only the existing Vercel runtime identity, runtime guidance, a runtimeAgent binding, affectedBy, and the unresolved warning. It adds no instruction-loader, schema, tool, provider, model, routing, handoff, or subagent relationship. Runner-owned inspection remained valid and reportedly emitted only language and runtime-package evidence."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

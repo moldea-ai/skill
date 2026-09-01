@@ -1,0 +1,52 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index a5ba2f9..33f0848 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -4,3 +4,15 @@ context:
+   /moldea/project.md:
+     affectedBy:
+       - /src/**
++
++agents:
++  order-triage:
++    runtime:
++      id: custom
++      guidance: /moldea/runtimes/custom.md
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: createOrderTriageAgent
++    affectedBy:
++      - /src/order-triage-agent.ts
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..0b9d22a
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review. It cannot approve refunds or perform financial mutations.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..198087d
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,5 @@
++`order-triage`
++
++Classify each supplied order for human review using only the information provided. When relevant information is missing or ambiguous, identify that uncertainty in the classification instead of inventing facts.
++
++You cannot approve refunds or perform financial mutations. Never present a classification as a refund approval or completed financial action.
+
+diff --git a/moldea/runtimes/custom.md b/moldea/runtimes/custom.md
+new file mode 100644
+index 0000000..7037447
+--- /dev/null
++++ b/moldea/runtimes/custom.md
+@@ -0,0 +1,5 @@
++# Custom runtime
++
++`createOrderTriageAgent` in `/src/order-triage-agent.ts` is the runtime construction boundary. The custom runtime supplies its canonical instruction loader, and the factory requests `/moldea/agents/order-triage/instruction.md` before returning the agent definition.
++
++The repository does not implement the supplied loader or establish model-provider behavior. Preserve that boundary unless a concrete runtime implementation is added.

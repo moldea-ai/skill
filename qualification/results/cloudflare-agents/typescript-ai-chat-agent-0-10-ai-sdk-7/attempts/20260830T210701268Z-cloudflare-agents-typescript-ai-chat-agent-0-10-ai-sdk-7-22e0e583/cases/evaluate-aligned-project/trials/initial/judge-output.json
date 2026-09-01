@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, actor report, and deterministic post-actor evidence agree: both canonical agents map directly to exported AIChatAgent classes and instruction loaders; closed tool/schema bindings and the SummaryAgent handoff are statically evidenced; no unsupported provider, model, schema, or relationship conclusions were drawn. Validation and type-checking passed, and repository evidence reports no changes.",
+  "requirements": [
+    {
+      "id": "explains-direct-patterns",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds support to SupportAgent/loadSupportInstruction and summary to SummaryAgent/loadSummaryInstruction. src/agents.ts directly exports both AIChatAgent subclasses, and each streamText call invokes its corresponding loader. src/instructions.ts returns directives matching the canonical instruction files. The actor accurately reports these patterns, and deterministic inspection is valid."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "verdict": "pass",
+      "evidence": "src/tools.ts defines findOrderTool with FindOrderInputSchema, FindOrderOutputSchema, and execute: findOrder, matching the support tool registration in moldea/moldea.yaml. SupportAgent registers find_order and summarize; summaryHandoffTool is statically created with agentTool(SummaryAgent, ...). SummaryAgent uses SummaryOutputSchema. The actor report accurately describes these closed bindings and handoff, consistent with valid deterministic inspection."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "The actor limits its conclusion to canonical static registrations, directly exported classes, instruction loaders, schemas, and agentTool handoff. It explicitly states that no provider/model binding was inferred and limits runtime conclusions because agents were not invoked. The deterministic summary reports valid inspection, passing type-checking, and an unchanged repository."
+    }
+  ],
+  "failures": []
+}

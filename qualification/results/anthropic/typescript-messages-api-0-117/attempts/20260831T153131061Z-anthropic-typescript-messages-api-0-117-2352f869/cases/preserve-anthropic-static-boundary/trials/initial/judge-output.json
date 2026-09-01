@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The unchanged canonical state matches the implementation and runner evidence. The direct support wrapper and instruction loader are recorded, while provider-hosted tool relationships and the indirect runtime pattern remain conservatively unasserted. Deterministic inspection and validation passed, and before/after assertions report no changed paths.",
+  "requirements": [
+    {
+      "id": "explains-direct-evidence",
+      "verdict": "pass",
+      "evidence": "The actor report identifies `supportAgent` and `loadSupportInstruction`. In `src/agents.ts`, `supportAgent` directly calls `client.messages.create` with `system: await loadSupportInstruction()`, and the loader reads `moldea/agents/support/instruction.md`. `moldea/moldea.yaml` binds those exact symbols as `runtimeAgent` and `instructionLoader`."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "verdict": "pass",
+      "evidence": "`src/agents.ts` supplies the provider-hosted `web_search_20250305` tool directly to Anthropic. The complete manifest contains no client-tool, capability, registration, schema, routing, or handoff relationship for it. The actor explicitly reported that these relationships were not inferred, and deterministic inspection remained valid."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "verdict": "pass",
+      "evidence": "`dynamicSupportAgent` constructs an intermediate `request` before passing it to `client.messages.create`. The manifest records only its runtime-agent binding and retains warning `indirect-request-construction`, explaining that runtime relationships cannot be proven and resolving it through a directly passed closed request or another supported adapter pattern. The actor report preserves the same limitation; deterministic validation passed with the repository unchanged."
+    }
+  ],
+  "failures": []
+}

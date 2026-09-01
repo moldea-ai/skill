@@ -1,0 +1,980 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 3818
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "agent-definition",
+          "instruction-loader",
+          "instruction-loader",
+          "language",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 17,
+        "agentCount": 3
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "agent-definition",
+          "instruction-loader",
+          "instruction-loader",
+          "language",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 17,
+        "agentCount": 3
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                }
+              ],
+              "runtimeName": "delegating-support-runtime",
+              "source": "langchain"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/step-support-agent.ts",
+                  "symbol": "stepSupportAgent"
+                }
+              ],
+              "runtimeName": "step-support-runtime",
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "support-runtime",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "instructionForm": "direct-loader-call",
+                "property": "systemPrompt",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                },
+                {
+                  "path": "/src/instructions.ts",
+                  "symbol": "loadDelegatingSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadDelegatingSupportInstruction",
+              "source": "langchain"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "instructionForm": "direct-loader-call",
+                "property": "systemPrompt",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/instructions.ts",
+                  "symbol": "loadStepSupportInstruction"
+                },
+                {
+                  "path": "/src/step-support-agent.ts",
+                  "symbol": "stepSupportAgent"
+                }
+              ],
+              "runtimeName": "loadStepSupportInstruction",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langchain"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/step-support-agent.ts",
+                  "symbol": "stepSupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.2.9",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/core",
+                "packageRole": "companion",
+                "targetClassification": "supported",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.5.9",
+                "dependencyKind": "dependencies",
+                "packageName": "langchain",
+                "packageRole": "primary",
+                "targetClassification": "supported",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "langchain",
+              "source": "langchain"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.2.9",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/core",
+                "packageRole": "companion",
+                "targetClassification": "supported",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langchain"
+            },
+            {
+              "agentId": "step-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.5.9",
+                "dependencyKind": "dependencies",
+                "packageName": "langchain",
+                "packageRole": "primary",
+                "targetClassification": "supported",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "langchain",
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.2.9",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/core",
+                "packageRole": "companion",
+                "targetClassification": "supported",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langchain"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.5.9",
+                "dependencyKind": "dependencies",
+                "packageName": "langchain",
+                "packageRole": "primary",
+                "targetClassification": "supported",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "langchain",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "property": "responseFormat",
+                "schemaRole": "agent-output",
+                "schemaStrategy": "provider-strategy",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                },
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": "delegate-support",
+              "capabilityKind": "tool",
+              "details": {
+                "property": "schema",
+                "schemaRole": "tool-input",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "DelegateSupportInputSchema"
+                },
+                {
+                  "path": "/src/delegation-tool.ts",
+                  "symbol": "delegateSupportTool"
+                }
+              ],
+              "runtimeName": "DelegateSupportInputSchema",
+              "source": "langchain"
+            },
+            {
+              "agentId": "delegating-support",
+              "capabilityId": "delegate-support",
+              "capabilityKind": "tool",
+              "details": {
+                "helperSource": "@langchain/core/tools",
+                "registrationForm": "normal-function-tool",
+                "targetId": "typescript-create-agent-1-5"
+              },
+              "kind": "tool-registration",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "DelegateSupportInputSchema"
+                },
+                {
+                  "path": "/src/delegating-agent.ts",
+                  "symbol": "delegatingSupportAgent"
+                },
+                {
+                  "path": "/src/delegation-tool.ts",
+                  "symbol": "delegateSupportTool"
+                },
+                {
+                  "path": "/src/delegation.ts",
+                  "symbol": "delegateSupport"
+                }
+              ],
+              "runtimeName": "delegate_support",
+              "source": "langchain"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/contracts.ts",
+                    "/src/delegating-agent.ts",
+                    "/src/delegation-tool.ts",
+                    "/src/delegation.ts",
+                    "/src/instructions.ts",
+                    "/src/step-support-agent.ts"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/src/instructions.ts",
+                      "symbol": "loadDelegatingSupportInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/src/contracts.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/delegating-agent.ts",
+                      "symbol": "delegatingSupportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/langchain-static-boundaries.md",
+                    "id": "langchain"
+                  },
+                  "tools": {
+                    "delegate-support": {
+                      "description": "Delegates one focused support question to another agent.",
+                      "implementation": {
+                        "path": "/src/delegation.ts",
+                        "symbol": "delegateSupport"
+                      },
+                      "inputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "DelegateSupportInputSchema"
+                      },
+                      "name": "delegate_support",
+                      "registration": {
+                        "path": "/src/delegation-tool.ts",
+                        "symbol": "delegateSupportTool"
+                      }
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Delegates focused support questions through the registered support tool.\n",
+                    "digest": "sha256:a8117aea31bc38216e01077f15274cf9a991062b8d572773837a18878ce7bc8d",
+                    "path": "/moldea/agents/delegating-support/description.md",
+                    "scalarLength": 73,
+                    "utf8ByteLength": 73
+                  },
+                  "scalarLength": 72,
+                  "value": "Delegates focused support questions through the registered support tool."
+                },
+                "handoffDescription": null,
+                "id": "delegating-support",
+                "instruction": {
+                  "content": "# Delegating support agent\n\nYou are the `delegating-support` agent. Use the `delegate_support` tool for focused support questions. Do not infer authority or routing beyond the registered tool call.\n",
+                  "digest": "sha256:d60acb50fd78839aa7852812d99ef93b6634170434cd65085978b775debbd865",
+                  "path": "/moldea/agents/delegating-support/instruction.md",
+                  "scalarLength": 198,
+                  "utf8ByteLength": 198
+                },
+                "mirrors": []
+              },
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/contracts.ts",
+                    "/src/instructions.ts",
+                    "/src/status-tools.ts",
+                    "/src/step-support-agent.ts"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/src/instructions.ts",
+                      "symbol": "loadStepSupportInstruction"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/step-support-agent.ts",
+                      "symbol": "stepSupportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/langchain-static-boundaries.md",
+                    "id": "langchain"
+                  },
+                  "unresolved": {
+                    "unsupported-static-relationships": {
+                      "category": "runtime-inspection",
+                      "description": "Static inspection does not establish agent input, agent output, or repository-local tool relationships from the state and context schemas, multiple response formats, and headless client tool configured on stepSupportAgent.",
+                      "effect": "informational",
+                      "related": [
+                        {
+                          "path": "/src/contracts.ts"
+                        },
+                        {
+                          "path": "/src/status-tools.ts"
+                        },
+                        {
+                          "path": "/src/step-support-agent.ts"
+                        }
+                      ],
+                      "resolution": "Source-owned runtime documentation or closed wiring and integration tests must establish canonical schema mappings and a qualifying repository-local tool implementation before these relationships are declared."
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Handles support work whose per-step instruction may be replaced at runtime.\n",
+                    "digest": "sha256:0756b0c13fe196cb4a2cb3e39de296a8b10be60f84a6b6bb31301de6c2dfe8da",
+                    "path": "/moldea/agents/step-support/description.md",
+                    "scalarLength": 76,
+                    "utf8ByteLength": 76
+                  },
+                  "scalarLength": 75,
+                  "value": "Handles support work whose per-step instruction may be replaced at runtime."
+                },
+                "handoffDescription": null,
+                "id": "step-support",
+                "instruction": {
+                  "content": "# Step support agent\n\nYou are the `step-support` agent. Answer support questions only from verified project evidence.\n",
+                  "digest": "sha256:0b3e175e2a6a8e5952010629d7c187bc234093d4e7f2e6a72d6fd2de965ef345",
+                  "path": "/moldea/agents/step-support/instruction.md",
+                  "scalarLength": 118,
+                  "utf8ByteLength": 118
+                },
+                "mirrors": []
+              },
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/contracts.ts",
+                    "/src/implementations.ts",
+                    "/src/instructions.ts",
+                    "/src/status-tools.ts",
+                    "/src/support-agent.ts"
+                  ],
+                  "bindings": {
+                    "runtimeAgent": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "supportAgent"
+                    }
+                  },
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/langchain-static-boundaries.md",
+                    "id": "langchain"
+                  },
+                  "unresolved": {
+                    "middleware-relationships": {
+                      "category": "runtime-inspection",
+                      "description": "Static inspection cannot prove the effective instruction, output schema, or tool registration for supportAgent because its non-empty middleware may alter those invocation relationships.",
+                      "effect": "informational",
+                      "related": [
+                        {
+                          "path": "/src/contracts.ts"
+                        },
+                        {
+                          "path": "/src/instructions.ts"
+                        },
+                        {
+                          "path": "/src/status-tools.ts"
+                        },
+                        {
+                          "path": "/src/support-agent.ts"
+                        }
+                      ],
+                      "resolution": "Closed runtime wiring or integration tests must prove the post-middleware instruction, response format, and registered tools before these relationships are declared."
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Produces support responses through a repository-specific request builder.\n",
+                    "digest": "sha256:ab6d3f651ca3971a36a0922b7ec353354febb630009c6ff5a3ca72d287c2bddc",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 74,
+                    "utf8ByteLength": 74
+                  },
+                  "scalarLength": 73,
+                  "value": "Produces support responses through a repository-specific request builder."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer only from verified project evidence.\n",
+                  "digest": "sha256:b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 90,
+                  "utf8ByteLength": 90
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: langchain\n      guidance: /moldea/runtimes/langchain-static-boundaries.md\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.ts\n        symbol: supportAgent\n    affectedBy:\n      - /src/support-agent.ts\n      - /src/contracts.ts\n      - /src/instructions.ts\n      - /src/status-tools.ts\n      - /src/implementations.ts\n    unresolved:\n      middleware-relationships:\n        category: runtime-inspection\n        effect: informational\n        description: Static inspection cannot prove the effective instruction, output schema, or tool registration for supportAgent because its non-empty middleware may alter those invocation relationships.\n        resolution: Closed runtime wiring or integration tests must prove the post-middleware instruction, response format, and registered tools before these relationships are declared.\n        related:\n          - path: /src/support-agent.ts\n          - path: /src/instructions.ts\n          - path: /src/contracts.ts\n          - path: /src/status-tools.ts\n  step-support:\n    runtime:\n      id: langchain\n      guidance: /moldea/runtimes/langchain-static-boundaries.md\n    bindings:\n      runtimeAgent:\n        path: /src/step-support-agent.ts\n        symbol: stepSupportAgent\n      instructionLoader:\n        path: /src/instructions.ts\n        symbol: loadStepSupportInstruction\n    affectedBy:\n      - /src/step-support-agent.ts\n      - /src/contracts.ts\n      - /src/instructions.ts\n      - /src/status-tools.ts\n    unresolved:\n      unsupported-static-relationships:\n        category: runtime-inspection\n        effect: informational\n        description: Static inspection does not establish agent input, agent output, or repository-local tool relationships from the state and context schemas, multiple response formats, and headless client tool configured on stepSupportAgent.\n        resolution: Source-owned runtime documentation or closed wiring and integration tests must establish canonical schema mappings and a qualifying repository-local tool implementation before these relationships are declared.\n        related:\n          - path: /src/step-support-agent.ts\n          - path: /src/contracts.ts\n          - path: /src/status-tools.ts\n  delegating-support:\n    runtime:\n      id: langchain\n      guidance: /moldea/runtimes/langchain-static-boundaries.md\n    bindings:\n      runtimeAgent:\n        path: /src/delegating-agent.ts\n        symbol: delegatingSupportAgent\n      instructionLoader:\n        path: /src/instructions.ts\n        symbol: loadDelegatingSupportInstruction\n      outputSchema:\n        path: /src/contracts.ts\n        symbol: SupportOutputSchema\n    tools:\n      delegate-support:\n        name: delegate_support\n        description: Delegates one focused support question to another agent.\n        implementation:\n          path: /src/delegation.ts\n          symbol: delegateSupport\n        registration:\n          path: /src/delegation-tool.ts\n          symbol: delegateSupportTool\n        inputSchema:\n          path: /src/contracts.ts\n          symbol: DelegateSupportInputSchema\n    affectedBy:\n      - /src/delegating-agent.ts\n      - /src/delegation-tool.ts\n      - /src/delegation.ts\n      - /src/step-support-agent.ts\n      - /src/contracts.ts\n      - /src/instructions.ts\n",
+                "digest": "sha256:1e10356fba847459f762eda096158b31305e7b6422679675ef2beb0a00ebb04c",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 3323,
+                "utf8ByteLength": 3323
+              },
+              "value": {
+                "agents": {
+                  "delegating-support": {
+                    "affectedBy": [
+                      "/src/contracts.ts",
+                      "/src/delegating-agent.ts",
+                      "/src/delegation-tool.ts",
+                      "/src/delegation.ts",
+                      "/src/instructions.ts",
+                      "/src/step-support-agent.ts"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/src/instructions.ts",
+                        "symbol": "loadDelegatingSupportInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/src/contracts.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/delegating-agent.ts",
+                        "symbol": "delegatingSupportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/langchain-static-boundaries.md",
+                      "id": "langchain"
+                    },
+                    "tools": {
+                      "delegate-support": {
+                        "description": "Delegates one focused support question to another agent.",
+                        "implementation": {
+                          "path": "/src/delegation.ts",
+                          "symbol": "delegateSupport"
+                        },
+                        "inputSchema": {
+                          "path": "/src/contracts.ts",
+                          "symbol": "DelegateSupportInputSchema"
+                        },
+                        "name": "delegate_support",
+                        "registration": {
+                          "path": "/src/delegation-tool.ts",
+                          "symbol": "delegateSupportTool"
+                        }
+                      }
+                    }
+                  },
+                  "step-support": {
+                    "affectedBy": [
+                      "/src/contracts.ts",
+                      "/src/instructions.ts",
+                      "/src/status-tools.ts",
+                      "/src/step-support-agent.ts"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/src/instructions.ts",
+                        "symbol": "loadStepSupportInstruction"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/step-support-agent.ts",
+                        "symbol": "stepSupportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/langchain-static-boundaries.md",
+                      "id": "langchain"
+                    },
+                    "unresolved": {
+                      "unsupported-static-relationships": {
+                        "category": "runtime-inspection",
+                        "description": "Static inspection does not establish agent input, agent output, or repository-local tool relationships from the state and context schemas, multiple response formats, and headless client tool configured on stepSupportAgent.",
+                        "effect": "informational",
+                        "related": [
+                          {
+                            "path": "/src/contracts.ts"
+                          },
+                          {
+                            "path": "/src/status-tools.ts"
+                          },
+                          {
+                            "path": "/src/step-support-agent.ts"
+                          }
+                        ],
+                        "resolution": "Source-owned runtime documentation or closed wiring and integration tests must establish canonical schema mappings and a qualifying repository-local tool implementation before these relationships are declared."
+                      }
+                    }
+                  },
+                  "support": {
+                    "affectedBy": [
+                      "/src/contracts.ts",
+                      "/src/implementations.ts",
+                      "/src/instructions.ts",
+                      "/src/status-tools.ts",
+                      "/src/support-agent.ts"
+                    ],
+                    "bindings": {
+                      "runtimeAgent": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "supportAgent"
+                      }
+                    },
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/langchain-static-boundaries.md",
+                      "id": "langchain"
+                    },
+                    "unresolved": {
+                      "middleware-relationships": {
+                        "category": "runtime-inspection",
+                        "description": "Static inspection cannot prove the effective instruction, output schema, or tool registration for supportAgent because its non-empty middleware may alter those invocation relationships.",
+                        "effect": "informational",
+                        "related": [
+                          {
+                            "path": "/src/contracts.ts"
+                          },
+                          {
+                            "path": "/src/instructions.ts"
+                          },
+                          {
+                            "path": "/src/status-tools.ts"
+                          },
+                          {
+                            "path": "/src/support-agent.ts"
+                          }
+                        ],
+                        "resolution": "Closed runtime wiring or integration tests must prove the post-middleware instruction, response format, and registered tools before these relationships are declared."
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Static support boundaries\n\nThis project isolates LangChain middleware and unsupported relationship shapes, uses one normal function tool to call another agent, and retains a direct LangGraph application outside the selected LangChain target.\n",
+              "digest": "sha256:d9eae67c9fe0ad071ef235d82e129d40b34d770495bb2cc53070885ea512e39f",
+              "path": "/moldea/project.md",
+              "scalarLength": 244,
+              "utf8ByteLength": 244
+            },
+            "runtimes": [
+              {
+                "asset": {
+                  "content": "# LangChain static boundaries\n\nThe registered agents are directly exported LangChain `createAgent` definitions, and inspection does not execute middleware or client callbacks.\n\n- `supportAgent` has non-empty middleware, so its effective instruction, response format, and tools may change at invocation; only the direct runtime-agent binding is statically established.\n- `stepSupportAgent` has a proved instruction loader, but its response-format alternatives do not establish one output schema, its state and context schemas do not establish an agent input binding, and its headless client tool has no repository-local implementation to register.\n- `delegatingSupportAgent` has the declared loader, output schema, and normal function tool relationships. The tool implementation invokes `stepSupportAgent`, but that function call establishes no handoff, routing target, or subagent relationship.\n- `workflowSupportAgent` is a direct LangGraph `StateGraph` and remains outside this LangChain target.\n",
+                  "digest": "sha256:dff9440f8d2226173f638adedcc8d862620ecb5d881cb815b4701c0e54ffebbe",
+                  "path": "/moldea/runtimes/langchain-static-boundaries.md",
+                  "scalarLength": 998,
+                  "utf8ByteLength": 998
+                }
+              }
+            ],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

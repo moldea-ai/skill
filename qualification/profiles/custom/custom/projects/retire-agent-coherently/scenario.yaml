@@ -1,0 +1,75 @@
+version: 2
+id: retire-agent-coherently
+title: Retire an agent coherently
+purpose: Verify that removing an implementation also removes its complete obsolete canonical surface.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths:
+  - src/support-agent.ts
+expectedRemovePaths:
+  - moldea/agents/support/description.md
+  - moldea/agents/support/instruction.md
+  - moldea/runtimes/custom.md
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    - moldea/project.md
+    - src/project-state.ts
+  mustChangePaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/runtimes/custom.md
+  mustExistPaths:
+    - moldea/moldea.yaml
+    - moldea/project.md
+    - src/project-state.ts
+  mustNotExistPaths:
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/runtimes/custom.md
+    - src/support-agent.ts
+  allowedChangePaths:
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/moldea.yaml
+    - moldea/runtimes/custom.md
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: removes-obsolete-declaration
+    description: The final manifest no longer declares the removed support agent, its binding, or its custom runtime guidance.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: removes-orphaned-assets
+    description: The obsolete agent description, instruction, and runtime guidance are deleted together rather than left as misleading canonical state.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: preserves-surviving-context
+    description: Project context and unrelated source remain byte-for-byte unchanged.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: validates-project
+    description: Every independent validation check accepts the reconciled project without changing it during inspection.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

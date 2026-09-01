@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s Eve bindings to the existing filesystem implementation and replaced the stale /legacy/** impact path with /agent/**. Added an agent-level warning documenting that static inspection cannot prove the dynamically defined tool’s final registration, with a repository-local integration-test resolution. Validation and final inspection both returned valid with no diagnostics; TypeScript typechecking passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "runtimeAgent now binds /agent/agent.ts#default.",
+    "instructionLoader now binds /agent/loaders.ts#loadSupportInstruction.",
+    "outputSchema now binds /agent/contracts.ts#SupportOutputSchema.",
+    "The warning references /agent/tools/runtime.ts#default.",
+    "Pre-existing deletion of legacy/agent.ts and untracked agent/ files were preserved.",
+    "Final hardened Git diff contains only the intended moldea manifest change in addition to pre-existing workspace changes."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove the dynamically defined tool’s final Eve registration. Resolution recorded in the manifest: add a repository-local integration test that starts an Eve session and verifies the session.started tool is present in the final registered tool set."
+  ]
+}

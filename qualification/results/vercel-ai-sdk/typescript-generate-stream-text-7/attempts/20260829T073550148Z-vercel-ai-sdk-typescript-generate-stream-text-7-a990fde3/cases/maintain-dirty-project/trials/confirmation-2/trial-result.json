@@ -1,0 +1,58 @@
+{
+  "trialId": "confirmation-2",
+  "kind": "confirmation",
+  "confirmationIndex": 2,
+  "passed": false,
+  "durationMs": 394703,
+  "deterministicBeforePath": "cases/maintain-dirty-project/trials/confirmation-2/deterministic-before.json",
+  "deterministicAfterPath": "cases/maintain-dirty-project/trials/confirmation-2/deterministic-after.json",
+  "actorOutputPath": "cases/maintain-dirty-project/trials/confirmation-2/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/maintain-dirty-project/trials/confirmation-2/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/confirmation-2/workspace-assertions.json",
+  "patchPath": "cases/maintain-dirty-project/trials/confirmation-2/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1873673,
+    "cachedInputTokens": 1789184,
+    "outputTokens": 8861
+  },
+  "judgeUsage": {
+    "inputTokens": 1017618,
+    "cachedInputTokens": 939776,
+    "outputTokens": 4580
+  },
+  "actorEvidenceCreatedAt": "2026-08-29T07:59:52.654Z",
+  "judgeEvidenceCreatedAt": "2026-08-29T08:02:07.343Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "adds-context",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/context/billing.md canonically describes classifyBillingQuestion behavior; moldea/moldea.yaml globally registers that context, binds it to /src/billing.ts symbol classifyBillingQuestion, and assigns it to agents.support. The support instruction contains matching refund/invoice guidance and is consumed by the registered loader. Workspace assertions identify only moldea/agents/support/instruction.md, moldea/context/billing.md, and moldea/moldea.yaml as changed. Deterministic inspection and validation are valid with no failures."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/support-agent.ts still directly imports streamText and Output from ai, loads moldea/agents/support/instruction.md through loadSupportInstruction, calls streamText directly, and retains output: Output.object({ schema: SupportOutputSchema }). Its SHA-256 is identical before and after (7c2c655f3568f8e885c5927cc0b69930833c11d291979a18a6d514405205c8bb), and deterministic type-checking passed."
+    },
+    {
+      "id": "preserves-dirty-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Judge command policy observed prohibited credential, network, or sensitive evaluator access."
+  ]
+}

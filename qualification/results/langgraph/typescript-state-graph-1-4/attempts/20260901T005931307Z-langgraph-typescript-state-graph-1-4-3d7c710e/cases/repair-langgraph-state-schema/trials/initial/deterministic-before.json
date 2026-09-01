@@ -1,0 +1,454 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "invalid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "invalid",
+    "cliInspectStatus": "invalid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 3429
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "schema"
+        ],
+        "evidenceCount": 8,
+        "agentCount": 0
+      },
+      "memory": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "schema"
+        ],
+        "evidenceCount": 8,
+        "agentCount": 0
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "invalid",
+      "result": {
+        "diagnostics": [
+          {
+            "code": "LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED",
+            "details": {},
+            "entity": {
+              "adapterId": "langgraph",
+              "agentId": "support"
+            },
+            "message": "The declared agent input schema is not wired to the detected LangGraph input schema.",
+            "path": "/src/graph.ts",
+            "pointer": null,
+            "range": {
+              "end": {
+                "column": 28,
+                "line": 14,
+                "offset": 443
+              },
+              "start": {
+                "column": 10,
+                "line": 14,
+                "offset": 425
+              }
+            },
+            "source": "langgraph"
+          }
+        ],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "invalid",
+      "result": {
+        "inspection": {
+          "diagnostics": [
+            {
+              "code": "LANGGRAPH_AGENT_INPUT_SCHEMA_NOT_WIRED",
+              "details": {},
+              "entity": {
+                "adapterId": "langgraph",
+                "agentId": "support"
+              },
+              "message": "The declared agent input schema is not wired to the detected LangGraph input schema.",
+              "path": "/src/graph.ts",
+              "pointer": null,
+              "range": {
+                "end": {
+                  "column": 28,
+                  "line": 14,
+                  "offset": 443
+                },
+                "start": {
+                  "column": 10,
+                  "line": 14,
+                  "offset": 425
+                }
+              },
+              "source": "langgraph"
+            }
+          ],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "apiKind": "state-graph",
+                "builderForm": "module-local",
+                "targetId": "typescript-state-graph-1-4"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": "support_graph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript",
+                "moduleKind": "esm"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.2.9",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/core",
+                "packageRole": "companion",
+                "targetClassification": "supported"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.4.12",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/langgraph",
+                "packageRole": "primary",
+                "targetClassification": "supported"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/langgraph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "edgeKind": "direct",
+                "graphOperation": "addEdge",
+                "patternId": "state-graph-edge",
+                "sourceName": "__start__",
+                "targetId": "typescript-state-graph-1-4",
+                "targetName": "answer-question"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/graph.ts"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "edgeKind": "direct",
+                "graphOperation": "addEdge",
+                "patternId": "state-graph-edge",
+                "sourceName": "answer-question",
+                "targetId": "typescript-state-graph-1-4",
+                "targetName": "__end__"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/graph.ts"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "graphOperation": "addNode",
+                "patternId": "state-graph-node",
+                "targetId": "typescript-state-graph-1-4"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/graph.ts"
+                },
+                {
+                  "path": "/src/graph.ts",
+                  "symbol": "answerQuestion"
+                }
+              ],
+              "runtimeName": "answer-question",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output",
+                "schemaSource": "explicit-output",
+                "targetId": "typescript-state-graph-1-4"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                },
+                {
+                  "path": "/src/graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            }
+          ],
+          "formatVersion": 1,
+          "project": null,
+          "valid": false
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

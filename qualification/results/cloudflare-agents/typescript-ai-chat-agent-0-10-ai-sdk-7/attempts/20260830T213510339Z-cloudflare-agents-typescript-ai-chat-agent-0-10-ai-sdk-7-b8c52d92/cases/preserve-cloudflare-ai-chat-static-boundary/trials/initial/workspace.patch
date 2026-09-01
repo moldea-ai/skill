@@ -1,0 +1,61 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 651685f..2dbafb0 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -12,18 +13,36 @@ agents:
+         symbol: loadSupportInstruction
+     affectedBy:
+       - /src/**
++    unresolved:
++      open-request-tools:
++        category: runtime-capabilities
++        effect: warning
++        description: Static inspection cannot prove the complete tools map because the direct generation request spreads runtime-selected tools into it.
++        resolution: Establish every runtime-selected tool and its registration through closed source wiring or an integration test that exercises the final request tools map.
++        related:
++          - path: /src/support-agent.ts
+   step-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+         symbol: StepSupportAgent
+     affectedBy:
+       - /src/**
++    unresolved:
++      effective-step-instruction:
++        category: instruction-provenance
++        effect: warning
++        description: Static inspection cannot prove one effective instruction loader because prepareStep may replace the request instruction for each step.
++        resolution: Establish the effective per-step instruction and its canonical provenance through supported closed wiring or an integration test covering prepareStep.
++        related:
++          - path: /src/step-support-agent.ts
+   delegating-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/cloudflare-agents.md b/moldea/runtimes/cloudflare-agents.md
+new file mode 100644
+index 0000000..62ecd9f
+--- /dev/null
++++ b/moldea/runtimes/cloudflare-agents.md
+@@ -0,0 +1,5 @@
++# Cloudflare Agents runtime
++
++Canonical relationships cover only statically proved, directly bound `AIChatAgent` classes and closed request shapes. `SupportAgent` has an open runtime tools map, `StepSupportAgent` can replace instructions through `prepareStep`, and `DelegatingSupportAgent` uses an ordinary function tool rather than a handoff.
++
++The Worker deployment owner must export each deployed agent class, declare its Cloudflare Durable Object binding, include each new class in a tagged `new_sqlite_classes` migration, wire the provider binding needed to resolve the configured model, route requests to the agents, and deploy the Worker. This repository contains no Worker entrypoint or deployment configuration, so binding names, provider wiring, migrations, routes, and deployed classes are not established here.

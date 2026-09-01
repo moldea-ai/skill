@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "Repository state, deterministic post-actor validation, workspace assertions, and Git diff agree that the removed support agent was retired coherently.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` contains only version and project-context registration; it has no agents section, support registration, custom runtime ID/guidance, or runtimeAgent binding. The support description and instruction and `moldea/runtimes/custom.md` are absent. Git diff explicitly removes the support agent manifest block, `/src/support-agent.ts` binding and `supportAgent` symbol, both model-facing support assets, and custom runtime guidance. Workspace assertions identify exactly those four actor-changed paths, while showing the support implementation was already absent before the actor. The deterministic post-actor result reports valid inspection, typecheck success, no failures, and an unchanged repository during validation."
+    }
+  ],
+  "failures": []
+}

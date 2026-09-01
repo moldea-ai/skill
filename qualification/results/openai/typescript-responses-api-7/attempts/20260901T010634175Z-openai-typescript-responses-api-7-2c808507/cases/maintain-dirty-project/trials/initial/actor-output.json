@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing guidance, bound it to `classifyBillingQuestion`, and registered it as support context. Updated support instructions for safe refund and invoice handling while leaving the direct OpenAI Responses API wrapper and instruction loader unchanged. Moldea inspection and validation passed without diagnostics, and TypeScript compilation passed.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The complete tracked diff was inspected.",
+    "Pre-existing changes to `src/operator-notes.ts` and the untracked `notes/` directory were preserved unchanged.",
+    "Canonical state changed coherently and Moldea validation reported format version 1 as valid."
+  ],
+  "unresolved": [
+    "End-to-end provider behavior was not exercised because provider calls and agent/model execution were explicitly prohibited."
+  ]
+}

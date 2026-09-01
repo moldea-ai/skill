@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "claims": [
+    {
+      "id": "activation-and-adoption",
+      "description": "The skill loads for potentially durable knowledge, checks adoption before knowledge- and relevance-triggered maintenance, handles initialization according to available project context, and scopes unqualified adopted-project evaluation from canonical state through material relationships.",
+      "sourcePaths": [
+        "moldea/SKILL.md#purpose-and-activation",
+        "moldea/SKILL.md#select-the-operation",
+        "moldea/references/continuous-maintenance.md#recognize-adoption-without-inventing-it",
+        "moldea/references/context-gathering.md#initialize-context-first",
+        "moldea/references/evaluate-and-reconcile.md#build-the-evidence-scope"
+      ],
+      "evidence": [
+        { "kind": "semantic-case", "id": "unadopted-direct-context-handoff" },
+        { "kind": "semantic-case", "id": "unadopted-relevance-no-initialization" },
+        { "kind": "semantic-case", "id": "initialize-insufficient-context" },
+        { "kind": "semantic-case", "id": "initialize-partial-context" },
+        { "kind": "semantic-case", "id": "initialize-sufficient-context" },
+        { "kind": "semantic-case", "id": "adopted-direct-context-handoff" },
+        { "kind": "semantic-case", "id": "adopted-explicit-context-correction" },
+        { "kind": "semantic-case", "id": "adopted-ambiguous-context-handoff" },
+        { "kind": "semantic-case", "id": "adopted-relevance-no-change" },
+        { "kind": "semantic-case", "id": "adopted-relevance-changed-behavior" },
+        { "kind": "semantic-case", "id": "agent-adoption-inline-runtime-instruction" },
+        { "kind": "semantic-case", "id": "evaluate-dirty-working-tree" },
+        { "kind": "semantic-case", "id": "evaluate-brief-project-request" },
+        { "kind": "semantic-case", "id": "evaluate-clean-working-tree" },
+        { "kind": "semantic-case", "id": "evaluate-unborn-repository" }
+      ],
+      "rationale": "These scenarios exercise discovery before adoption is known, the adoption boundary, context sufficiency, direct and conflicting knowledge, no-change decisions, ordinary maintenance, and project-scoped evaluation across material Git states without mistaking the operating skill installation for project ownership."
+    },
+    {
+      "id": "knowledge-quality-and-reconciliation",
+      "description": "The skill retains durable current truth, applies explicit corrections, asks focused questions for consequential ambiguity, and reconciles only established intent.",
+      "sourcePaths": [
+        "moldea/SKILL.md#purpose-and-activation",
+        "moldea/references/context-gathering.md#handle-project-knowledge-handoffs",
+        "moldea/references/evaluate-and-reconcile.md#reconcile-with-established-intent"
+      ],
+      "evidence": [
+        { "kind": "semantic-case", "id": "adopted-direct-context-handoff" },
+        { "kind": "semantic-case", "id": "adopted-explicit-context-correction" },
+        { "kind": "semantic-case", "id": "adopted-ambiguous-context-handoff" },
+        { "kind": "semantic-case", "id": "reconcile-material-ambiguity" },
+        { "kind": "semantic-case", "id": "dedicated-repository-single-side-change" },
+        { "kind": "semantic-case", "id": "unresolved-related-file-changed" },
+        { "kind": "semantic-case", "id": "canonical-instruction-changed" }
+      ],
+      "rationale": "The cases separate direct truth, corrections, conflicts, unresolved requirements, mirrors, and multi-repository authority."
+    },
+    {
+      "id": "context-quality-and-compression",
+      "description": "Ordinary maintenance keeps each affected durable fact with its established owner, while explicit context compression removes proven duplication without losing unique truth, requirements, relationships, or consumers and stops before consequential conflict.",
+      "sourcePaths": [
+        "moldea/SKILL.md#select-the-operation",
+        "moldea/SKILL.md#common-lifecycle",
+        "moldea/references/continuous-maintenance.md#maintain-project-state",
+        "moldea/references/context-compression.md#preserve-meaning-before-removing-content",
+        "moldea/references/context-compression.md#stop-on-consequential-conflict",
+        "moldea/references/context-compression.md#verify-the-compressed-result"
+      ],
+      "evidence": [
+        { "kind": "semantic-case", "id": "maintain-context-without-duplication" },
+        { "kind": "semantic-case", "id": "compress-project-context" },
+        { "kind": "semantic-case", "id": "compress-conflicting-project-context" }
+      ],
+      "rationale": "The scenarios distinguish bounded incremental hygiene from authorized broad consolidation, require loss-preserving relationship synchronization, and preserve conflicts for focused developer resolution."
+    },
+    {
+      "id": "agent-system-planning",
+      "description": "Agent-system planning remains read-only, minimizes agents, preserves deterministic and human control, and leaves runtime choices evidence-gated.",
+      "sourcePaths": [
+        "moldea/SKILL.md#select-the-operation",
+        "moldea/references/agent-system-planning.md#plan-from-the-objective",
+        "moldea/references/agent-system-planning.md#minimize-and-justify-agents",
+        "moldea/references/runtime-compatibility.md#keep-the-evidence-boundaries-separate"
+      ],
+      "evidence": [
+        { "kind": "semantic-case", "id": "host-plan-command-precedence" },
+        { "kind": "semantic-case", "id": "plan-uninitialized-zero-agent" },
+        { "kind": "semantic-case", "id": "plan-existing-project-one-agent" },
+        { "kind": "semantic-case", "id": "plan-justified-multi-agent" },
+        { "kind": "semantic-case", "id": "plan-material-ambiguity" },
+        { "kind": "semantic-case", "id": "plan-runtime-inventory-insufficient-evidence" },
+        { "kind": "semantic-case", "id": "available-runtime-insufficient-behavioral-evidence" },
+        { "kind": "semantic-case", "id": "runtime-publication-unavailable" },
+        { "kind": "semantic-case", "id": "runtime-publication-malformed" },
+        { "kind": "semantic-case", "id": "installed-adapter-without-published-target" },
+        { "kind": "semantic-case", "id": "published-supported-target-not-installed" },
+        { "kind": "semantic-case", "id": "experimental-target-not-production-ready" },
+        { "kind": "semantic-case", "id": "dedicated-repository-runtime-selection" },
+        { "kind": "semantic-case", "id": "unavailable-runtime-selection" }
+      ],
+      "rationale": "The suite covers zero, one, and multiple agents, authority ambiguity, host command precedence, and supported versus justified runtime selection."
+    },
+    {
+      "id": "agent-runtime-and-routing",
+      "description": "Canonical agent behavior, provider capabilities, runtime guidance, and routing descriptions remain grounded in established consumer semantics.",
+      "sourcePaths": [
+        "moldea/SKILL.md#common-lifecycle",
+        "moldea/references/agent-design.md#select-the-runtime-honestly",
+        "moldea/references/agent-design.md#register-real-relationships"
+      ],
+      "evidence": [
+        { "kind": "semantic-case", "id": "provider-hosted-capability" },
+        { "kind": "semantic-case", "id": "routing-description-dynamic-wiring" },
+        { "kind": "semantic-case", "id": "routing-description-fallback" },
+        { "kind": "semantic-case", "id": "routing-description-property-name" },
+        { "kind": "semantic-case", "id": "routing-description-reconciliation" },
+        { "kind": "semantic-case", "id": "routing-description-separate-properties" },
+        { "kind": "semantic-case", "id": "routing-description-shared-property" }
+      ],
+      "rationale": "These cases test provider-hosted capabilities and every supported routing-description consumer shape without inferring behavior from property names alone."
+    },
+    {
+      "id": "agent-skill-lifecycle",
+      "description": "Repository-local Agent Skills use the right boundary, activation contract, linked resources, host metadata, source ownership, and execution authority.",
+      "sourcePaths": [
+        "moldea/SKILL.md#load-focused-guidance",
+        "moldea/SKILL.md#common-lifecycle",
+        "moldea/references/skill-design.md#choose-a-skill-deliberately",
+        "moldea/references/skill-design.md#maintain-and-reconcile-the-complete-artifact"
+      ],
+      "evidence": [
+        { "kind": "semantic-case", "id": "skill-boundary-surface-selection" },
+        { "kind": "semantic-case", "id": "skill-create-progressive-disclosure" },
+        { "kind": "semantic-case", "id": "skill-maintain-linked-resources" },
+        { "kind": "semantic-case", "id": "skill-reuse-existing-cohesive" },
+        { "kind": "semantic-case", "id": "skill-maintain-host-invocation-policy" },
+        { "kind": "semantic-case", "id": "skill-reconcile-distributed-copy" },
+        { "kind": "semantic-case", "id": "skill-evaluate-read-only" },
+        { "kind": "semantic-case", "id": "skill-evaluate-script-authority" },
+        { "kind": "semantic-case", "id": "skill-provider-registration-boundary" }
+      ],
+      "rationale": "The scenarios cover choosing, creating, maintaining, evaluating, reconciling, reusing, and externally registering Agent Skills."
+    },
+    {
+      "id": "tooling-and-host-safety",
+      "description": "The skill verifies repository-local tooling without executing unsafe package-manager or Git configuration and respects the effective executable provider.",
+      "sourcePaths": [
+        "moldea/SKILL.md#preserve-authority-and-safety",
+        "moldea/SKILL.md#deterministic-boundary",
+        "moldea/references/local-tooling.md#suppress-executable-installation-surfaces"
+      ],
+      "evidence": [
+        { "kind": "semantic-case", "id": "pnpm-pnp-local-cli-provider" },
+        { "kind": "semantic-case", "id": "yarn-conflicting-cli-provider" },
+        { "kind": "semantic-case", "id": "read-only-git-helper-suppression" },
+        { "kind": "semantic-case", "id": "pnpm-hook-install-blocked" },
+        { "kind": "semantic-case", "id": "yarn-plugin-install-blocked" }
+      ],
+      "rationale": "The suite exercises safe inspection, provider conflicts, executable Git helpers, and manager-controlled installation hooks."
+    },
+    {
+      "id": "deterministic-format-and-cli",
+      "description": "Repository parsing, validation, snapshots, machine envelopes, package-manager selection, and exact CLI execution remain deterministic rather than model-judged.",
+      "sourcePaths": [
+        "moldea/SKILL.md#deterministic-boundary",
+        "moldea/references/local-tooling.md#verify-the-machine-envelope",
+        "moldea/references/evaluate-and-reconcile.md#validate"
+      ],
+      "evidence": [
+        { "kind": "deterministic-suite", "id": "root-conformance" },
+        { "kind": "deterministic-suite", "id": "package-manager-integration" }
+      ],
+      "rationale": "Mechanical behavior is covered more reliably by exact deterministic tests than by additional paid semantic judgments."
+    },
+    {
+      "id": "published-adapter-composition",
+      "description": "Exact published packages, Repository FS, Repository memory, Core, CLI, adapters, and realistic project builds are owned by adapter qualification.",
+      "sourcePaths": [
+        "moldea/SKILL.md#deterministic-boundary",
+        "moldea/references/agent-design.md#select-the-runtime-honestly"
+      ],
+      "evidence": [
+        { "kind": "qualification-profile", "id": "custom-custom" },
+        { "kind": "qualification-profile", "id": "vercel-ai-sdk-typescript-generate-stream-text-7" }
+      ],
+      "rationale": "Published package composition and adapter-specific implementation risks require the real-project qualification boundary rather than synthetic semantic duplication."
+    }
+  ]
+}

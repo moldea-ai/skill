@@ -1,0 +1,77 @@
+version: 2
+id: preserve-claude-agent-sdk-static-boundary
+title: Preserve the Claude Agent SDK static boundary
+purpose: Verify conservative treatment of dynamic query options, subagent availability, SDK-only fields, external MCP configuration, and filesystem features.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: invalid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: [CLAUDE_AGENT_SDK_MCP_SERVER_KEY_UNSUPPORTED]
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [instruction-loader, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: [agent-definition, handoff-registration, schema, tool-registration]
+  after:
+    requiredDiagnosticCodes: [CLAUDE_AGENT_SDK_MCP_SERVER_KEY_UNSUPPORTED]
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: [instruction-loader, language, runtime-package, runtime-pattern]
+    forbiddenEvidenceKinds: [agent-definition, handoff-registration, schema, tool-registration]
+expectedActorOutcome: completed
+workspace:
+  expectation: unchanged
+  mustPreservePaths:
+    [
+      moldea/moldea.yaml,
+      moldea/project.md,
+      moldea/agents/support/instruction.md,
+      moldea/agents/dynamic-support/instruction.md,
+      .claude/agents/filesystem-support.md,
+      .claude/settings.json,
+      CLAUDE.md,
+      src/agents.ts,
+      package.json,
+    ]
+  mustChangePaths: []
+  mustExistPaths:
+    [
+      moldea/moldea.yaml,
+      moldea/project.md,
+      moldea/agents/support/description.md,
+      moldea/agents/support/instruction.md,
+      moldea/agents/dynamic-support/description.md,
+      moldea/agents/dynamic-support/instruction.md,
+      .claude/agents/filesystem-support.md,
+      .claude/settings.json,
+      CLAUDE.md,
+      src/agents.ts,
+      package.json,
+    ]
+  mustNotExistPaths: [moldea/runtimes]
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-direct-evidence
+    description: The actor grounds the support agent's direct query pattern and custom system-prompt loader in deterministic adapter evidence while explaining that the normalization-requiring SDK MCP key establishes no canonical runtime-name segment.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-dynamic-query-boundary
+    description: The actor treats factory-built options, main-thread agent selection, prompt arrays, aliases, presets, dynamic definitions, descriptions, and restrictions as unresolved instead of inventing instruction, delegation, routing, or tool relationships.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: preserves-sdk-feature-boundary
+    description: The actor keeps observer fields, critical reminders, server instructions, external and per-agent MCP configuration, settings, skills, hooks, and filesystem agents outside canonical relationship inference while retaining the focused unresolved guidance.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: validates-without-churn
+    description: Every deterministic layer reports the expected unsupported-key boundary and the workspace remains unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

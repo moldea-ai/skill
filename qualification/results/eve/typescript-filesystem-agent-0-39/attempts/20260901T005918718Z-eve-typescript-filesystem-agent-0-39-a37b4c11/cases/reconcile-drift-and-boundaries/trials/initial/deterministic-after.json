@@ -1,0 +1,440 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1505
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema"
+        ],
+        "evidenceCount": 5,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "schema"
+        ],
+        "evidenceCount": 5,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "agentKind": "root",
+                "agentRoot": "/agent",
+                "layout": "nested",
+                "targetId": "typescript-filesystem-agent-0-39"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/agent/agent.ts",
+                  "symbol": "default"
+                }
+              ],
+              "runtimeName": "moldea-qualification-eve-reconcile",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {},
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/agent/loaders.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/agent/agent.ts",
+                  "symbol": "default"
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "declaredRange": "0.39.1",
+                "dependencyKind": "dependencies",
+                "packageClassification": "supported",
+                "targetId": "typescript-filesystem-agent-0-39"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": null,
+              "source": "eve"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/agent/contracts.ts",
+                  "symbol": "SupportOutputSchema"
+                }
+              ],
+              "runtimeName": "SupportOutputSchema",
+              "source": "eve"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/agent/**"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/agent/loaders.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "outputSchema": {
+                      "path": "/agent/contracts.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/agent/agent.ts",
+                      "symbol": "default"
+                    }
+                  },
+                  "runtime": {
+                    "id": "eve"
+                  },
+                  "unresolved": {
+                    "dynamic-tool-registration": {
+                      "category": "runtime-registration",
+                      "description": "/agent/tools/runtime.ts defines a tool dynamically when a session starts, so static inspection cannot prove its final runtime registration.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/agent/tools/runtime.ts"
+                        }
+                      ],
+                      "resolution": "Verify the closed Eve runtime wiring or add an integration test that starts a session and proves the dynamically defined tool is registered and model-visible."
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Answers support requests from available evidence.\n",
+                    "digest": "sha256:052082a625068916d1b4839d350160036e6dbbf4fab87da384d99854b7b73301",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 50,
+                    "utf8ByteLength": 50
+                  },
+                  "scalarLength": 49,
+                  "value": "Answers support requests from available evidence."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer support requests from available evidence. Do not imply that runtime-selected tools are always available.\n",
+                  "digest": "sha256:1adb428343c696cc505bebee27b8e739dee62b5bbeda855be76de0313948574d",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 158,
+                  "utf8ByteLength": 158
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nagents:\n  support:\n    runtime:\n      id: eve\n    bindings:\n      runtimeAgent:\n        path: /agent/agent.ts\n        symbol: default\n      instructionLoader:\n        path: /agent/loaders.ts\n        symbol: loadSupportInstruction\n      outputSchema:\n        path: /agent/contracts.ts\n        symbol: SupportOutputSchema\n    affectedBy:\n      - /agent/**\n    unresolved:\n      dynamic-tool-registration:\n        category: runtime-registration\n        effect: warning\n        description: /agent/tools/runtime.ts defines a tool dynamically when a session starts, so static inspection cannot prove its final runtime registration.\n        resolution: Verify the closed Eve runtime wiring or add an integration test that starts a session and proves the dynamically defined tool is registered and model-visible.\n        related:\n          - path: /agent/tools/runtime.ts\n",
+                "digest": "sha256:5a947068908ea8b2ef1b7e3206ac079169ce87e17d4c8ac6f8a3eb3d0bdbd4d4",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 876,
+                "utf8ByteLength": 876
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/agent/**"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/agent/loaders.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "outputSchema": {
+                        "path": "/agent/contracts.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/agent/agent.ts",
+                        "symbol": "default"
+                      }
+                    },
+                    "runtime": {
+                      "id": "eve"
+                    },
+                    "unresolved": {
+                      "dynamic-tool-registration": {
+                        "category": "runtime-registration",
+                        "description": "/agent/tools/runtime.ts defines a tool dynamically when a session starts, so static inspection cannot prove its final runtime registration.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/agent/tools/runtime.ts"
+                          }
+                        ],
+                        "resolution": "Verify the closed Eve runtime wiring or add an integration test that starts a session and proves the dynamically defined tool is registered and model-visible."
+                      }
+                    }
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Support reconciliation project\n\nThis project answers support requests and may add runtime-selected tools.\n",
+              "digest": "sha256:f593892c4ab494ffd60be3084f95e61d4afa94616f928d14fd7487b7894d75db",
+              "path": "/moldea/project.md",
+              "scalarLength": 108,
+              "utf8ByteLength": 108
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

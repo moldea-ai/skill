@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized moldea from repository-supported evidence only. The project is now adopted. Preserved the existing README and added the standard awareness block. Moldea inspect and validate both completed successfully with CLI 5.0.0, schema 2, format version 1, and zero diagnostics.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "README establishes an invoice-anomaly review service for operators and explicitly excludes approving payments or changing invoices.",
+    "Source establishes only deterministic difference calculation and operator-review signaling when totals differ.",
+    "No agent or model invocation is evidenced by the source; the Anthropic SDK dependency alone was not treated as runtime evidence. No agent, runtime guide, decision, or unresolved requirement was created.",
+    "Final hardened Git status showed only README.md and the new moldea directory. The README diff preserved its original content and added one correctly ordered awareness marker pair; new canonical files were reviewed directly.",
+    "Canonical state changed: moldea/moldea.yaml contains only `version: 1`; moldea/project.md records the supported purpose, behavior, and boundary.",
+    "`moldea inspect --json` exited 0 with status `valid`, no diagnostics, and no agents, context, decisions, runtimes, or unresolved entries.",
+    "`moldea validate --json` exited 0 with status `valid` and no diagnostics."
+  ],
+  "unresolved": []
+}

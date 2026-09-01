@@ -1,0 +1,63 @@
+version: 2
+id: repair-anthropic-tool-registration
+title: Repair Anthropic tool registration
+purpose: Verify precise diagnostic-driven repair of closed client-tool identity.
+taskFile: task.md
+seedDirectory: seed
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: [ANTHROPIC_TOOL_NAME_MISMATCH]
+    forbiddenDiagnosticCodes: [ANTHROPIC_TOOL_REGISTRATION_NOT_WIRED]
+    requiredEvidenceKinds: [instruction-loader, language, runtime-package, runtime-pattern, schema]
+    forbiddenEvidenceKinds: [tool-registration]
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: [ANTHROPIC_TOOL_NAME_MISMATCH, ANTHROPIC_TOOL_REGISTRATION_NOT_WIRED]
+    requiredEvidenceKinds:
+      [instruction-loader, language, runtime-package, runtime-pattern, schema, tool-registration]
+    forbiddenEvidenceKinds: [agent-definition]
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    [
+      src/agent.ts,
+      src/contracts.ts,
+      src/implementations.ts,
+      src/tools.ts,
+      moldea/agents/support/instruction.md,
+    ]
+  mustChangePaths: [moldea/moldea.yaml]
+  mustExistPaths:
+    [moldea/moldea.yaml, src/agent.ts, src/contracts.ts, src/implementations.ts, src/tools.ts]
+  mustNotExistPaths: [moldea/runtimes]
+  allowedChangePaths: [moldea/moldea.yaml]
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: explains-name-mismatch
+    description: The actor explains from validation evidence and repository source that the declared tool name differs from the closed client-tool name. Repeating the internal diagnostic code is not required.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after, workspace-patch]
+  - id: repairs-canonical-name
+    description: The manifest tool name becomes lookup_order, matching source without changing the valid runtime implementation.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: preserves-binding-closure
+    description: Runtime-agent, instruction-loader, client-tool registration, and input-schema bindings remain exact and evidenced while the implementation reference remains unchanged.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after]
+  - id: validates-project
+    description: The mismatch disappears, tool-registration evidence appears, and every deterministic layer passes without read-time mutation.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

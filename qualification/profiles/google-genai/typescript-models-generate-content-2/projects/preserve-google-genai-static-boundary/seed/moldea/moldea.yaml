@@ -1,0 +1,32 @@
+version: 1
+agents:
+  support:
+    runtime:
+      id: google-genai
+    bindings:
+      runtimeAgent:
+        path: /src/agents.ts
+        symbol: supportAgent
+      instructionLoader:
+        path: /src/agents.ts
+        symbol: loadSupportInstruction
+    affectedBy:
+      - /src/agents.ts
+  dynamic-support:
+    runtime:
+      id: google-genai
+    bindings:
+      runtimeAgent:
+        path: /src/agents.ts
+        symbol: dynamicSupportAgent
+    affectedBy:
+      - /src/agents.ts
+    unresolved:
+      indirect-request-construction:
+        category: runtime-pattern
+        effect: warning
+        description: The generate-content request is assembled as an intermediate object, so the adapter cannot prove its runtime relationships.
+        resolution: Pass a closed request object directly to models.generateContent or document the relationship through a supported adapter pattern.
+        related:
+          - path: /src/agents.ts
+            symbol: dynamicSupportAgent

@@ -1,0 +1,425 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 4015
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-pattern"
+        ],
+        "evidenceCount": 4,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-pattern"
+        ],
+        "evidenceCount": 4,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "role": "query-system-prompt"
+              },
+              "kind": "instruction-loader",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts"
+                },
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "claude-agent-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "claude-agent-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "compatibility": "supported",
+                "declaredRange": "0.3.234",
+                "dependencyKind": "dependencies"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@anthropic-ai/claude-agent-sdk",
+              "source": "claude-agent-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "call": "query",
+                "patternId": "direct-query-wrapper"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/support-agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "supportAgent",
+              "source": "claude-agent-sdk"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [
+                  "/moldea/context/billing.md"
+                ],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/support-agent.ts"
+                  ],
+                  "bindings": {
+                    "instructionLoader": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "loadSupportInstruction"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/support-agent.ts",
+                      "symbol": "supportAgent"
+                    }
+                  },
+                  "context": [
+                    "/moldea/context/billing.md"
+                  ],
+                  "runtime": {
+                    "id": "claude-agent-sdk"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Streams evidence-based support responses, including refund and invoice guidance.\n",
+                    "digest": "sha256:4b05d5687942db28d717a5b522b15c42bf12d97d852c27a58a54ba5ab4878c95",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 81,
+                    "utf8ByteLength": 81
+                  },
+                  "scalarLength": 80,
+                  "value": "Streams evidence-based support responses, including refund and invoice guidance."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer only from available project evidence.\n\nFor refund and invoice questions, classify a message containing the exact lowercase text `refund` as `refund-review`; classify every other message as `invoice-question`. State the resulting category. Do not claim approval, denial, payment status, or invoice details unless available project evidence establishes them.\n",
+                  "digest": "sha256:53eb7b0e0f46c08a860d49d110cb9a1caa054b3cf5ef566bab0c4463e0677f75",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 410,
+                  "utf8ByteLength": 410
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [
+              {
+                "asset": {
+                  "content": "# Billing disputes\n\n`classifyBillingQuestion` in `/src/billing.ts` classifies a message containing the exact lowercase text `refund` as `refund-review`. It classifies every other message as `invoice-question`.\n\nFor refund and invoice questions, apply that classification as written. The classification does not establish approval, denial, payment status, or invoice details; state none of those without additional project evidence.\n",
+                  "digest": "sha256:590726c4449dd112e291911b4b4bc6a78c7c166e129ba8ba95969d27379e4050",
+                  "path": "/moldea/context/billing.md",
+                  "scalarLength": 432,
+                  "utf8ByteLength": 432
+                },
+                "relationships": {
+                  "bindings": [
+                    {
+                      "path": "/src/billing.ts",
+                      "symbol": "classifyBillingQuestion"
+                    }
+                  ]
+                }
+              }
+            ],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\ncontext:\n  /moldea/context/billing.md:\n    bindings:\n      - path: /src/billing.ts\n        symbol: classifyBillingQuestion\nagents:\n  support:\n    runtime:\n      id: claude-agent-sdk\n    context:\n      - /moldea/context/billing.md\n    bindings:\n      runtimeAgent:\n        path: /src/support-agent.ts\n        symbol: supportAgent\n      instructionLoader:\n        path: /src/support-agent.ts\n        symbol: loadSupportInstruction\n    affectedBy:\n      - /src/support-agent.ts\n",
+                "digest": "sha256:ac1536af5dd4fd19ba81e9533ea234289ec93676b6289208fa17292fd0b3a6c2",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 486,
+                "utf8ByteLength": 486
+              },
+              "value": {
+                "agents": {
+                  "support": {
+                    "affectedBy": [
+                      "/src/support-agent.ts"
+                    ],
+                    "bindings": {
+                      "instructionLoader": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "loadSupportInstruction"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/support-agent.ts",
+                        "symbol": "supportAgent"
+                      }
+                    },
+                    "context": [
+                      "/moldea/context/billing.md"
+                    ],
+                    "runtime": {
+                      "id": "claude-agent-sdk"
+                    }
+                  }
+                },
+                "context": {
+                  "/moldea/context/billing.md": {
+                    "bindings": [
+                      {
+                        "path": "/src/billing.ts",
+                        "symbol": "classifyBillingQuestion"
+                      }
+                    ]
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Support operations\n\nThis project answers support requests through a direct Claude Agent SDK query wrapper.\n",
+              "digest": "sha256:33a38c7dee9a491cef0cd78e1bff2858ff0787a46005ed9411aa47b335081d62",
+              "path": "/moldea/project.md",
+              "scalarLength": 109,
+              "utf8ByteLength": 109
+            },
+            "runtimes": [],
+            "unresolved": {}
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

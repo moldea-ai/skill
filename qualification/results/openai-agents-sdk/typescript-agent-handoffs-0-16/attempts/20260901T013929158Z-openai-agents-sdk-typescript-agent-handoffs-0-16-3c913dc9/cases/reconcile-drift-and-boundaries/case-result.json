@@ -1,0 +1,66 @@
+{
+  "caseId": "reconcile-drift-and-boundaries",
+  "title": "Reconcile drift and boundaries",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 391627,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 391627,
+      "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 845156,
+        "cachedInputTokens": 764928,
+        "outputTokens": 4662
+      },
+      "judgeUsage": {
+        "inputTokens": 726640,
+        "cachedInputTokens": 675328,
+        "outputTokens": 4721
+      },
+      "actorEvidenceCreatedAt": "2026-09-01T02:07:23.273Z",
+      "judgeEvidenceCreatedAt": "2026-09-01T02:10:38.407Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "repairs-direct-bindings",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml binds runtimeAgent to supportAssistant and instructionLoader to loadSupportInstruction at /src/support-assistant.ts. Both symbols are exported by src/support-assistant.ts, while src/support-agent.ts is absent. Deterministic inspection, validation, and typecheck passed; workspace assertions show only moldea/moldea.yaml changed."
+        },
+        {
+          "id": "records-dynamic-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "agents.support.unresolved.dynamic-tool-registry-relationship is an effect: warning requirement stating static inspection cannot establish registration. It gives the concrete resolver of closed runtime wiring or an integration test and relates /src/dynamic-tools.ts#assembleTools. The manifest contains no invented tool binding, and src/dynamic-tools.ts remains unchanged according to workspace assertions."
+        },
+        {
+          "id": "preserves-source",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

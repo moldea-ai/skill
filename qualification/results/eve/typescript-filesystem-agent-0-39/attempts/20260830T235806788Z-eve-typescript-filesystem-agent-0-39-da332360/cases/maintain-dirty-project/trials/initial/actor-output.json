@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing guidance, bound it to classifyBillingQuestion, assigned it to support, and loaded it through the existing exclusive instruction loader. TypeScript validation, loader-content verification, and moldea inspection passed; final inspection was valid with no diagnostics.",
+  "changedFiles": [
+    "agent/loaders.ts",
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The Eve filesystem agent, loadSupportInstruction binding, and SupportOutputSchema remain intact.",
+    "Billing classifications are explicitly distinguished from refund approval, invoice existence, payment status, and account actions.",
+    "The complete tracked Git diff was inspected. Pre-existing src/operator-notes.ts changes and the untracked notes/ directory were preserved."
+  ],
+  "unresolved": [
+    "Per execution rules, no provider or agent was run, so end-to-end generated support responses were not empirically evaluated."
+  ]
+}

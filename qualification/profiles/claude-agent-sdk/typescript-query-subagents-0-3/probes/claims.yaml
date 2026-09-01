@@ -1,0 +1,396 @@
+version: 2
+adapterId: claude-agent-sdk
+implementationId: typescript-query-subagents-0-3
+probes:
+  - id: compatible-core-range
+    kind: compatibility
+    matrixPath: adapter.compatible-core-range.^2.0.0
+    description: The exact published adapter and SDK composition exercises the compatible Core range through supported query-wrapper and programmatic-subagent integrations.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: repository-format-version
+    kind: compatibility
+    matrixPath: adapter.supported-repository-format-version.1
+    description: Every completed fixture uses and validates Repository Format version 1.
+    coveredBy: [evaluate-aligned-project, initialize-grounded-project, create-grounded-agent]
+  - id: runtime-guidance
+    kind: runtime-guidance
+    matrixPath: adapter.runtime-guidance
+    description: Cases distinguish supported closed SDK relationships from indirect query, subagent, MCP, and filesystem behavior that requires a focused project-local boundary.
+    coveredBy: [evaluate-aligned-project, preserve-claude-agent-sdk-static-boundary]
+  - id: support-gate
+    kind: support-gate
+    matrixPath: qualification.support-gate
+    description: The profile includes every universal journey and two Claude Agent SDK-specific adversarial cases.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-claude-agent-sdk-tool-registration,
+        preserve-claude-agent-sdk-static-boundary,
+      ]
+  - id: target-kind
+    kind: compatibility
+    matrixPath: target.kind
+    description: Fixtures declare the exact published npm runtime package and inspect repository-owned TypeScript sources.
+    coveredBy: [evaluate-aligned-project]
+  - id: target-language
+    kind: compatibility
+    matrixPath: target.language
+    description: Supported query wrappers and programmatic subagents are strict TypeScript ESM and typecheck with the exact project-owned compiler.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: target-runtime-package
+    kind: compatibility
+    matrixPath: target.package.npm.@anthropic-ai/claude-agent-sdk.primary.>=0.3.234 <0.4.0
+    description: Every fixture pins and installs the verified Claude Agent SDK package before offline project preparation.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        initialize-grounded-project,
+        create-grounded-agent,
+        maintain-dirty-project,
+        reconcile-drift-and-boundaries,
+        retire-agent-coherently,
+        stop-on-material-ambiguity,
+        resist-untrusted-repository-instructions,
+        repair-claude-agent-sdk-tool-registration,
+        preserve-claude-agent-sdk-static-boundary,
+      ]
+  - id: runtime-agent-binding
+    kind: binding-support
+    matrixPath: target.binding-support.runtime-agent
+    description: Direct query wrappers and immutable programmatic AgentDefinitions bind exact source symbols while dynamic factories remain unresolved.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        create-grounded-agent,
+        reconcile-drift-and-boundaries,
+        preserve-claude-agent-sdk-static-boundary,
+      ]
+  - id: output-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.output-schema
+    description: Query-level JSON schema output binds an exact repository symbol without extending that relationship to programmatic subagents.
+    coveredBy: [evaluate-aligned-project]
+  - id: instruction-loader-binding
+    kind: binding-support
+    matrixPath: target.binding-support.instruction-loader
+    description: Custom query prompts, preset append prompts, and programmatic subagent prompts bind direct canonical instruction loaders.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: tool-implementation-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-implementation
+    description: SDK MCP tools bind directly to repository-local implementations without executing them.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-claude-agent-sdk-tool-registration]
+  - id: tool-registration-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-registration
+    description: Query-mounted SDK MCP tools use fully qualified runtime names and remain unresolved where dynamic restrictions or unsupported server keys prevent a closed availability conclusion.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        create-grounded-agent,
+        repair-claude-agent-sdk-tool-registration,
+        preserve-claude-agent-sdk-static-boundary,
+      ]
+  - id: tool-input-schema-binding
+    kind: binding-support
+    matrixPath: target.binding-support.tool-input-schema
+    description: Direct SDK MCP tool input-schema relationships bind exact repository symbols.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-claude-agent-sdk-tool-registration]
+  - id: agent-definition-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.agent-definition
+    description: Directly exported immutable AgentDefinitions emit normalized programmatic-subagent evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: handoff-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.handoff-registration
+    description: A closed agents map with statically available Agent delegation emits programmatic handoff evidence and validates the effective routing description.
+    coveredBy: [evaluate-aligned-project]
+  - id: instruction-loader-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.instruction-loader
+    description: Supported custom, preset-appended, and programmatic-subagent prompt bindings emit instruction-loader evidence.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: language-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.language
+    description: Aligned direct definitions emit TypeScript language evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-package-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-package
+    description: Aligned direct definitions emit supported Claude Agent SDK package evidence.
+    coveredBy: [evaluate-aligned-project]
+  - id: runtime-pattern-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.runtime-pattern
+    description: Direct query calls emit runtime-pattern evidence while factory-built query options remain outside the direct target.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, preserve-claude-agent-sdk-static-boundary]
+  - id: schema-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.schema
+    description: Direct query output and SDK MCP tool input bindings emit normalized schema evidence.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-claude-agent-sdk-tool-registration]
+  - id: tool-registration-evidence
+    kind: evidence-kind
+    matrixPath: target.evidence-kind.tool-registration
+    description: Available query and subagent SDK MCP tool relationships emit registration evidence after exact runtime-name reconciliation.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-claude-agent-sdk-tool-registration]
+  - id: direct-query-wrapper
+    kind: pattern
+    matrixPath: target.pattern.direct-query-wrapper
+    description: Directly exported functions with direct query calls and object-literal options are recognized without execution.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, maintain-dirty-project]
+  - id: query-custom-system-prompt
+    kind: pattern
+    matrixPath: target.pattern.query-custom-system-prompt
+    description: Direct custom systemPrompt calls preserve exact canonical instruction-loader symbols.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent, maintain-dirty-project]
+  - id: query-preset-append
+    kind: pattern
+    matrixPath: target.pattern.query-preset-append
+    description: The aligned summary wrapper appends its canonical instruction loader to the claude_code system-prompt preset.
+    coveredBy: [evaluate-aligned-project]
+  - id: query-system-prompt-block-array
+    kind: pattern
+    matrixPath: target.pattern.query-system-prompt-block-array
+    description: The boundary fixture keeps a string-array prompt outside canonical query-wrapper instruction wiring.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: programmatic-agent-definition
+    kind: pattern
+    matrixPath: target.pattern.programmatic-agent-definition
+    description: Direct immutable AgentDefinitions expose supported prompt, routing-description, and tool relationships.
+    coveredBy: [evaluate-aligned-project]
+  - id: closed-programmatic-agents-map
+    kind: pattern
+    matrixPath: target.pattern.closed-programmatic-agents-map
+    description: A closed query agents map registers deterministic programmatic subagent names when Agent delegation is statically available.
+    coveredBy: [evaluate-aligned-project]
+  - id: query-agent-delegation-availability
+    kind: pattern
+    matrixPath: target.pattern.query-agent-delegation-availability
+    description: The aligned query exposes Agent explicitly and uses no deny pattern that removes delegation.
+    coveredBy: [evaluate-aligned-project]
+  - id: effective-routing-description
+    kind: pattern
+    matrixPath: target.pattern.effective-routing-description
+    description: Active subagent registrations match the canonical handoff description, including its precedence over the ordinary agent description.
+    coveredBy: [evaluate-aligned-project]
+  - id: query-json-schema-output
+    kind: pattern
+    matrixPath: target.pattern.query-json-schema-output
+    description: The aligned query binds its declared output schema through outputFormat with the json_schema type.
+    coveredBy: [evaluate-aligned-project]
+  - id: sdk-mcp-tool-declaration
+    kind: pattern
+    matrixPath: target.pattern.sdk-mcp-tool-declaration
+    description: Repository-local SDK tools use static names plus direct implementation and input-schema symbols.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-claude-agent-sdk-tool-registration]
+  - id: sdk-mcp-server-registration
+    kind: pattern
+    matrixPath: target.pattern.sdk-mcp-server-registration
+    description: Closed SDK MCP servers mounted under canonical query keys expose tools through fully qualified runtime names.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-claude-agent-sdk-tool-registration]
+  - id: sdk-mcp-server-key-normalization
+    kind: pattern
+    matrixPath: target.pattern.sdk-mcp-server-key-normalization
+    description: A normalization-requiring server key remains unsupported and cannot establish a canonical runtime-name segment.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: inherited-subagent-tools
+    kind: pattern
+    matrixPath: target.pattern.inherited-subagent-tools
+    description: An actively delegable aligned subagent with no tools field inherits the query-available SDK MCP tool.
+    coveredBy: [evaluate-aligned-project]
+  - id: explicit-subagent-tools
+    kind: pattern
+    matrixPath: target.pattern.explicit-subagent-tools
+    description: An actively delegable aligned subagent explicitly names the fully qualified SDK MCP tool.
+    coveredBy: [evaluate-aligned-project]
+  - id: dynamic-query-options
+    kind: pattern
+    matrixPath: target.pattern.dynamic-query-options
+    description: Factory-built query options remain unresolved without obscuring the independent direct support wrapper.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: query-main-thread-agent-selection
+    kind: pattern
+    matrixPath: target.pattern.query-main-thread-agent-selection
+    description: Main-thread agent selection in dynamic options does not create canonical instruction, delegation, or tool relationships.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: query-tool-aliases
+    kind: pattern
+    matrixPath: target.pattern.query-tool-aliases
+    description: Query tool aliases remain outside deterministic SDK MCP tool and delegation inference.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: query-built-in-tools-preset
+    kind: pattern
+    matrixPath: target.pattern.query-built-in-tools-preset
+    description: The claude_code built-in tools preset is retained as repository evidence without being expanded into Agent availability.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: dynamic-agent-delegation-availability
+    kind: pattern
+    matrixPath: target.pattern.dynamic-agent-delegation-availability
+    description: Factory-produced and scoped tool restrictions leave delegation availability unresolved.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: dynamic-tool-availability
+    kind: pattern
+    matrixPath: target.pattern.dynamic-tool-availability
+    description: Dynamic restrictions that could match an SDK MCP tool produce neither optimistic evidence nor a false negative conclusion.
+    coveredBy: [reconcile-drift-and-boundaries, preserve-claude-agent-sdk-static-boundary]
+  - id: dynamic-agent-definition
+    kind: pattern
+    matrixPath: target.pattern.dynamic-agent-definition
+    description: A factory-produced AgentDefinition remains unestablished instead of being treated as a closed programmatic subagent.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: dynamic-routing-description
+    kind: pattern
+    matrixPath: target.pattern.dynamic-routing-description
+    description: A generated AgentDefinition description remains outside supported routing-description validation.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: filesystem-subagents
+    kind: pattern
+    matrixPath: target.pattern.filesystem-subagents
+    description: A .claude/agents definition remains repository evidence and does not become a canonical programmatic agent relationship.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: built-in-subagents
+    kind: pattern
+    matrixPath: target.pattern.built-in-subagents
+    description: The built-in general-purpose subagent and runtime Agent decisions are not mapped to registered moldea agents.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: observer-agent-fields
+    kind: pattern
+    matrixPath: target.pattern.observer-agent-fields
+    description: Observer fields do not create ordinary agent, handoff, routing, or instruction relationships.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: experimental-critical-system-reminder
+    kind: pattern
+    matrixPath: target.pattern.experimental-critical-system-reminder
+    description: Experimental critical-system reminder content remains outside canonical subagent instruction wiring.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: external-mcp-servers
+    kind: pattern
+    matrixPath: target.pattern.external-mcp-servers
+    description: A stdio MCP server remains outside repository-local manifest tool inference.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: per-agent-mcp-servers
+    kind: pattern
+    matrixPath: target.pattern.per-agent-mcp-servers
+    description: AgentDefinition-level MCP configuration remains outside the query-level SDK MCP target.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: sdk-mcp-server-instructions
+    kind: pattern
+    matrixPath: target.pattern.sdk-mcp-server-instructions
+    description: SDK MCP server instructions coexist with the boundary fixture but do not become canonical agent instruction evidence.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: skills-plugins-and-hooks
+    kind: pattern
+    matrixPath: target.pattern.skills-plugins-and-hooks
+    description: Skills, settings, hooks, CLAUDE.md loading, and related filesystem behavior remain outside deterministic relationship inference.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: module-resolution-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.9f53e45bf2281263
+    description: Supported cases use TypeScript ESM, direct relative imports, and repository-owned source without aliases, re-export graphs, or generated files.
+    coveredBy: [evaluate-aligned-project, create-grounded-agent]
+  - id: direct-wrapper-form-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.4705cf6dec0c2895
+    description: Supported wrappers are directly exported and call query with direct object-literal input and options forms.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, preserve-claude-agent-sdk-static-boundary]
+  - id: query-option-feature-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.5ff813386640e869
+    description: The boundary fixture preserves main-thread selection, aliases, prompt arrays, and the built-in tools preset without inventing affected relationships.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: programmatic-subagent-form-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.9b1f82eaff124664
+    description: The aligned fixture uses immutable exported AgentDefinitions while dynamic factories and filesystem subagents remain unresolved.
+    coveredBy: [evaluate-aligned-project, preserve-claude-agent-sdk-static-boundary]
+  - id: delegation-availability-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.9d64b845e6867a69
+    description: Positive handoff evidence is limited to a closed agents map whose query tools explicitly expose Agent after supported deny analysis.
+    coveredBy: [evaluate-aligned-project, preserve-claude-agent-sdk-static-boundary]
+  - id: permission-expression-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.42ae80f536c00a97
+    description: Scoped and dynamically produced permission expressions remain unresolved, and allowedTools is not treated as availability evidence.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: routing-description-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.c5b134968c23871a
+    description: The aligned handoff uses a supported static description while the generated boundary description remains unresolved.
+    coveredBy: [evaluate-aligned-project, preserve-claude-agent-sdk-static-boundary]
+  - id: observer-reminder-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.737e6ec19bc52368
+    description: Observer and experimental reminder fields remain outside canonical inference without erasing independently supported direct evidence.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: programmatic-output-schema-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.bd1aa79f2cdfa8a4
+    description: Only the aligned query wrapper binds outputFormat; programmatic AgentDefinitions do not claim output-schema support.
+    coveredBy: [evaluate-aligned-project]
+  - id: repository-local-sdk-tool-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.ad4fe941ca62e4cc
+    description: Supported tool evidence comes only from repository-local SDK declarations mounted through query-level MCP server maps.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, preserve-claude-agent-sdk-static-boundary]
+  - id: canonical-server-key-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.38b4f627f36cf329
+    description: The boundary fixture uses a normalization-requiring server key and does not infer its normalized runtime name or collision behavior.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: relationship-local-availability-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.a2d28eddcdd16f9f
+    description: Supported tool registration requires closed query and subagent availability; dynamic restrictions leave only affected relationships unresolved.
+    coveredBy:
+      [
+        evaluate-aligned-project,
+        reconcile-drift-and-boundaries,
+        preserve-claude-agent-sdk-static-boundary,
+      ]
+  - id: server-instruction-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.550bfaa16874ab6a
+    description: SDK MCP server instructions are tolerated without being interpreted as canonical agent instruction content.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: fully-qualified-tool-name-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.efcb98ef2afbe91f
+    description: Tool names use the canonical query mount key rather than the createSdkMcpServer display name.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-claude-agent-sdk-tool-registration]
+  - id: schema-content-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.7c6d60e6e3975ca9
+    description: Qualification establishes direct tool-input and query-output schema wiring without claiming content validation.
+    coveredBy:
+      [evaluate-aligned-project, create-grounded-agent, repair-claude-agent-sdk-tool-registration]
+  - id: unsupported-feature-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.7946e5f1352ccb07
+    description: The boundary fixture preserves external MCP, per-agent MCP, skills, hooks, settings, and related runtime behavior without unsupported canonical inference.
+    coveredBy: [preserve-claude-agent-sdk-static-boundary]
+  - id: runtime-permission-limit
+    kind: known-limitation
+    matrixPath: target.known-limitation.0a4cf5e7141b73f1
+    description: Static availability evidence is not presented as proof that runtime policy or Claude will permit or perform an invocation.
+    coveredBy: [evaluate-aligned-project, preserve-claude-agent-sdk-static-boundary]

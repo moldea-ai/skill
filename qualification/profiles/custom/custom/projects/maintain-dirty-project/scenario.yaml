@@ -1,0 +1,74 @@
+version: 2
+id: maintain-dirty-project
+title: Maintain a dirty project
+purpose: Verify a focused context change while preserving unrelated tracked and untracked work.
+taskFile: task.md
+seedDirectory: seed
+overlayDirectory: overlay
+expectedDirectory: expected
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
+workspace:
+  expectation: changed
+  mustPreservePaths:
+    - .agents/project-policy.md
+    - README.md
+    - src/operator-notes.ts
+    - notes/local-observation.md
+    - src/support-agent.ts
+    - moldea/runtimes/custom.md
+  mustChangePaths:
+    - moldea/moldea.yaml
+    - moldea/agents/support/instruction.md
+    - moldea/context/billing.md
+  mustExistPaths:
+    - .agents/project-policy.md
+    - README.md
+    - moldea/agents/support/description.md
+    - moldea/context/billing.md
+    - notes/local-observation.md
+    - src/operator-notes.ts
+  mustNotExistPaths: []
+  allowedChangePaths:
+    - moldea/agents/support/description.md
+    - moldea/agents/support/instruction.md
+    - moldea/context/billing.md
+    - moldea/moldea.yaml
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: adds-context
+    description: The billing context is canonical, registered globally, and assigned to the support agent with an explicit affected path.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, deterministic-after, workspace-patch]
+  - id: updates-instruction
+    description: The agent instruction explains when the new billing context should be used while preserving its required opening identity.
+    evaluation:
+      kind: judge
+      evidenceSources: [current-workspace, workspace-patch]
+  - id: preserves-dirty-state
+    description: The unrelated project agent policy, tracked operator note, and untracked local observation remain byte-for-byte unchanged.
+    evaluation:
+      kind: runner
+      checks: [workspace-assertions]
+  - id: validates-project
+    description: Every independent validation check confirms the final project without changing it during inspection.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after]

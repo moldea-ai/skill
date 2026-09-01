@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical assets, implementation, workspace patch assertions, and deterministic post-actor validation agree. The agent is grounded in order classification for mandatory human review, explicitly lacks refund authority, binds the exact exported compiled graph and schemas, and does not expose the internal graph node as a manifest capability or routing construct.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "`moldea/agents/order-triage/description.md` and `instruction.md` state that the agent classifies orders for human review, always requires human review, and cannot approve refunds. This matches `src/order-triage-graph.ts`, where classification produces `fulfillment` or `refund-review` and always sets `requiresHumanReview: true`. Workspace assertions identify both canonical assets as newly added."
+    },
+    {
+      "id": "binds-direct-graph",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` binds `runtimeAgent` to `/src/order-triage-graph.ts#orderTriageGraph`, `inputSchema` to `OrderTriageInputSchema`, and `outputSchema` to `OrderTriageOutputSchema`. The source directly exports all three symbols, and `orderTriageGraph` is the compiled `StateGraph`. Deterministic inspection and validation passed with zero failures."
+    },
+    {
+      "id": "preserves-node-boundary",
+      "verdict": "pass",
+      "evidence": "`classifyOrder` remains an unexported implementation function registered only as the runtime graph node `classify-order`. The manifest contains only the agent runtime and graph/schema bindings; it declares no tool, skill, subagent, handoff, or routing target. The canonical inventory contains no runtime guide, and workspace assertions limit changes to the manifest plus the two agent prose assets. Deterministic validation passed."
+    }
+  ],
+  "failures": []
+}

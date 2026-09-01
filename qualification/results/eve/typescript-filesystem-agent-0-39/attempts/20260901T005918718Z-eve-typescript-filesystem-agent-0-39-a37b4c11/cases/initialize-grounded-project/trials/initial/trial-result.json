@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 28363,
+  "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 722935,
+    "cachedInputTokens": 671744,
+    "outputTokens": 4721
+  },
+  "judgeUsage": {
+    "inputTokens": 416622,
+    "cachedInputTokens": 376832,
+    "outputTokens": 3755
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T03:53:00.344Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T03:55:26.472Z",
+  "actorCacheSourceAttemptId": "20260831T034324094Z-eve-typescript-filesystem-agent-0-39-7dd6dcbe",
+  "judgeCacheSourceAttemptId": "20260831T034324094Z-eve-typescript-filesystem-agent-0-39-7dd6dcbe",
+  "requirementAssessments": [
+    {
+      "id": "grounds-project",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service extracts invoice anomalies for operator review, calculates the total difference, requires operator review when totals differ, and does not approve payment or change an invoice. README.md states the same purpose and non-authorizing boundary, while src/invoice-review.ts implements difference calculation and requiresOperatorReview based on unequal totals."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains only `version: 1`; moldea/project.md is the sole canonical context file; and README.md contains one correctly ordered standard awareness block. Targeted inspection found no moldea agents, runtimes, decisions, focused context, or requirements, and no instruction/runtime/decision/requirement files. Runner-owned workspace evidence lists exactly README.md, moldea/moldea.yaml, and moldea/project.md as changed paths."
+    },
+    {
+      "id": "preserves-existing-work",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

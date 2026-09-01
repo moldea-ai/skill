@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Canonical state changed safely: billing guidance is bound to classifyBillingQuestion, assigned to support, and delivered through the existing exclusive loader. The Eve filesystem agent and SupportOutputSchema remain intact. Final Moldea validation/inspection, TypeScript checking, and Git diff checks passed.",
+  "changedFiles": [
+    "agent/loaders.ts",
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Moldea inspect reported schema 2, CLI 5.0.0, valid status, no diagnostics, the Eve agent, one instruction loader, the billing context relationship, and the unchanged output-schema binding.",
+    "The complete tracked diff was inspected. Pre-existing src/operator-notes.ts work and untracked notes/local-observation.md were preserved exactly; qualification inputs remained read-only.",
+    "Checks passed: ./node_modules/.bin/tsc --noEmit, moldea validate --json, moldea inspect --json, and hardened git diff --check."
+  ],
+  "unresolved": [
+    "No provider or agent was invoked as prohibited, so live model behavior was not exercised; validation establishes repository wiring and declared behavior only."
+  ]
+}

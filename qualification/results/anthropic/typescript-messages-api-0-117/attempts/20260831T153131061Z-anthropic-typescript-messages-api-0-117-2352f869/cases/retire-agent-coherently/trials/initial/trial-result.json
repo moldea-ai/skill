@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 473109,
+  "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 825293,
+    "cachedInputTokens": 727552,
+    "outputTokens": 4957
+  },
+  "judgeUsage": {
+    "inputTokens": 621142,
+    "cachedInputTokens": 534784,
+    "outputTokens": 4385
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T16:16:00.034Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T16:19:47.918Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "removes-obsolete-declaration",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` contains only `version: 1`, so it declares no support agent, Anthropic wrapper, runtime-agent relationship, or instruction-loader binding. Expected canonical assets `moldea/agents/support/description.md` and `moldea/agents/support/instruction.md` are absent, as is `src/support-agent.ts`. Targeted repository search found no remaining support wrapper/loader references; the only Anthropic match is the SDK dependency, which is not an agent declaration or binding. Workspace patch assertions identify the manifest change and both canonical asset deletions, while deterministic post-actor inspection and validation are valid with no failures and the typecheck passes."
+    },
+    {
+      "id": "removes-orphaned-assets",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "preserves-surviving-context",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

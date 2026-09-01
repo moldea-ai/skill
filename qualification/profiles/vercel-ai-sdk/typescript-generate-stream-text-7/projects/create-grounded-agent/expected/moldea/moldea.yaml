@@ -1,0 +1,33 @@
+version: 1
+agents:
+  order-triage:
+    runtime:
+      id: vercel-ai-sdk
+    bindings:
+      runtimeAgent:
+        path: /src/order-triage-agent.ts
+        symbol: orderTriageAgent
+      instructionLoader:
+        path: /src/order-triage-agent.ts
+        symbol: loadOrderTriageInstruction
+      outputSchema:
+        path: /src/order-triage-agent.ts
+        symbol: OrderTriageOutputSchema
+    tools:
+      classify-order:
+        name: classify_order
+        description: Classifies an order for human review.
+        implementation:
+          path: /src/order-triage-agent.ts
+          symbol: classifyOrder
+        registration:
+          path: /src/order-triage-agent.ts
+          symbol: classifyOrderTool
+        inputSchema:
+          path: /src/order-triage-agent.ts
+          symbol: ClassifyOrderInputSchema
+        outputSchema:
+          path: /src/order-triage-agent.ts
+          symbol: ClassifyOrderOutputSchema
+    affectedBy:
+      - /src/order-triage-agent.ts

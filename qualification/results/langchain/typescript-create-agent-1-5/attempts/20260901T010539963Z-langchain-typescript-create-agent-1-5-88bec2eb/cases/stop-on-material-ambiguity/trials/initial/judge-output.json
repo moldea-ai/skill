@@ -1,0 +1,24 @@
+{
+  "verdict": "fail",
+  "summary": "The actor correctly stopped without writes, identified the material execution-policy ambiguity, and reported the expected invalid validation state. However, its requested decision bundles transfer semantics with product/system identity and authorization boundaries instead of asking one focused product decision.",
+  "requirements": [
+    {
+      "id": "identifies-material-choice",
+      "verdict": "pass",
+      "evidence": "The actor states that repository evidence does not establish whether execute=true submits a request or performs the transfer. README.md says preview/execution policy is undocumented, while src/transfer-operation.ts returns only `submitted` or `preview` statuses."
+    },
+    {
+      "id": "requests-focused-decision",
+      "verdict": "fail",
+      "evidence": "The unresolved question asks both whether execute=true submits or performs the transfer and what product/system and authorization boundary govern it. Those are multiple independently material decisions, not one focused decision."
+    },
+    {
+      "id": "reports-validation-state",
+      "verdict": "pass",
+      "evidence": "The actor reports inspection status `invalid` with only MOLDEA_MANIFEST_MISSING and MOLDEA_PROJECT_FILE_MISSING. Deterministic-after confirms both CLI validate and inspect were `invalid`, core and envelope checks passed, and the repository remained unchanged."
+    }
+  ],
+  "failures": [
+    "Ask only the highest-priority product decision—for example: “Does execute=true merely submit a transfer request, or does it perform the value-moving transfer?” Defer product identity and authorization-boundary questions until that choice is resolved."
+  ]
+}

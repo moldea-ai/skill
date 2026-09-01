@@ -1,0 +1,47 @@
+export {
+  createPortableSkillDigest,
+  createSemanticCaseDefinitionDigest,
+  createSemanticCaseSuiteDigest,
+  getSemanticCriterionLabels,
+  validateSemanticCaseDefinition,
+} from './evidence.mjs';
+
+// actor execution evidence
+export {
+  hasValidActorExecutionEvidence,
+  projectActorExecutionEvidenceEvent,
+} from './actor-execution-evidence.mjs';
+
+// actor command-policy evidence
+export {
+  classifyActorCommandPolicyEvent,
+  createActorCommandPolicyEvidence,
+  hasPassingPackageManagerNonExecutionPolicy,
+  hasValidActorCommandPolicyEvidence,
+} from './actor-command-policy-evidence.mjs';
+
+// coverage
+export { createSemanticCoverageDigest, validateSemanticCoverage } from './coverage.mjs';
+
+// scenario evidence
+export { collectScenarioEvidence, hasValidScenarioEvidence } from './scenario-evidence.mjs';
+
+// repository control
+export {
+  captureReadOnlyMountControlState,
+  captureRepositoryControlState,
+  createEvaluationTreeDigest,
+  createReadOnlyMountControlEvidence,
+  createRepositoryControlEvidence,
+  hasValidReadOnlyMountControlEvidence,
+  hasValidRepositoryControlEvidence,
+} from './repository-control.mjs';
+
+// immutable attempt history
+export {
+  createSemanticAttemptRecord,
+  loadSemanticEvaluationAttempts,
+  loadVerifiedSemanticEvaluationAttempts,
+  recordSemanticEvaluationAttempt,
+  verifySemanticEvaluationAttempts,
+} from './attempt-history.mjs';

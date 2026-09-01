@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor’s alignment explanation agrees with the clean repository state and deterministic validation. The registered `support` agent uses custom runtime guidance and an explicit binding to the matching implementation export.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` registers `support`, sets runtime `id: custom`, references `/moldea/runtimes/custom.md`, and binds `runtimeAgent` to `/src/support-agent.ts` symbol `supportAgent`. The guidance identifies that export as the runtime-owned definition, while the implementation exports `{ id: 'support', channel: 'email' }`, matching the canonical description’s email responsibility and instruction identity. The actor reported these relationships explicitly. Runner-owned inspection was `valid`, typechecking passed, workspace hashes were unchanged, and hardened Git status and diff were empty."
+    }
+  ],
+  "failures": []
+}

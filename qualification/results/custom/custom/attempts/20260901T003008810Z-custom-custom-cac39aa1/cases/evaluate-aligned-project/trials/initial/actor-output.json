@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The `support` agent setup is valid and agrees with the implementation; no files were edited. Moldea inspect returned schema 2, CLI 5.0.0, status `valid`, with no diagnostics. TypeScript validation passed, and the final Git diff was empty.",
+  "changedFiles": [],
+  "observations": [
+    "The repository is adopted: `/moldea/moldea.yaml`, `/moldea/project.md`, and the README awareness block are present.",
+    "The manifest binds `support` to `/src/support-agent.ts` symbol `supportAgent` using the `custom` runtime and `/moldea/runtimes/custom.md` guidance.",
+    "The description’s email-channel responsibility matches `supportAgent.channel = 'email'`; the registered ID and runtime guidance match `supportAgent.id = 'support'`.",
+    "The instruction identifies the `support` agent, defines evidence-based customer support behavior, and requires escalation when uncertain.",
+    "`tsc -p <workspace>/tsconfig.json --noEmit` completed successfully. Hardened Git status and final diff showed a clean working tree."
+  ],
+  "unresolved": [
+    "The custom runtime produced no adapter evidence, so deterministic inspection does not independently prove behavior beyond the bound exported record. No broader invocation or instruction-loading implementation exists in the inspected source to validate."
+  ]
+}

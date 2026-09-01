@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository preserves the Claude Agent SDK static boundary. Current source and canonical state match the actor report and deterministic post-actor evidence; workspace hashes are unchanged, changedPaths is empty, and repositoryUnchanged is true. The expected unsupported MCP-key diagnostic makes inspection structurally invalid without indicating operational failure.",
+  "requirements": [
+    {
+      "id": "explains-direct-evidence",
+      "verdict": "pass",
+      "evidence": "src/agents.ts defines supportAgent as a direct query({...}) wrapper whose object-literal options use systemPrompt: await loadSupportInstruction(). moldea/moldea.yaml binds supportAgent as runtimeAgent and loadSupportInstruction as instructionLoader, but declares no capability or runtime-name relationship for the normalization-requiring 'boundary/tools' MCP key. The actor identifies the sole expected CLAUDE_AGENT_SDK_MCP_SERVER_KEY_UNSUPPORTED diagnostic, consistent with deterministic inspectionStatus and cliInspectStatus of invalid."
+    },
+    {
+      "id": "preserves-dynamic-query-boundary",
+      "verdict": "pass",
+      "evidence": "dynamicSupportAgent passes options from await buildDynamicOptions(), while prompts, agent selection, definitions, descriptions, restrictions, aliases, and preset tools are factory-built or dynamically assembled in src/agents.ts. The manifest binds only dynamicSupportAgent and records focused warning requirements; it does not bind the dynamic prompt loader or declare instruction, delegation, routing, capability, tool, or schema relationships."
+    },
+    {
+      "id": "preserves-sdk-feature-boundary",
+      "verdict": "pass",
+      "evidence": "Observer fields, critical reminders, server instructions, external and per-agent MCP configuration, settings, skills, hooks, and the filesystem agent appear only as repository evidence. moldea/moldea.yaml creates no canonical capabilities, schemas, routing, or filesystem-agent registrations for them and retains the focused sdk-and-filesystem-features informational requirement. Deterministic evidence reports passed=true, typecheckPassed=true, repositoryUnchanged=true, and no failures; workspace assertions show identical before/after hashes and no changed paths."
+    }
+  ],
+  "failures": []
+}

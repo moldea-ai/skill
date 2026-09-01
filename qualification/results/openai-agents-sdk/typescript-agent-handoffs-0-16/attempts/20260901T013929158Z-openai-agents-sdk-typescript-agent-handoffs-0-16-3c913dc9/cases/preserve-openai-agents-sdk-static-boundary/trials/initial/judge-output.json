@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "Repository state, actor report, and runner-owned evidence agree that the existing static boundary is accurate and unchanged. Direct support bindings are deterministically grounded; unsupported provider, delegation, routing, handoff, RealtimeAgent, and indirect-definition relationships are not canonically invented; and the indirect dynamic-support limitation remains explicitly warned with a concrete resolution. Deterministic validation and typechecking passed, while identical before/after hashes and changedPaths: [] confirm no diff.",
+  "requirements": [
+    {
+      "id": "explains-direct-evidence",
+      "verdict": "pass",
+      "evidence": "src/agents.ts directly assigns `supportAgent = new Agent({...})`, passes `loadSupportInstruction` as `instructions`, and that loader reads `/moldea/agents/support/instruction.md`. moldea/moldea.yaml records matching `runtimeAgent` and `instructionLoader` bindings. The actor report identifies both, and deterministic-after reports valid inspection and passing typecheck."
+    },
+    {
+      "id": "preserves-provider-tool-boundary",
+      "verdict": "pass",
+      "evidence": "src/agents.ts uses `webSearchTool()` and `summaryAgent.asTool(...)`, but moldea/moldea.yaml invents no function-tool, capability, schema, routing, or handoff relationship for them. The actor report explicitly treats those adapter-unsupported relationships as absent, consistent with the current workspace and valid deterministic result."
+    },
+    {
+      "id": "preserves-indirect-request-boundary",
+      "verdict": "pass",
+      "evidence": "src/agents.ts constructs dynamic-support from the indirect `dynamicSupportConfiguration`, builds transformed handoff text with `.join`, and separately constructs a `RealtimeAgent`. The manifest does not record definition-derived routing, handoff, schema, or RealtimeAgent relationships. It retains `indirect-agent-configuration` as a warning stating that an Agent definition and its relationships cannot be proven, with resolution through a closed inline configuration or supported adapter pattern. The actor report explains the same limitation. Before/after hashes are identical and changedPaths is empty."
+    }
+  ],
+  "failures": []
+}

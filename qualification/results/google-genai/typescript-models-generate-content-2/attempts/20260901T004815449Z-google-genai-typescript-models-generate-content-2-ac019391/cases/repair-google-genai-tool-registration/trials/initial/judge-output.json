@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, hardened Git diff, source bindings, workspace assertions, and deterministic post-actor validation agree: only the manifest tool name changed from `find_order` to `lookup_order`; all registered bindings and implementation sources remained unchanged, inspection is valid, and typechecking passed.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the stale manifest name `find_order` and the source-established declaration name `lookup_order`. The Git diff confirms that exact mismatch and correction, while `src/tools.ts` declares `lookupOrderDeclaration.name` as `lookup_order`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` declares `agents.support.tools.lookup-order.name: lookup_order`. The Git diff contains only the one-line change from `find_order` to `lookup_order`. Workspace assertions show all source files retained their pre-change hashes, and deterministic validation passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "Current manifest bindings remain exact: runtime agent `/src/agent.ts#supportAgent`, instruction loader `/src/agent.ts#loadSupportInstruction`, registration `/src/tools.ts#lookupOrderDeclaration`, implementation `/src/implementations.ts#lookupOrder`, and input schema `/src/contracts.ts#LookupOrderInputSchema`. Source confirms `models.generateContent`, the closed `[lookupOrderDeclaration]` array, canonical instruction loading, and schema linkage. Workspace assertions prove these files were unchanged; deterministic inspection is `valid`, typechecking passed, and the actor explicitly limits the evidence to static detectable wiring rather than runtime provider execution."
+    }
+  ],
+  "failures": []
+}

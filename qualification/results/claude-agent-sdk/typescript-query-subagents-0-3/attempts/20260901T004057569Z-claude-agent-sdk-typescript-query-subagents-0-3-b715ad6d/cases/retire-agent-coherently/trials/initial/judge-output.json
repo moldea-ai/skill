@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The final canonical state coherently retires the support agent. The manifest contains only `version: 1`, the obsolete support assets and implementation are absent, and runner-owned validation reports a valid repository with zero failures.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current workspace: `moldea/moldea.yaml` contains only `version: 1`, with no support agent, Claude Agent SDK wrapper, instruction-loader, runtime-agent, or affected-path declaration. Expected canonical assets `moldea/agents/support/description.md` and `moldea/agents/support/instruction.md` are absent; `src/support-agent.ts` is also absent, while `src/project-state.ts` reports `activeAgents: 0`. Workspace-patch assertions identify only the manifest modification and the two canonical asset deletions. Deterministic-after evidence reports `inspectionStatus: valid`, `cliInspectStatus: valid`, successful typechecking, repository equivalence, and no failures."
+    }
+  ],
+  "failures": []
+}

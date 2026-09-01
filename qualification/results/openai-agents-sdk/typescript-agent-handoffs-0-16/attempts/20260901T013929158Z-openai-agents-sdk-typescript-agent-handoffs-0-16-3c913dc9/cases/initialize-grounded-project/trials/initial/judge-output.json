@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository contains a grounded, minimal moldea initialization. Current source and canonical context agree on invoice anomaly review, operator review of mismatches, and the prohibition on payment approval or invoice modification. Runner-owned patch evidence limits changes to README.md, moldea/moldea.yaml, and moldea/project.md; validation and type checking passed.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "src/invoice-review.ts reports the total difference and flags unequal totals for operator review. README.md states that the service extracts invoice anomalies for operator review and never approves payment or changes an invoice. moldea/project.md accurately records those same purposes and boundaries. Workspace assertions show the source was unchanged while README.md and project context changed, and deterministic inspection was valid."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The canonical moldea tree contains only moldea/moldea.yaml and moldea/project.md; the manifest contains only `version: 1` and references no agents, runtimes, decisions, requirements, or other assets. README.md contains exactly one correctly ordered standard awareness block. Runner-owned changedPaths lists only these two canonical files and README.md, while package.json and source hashes remained unchanged."
+    }
+  ],
+  "failures": []
+}

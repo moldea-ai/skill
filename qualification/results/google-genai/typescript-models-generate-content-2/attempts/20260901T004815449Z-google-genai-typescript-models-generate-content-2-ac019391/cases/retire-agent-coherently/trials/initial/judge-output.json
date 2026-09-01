@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The final repository coherently retires the removed support agent. The manifest contains only `version: 1`; the canonical support assets and `src/support-agent.ts` are absent. Workspace patch evidence records removal of both support-agent assets and the manifest change, while deterministic validation reports a valid zero-agent repository with passing typecheck and no failures.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current workspace: `moldea/moldea.yaml` contains only `version: 1`, with no agent, Google Gen AI wrapper, or instruction-loader declaration; bounded canonical/source inventories show no `moldea/agents/support/*` or `src/support-agent.ts`. Workspace assertions identify the manifest change and deletion of `moldea/agents/support/description.md` and `instruction.md`. Deterministic post-actor evidence reports valid inspect/validate status, repository equivalence, passing typecheck, and no failures."
+    }
+  ],
+  "failures": []
+}

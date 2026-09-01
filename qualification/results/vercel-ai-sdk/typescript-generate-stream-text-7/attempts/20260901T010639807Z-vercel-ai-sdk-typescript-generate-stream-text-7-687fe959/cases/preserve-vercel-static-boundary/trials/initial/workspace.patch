@@ -1,0 +1,37 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 7cf7049..f095ee9 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,9 +3,20 @@ agents:
+   support:
+     runtime:
+       id: vercel-ai-sdk
++      guidance: /moldea/runtimes/support-vercel-static-boundary.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+         symbol: supportAgent
+     affectedBy:
+       - /src/support-agent.ts
++    unresolved:
++      vercel-static-generation-boundary:
++        category: runtime-integration
++        effect: warning
++        description: Static inspection cannot establish the indirect generateText request shape or the effective instructions because prepareStep may replace them.
++        resolution: Preserve equivalent behavior in project-local tests, then refactor /src/support-agent.ts so supportAgent uses a direct generateText({ ... }) request with canonical instruction loading on instructions and no prepareStep instruction replacement; rerun inspection to establish the supported direct pattern.
++        related:
++          - path: /src/support-agent.ts
++          - path: /moldea/agents/support/instruction.md
++          - path: /moldea/runtimes/support-vercel-static-boundary.md
+
+diff --git a/moldea/runtimes/support-vercel-static-boundary.md b/moldea/runtimes/support-vercel-static-boundary.md
+new file mode 100644
+index 0000000..9663082
+--- /dev/null
++++ b/moldea/runtimes/support-vercel-static-boundary.md
+@@ -0,0 +1,5 @@
++# Support generation static boundary
++
++`supportAgent` in `/src/support-agent.ts` passes the result of `buildRequest(prompt)` to `generateText`. The builder supplies `prepareStep`, which can replace instructions for a generation step. Static inspection therefore cannot establish the indirect request shape or which instructions are effective at runtime.
++
++Preserve this working request builder until a deliberate refactor is verified. To make the integration statically inspectable, first add project-local tests for equivalent step behavior, then change `supportAgent` to contain a direct `generateText({ ... })` request with canonical instruction loading on `instructions` and no `prepareStep` instruction replacement.

@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 31821,
+  "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 736664,
+    "cachedInputTokens": 668928,
+    "outputTokens": 5583
+  },
+  "judgeUsage": {
+    "inputTokens": 527604,
+    "cachedInputTokens": 484096,
+    "outputTokens": 4962
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T04:21:36.316Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T04:24:21.631Z",
+  "actorCacheSourceAttemptId": "20260831T034324094Z-eve-typescript-filesystem-agent-0-39-7dd6dcbe",
+  "judgeCacheSourceAttemptId": "20260831T034324094Z-eve-typescript-filesystem-agent-0-39-7dd6dcbe",
+  "requirementAssessments": [
+    {
+      "id": "removes-obsolete-declaration",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/moldea.yaml contains only `version: 1`, with no support/Eve agent, instructionLoader, outputSchema, or runtimeAgent declaration; moldea/agents/support/description.md and instruction.md are absent. Workspace patch evidence identifies exactly those two deletions plus the manifest change. Deterministic-after reports valid inspect/validate results, successful typechecking, no failures, and an unchanged repository after validation."
+    },
+    {
+      "id": "removes-orphaned-assets",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "preserves-surviving-context",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

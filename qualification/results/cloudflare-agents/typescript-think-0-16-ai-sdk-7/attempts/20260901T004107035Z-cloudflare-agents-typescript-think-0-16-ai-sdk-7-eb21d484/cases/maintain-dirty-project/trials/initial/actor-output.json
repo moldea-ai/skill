@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to classifyBillingQuestion, and assigned it to support with safe refund and invoice guidance. Moldea inspect and validate passed without diagnostics; TypeScript compilation passed.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The directly exported SupportAgent class and loadSupportInstruction loader were unchanged.",
+    "The complete tracked diff was inspected. Pre-existing src/operator-notes.ts and notes/ developer work remained untouched.",
+    "Billing guidance documents the exact case-sensitive classification behavior and does not imply that routing approves refunds or performs invoice actions.",
+    "Final Moldea inspection detected both the SupportAgent definition and instruction loader, with the billing context assigned to support and bound to /src/billing.ts."
+  ],
+  "unresolved": [
+    "Deterministic inspection detects the existing instruction loader but does not prove dynamic runtime injection of the canonical Markdown context; no stronger runtime behavior was claimed."
+  ]
+}

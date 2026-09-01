@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support tool’s canonical runtime name from `find_order` to Eve’s path-derived `orders-find`. Final Moldea inspection was valid with complete agent, instruction-loader, language, package, schema, and tool-registration evidence; diagnostics were empty. TypeScript validation passed, and the final Git diff contains only the intended one-line canonical change.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The recursive Eve path `/agent/tools/orders/find.ts` derives runtime name `orders-find`.",
+    "Final tool-registration evidence reports `filesystem-tool`, path depth 2, bound implementation `findOrder`, and runtime name `orders-find`.",
+    "The working agent, instruction source, tool registration source, implementation, and schemas were unchanged.",
+    "Final `inspect --json` completed with schema version 2, CLI 5.0.0, status `valid`, and no `EVE_TOOL_NAME_MISMATCH` diagnostic.",
+    "`tsc -p <workspace>/tsconfig.json --noEmit` exited successfully.",
+    "Final Git status reports only `moldea/moldea.yaml` modified."
+  ],
+  "unresolved": []
+}

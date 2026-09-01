@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Updated the adopted Moldea project via scoped Maintain: added durable billing context bound to `classifyBillingQuestion`, assigned it to `support`, and added conservative refund/invoice guidance. Canonical inspection and validation passed with CLI 5.0.0/schema 2; TypeScript passed.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The compiled StateGraph, explicit input/output schemas, graph node, edges, and source implementation remain unchanged.",
+    "No manifest tool or unsupported routing relationship was added.",
+    "Complete tracked diff and untracked inventory were inspected. Pre-existing `src/operator-notes.ts` and `notes/local-observation.md` work remains untouched.",
+    "Final `moldea inspect --json` and `moldea validate --json` were valid with no diagnostics; `tsc --noEmit` passed."
+  ],
+  "unresolved": [
+    "Runtime consumption remains unproven because the graph exposes no instruction or context loader. A blocking canonical requirement now records the evidence and test needed to establish delivery without altering the graph or schemas."
+  ]
+}

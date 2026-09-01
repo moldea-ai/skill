@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace and runner-owned patch evidence agree: initialization added only the minimal moldea foundation and the standard README awareness block, while accurately grounding the invoice-review purpose and non-authorizing boundary in README.md and src/invoice-review.ts.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that the service identifies invoice-total anomalies, reports the numeric difference, requires operator review when totals differ, and does not approve payment or modify invoices. README.md independently states the operator-review purpose and that the service never approves payment or changes an invoice; src/invoice-review.ts implements numeric difference reporting and mismatched-total review."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The current moldea tree contains only moldea/moldea.yaml and moldea/project.md; the manifest is only `version: 1` and declares no agents, runtimes, relationships, decisions, or requirements. README.md contains exactly one correctly ordered standard awareness block. Runner-owned workspace assertions report exactly three changed paths—README.md, moldea/moldea.yaml, and moldea/project.md—with package.json and source unchanged; deterministic validation passed with zero reported failures."
+    }
+  ],
+  "failures": []
+}

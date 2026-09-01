@@ -1,0 +1,66 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 39932,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 39932,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 1564310,
+        "cachedInputTokens": 1438720,
+        "outputTokens": 7608
+      },
+      "judgeUsage": {
+        "inputTokens": 264377,
+        "cachedInputTokens": 230912,
+        "outputTokens": 2652
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T22:06:09.353Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T22:07:40.523Z",
+      "actorCacheSourceAttemptId": "20260830T213510339Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-b8c52d92",
+      "judgeCacheSourceAttemptId": "20260830T213510339Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-b8c52d92",
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/moldea.yaml` globally registers `/moldea/context/billing.md`, binds it to `/src/billing.ts` symbol `classifyBillingQuestion`, lists `/src/billing.ts` in `affectedBy`, and assigns the context to `support`. The context accurately documents the classifier, and `support/instruction.md` directs refund and invoice questions to it. Workspace assertions identify exactly these three changed paths, while deterministic inspect/validate passed as valid."
+        },
+        {
+          "id": "preserves-sdk-wiring",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`src/support-agent.ts` still directly exports `SupportAgent extends AIChatAgent`, directly invokes `streamText`, and passes `loadSupportInstruction()` as generation instructions. Workspace assertions show its SHA-256 is identical before and after (`6c5961c6a8387c92d3f52e77239f5e367d5ecdb2aa5a75adc46cfaa965d86732`); the manifest retains runtime-agent and instruction-loader bindings to the same file and symbols. Deterministic typecheck and repository validation passed."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

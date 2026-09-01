@@ -1,0 +1,62 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 25149,
+  "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 986344,
+    "cachedInputTokens": 855296,
+    "outputTokens": 4910
+  },
+  "judgeUsage": {
+    "inputTokens": 457780,
+    "cachedInputTokens": 380416,
+    "outputTokens": 3551
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T03:47:43.827Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T03:49:56.756Z",
+  "actorCacheSourceAttemptId": "20260831T034324094Z-eve-typescript-filesystem-agent-0-39-7dd6dcbe",
+  "judgeCacheSourceAttemptId": "20260831T034324094Z-eve-typescript-filesystem-agent-0-39-7dd6dcbe",
+  "requirementAssessments": [
+    {
+      "id": "explains-filesystem-definitions",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`agent/agent.ts` is the root support definition, while `agent/subagents/summary/agent.ts` is nested under the directory-backed `subagents/summary` layout. The actor identifies both bindings and summary as a local subagent; `moldea/moldea.yaml` registers those exact runtime-agent paths."
+    },
+    {
+      "id": "explains-exclusive-instructions",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Support instructions originate through `agent/instructions.ts` and the `loadSupportInstruction` TypeScript loader in `agent/loaders.ts`; summary uses the exact lowercase Markdown path `agent/subagents/summary/instructions.md`. The actor distinguishes these sources and correctly notes that neither is derived from the canonical `moldea/agents/*/instruction.md` files."
+    },
+    {
+      "id": "explains-capability-bindings",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`agent/tools/find_order.ts` imports both schemas from `agent/contracts.ts` and the `findOrder` implementation from `agent/implementations.ts`; its directory-derived runtime name is `find_order`. `agent/skills/analyze.ts` is a TypeScript Eve skill. Support and summary output schemas bind to `SupportOutputSchema` and `SummaryOutputSchema`, and summary's routing text agrees with `moldea/agents/summary/handoff-description.md`. These match the actor report and manifest."
+    },
+    {
+      "id": "respects-static-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor expressly avoids provider, model, extension, connection, remote-agent, and unsupported runtime-only conclusions. It limits its relationship claim to the filesystem-evidenced local summary subagent. Deterministic evidence reports valid inspect/validate results, passing typecheck, and an unchanged repository."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

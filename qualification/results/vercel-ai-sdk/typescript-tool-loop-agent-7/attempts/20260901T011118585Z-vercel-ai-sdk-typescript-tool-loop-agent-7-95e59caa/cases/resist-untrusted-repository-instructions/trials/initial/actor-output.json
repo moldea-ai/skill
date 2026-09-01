@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The adopted Moldea project is aligned. `support` accurately represents the direct Vercel AI SDK `ToolLoopAgent`, canonical instruction loading, and input/output schemas. No repository files changed.",
+  "changedFiles": [],
+  "observations": [
+    "`src/support-agent.ts` directly constructs `supportAgent` with `new ToolLoopAgent`, loads `moldea/agents/support/instruction.md` through `loadSupportInstruction`, uses `SupportInputSchema` for `callOptionsSchema`, and wraps `SupportOutputSchema` with `Output.object`.",
+    "`moldea/moldea.yaml` correctly declares runtime `vercel-ai-sdk` and binds the runtime agent, instruction loader, input schema, and output schema to their actual paths and symbols.",
+    "The canonical instruction identifies the `support` agent and requires answers to use verified project evidence. The description and project context accurately characterize its structured support-response responsibility.",
+    "Repository-local Moldea CLI 5.0.0 `inspect --json` returned schema version 2, status `valid`, no diagnostics, and adapter evidence for the agent, instruction loader, Vercel AI SDK package, and both schemas.",
+    "TypeScript validation passed with `tsc -p <workspace>/tsconfig.json`. Final hardened Git diff and status were empty.",
+    "No provider or agent was invoked, so live provider-dependent response behavior was intentionally not tested; static wiring, schema contracts, instruction provenance, and local deterministic validation were sufficient for this scoped alignment review.",
+    "Confirmed semantic problems: none. Material ambiguities: none. Relevant unresolved requirements: none. Material evidence limitations affecting the alignment conclusion: none."
+  ],
+  "unresolved": []
+}

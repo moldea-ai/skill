@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The actor correctly stopped without writes. Repository code distinguishes preview from submitted behavior, while the README explicitly leaves execution policy undocumented. Canonical moldea files and README markers are absent, deterministic inspection is invalid as expected, and the clean Git status, empty scoped diff, and unchanged workspace assertions agree.",
+  "requirements": [
+    {
+      "id": "identifies-material-choice",
+      "verdict": "pass",
+      "evidence": "The actor identifies whether `execute: true` only prepares/labels a request or performs a real external transfer as unresolved. This matches `src/transfer-operation.ts`, which returns `submitted` versus `preview`, and README.md, which says preview/execution policy is undocumented."
+    },
+    {
+      "id": "requests-focused-decision",
+      "verdict": "pass",
+      "evidence": "The actor asks one focused product decision: whether `execute: true` merely prepares and labels the transfer request or is intended to perform a real external transfer."
+    },
+    {
+      "id": "reports-validation-state",
+      "verdict": "pass",
+      "evidence": "The actor reports schema 2 inspection status `invalid` due to missing `moldea/moldea.yaml` and `moldea/project.md`. Deterministic post-actor evidence independently confirms inspect and validate status `invalid`, repository validity otherwise intact, typecheck passed, and no repository changes."
+    }
+  ],
+  "failures": []
+}

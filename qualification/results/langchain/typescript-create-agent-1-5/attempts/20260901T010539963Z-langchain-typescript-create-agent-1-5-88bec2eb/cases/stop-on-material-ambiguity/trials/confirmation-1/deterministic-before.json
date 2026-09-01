@@ -1,0 +1,263 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "invalid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "invalid",
+    "cliInspectStatus": "invalid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 2251
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": false,
+        "formatVersion": null,
+        "diagnosticCodes": [
+          "MOLDEA_MANIFEST_MISSING",
+          "MOLDEA_PROJECT_FILE_MISSING"
+        ],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 0
+      },
+      "memory": {
+        "valid": false,
+        "formatVersion": null,
+        "diagnosticCodes": [
+          "MOLDEA_MANIFEST_MISSING",
+          "MOLDEA_PROJECT_FILE_MISSING"
+        ],
+        "evidenceKinds": [],
+        "evidenceCount": 0,
+        "agentCount": 0
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "invalid",
+      "result": {
+        "diagnostics": [
+          {
+            "code": "MOLDEA_MANIFEST_MISSING",
+            "details": {},
+            "entity": null,
+            "message": "The project manifest is missing.",
+            "path": "/moldea/moldea.yaml",
+            "pointer": null,
+            "range": null,
+            "source": "core"
+          },
+          {
+            "code": "MOLDEA_PROJECT_FILE_MISSING",
+            "details": {},
+            "entity": null,
+            "message": "The project file is missing.",
+            "path": "/moldea/project.md",
+            "pointer": null,
+            "range": null,
+            "source": "core"
+          }
+        ],
+        "formatVersion": null,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "invalid",
+      "result": {
+        "inspection": {
+          "diagnostics": [
+            {
+              "code": "MOLDEA_MANIFEST_MISSING",
+              "details": {},
+              "entity": null,
+              "message": "The project manifest is missing.",
+              "path": "/moldea/moldea.yaml",
+              "pointer": null,
+              "range": null,
+              "source": "core"
+            },
+            {
+              "code": "MOLDEA_PROJECT_FILE_MISSING",
+              "details": {},
+              "entity": null,
+              "message": "The project file is missing.",
+              "path": "/moldea/project.md",
+              "pointer": null,
+              "range": null,
+              "source": "core"
+            }
+          ],
+          "evidence": [],
+          "formatVersion": null,
+          "project": null,
+          "valid": false
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

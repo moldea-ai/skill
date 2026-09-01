@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The actor report, current repository, and deterministic post-actor evidence agree: both canonical instructions feed their direct Anthropic Messages API wrappers; only support registers the closed find_order client tool with its declared input schema; no files changed; and the report correctly limits adapter evidence to static detection rather than runtime or unsupported relationships.",
+  "requirements": [
+    {
+      "id": "explains-direct-patterns",
+      "verdict": "pass",
+      "evidence": "src/instructions.ts loads each canonical moldea/agents/{support,summary}/instruction.md file. src/agents.ts passes the corresponding loader result as system to each direct client.messages.create call. The actor accurately reports these paths, and deterministic inspection was valid."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "verdict": "pass",
+      "evidence": "src/agents.ts registers tools: [findOrderTool] only on supportAgent. src/tools.ts defines find_order with input_schema: FindOrderInputSchema; src/contracts.ts requires the string orderId; src/implementations.ts accepts { orderId: string }; and moldea/moldea.yaml binds the support tool registration, implementation, and input schema. The actor describes these relationships accurately."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "Workspace assertions show identical before/after hashes and no changed paths; deterministic evidence reports repositoryUnchanged=true. The actor explicitly states provider execution is unverified, identifies the absent runtime dispatch-loop evidence, and does not infer output-schema, routing, handoff, subagent, agent-definition, or agent input-schema relationships from adapter evidence."
+    }
+  ],
+  "failures": []
+}

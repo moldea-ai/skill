@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the adopted project's support agent bindings with the existing direct Vercel AI SDK implementation. Local moldea inspection and validation completed with status valid and no diagnostics; TypeScript checking also passed. No implementation files were modified.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "runtimeAgent now binds /src/support-assistant.ts#supportAssistant.",
+    "instructionLoader now binds /src/support-assistant.ts#loadSupportInstruction.",
+    "outputSchema now binds /src/support-assistant.ts#SupportOutputSchema.",
+    "Local adapter evidence detected the generateText runtime pattern, canonical instruction loader, and output schema.",
+    "Preserved the unrelated pre-existing deletion of src/support-agent.ts and untracked src/support-assistant.ts and src/dynamic-tools.ts."
+  ],
+  "unresolved": [
+    "Agent-level warning dynamic-tool-registry-relationship records that static inspection cannot establish whether /src/dynamic-tools.ts#assembleTools supplies tools to supportAssistant. Resolution requires closed runtime wiring or an integration test, followed by registering only proven qualifying tools or establishing that the registry is unrelated.",
+    "Current published Vercel AI SDK compatibility and maturity were not checked because network access was prohibited. The resolving publication is https://packages.moldea.ai/compatibility/runtimes.json."
+  ]
+}

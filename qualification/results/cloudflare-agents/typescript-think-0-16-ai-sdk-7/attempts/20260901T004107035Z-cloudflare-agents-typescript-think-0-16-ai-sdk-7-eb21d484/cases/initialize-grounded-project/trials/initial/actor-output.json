@@ -1,0 +1,21 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized moldea. Canonical state changed by adding the evidence-backed invoice-review foundation and the standard README awareness block. Moldea CLI 5.0.0 inspection and validation both returned schema 2, status valid, format version 1, and zero diagnostics.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "README evidence establishes that the service extracts invoice anomalies for operator review and never approves payment or changes invoices.",
+    "Source evidence establishes calculation of total minus expected total and operator review when totals differ.",
+    "The original README content was preserved; one correctly ordered moldea awareness block was appended.",
+    "Final inspection found no agents, focused context, decisions, runtimes, unresolved requirements, or adapter evidence.",
+    "Hardened Git status showed only README.md modified and moldea/ added; the final README diff and both new canonical files were inspected.",
+    "No dependency, agent, runtime guide, decision, or unresolved-requirement artifact was created.",
+    "Next actions: review the foundation if desired, or continue ordinary development."
+  ],
+  "unresolved": [
+    "Runtime wiring, deployment behavior, invoice input sources, and anomaly types beyond total mismatch are not established by the README or source, so they were intentionally omitted."
+  ]
+}

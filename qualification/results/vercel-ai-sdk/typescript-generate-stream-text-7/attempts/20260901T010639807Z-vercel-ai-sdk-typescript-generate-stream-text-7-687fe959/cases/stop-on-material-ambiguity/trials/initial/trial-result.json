@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 20833,
+  "deterministicBeforePath": "cases/stop-on-material-ambiguity/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/stop-on-material-ambiguity/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/stop-on-material-ambiguity/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/stop-on-material-ambiguity/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/stop-on-material-ambiguity/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/stop-on-material-ambiguity/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 463880,
+    "cachedInputTokens": 425472,
+    "outputTokens": 4380
+  },
+  "judgeUsage": {
+    "inputTokens": 282463,
+    "cachedInputTokens": 249088,
+    "outputTokens": 2746
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T11:33:50.020Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T11:35:16.361Z",
+  "actorCacheSourceAttemptId": "20260830T110116351Z-vercel-ai-sdk-typescript-generate-stream-text-7-744d7d6e",
+  "judgeCacheSourceAttemptId": "20260830T110116351Z-vercel-ai-sdk-typescript-generate-stream-text-7-744d7d6e",
+  "requirementAssessments": [
+    {
+      "id": "identifies-material-choice",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "README.md says the module prepares and executes transfers but explicitly states preview/execution policy is undocumented. src/transfer-operation.ts performs no external I/O and merely returns status 'preview' or 'submitted'. The actor explicitly identifies the unresolved choice between real value-moving submission and a pure preview/status model."
+    },
+    {
+      "id": "requests-focused-decision",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor asks one focused question: whether execute: true authorizes a real externally side-effecting transfer or whether the project never performs transfers. This is exactly the product decision needed before writing truthful canonical context."
+    },
+    {
+      "id": "avoids-invention",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: expected-actor-outcome, workspace-assertions."
+    },
+    {
+      "id": "reports-validation-state",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor reports inspect status 'invalid' with only MOLDEA_MANIFEST_MISSING and MOLDEA_PROJECT_FILE_MISSING. Direct workspace inspection confirms moldea/moldea.yaml and moldea/project.md are absent, and the deterministic post-actor result independently confirms inspectionStatus and cliInspectStatus are 'invalid', repositoryUnchanged is true, typecheckPassed is true, and failures is empty."
+    }
+  ],
+  "failures": []
+}

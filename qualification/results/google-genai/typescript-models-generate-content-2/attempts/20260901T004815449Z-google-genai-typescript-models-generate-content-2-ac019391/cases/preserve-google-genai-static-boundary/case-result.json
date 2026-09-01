@@ -1,0 +1,66 @@
+{
+  "caseId": "preserve-google-genai-static-boundary",
+  "title": "Preserve the Google Gen AI static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 27296,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 27296,
+      "deterministicBeforePath": "cases/preserve-google-genai-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-google-genai-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-google-genai-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-google-genai-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-google-genai-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-google-genai-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 767569,
+        "cachedInputTokens": 708608,
+        "outputTokens": 4346
+      },
+      "judgeUsage": {
+        "inputTokens": 474407,
+        "cachedInputTokens": 400896,
+        "outputTokens": 3720
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T16:22:57.645Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T16:24:55.197Z",
+      "actorCacheSourceAttemptId": "20260830T152809838Z-google-genai-typescript-models-generate-content-2-d6ccb1a9",
+      "judgeCacheSourceAttemptId": "20260830T152809838Z-google-genai-typescript-models-generate-content-2-d6ccb1a9",
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-evidence",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/agents.ts directly calls client.models.generateContent for supportAgent and sets config.systemInstruction from loadSupportInstruction, which reads moldea/agents/support/instruction.md. moldea/moldea.yaml binds supportAgent and loadSupportInstruction, and the actor reports matching adapter inspection evidence. Deterministic post-actor inspection was valid."
+        },
+        {
+          "id": "preserves-provider-tool-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/agents.ts supplies the provider-hosted googleSearch object, while moldea/moldea.yaml contains no capability, function-declaration, registration, or schema binding for it. The actor reports that inspection produced none of those relationships, consistent with the current canonical state."
+        },
+        {
+          "id": "preserves-indirect-request-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "dynamicSupportAgent passes an intermediate request object to models.generateContent. Its manifest entry records only the runtime agent binding and the indirect-request-construction warning; it declares no instruction loader, runtime-pattern binding, schema, routing, or handoff. The warning gives a concrete resolution: pass a closed request directly or document it through a supported adapter pattern."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

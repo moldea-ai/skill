@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized moldea from repository-supported context only. The README identifies an operator-facing invoice anomaly review service with no authority to approve payments or modify invoices; src/invoice-review.ts confirms total comparison, difference reporting, and operator-review behavior. Local moldea inspect returned valid with schema 2, CLI 5.0.0, and no diagnostics. TypeScript validation passed, README markers were verified as one correctly ordered pair, and the final Git diff/status were inspected.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "The project is now adopted with the complete canonical foundation and standard README awareness block.",
+    "Canonical state changed only by adding the version 1 manifest and evidence-backed project foundation.",
+    "No agent, runtime guide, decision, focused context, or unresolved requirement was created because the repository does not support one.",
+    "No runtime integration or invocation path is established by the README or source, so none was invented.",
+    "The README's original content was preserved unchanged before the appended awareness block.",
+    "Next actions: review the foundation or continue ordinary development."
+  ],
+  "unresolved": []
+}

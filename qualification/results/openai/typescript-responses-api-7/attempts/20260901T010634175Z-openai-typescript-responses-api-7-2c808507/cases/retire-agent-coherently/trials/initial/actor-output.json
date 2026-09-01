@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the obsolete canonical `support` agent setup. Removed its manifest registration, description, and instruction. Final moldea inspection passed with zero agents and no diagnostics; TypeScript validation also passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "The pre-existing deletion of src/support-agent.ts removed the direct OpenAI Responses wrapper, supportAgent export, and loadSupportInstruction loader; it was preserved unchanged.",
+    "Before the update, moldea inspect reported three diagnostics for the missing wrapper: stale runtimeAgent, instructionLoader, and affectedBy references.",
+    "src/project-state.ts declares activeAgents: 0, independently supporting retirement of the canonical agent.",
+    "A final repository search found no remaining supportAgent, loadSupportInstruction, support-agent, agents/support, or responses.create references in active project surfaces.",
+    "Final `moldea inspect --json` returned schema 2, CLI 5.0.0, status valid, zero agents, and no diagnostics.",
+    "`node_modules/.bin/tsc -p tsconfig.json --noEmit` completed successfully.",
+    "The final Git diff contains the three intentional canonical changes plus the unrelated pre-existing deletion of src/support-agent.ts."
+  ],
+  "unresolved": []
+}

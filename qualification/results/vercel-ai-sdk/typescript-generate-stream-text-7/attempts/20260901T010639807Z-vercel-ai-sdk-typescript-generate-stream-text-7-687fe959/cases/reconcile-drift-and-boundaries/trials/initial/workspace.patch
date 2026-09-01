@@ -1,0 +1,84 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index e9e2a4a..c3a7753 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -5,13 +5,31 @@ agents:
+       id: vercel-ai-sdk
+     bindings:
+       runtimeAgent:
+-        path: /src/support-agent.ts
+-        symbol: supportAgent
++        path: /src/support-assistant.ts
++        symbol: supportAssistant
+       instructionLoader:
+-        path: /src/support-agent.ts
++        path: /src/support-assistant.ts
+         symbol: loadSupportInstruction
+       outputSchema:
+-        path: /src/support-agent.ts
++        path: /src/support-assistant.ts
+         symbol: SupportOutputSchema
++    unresolved:
++      dynamic-tool-registry-relationship:
++        category: capability-registration
++        effect: warning
++        description: >-
++          /src/dynamic-tools.ts assembles ToolSet registries dynamically, but static
++          inspection does not establish whether the resulting tools are supplied to
++          the support assistant's generateText invocation.
++        resolution: >-
++          Provide closed runtime wiring or an integration test that proves whether
++          assembleTools output is passed as tools to supportAssistant; then register
++          each qualifying support tool with its real implementation and registration
++          bindings, or establish that this registry is unrelated to the support agent.
++        related:
++          - path: /src/dynamic-tools.ts
++            symbol: assembleTools
++          - path: /src/support-assistant.ts
++            symbol: supportAssistant
+     affectedBy:
+       - /src/**
+diff --git a/src/support-agent.ts b/src/support-agent.ts
+deleted file mode 100644
+index 04f0cf4..0000000
+--- a/src/support-agent.ts
++++ /dev/null
+@@ -1 +0,0 @@
+-export const supportAgent = { removed: true } as const;
+
+diff --git a/src/dynamic-tools.ts b/src/dynamic-tools.ts
+new file mode 100644
+index 0000000..900ff9f
+--- /dev/null
++++ b/src/dynamic-tools.ts
+@@ -0,0 +1,7 @@
++import type { ToolSet } from 'ai';
++
++export const assembleTools = (registries: readonly ToolSet[]): ToolSet =>
++  registries.reduce<ToolSet>(
++    (assembledTools, registry) => ({ ...assembledTools, ...registry }),
++    {},
++  );
+
+diff --git a/src/support-assistant.ts b/src/support-assistant.ts
+new file mode 100644
+index 0000000..ff0c0d6
+--- /dev/null
++++ b/src/support-assistant.ts
+@@ -0,0 +1,16 @@
++import { readFile } from 'node:fs/promises';
++
++import { generateText, Output } from 'ai';
++import { z } from 'zod';
++
++export const SupportOutputSchema = z.object({ answer: z.string() });
++export const loadSupportInstruction = async (): Promise<string> =>
++  readFile(new URL('../moldea/agents/support/instruction.md', import.meta.url), 'utf8');
++
++export const supportAssistant = async (prompt: string) =>
++  generateText({
++    model: 'openai/gpt-5',
++    prompt,
++    instructions: await loadSupportInstruction(),
++    output: Output.object({ schema: SupportOutputSchema }),
++  });

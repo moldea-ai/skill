@@ -1,0 +1,66 @@
+{
+  "caseId": "preserve-openai-agents-sdk-static-boundary",
+  "title": "Preserve the OpenAI Agents SDK static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 361242,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 361242,
+      "deterministicBeforePath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-openai-agents-sdk-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 495656,
+        "cachedInputTokens": 446464,
+        "outputTokens": 4665
+      },
+      "judgeUsage": {
+        "inputTokens": 426742,
+        "cachedInputTokens": 382208,
+        "outputTokens": 5046
+      },
+      "actorEvidenceCreatedAt": "2026-09-01T02:34:48.278Z",
+      "judgeEvidenceCreatedAt": "2026-09-01T02:37:54.898Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-evidence",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/agents.ts directly assigns `supportAgent = new Agent({...})`, passes `loadSupportInstruction` as `instructions`, and that loader reads `/moldea/agents/support/instruction.md`. moldea/moldea.yaml records matching `runtimeAgent` and `instructionLoader` bindings. The actor report identifies both, and deterministic-after reports valid inspection and passing typecheck."
+        },
+        {
+          "id": "preserves-provider-tool-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/agents.ts uses `webSearchTool()` and `summaryAgent.asTool(...)`, but moldea/moldea.yaml invents no function-tool, capability, schema, routing, or handoff relationship for them. The actor report explicitly treats those adapter-unsupported relationships as absent, consistent with the current workspace and valid deterministic result."
+        },
+        {
+          "id": "preserves-indirect-request-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/agents.ts constructs dynamic-support from the indirect `dynamicSupportConfiguration`, builds transformed handoff text with `.join`, and separately constructs a `RealtimeAgent`. The manifest does not record definition-derived routing, handoff, schema, or RealtimeAgent relationships. It retains `indirect-agent-configuration` as a warning stating that an Agent definition and its relationships cannot be proven, with resolution through a closed inline configuration or supported adapter pattern. The actor report explains the same limitation. Before/after hashes are identical and changedPaths is empty."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

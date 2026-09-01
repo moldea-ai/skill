@@ -1,0 +1,72 @@
+{
+  "caseId": "create-grounded-agent",
+  "title": "Create a grounded agent",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 32342,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 32342,
+      "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 2122186,
+        "cachedInputTokens": 1924608,
+        "outputTokens": 6912
+      },
+      "judgeUsage": {
+        "inputTokens": 484230,
+        "cachedInputTokens": 438272,
+        "outputTokens": 3322
+      },
+      "actorEvidenceCreatedAt": "2026-08-30T20:02:48.244Z",
+      "judgeEvidenceCreatedAt": "2026-08-30T20:04:55.284Z",
+      "actorCacheSourceAttemptId": "20260830T194811637Z-cloudflare-agents-typescript-think-0-16-ai-sdk-7-436af4b3",
+      "judgeCacheSourceAttemptId": "20260830T194811637Z-cloudflare-agents-typescript-think-0-16-ai-sdk-7-436af4b3",
+      "requirementAssessments": [
+        {
+          "id": "grounds-behavior",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current workspace: moldea/agents/order-triage/description.md says the agent classifies orders for human review and cannot approve refunds; instruction.md requires classify_order, treats every result as requiring human review, and says never to approve a refund. This agrees with src/order-triage-agent.ts, whose output schema fixes requiresHumanReview to true and whose loader denies refund approval. Workspace assertions show only these two assets and moldea/moldea.yaml changed."
+        },
+        {
+          "id": "binds-direct-agent",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/order-triage-agent.ts#OrderTriageAgent and instructionLoader to /src/order-triage-agent.ts#loadOrderTriageInstruction. The source directly exports both symbols, OrderTriageAgent extends Think, and no agent schema is declared. Deterministic post-actor inspection reports valid Core and adapter results."
+        },
+        {
+          "id": "binds-function-tool",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest tool name classify_order matches OrderTriageAgent.getTools(). Its bindings exactly match the directly exported classifyOrder implementation, classifyOrderTool registration, ClassifyOrderInputSchema, and ClassifyOrderOutputSchema in /src/order-triage-agent.ts. Deterministic inspection and validation passed, with typecheckPassed true."
+        },
+        {
+          "id": "avoids-redundant-guidance",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

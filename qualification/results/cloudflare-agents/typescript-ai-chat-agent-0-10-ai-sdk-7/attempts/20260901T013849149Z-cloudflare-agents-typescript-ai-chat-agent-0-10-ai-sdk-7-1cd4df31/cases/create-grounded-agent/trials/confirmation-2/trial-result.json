@@ -1,0 +1,62 @@
+{
+  "trialId": "confirmation-2",
+  "kind": "confirmation",
+  "confirmationIndex": 2,
+  "passed": true,
+  "durationMs": 393413,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/confirmation-2/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/confirmation-2/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/confirmation-2/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/confirmation-2/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/confirmation-2/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/confirmation-2/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 2263680,
+    "cachedInputTokens": 2152448,
+    "outputTokens": 7817
+  },
+  "judgeUsage": {
+    "inputTokens": 496510,
+    "cachedInputTokens": 424448,
+    "outputTokens": 3593
+  },
+  "actorEvidenceCreatedAt": "2026-09-01T01:50:55.573Z",
+  "judgeEvidenceCreatedAt": "2026-09-01T01:53:11.411Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md, description.md, and instruction.md consistently state classification for human review and explicitly deny refund approval. Workspace assertions show only those canonical additions plus moldea/moldea.yaml changed; no runtime guide or handoff description exists."
+    },
+    {
+      "id": "binds-direct-agent",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds /src/order-triage-agent.ts symbols OrderTriageAgent, loadOrderTriageInstruction, and OrderTriageOutputSchema. The source directly exports all three and passes OrderTriageOutputSchema to Output.object. No agent input-schema binding is declared. Deterministic inspect/validate and type-check results passed."
+    },
+    {
+      "id": "binds-function-tool",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest registers runtime name classify_order and binds classifyOrder, classifyOrderTool, ClassifyOrderInputSchema, and ClassifyOrderOutputSchema. src/order-triage-agent.ts exports those exact symbols and wires them through tool({ inputSchema, outputSchema, execute }) and tools: { classify_order: classifyOrderTool }. Deterministic inspection passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

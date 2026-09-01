@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The existing support and summary agent setup is valid and aligned; no edits were needed. Moldea inspect and validate returned schema 2, CLI 5.0.0, status valid, and no diagnostics. TypeScript validation also passed.",
+  "changedFiles": [],
+  "observations": [
+    "The project is adopted with a complete canonical manifest, project context, and README awareness block.",
+    "supportAgent directly calls generateText, loads the canonical support instruction, uses SupportOutputSchema through Output.object, and registers find_order.",
+    "The find_order declaration matches its runtime registration, findOrder implementation, and tool input/output schemas.",
+    "summaryAgent directly calls streamText, loads the canonical summary instruction, and uses SummaryOutputSchema through Output.object.",
+    "Canonical descriptions and instructions accurately describe the evidenced wrapper behavior.",
+    "No provider, model, routing, handoff, subagent, or agent input-schema relationships were inferred or evaluated.",
+    "The final Git diff and status were empty."
+  ],
+  "unresolved": []
+}

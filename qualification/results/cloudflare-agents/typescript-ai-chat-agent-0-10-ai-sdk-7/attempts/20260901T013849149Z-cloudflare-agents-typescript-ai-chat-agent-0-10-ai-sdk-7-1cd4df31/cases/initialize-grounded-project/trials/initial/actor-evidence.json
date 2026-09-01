@@ -1,0 +1,31 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-08-30T21:42:26.393Z",
+  "durationMs": 148788,
+  "usage": {
+    "inputTokens": 678994,
+    "cachedInputTokens": 578560,
+    "outputTokens": 4928
+  },
+  "cacheKey": "01d7d5b8ee8d973d9fc56b05aba244d6c9788e0c20547277df0b611a59d1b3ba",
+  "sourceAttemptId": "20260830T213510339Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-b8c52d92",
+  "cacheSourceAttemptId": "20260830T213510339Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-b8c52d92",
+  "commandPolicy": {
+    "completedCommandCount": 27,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3
+    }
+  }
+}

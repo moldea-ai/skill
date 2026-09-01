@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized moldea from README and source evidence only. Preserved the existing README, added the standard awareness block, and created the minimal canonical foundation. Validation passed: moldea CLI 5.0.0 returned schema 2, status `valid`, format version 1, and zero diagnostics; TypeScript type-checking also passed.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "The README establishes an invoice-anomaly review service for an operator and excludes payment approval and invoice mutation.",
+    "The source compares invoice and expected totals, returning the difference and whether operator review is required.",
+    "Canonical state changed from unadopted to adopted with the complete manifest, project file, and README awareness block.",
+    "No agent, runtime guide, decision, focused context, or unresolved requirement was created because none was supported by repository evidence.",
+    "Final hardened Git status showed only README.md modified and moldea/ added. The README Git diff and both new files were inspected; an optional Git no-index rendering of untracked files was evaluator-blocked, but their contents were directly reviewed and validated by moldea.",
+    "Next actions: review the captured foundation if desired, or continue ordinary development."
+  ],
+  "unresolved": []
+}

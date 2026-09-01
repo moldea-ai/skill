@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to `classifyBillingQuestion`, and connected it to `support` instructions for refund and invoice categorization. Moldea inspection passed with no diagnostics, TypeScript type-check passed, and Git diff checks passed.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The direct LangChain agent definition, instruction loader, and structured output in `src/support-agent.ts` remain unchanged.",
+    "Pre-existing tracked work in `src/operator-notes.ts` and untracked `notes/` content were preserved.",
+    "The final tracked diff and new billing context were inspected completely.",
+    "No provider, agent, model, subagent, or network access was used."
+  ],
+  "unresolved": [
+    "Live runtime response behavior was not tested because invoking the agent or provider was prohibited; validation is limited to static Moldea inspection and local TypeScript checks."
+  ]
+}

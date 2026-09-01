@@ -1,0 +1,822 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "valid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "valid",
+    "cliInspectStatus": "valid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 3324
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 16,
+        "agentCount": 2
+      },
+      "memory": {
+        "valid": true,
+        "formatVersion": 1,
+        "diagnosticCodes": [],
+        "evidenceKinds": [
+          "agent-definition",
+          "agent-definition",
+          "language",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "runtime-pattern",
+          "schema",
+          "schema"
+        ],
+        "evidenceCount": 16,
+        "agentCount": 2
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "2.0.3"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "1.0.5"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "2.0.6"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "1.0.4"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "1.0.2"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "1.1.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "1.0.4"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": "^22.11.0 || ^24.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "validate",
+      "status": "valid",
+      "result": {
+        "diagnostics": [],
+        "formatVersion": 1,
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 2,
+      "cliVersion": "5.0.0",
+      "command": "inspect",
+      "status": "valid",
+      "result": {
+        "inspection": {
+          "diagnostics": [],
+          "evidence": [
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "apiKind": "state-graph",
+                "builderForm": "module-local",
+                "targetId": "typescript-state-graph-1-4"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-graph.ts",
+                  "symbol": "dynamicSupportGraph"
+                }
+              ],
+              "runtimeName": "dynamic_support_graph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "apiKind": "state-graph",
+                "builderForm": "module-local",
+                "targetId": "typescript-state-graph-1-4"
+              },
+              "kind": "agent-definition",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": "support_graph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript",
+                "moduleKind": "esm"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-graph.ts",
+                  "symbol": "dynamicSupportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "language": "typescript",
+                "moduleKind": "esm"
+              },
+              "kind": "language",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.2.9",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/core",
+                "packageRole": "companion",
+                "targetClassification": "supported"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.4.12",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/langgraph",
+                "packageRole": "primary",
+                "targetClassification": "supported"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/langgraph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.2.9",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/core",
+                "packageRole": "companion",
+                "targetClassification": "supported"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/core",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "classification": "supported",
+                "declaredRange": "1.4.12",
+                "dependencyKind": "dependencies",
+                "packageName": "@langchain/langgraph",
+                "packageRole": "primary",
+                "targetClassification": "supported"
+              },
+              "kind": "runtime-package",
+              "references": [
+                {
+                  "path": "/package.json"
+                }
+              ],
+              "runtimeName": "@langchain/langgraph",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "graphOperation": "addConditionalEdges",
+                "patternId": "state-graph-conditional-edge",
+                "sourceName": "route-request",
+                "targetId": "typescript-state-graph-1-4"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-graph.ts"
+                },
+                {
+                  "path": "/src/dynamic-support-graph.ts",
+                  "symbol": "selectDestination"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "edgeKind": "direct",
+                "graphOperation": "addEdge",
+                "patternId": "state-graph-edge",
+                "sourceName": "__start__",
+                "targetId": "typescript-state-graph-1-4",
+                "targetName": "route-request"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-graph.ts"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "dynamic-support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "graphOperation": "addNode",
+                "patternId": "state-graph-node",
+                "targetId": "typescript-state-graph-1-4"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/dynamic-support-graph.ts"
+                },
+                {
+                  "path": "/src/dynamic-support-graph.ts",
+                  "symbol": "routeRequest"
+                }
+              ],
+              "runtimeName": "route-request",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "edgeKind": "direct",
+                "graphOperation": "addEdge",
+                "patternId": "state-graph-edge",
+                "sourceName": "__start__",
+                "targetId": "typescript-state-graph-1-4",
+                "targetName": "lookup-order"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "edgeKind": "direct",
+                "graphOperation": "addEdge",
+                "patternId": "state-graph-edge",
+                "sourceName": "lookup-order",
+                "targetId": "typescript-state-graph-1-4",
+                "targetName": "__end__"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "graphOperation": "addNode",
+                "patternId": "state-graph-node",
+                "targetId": "typescript-state-graph-1-4"
+              },
+              "kind": "runtime-pattern",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts"
+                },
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "lookupOrder"
+                }
+              ],
+              "runtimeName": "lookup-order",
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-input",
+                "schemaSource": "explicit-input",
+                "targetId": "typescript-state-graph-1-4"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "SupportInputSchema"
+                },
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "details": {
+                "schemaRole": "agent-output",
+                "schemaSource": "explicit-output",
+                "targetId": "typescript-state-graph-1-4"
+              },
+              "kind": "schema",
+              "references": [
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "SupportOutputSchema"
+                },
+                {
+                  "path": "/src/support-graph.ts",
+                  "symbol": "supportGraph"
+                }
+              ],
+              "runtimeName": null,
+              "source": "langgraph"
+            }
+          ],
+          "formatVersion": 1,
+          "project": {
+            "agents": [
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/dynamic-support-graph.ts",
+                    "/src/prebuilt-boundary.ts",
+                    "/src/runtime-boundaries.ts"
+                  ],
+                  "bindings": {
+                    "runtimeAgent": {
+                      "path": "/src/dynamic-support-graph.ts",
+                      "symbol": "dynamicSupportGraph"
+                    }
+                  },
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/langgraph.md",
+                    "id": "langgraph"
+                  },
+                  "unresolved": {
+                    "dynamic-routing": {
+                      "category": "routing",
+                      "description": "Static inspection does not establish the destinations selected at runtime by the conditional edge, Command, or Send.",
+                      "effect": "warning",
+                      "related": [
+                        {
+                          "path": "/src/dynamic-support-graph.ts"
+                        },
+                        {
+                          "path": "/src/runtime-boundaries.ts"
+                        }
+                      ],
+                      "resolution": "Provide closed runtime wiring or integration tests that establish every allowed destination and its selection path."
+                    }
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Routes support work through runtime-selected graph destinations without claiming static topology.\n",
+                    "digest": "sha256:d7a3c9df2b044b05703ffb852e0d6aea47ed4b4d3df2f1ee68e1a9f73ab89528",
+                    "path": "/moldea/agents/dynamic-support/description.md",
+                    "scalarLength": 98,
+                    "utf8ByteLength": 98
+                  },
+                  "scalarLength": 97,
+                  "value": "Routes support work through runtime-selected graph destinations without claiming static topology."
+                },
+                "handoffDescription": null,
+                "id": "dynamic-support",
+                "instruction": {
+                  "content": "# Dynamic support agent\n\nYou are the `dynamic-support` agent. Route support work only through destinations authorized by the runtime configuration. Do not present graph position as tool, handoff, subagent, or approval authority.\n",
+                  "digest": "sha256:2cbbebe9fb358182652ffc7aab7bfb7c928dce9e1dc59e5c15f0b9539437ae3a",
+                  "path": "/moldea/agents/dynamic-support/instruction.md",
+                  "scalarLength": 229,
+                  "utf8ByteLength": 229
+                },
+                "mirrors": []
+              },
+              {
+                "context": [],
+                "decisions": [],
+                "declaration": {
+                  "affectedBy": [
+                    "/src/support-graph.ts"
+                  ],
+                  "bindings": {
+                    "inputSchema": {
+                      "path": "/src/support-graph.ts",
+                      "symbol": "SupportInputSchema"
+                    },
+                    "outputSchema": {
+                      "path": "/src/support-graph.ts",
+                      "symbol": "SupportOutputSchema"
+                    },
+                    "runtimeAgent": {
+                      "path": "/src/support-graph.ts",
+                      "symbol": "supportGraph"
+                    }
+                  },
+                  "runtime": {
+                    "guidance": "/moldea/runtimes/langgraph.md",
+                    "id": "langgraph"
+                  }
+                },
+                "description": {
+                  "asset": {
+                    "content": "Produces support responses through a repository-specific request builder.\n",
+                    "digest": "sha256:ab6d3f651ca3971a36a0922b7ec353354febb630009c6ff5a3ca72d287c2bddc",
+                    "path": "/moldea/agents/support/description.md",
+                    "scalarLength": 74,
+                    "utf8ByteLength": 74
+                  },
+                  "scalarLength": 73,
+                  "value": "Produces support responses through a repository-specific request builder."
+                },
+                "handoffDescription": null,
+                "id": "support",
+                "instruction": {
+                  "content": "# Support agent\n\nYou are the `support` agent. Answer only from verified project evidence.\n",
+                  "digest": "sha256:b93f18f322707ad6ebaa3b2f094af606e701699c9027b226b74ba830afd87a46",
+                  "path": "/moldea/agents/support/instruction.md",
+                  "scalarLength": 90,
+                  "utf8ByteLength": 90
+                },
+                "mirrors": []
+              }
+            ],
+            "context": [],
+            "decisions": [],
+            "formatVersion": 1,
+            "manifest": {
+              "asset": {
+                "content": "version: 1\nunresolved:\n  runtime-composition:\n    category: runtime\n    effect: warning\n    description: Static inspection does not establish the effective reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, ToolNode registration, or supervisor composition.\n    resolution: Provide the runtime and deployment configuration plus integration evidence that establishes each effective composition choice.\n    related:\n      - path: /src/support-graph.ts\n      - path: /src/runtime-boundaries.ts\n      - path: /src/prebuilt-boundary.ts\nagents:\n  support:\n    runtime:\n      id: langgraph\n      guidance: /moldea/runtimes/langgraph.md\n    bindings:\n      runtimeAgent:\n        path: /src/support-graph.ts\n        symbol: supportGraph\n      inputSchema:\n        path: /src/support-graph.ts\n        symbol: SupportInputSchema\n      outputSchema:\n        path: /src/support-graph.ts\n        symbol: SupportOutputSchema\n    affectedBy:\n      - /src/support-graph.ts\n  dynamic-support:\n    runtime:\n      id: langgraph\n      guidance: /moldea/runtimes/langgraph.md\n    bindings:\n      runtimeAgent:\n        path: /src/dynamic-support-graph.ts\n        symbol: dynamicSupportGraph\n    affectedBy:\n      - /src/dynamic-support-graph.ts\n      - /src/runtime-boundaries.ts\n      - /src/prebuilt-boundary.ts\n    unresolved:\n      dynamic-routing:\n        category: routing\n        effect: warning\n        description: Static inspection does not establish the destinations selected at runtime by the conditional edge, Command, or Send.\n        resolution: Provide closed runtime wiring or integration tests that establish every allowed destination and its selection path.\n        related:\n          - path: /src/dynamic-support-graph.ts\n          - path: /src/runtime-boundaries.ts\n",
+                "digest": "sha256:e354f48de022d40babd1d72601506b7f3626f09c7549bdbe3fc663af4285aae1",
+                "path": "/moldea/moldea.yaml",
+                "scalarLength": 1836,
+                "utf8ByteLength": 1836
+              },
+              "value": {
+                "agents": {
+                  "dynamic-support": {
+                    "affectedBy": [
+                      "/src/dynamic-support-graph.ts",
+                      "/src/prebuilt-boundary.ts",
+                      "/src/runtime-boundaries.ts"
+                    ],
+                    "bindings": {
+                      "runtimeAgent": {
+                        "path": "/src/dynamic-support-graph.ts",
+                        "symbol": "dynamicSupportGraph"
+                      }
+                    },
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/langgraph.md",
+                      "id": "langgraph"
+                    },
+                    "unresolved": {
+                      "dynamic-routing": {
+                        "category": "routing",
+                        "description": "Static inspection does not establish the destinations selected at runtime by the conditional edge, Command, or Send.",
+                        "effect": "warning",
+                        "related": [
+                          {
+                            "path": "/src/dynamic-support-graph.ts"
+                          },
+                          {
+                            "path": "/src/runtime-boundaries.ts"
+                          }
+                        ],
+                        "resolution": "Provide closed runtime wiring or integration tests that establish every allowed destination and its selection path."
+                      }
+                    }
+                  },
+                  "support": {
+                    "affectedBy": [
+                      "/src/support-graph.ts"
+                    ],
+                    "bindings": {
+                      "inputSchema": {
+                        "path": "/src/support-graph.ts",
+                        "symbol": "SupportInputSchema"
+                      },
+                      "outputSchema": {
+                        "path": "/src/support-graph.ts",
+                        "symbol": "SupportOutputSchema"
+                      },
+                      "runtimeAgent": {
+                        "path": "/src/support-graph.ts",
+                        "symbol": "supportGraph"
+                      }
+                    },
+                    "runtime": {
+                      "guidance": "/moldea/runtimes/langgraph.md",
+                      "id": "langgraph"
+                    }
+                  }
+                },
+                "unresolved": {
+                  "runtime-composition": {
+                    "category": "runtime",
+                    "description": "Static inspection does not establish the effective reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, ToolNode registration, or supervisor composition.",
+                    "effect": "warning",
+                    "related": [
+                      {
+                        "path": "/src/prebuilt-boundary.ts"
+                      },
+                      {
+                        "path": "/src/runtime-boundaries.ts"
+                      },
+                      {
+                        "path": "/src/support-graph.ts"
+                      }
+                    ],
+                    "resolution": "Provide the runtime and deployment configuration plus integration evidence that establishes each effective composition choice."
+                  }
+                },
+                "version": 1
+              }
+            },
+            "project": {
+              "content": "# Support graph boundaries\n\nThis project uses direct StateGraph workflows while leaving runtime-selected routing and deployment composition explicit.\n",
+              "digest": "sha256:9ec16f173f4a920c7e5b3ae1a16a134bad8cb67a1b3de3781baa0b30dd9fac84",
+              "path": "/moldea/project.md",
+              "scalarLength": 150,
+              "utf8ByteLength": 150
+            },
+            "runtimes": [
+              {
+                "asset": {
+                  "content": "# LangGraph runtime boundaries\n\nStatic inspection proves `supportGraph` and its explicit input and output schemas, but the factory-created state schema for `dynamicSupportGraph` is not a canonical schema binding. Conditional edges, `Command`, and `Send` accept runtime-selected destinations and therefore do not prove routing targets or complete topology.\n\n`lookupOrder` is a graph node callback, and the unregistered `ToolNode` does not establish an agent tool. Runtime and deployment evidence must establish effective reducers, node metadata, subgraphs, checkpointers, stores, caches, context, compiled descriptions, prebuilt agents, ToolNode registration, and supervisor composition.\n",
+                  "digest": "sha256:98348ae7cbaca739abae9c7bbc5e6b340e5aaefd8d97bd6c42cfd365f7956b62",
+                  "path": "/moldea/runtimes/langgraph.md",
+                  "scalarLength": 687,
+                  "utf8ByteLength": 687
+                }
+              }
+            ],
+            "unresolved": {
+              "runtime-composition": {
+                "category": "runtime",
+                "description": "Static inspection does not establish the effective reducers, node metadata, subgraphs, checkpointers, stores, caches, runtime context, compiled descriptions, prebuilt agents, ToolNode registration, or supervisor composition.",
+                "effect": "warning",
+                "related": [
+                  {
+                    "path": "/src/prebuilt-boundary.ts"
+                  },
+                  {
+                    "path": "/src/runtime-boundaries.ts"
+                  },
+                  {
+                    "path": "/src/support-graph.ts"
+                  }
+                ],
+                "resolution": "Provide the runtime and deployment configuration plus integration evidence that establishes each effective composition choice."
+              }
+            }
+          },
+          "valid": true
+        },
+        "source": {
+          "kind": "git-working-tree"
+        }
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

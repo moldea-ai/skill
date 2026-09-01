@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace and runner-owned workspace patch agree: initialization adds only the minimal moldea foundation and accurately grounds it in the existing invoice-review behavior and boundaries.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "`moldea/project.md` states that the service identifies invoice-total differences for operator review and neither approves payments nor changes invoices. This matches `src/invoice-review.ts`, where `difference` is calculated and `requiresOperatorReview` is true when totals differ, and the preserved README statement that the service never approves payment or changes an invoice. Workspace assertions identify `moldea/project.md` and the README update in the patch while confirming the source remained unchanged."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "Targeted inspection of `/moldea` finds only `moldea/moldea.yaml` and `moldea/project.md`; the manifest contains only `version: 1` and references no agents, runtimes, decisions, contexts, bindings, mirrors, or requirements. README contains exactly one correctly ordered standard awareness block. Runner-owned workspace assertions report exactly three changed paths—`README.md`, `moldea/moldea.yaml`, and `moldea/project.md`—with `package.json`, source, and `tsconfig.json` unchanged."
+    }
+  ],
+  "failures": []
+}

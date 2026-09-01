@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to `classifyBillingQuestion`, assigned it to `support`, and placed the evidence-backed refund/invoice guidance in the runtime-loaded support instruction. Preserved the direct Vercel AI SDK agent, loader, call-options schema, structured output, and unrelated developer work. Moldea inspection passed with no diagnostics, TypeScript passed, classifier assertions passed, and the final diff was inspected.",
+  "changedFiles": [
+    "moldea/context/billing.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The billing contract classifies messages containing literal lowercase `refund` as `refund-review`; other billing questions become `invoice-question`.",
+    "Guidance explicitly avoids inventing refund eligibility, approvals, payment status, or invoice details.",
+    "Pre-existing `src/operator-notes.ts` and untracked `notes/` changes remain untouched.",
+    "The repository is moldea-adopted; canonical state was coherently updated through a Maintain operation."
+  ],
+  "unresolved": []
+}

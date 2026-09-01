@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "The project is valid and aligned for the requested graph-definition scope; no files were edited. Moldea inspection and validation both returned schema version 2, CLI 5.0.0, status valid, and no diagnostics. TypeScript checking passed, and the final Git diff and status were clean.",
+  "changedFiles": [],
+  "observations": [
+    "The adopted moldea manifest binds supportGraph and summaryGraph directly to /src/graphs.ts and binds each agent's explicit input and output Zod schemas from /src/contracts.ts.",
+    "Both exported graphs are compiled StateGraph definitions with names support_graph and summary_graph.",
+    "Inspection reports only source-supported operations: support uses addNode and addEdge, including the waiting edge into finalize-answer; summary uses addNode, addEdge, and addConditionalEdges.",
+    "No tools, skills, provider, model, routing destinations, handoffs, subagents, supervisor relationships, or complete executable topology were inferred from graph nodes or edges."
+  ],
+  "unresolved": [
+    "Runtime invocation, canonical-instruction consumption, and a complete executable topology were not established because no agent or provider was invoked. Closed project-owned wiring or integration tests would be required to prove those broader behaviors."
+  ]
+}

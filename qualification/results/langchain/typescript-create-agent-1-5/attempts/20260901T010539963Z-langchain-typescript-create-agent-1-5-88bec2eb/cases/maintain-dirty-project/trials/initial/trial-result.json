@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 34863,
+  "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1132541,
+    "cachedInputTokens": 1051136,
+    "outputTokens": 5863
+  },
+  "judgeUsage": {
+    "inputTokens": 623291,
+    "cachedInputTokens": 576512,
+    "outputTokens": 4585
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T18:13:49.494Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T18:16:21.966Z",
+  "actorCacheSourceAttemptId": "20260830T175520100Z-langchain-typescript-create-agent-1-5-e5f26b07",
+  "judgeCacheSourceAttemptId": "20260830T175520100Z-langchain-typescript-create-agent-1-5-e5f26b07",
+  "requirementAssessments": [
+    {
+      "id": "adds-context",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` canonically describes the exact case-sensitive behavior implemented by `src/billing.ts` (`message.includes('refund')`). `moldea/moldea.yaml` globally registers that context, binds it to `/src/billing.ts` symbol `classifyBillingQuestion`, and assigns it to `support`. The support instruction uses that classification for refund and invoice questions. Current hashes match the runner's after-state, and deterministic inspection reports valid."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`src/support-agent.ts` still directly calls `createAgent`, loads the canonical instruction through `loadSupportInstruction`, and sets `responseFormat: providerStrategy(SupportOutputSchema)`. Its SHA-256 is identical before and after (`035be15d...d8cf`), and workspace assertions limit changes to the instruction, billing context, and manifest. Runner-owned type-check and repository-unchanged checks passed; unrelated `src/operator-notes.ts` and `notes/local-observation.md` also retain their before-state hashes."
+    },
+    {
+      "id": "preserves-dirty-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

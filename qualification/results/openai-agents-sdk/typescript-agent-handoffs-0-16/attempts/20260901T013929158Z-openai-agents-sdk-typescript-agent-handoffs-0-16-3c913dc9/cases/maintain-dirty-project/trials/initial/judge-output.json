@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, runner-owned before/after evidence, and deterministic validation agree: billing context was added and wired to support while the direct OpenAI Agents SDK wrapper, instruction loader, billing implementation, and unrelated dirty work remained unchanged.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` canonically documents the exact `classifyBillingQuestion` behavior from `/src/billing.ts`. `moldea/moldea.yaml` globally registers that context, binds it to `/src/billing.ts#classifyBillingQuestion`, and assigns it to `support`. The support instruction contains aligned refund/invoice guidance. Current hashes match the runner’s after-state, changedPaths contains exactly the three intended Moldea files, and deterministic inspection reports valid with typecheck passing."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "verdict": "pass",
+      "evidence": "Current `src/support-agent.ts` still directly imports `Agent` from `@openai/agents`, constructs `new Agent`, and supplies the unchanged `loadSupportInstruction` loader reading canonical `instruction.md`. Its SHA-256 is identical before and after (`13aaed806907af439d4ddfdc3b9c3d5709cac19058ff3574daea2dcba237cbeb`), and deterministic validation reports a valid, equivalent repository with passing typecheck."
+    }
+  ],
+  "failures": []
+}

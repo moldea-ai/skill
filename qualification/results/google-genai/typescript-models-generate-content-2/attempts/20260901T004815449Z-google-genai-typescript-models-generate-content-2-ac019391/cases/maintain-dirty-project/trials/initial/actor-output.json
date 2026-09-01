@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing context, bound it to `classifyBillingQuestion`, connected it to `support`, and added refund/invoice guidance to the loaded canonical instruction. `moldea inspect --json`, `moldea validate --json`, and TypeScript compilation all pass. The complete Git diff was inspected.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md"
+  ],
+  "observations": [
+    "The direct Google Gen AI wrapper and `loadSupportInstruction` remain unchanged.",
+    "Pre-existing tracked `src/operator-notes.ts` work and untracked `notes/local-observation.md` were preserved exactly.",
+    "Final moldea inspection reported format version 1 as valid with no diagnostics and confirmed the billing context relationship.",
+    "No network, provider, model, agent, or subagent calls were made."
+  ],
+  "unresolved": [
+    "Live Google Gen AI response behavior was not exercised because provider/model calls were prohibited; validation was deterministic and local."
+  ]
+}

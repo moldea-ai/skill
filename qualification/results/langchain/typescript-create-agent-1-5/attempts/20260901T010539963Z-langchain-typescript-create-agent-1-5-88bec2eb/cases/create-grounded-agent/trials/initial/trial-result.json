@@ -1,0 +1,62 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 34879,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1405089,
+    "cachedInputTokens": 1313792,
+    "outputTokens": 6917
+  },
+  "judgeUsage": {
+    "inputTokens": 506004,
+    "cachedInputTokens": 457728,
+    "outputTokens": 3587
+  },
+  "actorEvidenceCreatedAt": "2026-08-30T18:08:39.606Z",
+  "judgeEvidenceCreatedAt": "2026-08-30T18:10:26.719Z",
+  "actorCacheSourceAttemptId": "20260830T175520100Z-langchain-typescript-create-agent-1-5-e5f26b07",
+  "judgeCacheSourceAttemptId": "20260830T175520100Z-langchain-typescript-create-agent-1-5-e5f26b07",
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/agents/order-triage/description.md states that the agent classifies orders for human review and cannot approve refunds. instruction.md repeats the human-review purpose, requires requiresHumanReview=true, and explicitly denies refund approval. Workspace-patch evidence limits changes to the manifest and these two canonical assets."
+    },
+    {
+      "id": "binds-direct-agent",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to orderTriageAgent, instructionLoader to loadOrderTriageInstruction, and outputSchema to OrderTriageOutputSchema in /src/order-triage-agent.ts. That implementation directly calls createAgent, loads the canonical instruction through the bound loader, and passes the bound schema through responseFormat. Deterministic inspection and validation passed."
+    },
+    {
+      "id": "binds-function-tool",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest names the tool classify_order and binds implementation classifyOrder, registration classifyOrderTool, and input schema ClassifyOrderInputSchema in /src/order-triage-agent.ts. The unchanged implementation registers classifyOrderTool with the same runtime name, implementation function, and schema. Deterministic inspection and validation passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

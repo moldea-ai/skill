@@ -1,0 +1,15 @@
+{
+  "outcome": "blocked",
+  "summary": "Initialize was selected with explicit adoption authority, but semantic initialization was unsafe. The README says transfer preview/execution policy is undocumented, while src/transfer-operation.ts can return either preview or submitted status. Canonical state is blocked; no repository files changed. The final Git diff and status were clean, and TypeScript validation passed.",
+  "changedFiles": [],
+  "observations": [
+    "The project is unadopted: /moldea/moldea.yaml and /moldea/project.md are absent, and README.md has no moldea awareness block.",
+    "Local @moldea.ai/cli 5.0.0 was declared, installed, and provider-resolved. inspect --json returned a compatible schema-2 invalid result reporting only MOLDEA_MANIFEST_MISSING and MOLDEA_PROJECT_FILE_MISSING.",
+    "Node.js 24.15.0 and npm 11.12.1 satisfy the skill compatibility ranges; no package-manager executable extensions were found.",
+    "Runner-mounted .agents and .moldea-qualification content remained unchanged.",
+    "Project-local TypeScript validation completed successfully."
+  ],
+  "unresolved": [
+    "Decision required: Is this project only for preparing transfer previews, or is it authorized to submit/execute transfers? If execution is intended, what governing product policy or boundary should define that behavior?"
+  ]
+}

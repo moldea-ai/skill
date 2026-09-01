@@ -1,0 +1,57 @@
+{
+  "passed": true,
+  "failures": [],
+  "before": [
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "83420ff719a3570f69770e2b38f02073bc5e5373692de5bd3871c577efeafc89"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "8aa6a17326a439b00f637d8f5acbb4b115245a641973b23368fcb77bbc9fb1c4"
+    },
+    {
+      "path": "src/transfer-operation.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "5a695c580ec0497dc23685deec380988e7e90c8b15a49cb60b77114f3249f044"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "452d2b5c92462830be8b0c7b644fb17fde9777056fbd12c96ca8471a2363c2fe"
+    }
+  ],
+  "after": [
+    {
+      "path": "package.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "83420ff719a3570f69770e2b38f02073bc5e5373692de5bd3871c577efeafc89"
+    },
+    {
+      "path": "README.md",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "8aa6a17326a439b00f637d8f5acbb4b115245a641973b23368fcb77bbc9fb1c4"
+    },
+    {
+      "path": "src/transfer-operation.ts",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "5a695c580ec0497dc23685deec380988e7e90c8b15a49cb60b77114f3249f044"
+    },
+    {
+      "path": "tsconfig.json",
+      "kind": "file",
+      "mode": 33204,
+      "sha256": "452d2b5c92462830be8b0c7b644fb17fde9777056fbd12c96ca8471a2363c2fe"
+    }
+  ],
+  "changedPaths": []
+}

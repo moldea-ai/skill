@@ -1,0 +1,60 @@
+diff --git a/moldea/agents/support/instruction.md b/moldea/agents/support/instruction.md
+index 23eeb7e..9b7cb68 100644
+--- a/moldea/agents/support/instruction.md
++++ b/moldea/agents/support/instruction.md
+@@ -1,3 +1,5 @@
+ # Support agent
+ 
+ You are the `support` agent. Resolve customer questions with project evidence and escalate uncertain requests.
++
++For refund and invoice questions, use the billing context. Apply only the documented refund window. Do not promise a refund, invoice correction, credit, or other account change when the available evidence does not establish it; explain the uncertainty and escalate the dispute.
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 0537cec..cf33e82 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,9 +1,16 @@
+ version: 1
++context:
++  /moldea/context/billing.md:
++    bindings:
++      - path: /src/billing.ts
++        symbol: refundWindowDays
+ agents:
+   support:
+     runtime:
+       id: custom
+       guidance: /moldea/runtimes/custom.md
++    context:
++      - /moldea/context/billing.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+diff --git a/src/operator-notes.ts b/src/operator-notes.ts
+index 362d041..da89485 100644
+--- a/src/operator-notes.ts
++++ b/src/operator-notes.ts
+@@ -1 +1 @@
+-export const operatorNote = 'Review account ownership before escalation.';
++export const operatorNote = 'Preserve the operator draft while policy review is pending.';
+
+diff --git a/moldea/context/billing.md b/moldea/context/billing.md
+new file mode 100644
+index 0000000..993a199
+--- /dev/null
++++ b/moldea/context/billing.md
+@@ -0,0 +1,5 @@
++# Billing disputes
++
++The configured refund window is 30 days, as defined by `refundWindowDays` in `/src/billing.ts`.
++
++For refund disputes, use that window without implying that timing alone authorizes or guarantees a refund. For invoice disputes, rely on available invoice and account evidence. No invoice-adjustment or correction authority is established here; when the evidence does not resolve the dispute, state the uncertainty and escalate it.
+
+diff --git a/notes/local-observation.md b/notes/local-observation.md
+new file mode 100644
+index 0000000..f023f7b
+--- /dev/null
++++ b/notes/local-observation.md
+@@ -0,0 +1,3 @@
++# Local observation
++
++Invoice imports occasionally arrive after the nightly reconciliation window.

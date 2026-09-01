@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The actor’s report matches the project-owned manifest and TypeScript implementation. Current file hashes match the deterministic after-state, which reports valid inspect/validate envelopes, passing typecheck, an unchanged repository, and no changed paths.",
+  "requirements": [
+    {
+      "id": "explains-direct-patterns",
+      "verdict": "pass",
+      "evidence": "The actor identifies each direct binding: supportAgent uses loadSupportInstruction and SupportOutputSchema; summaryAgent uses loadSummaryInstruction and SummaryOutputSchema. src/agents.ts confirms both are direct createAgent definitions, src/instructions.ts confirms each loader reads its corresponding canonical moldea/agents/<id>/instruction.md, and moldea/moldea.yaml declares the same runtimeAgent, instructionLoader, and outputSchema bindings. Deterministic-after reports valid inspect/validate results."
+    },
+    {
+      "id": "explains-closed-bindings",
+      "verdict": "pass",
+      "evidence": "The actor accurately states that support registers findOrderTool and that it closes over runtime name find_order, FindOrderInputSchema, and findOrder. src/tools.ts and moldea/moldea.yaml confirm those registration, input-schema, and implementation relationships. The actor also states that summary has structured output but no function tool; src/agents.ts has no tools property for summaryAgent and the manifest declares no summary tools. Deterministic validation passed without diagnostics."
+    },
+    {
+      "id": "respects-static-boundary",
+      "verdict": "pass",
+      "evidence": "The actor explicitly states that no provider, model, routing, handoff, or subagent relationships were inferred or assessed, and makes no runtime-generation claim. Its only runtime limitation says dynamic behavior was intentionally not tested. The manifest contains no routing, handoff, or subagent declarations, and deterministic-after confirms the repository remained unchanged."
+    }
+  ],
+  "failures": []
+}

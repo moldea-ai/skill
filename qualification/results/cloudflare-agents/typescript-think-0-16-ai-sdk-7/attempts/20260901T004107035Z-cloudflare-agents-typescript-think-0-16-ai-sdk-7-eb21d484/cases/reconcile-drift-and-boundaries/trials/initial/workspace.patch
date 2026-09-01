@@ -1,0 +1,71 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index deaf01b..84f3b80 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -5,10 +5,19 @@ agents:
+       id: cloudflare-agents
+     bindings:
+       runtimeAgent:
+-        path: /src/support-agent.ts
+-        symbol: SupportAgent
++        path: /src/support-assistant.ts
++        symbol: SupportAssistant
+       instructionLoader:
+-        path: /src/support-agent.ts
++        path: /src/support-assistant.ts
+         symbol: loadSupportInstruction
+     affectedBy:
+       - /src/**
++    unresolved:
++      dynamic-tool-registry-wiring:
++        category: tool-registration
++        effect: warning
++        description: The final relationship between the dynamically assembled tool registry and the support agent cannot be proven statically.
++        resolution: Add closed runtime wiring or an integration test that proves which assembled tool entries are exposed to SupportAssistant.
++        related:
++          - path: /src/dynamic-tools.ts
++            symbol: assembleTools
+diff --git a/src/support-agent.ts b/src/support-agent.ts
+deleted file mode 100644
+index 04f0cf4..0000000
+--- a/src/support-agent.ts
++++ /dev/null
+@@ -1 +0,0 @@
+-export const supportAgent = { removed: true } as const;
+
+diff --git a/src/dynamic-tools.ts b/src/dynamic-tools.ts
+new file mode 100644
+index 0000000..59ed3f9
+--- /dev/null
++++ b/src/dynamic-tools.ts
+@@ -0,0 +1,12 @@
++import type { ToolSet } from 'ai';
++
++/** Combines runtime-selected tool maps whose final entries are not statically closed. */
++export const assembleTools = (registries: readonly ToolSet[]): ToolSet => {
++  const assembledTools: ToolSet = {};
++
++  for (const registry of registries) {
++    Object.assign(assembledTools, registry);
++  }
++
++  return assembledTools;
++};
+
+diff --git a/src/support-assistant.ts b/src/support-assistant.ts
+new file mode 100644
+index 0000000..1c250ee
+--- /dev/null
++++ b/src/support-assistant.ts
+@@ -0,0 +1,11 @@
++import { Think } from '@cloudflare/think';
++
++export const loadSupportInstruction = (): string =>
++  'Answer support requests from verified evidence.';
++
++/** Renamed support agent whose direct static relationships remain provable. */
++export class SupportAssistant extends Think {
++  public override getSystemPrompt(): string {
++    return loadSupportInstruction();
++  }
++}

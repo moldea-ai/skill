@@ -1,0 +1,62 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "passed": true,
+  "durationMs": 371643,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/confirmation-1/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1346521,
+    "cachedInputTokens": 1261568,
+    "outputTokens": 6205
+  },
+  "judgeUsage": {
+    "inputTokens": 391494,
+    "cachedInputTokens": 328448,
+    "outputTokens": 2963
+  },
+  "actorEvidenceCreatedAt": "2026-09-01T01:44:20.762Z",
+  "judgeEvidenceCreatedAt": "2026-09-01T01:46:37.997Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The changed canonical description says the agent classifies orders for human review without refund authority; instruction.md requires human review and says “Never approve a refund.” This matches moldea/project.md and src/order-triage-agent.ts. Workspace assertions identify only these canonical additions and moldea/moldea.yaml as changed."
+    },
+    {
+      "id": "binds-direct-agent",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to exported OrderTriageAgent, instructionLoader to loadOrderTriageInstruction, and outputSchema to OrderTriageOutputSchema in /src/order-triage-agent.ts. The implementation uses Output.object({ schema: OrderTriageOutputSchema }), no agent inputSchema is declared, and deterministic inspection passed."
+    },
+    {
+      "id": "binds-function-tool",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest registers runtime name classify_order and exactly binds classifyOrder, classifyOrderTool, ClassifyOrderInputSchema, and ClassifyOrderOutputSchema. These symbols exist and are wired together in src/order-triage-agent.ts; deterministic inspection and typechecking passed."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

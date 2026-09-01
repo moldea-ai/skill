@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context bound to `classifyBillingQuestion` and connected it to `support`. Updated the loaded support instruction and description for refund/invoice handling while leaving the Claude Agent SDK query wrapper and prompt loader unchanged. TypeScript compilation passed; moldea inspect and validate both returned valid with no diagnostics; the complete tracked diff and untracked files were inspected.",
+  "changedFiles": [
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md"
+  ],
+  "observations": [
+    "The adopted canonical state now binds billing context to `/src/billing.ts#classifyBillingQuestion` and assigns that context to `support`.",
+    "The runtime loader still reads the canonical support instruction into the direct Claude Agent SDK query system prompt.",
+    "Pre-existing changes in `src/operator-notes.ts` and `notes/local-observation.md` were preserved unchanged.",
+    "No provider, agent, model, subagent, or network access was used."
+  ],
+  "unresolved": [
+    "Live Claude Agent SDK behavior was not exercised because the execution rules prohibited running the agent; runtime usage is supported by static loader and adapter inspection rather than live execution evidence."
+  ]
+}

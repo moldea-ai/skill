@@ -1,0 +1,62 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 30029,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/create-grounded-agent/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 2305678,
+    "cachedInputTokens": 2186496,
+    "outputTokens": 9353
+  },
+  "judgeUsage": {
+    "inputTokens": 327745,
+    "cachedInputTokens": 287744,
+    "outputTokens": 3387
+  },
+  "actorEvidenceCreatedAt": "2026-08-31T04:00:26.187Z",
+  "judgeEvidenceCreatedAt": "2026-08-31T04:02:28.202Z",
+  "actorCacheSourceAttemptId": "20260831T034324094Z-eve-typescript-filesystem-agent-0-39-7dd6dcbe",
+  "judgeCacheSourceAttemptId": "20260831T034324094Z-eve-typescript-filesystem-agent-0-39-7dd6dcbe",
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/project.md states that the project classifies orders for human review and does not approve refunds or execute financial actions. moldea/agents/order-triage/description.md says it classifies orders for human review without approving refunds; instruction.md directs classification for human review and explicitly says never to approve or promise a refund. Workspace-patch evidence lists these two canonical assets and moldea/moldea.yaml as the only changed paths."
+    },
+    {
+      "id": "binds-filesystem-agent",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml binds runtime id eve, runtimeAgent /agent/agent.ts#default, instructionLoader /agent/loaders.ts#loadOrderTriageInstruction, and outputSchema /agent/contracts.ts#OrderTriageOutputSchema. These resolve directly to the nested default defineAgent, the TypeScript loader, and the schema exports in the current workspace. No alternative instruction binding is declared. Deterministic-after reports valid inspect/validate results, valid adapter inventory, repository equivalence, and passing typecheck."
+    },
+    {
+      "id": "binds-filesystem-capabilities",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml registers tool classify-order with runtime name classify_order, implementation /agent/implementations.ts#classifyOrder, registration /agent/tools/classify_order.ts#default, and the exact input/output schemas from /agent/contracts.ts. It registers skill review-policy with runtime name review_policy and both implementation and registration at /agent/skills/review_policy.ts#default. These paths and symbols match the current TypeScript sources. Deterministic-after reports valid adapter inspection and validation with no failures."
+    },
+    {
+      "id": "avoids-redundant-guidance",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

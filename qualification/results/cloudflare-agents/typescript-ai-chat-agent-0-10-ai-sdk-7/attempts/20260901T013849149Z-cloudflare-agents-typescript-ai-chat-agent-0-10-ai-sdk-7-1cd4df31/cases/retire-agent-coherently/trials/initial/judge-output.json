@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, deterministic post-actor validation, and workspace patch agree that the obsolete support agent was coherently retired.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` contains only `version: 1`, so it declares no agent, Cloudflare AIChatAgent definition, instruction loader, runtime binding, or output-schema binding. The expected canonical files under `moldea/agents/support/` are absent, and targeted searches found no `SupportAgent`, `loadSupportInstruction`, `AIChatAgent`, loader, schema, or runtime-agent references. Workspace-patch evidence records deletion of both support canonical assets and modification of the manifest. Deterministic post-actor evidence reports valid inspect/validate results, no failures, successful typecheck, and an unchanged repository during validation."
+    }
+  ],
+  "failures": []
+}

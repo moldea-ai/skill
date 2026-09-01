@@ -1,0 +1,69 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 651685f..2a863b7 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -12,18 +13,44 @@ agents:
+         symbol: loadSupportInstruction
+     affectedBy:
+       - /src/**
++    unresolved:
++      runtime-tool-map:
++        category: runtime-tools
++        effect: warning
++        description: Static inspection cannot establish the complete SupportAgent tool map because getTools() spreads the runtime-selected result of createRuntimeTools().
++        resolution: Close the getTools() map within a supported Think class shape, or provide source-owned closed wiring or an integration test that proves the runtime-selected tool names, implementations, schemas, and registration.
++        related:
++          - path: /src/support-agent.ts
++            symbol: SupportAgent
++          - path: /src/support-agent.ts
++            symbol: createRuntimeTools
+   step-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+         symbol: StepSupportAgent
+     affectedBy:
+       - /src/**
++    unresolved:
++      session-instruction-loader:
++        category: instruction-provenance
++        effect: warning
++        description: Static inspection proves StepSupportAgent but cannot establish an instruction-loader binding through its helper-delegated configureSession construction.
++        resolution: Wire loadStepSupportInstruction through a supported closed configureSession chain, or provide source-owned closed wiring or an integration test that proves which instruction reaches the runtime session.
++        related:
++          - path: /src/step-support-agent.ts
++            symbol: StepSupportAgent
++          - path: /src/step-support-agent.ts
++            symbol: configureSupportSession
++          - path: /src/instructions.ts
++            symbol: loadStepSupportInstruction
+   delegating-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/cloudflare-agents.md b/moldea/runtimes/cloudflare-agents.md
+new file mode 100644
+index 0000000..d1563af
+--- /dev/null
++++ b/moldea/runtimes/cloudflare-agents.md
+@@ -0,0 +1,5 @@
++# Cloudflare Agents runtime
++
++Static inspection covers only supported closed `Think` class shapes. It proves the direct `SupportAgent` instruction binding but not its spread runtime tool map, and proves `StepSupportAgent` without resolving the helper-built session instruction. `DelegatingSupportAgent` registers an ordinary function tool; its implementation reference to `StepSupportAgent` is not a handoff or routing target. `RuntimeInitializedAgent` is outside the selected closed class target and is not registered.
++
++For deployment, the Cloudflare configuration owner must export each registered class, maintain matching bindings and Durable Object migrations, supply required environment and model bindings, and verify the deployed Worker configuration. Static inspection does not perform or prove those deployment responsibilities.

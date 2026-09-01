@@ -1,0 +1,31 @@
+{
+  "role": "judge",
+  "trialId": "initial",
+  "createdAt": "2026-08-30T18:50:14.666Z",
+  "durationMs": 122066,
+  "usage": {
+    "inputTokens": 535377,
+    "cachedInputTokens": 487424,
+    "outputTokens": 4507
+  },
+  "cacheKey": "b8c06753b3f0de7d76dcbb578a3187bf98ab6d8811d04cf444b5163aded7fa22",
+  "sourceAttemptId": "20260830T175520100Z-langchain-typescript-create-agent-1-5-e5f26b07",
+  "cacheSourceAttemptId": "20260830T175520100Z-langchain-typescript-create-agent-1-5-e5f26b07",
+  "commandPolicy": {
+    "completedCommandCount": 20,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0
+    },
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 4
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 4
+    }
+  }
+}

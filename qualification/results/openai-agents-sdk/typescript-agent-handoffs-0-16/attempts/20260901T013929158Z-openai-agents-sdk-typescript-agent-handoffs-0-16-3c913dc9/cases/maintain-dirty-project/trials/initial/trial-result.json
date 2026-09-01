@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 443575,
+  "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1385089,
+    "cachedInputTokens": 1303040,
+    "outputTokens": 7178
+  },
+  "judgeUsage": {
+    "inputTokens": 696703,
+    "cachedInputTokens": 628992,
+    "outputTokens": 5029
+  },
+  "actorEvidenceCreatedAt": "2026-09-01T02:01:05.639Z",
+  "judgeEvidenceCreatedAt": "2026-09-01T02:04:06.775Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "adds-context",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` canonically documents the exact `classifyBillingQuestion` behavior from `/src/billing.ts`. `moldea/moldea.yaml` globally registers that context, binds it to `/src/billing.ts#classifyBillingQuestion`, and assigns it to `support`. The support instruction contains aligned refund/invoice guidance. Current hashes match the runner’s after-state, changedPaths contains exactly the three intended Moldea files, and deterministic inspection reports valid with typecheck passing."
+    },
+    {
+      "id": "preserves-sdk-wiring",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `src/support-agent.ts` still directly imports `Agent` from `@openai/agents`, constructs `new Agent`, and supplies the unchanged `loadSupportInstruction` loader reading canonical `instruction.md`. Its SHA-256 is identical before and after (`13aaed806907af439d4ddfdc3b9c3d5709cac19058ff3574daea2dcba237cbeb`), and deterministic validation reports a valid, equivalent repository with passing typecheck."
+    },
+    {
+      "id": "preserves-dirty-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current canonical manifest matches the existing Cloudflare implementation, and runner-owned validation confirms a valid, type-correct, unchanged post-actor repository. Workspace assertions isolate the reconciliation to moldea/moldea.yaml.",
+  "requirements": [
+    {
+      "id": "repairs-direct-bindings",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to SupportAssistant and instructionLoader to loadSupportInstruction at /src/support-assistant.ts. That source exports both symbols, extends AIChatAgent, and directly invokes streamText without an agent schema. src/support-agent.ts is absent, and targeted manifest/source inspection found no stale support-agent symbols. Workspace assertions show only moldea/moldea.yaml changed; deterministic-after reports valid inspect/validate and passing TypeScript checks."
+    },
+    {
+      "id": "records-dynamic-boundary",
+      "verdict": "pass",
+      "evidence": "The support agent owns unresolved.dynamic-tool-registry with effect warning, a description of the statically indeterminate assembled registry, a concrete closed-wiring or integration-test resolution proving runtime-facing names and implementations through assembleTools, and related path /src/dynamic-tools.ts. The manifest contains no invented tool or capability binding, while src/support-assistant.ts actually calls assembleTools and src/dynamic-tools.ts performs dynamic registry assembly."
+    }
+  ],
+  "failures": []
+}

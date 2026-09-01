@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s canonical input binding from `SupportOutputSchema` to `SupportInputSchema`. Final inspection emits complete compiled graph, node, edge, input-schema, and output-schema evidence with no diagnostics. Moldea validation and TypeScript checking pass.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the compiled graph, node and edge operations, both executable schema declarations, and all tool declarations.",
+    "Final `moldea inspect --json`: status `valid`, diagnostics empty.",
+    "Final `moldea validate --json`: status `valid`, diagnostics empty.",
+    "Final `tsc --noEmit`: passed.",
+    "Final Git diff contains only the intended input-schema symbol correction."
+  ],
+  "unresolved": []
+}

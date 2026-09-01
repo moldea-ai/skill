@@ -1,0 +1,47 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 5a1cc56..dbff298 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,8 +1,20 @@
+ version: 1
++unresolved:
++  langgraph-functional-api-static-boundaries:
++    category: runtime
++    effect: informational
++    description: Static inspection does not establish nested or callback-reached task calls, runtime-selected control-flow outcomes, task capability registration, routing or topology, runtime schemas from TypeScript types, or configured checkpointer, replay, idempotency, interrupt, and approval semantics.
++    resolution: Establish each claim independently from runtime wiring, runtime configuration, and focused integration tests before adding a canonical relationship or behavioral claim.
++    related:
++      - path: /src/support-workflow.ts
++      - path: /src/dynamic-support-workflow.ts
++      - path: /src/runtime-boundaries.ts
++      - path: /moldea/runtimes/langgraph-functional-api.md
+ agents:
+   support:
+     runtime:
+       id: langgraph
++      guidance: /moldea/runtimes/langgraph-functional-api.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-workflow.ts
+@@ -12,6 +24,7 @@ agents:
+   dynamic-support:
+     runtime:
+       id: langgraph
++      guidance: /moldea/runtimes/langgraph-functional-api.md
+     bindings:
+       runtimeAgent:
+         path: /src/dynamic-support-workflow.ts
+
+diff --git a/moldea/runtimes/langgraph-functional-api.md b/moldea/runtimes/langgraph-functional-api.md
+new file mode 100644
+index 0000000..b195c34
+--- /dev/null
++++ b/moldea/runtimes/langgraph-functional-api.md
+@@ -0,0 +1,7 @@
++# LangGraph Functional API static boundary
++
++Static inspection binds `supportWorkflow` and `dynamicSupportWorkflow` to their canonical agents. For `supportWorkflow`, it also detects the module-local `lookup_order` task, previous-state read, interrupt, and final returned-versus-saved state pattern. The source uses TypeScript input and result types, but those types are not runtime schema bindings.
++
++The dynamic source selects tasks from `input.route`, reaches a selected task through `runSelectedTask`, and calls `summarize` inside a callback. This source structure does not establish a complete static task graph, task capabilities, routing, handoffs, subagents, or topology.
++
++`RUNTIME_COMPOSITION` labels ownership but does not configure or prove checkpointer, replay, idempotency, interrupt, or approval behavior. Those semantics remain deployment/runtime concerns and require direct configuration or integration evidence.

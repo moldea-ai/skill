@@ -34,12 +34,19 @@ import {
   type IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
 import { QualificationCoverageResultSchema } from '../coverage/index.ts';
-import { readJsonFile, resolveContainedPath, type IBoundarySchema } from '../filesystem/index.ts';
+import { readJsonFile, type IBoundarySchema } from '../filesystem/index.ts';
 import { matchesWorkspacePathContract } from '../project-fixture/index.ts';
 import {
   createQualificationStageIds,
   createQualificationTrialStageIds,
 } from '../execution/stages.ts';
+import {
+  readQualificationAttemptStorage,
+  resolveQualificationArtifactPath,
+  resolveQualificationProfilesRootForResults,
+  resolveQualificationTargetKey,
+  verifyQualificationAttemptStorage,
+} from '../storage/index.ts';
 import { readQualificationContractYaml } from './contract-reader.ts';
 
 const JsonObjectSchema = z.record(z.string(), z.unknown());
@@ -70,7 +77,7 @@ const requireUniqueMembers = (members: readonly string[], label: string): void =
   }
 };
 
-const requireArtifact = <TResult>(
+const requireArtifact = async <TResult>(
   attemptDirectory: string,
   result: IQualificationAttemptResult,
   relativePath: string,
@@ -80,7 +87,11 @@ const requireArtifact = <TResult>(
     throw new Error(`Qualification evidence is missing artifact ${relativePath}.`);
   }
 
-  return readJsonFile(resolveContainedPath(attemptDirectory, relativePath), schema);
+  const storage = await readQualificationAttemptStorage(attemptDirectory);
+  return readJsonFile(
+    resolveQualificationArtifactPath(attemptDirectory, storage, relativePath),
+    schema,
+  );
 };
 
 const readOptionalArtifact = async <TResult>(
@@ -88,7 +99,11 @@ const readOptionalArtifact = async <TResult>(
   relativePath: string,
   schema: IBoundarySchema<TResult>,
 ): Promise<TResult | null> => {
-  const artifactPath = resolveContainedPath(attemptDirectory, relativePath);
+  const storage = await readQualificationAttemptStorage(attemptDirectory);
+  if (!storage.artifacts.some(({ logicalPath }) => logicalPath === relativePath)) {
+    return null;
+  }
+  const artifactPath = resolveQualificationArtifactPath(attemptDirectory, storage, relativePath);
   return (await hasPath(artifactPath)) ? readJsonFile(artifactPath, schema) : null;
 };
 
@@ -98,9 +113,10 @@ const validateArtifactSchemas = async (
   result: IQualificationAttemptResult,
 ): Promise<void> => {
   const trialRootPattern = /^cases\/[^/]+\/trials\/(?:initial|confirmation-[12])\//u;
+  const storage = await readQualificationAttemptStorage(attemptDirectory);
 
   for (const relativePath of Object.keys(result.artifactDigests)) {
-    const artifactPath = resolveContainedPath(attemptDirectory, relativePath);
+    const artifactPath = resolveQualificationArtifactPath(attemptDirectory, storage, relativePath);
 
     if (relativePath.endsWith('.jsonl')) {
       const source = await readFile(artifactPath, 'utf8');
@@ -942,10 +958,16 @@ const validateCurrentTerminalAttempt = async (
   result: IQualificationAttemptResult,
   resultsRoot: string,
 ): Promise<void> => {
+  const storage = await readQualificationAttemptStorage(attemptDirectory);
+  const profilesRoot = await resolveQualificationProfilesRootForResults(resultsRoot);
+  const repositoryRoot = path.resolve(profilesRoot, '..', '..');
+  const hasRecordedSourceRepository = await hasPath(path.join(repositoryRoot, '.git'));
+  const currentTargetKey = await resolveQualificationTargetKey(result.selection, profilesRoot);
   const profileRelativeDirectory = path.join(
     'profiles',
-    result.selection.adapterId,
-    result.selection.implementationId,
+    storage.carryForward === undefined || !hasRecordedSourceRepository
+      ? currentTargetKey
+      : path.join(result.selection.adapterId, result.selection.implementationId),
   );
   const profile = await readQualificationContractYaml({
     qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
@@ -954,7 +976,6 @@ const validateCurrentTerminalAttempt = async (
     schema: QualificationProfileSchema,
   });
 
-  // artifact verification validates recorded attempts; the release gate owns profile currency
   if (
     profile.adapterId !== result.selection.adapterId ||
     profile.implementationId !== result.selection.implementationId
@@ -1119,12 +1140,7 @@ const validateCurrentTerminalAttempt = async (
     .sort((left, right) => left.localeCompare(right, 'en'))
     .at(0);
 
-  if (
-    result.completedAt === null ||
-    result.evidenceGeneratedAt !== evidenceGeneratedAt ||
-    (await hasPath(path.join(attemptDirectory, 'error.json'))) ||
-    (await hasPath(path.join(attemptDirectory, 'interruption.json')))
-  ) {
+  if (result.completedAt === null || result.evidenceGeneratedAt !== evidenceGeneratedAt) {
     throw new Error('Qualification evidence has contradictory completion state.');
   }
 };
@@ -1135,6 +1151,10 @@ export const validateQualificationAttemptEvidence = async (options: {
   result: IQualificationAttemptResult;
   resultsRoot: string;
 }): Promise<void> => {
+  await verifyQualificationAttemptStorage({
+    attemptDirectory: options.attemptDirectory,
+    result: options.result,
+  });
   await validateArtifactSchemas(options.attemptDirectory, options.result);
   const executionError = await readOptionalArtifact(
     options.attemptDirectory,

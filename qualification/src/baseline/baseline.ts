@@ -10,9 +10,15 @@ import {
   type IQualificationSelection,
 } from '../contracts/index.ts';
 import { readJsonFile } from '../filesystem/index.ts';
+import { createQualificationCompatibilityIdentityAtCommit } from '../evidence-identity/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
-import { calculateQualificationBaselineDigestAtCommit } from './fingerprints.ts';
+import {
+  createQualificationAttemptKey,
+  readQualificationAttemptStorage,
+  resolveQualificationResultTargetDirectory,
+  verifyQualificationAttemptStorage,
+} from '../storage/index.ts';
 import { QualificationBaselineCheckSchema, type IQualificationBaselineCheck } from './types.ts';
 
 const CUSTOM_SELECTION = {
@@ -85,10 +91,14 @@ export const inspectQualificationBaseline = async (options: {
   }
 
   let latest;
+  const customTargetRoot = await resolveQualificationResultTargetDirectory(
+    options.resultsRoot,
+    CUSTOM_SELECTION,
+  );
 
   try {
     latest = await readJsonFile(
-      path.join(options.resultsRoot, 'custom', 'custom', 'latest.json'),
+      path.join(customTargetRoot, 'latest.json'),
       QualificationLatestResultSchema,
     );
   } catch {
@@ -101,19 +111,24 @@ export const inspectQualificationBaseline = async (options: {
 
   const baselineAttemptId = latest.lastPassingAttemptId;
   let baseline;
+  let baselineStorage;
+  const baselineAttemptDirectory = path.join(
+    customTargetRoot,
+    'attempts',
+    createQualificationAttemptKey(baselineAttemptId),
+  );
 
   try {
     baseline = await readJsonFile(
-      path.join(
-        options.resultsRoot,
-        'custom',
-        'custom',
-        'attempts',
-        baselineAttemptId,
-        'attempt.json',
-      ),
+      path.join(baselineAttemptDirectory, 'attempt.json'),
       QualificationAttemptResultSchema,
     );
+    baselineStorage = await readQualificationAttemptStorage(baselineAttemptDirectory);
+    await verifyQualificationAttemptStorage({
+      attemptDirectory: baselineAttemptDirectory,
+      result: baseline,
+      storage: baselineStorage,
+    });
   } catch {
     return createFailure(
       'incompatible',
@@ -125,18 +140,18 @@ export const inspectQualificationBaseline = async (options: {
   const actualPackages = [...baseline.provenance.packages].sort(({ name: left }, { name: right }) =>
     left.localeCompare(right, 'en'),
   );
-  const qualificationRepositoryRoot = path.resolve(options.resultsRoot, '..', '..');
-  let baselineQualificationDigest: string;
+  let sourceCompatibility;
 
   try {
-    baselineQualificationDigest = await calculateQualificationBaselineDigestAtCommit(
-      baseline.provenance.qualificationRepositoryCommit,
-      qualificationRepositoryRoot,
-    );
+    sourceCompatibility = await createQualificationCompatibilityIdentityAtCommit({
+      commit: baseline.provenance.qualificationRepositoryCommit,
+      repositoryRoot: path.resolve(options.resultsRoot, '..', '..'),
+      selection: baseline.selection,
+    });
   } catch {
     return createFailure(
       'incompatible',
-      `Custom baseline attempt ${baselineAttemptId} does not have readable universal source inputs.`,
+      `Custom baseline attempt ${baselineAttemptId} does not have readable compatibility source inputs.`,
     );
   }
 
@@ -146,7 +161,9 @@ export const inspectQualificationBaseline = async (options: {
     baseline.status === 'passed' &&
     baseline.selection.adapterId === CUSTOM_SELECTION.adapterId &&
     baseline.selection.implementationId === CUSTOM_SELECTION.implementationId &&
-    baselineQualificationDigest === options.qualificationBaselineDigest &&
+    JSON.stringify(baselineStorage.compatibility) === JSON.stringify(sourceCompatibility) &&
+    sourceCompatibility.qualificationBaselineEvaluatorDigest ===
+      options.qualificationBaselineDigest &&
     baseline.provenance.targetDigest === options.customTargetDigest &&
     baseline.provenance.skillRepositoryFingerprint === options.skillState.fingerprint &&
     baseline.provenance.model === options.executionEnvironment.model &&

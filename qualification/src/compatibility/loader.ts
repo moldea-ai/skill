@@ -1,4 +1,3 @@
-import { access } from 'node:fs/promises';
 import path from 'node:path';
 import semver from 'semver';
 
@@ -20,20 +19,16 @@ import {
   calculateQualificationTargetDigest,
 } from '../execution/fingerprints.ts';
 import {
+  findQualificationProfileTarget,
+  loadQualificationProfileIndex,
+  resolveQualificationProfileDirectory,
+} from '../storage/index.ts';
+import {
   RuntimeCompatibilityMatrixSchema,
   type IQualificationImplementation,
   type IResolvedQualificationTarget,
   type IRuntimeCompatibilityMatrix,
 } from './types.ts';
-
-const pathExists = async (candidatePath: string): Promise<boolean> => {
-  try {
-    await access(candidatePath);
-    return true;
-  } catch {
-    return false;
-  }
-};
 
 /** Reads the canonical strict runtime compatibility matrix. */
 export const loadRuntimeCompatibilityMatrix = async (
@@ -49,6 +44,7 @@ export const listQualificationImplementations = async (): Promise<
   IQualificationImplementation[]
 > => {
   const matrix = await loadRuntimeCompatibilityMatrix();
+  const profileIndex = await loadQualificationProfileIndex();
   const implementations: IQualificationImplementation[] = [];
 
   for (const [adapterId, adapter] of Object.entries(matrix.adapters)) {
@@ -65,8 +61,11 @@ export const listQualificationImplementations = async (): Promise<
     }
 
     for (const target of adapter.targets) {
-      const profileDirectory = path.join(QUALIFICATION_PROFILES_ROOT, adapterId, target.id);
-      const hasProfile = await pathExists(path.join(profileDirectory, 'profile.yaml'));
+      const hasProfile =
+        findQualificationProfileTarget(profileIndex, {
+          adapterId,
+          implementationId: target.id,
+        }) !== null;
       const disabledReason =
         adapter.implementationStatus !== 'available'
           ? `Adapter implementation is ${adapter.implementationStatus}.`
@@ -115,10 +114,9 @@ export const resolveQualificationTarget = async (
     );
   }
 
-  const profileDirectory = path.join(
+  const profileDirectory = await resolveQualificationProfileDirectory(
+    selection,
     QUALIFICATION_PROFILES_ROOT,
-    selection.adapterId,
-    selection.implementationId,
   );
   const profile = await readYamlFile(
     path.join(profileDirectory, 'profile.yaml'),

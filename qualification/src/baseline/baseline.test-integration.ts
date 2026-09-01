@@ -10,10 +10,19 @@ import {
   type ICandidateClosure,
   type IQualificationExecutionEnvironment,
 } from '../contracts/index.ts';
-import { ensureDirectory, writeTextFileAtomically } from '../filesystem/index.ts';
+import {
+  ensureDirectory,
+  readJsonFile,
+  writeJsonFileAtomically,
+  writeTextFileAtomically,
+} from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import { recordQualificationResult } from '../result/index.ts';
+import {
+  createQualificationAttemptKey,
+  QualificationAttemptStorageSchema,
+} from '../storage/index.ts';
 import { seedPassingQualificationEvidenceFixture } from '../../vitest/evidence-fixture.ts';
 import { inspectQualificationBaseline } from './baseline.ts';
 import { calculateQualificationBaselineDigestAtCommit } from './fingerprints.ts';
@@ -245,12 +254,12 @@ describe('Custom qualification baseline', () => {
     ).resolves.toMatchObject({ passed: true, status: 'not-required' });
   });
 
-  test('rejects a recorded baseline without readable immutable source inputs', async () => {
+  test('rejects a recorded baseline with an incompatible stored identity', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-baseline-'));
     const resultsRoot = path.join(temporaryRoot, 'qualification', 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
     await ensureDirectory(artifactDirectory);
-    const passingBaseline = await seedPassingQualificationEvidenceFixture({
+    const baselineFixture = await seedPassingQualificationEvidenceFixture({
       artifactDirectory,
       attemptId: 'custom-baseline-unreadable-source',
       packages: [...candidate.packages, candidate.typeScriptPackage].map(
@@ -259,6 +268,14 @@ describe('Custom qualification baseline', () => {
       resultsRoot,
       skillRepositoryCommit: skillState.commit,
       skillRepositoryFingerprint: skillState.fingerprint,
+    });
+    const qualificationRepositoryCommit = await createQualificationSourceCommit(temporaryRoot);
+    const passingBaseline = QualificationAttemptResultSchema.parse({
+      ...baselineFixture,
+      provenance: {
+        ...baselineFixture.provenance,
+        qualificationRepositoryCommit,
+      },
     });
     await recordQualificationResult(
       {
@@ -288,7 +305,7 @@ describe('Custom qualification baseline', () => {
       passed: false,
       status: 'incompatible',
       failures: [
-        'Custom baseline attempt custom-baseline-unreadable-source does not have readable universal source inputs.',
+        'Custom baseline attempt custom-baseline-unreadable-source does not match the current universal suite, Custom target, portable skill, execution environment, and published candidate closure.',
       ],
     });
   });
@@ -378,5 +395,26 @@ describe('Custom qualification baseline', () => {
         },
       }),
     ).resolves.toMatchObject({ passed: false, status: 'incompatible' });
+
+    const storagePath = path.join(
+      resultsRoot,
+      't1',
+      'attempts',
+      createQualificationAttemptKey(passingBaseline.attemptId),
+      'storage.json',
+    );
+    const storage = await readJsonFile(storagePath, QualificationAttemptStorageSchema);
+    await writeJsonFileAtomically(storagePath, {
+      ...storage,
+      compatibility: {
+        ...storage.compatibility,
+        qualificationBaselineEvaluatorDigest: '9'.repeat(64),
+      },
+    });
+
+    await expect(inspectQualificationBaseline(commonOptions)).resolves.toMatchObject({
+      passed: false,
+      status: 'incompatible',
+    });
   });
 });

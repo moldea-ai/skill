@@ -115,15 +115,42 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
   packagesRepositoryCommit?: string;
   packagesRepositoryFingerprint?: string;
   qualificationDigest?: string;
+  qualificationRepositoryCommit?: string;
   resultsRoot: string;
   skillRepositoryCommit?: string;
   skillRepositoryFingerprint?: string;
   targetDigest?: string;
 }): Promise<IQualificationAttemptResult> => {
-  const profileDirectory = path.join(options.resultsRoot, '..', 'profiles', 'custom', 'custom');
-  const projectDirectory = path.join(profileDirectory, 'projects', CASE_ID);
+  const profilesRoot = path.join(options.resultsRoot, '..', 'profiles');
+  const casesRoot = path.join(options.resultsRoot, '..', 'cases');
+  const profileDirectory = path.join(profilesRoot, 't1');
+  const projectDirectory = path.join(profileDirectory, 'cases', 'c1');
   await ensureDirectory(projectDirectory);
   await Promise.all([
+    writeTextFileAtomically(
+      path.join(casesRoot, 'cases.yaml'),
+      [
+        'version: 2',
+        'cases:',
+        `  - id: ${CASE_ID}`,
+        `    title: ${CASE_TITLE}`,
+        '    layer: universal-baseline',
+        '    description: Verify complete passing evidence.',
+        '    challenge: Exercise the reusable Custom baseline.',
+        '',
+      ].join('\n'),
+    ),
+    writeTextFileAtomically(
+      path.join(profilesRoot, 'index.yaml'),
+      [
+        'version: 1',
+        'targets:',
+        '  - key: t1',
+        '    adapterId: custom',
+        '    implementationId: custom',
+        '',
+      ].join('\n'),
+    ),
     writeTextFileAtomically(
       path.join(profileDirectory, 'profile.yaml'),
       [
@@ -135,7 +162,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
         'probesFile: probes/claims.yaml',
         'cases:',
         `  - id: ${CASE_ID}`,
-        `    projectDirectory: projects/${CASE_ID}`,
+        '    projectDirectory: cases/c1',
         '    scenarioFile: scenario.yaml',
         '',
       ].join('\n'),
@@ -335,7 +362,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
       packagesRepositoryCommit: options.packagesRepositoryCommit ?? 'packages-commit',
       packagesRepositoryFingerprint: options.packagesRepositoryFingerprint ?? 'a'.repeat(64),
       packagesRepositoryDirty: false,
-      qualificationRepositoryCommit: 'qualification-commit',
+      qualificationRepositoryCommit: options.qualificationRepositoryCommit ?? 'd'.repeat(40),
       qualificationRepositoryDirty: false,
       skillRepositoryCommit: options.skillRepositoryCommit ?? 'skill-commit',
       skillRepositoryFingerprint: options.skillRepositoryFingerprint ?? 'b'.repeat(64),

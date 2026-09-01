@@ -27,6 +27,7 @@ import {
 import { readAttemptCheckpoint, writeAttemptCheckpoint } from '../checkpoint/index.ts';
 import { executeProcess } from '../process/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
+import { createQualificationAttemptKey } from '../storage/index.ts';
 import { runQualification } from './executor.ts';
 
 const emptyCommandPolicy = {
@@ -131,10 +132,9 @@ describe('qualification execution', () => {
       await readJsonFile(
         path.join(
           resultsRoot,
-          'custom',
-          'custom',
+          't5',
           'attempts',
-          outcome.result.attemptId,
+          createQualificationAttemptKey(outcome.result.attemptId),
           'attempt.json',
         ),
         QualificationAttemptResultSchema,

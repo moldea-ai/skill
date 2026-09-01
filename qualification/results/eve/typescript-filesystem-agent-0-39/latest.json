@@ -1,9 +1,0 @@
-{
-  "protocolVersion": 6,
-  "adapterId": "eve",
-  "implementationId": "typescript-filesystem-agent-0-39",
-  "latestAttemptId": "20260901T005918718Z-eve-typescript-filesystem-agent-0-39-a37b4c11",
-  "latestStatus": "passed",
-  "lastPassingAttemptId": "20260901T005918718Z-eve-typescript-filesystem-agent-0-39-a37b4c11",
-  "updatedAt": "2026-09-01T01:05:00.738Z"
-}

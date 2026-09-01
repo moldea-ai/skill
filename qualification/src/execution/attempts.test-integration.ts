@@ -87,7 +87,7 @@ const createIncompleteAttemptFixture = async (options: {
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'd'.repeat(64),
       packagesRepositoryDirty: false,
-      qualificationRepositoryCommit: 'qualification-commit',
+      qualificationRepositoryCommit: 'd'.repeat(40),
       qualificationRepositoryDirty: false,
       skillRepositoryCommit: 'skill-commit',
       skillRepositoryFingerprint: 'c'.repeat(64),

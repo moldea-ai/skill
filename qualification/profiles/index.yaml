@@ -1,0 +1,44 @@
+version: 1
+targets:
+  - key: t1
+    adapterId: anthropic
+    implementationId: typescript-messages-api-0-117
+  - key: t2
+    adapterId: claude-agent-sdk
+    implementationId: typescript-query-subagents-0-3
+  - key: t3
+    adapterId: cloudflare-agents
+    implementationId: typescript-ai-chat-agent-0-10-ai-sdk-7
+  - key: t4
+    adapterId: cloudflare-agents
+    implementationId: typescript-think-0-16-ai-sdk-7
+  - key: t5
+    adapterId: custom
+    implementationId: custom
+  - key: t6
+    adapterId: eve
+    implementationId: typescript-filesystem-agent-0-39
+  - key: t7
+    adapterId: google-genai
+    implementationId: typescript-models-generate-content-2
+  - key: t8
+    adapterId: langchain
+    implementationId: typescript-create-agent-1-5
+  - key: t9
+    adapterId: langgraph
+    implementationId: typescript-functional-api-1-4
+  - key: t10
+    adapterId: langgraph
+    implementationId: typescript-state-graph-1-4
+  - key: t11
+    adapterId: openai
+    implementationId: typescript-responses-api-7
+  - key: t12
+    adapterId: openai-agents-sdk
+    implementationId: typescript-agent-handoffs-0-16
+  - key: t13
+    adapterId: vercel-ai-sdk
+    implementationId: typescript-generate-stream-text-7
+  - key: t14
+    adapterId: vercel-ai-sdk
+    implementationId: typescript-tool-loop-agent-7

@@ -49,13 +49,14 @@ const readRecordedQualificationYaml = <TResult>(options: {
   assertAllowedContractPath(options.relativePath);
   const qualificationRoot = resolve(options.resultsRoot, '..');
   const contractPath = resolveContainedPath(qualificationRoot, options.relativePath);
+  const hasRepository = existsSync(join(options.repositoryRoot, '.git'));
+
+  if (!hasRepository) {
+    return readYamlFile(contractPath, options.schema);
+  }
 
   if (!GIT_COMMIT_PATTERN.test(options.qualificationRepositoryCommit)) {
-    if (existsSync(join(options.repositoryRoot, '.git'))) {
-      throw new Error('Published qualification evidence lacks an exact source commit.');
-    }
-
-    return readYamlFile(contractPath, options.schema);
+    throw new Error('Published qualification evidence lacks an exact source commit.');
   }
 
   const repositoryRelativePath = getRepositoryRelativePath(options.repositoryRoot, contractPath);
@@ -95,11 +96,15 @@ const assertUnique = (identities: string[], label: string): void => {
 export const readRecordedQualificationContract = (options: {
   adapterId: string;
   implementationId: string;
+  profileKey?: string;
   qualificationRepositoryCommit: string;
   repositoryRoot: string;
   resultsRoot: string;
 }): IRecordedQualificationContract => {
-  const profileRelativeDirectory = join('profiles', options.adapterId, options.implementationId);
+  const profileRelativeDirectory = join(
+    'profiles',
+    options.profileKey ?? join(options.adapterId, options.implementationId),
+  );
   const readRecordedYaml = <TResult>(
     relativePath: string,
     schema: Parameters<typeof readRecordedQualificationYaml<TResult>>[0]['schema'],

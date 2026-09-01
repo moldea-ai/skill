@@ -32,6 +32,12 @@ import {
 import { inspectGitRepositoryState } from '../../qualification/src/repository-state/index.ts';
 import { verifyQualificationResults } from '../../qualification/src/result/index.ts';
 import {
+  createQualificationAttemptKey,
+  QualificationProfileIndexSchema,
+  resolveQualificationArtifactPath,
+  verifyQualificationAttemptStorage,
+} from '../../qualification/src/storage/index.ts';
+import {
   CODEX_EVALUATION_MODEL,
   CODEX_EVALUATION_REASONING_EFFORT,
   hasPassingCodexEvaluationCommandPolicy,
@@ -160,35 +166,29 @@ const createAttemptTrialProvenance = (attempt) =>
 
 const listQualificationProfiles = (repositoryRoot) => {
   const profilesRoot = join(repositoryRoot, 'qualification', 'profiles');
-  const profiles = [];
+  const index = readYaml(join(profilesRoot, 'index.yaml'), QualificationProfileIndexSchema);
 
-  for (const adapterEntry of readdirSync(profilesRoot, {
-    withFileTypes: true,
-  })) {
-    if (!adapterEntry.isDirectory()) continue;
-    const adapterRoot = join(profilesRoot, adapterEntry.name);
+  return index.targets.map((target) => {
+    const profileDirectory = resolveContainedPath(profilesRoot, target.key);
+    const profile = readYaml(join(profileDirectory, 'profile.yaml'), QualificationProfileSchema);
 
-    for (const implementationEntry of readdirSync(adapterRoot, {
-      withFileTypes: true,
-    })) {
-      if (!implementationEntry.isDirectory()) continue;
-      const profilePath = join(adapterRoot, implementationEntry.name, 'profile.yaml');
-      if (!existsSync(profilePath)) continue;
-
-      const profile = readYaml(profilePath, QualificationProfileSchema);
-      const profileDirectory = join(adapterRoot, implementationEntry.name);
-      profiles.push({
-        adapterId: profile.adapterId,
-        caseIds: profile.cases.map(({ id }) => id),
-        cases: profile.cases,
-        implementationId: profile.implementationId,
-        profileDirectory,
-        runtimePackages: profile.runtimePackages ?? [],
-      });
+    if (
+      profile.adapterId !== target.adapterId ||
+      profile.implementationId !== target.implementationId
+    ) {
+      throw new Error(`Qualification profile ${target.key} contradicts its indexed identity.`);
     }
-  }
 
-  return profiles;
+    return {
+      adapterId: profile.adapterId,
+      caseIds: profile.cases.map(({ id }) => id),
+      cases: profile.cases,
+      implementationId: profile.implementationId,
+      profileDirectory,
+      runtimePackages: profile.runtimePackages ?? [],
+      targetKey: target.key,
+    };
+  });
 };
 
 const createQualificationStageIds = (caseIds) => [
@@ -463,17 +463,17 @@ const hasValidModelEvidence = (attempt, trial, role, stage, evidence) => {
   );
 };
 
-const hasValidArtifactDigest = (attemptDirectory, attempt, relativePath) => {
+const hasValidArtifactDigest = (resolveArtifactPath, attempt, relativePath) => {
   const expectedDigest = attempt.artifactDigests[relativePath];
   if (expectedDigest === undefined) return false;
-  const artifactPath = join(attemptDirectory, relativePath);
+  const artifactPath = resolveArtifactPath(relativePath);
   return (
     existsSync(artifactPath) &&
     createHash('sha256').update(readFileSync(artifactPath)).digest('hex') === expectedDigest
   );
 };
 
-const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profileCases) => {
+const hasCompletePassingQualificationCases = (resolveArtifactPath, attempt, profileCases) => {
   const caseIds = profileCases.map(({ id }) => id);
   if (attempt.cases.length !== caseIds.length) return false;
   const expectedArtifactPaths = ['baseline.json', 'coverage.json', 'source-state.json'];
@@ -530,25 +530,21 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
       if (!expectedReferences) return false;
 
       try {
-        const recordedTrial = readJson(
-          join(attemptDirectory, 'cases', caseId, 'trials', trial.trialId, 'trial-result.json'),
-        );
+        const recordedTrial = readJson(resolveArtifactPath(`${trialRoot}/trial-result.json`));
         const actorEvidence = QualificationModelStageEvidenceSchema.parse(
-          readJson(
-            join(attemptDirectory, 'cases', caseId, 'trials', trial.trialId, 'actor-evidence.json'),
-          ),
+          readJson(resolveArtifactPath(`${trialRoot}/actor-evidence.json`)),
         );
         const actor = ActorOutputSchema.parse(
-          readJson(join(attemptDirectory, `${trialRoot}/actor-output.json`)),
+          readJson(resolveArtifactPath(`${trialRoot}/actor-output.json`)),
         );
         const deterministicBefore = DeterministicVerificationArtifactSchema.parse(
-          readJson(join(attemptDirectory, `${trialRoot}/deterministic-before.json`)),
+          readJson(resolveArtifactPath(`${trialRoot}/deterministic-before.json`)),
         );
         const deterministicAfter = DeterministicVerificationArtifactSchema.parse(
-          readJson(join(attemptDirectory, `${trialRoot}/deterministic-after.json`)),
+          readJson(resolveArtifactPath(`${trialRoot}/deterministic-after.json`)),
         );
         const assertions = WorkspaceAssertionResultSchema.parse(
-          readJson(join(attemptDirectory, `${trialRoot}/workspace-assertions.json`)),
+          readJson(resolveArtifactPath(`${trialRoot}/workspace-assertions.json`)),
         );
         const hasJudgeRequirements = scenario.judgeRequirements.some(
           (requirement) => requirement.evaluation.kind === 'judge',
@@ -556,28 +552,19 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
         const judgeEvidence =
           trial.judgeStatus === 'completed'
             ? QualificationModelStageEvidenceSchema.parse(
-                readJson(
-                  join(
-                    attemptDirectory,
-                    'cases',
-                    caseId,
-                    'trials',
-                    trial.trialId,
-                    'judge-evidence.json',
-                  ),
-                ),
+                readJson(resolveArtifactPath(`${trialRoot}/judge-evidence.json`)),
               )
             : null;
         const judge =
           trial.judgeStatus === 'completed'
             ? JudgeOutputSchema.parse(
-                readJson(join(attemptDirectory, `${trialRoot}/judge-output.json`)),
+                readJson(resolveArtifactPath(`${trialRoot}/judge-output.json`)),
               )
             : null;
         const judgeSkipped =
           trial.judgeStatus === 'skipped'
             ? QualificationJudgeSkippedSchema.parse(
-                readJson(join(attemptDirectory, `${trialRoot}/judge-skipped.json`)),
+                readJson(resolveArtifactPath(`${trialRoot}/judge-skipped.json`)),
               )
             : null;
         const stages = new Map(attempt.stages.map((stage) => [stage.id, stage]));
@@ -628,7 +615,7 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
         return (
           JSON.stringify(recordedTrial) === JSON.stringify(trial) &&
           trialArtifactPaths.every((artifactPath) =>
-            hasValidArtifactDigest(attemptDirectory, attempt, artifactPath),
+            hasValidArtifactDigest(resolveArtifactPath, attempt, artifactPath),
           ) &&
           deterministicBefore.summary.passed &&
           hasValidDeterministicEvidence(deterministicBefore, scenario.inspection.before) &&
@@ -667,7 +654,7 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
   return (
     hasPassingCases &&
     expectedArtifactPaths.every((artifactPath) =>
-      hasValidArtifactDigest(attemptDirectory, attempt, artifactPath),
+      hasValidArtifactDigest(resolveArtifactPath, attempt, artifactPath),
     ) &&
     JSON.stringify(actualArtifactPaths) ===
       JSON.stringify(expectedArtifactPaths.sort((left, right) => left.localeCompare(right, 'en')))
@@ -755,7 +742,7 @@ const hasCompletePassingQualificationStages = (attempt, caseIds) => {
 };
 
 const inspectQualificationControlEvidence = (
-  attemptDirectory,
+  resolveArtifactPath,
   attempt,
   adapterId,
   relativeLatestPath,
@@ -773,12 +760,12 @@ const inspectQualificationControlEvidence = (
   }
 
   const baseline = QualificationBaselineCheckSchema.parse(
-    readJson(join(attemptDirectory, 'baseline.json')),
+    readJson(resolveArtifactPath('baseline.json')),
   );
   const sourceState = QualificationSourceStateResultSchema.parse(
-    readJson(join(attemptDirectory, 'source-state.json')),
+    readJson(resolveArtifactPath('source-state.json')),
   );
-  const coverage = readJson(join(attemptDirectory, 'coverage.json'));
+  const coverage = readJson(resolveArtifactPath('coverage.json'));
   const hasCleanTrustedSource =
     sourceState.passed &&
     sourceState.requiresCleanInputs &&
@@ -1182,6 +1169,7 @@ export const inspectReleaseEvidence = async (
   }
 
   const passingEvidence = new Map();
+  const qualificationProfiles = listQualificationProfiles(repositoryRoot);
 
   for (const {
     adapterId,
@@ -1190,14 +1178,9 @@ export const inspectReleaseEvidence = async (
     implementationId,
     profileDirectory,
     runtimePackages,
-  } of listQualificationProfiles(repositoryRoot)) {
-    const relativeLatestPath = join(
-      'qualification',
-      'results',
-      adapterId,
-      implementationId,
-      'latest.json',
-    );
+    targetKey,
+  } of qualificationProfiles) {
+    const relativeLatestPath = join('qualification', 'results', targetKey, 'latest.json');
     const latestPath = join(repositoryRoot, relativeLatestPath);
     if (!existsSync(latestPath)) {
       issues.push(`${relativeLatestPath} is missing qualification evidence.`);
@@ -1228,10 +1211,9 @@ export const inspectReleaseEvidence = async (
       repositoryRoot,
       'qualification',
       'results',
-      adapterId,
-      implementationId,
+      targetKey,
       'attempts',
-      latest.latestAttemptId,
+      createQualificationAttemptKey(latest.latestAttemptId),
     );
     const attemptPath = join(attemptDirectory, 'attempt.json');
     if (!existsSync(attemptPath)) {
@@ -1248,6 +1230,20 @@ export const inspectReleaseEvidence = async (
       );
       continue;
     }
+    let storage;
+    try {
+      storage = await verifyQualificationAttemptStorage({
+        attemptDirectory,
+        result: attempt,
+      });
+    } catch (error) {
+      issues.push(
+        `${relativeLatestPath} points to invalid short storage: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      continue;
+    }
+    const resolveArtifactPath = (logicalPath) =>
+      resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath);
     const adapter = currentInputs?.matrix.adapters[adapterId];
     const target = adapter?.targets?.find(({ id }) => id === implementationId);
     const hasCurrentTarget =
@@ -1346,7 +1342,7 @@ export const inspectReleaseEvidence = async (
       continue;
     }
     const hasPassingCases = hasCompletePassingQualificationCases(
-      attemptDirectory,
+      resolveArtifactPath,
       attempt,
       profileCases,
     );
@@ -1359,7 +1355,7 @@ export const inspectReleaseEvidence = async (
 
     try {
       const controlEvidence = inspectQualificationControlEvidence(
-        attemptDirectory,
+        resolveArtifactPath,
         attempt,
         adapterId,
         relativeLatestPath,
@@ -1380,26 +1376,40 @@ export const inspectReleaseEvidence = async (
   }
 
   const customEvidence = passingEvidence.get('custom/custom');
+  const customTargetKey = qualificationProfiles.find(
+    ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
+  )?.targetKey;
   for (const [selectionKey, evidence] of passingEvidence) {
     if (selectionKey === 'custom/custom') continue;
     const baselineAttemptId = evidence.attempt.provenance.baselineAttemptId;
-    const recordedBaselinePath =
-      baselineAttemptId === null
-        ? null
-        : join(resultsRoot, 'custom', 'custom', 'attempts', baselineAttemptId, 'attempt.json');
     let hasRecordedPassingBaseline = false;
-    if (recordedBaselinePath !== null && existsSync(recordedBaselinePath)) {
-      try {
-        const recordedBaseline = QualificationAttemptResultSchema.parse(
-          readJson(recordedBaselinePath),
-        );
-        hasRecordedPassingBaseline =
-          recordedBaseline.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
-          recordedBaseline.status === 'passed' &&
-          recordedBaseline.selection.adapterId === 'custom' &&
-          recordedBaseline.selection.implementationId === 'custom';
-      } catch {
-        hasRecordedPassingBaseline = false;
+    if (baselineAttemptId !== null && customTargetKey !== undefined) {
+      const recordedBaselineDirectory = join(
+        resultsRoot,
+        customTargetKey,
+        'attempts',
+        createQualificationAttemptKey(baselineAttemptId),
+      );
+      const recordedBaselinePath = join(recordedBaselineDirectory, 'attempt.json');
+
+      if (existsSync(recordedBaselinePath)) {
+        try {
+          const recordedBaseline = QualificationAttemptResultSchema.parse(
+            readJson(recordedBaselinePath),
+          );
+          await verifyQualificationAttemptStorage({
+            attemptDirectory: recordedBaselineDirectory,
+            result: recordedBaseline,
+          });
+          hasRecordedPassingBaseline =
+            recordedBaseline.attemptId === baselineAttemptId &&
+            recordedBaseline.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
+            recordedBaseline.status === 'passed' &&
+            recordedBaseline.selection.adapterId === 'custom' &&
+            recordedBaseline.selection.implementationId === 'custom';
+        } catch {
+          hasRecordedPassingBaseline = false;
+        }
       }
     }
     if (customEvidence === undefined) {

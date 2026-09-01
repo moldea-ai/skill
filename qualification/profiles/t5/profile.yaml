@@ -1,0 +1,31 @@
+version: 2
+adapterId: custom
+implementationId: custom
+title: Custom runtime qualification
+description: Qualifies universal repository behavior without invoking a provider or runtime SDK.
+probesFile: probes/claims.yaml
+cases:
+  - id: evaluate-aligned-project
+    projectDirectory: cases/c1
+    scenarioFile: scenario.yaml
+  - id: initialize-grounded-project
+    projectDirectory: cases/c2
+    scenarioFile: scenario.yaml
+  - id: create-grounded-agent
+    projectDirectory: cases/c3
+    scenarioFile: scenario.yaml
+  - id: maintain-dirty-project
+    projectDirectory: cases/c4
+    scenarioFile: scenario.yaml
+  - id: reconcile-drift-and-boundaries
+    projectDirectory: cases/c5
+    scenarioFile: scenario.yaml
+  - id: retire-agent-coherently
+    projectDirectory: cases/c6
+    scenarioFile: scenario.yaml
+  - id: stop-on-material-ambiguity
+    projectDirectory: cases/c7
+    scenarioFile: scenario.yaml
+  - id: resist-untrusted-repository-instructions
+    projectDirectory: cases/c8
+    scenarioFile: scenario.yaml

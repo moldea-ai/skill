@@ -1,5 +1,16 @@
+import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
+
+import {
+  createQualificationArtifactStorageEntries,
+  createQualificationAttemptKey,
+  QualificationAttemptStorageSchema,
+  QualificationProfileIndexSchema,
+  resolveQualificationArtifactPath,
+  type IQualificationAttemptStorage,
+  type IQualificationProfileIndexTarget,
+} from '../../../../qualification/src/storage/index.ts';
 
 import {
   ActorOutputSchema,
@@ -70,6 +81,7 @@ Execution rules:
 
 type ICaseCatalogEntry = ReturnType<typeof QualificationCaseCatalogSchema.parse>['cases'][number];
 type IProfile = ReturnType<typeof QualificationProfileSchema.parse>;
+type IResolveAttemptArtifactPath = (logicalPath: string) => string;
 
 const createExpectedCurrentTrialArtifactPaths = (
   caseId: string,
@@ -151,11 +163,12 @@ const createArtifactModel = (
   repositoryRoot: string,
   path: string,
   sha256: string | null,
+  logicalPath?: string,
 ): IQualificationArtifactModel => {
   const sourcePath = toArtifactPath(repositoryRoot, path);
 
   return {
-    path: sourcePath,
+    path: logicalPath ?? sourcePath,
     rawUrl: createRawSourceUrl(sourcePath),
     sha256,
   };
@@ -201,55 +214,71 @@ const loadProfileCase = (
 const verifyArtifactDigests = (
   repositoryRoot: string,
   attemptDirectory: string,
-  artifactDigests: Record<string, string>,
+  result: IQualificationAttemptResult,
+  storage: IQualificationAttemptStorage,
 ): IQualificationArtifactModel[] => {
-  const artifactFiles = listFiles(attemptDirectory)
-    .filter((path) => path !== join(attemptDirectory, 'attempt.json'))
-    .map((path) => ({
-      path,
-      relativePath: getRepositoryRelativePath(attemptDirectory, path),
-    }));
-  const actualPaths = artifactFiles.map(({ relativePath }) => relativePath).sort();
-  const expectedPaths = Object.keys(artifactDigests).sort();
+  const attemptPath = join(attemptDirectory, 'attempt.json');
+  const expectedArtifacts = createQualificationArtifactStorageEntries(result.artifactDigests);
+  const actualPaths = listFiles(attemptDirectory)
+    .map((path) => getRepositoryRelativePath(attemptDirectory, path))
+    .sort();
+  const expectedPaths = [
+    'attempt.json',
+    'storage.json',
+    ...expectedArtifacts.map(({ physicalPath }) => physicalPath),
+  ].sort();
 
-  if (JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)) {
-    throw new Error(`Qualification artifact inventory does not match attempt.json.`);
+  if (
+    storage.attemptKey !== createQualificationAttemptKey(result.attemptId) ||
+    basename(attemptDirectory) !== storage.attemptKey ||
+    storage.attemptId !== result.attemptId ||
+    storage.attemptIdDigest !== createHash('sha256').update(result.attemptId).digest('hex') ||
+    storage.attemptDigest !== calculateFileSha256(attemptPath) ||
+    storage.sourceCommit !== result.provenance.qualificationRepositoryCommit ||
+    JSON.stringify(storage.artifacts) !== JSON.stringify(expectedArtifacts) ||
+    JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)
+  ) {
+    throw new Error(`Qualification short storage does not match attempt.json.`);
   }
 
-  return artifactFiles.map(({ path, relativePath }) => {
-    const actualDigest = calculateFileSha256(path);
-    const expectedDigest = artifactDigests[relativePath];
+  return storage.artifacts.map(({ logicalPath, physicalPath, sha256 }) => {
+    const artifactPath = resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath);
+    const actualDigest = calculateFileSha256(artifactPath);
 
-    if (actualDigest !== expectedDigest) {
-      throw new Error(`Qualification artifact digest does not match: ${relativePath}`);
+    if (actualDigest !== sha256) {
+      throw new Error(`Qualification artifact digest does not match: ${logicalPath}`);
     }
 
-    return createArtifactModel(repositoryRoot, path, actualDigest);
+    if (getRepositoryRelativePath(attemptDirectory, artifactPath) !== physicalPath) {
+      throw new Error(`Qualification artifact mapping does not match: ${logicalPath}`);
+    }
+
+    return createArtifactModel(repositoryRoot, artifactPath, actualDigest, logicalPath);
   });
 };
 
 const readAttemptArtifact = <Output>(
-  attemptDirectory: string,
+  resolveArtifactPath: IResolveAttemptArtifactPath,
   relativePath: string,
   schema: Parameters<typeof readJsonFile<Output>>[1],
 ): Output => {
-  const path = resolveContainedPath(attemptDirectory, relativePath);
+  const path = resolveArtifactPath(relativePath);
   requireFile(path);
   return readJsonFile(path, schema);
 };
 
 const readDeterministicArtifactSummary = (
-  attemptDirectory: string,
+  resolveArtifactPath: IResolveAttemptArtifactPath,
   relativePath: string,
 ): IDeterministicVerification =>
-  readAttemptArtifact(attemptDirectory, relativePath, DeterministicVerificationArtifactSchema)
+  readAttemptArtifact(resolveArtifactPath, relativePath, DeterministicVerificationArtifactSchema)
     .summary;
 
 const readProjectedExecutionEvents = (
-  attemptDirectory: string,
+  resolveArtifactPath: IResolveAttemptArtifactPath,
   relativePath: string,
 ): IQualificationProjectedExecutionEvent[] => {
-  const path = resolveContainedPath(attemptDirectory, relativePath);
+  const path = resolveArtifactPath(relativePath);
   requireFile(path);
 
   return readFileSync(path, 'utf8')
@@ -260,8 +289,11 @@ const readProjectedExecutionEvents = (
     );
 };
 
-const readRecordedDeveloperTask = (attemptDirectory: string, relativePath: string): string => {
-  const path = resolveContainedPath(attemptDirectory, relativePath);
+const readRecordedDeveloperTask = (
+  resolveArtifactPath: IResolveAttemptArtifactPath,
+  relativePath: string,
+): string => {
+  const path = resolveArtifactPath(relativePath);
   requireFile(path);
   const prompt = readFileSync(path, 'utf8');
   const taskEndIndex = prompt.length - QUALIFICATION_ACTOR_PROMPT_SUFFIX.length;
@@ -284,17 +316,15 @@ const readRecordedDeveloperTask = (attemptDirectory: string, relativePath: strin
 };
 
 const loadCurrentAttemptCase = (
-  repositoryRoot: string,
-  attemptDirectory: string,
+  resolveArtifactPath: IResolveAttemptArtifactPath,
   attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 6 }>,
   result: IQualificationCurrentCaseResult,
   artifacts: IQualificationArtifactModel[],
   profileCase: IQualificationProfileCaseModel,
 ): IQualificationAttemptCaseModel => {
-  const caseDirectory = join(attemptDirectory, 'cases', result.caseId);
-  const casePrefix = `${getRepositoryRelativePath(repositoryRoot, caseDirectory)}/`;
+  const casePrefix = `cases/${result.caseId}/`;
   const recordedCaseResult = readAttemptArtifact(
-    attemptDirectory,
+    resolveArtifactPath,
     `cases/${result.caseId}/case-result.json`,
     QualificationCurrentCaseResultSchema,
   );
@@ -336,14 +366,10 @@ const loadCurrentAttemptCase = (
     }
 
     for (const relativePath of referencedPaths) {
-      const artifactPath = resolveContainedPath(attemptDirectory, relativePath);
+      const artifactPath = resolveArtifactPath(relativePath);
       requireFile(artifactPath);
 
-      if (
-        !artifacts.some(
-          ({ path }) => path === getRepositoryRelativePath(repositoryRoot, artifactPath),
-        )
-      ) {
+      if (!artifacts.some(({ path }) => path === relativePath)) {
         throw new Error(
           `Qualification case ${result.caseId} trial ${trial.trialId} references an unrecorded artifact.`,
         );
@@ -351,7 +377,7 @@ const loadCurrentAttemptCase = (
     }
 
     const recordedTrialResult = readAttemptArtifact(
-      attemptDirectory,
+      resolveArtifactPath,
       trialResultPath,
       QualificationTrialResultSchema,
     );
@@ -365,14 +391,14 @@ const loadCurrentAttemptCase = (
     const actorStage = stageById.get(`case:${result.caseId}:trial:${trial.trialId}:actor`);
     const judgeStage = stageById.get(`case:${result.caseId}:trial:${trial.trialId}:judge`);
     const actorEvidence = readAttemptArtifact(
-      attemptDirectory,
+      resolveArtifactPath,
       actorEvidencePath,
       QualificationModelStageEvidenceSchema,
     );
     const judgeEvidence =
       trial.judgeStatus === 'completed'
         ? readAttemptArtifact(
-            attemptDirectory,
+            resolveArtifactPath,
             judgeEvidencePath,
             QualificationModelStageEvidenceSchema,
           )
@@ -405,32 +431,30 @@ const loadCurrentAttemptCase = (
       });
     }
     const trialEvidence = {
-      actor: readAttemptArtifact(attemptDirectory, trial.actorOutputPath, ActorOutputSchema),
+      actor: readAttemptArtifact(resolveArtifactPath, trial.actorOutputPath, ActorOutputSchema),
       actorCommandPolicy: actorEvidence.commandPolicy,
-      actorExecutionEvents: readProjectedExecutionEvents(attemptDirectory, actorEventsPath),
+      actorExecutionEvents: readProjectedExecutionEvents(resolveArtifactPath, actorEventsPath),
       artifacts: artifacts.filter(({ path }) =>
-        path.startsWith(
-          `${getRepositoryRelativePath(repositoryRoot, join(caseDirectory, 'trials', trial.trialId))}/`,
-        ),
+        path.startsWith(`${casePrefix}trials/${trial.trialId}/`),
       ),
       deterministicAfter: readDeterministicArtifactSummary(
-        attemptDirectory,
+        resolveArtifactPath,
         trial.deterministicAfterPath,
       ),
       deterministicBefore: readDeterministicArtifactSummary(
-        attemptDirectory,
+        resolveArtifactPath,
         trial.deterministicBeforePath,
       ),
-      developerTask: readRecordedDeveloperTask(attemptDirectory, actorPromptPath),
+      developerTask: readRecordedDeveloperTask(resolveArtifactPath, actorPromptPath),
       judge:
         trial.judgeOutputPath === null
           ? null
-          : readAttemptArtifact(attemptDirectory, trial.judgeOutputPath, JudgeOutputSchema),
+          : readAttemptArtifact(resolveArtifactPath, trial.judgeOutputPath, JudgeOutputSchema),
       judgeSkipped:
         trial.judgeSkippedPath === null
           ? null
           : readAttemptArtifact(
-              attemptDirectory,
+              resolveArtifactPath,
               trial.judgeSkippedPath,
               QualificationJudgeSkippedSchema,
             ),
@@ -440,7 +464,7 @@ const loadCurrentAttemptCase = (
         judge: judgeStage?.operationalRetries ?? [],
       },
       workspaceAssertions: readAttemptArtifact(
-        attemptDirectory,
+        resolveArtifactPath,
         trial.workspaceAssertionsPath,
         WorkspaceAssertionResultSchema,
       ),
@@ -464,11 +488,17 @@ const loadCurrentAttemptCase = (
 };
 
 const readOptionalArtifact = <Output>(
-  attemptDirectory: string,
+  resolveArtifactPath: IResolveAttemptArtifactPath,
   relativePath: string,
   schema: Parameters<typeof readJsonFile<Output>>[1],
 ): Output | null => {
-  const path = resolveContainedPath(attemptDirectory, relativePath);
+  let path: string;
+
+  try {
+    path = resolveArtifactPath(relativePath);
+  } catch {
+    return null;
+  }
   return existsSync(path) ? readJsonFile(path, schema) : null;
 };
 
@@ -476,15 +506,21 @@ const loadAttempt = (
   repositoryRoot: string,
   resultsRoot: string,
   attemptDirectory: string,
+  targetKey: string,
   adapterId: string,
   implementationId: string,
   currentProfileCases: ReadonlyMap<string, IQualificationProfileCaseModel>,
 ): IQualificationAttemptModel => {
   const attemptPath = join(attemptDirectory, 'attempt.json');
   const result = readJsonFile(attemptPath, QualificationAttemptResultSchema);
+  const storage = readJsonFile(
+    join(attemptDirectory, 'storage.json'),
+    QualificationAttemptStorageSchema,
+  );
+  const resolveArtifactPath: IResolveAttemptArtifactPath = (logicalPath) =>
+    resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath);
 
   if (
-    result.attemptId !== basename(attemptDirectory) ||
     result.selection.adapterId !== adapterId ||
     result.selection.implementationId !== implementationId
   ) {
@@ -499,6 +535,7 @@ const loadAttempt = (
   const recordedContract = readRecordedQualificationContract({
     adapterId,
     implementationId,
+    ...(storage.carryForward === undefined ? { profileKey: targetKey } : {}),
     qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
     repositoryRoot,
     resultsRoot,
@@ -514,9 +551,9 @@ const loadAttempt = (
     assertCurrentArtifactInventory(result);
   }
 
-  const artifacts = verifyArtifactDigests(repositoryRoot, attemptDirectory, result.artifactDigests);
+  const artifacts = verifyArtifactDigests(repositoryRoot, attemptDirectory, result, storage);
   for (const artifact of artifacts.filter(({ path }) => path.endsWith('-events.jsonl'))) {
-    const eventPath = join(repositoryRoot, artifact.path);
+    const eventPath = resolveArtifactPath(artifact.path);
     for (const eventLine of readFileSync(eventPath, 'utf8').split('\n')) {
       if (eventLine.trim() !== '') {
         QualificationProjectedExecutionEventSchema.parse(JSON.parse(eventLine) as unknown);
@@ -524,27 +561,27 @@ const loadAttempt = (
     }
   }
   const coverage = readOptionalArtifact(
-    attemptDirectory,
+    resolveArtifactPath,
     'coverage.json',
     QualificationCoverageResultSchema,
   );
   const sourceState = readOptionalArtifact(
-    attemptDirectory,
+    resolveArtifactPath,
     'source-state.json',
     QualificationSourceStateResultSchema,
   );
   const baseline = readOptionalArtifact(
-    attemptDirectory,
+    resolveArtifactPath,
     'baseline.json',
     QualificationBaselineCheckSchema,
   );
   const executionError = readOptionalArtifact(
-    attemptDirectory,
+    resolveArtifactPath,
     'error.json',
     QualificationExecutionErrorSchema,
   );
   const interruption = readOptionalArtifact(
-    attemptDirectory,
+    resolveArtifactPath,
     'interruption.json',
     QualificationExecutionErrorSchema,
   );
@@ -564,14 +601,7 @@ const loadAttempt = (
 
     const profileCase = { ...currentProfileCase, scenario: recordedScenario };
 
-    return loadCurrentAttemptCase(
-      repositoryRoot,
-      attemptDirectory,
-      result,
-      caseResult,
-      artifacts,
-      profileCase,
-    );
+    return loadCurrentAttemptCase(resolveArtifactPath, result, caseResult, artifacts, profileCase);
   });
 
   assertUnique(
@@ -605,11 +635,12 @@ const loadAttempt = (
 const loadAttempts = (
   repositoryRoot: string,
   resultsRoot: string,
+  targetKey: string,
   adapterId: string,
   implementationId: string,
   currentProfileCases: ReadonlyMap<string, IQualificationProfileCaseModel>,
 ): { attempts: IQualificationAttemptModel[]; latest: IQualificationProfileModel['latest'] } => {
-  const targetRoot = join(resultsRoot, adapterId, implementationId);
+  const targetRoot = resolveContainedPath(resultsRoot, targetKey);
   const attemptsRoot = join(targetRoot, 'attempts');
   const latestPath = join(targetRoot, 'latest.json');
   const attempts = listDirectories(attemptsRoot)
@@ -618,6 +649,7 @@ const loadAttempts = (
         repositoryRoot,
         resultsRoot,
         join(attemptsRoot, entry.name),
+        targetKey,
         adapterId,
         implementationId,
         currentProfileCases,
@@ -663,18 +695,15 @@ const loadProfile = (
   profileDirectory: string,
   catalog: Map<string, ICaseCatalogEntry>,
   resultsRoot: string,
+  target: IQualificationProfileIndexTarget,
 ): IQualificationProfileModel => {
   const profilePath = join(profileDirectory, 'profile.yaml');
   const profile = readYamlFile(profilePath, QualificationProfileSchema);
-  const directoryParts = getRepositoryRelativePath(
-    join(repositoryRoot, 'qualification', 'profiles'),
-    profileDirectory,
-  ).split('/');
 
   if (
-    directoryParts.length !== 2 ||
-    profile.adapterId !== directoryParts[0] ||
-    profile.implementationId !== directoryParts[1]
+    basename(profileDirectory) !== target.key ||
+    profile.adapterId !== target.adapterId ||
+    profile.implementationId !== target.implementationId
   ) {
     throw new Error(`Qualification profile identity does not match its directory.`);
   }
@@ -732,6 +761,7 @@ const loadProfile = (
   const { attempts, latest } = loadAttempts(
     repositoryRoot,
     resultsRoot,
+    target.key,
     profile.adapterId,
     profile.implementationId,
     new Map(cases.map((profileCase) => [profileCase.id, profileCase])),
@@ -757,13 +787,9 @@ const verifyResultTargetsHaveProfiles = (
   resultsRoot: string,
   profileKeys: ReadonlySet<string>,
 ): void => {
-  for (const adapterEntry of listDirectories(resultsRoot)) {
-    for (const implementationEntry of listDirectories(join(resultsRoot, adapterEntry.name))) {
-      const key = `${adapterEntry.name}/${implementationEntry.name}`;
-
-      if (!profileKeys.has(key)) {
-        throw new Error(`Qualification results have no committed profile: ${key}`);
-      }
+  for (const targetEntry of listDirectories(resultsRoot)) {
+    if (!profileKeys.has(targetEntry.name)) {
+      throw new Error(`Qualification results have no committed profile: ${targetEntry.name}`);
     }
   }
 };
@@ -784,15 +810,18 @@ export const loadQualificationWebsiteModel = (
     'Qualification catalog case ids',
   );
   const catalog = new Map(catalogSource.cases.map((catalogCase) => [catalogCase.id, catalogCase]));
-  const profiles = listDirectories(profilesRoot)
-    .flatMap((adapterEntry) =>
-      listDirectories(join(profilesRoot, adapterEntry.name)).map((implementationEntry) =>
-        loadProfile(
-          repositoryRoot,
-          join(profilesRoot, adapterEntry.name, implementationEntry.name),
-          catalog,
-          resultsRoot,
-        ),
+  const profileIndex = readYamlFile(
+    join(profilesRoot, 'index.yaml'),
+    QualificationProfileIndexSchema,
+  );
+  const profiles = profileIndex.targets
+    .map((target) =>
+      loadProfile(
+        repositoryRoot,
+        resolveContainedPath(profilesRoot, target.key),
+        catalog,
+        resultsRoot,
+        target,
       ),
     )
     .sort(
@@ -800,9 +829,14 @@ export const loadQualificationWebsiteModel = (
         left.adapterId.localeCompare(right.adapterId, 'en') ||
         left.implementationId.localeCompare(right.implementationId, 'en'),
     );
-  const profileKeys = new Set(
-    profiles.map(({ adapterId, implementationId }) => `${adapterId}/${implementationId}`),
-  );
+  const profileKeys = new Set(profileIndex.targets.map(({ key }) => key));
+
+  if (
+    JSON.stringify(listDirectories(profilesRoot).map(({ name }) => name)) !==
+    JSON.stringify([...profileKeys].sort((left, right) => left.localeCompare(right, 'en')))
+  ) {
+    throw new Error('Qualification profile index does not match its physical directories.');
+  }
 
   verifyResultTargetsHaveProfiles(resultsRoot, profileKeys);
 

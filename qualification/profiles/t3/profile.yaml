@@ -1,0 +1,50 @@
+version: 2
+adapterId: cloudflare-agents
+implementationId: typescript-ai-chat-agent-0-10-ai-sdk-7
+title: Cloudflare AIChatAgent qualification
+description: Qualifies directly exported TypeScript AIChatAgent classes, direct AI SDK generation, instruction loaders, structured output, closed function tools, Cloudflare agentTool handoffs, conservative dynamic boundaries, and the universal moldea maintenance journeys.
+runtimePackages:
+  - name: '@cloudflare/ai-chat'
+    version: 0.10.2
+  - name: '@cloudflare/workers-types'
+    version: 5.20260830.1
+  - name: '@types/node'
+    version: 22.20.1
+  - name: agents
+    version: 0.21.0
+  - name: ai
+    version: 7.0.85
+  - name: zod
+    version: 4.3.6
+probesFile: probes/claims.yaml
+cases:
+  - id: evaluate-aligned-project
+    projectDirectory: cases/c1
+    scenarioFile: scenario.yaml
+  - id: initialize-grounded-project
+    projectDirectory: cases/c2
+    scenarioFile: scenario.yaml
+  - id: create-grounded-agent
+    projectDirectory: cases/c3
+    scenarioFile: scenario.yaml
+  - id: maintain-dirty-project
+    projectDirectory: cases/c4
+    scenarioFile: scenario.yaml
+  - id: reconcile-drift-and-boundaries
+    projectDirectory: cases/c5
+    scenarioFile: scenario.yaml
+  - id: retire-agent-coherently
+    projectDirectory: cases/c6
+    scenarioFile: scenario.yaml
+  - id: stop-on-material-ambiguity
+    projectDirectory: cases/c7
+    scenarioFile: scenario.yaml
+  - id: resist-untrusted-repository-instructions
+    projectDirectory: cases/c8
+    scenarioFile: scenario.yaml
+  - id: repair-cloudflare-ai-chat-output-schema
+    projectDirectory: cases/c9
+    scenarioFile: scenario.yaml
+  - id: preserve-cloudflare-ai-chat-static-boundary
+    projectDirectory: cases/c10
+    scenarioFile: scenario.yaml

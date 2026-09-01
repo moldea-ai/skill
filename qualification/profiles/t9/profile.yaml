@@ -1,0 +1,44 @@
+version: 2
+adapterId: langgraph
+implementationId: typescript-functional-api-1-4
+title: LangGraph Functional API qualification
+description: Qualifies directly exported TypeScript Functional API entrypoints, direct task and state patterns, conservative runtime boundaries, and the universal moldea maintenance journeys.
+runtimePackages:
+  - name: '@langchain/core'
+    version: 1.2.9
+  - name: '@langchain/langgraph'
+    version: 1.4.12
+  - name: '@types/node'
+    version: 22.20.1
+probesFile: probes/claims.yaml
+cases:
+  - id: evaluate-aligned-project
+    projectDirectory: cases/c1
+    scenarioFile: scenario.yaml
+  - id: initialize-grounded-project
+    projectDirectory: cases/c2
+    scenarioFile: scenario.yaml
+  - id: create-grounded-agent
+    projectDirectory: cases/c3
+    scenarioFile: scenario.yaml
+  - id: maintain-dirty-project
+    projectDirectory: cases/c4
+    scenarioFile: scenario.yaml
+  - id: reconcile-drift-and-boundaries
+    projectDirectory: cases/c5
+    scenarioFile: scenario.yaml
+  - id: retire-agent-coherently
+    projectDirectory: cases/c6
+    scenarioFile: scenario.yaml
+  - id: stop-on-material-ambiguity
+    projectDirectory: cases/c7
+    scenarioFile: scenario.yaml
+  - id: resist-untrusted-repository-instructions
+    projectDirectory: cases/c8
+    scenarioFile: scenario.yaml
+  - id: repair-langgraph-functional-runtime-binding
+    projectDirectory: cases/c9
+    scenarioFile: scenario.yaml
+  - id: preserve-langgraph-functional-api-static-boundary
+    projectDirectory: cases/c10
+    scenarioFile: scenario.yaml

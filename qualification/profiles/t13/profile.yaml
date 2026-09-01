@@ -1,0 +1,46 @@
+version: 2
+adapterId: vercel-ai-sdk
+implementationId: typescript-generate-stream-text-7
+title: Vercel AI SDK direct generation qualification
+description: Qualifies direct TypeScript generateText and streamText integrations, closed function tools, structured output, conservative static boundaries, and the universal moldea maintenance journeys.
+runtimePackages:
+  - name: '@types/json-schema'
+    version: 7.0.15
+  - name: '@types/node'
+    version: 22.20.1
+  - name: ai
+    version: 7.0.77
+  - name: zod
+    version: 4.3.6
+probesFile: probes/claims.yaml
+cases:
+  - id: evaluate-aligned-project
+    projectDirectory: cases/c1
+    scenarioFile: scenario.yaml
+  - id: initialize-grounded-project
+    projectDirectory: cases/c2
+    scenarioFile: scenario.yaml
+  - id: create-grounded-agent
+    projectDirectory: cases/c3
+    scenarioFile: scenario.yaml
+  - id: maintain-dirty-project
+    projectDirectory: cases/c4
+    scenarioFile: scenario.yaml
+  - id: reconcile-drift-and-boundaries
+    projectDirectory: cases/c5
+    scenarioFile: scenario.yaml
+  - id: retire-agent-coherently
+    projectDirectory: cases/c6
+    scenarioFile: scenario.yaml
+  - id: stop-on-material-ambiguity
+    projectDirectory: cases/c7
+    scenarioFile: scenario.yaml
+  - id: resist-untrusted-repository-instructions
+    projectDirectory: cases/c8
+    scenarioFile: scenario.yaml
+  - id: repair-vercel-tool-registration
+    projectDirectory: cases/c9
+    scenarioFile: scenario.yaml
+  - id: preserve-vercel-static-boundary
+    projectDirectory: cases/c10
+    scenarioFile: scenario.yaml

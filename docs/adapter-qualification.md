@@ -10,7 +10,7 @@ order: 175
 
 Adapter qualification is the evidence gate for deciding whether one exact adapter implementation is ready for **Supported** maturity. It tests whether the current `moldea` skill and the exact published package release can understand and safely maintain realistic projects. It does not invoke the provider, run the agent, or replace provider integration tests.
 
-Every profile, project, requirement, attempt, failure, and artifact is stored in this repository. The [qualification evidence index](/evidence/qualification/) presents the current result, complete history, and inspectable committed evidence without requiring a hosted service.
+Every profile, project, requirement, attempt, failure, and artifact is stored in this repository or its immutable release history. The [qualification evidence index](/evidence/qualification/) presents inspectable committed evidence without requiring a hosted service.
 
 ## What the gate exercises
 
@@ -65,6 +65,14 @@ A committed profile remains visible with an explicit no-attempt state until its 
 The website publishes every valid terminal attempt, including failures and execution errors, while maintaining independent latest and last-passing pointers. Attempt pages lead with the verdict and realistic project journeys. Each journey opens to a Replay reconstructed from the digest-verified actor prompt, projected command outcomes, exact path-only workspace snapshots, recorded actor response, runner-owned verification, and independent judge rationale. The Evidence view explains what had to happen, what was prohibited, why the journey passed, recovered, or failed, and the final requirement results. The Technical view keeps source cleanliness, host identity, exact package checksums, stage outcomes, deterministic results, requirement ownership, workspace assertions, cache provenance, token usage when available, retries, and committed artifacts available without placing them in the primary reading path.
 
 Qualification replay is a bounded reconstruction, not a verbatim terminal transcript or hidden reasoning. Current event evidence records command completion, exit status, and output size but intentionally omits command text and command output. The replay therefore summarizes successful and non-zero command activity without inventing operations. An attempt whose immutable actor prompt does not retain the recorded developer-task boundary is rejected instead of being reconstructed from current profile text. Release eligibility still requires fresh passing evidence through the separate release gate.
+
+## Current repository storage
+
+Qualification keeps logical adapter, implementation, case, attempt, and artifact identities separate from their physical repository paths. [`qualification/profiles/index.yaml`](https://github.com/moldea-ai/skill/blob/main/qualification/profiles/index.yaml) maps each target to an append-only `t<number>` directory. Each profile maps its logical case ids to short `cases/c<number>` directories.
+
+Current results use the same target key, a deterministic `a-<attempt-id-digest-prefix>` attempt directory, and numbered artifact files. The unchanged logical attempt is stored in `attempt.json`; `storage.json` binds every logical artifact path to its contained physical file and verifies the attempt, artifact, source, and compatibility digests. Ordinary qualification commands resolve these mappings internally and continue to display logical identities.
+
+The current checkout contains only the verified latest passing Custom attempt. The other 59 attempts from release `v4.0.0` remain unchanged in immutable tag `v4.0.0` at commit `fcbc34f60b12b1b66cd9ebb28b1865979a259429`. Current commands do not enumerate or copy those 59 historical attempts. When deterministic verification, the release gate, or the website validates the carried Custom attempt, it reads only the exact evaluator, profile, probe, and scenario contracts recorded by that attempt so a mutable current checkout cannot redefine the evidence.
 
 ## Checkpoints and cache integrity
 

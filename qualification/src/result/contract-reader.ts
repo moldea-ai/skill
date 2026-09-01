@@ -1,3 +1,4 @@
+import { access } from 'node:fs/promises';
 import path from 'node:path';
 import { parse as parseYaml } from 'yaml';
 
@@ -32,8 +33,17 @@ export const readQualificationContractYaml = async <TResult>(options: {
   assertAllowedContractPath(options.relativePath);
   const qualificationRoot = path.resolve(options.resultsRoot, '..');
   const contractPath = resolveContainedPath(qualificationRoot, options.relativePath);
+  const repositoryRoot = path.resolve(qualificationRoot, '..');
+  let hasRepository = false;
 
-  if (!GIT_COMMIT_PATTERN.test(options.qualificationRepositoryCommit)) {
+  try {
+    await access(path.join(repositoryRoot, '.git'));
+    hasRepository = true;
+  } catch {
+    // synthetic fixtures intentionally validate their adjacent contracts without Git
+  }
+
+  if (!GIT_COMMIT_PATTERN.test(options.qualificationRepositoryCommit) || !hasRepository) {
     if (path.resolve(options.resultsRoot) === path.resolve(QUALIFICATION_RESULTS_ROOT)) {
       throw new Error('Public qualification evidence lacks an exact source commit.');
     }
@@ -41,7 +51,6 @@ export const readQualificationContractYaml = async <TResult>(options: {
     return readYamlFile(contractPath, options.schema);
   }
 
-  const repositoryRoot = path.resolve(qualificationRoot, '..');
   const repositoryRelativePath = path
     .relative(repositoryRoot, contractPath)
     .split(path.sep)

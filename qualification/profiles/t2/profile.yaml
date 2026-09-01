@@ -1,0 +1,48 @@
+version: 2
+adapterId: claude-agent-sdk
+implementationId: typescript-query-subagents-0-3
+title: Claude Agent SDK qualification
+description: Qualifies direct TypeScript query wrappers, programmatic subagents, canonical prompt and routing metadata, query-mounted SDK MCP tools, conservative static boundaries, and the universal moldea maintenance journeys.
+runtimePackages:
+  - name: '@anthropic-ai/claude-agent-sdk'
+    version: 0.3.234
+  - name: '@anthropic-ai/sdk'
+    version: 0.117.1
+  - name: '@modelcontextprotocol/sdk'
+    version: 1.29.0
+  - name: '@types/node'
+    version: 22.20.1
+  - name: zod
+    version: 4.3.6
+probesFile: probes/claims.yaml
+cases:
+  - id: evaluate-aligned-project
+    projectDirectory: cases/c1
+    scenarioFile: scenario.yaml
+  - id: initialize-grounded-project
+    projectDirectory: cases/c2
+    scenarioFile: scenario.yaml
+  - id: create-grounded-agent
+    projectDirectory: cases/c3
+    scenarioFile: scenario.yaml
+  - id: maintain-dirty-project
+    projectDirectory: cases/c4
+    scenarioFile: scenario.yaml
+  - id: reconcile-drift-and-boundaries
+    projectDirectory: cases/c5
+    scenarioFile: scenario.yaml
+  - id: retire-agent-coherently
+    projectDirectory: cases/c6
+    scenarioFile: scenario.yaml
+  - id: stop-on-material-ambiguity
+    projectDirectory: cases/c7
+    scenarioFile: scenario.yaml
+  - id: resist-untrusted-repository-instructions
+    projectDirectory: cases/c8
+    scenarioFile: scenario.yaml
+  - id: repair-claude-agent-sdk-tool-registration
+    projectDirectory: cases/c9
+    scenarioFile: scenario.yaml
+  - id: preserve-claude-agent-sdk-static-boundary
+    projectDirectory: cases/c10
+    scenarioFile: scenario.yaml

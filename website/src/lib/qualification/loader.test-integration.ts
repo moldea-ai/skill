@@ -4,17 +4,23 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
+import { basename, dirname, join } from 'node:path';
 
 import { afterEach, describe, expect, test } from 'vitest';
 
 import { recordQualificationResult } from '../../../../qualification/src/result/index.ts';
 import { buildActorPrompt } from '../../../../qualification/src/prompts/index.ts';
+import {
+  createQualificationAttemptKey,
+  QualificationAttemptStorageSchema,
+  resolveQualificationArtifactPath,
+} from '../../../../qualification/src/storage/index.ts';
 import { seedPassingQualificationEvidenceFixture } from '../../../../qualification/vitest/evidence-fixture.ts';
 
 import { assertPublishableQualificationEvidence, loadQualificationWebsiteModel } from './loader.ts';
 
 const SHA_A = 'a'.repeat(64);
+const TARGET_KEY = 't1';
 const temporaryRoots: string[] = [];
 
 interface IAttemptFixture extends Record<string, unknown> {
@@ -66,7 +72,17 @@ cases:
   );
   writeText(
     root,
-    'qualification/profiles/custom/custom/profile.yaml',
+    'qualification/profiles/index.yaml',
+    `version: 1
+targets:
+  - key: t1
+    adapterId: custom
+    implementationId: custom
+`,
+  );
+  writeText(
+    root,
+    'qualification/profiles/t1/profile.yaml',
     `version: 2
 adapterId: custom
 implementationId: custom
@@ -75,13 +91,13 @@ description: Exercises universal behavior.
 probesFile: probes/claims.yaml
 cases:
   - id: evaluate-project
-    projectDirectory: projects/evaluate-project
+    projectDirectory: cases/c1
     scenarioFile: scenario.yaml
 `,
   );
   writeText(
     root,
-    'qualification/profiles/custom/custom/probes/claims.yaml',
+    'qualification/profiles/t1/probes/claims.yaml',
     `version: 2
 adapterId: custom
 implementationId: custom
@@ -96,7 +112,7 @@ probes:
   );
   writeText(
     root,
-    'qualification/profiles/custom/custom/projects/evaluate-project/scenario.yaml',
+    'qualification/profiles/t1/cases/c1/scenario.yaml',
     `version: 2
 id: evaluate-project
 title: Evaluate project
@@ -136,27 +152,38 @@ judgeRequirements:
   );
   writeText(
     root,
-    'qualification/profiles/custom/custom/projects/evaluate-project/task.md',
+    'qualification/profiles/t1/cases/c1/task.md',
     '# Evaluate project\n\nInspect the project and leave it unchanged.\n',
   );
   writeText(
     root,
-    'qualification/profiles/custom/custom/projects/evaluate-project/README.md',
+    'qualification/profiles/t1/cases/c1/README.md',
     '# Evaluate project\n\nThis project catches unnecessary edits.\n',
   );
-  writeText(root, 'qualification/results/README.md', '# Results\n');
 };
 
 const calculateDigest = (path: string): string =>
   createHash('sha256').update(readFileSync(path)).digest('hex');
 
-const readAttemptFixture = (root: string, attemptId: string): IAttemptFixture => {
-  const path = join(
+const getAttemptDirectory = (root: string, attemptId: string): string =>
+  join(
     root,
-    'qualification/results/custom/custom/attempts',
-    attemptId,
-    'attempt.json',
+    'qualification/results',
+    TARGET_KEY,
+    'attempts',
+    createQualificationAttemptKey(attemptId),
   );
+
+const getArtifactPath = (root: string, attemptId: string, logicalPath: string): string => {
+  const attemptDirectory = getAttemptDirectory(root, attemptId);
+  const storage = QualificationAttemptStorageSchema.parse(
+    JSON.parse(readFileSync(join(attemptDirectory, 'storage.json'), 'utf8')) as unknown,
+  );
+  return resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath);
+};
+
+const readAttemptFixture = (root: string, attemptId: string): IAttemptFixture => {
+  const path = join(getAttemptDirectory(root, attemptId), 'attempt.json');
   const value = JSON.parse(readFileSync(path, 'utf8')) as unknown;
 
   if (
@@ -174,17 +201,46 @@ const readAttemptFixture = (root: string, attemptId: string): IAttemptFixture =>
   return value as IAttemptFixture;
 };
 
+const writeAttemptFixture = (root: string, attemptId: string, attempt: IAttemptFixture): void => {
+  const attemptDirectory = getAttemptDirectory(root, attemptId);
+  const attemptPath = join(attemptDirectory, 'attempt.json');
+  writeJson(attemptDirectory, 'attempt.json', attempt);
+  const storagePath = join(attemptDirectory, 'storage.json');
+  const storage = QualificationAttemptStorageSchema.parse(
+    JSON.parse(readFileSync(storagePath, 'utf8')) as unknown,
+  );
+  const provenance = attempt['provenance'];
+
+  if (
+    typeof provenance !== 'object' ||
+    provenance === null ||
+    typeof (provenance as Record<string, unknown>)['qualificationRepositoryCommit'] !== 'string'
+  ) {
+    throw new Error('Missing qualification provenance fixture.');
+  }
+
+  writeJson(attemptDirectory, 'storage.json', {
+    ...storage,
+    attemptDigest: calculateDigest(attemptPath),
+    sourceCommit: (provenance as Record<string, string>)['qualificationRepositoryCommit'],
+    artifacts: storage.artifacts.map((artifact) => ({
+      ...artifact,
+      sha256: attempt.artifactDigests[artifact.logicalPath] ?? artifact.sha256,
+    })),
+  });
+};
+
 const replaceAttemptArtifact = (
   root: string,
   attemptId: string,
   relativePath: string,
   value: unknown,
 ): void => {
-  const attemptDirectory = join(root, 'qualification/results/custom/custom/attempts', attemptId);
-  writeJson(attemptDirectory, relativePath, value);
+  const artifactPath = getArtifactPath(root, attemptId, relativePath);
+  writeJson(dirname(artifactPath), basename(artifactPath), value);
   const attempt = readAttemptFixture(root, attemptId);
-  attempt.artifactDigests[relativePath] = calculateDigest(join(attemptDirectory, relativePath));
-  writeJson(attemptDirectory, 'attempt.json', attempt);
+  attempt.artifactDigests[relativePath] = calculateDigest(artifactPath);
+  writeAttemptFixture(root, attemptId, attempt);
 };
 
 const replaceAttemptTextArtifact = (
@@ -193,11 +249,11 @@ const replaceAttemptTextArtifact = (
   relativePath: string,
   content: string,
 ): void => {
-  const attemptDirectory = join(root, 'qualification/results/custom/custom/attempts', attemptId);
-  writeText(attemptDirectory, relativePath, content);
+  const artifactPath = getArtifactPath(root, attemptId, relativePath);
+  writeText(dirname(artifactPath), basename(artifactPath), content);
   const attempt = readAttemptFixture(root, attemptId);
-  attempt.artifactDigests[relativePath] = calculateDigest(join(attemptDirectory, relativePath));
-  writeJson(attemptDirectory, 'attempt.json', attempt);
+  attempt.artifactDigests[relativePath] = calculateDigest(artifactPath);
+  writeAttemptFixture(root, attemptId, attempt);
 };
 
 const seedCurrentQualificationAttempt = async (
@@ -209,12 +265,12 @@ const seedCurrentQualificationAttempt = async (
   const artifactDirectory = join(root, `.qualification-artifacts-${attemptId}`);
   writeText(
     root,
-    'qualification/profiles/custom/custom/projects/release-case/task.md',
+    'qualification/profiles/t1/cases/c1/task.md',
     '# Release case\n\nInspect the current evidence.\n',
   );
   writeText(
     root,
-    'qualification/profiles/custom/custom/projects/release-case/README.md',
+    'qualification/profiles/t1/cases/c1/README.md',
     '# Release case\n\nThis fixture exercises protocol 6 evidence.\n',
   );
   writeText(
@@ -280,12 +336,11 @@ const convertCurrentAttemptToActorPolicyFailure = (root: string, attemptId: stri
 
   const initialTrial = trials[0] as Record<string, unknown>;
   initialTrial['failures'] = [failure];
-  const attemptDirectory = join(root, 'qualification/results/custom/custom/attempts', attemptId);
   const initialRoot = 'cases/release-case/trials/initial';
   const confirmationRoot = 'cases/release-case/trials/confirmation-1';
   const actorEvidencePath = `${initialRoot}/actor-evidence.json`;
   const actorEvidence = JSON.parse(
-    readFileSync(join(attemptDirectory, actorEvidencePath), 'utf8'),
+    readFileSync(getArtifactPath(root, attemptId, actorEvidencePath), 'utf8'),
   ) as {
     commandPolicy: {
       completedCommandCount: number;
@@ -313,7 +368,7 @@ const convertCurrentAttemptToActorPolicyFailure = (root: string, attemptId: stri
 
   for (const artifactName of ['actor-output.json', 'workspace-assertions.json'] as const) {
     const passingArtifact = JSON.parse(
-      readFileSync(join(attemptDirectory, confirmationRoot, artifactName), 'utf8'),
+      readFileSync(getArtifactPath(root, attemptId, `${confirmationRoot}/${artifactName}`), 'utf8'),
     ) as unknown;
     replaceAttemptArtifact(root, attemptId, `${initialRoot}/${artifactName}`, passingArtifact);
   }
@@ -338,11 +393,7 @@ const convertCurrentAttemptToActorPolicyFailure = (root: string, attemptId: stri
 
   assertionsStage['status'] = 'passed';
   updatedAttempt.cases = [caseResult];
-  writeJson(
-    root,
-    `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
-    updatedAttempt,
-  );
+  writeAttemptFixture(root, attemptId, updatedAttempt);
 };
 
 const convertCurrentAttemptToFailed = (root: string, attemptId: string): void => {
@@ -401,12 +452,8 @@ const convertCurrentAttemptToFailed = (root: string, attemptId: string): void =>
   const updatedAttempt = readAttemptFixture(root, attemptId);
   updatedAttempt['status'] = 'failed';
   updatedAttempt.cases = attempt.cases;
-  writeJson(
-    root,
-    `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
-    updatedAttempt,
-  );
-  writeJson(root, 'qualification/results/custom/custom/latest.json', {
+  writeAttemptFixture(root, attemptId, updatedAttempt);
+  writeJson(root, 'qualification/results/t1/latest.json', {
     protocolVersion: 6,
     adapterId: 'custom',
     implementationId: 'custom',
@@ -441,10 +488,7 @@ const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: stri
   caseResult['failures'] = [failure];
   const judgeEvidencePath = 'cases/release-case/trials/confirmation-2/judge-evidence.json';
   const judgeEvidence = JSON.parse(
-    readFileSync(
-      join(root, 'qualification/results/custom/custom/attempts', attemptId, judgeEvidencePath),
-      'utf8',
-    ),
+    readFileSync(getArtifactPath(root, attemptId, judgeEvidencePath), 'utf8'),
   ) as {
     commandPolicy: {
       completedCommandCount: number;
@@ -468,12 +512,8 @@ const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: stri
   const updatedAttempt = readAttemptFixture(root, attemptId);
   updatedAttempt['status'] = 'failed';
   updatedAttempt.cases = attempt.cases;
-  writeJson(
-    root,
-    `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
-    updatedAttempt,
-  );
-  writeJson(root, 'qualification/results/custom/custom/latest.json', {
+  writeAttemptFixture(root, attemptId, updatedAttempt);
+  writeJson(root, 'qualification/results/t1/latest.json', {
     protocolVersion: 6,
     adapterId: 'custom',
     implementationId: 'custom',
@@ -519,12 +559,12 @@ describe('loadQualificationWebsiteModel', () => {
     const artifactDirectory = join(root, '.qualification-artifacts');
     writeText(
       root,
-      'qualification/profiles/custom/custom/projects/release-case/task.md',
+      'qualification/profiles/t1/cases/c1/task.md',
       '# Release case\n\nInspect the current evidence.\n',
     );
     writeText(
       root,
-      'qualification/profiles/custom/custom/projects/release-case/README.md',
+      'qualification/profiles/t1/cases/c1/README.md',
       '# Release case\n\nThis fixture exercises recovered protocol 6 evidence.\n',
     );
     const result = await seedPassingQualificationEvidenceFixture({
@@ -620,11 +660,7 @@ cases:
     ]);
 
     const relativePath = 'cases/release-case/trials/initial/deterministic-after.json';
-    const artifactPath = join(
-      root,
-      'qualification/results/custom/custom/attempts/attempt-recovered',
-      relativePath,
-    );
+    const artifactPath = getArtifactPath(root, 'attempt-recovered', relativePath);
     const artifact = JSON.parse(readFileSync(artifactPath, 'utf8')) as {
       summary: { coreValid: boolean };
     };
@@ -658,7 +694,7 @@ cases:
     );
     writeText(
       root,
-      'qualification/profiles/custom/custom/projects/release-case/task.md',
+      'qualification/profiles/t1/cases/c1/task.md',
       '# Current task\n\nThis newer profile text must not replace the recorded attempt task.\n',
     );
 
@@ -697,12 +733,8 @@ cases:
 
     (provenance as Record<string, unknown>)['qualificationRepositoryCommit'] =
       qualificationRepositoryCommit;
-    writeJson(
-      root,
-      `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
-      attempt,
-    );
-    const scenarioPath = 'qualification/profiles/custom/custom/projects/release-case/scenario.yaml';
+    writeAttemptFixture(root, attemptId, attempt);
+    const scenarioPath = 'qualification/profiles/t1/cases/c1/scenario.yaml';
     const currentScenario = readFileSync(join(root, scenarioPath), 'utf8').replace(
       '  expectation: changed',
       '  expectation: unchanged',
@@ -765,11 +797,7 @@ cases:
 
     const attempt = readAttemptFixture(root, attemptId);
     attempt.stages = attempt.stages.filter(({ id }) => id !== 'case:release-case:result');
-    writeJson(
-      root,
-      `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
-      attempt,
-    );
+    writeAttemptFixture(root, attemptId, attempt);
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
       `Failed qualification attempt ${attemptId} is incomplete.`,
@@ -783,12 +811,8 @@ cases:
     await seedCurrentQualificationAttempt(root, attemptId);
     const attempt = readAttemptFixture(root, attemptId);
     delete attempt.artifactDigests[relativePath];
-    rmSync(join(root, 'qualification/results/custom/custom/attempts', attemptId, relativePath));
-    writeJson(
-      root,
-      `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
-      attempt,
-    );
+    rmSync(getArtifactPath(root, attemptId, relativePath));
+    writeAttemptFixture(root, attemptId, attempt);
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
       'Qualification evidence has an incomplete protocol 6 artifact inventory.',
@@ -800,12 +824,7 @@ cases:
     const attemptId = 'attempt-trial-result';
     const relativePath = 'cases/release-case/trials/initial/trial-result.json';
     await seedCurrentQualificationAttempt(root, attemptId);
-    const trialResultPath = join(
-      root,
-      'qualification/results/custom/custom/attempts',
-      attemptId,
-      relativePath,
-    );
+    const trialResultPath = getArtifactPath(root, attemptId, relativePath);
     const trialResult = JSON.parse(readFileSync(trialResultPath, 'utf8')) as Record<
       string,
       unknown
@@ -823,9 +842,9 @@ cases:
     const attemptId = 'attempt-raw-command';
     const relativePath = 'cases/release-case/trials/initial/actor-events.jsonl';
     await seedCurrentQualificationAttempt(root, attemptId);
-    const attemptDirectory = join(root, 'qualification/results/custom/custom/attempts', attemptId);
-    writeText(
-      attemptDirectory,
+    replaceAttemptTextArtifact(
+      root,
+      attemptId,
       relativePath,
       `${JSON.stringify({
         eventType: 'command.completed',
@@ -835,9 +854,6 @@ cases:
         command: 'moldea validate',
       })}\n`,
     );
-    const attempt = readAttemptFixture(root, attemptId);
-    attempt.artifactDigests[relativePath] = calculateDigest(join(attemptDirectory, relativePath));
-    writeJson(attemptDirectory, 'attempt.json', attempt);
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(/unrecognized_keys/u);
   });
@@ -857,11 +873,7 @@ cases:
     }
 
     (operationalRetries[0] as Record<string, unknown>)['retryDelayMs'] = 0;
-    writeJson(
-      root,
-      `qualification/results/custom/custom/attempts/${attemptId}/attempt.json`,
-      attempt,
-    );
+    writeAttemptFixture(root, attemptId, attempt);
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
   });
@@ -870,7 +882,7 @@ cases:
     const root = createTemporaryRoot();
     const attemptId = 'attempt-unsupported-pointer';
     await seedCurrentQualificationAttempt(root, attemptId);
-    const latestPath = 'qualification/results/custom/custom/latest.json';
+    const latestPath = 'qualification/results/t1/latest.json';
     const latest = JSON.parse(readFileSync(join(root, latestPath), 'utf8')) as Record<
       string,
       unknown
@@ -884,9 +896,8 @@ cases:
     const root = createTemporaryRoot();
     const attemptId = 'attempt-tampered-artifact';
     await seedCurrentQualificationAttempt(root, attemptId);
-    writeJson(root, `qualification/results/custom/custom/attempts/${attemptId}/coverage.json`, {
-      passed: false,
-    });
+    const coveragePath = getArtifactPath(root, attemptId, 'coverage.json');
+    writeJson(dirname(coveragePath), basename(coveragePath), { passed: false });
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
       'Qualification artifact digest does not match: coverage.json',
@@ -898,7 +909,7 @@ cases:
     seedProfile(root);
     writeText(
       root,
-      'qualification/profiles/custom/custom/profile.yaml',
+      'qualification/profiles/t1/profile.yaml',
       `version: 1
 adapterId: custom
 implementationId: custom
@@ -907,7 +918,7 @@ description: Exercises universal behavior.
 probesFile: probes/claims.yaml
 cases:
   - id: evaluate-project
-    projectDirectory: projects/evaluate-project
+    projectDirectory: cases/c1
     scenarioFile: scenario.yaml
 `,
     );
@@ -918,10 +929,10 @@ cases:
   test('rejects result history without a committed profile', () => {
     const root = createTemporaryRoot();
     seedProfile(root);
-    mkdirSync(join(root, 'qualification/results/orphan/target'), { recursive: true });
+    mkdirSync(join(root, 'qualification/results/t2'), { recursive: true });
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
-      'Qualification results have no committed profile: orphan/target',
+      'Qualification results have no committed profile: t2',
     );
   });
 });

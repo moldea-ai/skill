@@ -1,9 +1,0 @@
-{
-  "protocolVersion": 6,
-  "adapterId": "google-genai",
-  "implementationId": "typescript-models-generate-content-2",
-  "latestAttemptId": "20260901T004815449Z-google-genai-typescript-models-generate-content-2-ac019391",
-  "latestStatus": "passed",
-  "lastPassingAttemptId": "20260901T004815449Z-google-genai-typescript-models-generate-content-2-ac019391",
-  "updatedAt": "2026-09-01T00:52:46.241Z"
-}

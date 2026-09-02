@@ -2075,10 +2075,14 @@ describe('source repository conformance', () => {
         'MOLDEA_RUNTIME_ADAPTER_UNAVAILABLE',
       );
 
-      const composition = spawnSync(SEMANTIC_CLI_PATH, ['composition', '--json'], {
-        cwd: repositoryPath,
-        encoding: 'utf8',
-      });
+      const composition = spawnSync(
+        process.execPath,
+        [SEMANTIC_CLI_PATH, 'composition', '--json'],
+        {
+          cwd: repositoryPath,
+          encoding: 'utf8',
+        },
+      );
       const compositionEnvelope = JSON.parse(composition.stdout);
       assert.equal(composition.status, 0);
       assert.equal(compositionEnvelope.cliVersion, RELEASE_CLI_VERSION);

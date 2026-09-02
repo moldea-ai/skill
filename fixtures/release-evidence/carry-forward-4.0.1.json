@@ -54003,7 +54003,7 @@
       "candidate": {
         "mode": "100644",
         "path": ".github/workflows/conformance.yml",
-        "sha256": "c1a42d6e74993df943e3684c68bbff3a3d649e4a14b930699e660e309ed555ca"
+        "sha256": "1b1596a8fcd1b423ef93c86a70d548a718e246784b8a641d31600c076e1afe70"
       }
     },
     {
@@ -89845,7 +89845,7 @@
       "candidate": {
         "mode": "100644",
         "path": "tests/conformance.test-unit.mjs",
-        "sha256": "a4ce423cff9f46b03663b604da9ba94e6c96dbef68eec81d58e1e016d546157e"
+        "sha256": "3d4683fa2ad6f94a37a9dcfa0a202bb59bf2cdd641f7d8bb459d636d8300bbe0"
       }
     },
     {

@@ -2200,6 +2200,9 @@ describe('source repository conformance', () => {
       windowsVerification,
       /node --experimental-strip-types --test --test-skip-pattern='\^\(\?:sandbox \|proxy shutdown \)' tooling\/\*\/\*\.test-unit\.mjs tests\/\*\.test-unit\.mjs/,
     );
+    assert.match(windowsVerification, /\$sourceSkill = Join-Path \$clonePath 'moldea'/);
+    assert.match(windowsVerification, /skills@1\.5\.22 add \$sourceSkill -g -a codex -y --copy/);
+    assert.doesNotMatch(windowsVerification, /skills@1\.5\.22 add \.\\moldea/);
     assert.match(windowsVerification, /git diff --no-index --exit-code/);
     assert.doesNotMatch(windowsVerification, /core\.longpaths|LongPathsEnabled/i);
   });

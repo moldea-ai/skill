@@ -4,7 +4,7 @@ Read this reference after the skill entrypoint and before any Git, package-manag
 
 ## Compatibility contract
 
-Release `4.0.0` supports:
+Release `4.0.1` supports:
 
 - Git `>=2.30.0`
 - Node.js `^22.11.0 || ^24.11.0`

@@ -4,7 +4,7 @@ import { join, relative } from 'node:path';
 
 import { parseDocument } from 'yaml';
 
-import { parseStableVersion } from '../release-identity/index.mjs';
+import { parseStableVersion } from '../release-identity/identity.mjs';
 import { createPortableSkillDigest } from '../semantic-evaluation/index.mjs';
 
 const NORMALIZED_RELEASE_VERSION = '<release-version>';

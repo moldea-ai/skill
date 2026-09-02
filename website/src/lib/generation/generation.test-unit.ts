@@ -51,6 +51,23 @@ vi.mock('../semantic-evaluation/index.ts', () => {
       },
       coverageDigest: 'd'.repeat(64),
       coverageUrl: 'https://example.com/semantic-coverage.json',
+      currentAssurance: {
+        rawAttemptUrl: 'https://example.com/semantic-attempt.json',
+        rawEvidenceUrl: 'https://example.com/semantic-evidence.json',
+        result: {
+          artifactDigest: 'a'.repeat(64),
+          attemptId: 'semantic-attempt',
+          failedCaseCount: 0,
+          passedCaseCount: 49,
+          pendingCaseCount: 0,
+          recoveredCaseCount: 0,
+          status: 'passed',
+          stopReason: 'complete',
+          totalCaseCount: 49,
+        },
+        route: '/evidence/semantic/attempts/semantic-attempt/',
+      },
+      evidenceMatch: 'exact',
       evaluatedAt: '2026-08-22T12:00:00.000Z',
       evaluationModel: 'gpt-5.6-sol',
       failedCaseCount: 0,
@@ -131,7 +148,7 @@ describe('createWebsiteModel', () => {
     const model = createWebsiteModel();
 
     expect(model.skill.name).toBe('moldea');
-    expect(model.skill.version).toBe('4.0.0');
+    expect(model.skill.version).toBe('4.0.1');
     expect(model.skill.description.length).toBeGreaterThan(0);
     expect(new Set(model.routes).size).toBe(model.routes.length);
     expect(model.documents.length).toBeGreaterThanOrEqual(18);

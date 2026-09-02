@@ -93,7 +93,9 @@ const RecordedCandidatePackageSchema = CandidatePackageSchema.omit({
 const ALLOWED_CHANGED_FILES = new Set([
   '.gitignore',
   '.github/workflows/conformance.yml',
+  '.github/workflows/pages.yml',
   '.github/workflows/release-candidate.yml',
+  '.github/workflows/website.yml',
   'README.md',
   'docs/adapter-qualification.md',
   'docs/getting-started.md',
@@ -110,6 +112,7 @@ const ALLOWED_CHANGED_FILES = new Set([
   'qualification/src/result/evidence.ts',
   'qualification/src/result/index.ts',
   'qualification/src/result/recorder.ts',
+  'website/README.md',
   'website/scripts/generate-qualification-current-e2e-fixture.ts',
 ]);
 const ALLOWED_CHANGED_PREFIXES = [
@@ -123,6 +126,7 @@ const ALLOWED_CHANGED_PREFIXES = [
   'tooling/qualification-storage-migration/',
   'tooling/release-identity/',
   'website/src/lib/qualification/',
+  'website/src/lib/semantic-evaluation/',
   'website/src/pages/evidence/',
 ];
 
@@ -1761,7 +1765,8 @@ const isDirectExecution =
   process.argv[1] !== undefined &&
   resolve(process.argv[1]) === resolve(fileURLToPath(import.meta.url));
 
-if (isDirectExecution) {
+/** Runs the writer without blocking this module's circular verification import from settling. */
+const runDirectExecution = async () => {
   const allowedArguments = new Set(['--write']);
   const unsupportedArgument = process.argv
     .slice(2)
@@ -1769,19 +1774,24 @@ if (isDirectExecution) {
   if (unsupportedArgument !== undefined || !process.argv.includes('--write')) {
     process.stderr.write('Usage: carry-forward-4-0-1.mjs --write\n');
     process.exitCode = 1;
-  } else {
-    const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
-    try {
-      const attestation = await writeCarryForward401Attestation({
-        packagesRepository: resolve(repositoryRoot, '..', 'packages'),
-        repositoryRoot,
-      });
-      process.stdout.write(
-        `Recorded ${attestation.qualification.attemptCount} historical qualification envelopes.\n`,
-      );
-    } catch (error) {
-      process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-      process.exitCode = 1;
-    }
+    return;
   }
+
+  const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
+  try {
+    const attestation = await writeCarryForward401Attestation({
+      packagesRepository: resolve(repositoryRoot, '..', 'packages'),
+      repositoryRoot,
+    });
+    process.stdout.write(
+      `Recorded ${attestation.qualification.attemptCount} historical qualification envelopes.\n`,
+    );
+  } catch (error) {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  }
+};
+
+if (isDirectExecution) {
+  void runDirectExecution();
 }

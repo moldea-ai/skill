@@ -11,6 +11,7 @@ import {
   mkdtempSync,
   readFileSync,
   readlinkSync,
+  readdirSync,
   renameSync,
   rmSync,
   symlinkSync,
@@ -31,9 +32,35 @@ const REPOSITORY_ROOT = resolve(import.meta.dirname, '..', '..');
 const PACKAGES_REPOSITORY = resolve(REPOSITORY_ROOT, '..', 'packages');
 const HAS_PACKAGES_REPOSITORY = existsSync(join(PACKAGES_REPOSITORY, '.git'));
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+const ATTESTATION_PATH = 'fixtures/release-evidence/carry-forward-4.0.1.json';
 
 const writeJson = (path, input) => {
   writeFileSync(path, `${JSON.stringify(input, null, 2)}\n`, 'utf8');
+};
+
+/** Links installed packages into an ignored real directory for one disposable CLI copy. */
+const linkInstalledPackages = (sourceDirectory, destinationDirectory) => {
+  mkdirSync(destinationDirectory, { recursive: true });
+
+  for (const entry of readdirSync(sourceDirectory, { withFileTypes: true })) {
+    if (entry.name.startsWith('.')) continue;
+    const sourcePath = join(sourceDirectory, entry.name);
+    const destinationPath = join(destinationDirectory, entry.name);
+
+    if (entry.name.startsWith('@') && entry.isDirectory()) {
+      mkdirSync(destinationPath, { recursive: true });
+      for (const packageEntry of readdirSync(sourcePath, { withFileTypes: true })) {
+        symlinkSync(
+          join(sourcePath, packageEntry.name),
+          join(destinationPath, packageEntry.name),
+          packageEntry.isDirectory() ? 'dir' : 'file',
+        );
+      }
+      continue;
+    }
+
+    symlinkSync(sourcePath, destinationPath, entry.isDirectory() ? 'dir' : 'file');
+  }
 };
 
 /** Copies only tracked and non-ignored candidate files into one disposable worktree. */
@@ -57,6 +84,7 @@ const copyCandidateTree = (destinationRoot) => {
     .toString('utf8')
     .split('\0')
     .filter((candidatePath) => candidatePath !== '')) {
+    if (relativePath === ATTESTATION_PATH) continue;
     if (relativePath.split('/').some((component) => EXCLUDED_DIRECTORY_NAMES.has(component))) {
       continue;
     }
@@ -91,15 +119,41 @@ test(
   'the exact 4.0.1 bridge proves every immutable envelope without model execution',
   { skip: !HAS_PACKAGES_REPOSITORY, timeout: 240_000 },
   async () => {
-    const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-cf401-test-'));
+    const temporaryParent = mkdtempSync(join(tmpdir(), 'moldea-cf401-test-'));
+    const temporaryRoot = join(temporaryParent, 'skill');
 
     try {
+      mkdirSync(temporaryRoot, { recursive: true });
+      symlinkSync(PACKAGES_REPOSITORY, join(temporaryParent, 'packages'), 'dir');
       copyCandidateTree(temporaryRoot);
+      linkInstalledPackages(
+        join(REPOSITORY_ROOT, 'node_modules'),
+        join(temporaryRoot, 'node_modules'),
+      );
+      linkInstalledPackages(
+        join(REPOSITORY_ROOT, 'qualification', 'node_modules'),
+        join(temporaryRoot, 'qualification', 'node_modules'),
+      );
       setCandidateVersion(temporaryRoot, '4.0.1');
-      const attestation = await createCarryForward401Attestation({
-        packagesRepository: PACKAGES_REPOSITORY,
-        repositoryRoot: temporaryRoot,
-      });
+      const generation = spawnSync(
+        process.execPath,
+        [
+          '--experimental-strip-types',
+          join(temporaryRoot, 'tooling/release-identity/carry-forward-4-0-1.mjs'),
+          '--write',
+        ],
+        {
+          cwd: temporaryRoot,
+          encoding: 'utf8',
+          timeout: 240_000,
+        },
+      );
+      assert.equal(generation.error, undefined);
+      assert.equal(generation.status, 0, generation.stderr);
+      assert.match(generation.stdout, /Recorded 60 historical qualification envelopes\./u);
+      const attestation = parseCarryForward401Attestation(
+        JSON.parse(readFileSync(join(temporaryRoot, ...ATTESTATION_PATH.split('/')), 'utf8')),
+      );
       const compatibleEnvelopes = attestation.qualification.envelopes.filter(
         ({ isCompatible }) => isCompatible,
       );
@@ -338,7 +392,7 @@ test(
         renameSync(unavailableGitPath, gitPath);
       }
     } finally {
-      rmSync(temporaryRoot, { force: true, recursive: true });
+      rmSync(temporaryParent, { force: true, recursive: true });
     }
   },
 );

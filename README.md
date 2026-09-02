@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or explore the complete documentation at [`skill.moldea.ai`](https://skill.moldea.ai).
 
-The current release is `4.0.0`. Install the latest version from `main` in the current project with:
+The current release is `4.0.1`. Install the latest version from `main` in the current project with:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.0"
+npx skills add "moldea-ai/skill#v4.0.1"
 ```
 
 Both sources install the portable skill as `moldea`. They do not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
@@ -51,7 +51,7 @@ npx skills add moldea-ai/skill
 This source follows `main`. To install the current release reproducibly, use its immutable tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.0"
+npx skills add "moldea-ai/skill#v4.0.1"
 ```
 
 The `skills` CLI supports Agent Skills-compatible hosts including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and many others. Host detection and installation location are handled by the installer; the portable skill itself remains vendor-neutral.
@@ -80,10 +80,10 @@ Refresh a branch-tracking global installation with:
 npx skills add moldea-ai/skill -g
 ```
 
-A release-pinned installation remains on its immutable tag. To update it, replace `v4.0.0` in the following command with the desired newer published tag:
+A release-pinned installation remains on its immutable tag. To update it, replace `v4.0.1` in the following command with the desired newer published tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.0"
+npx skills add "moldea-ai/skill#v4.0.1"
 ```
 
 Add `-g` to the tagged command only when updating a global installation.
@@ -105,7 +105,7 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 - an established supported package manager, or npm when none is established
 - this skill release's exact repository-local `@moldea.ai/cli` development dependency
 
-Release `4.0.0` supports:
+Release `4.0.1` supports:
 
 - `@moldea.ai/cli 5.0.0`
 - CLI JSON schema `2`
@@ -249,9 +249,15 @@ npm run release:update-cli -- <exact-version>
 npm run release:identity:check
 ```
 
-The updater verifies a stable public npm release, updates the exact root dependency and lockfile, synchronizes the portable compatibility contract and conformance fixtures, and records the CLI's complete internal dependency inventory in the synthetic semantic fixture. `npm run release:check` is the final local gate: it runs deterministic verification and additionally requires fresh passing semantic and qualification evidence. It is expected to fail while a release candidate deliberately has no model evidence.
+The updater verifies a stable public npm release, updates the exact root dependency and lockfile, synchronizes the portable compatibility contract and conformance fixtures, and records the CLI's complete internal dependency inventory in the synthetic semantic fixture. `npm run release:check` is the final local gate: it runs deterministic verification and requires compatible passing semantic and qualification evidence. It selects current evidence first and source-attested historical evidence second, and it fails when neither source provides a compatible pass.
 
-Release evidence must be generated from committed source that will be tagged. First commit the completed skill, qualification suite, profile, and release identity. Then run and record the complete semantic evaluation, run the Custom qualification, and run each adapter profile only after a compatible Custom baseline exists. Inspect and commit every generated result, run `npm run release:check` on that final tree, and tag only after the gate passes. The gate rejects a stale semantic artifact, an incomplete qualification profile, missing or non-passing stages and cases, a shared evaluator or selected-profile mismatch, a behavior-bearing selected-target mismatch, an incomplete or mismatched selected published package closure, dirty-source evidence, incomplete claim coverage, a missing current Custom result, or an adapter attempt that lacks a committed passing Custom baseline.
+Release evidence is selected by behavior-bearing identity rather than by release number alone. Stabilize the skill, qualification suite, profiles, and release identity that will be committed and tagged, then run the deterministic gates. Run the semantic evaluation, Custom qualification, or a selected adapter qualification only when that evidence boundary has no compatible passing result. A distributed-skill behavior or CLI-closure change invalidates semantic and qualification evidence; a shared qualification evaluator or universal-input change invalidates Custom and affected adapters; and an adapter-specific profile, target, fixture, or package change invalidates only that selection. Inspect and commit every newly generated result, run `npm run release:check` on the final tree, and tag only after the gate passes.
+
+Release `4.0.1` uses a one-time, source-bound carry-forward attestation for the unchanged `v4.0.0` semantic result and 60 qualification attempts. Generate it only after the candidate is otherwise stable. The generator verifies the immutable source bytes, candidate compatibility identities, migrated Custom copy, deleted-result inventory, and reviewed path changes without invoking a model. Later releases continue to compare attested evidence with their current identities instead of adding another release-number exception.
+
+```bash
+npm run release:carry-forward:write
+```
 
 The root `eval:semantic` command invokes the unchanged semantic runner through an identity wrapper. Non-recording options pass through directly. Before `--record` or `--record-checkpoint`, the wrapper requires every relevant skill, runner, fixture, host, protocol, and CLI source to match `HEAD`, starts a supervised evaluator behind an IPC barrier, and writes an ignored atomic receipt owned by both processes before allowing runner code to begin. Losing the wrapper terminates the supervised evaluator, and recovery waits for both recorded processes to end. A recorded passing, failed, or incomplete attempt receives `identity.json`, which binds its exact attempt and evidence bytes to that source commit, the portable-skill behavior identity, locked CLI dependency closure, semantic compatibility identity, and exact argument digest without storing prompts, responses, environment values, or credentials. If finalization is interrupted, `npm run eval:semantic:identity` can finalize one attributable attempt, safely retire a no-attempt receipt, or resume one exact interrupted receipt-consumption claim without invoking the runner or a model. Active processes, multiple or mismatched claims, source drift, and ambiguous evidence block another recording instead of being overwritten. `eval:semantic:preflight` and `eval:semantic:verify` continue to invoke the existing runner directly.
 
@@ -367,7 +373,7 @@ The skill uses independent semantic versioning. Every release must:
 - use an immutable `v<version>` tag
 - preserve semantically identical `moldea/` content across every official distribution channel
 
-Release `4.0.0` will use the immutable `v4.0.0` tag.
+Release `4.0.1` will use the immutable `v4.0.1` tag.
 
 ## License
 

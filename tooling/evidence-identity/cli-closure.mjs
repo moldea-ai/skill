@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { join, posix } from 'node:path';
 
 import { CLI_PACKAGE_NAME } from '../release-identity/constants.mjs';
-import { parseStableVersion } from '../release-identity/index.mjs';
+import { parseStableVersion } from '../release-identity/identity.mjs';
 
 const EDGE_FIELDS = ['dependencies', 'optionalDependencies', 'peerDependencies'];
 

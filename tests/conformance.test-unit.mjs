@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 import { describe, test } from 'node:test';
 import { parseDocument } from 'yaml';
 
@@ -1883,13 +1884,16 @@ describe('source repository conformance', () => {
       );
 
       const portableSkillDigest = createPortableSkillDigest();
+      const currentCli = createSemanticCliIdentity(REPOSITORY_ROOT);
       const coverage = JSON.parse(readRepositoryFile('fixtures/semantic-evaluation-coverage.json'));
       const currentCaseSuiteDigest = createSemanticCaseSuiteDigest(cases.semanticCases);
       if (
         result.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
-        result.caseSuiteDigest !== currentCaseSuiteDigest
+        result.caseSuiteDigest !== currentCaseSuiteDigest ||
+        !isDeepStrictEqual(result.cli, currentCli) ||
+        result.skillDigest !== portableSkillDigest
       ) {
-        testContext.skip('Current protocol 21 semantic evidence has not been recorded.');
+        testContext.skip('Exact current protocol 21 semantic evidence has not been recorded.');
         return;
       }
       assert.equal(result.schemaVersion, 6);
@@ -1898,7 +1902,7 @@ describe('source repository conformance', () => {
         version: 1,
       });
       assert.equal(result.evaluationProtocolVersion, SEMANTIC_EVALUATION_PROTOCOL_VERSION);
-      assert.deepEqual(result.cli, createSemanticCliIdentity(REPOSITORY_ROOT));
+      assert.deepEqual(result.cli, currentCli);
       assert.equal(result.caseSuiteDigest, currentCaseSuiteDigest);
       assert.equal(
         result.coverageDigest,
@@ -2223,6 +2227,7 @@ describe('source repository conformance', () => {
       const setupNodeStep = workflow.jobs[jobName].steps.find(
         (step) => step.uses === 'actions/setup-node@v6',
       );
+      const triggerPaths = workflow.on.pull_request?.paths ?? workflow.on.push?.paths;
 
       assert.equal(
         document.errors.length,
@@ -2235,6 +2240,8 @@ describe('source repository conformance', () => {
         setupNodeStep?.with?.['cache-dependency-path'],
         'package-lock.json\nwebsite/package-lock.json\n',
       );
+      assert.ok(triggerPaths.includes('fixtures/release-evidence/**'));
+      assert.ok(triggerPaths.includes('tooling/evidence-identity/**'));
     }
   });
 

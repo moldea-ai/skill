@@ -74,6 +74,7 @@ import {
   verifyCarryForward401Attestation,
   verifyCarryForward401SourceAttestation,
 } from './carry-forward-4-0-1.mjs';
+import { resolveCompatibleHistoricalSemanticAttemptId } from './historical-semantic.mjs';
 import { createSemanticCliIdentity, parseStableVersion } from './identity.mjs';
 
 const SEMANTIC_RESULTS_PATH = 'fixtures/semantic-evaluation-results';
@@ -1285,17 +1286,17 @@ export const inspectReleaseEvidence = async (
       carryForward = null;
     }
   }
-  const hasCompatibleHistoricalSemanticEvidence =
-    carryForward !== null &&
-    carryForward.semantic.cliClosureDigest === candidateCliClosureDigest &&
-    carryForward.semantic.portableSkillBehaviorDigest === candidatePortableSkillBehaviorDigest &&
-    carryForward.semantic.semanticCompatibilityDigest === candidateSemanticCompatibilityDigest;
   const semanticResultPath = join(repositoryRoot, RELEASE_PATHS.semanticResult);
-  const canSelectHistoricalSemanticEvidence =
-    hasCompatibleHistoricalSemanticEvidence &&
-    (!existsSync(semanticResultPath) ||
-      createHash('sha256').update(readFileSync(semanticResultPath)).digest('hex') ===
-        carryForward.semantic.resultSha256);
+  const compatibleHistoricalSemanticAttemptId = resolveCompatibleHistoricalSemanticAttemptId({
+    attestation: carryForward,
+    candidateCliClosureDigest,
+    candidatePortableSkillBehaviorDigest,
+    candidateSemanticCompatibilityDigest,
+    semanticResultSha256: existsSync(semanticResultPath)
+      ? createHash('sha256').update(readFileSync(semanticResultPath)).digest('hex')
+      : null,
+  });
+  const canSelectHistoricalSemanticEvidence = compatibleHistoricalSemanticAttemptId !== null;
   if (currentSemanticIssues.length > 0 && !canSelectHistoricalSemanticEvidence) {
     if (currentSemanticIdentityIssue !== null) issues.push(currentSemanticIdentityIssue);
     issues.push(...currentSemanticIssues);

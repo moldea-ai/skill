@@ -12,6 +12,15 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
   await expect(page.getByText('57/57 scenarios', { exact: true })).toBeVisible();
   await expect(page.getByText('Passed', { exact: true }).first()).toBeVisible();
   await expect(
+    page.getByRole('heading', { name: 'This release reuses a verified semantic attempt.' }),
+  ).toBeVisible();
+  await expect(page.getByText('No new model run was performed for this release.')).toBeVisible();
+  const technicalProvenance = page.locator('details').filter({ hasText: 'Technical provenance' });
+  await technicalProvenance.locator('summary').click();
+  await expect(
+    technicalProvenance.getByText('Source-attested compatible inputs', { exact: true }),
+  ).toBeVisible();
+  await expect(
     page.getByRole('heading', { level: 2, name: 'Every recorded outcome remains available.' }),
   ).toBeVisible();
   const attemptLinks = page.getByRole('link', { name: /Inspect attempt/u });

@@ -7,6 +7,9 @@ export {
   createPortableSkillBehaviorDigest,
 } from './portable-skill.mjs';
 
+// semantic compatibility identity
+export { createSemanticCompatibilityDigest } from './semantic-compatibility.mjs';
+
 // semantic identity
 export {
   SEMANTIC_IDENTITY_RECEIPT_PATH,
@@ -15,6 +18,7 @@ export {
   captureSemanticAttemptInventory,
   captureSemanticSourceIdentity,
   createSemanticIdentityReceipt,
+  readSemanticAttemptIdentity,
   recoverSemanticIdentity,
   writeSemanticIdentityReceipt,
 } from './semantic-identity.mjs';

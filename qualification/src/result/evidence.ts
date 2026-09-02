@@ -957,19 +957,18 @@ const validateCurrentTerminalAttempt = async (
   attemptDirectory: string,
   result: IQualificationAttemptResult,
   resultsRoot: string,
+  contractSource: 'current' | 'recorded',
 ): Promise<void> => {
-  const storage = await readQualificationAttemptStorage(attemptDirectory);
   const profilesRoot = await resolveQualificationProfilesRootForResults(resultsRoot);
-  const repositoryRoot = path.resolve(profilesRoot, '..', '..');
-  const hasRecordedSourceRepository = await hasPath(path.join(repositoryRoot, '.git'));
   const currentTargetKey = await resolveQualificationTargetKey(result.selection, profilesRoot);
   const profileRelativeDirectory = path.join(
     'profiles',
-    storage.carryForward === undefined || !hasRecordedSourceRepository
+    contractSource === 'current'
       ? currentTargetKey
       : path.join(result.selection.adapterId, result.selection.implementationId),
   );
   const profile = await readQualificationContractYaml({
+    contractSource,
     qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
     relativePath: path.join(profileRelativeDirectory, 'profile.yaml'),
     resultsRoot,
@@ -1017,6 +1016,7 @@ const validateCurrentTerminalAttempt = async (
     requireArtifact(attemptDirectory, result, 'baseline.json', QualificationBaselineCheckSchema),
     requireArtifact(attemptDirectory, result, 'coverage.json', QualificationCoverageResultSchema),
     readQualificationContractYaml({
+      contractSource,
       qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
       relativePath: path.join(profileRelativeDirectory, profile.probesFile),
       resultsRoot,
@@ -1107,6 +1107,7 @@ const validateCurrentTerminalAttempt = async (
     }
 
     const scenario = await readQualificationContractYaml({
+      contractSource,
       qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
       relativePath: path.join(
         profileRelativeDirectory,
@@ -1148,6 +1149,7 @@ const validateCurrentTerminalAttempt = async (
 /** Validates the public artifacts and status contract for one committed attempt. */
 export const validateQualificationAttemptEvidence = async (options: {
   attemptDirectory: string;
+  contractSource?: 'current' | 'recorded';
   result: IQualificationAttemptResult;
   resultsRoot: string;
 }): Promise<void> => {
@@ -1186,6 +1188,7 @@ export const validateQualificationAttemptEvidence = async (options: {
       options.attemptDirectory,
       options.result,
       options.resultsRoot,
+      options.contractSource ?? 'recorded',
     );
   }
 };

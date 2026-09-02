@@ -78,6 +78,8 @@ export const QualificationAttemptStorageSchema = z
     attemptDigest: Sha256Schema,
     sourceCommit: GitCommitSchema,
     compatibility: QualificationCompatibilityIdentitySchema,
+    portableSkillBehaviorDigest: Sha256Schema,
+    cliClosureDigest: Sha256Schema,
     artifacts: z.array(QualificationArtifactStorageEntrySchema),
     carryForward: QualificationCarryForwardSourceSchema.optional(),
   })

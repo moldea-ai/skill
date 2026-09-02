@@ -25,10 +25,8 @@ import {
   calculateQualificationProfileDigest,
   calculateQualificationTargetDigest,
 } from '../../qualification/src/execution/fingerprints.ts';
-import {
-  calculateDirectoryFingerprint,
-  resolveContainedPath,
-} from '../../qualification/src/filesystem/index.ts';
+import { createQualificationCompatibilityIdentity } from '../../qualification/src/evidence-identity/index.ts';
+import { resolveContainedPath } from '../../qualification/src/filesystem/index.ts';
 import { inspectGitRepositoryState } from '../../qualification/src/repository-state/index.ts';
 import { verifyQualificationResults } from '../../qualification/src/result/index.ts';
 import {
@@ -42,6 +40,12 @@ import {
   CODEX_EVALUATION_REASONING_EFFORT,
   hasPassingCodexEvaluationCommandPolicy,
 } from '../codex-evaluation-host/index.mjs';
+import {
+  createCliClosureDigest,
+  createPortableSkillBehaviorDigest,
+  createSemanticCompatibilityDigest,
+  readSemanticAttemptIdentity,
+} from '../evidence-identity/index.mjs';
 import {
   createPortableSkillDigest,
   createSemanticCaseDefinitionDigest,
@@ -64,6 +68,12 @@ import {
   RELEASE_PATHS,
   SEMANTIC_EVALUATION_PROTOCOL_VERSION,
 } from './constants.mjs';
+import {
+  CARRY_FORWARD_401_PATH,
+  CARRY_FORWARD_401_TARGET_RELEASE,
+  verifyCarryForward401Attestation,
+  verifyCarryForward401SourceAttestation,
+} from './carry-forward-4-0-1.mjs';
 import { createSemanticCliIdentity, parseStableVersion } from './identity.mjs';
 
 const SEMANTIC_RESULTS_PATH = 'fixtures/semantic-evaluation-results';
@@ -818,6 +828,50 @@ const createRecordedPackageIdentity = (candidatePackage) => ({
 const sortPackageIdentities = (packages) =>
   [...packages].sort(({ name: left }, { name: right }) => left.localeCompare(right, 'en'));
 
+const hasSameJsonIdentity = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+
+const listCompatibleHistoricalEnvelopes = ({
+  attestation,
+  candidateCliClosureDigest,
+  candidatePortableSkillBehaviorDigest,
+  currentCompatibility,
+  currentProfilePackages,
+  selection,
+  targetDigest,
+}) => {
+  if (attestation === null || currentProfilePackages === null || targetDigest === null) return [];
+  const currentPackageNames = new Set(currentProfilePackages.map(({ name }) => name));
+
+  return attestation.qualification.envelopes
+    .filter(
+      (envelope) =>
+        envelope.status === 'passed' &&
+        envelope.selection.adapterId === selection.adapterId &&
+        envelope.selection.implementationId === selection.implementationId &&
+        hasSameJsonIdentity(envelope.compatibility, currentCompatibility) &&
+        envelope.targetCompatibilityDigest === targetDigest &&
+        envelope.portableSkillBehaviorDigest === candidatePortableSkillBehaviorDigest &&
+        envelope.cliClosureDigest === candidateCliClosureDigest &&
+        envelope.environment.model === CODEX_EVALUATION_MODEL &&
+        envelope.environment.reasoningEffort === CODEX_EVALUATION_REASONING_EFFORT &&
+        (selection.adapterId === 'custom'
+          ? envelope.baselineReplay === 'not-required'
+          : envelope.baselineReplay === 'passed') &&
+        hasSameJsonIdentity(
+          envelope.packages.filter(({ name }) => currentPackageNames.has(name)),
+          currentProfilePackages,
+        ),
+    )
+    .sort((left, right) => {
+      const timestampOrder =
+        Date.parse(right.completedAt ?? right.createdAt) -
+        Date.parse(left.completedAt ?? left.createdAt);
+      return timestampOrder === 0
+        ? right.attemptId.localeCompare(left.attemptId, 'en')
+        : timestampOrder;
+    });
+};
+
 const readQualificationTypeScriptVersion = (repositoryRoot) => {
   const qualificationManifest = readJson(join(repositoryRoot, 'qualification', 'package.json'));
   return parseStableVersion(qualificationManifest.devDependencies?.typescript);
@@ -914,7 +968,8 @@ const resolveCurrentQualificationPackageIdentities = async ({
   }
 };
 
-const inspectSemanticEvidence = (repositoryRoot) => {
+/** Validates canonical semantic evidence against exact or sidecar-compatible release inputs. */
+const inspectSemanticEvidenceForAttempt = (repositoryRoot, compatibleSemanticAttemptId = null) => {
   const issues = [];
   const semanticResultPath = join(repositoryRoot, RELEASE_PATHS.semanticResult);
 
@@ -930,6 +985,9 @@ const inspectSemanticEvidence = (repositoryRoot) => {
   ) {
     return [`${RELEASE_PATHS.semanticResult} is not a semantic result object.`];
   }
+  const hasCompatibleSemanticIdentity =
+    compatibleSemanticAttemptId !== null &&
+    semanticResult.semanticAttemptId === compatibleSemanticAttemptId;
   const expectedCli = createSemanticCliIdentity(repositoryRoot);
   const conformanceCases = readJson(join(repositoryRoot, RELEASE_PATHS.conformanceCases));
   const semanticCases = conformanceCases.semanticCases ?? [];
@@ -979,7 +1037,10 @@ const inspectSemanticEvidence = (repositoryRoot) => {
       `${RELEASE_PATHS.semanticResult} does not use semantic protocol ${SEMANTIC_EVALUATION_PROTOCOL_VERSION}.`,
     );
   }
-  if (JSON.stringify(semanticResult.cli) !== JSON.stringify(expectedCli)) {
+  if (
+    !hasCompatibleSemanticIdentity &&
+    JSON.stringify(semanticResult.cli) !== JSON.stringify(expectedCli)
+  ) {
     issues.push(`${RELEASE_PATHS.semanticResult} does not match the exact release CLI identity.`);
   }
   const hasConsistentRecordedArtifact =
@@ -987,7 +1048,7 @@ const inspectSemanticEvidence = (repositoryRoot) => {
     semanticResult.artifactDigest === semanticResult.skillDigest &&
     semanticResult.artifactSha256 === semanticResult.skillDigest;
   const hasCurrentArtifact = semanticResult.skillDigest === expectedSkillDigest;
-  if (!hasConsistentRecordedArtifact || !hasCurrentArtifact) {
+  if (!hasConsistentRecordedArtifact || (!hasCompatibleSemanticIdentity && !hasCurrentArtifact)) {
     issues.push(
       `${RELEASE_PATHS.semanticResult} does not match the exact portable skill artifact.`,
     );
@@ -1110,6 +1171,30 @@ const inspectSemanticEvidence = (repositoryRoot) => {
   return issues;
 };
 
+/** Returns every exact semantic-evidence issue for one repository tree. */
+export const inspectSemanticEvidence = (repositoryRoot) =>
+  inspectSemanticEvidenceForAttempt(repositoryRoot);
+
+/** Selects the canonical attempt only when its immutable sidecar matches current behavior inputs. */
+const resolveCompatibleCurrentSemanticAttemptId = ({
+  candidateCliClosureDigest,
+  candidatePortableSkillBehaviorDigest,
+  candidateSemanticCompatibilityDigest,
+  repositoryRoot,
+}) => {
+  const semanticResultPath = join(repositoryRoot, RELEASE_PATHS.semanticResult);
+  if (!existsSync(semanticResultPath)) return null;
+  const semanticResult = readJson(semanticResultPath);
+  if (typeof semanticResult?.semanticAttemptId !== 'string') return null;
+  const identity = readSemanticAttemptIdentity(repositoryRoot, semanticResult.semanticAttemptId);
+  if (identity === null) return null;
+  return identity.cliClosureDigest === candidateCliClosureDigest &&
+    identity.portableSkillBehaviorDigest === candidatePortableSkillBehaviorDigest &&
+    identity.semanticCompatibilityDigest === candidateSemanticCompatibilityDigest
+    ? identity.attemptId
+    : null;
+};
+
 /**
  * Inspects whether fresh semantic and qualification evidence completes the release gate.
  * @param repositoryRoot The skill repository whose release is being checked.
@@ -1124,9 +1209,97 @@ export const inspectReleaseEvidence = async (
     packagesRepository = resolve(repositoryRoot, '..', 'packages'),
     resolvePublishedManifest = resolvePublishedPackageManifest,
     resolvePublishedClosure = resolvePublishedPackageClosure,
+    verifyCarryForwardAttestation = verifyCarryForward401Attestation,
+    verifyCarryForwardSourceAttestation = verifyCarryForward401SourceAttestation,
   } = {},
 ) => {
-  const issues = inspectSemanticEvidence(repositoryRoot);
+  let currentSemanticIssues = inspectSemanticEvidence(repositoryRoot);
+  const issues = [];
+  const carryForwardPath = join(repositoryRoot, ...CARRY_FORWARD_401_PATH.split('/'));
+  const hasCarryForward = existsSync(carryForwardPath);
+  let releaseVersion = null;
+  let carryForward = null;
+  let candidateCliClosureDigest = null;
+  let candidatePortableSkillBehaviorDigest = null;
+  let candidateSemanticCompatibilityDigest = null;
+  let currentSemanticIdentityIssue = null;
+
+  try {
+    releaseVersion = parseStableVersion(readJson(join(repositoryRoot, 'package.json')).version);
+  } catch (error) {
+    issues.push(
+      `Unable to resolve the release version for historical evidence: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  if (releaseVersion === CARRY_FORWARD_401_TARGET_RELEASE && !hasCarryForward) {
+    issues.push(`${CARRY_FORWARD_401_PATH} is required for the exact 4.0.1 bridge.`);
+  }
+  try {
+    candidateCliClosureDigest = createCliClosureDigest(repositoryRoot);
+    candidatePortableSkillBehaviorDigest = createPortableSkillBehaviorDigest(repositoryRoot);
+    candidateSemanticCompatibilityDigest = createSemanticCompatibilityDigest(repositoryRoot);
+  } catch (error) {
+    issues.push(
+      `Unable to resolve current evidence identities: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  if (
+    currentSemanticIssues.length > 0 &&
+    candidateCliClosureDigest !== null &&
+    candidatePortableSkillBehaviorDigest !== null &&
+    candidateSemanticCompatibilityDigest !== null
+  ) {
+    try {
+      const compatibleSemanticAttemptId = resolveCompatibleCurrentSemanticAttemptId({
+        candidateCliClosureDigest,
+        candidatePortableSkillBehaviorDigest,
+        candidateSemanticCompatibilityDigest,
+        repositoryRoot,
+      });
+      if (compatibleSemanticAttemptId !== null) {
+        currentSemanticIssues = inspectSemanticEvidenceForAttempt(
+          repositoryRoot,
+          compatibleSemanticAttemptId,
+        );
+      }
+    } catch (error) {
+      currentSemanticIdentityIssue = `${SEMANTIC_RESULTS_PATH} has invalid current compatibility identity: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+  if (hasCarryForward) {
+    try {
+      carryForward =
+        releaseVersion === CARRY_FORWARD_401_TARGET_RELEASE
+          ? await verifyCarryForwardAttestation({
+              packagesRepository,
+              repositoryRoot,
+            })
+          : await verifyCarryForwardSourceAttestation({
+              packagesRepository,
+              repositoryRoot,
+            });
+    } catch (error) {
+      issues.push(
+        `Unable to verify ${CARRY_FORWARD_401_PATH}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      carryForward = null;
+    }
+  }
+  const hasCompatibleHistoricalSemanticEvidence =
+    carryForward !== null &&
+    carryForward.semantic.cliClosureDigest === candidateCliClosureDigest &&
+    carryForward.semantic.portableSkillBehaviorDigest === candidatePortableSkillBehaviorDigest &&
+    carryForward.semantic.semanticCompatibilityDigest === candidateSemanticCompatibilityDigest;
+  const semanticResultPath = join(repositoryRoot, RELEASE_PATHS.semanticResult);
+  const canSelectHistoricalSemanticEvidence =
+    hasCompatibleHistoricalSemanticEvidence &&
+    (!existsSync(semanticResultPath) ||
+      createHash('sha256').update(readFileSync(semanticResultPath)).digest('hex') ===
+        carryForward.semantic.resultSha256);
+  if (currentSemanticIssues.length > 0 && !canSelectHistoricalSemanticEvidence) {
+    if (currentSemanticIdentityIssue !== null) issues.push(currentSemanticIdentityIssue);
+    issues.push(...currentSemanticIssues);
+  }
   const resultsRoot = join(repositoryRoot, 'qualification', 'results');
   const resultVerification = await verifyQualificationResults(resultsRoot);
 
@@ -1136,7 +1309,6 @@ export const inspectReleaseEvidence = async (
     );
   }
 
-  const skillDigest = await calculateDirectoryFingerprint(join(repositoryRoot, 'moldea'));
   const releaseCli = createSemanticCliIdentity(repositoryRoot);
   let currentInputs = null;
 
@@ -1169,6 +1341,7 @@ export const inspectReleaseEvidence = async (
   }
 
   const passingEvidence = new Map();
+  const compatibleHistoricalByAttemptId = new Map();
   const qualificationProfiles = listQualificationProfiles(repositoryRoot);
 
   for (const {
@@ -1181,9 +1354,82 @@ export const inspectReleaseEvidence = async (
     targetKey,
   } of qualificationProfiles) {
     const relativeLatestPath = join('qualification', 'results', targetKey, 'latest.json');
+    const selection = { adapterId, implementationId };
+    const adapter = currentInputs?.matrix.adapters[adapterId];
+    const target = adapter?.targets?.find(({ id }) => id === implementationId);
+    const hasCurrentTarget =
+      adapter !== undefined && adapter.implementationStatus === 'available' && target !== undefined;
+    let profileDigest = null;
+    let qualificationDigest = null;
+    let currentCompatibility = null;
+    let currentProfilePackages = null;
+
+    try {
+      [profileDigest, qualificationDigest, currentCompatibility] = await Promise.all([
+        calculateQualificationProfileDigest(profileDirectory),
+        calculateQualificationExecutionDigest({
+          caseIds,
+          profileDirectory,
+          roots: {
+            evaluationHostRoot: join(repositoryRoot, 'tooling/codex-evaluation-host'),
+            packageCandidateRoot: join(repositoryRoot, 'tooling/package-candidate'),
+            qualificationRoot: join(repositoryRoot, 'qualification'),
+            repositoryRoot,
+          },
+        }),
+        createQualificationCompatibilityIdentity({
+          qualificationRoot: join(repositoryRoot, 'qualification'),
+          repositoryRoot,
+          selection,
+        }),
+      ]);
+      if (hasCurrentTarget && currentInputs !== null) {
+        currentProfilePackages = await resolveCurrentQualificationPackageIdentities({
+          adapterPackage: adapter.implementation.package,
+          downloadPublishedArtifact,
+          publishedManifests: currentInputs.publishedManifests,
+          publishedPackages: currentInputs.publishedPackages,
+          resolvePublishedManifest,
+          runtimePackages,
+          typeScriptPackage: currentInputs.typeScriptPackage,
+        });
+      }
+    } catch (error) {
+      issues.push(
+        `${relativeLatestPath} cannot resolve its current scoped inputs: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      continue;
+    }
+    const targetDigest =
+      hasCurrentTarget && adapter !== undefined && target !== undefined
+        ? calculateQualificationTargetDigest(adapter, target)
+        : null;
+    const historicalEnvelopes = listCompatibleHistoricalEnvelopes({
+      attestation: carryForward,
+      candidateCliClosureDigest,
+      candidatePortableSkillBehaviorDigest,
+      currentCompatibility,
+      currentProfilePackages,
+      selection,
+      targetDigest,
+    });
+    for (const envelope of historicalEnvelopes) {
+      compatibleHistoricalByAttemptId.set(envelope.attemptId, envelope);
+    }
+    const historicalEnvelope = historicalEnvelopes[0];
+    if (historicalEnvelope !== undefined) {
+      passingEvidence.set(`${adapterId}/${implementationId}`, {
+        envelope: historicalEnvelope,
+        relativeLatestPath,
+        source: 'historical',
+      });
+    }
+
     const latestPath = join(repositoryRoot, relativeLatestPath);
     if (!existsSync(latestPath)) {
-      issues.push(`${relativeLatestPath} is missing qualification evidence.`);
+      if (historicalEnvelope === undefined) {
+        issues.push(`${relativeLatestPath} is missing qualification evidence.`);
+      }
       continue;
     }
 
@@ -1201,9 +1447,11 @@ export const inspectReleaseEvidence = async (
       latest.latestStatus !== 'passed' ||
       latest.lastPassingAttemptId !== latest.latestAttemptId
     ) {
-      issues.push(
-        `${relativeLatestPath} must point to a latest passing protocol ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION} attempt.`,
-      );
+      if (historicalEnvelope === undefined) {
+        issues.push(
+          `${relativeLatestPath} must point to a latest passing protocol ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION} attempt.`,
+        );
+      }
       continue;
     }
 
@@ -1244,49 +1492,6 @@ export const inspectReleaseEvidence = async (
     }
     const resolveArtifactPath = (logicalPath) =>
       resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath);
-    const adapter = currentInputs?.matrix.adapters[adapterId];
-    const target = adapter?.targets?.find(({ id }) => id === implementationId);
-    const hasCurrentTarget =
-      adapter !== undefined && adapter.implementationStatus === 'available' && target !== undefined;
-    let profileDigest = null;
-    let qualificationDigest = null;
-    let currentProfilePackages = null;
-
-    try {
-      [profileDigest, qualificationDigest] = await Promise.all([
-        calculateQualificationProfileDigest(profileDirectory),
-        calculateQualificationExecutionDigest({
-          caseIds,
-          profileDirectory,
-          roots: {
-            evaluationHostRoot: join(repositoryRoot, 'tooling/codex-evaluation-host'),
-            packageCandidateRoot: join(repositoryRoot, 'tooling/package-candidate'),
-            qualificationRoot: join(repositoryRoot, 'qualification'),
-            repositoryRoot,
-          },
-        }),
-      ]);
-      if (hasCurrentTarget && currentInputs !== null) {
-        currentProfilePackages = await resolveCurrentQualificationPackageIdentities({
-          adapterPackage: adapter.implementation.package,
-          downloadPublishedArtifact,
-          publishedManifests: currentInputs.publishedManifests,
-          publishedPackages: currentInputs.publishedPackages,
-          resolvePublishedManifest,
-          runtimePackages,
-          typeScriptPackage: currentInputs.typeScriptPackage,
-        });
-      }
-    } catch (error) {
-      issues.push(
-        `${relativeLatestPath} cannot resolve its current scoped inputs: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      continue;
-    }
-    const targetDigest =
-      hasCurrentTarget && adapter !== undefined && target !== undefined
-        ? calculateQualificationTargetDigest(adapter, target)
-        : null;
     const currentProfilePackageNames = new Set(
       currentProfilePackages?.map(({ name }) => name) ?? [],
     );
@@ -1309,8 +1514,10 @@ export const inspectReleaseEvidence = async (
       attempt.selection?.adapterId !== adapterId ||
       attempt.selection?.implementationId !== implementationId ||
       attempt.provenance?.qualificationDigest !== qualificationDigest ||
-      attempt.provenance?.skillRepositoryFingerprint !== skillDigest ||
+      storage.portableSkillBehaviorDigest !== candidatePortableSkillBehaviorDigest ||
+      storage.cliClosureDigest !== candidateCliClosureDigest ||
       attempt.provenance?.profileDigest !== profileDigest ||
+      !hasSameJsonIdentity(storage.compatibility, currentCompatibility) ||
       currentInputs === null ||
       attempt.provenance?.packagesRepositoryDirty ||
       targetDigest === null ||
@@ -1318,7 +1525,9 @@ export const inspectReleaseEvidence = async (
       !hasExactPublishedClosure ||
       !hasSelectedPackage
     ) {
-      issues.push(`${relativeLatestPath} does not match the current release inputs.`);
+      if (historicalEnvelope === undefined) {
+        issues.push(`${relativeLatestPath} does not match the current release inputs.`);
+      }
       continue;
     }
 
@@ -1366,6 +1575,7 @@ export const inspectReleaseEvidence = async (
           attempt,
           baseline: controlEvidence.baseline,
           relativeLatestPath,
+          source: 'current',
         });
       }
     } catch (error) {
@@ -1381,9 +1591,18 @@ export const inspectReleaseEvidence = async (
   )?.targetKey;
   for (const [selectionKey, evidence] of passingEvidence) {
     if (selectionKey === 'custom/custom') continue;
-    const baselineAttemptId = evidence.attempt.provenance.baselineAttemptId;
+    const baselineAttemptId =
+      evidence.source === 'historical'
+        ? evidence.envelope.baselineAttemptId
+        : evidence.attempt.provenance.baselineAttemptId;
     let hasRecordedPassingBaseline = false;
-    if (baselineAttemptId !== null && customTargetKey !== undefined) {
+    if (evidence.source === 'historical' && baselineAttemptId !== null) {
+      const historicalBaseline = compatibleHistoricalByAttemptId.get(baselineAttemptId);
+      hasRecordedPassingBaseline =
+        historicalBaseline?.status === 'passed' &&
+        historicalBaseline.selection.adapterId === 'custom' &&
+        historicalBaseline.selection.implementationId === 'custom';
+    } else if (baselineAttemptId !== null && customTargetKey !== undefined) {
       const recordedBaselineDirectory = join(
         resultsRoot,
         customTargetKey,
@@ -1414,11 +1633,15 @@ export const inspectReleaseEvidence = async (
     }
     if (customEvidence === undefined) {
       issues.push(
-        `${evidence.relativeLatestPath} requires current passing Custom qualification evidence.`,
+        evidence.source === 'historical'
+          ? `${evidence.relativeLatestPath} requires compatible passing Custom qualification evidence.`
+          : `${evidence.relativeLatestPath} requires current passing Custom qualification evidence.`,
       );
     } else if (!hasRecordedPassingBaseline) {
       issues.push(
-        `${evidence.relativeLatestPath} does not reference a committed passing Custom baseline.`,
+        evidence.source === 'historical'
+          ? `${evidence.relativeLatestPath} does not reference a compatible passing Custom baseline.`
+          : `${evidence.relativeLatestPath} does not reference a committed passing Custom baseline.`,
       );
     }
   }

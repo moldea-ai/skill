@@ -50,6 +50,21 @@ export interface ISemanticIdentityReceipt extends ISemanticSourceIdentity {
   portableSkillBehaviorDigest: string;
   recordingKind: 'record' | 'record-checkpoint';
   schemaVersion: 1;
+  semanticCompatibilityDigest: string;
+}
+
+export interface ISemanticAttemptIdentity {
+  argumentDigest: string;
+  attemptId: string;
+  attemptSha256: string;
+  cliClosureDigest: string;
+  evidenceSha256: string;
+  invocationId: string;
+  portableSkillBehaviorDigest: string;
+  schemaVersion: 1;
+  semanticCompatibilityDigest: string;
+  sourceCommit: string;
+  sourceDigest: string;
 }
 
 export interface ISemanticIdentityRecoveryResult {
@@ -71,6 +86,7 @@ export const createCliClosureIdentity: (repositoryRoot: string) => ICliClosureId
 export const createCliClosureDigest: (repositoryRoot: string) => string;
 export const createPortableSkillArtifactDigest: (repositoryRoot: string) => string;
 export const createPortableSkillBehaviorDigest: (repositoryRoot: string) => string;
+export const createSemanticCompatibilityDigest: (repositoryRoot: string) => string;
 export const captureSemanticSourceIdentity: (repositoryRoot: string) => ISemanticSourceIdentity;
 export const captureSemanticAttemptInventory: (
   repositoryRoot: string,
@@ -79,6 +95,10 @@ export const createSemanticIdentityReceipt: (
   repositoryRoot: string,
   arguments_: string[],
 ) => ISemanticIdentityReceipt;
+export const readSemanticAttemptIdentity: (
+  repositoryRoot: string,
+  attemptId: string,
+) => ISemanticAttemptIdentity | null;
 export const writeSemanticIdentityReceipt: (
   repositoryRoot: string,
   receipt: ISemanticIdentityReceipt,

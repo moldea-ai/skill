@@ -29,6 +29,7 @@
     "qualification:typecheck": "npm --prefix qualification run typecheck",
     "qualification:verify": "npm --prefix qualification run qualification -- verify",
     "release:check": "npm test && npm run eval:semantic:verify && npm run qualification:verify && node --experimental-strip-types tooling/release-identity/check-release.mjs",
+    "release:carry-forward:write": "node --experimental-strip-types tooling/release-identity/carry-forward-4-0-1.mjs --write",
     "release:identity:check": "node --experimental-strip-types tooling/release-identity/check-release.mjs --identity-only",
     "release:update-cli": "node tooling/release-identity/update-cli.mjs",
     "test": "npm run test:unit && npm run test:integration",

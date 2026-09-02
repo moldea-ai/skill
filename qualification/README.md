@@ -78,7 +78,29 @@ npm run qualification:format:check
 npm run qualification:verify
 ```
 
-The guarded one-time storage migration is available as `npm run qualification:storage:migrate`. It accepts only the exact expanded `v4.0.0` source inventory, proves all 14 logical profile identities and the copied Custom evidence before deleting expanded paths, and is an exact no-op after a successful migration. The carried Custom attempt remains bound to its exact `v4.0.0` source commit, and deterministic verification reads only that recorded evaluator and profile contract when it validates the carry-forward identity. The migration does not run an actor, judge, model host, semantic evaluation, or adapter qualification.
+The guarded one-time storage migration is available as `npm run qualification:storage:migrate`. It accepts only the exact expanded `v4.0.0` source inventory, proves all 14 logical profile identities and the copied Custom evidence before deleting expanded paths, and is an exact no-op after a successful migration. The carried Custom attempt remains bound to its exact `v4.0.0` source commit and logical artifact bytes. Ordinary verification compares its stored compatibility identity with the current evaluator and logical Custom inputs. The migration does not run an actor, judge, model host, semantic evaluation, or adapter qualification.
+
+## Evidence reuse and invalidation
+
+Evidence is reusable when every input capable of affecting the tested behavior still matches. Release numbers alone do not expire evidence. The current release gate first selects compatible passing evidence from the short current tree. When none exists, it may select a compatible source-bound envelope from the immutable `v4.0.0` history.
+
+| Changed input                                                                                        | Semantic evidence | Custom qualification            | Adapter qualification                                                  |
+| ---------------------------------------------------------------------------------------------------- | ----------------- | ------------------------------- | ---------------------------------------------------------------------- |
+| Release-version metadata only                                                                        | reusable          | reusable                        | reusable                                                               |
+| Any other portable-skill path or byte                                                                | invalid           | invalid                         | invalid                                                                |
+| CLI closure or supported runtime contract                                                            | invalid           | invalid                         | invalid                                                                |
+| Semantic cases, coverage, host, evaluator, or protocol                                               | invalid           | unchanged                       | unchanged                                                              |
+| Shared qualification evaluator, universal input, execution environment, or published package closure | unchanged         | invalid                         | invalid                                                                |
+| Storage or evidence-control code with equal evaluator and logical inputs                             | unchanged         | reusable                        | reusable only when its exact Custom baseline relationship still passes |
+| One target profile, runtime, or target-local package                                                 | unchanged         | unchanged unless Custom changed | only that target is invalid                                            |
+
+The final `4.0.1` carry-forward attestation will bind all 60 original qualification attempts to their exact source attempt digests, source-computed compatibility identities, environments, packages, targets, and Custom baseline relationships. Its one-time generator also proves the unchanged semantic source evidence, the complete deleted-result inventory, and every reviewed non-result path change. It is restricted to source tag `v4.0.0` at commit `fcbc34f60b12b1b66cd9ebb28b1865979a259429` and candidate version `4.0.1`; the artifact is generated only after the candidate tree is stable.
+
+Later releases do not receive another version exception. They recompute current behavior, CLI, evaluator, logical-input, target, and package identities and reuse an attested source attempt only when those identities still match. This means an adapter-only change requires a new run for that adapter, while compatible Custom and sibling-adapter evidence remains available. A new adapter requires only its profile and adapter qualification after the existing Custom baseline passes the current compatibility check.
+
+Historical baseline replay checks the complete recorded environment. The original adapter retries could increase their host timeout, so replay permits only an adapter timeout that is at least its Custom baseline timeout while requiring exact model, toolchain, network allowlist, model endpoint, and TLS certificate identities. Each adapter's exact timeout remains bound to its own envelope. New adapter runs require an exact complete environment match with the current carried Custom baseline.
+
+Ordinary `qualification list`, `status`, `verify`, `run`, `resume`, `retry`, and `record` commands read only current short storage. They neither enumerate the other 59 historical attempts nor require `v4.0.0` Git objects. The carried Custom baseline is authorized locally only while its short storage, attestation identity, portable-skill behavior, CLI closure, evaluator, universal logical input, execution environment, Custom target, and shared package closure all match. Release verification is the only qualification path that reopens historical Git, and a missing source tag reports the exact fetch requirement without invoking an evaluator.
 
 ## Candidate construction
 
@@ -146,7 +168,7 @@ qualification/results/t<target-number>/
     artifacts/f<number>.<extension>
 ```
 
-`latest.json` preserves the complete newest logical attempt id and the newest passing logical attempt id. `attempt.json` keeps the unchanged protocol 6 payload and logical artifact paths. `storage.json` binds those identities to the deterministic short directory and artifact names, records the compatibility identity, and verifies every stored byte.
+`latest.json` preserves the complete newest logical attempt id and the newest passing logical attempt id. `attempt.json` keeps the unchanged protocol 6 payload and logical artifact paths. `storage.json` binds those identities to the deterministic short directory and artifact names, records the normalized portable-skill behavior, exact CLI closure, and qualification compatibility identities, and verifies every stored byte.
 
 The current checkout intentionally carries only the verified latest passing Custom attempt. The other 59 `v4.0.0` attempts remain unchanged in tag `v4.0.0` at commit `fcbc34f60b12b1b66cd9ebb28b1865979a259429`. Ordinary `list`, `status`, `verify`, `run`, `resume`, `retry`, and `record` operations use current short storage only and do not enumerate or require that historical tree.
 

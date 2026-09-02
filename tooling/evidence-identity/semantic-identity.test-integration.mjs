@@ -22,6 +22,7 @@ import {
   SEMANTIC_IDENTITY_RECEIPT_PATH,
   captureSemanticSourceIdentity,
   createSemanticIdentityReceipt,
+  readSemanticAttemptIdentity,
   recoverSemanticIdentity,
   writeSemanticIdentityReceipt,
 } from './semantic-identity.mjs';
@@ -83,7 +84,10 @@ const createRepository = () => {
     'tooling/evidence-identity/portable-skill.mjs',
     'tooling/evidence-identity/semantic-evaluation-child.mjs',
     'tooling/evidence-identity/semantic-evaluation.mjs',
+    'tooling/evidence-identity/semantic-compatibility.mjs',
     'tooling/evidence-identity/semantic-identity.mjs',
+    'tooling/release-identity/constants.mjs',
+    'tooling/release-identity/identity.mjs',
     'tooling/release-identity/index.mjs',
     'tooling/semantic-evaluation/index.mjs',
   ]) {
@@ -168,6 +172,7 @@ const createAttemptIdentityText = (receipt, attempt) => {
       invocationId: receipt.invocationId,
       portableSkillBehaviorDigest: receipt.portableSkillBehaviorDigest,
       schemaVersion: receipt.schemaVersion,
+      semanticCompatibilityDigest: receipt.semanticCompatibilityDigest,
       sourceCommit: receipt.sourceCommit,
       sourceDigest: receipt.sourceDigest,
     },
@@ -215,6 +220,8 @@ test('finalizes one attributable new attempt and binds its exact bytes', async (
   assert.equal(identity.sourceDigest, receipt.sourceDigest);
   assert.equal(identity.portableSkillBehaviorDigest, receipt.portableSkillBehaviorDigest);
   assert.equal(identity.cliClosureDigest, receipt.cliClosureDigest);
+  assert.equal(identity.semanticCompatibilityDigest, receipt.semanticCompatibilityDigest);
+  assert.deepEqual(readSemanticAttemptIdentity(repositoryRoot, attempt.attemptId), identity);
   assert.equal(existsSync(join(repositoryRoot, SEMANTIC_IDENTITY_RECEIPT_PATH)), false);
 });
 

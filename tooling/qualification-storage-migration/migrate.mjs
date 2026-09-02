@@ -19,6 +19,11 @@ import { promisify } from 'node:util';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 
 import {
+  createCliClosureDigest,
+  createPortableSkillBehaviorDigest,
+} from '../evidence-identity/index.mjs';
+
+import {
   QualificationAttemptResultSchema,
   QualificationLatestResultSchema,
   QualificationProfileSchema,
@@ -93,7 +98,11 @@ export const QUALIFICATION_STORAGE_TARGETS = [
     adapterId: 'langgraph',
     implementationId: 'typescript-state-graph-1-4',
   },
-  { key: 't11', adapterId: 'openai', implementationId: 'typescript-responses-api-7' },
+  {
+    key: 't11',
+    adapterId: 'openai',
+    implementationId: 'typescript-responses-api-7',
+  },
   {
     key: 't12',
     adapterId: 'openai-agents-sdk',
@@ -180,7 +189,9 @@ const listTreePaths = async (rootDirectory) => {
   const entries = [];
 
   const visit = async (directoryPath, relativeDirectory) => {
-    const directoryEntries = await readdir(directoryPath, { withFileTypes: true });
+    const directoryEntries = await readdir(directoryPath, {
+      withFileTypes: true,
+    });
     directoryEntries.sort((left, right) => left.name.localeCompare(right.name, 'en'));
 
     for (const entry of directoryEntries) {
@@ -377,7 +388,9 @@ const migrateCustomResult = async (options) => {
   );
   const storage = createQualificationAttemptStorage({
     attemptDigest,
+    cliClosureDigest: createCliClosureDigest(options.repositoryRoot),
     compatibility,
+    portableSkillBehaviorDigest: createPortableSkillBehaviorDigest(options.repositoryRoot),
     result,
     carryForward: createCarryForwardSource(options.sourceCommit, attemptDigest),
   });
@@ -407,7 +420,9 @@ const migrateCustomResult = async (options) => {
     `${JSON.stringify(storage, null, 2)}\n`,
     'utf8',
   );
-  await mkdir(path.join(options.destinationResultsRoot, customTarget.key), { recursive: true });
+  await mkdir(path.join(options.destinationResultsRoot, customTarget.key), {
+    recursive: true,
+  });
   await writeFile(
     path.join(options.destinationResultsRoot, customTarget.key, 'latest.json'),
     latestSource,
@@ -419,6 +434,7 @@ const migrateCustomResult = async (options) => {
   });
   await validateQualificationAttemptEvidence({
     attemptDirectory: destinationAttemptDirectory,
+    contractSource: 'current',
     result,
     resultsRoot: options.destinationResultsRoot,
   });
@@ -478,6 +494,9 @@ const verifySourceArtifactEquality = async (options) => {
   const attemptDigest = calculateSha256(sourceAttempt);
   if (
     JSON.stringify(storage.compatibility) !== JSON.stringify(sourceCompatibility) ||
+    storage.portableSkillBehaviorDigest !==
+      createPortableSkillBehaviorDigest(options.repositoryRoot) ||
+    storage.cliClosureDigest !== createCliClosureDigest(options.repositoryRoot) ||
     storage.carryForward?.attestationId !== `v4.0.0-custom-${attemptDigest}` ||
     storage.carryForward.sourceRelease !== 'v4.0.0' ||
     storage.carryForward.sourceCommit !== options.sourceCommit ||
@@ -681,7 +700,9 @@ export const migrateQualificationStorage = async (options = {}) => {
   const stagedResultsRoot = path.join(stagedQualificationRoot, 'results');
 
   try {
-    await mkdir(path.join(stagedQualificationRoot, 'cases'), { recursive: true });
+    await mkdir(path.join(stagedQualificationRoot, 'cases'), {
+      recursive: true,
+    });
     await copyFile(
       path.join(qualificationRoot, 'cases', 'cases.yaml'),
       path.join(stagedQualificationRoot, 'cases', 'cases.yaml'),

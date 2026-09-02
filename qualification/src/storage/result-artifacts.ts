@@ -48,7 +48,9 @@ export const createQualificationArtifactStorageEntries = (
 /** Builds and validates one strict storage manifest without changing the logical attempt. */
 export const createQualificationAttemptStorage = (options: {
   attemptDigest: string;
+  cliClosureDigest: string;
   compatibility: IQualificationCompatibilityIdentity;
+  portableSkillBehaviorDigest: string;
   result: IQualificationAttemptResult;
   carryForward?: IQualificationCarryForwardSource;
 }): IQualificationAttemptStorage => {
@@ -62,6 +64,8 @@ export const createQualificationAttemptStorage = (options: {
     attemptDigest: options.attemptDigest,
     sourceCommit: options.result.provenance.qualificationRepositoryCommit,
     compatibility: options.compatibility,
+    portableSkillBehaviorDigest: options.portableSkillBehaviorDigest,
+    cliClosureDigest: options.cliClosureDigest,
     artifacts: createQualificationArtifactStorageEntries(options.result.artifactDigests),
     ...(options.carryForward === undefined ? {} : { carryForward: options.carryForward }),
   });

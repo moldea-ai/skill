@@ -6,6 +6,7 @@ import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:pat
 
 import { createCliClosureDigest } from './cli-closure.mjs';
 import { createPortableSkillBehaviorDigest } from './portable-skill.mjs';
+import { createSemanticCompatibilityDigest } from './semantic-compatibility.mjs';
 
 const ATTEMPT_ID_PATTERN = /^\d{8}T\d{9}Z-semantic-[a-f0-9]{8}$/u;
 const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
@@ -44,7 +45,10 @@ const REQUIRED_SOURCE_PATHS = new Set([
   'tooling/evidence-identity/portable-skill.mjs',
   'tooling/evidence-identity/semantic-evaluation-child.mjs',
   'tooling/evidence-identity/semantic-evaluation.mjs',
+  'tooling/evidence-identity/semantic-compatibility.mjs',
   'tooling/evidence-identity/semantic-identity.mjs',
+  'tooling/release-identity/constants.mjs',
+  'tooling/release-identity/identity.mjs',
   'tooling/release-identity/index.mjs',
   'tooling/semantic-evaluation/index.mjs',
 ]);
@@ -276,6 +280,7 @@ const validateAttemptIdentity = (identity, attemptEntry, receipt = null) => {
       'invocationId',
       'portableSkillBehaviorDigest',
       'schemaVersion',
+      'semanticCompatibilityDigest',
       'sourceCommit',
       'sourceDigest',
     ]) ||
@@ -295,6 +300,7 @@ const validateAttemptIdentity = (identity, attemptEntry, receipt = null) => {
     identity.portableSkillBehaviorDigest,
     'Semantic identity portable-skill behavior digest',
   );
+  requireSha256(identity.semanticCompatibilityDigest, 'Semantic identity compatibility digest');
   requireSha256(identity.sourceDigest, 'Semantic identity source digest');
 
   if (
@@ -303,6 +309,7 @@ const validateAttemptIdentity = (identity, attemptEntry, receipt = null) => {
       identity.cliClosureDigest !== receipt.cliClosureDigest ||
       identity.invocationId !== receipt.invocationId ||
       identity.portableSkillBehaviorDigest !== receipt.portableSkillBehaviorDigest ||
+      identity.semanticCompatibilityDigest !== receipt.semanticCompatibilityDigest ||
       identity.sourceCommit !== receipt.sourceCommit ||
       identity.sourceDigest !== receipt.sourceDigest)
   ) {
@@ -405,6 +412,25 @@ export const captureSemanticAttemptInventory = (repositoryRoot) => {
   return validateAttemptInventory(entries.map((entry) => readAttemptEntry(attemptsRoot, entry)));
 };
 
+/** Reads and validates the optional identity sidecar for one immutable semantic attempt. */
+export const readSemanticAttemptIdentity = (repositoryRoot, attemptId) => {
+  if (typeof attemptId !== 'string' || !ATTEMPT_ID_PATTERN.test(attemptId)) {
+    throw new Error('Semantic identity lookup requires one exact attempt ID.');
+  }
+  const attemptsRoot = join(repositoryRoot, SEMANTIC_RESULTS_PATH, 'attempts');
+  if (!existsSync(attemptsRoot)) return null;
+  const attemptEntry = readdirSync(attemptsRoot, { withFileTypes: true }).find(
+    ({ name }) => name === attemptId,
+  );
+  if (attemptEntry === undefined) {
+    throw new Error(`Semantic identity references missing attempt ${attemptId}.`);
+  }
+  const inventoryEntry = readAttemptEntry(attemptsRoot, attemptEntry);
+  if (inventoryEntry.identitySha256 === null) return null;
+  const identityPath = join(attemptsRoot, attemptId, 'identity.json');
+  return validateAttemptIdentity(JSON.parse(readFileSync(identityPath, 'utf8')), inventoryEntry);
+};
+
 const validateReceipt = (receipt) => {
   if (
     !isPlainRecord(receipt) ||
@@ -418,6 +444,7 @@ const validateReceipt = (receipt) => {
       'portableSkillBehaviorDigest',
       'recordingKind',
       'schemaVersion',
+      'semanticCompatibilityDigest',
       'sourceCommit',
       'sourceDigest',
       'sourceEntries',
@@ -440,6 +467,7 @@ const validateReceipt = (receipt) => {
     receipt.portableSkillBehaviorDigest,
     'Semantic receipt portable-skill behavior digest',
   );
+  requireSha256(receipt.semanticCompatibilityDigest, 'Semantic receipt compatibility digest');
   requireSha256(receipt.sourceDigest, 'Semantic receipt source digest');
   validateSourceEntries(receipt.sourceEntries);
   validateAttemptInventory(receipt.attemptInventory);
@@ -470,6 +498,7 @@ export const createSemanticIdentityReceipt = (repositoryRoot, arguments_) => {
     portableSkillBehaviorDigest: createPortableSkillBehaviorDigest(repositoryRoot),
     recordingKind: arguments_.includes('--record-checkpoint') ? 'record-checkpoint' : 'record',
     schemaVersion: SEMANTIC_IDENTITY_SCHEMA_VERSION,
+    semanticCompatibilityDigest: createSemanticCompatibilityDigest(repositoryRoot),
     ...sourceIdentity,
   };
   const recapturedSource = captureSemanticSourceIdentity(repositoryRoot);
@@ -845,6 +874,7 @@ const createAttemptIdentity = (receipt, attemptEntry) => ({
   invocationId: receipt.invocationId,
   portableSkillBehaviorDigest: receipt.portableSkillBehaviorDigest,
   schemaVersion: SEMANTIC_IDENTITY_SCHEMA_VERSION,
+  semanticCompatibilityDigest: receipt.semanticCompatibilityDigest,
   sourceCommit: receipt.sourceCommit,
   sourceDigest: receipt.sourceDigest,
 });

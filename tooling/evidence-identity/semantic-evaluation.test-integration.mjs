@@ -106,7 +106,10 @@ const createRepository = () => {
     'tooling/evidence-identity/portable-skill.mjs',
     'tooling/evidence-identity/semantic-evaluation-child.mjs',
     'tooling/evidence-identity/semantic-evaluation.mjs',
+    'tooling/evidence-identity/semantic-compatibility.mjs',
     'tooling/evidence-identity/semantic-identity.mjs',
+    'tooling/release-identity/constants.mjs',
+    'tooling/release-identity/identity.mjs',
     'tooling/release-identity/index.mjs',
     'tooling/semantic-evaluation/index.mjs',
   ]) {

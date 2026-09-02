@@ -25,6 +25,7 @@ const assertAllowedContractPath = (relativePath: string): void => {
  * @throws If public evidence lacks a Git commit or its recorded contract cannot be read.
  */
 export const readQualificationContractYaml = async <TResult>(options: {
+  contractSource?: 'current' | 'recorded';
   qualificationRepositoryCommit: string;
   relativePath: string;
   resultsRoot: string;
@@ -35,6 +36,10 @@ export const readQualificationContractYaml = async <TResult>(options: {
   const contractPath = resolveContainedPath(qualificationRoot, options.relativePath);
   const repositoryRoot = path.resolve(qualificationRoot, '..');
   let hasRepository = false;
+
+  if (options.contractSource === 'current') {
+    return readYamlFile(contractPath, options.schema);
+  }
 
   try {
     await access(path.join(repositoryRoot, '.git'));

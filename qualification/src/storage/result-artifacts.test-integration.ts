@@ -85,12 +85,14 @@ describe('qualification attempt storage', () => {
     );
     const storage = createQualificationAttemptStorage({
       attemptDigest: calculateSha256(attemptSource),
+      cliClosureDigest: '4'.repeat(64),
       compatibility: {
         version: 1,
         qualificationEvaluatorDigest: '1'.repeat(64),
         qualificationLogicalInputDigest: '2'.repeat(64),
         qualificationBaselineEvaluatorDigest: '3'.repeat(64),
       },
+      portableSkillBehaviorDigest: '5'.repeat(64),
       result,
     });
     await ensureDirectory(attemptDirectory);

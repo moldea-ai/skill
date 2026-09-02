@@ -3,6 +3,11 @@ import { access, lstat, readFile, readdir, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
+  createCliClosureDigest,
+  createPortableSkillBehaviorDigest,
+} from '../../../tooling/evidence-identity/index.mjs';
+
+import {
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
   QUALIFICATION_RESULTS_ROOT,
   SKILL_REPOSITORY_ROOT,
@@ -16,7 +21,6 @@ import {
   type IQualificationRecordedAttemptResult,
   type IQualificationRecordedLatestResult,
 } from '../contracts/index.ts';
-import { createQualificationCompatibilityIdentityAtCommit } from '../evidence-identity/index.ts';
 import { createQualificationCompatibilityIdentity } from '../evidence-identity/index.ts';
 import {
   calculateSha256,
@@ -268,15 +272,20 @@ export const recordQualificationResult = async (
     path.basename(qualificationRoot) === 'qualification' &&
     ((await pathExists(path.join(adjacentRepositoryRoot, '.git'))) ||
       (await pathExists(path.join(qualificationRoot, 'src'))));
+  const repositoryRoot = hasAdjacentRepository ? adjacentRepositoryRoot : SKILL_REPOSITORY_ROOT;
   const compatibility = await createQualificationCompatibilityIdentity({
     qualificationRoot,
-    repositoryRoot: hasAdjacentRepository ? adjacentRepositoryRoot : SKILL_REPOSITORY_ROOT,
+    repositoryRoot,
     selection: result.selection,
   });
+  const cliClosureDigest = createCliClosureDigest(repositoryRoot);
+  const portableSkillBehaviorDigest = createPortableSkillBehaviorDigest(repositoryRoot);
   const attemptSource = `${JSON.stringify(result, null, 2)}\n`;
   const storage = createQualificationAttemptStorage({
     attemptDigest: calculateSha256(attemptSource),
+    cliClosureDigest,
     compatibility,
+    portableSkillBehaviorDigest,
     result,
   });
 
@@ -295,6 +304,7 @@ export const recordQualificationResult = async (
     });
     await validateQualificationAttemptEvidence({
       attemptDirectory: stagingDirectory,
+      contractSource: 'current',
       result,
       resultsRoot,
     });
@@ -349,14 +359,14 @@ const verifyAttemptArtifacts = async (
     const storage = await verifyQualificationAttemptStorage({ attemptDirectory, result });
 
     if (storage.carryForward !== undefined) {
-      const expectedCompatibility = await createQualificationCompatibilityIdentityAtCommit({
-        commit: storage.carryForward.sourceCommit,
+      const expectedCompatibility = await createQualificationCompatibilityIdentity({
+        qualificationRoot: path.resolve(resultsRoot, '..'),
         repositoryRoot,
         selection: result.selection,
       });
 
       if (JSON.stringify(storage.compatibility) !== JSON.stringify(expectedCompatibility)) {
-        throw new Error('Qualification carry-forward compatibility does not match its source.');
+        throw new Error('Qualification carry-forward compatibility does not match current inputs.');
       }
     }
   } catch (error) {
@@ -411,6 +421,7 @@ const verifyQualificationTarget = async (options: {
       try {
         await validateQualificationAttemptEvidence({
           attemptDirectory,
+          contractSource: 'current',
           result,
           resultsRoot: options.resultsRoot,
         });

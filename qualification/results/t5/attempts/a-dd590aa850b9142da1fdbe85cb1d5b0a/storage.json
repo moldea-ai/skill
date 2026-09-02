@@ -11,6 +11,8 @@
     "qualificationLogicalInputDigest": "5257ff14252ed9262c19971aae181c4beede17ee3d6f91f106d2face706362ba",
     "qualificationBaselineEvaluatorDigest": "b3fffa579b9729c1400ba0a3063f81eea5f56f1af6490775c6706a6ee7ccd946"
   },
+  "portableSkillBehaviorDigest": "e52d0876fdc21883fc9916dd64588f0ea0535076283e4aa36ee99cbe75938df9",
+  "cliClosureDigest": "a67b98246349cacbdf6dd652d76797969647ffb211ab4d9eae6ff023a6aa07b3",
   "artifacts": [
     {
       "logicalPath": "baseline.json",

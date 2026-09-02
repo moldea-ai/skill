@@ -43,7 +43,8 @@ const writeFixtureSource = async (repositoryRoot) => {
         name: 'qualification-storage-fixture',
         version: '4.0.0',
         type: 'module',
-        devDependencies: { semver: '7.8.5' },
+        devDependencies: { '@moldea.ai/cli': '4.0.0', semver: '7.8.5' },
+        moldeaRelease: { cliJsonSchemaVersion: 2 },
       })}\n`,
     ],
     [
@@ -57,7 +58,11 @@ const writeFixtureSource = async (repositoryRoot) => {
           '': {
             name: 'qualification-storage-fixture',
             version: '4.0.0',
-            devDependencies: { semver: '7.8.5' },
+            devDependencies: { '@moldea.ai/cli': '4.0.0', semver: '7.8.5' },
+          },
+          'node_modules/@moldea.ai/cli': {
+            version: '4.0.0',
+            integrity: 'sha512-cli-fixture',
           },
           'node_modules/semver': {
             version: '7.8.5',
@@ -66,6 +71,21 @@ const writeFixtureSource = async (repositoryRoot) => {
         },
       })}\n`,
     ],
+    [
+      'moldea/SKILL.md',
+      [
+        '---',
+        'name: moldea-fixture',
+        'description: Qualification migration fixture.',
+        'metadata:',
+        '  version: 4.0.0',
+        '---',
+        '',
+        'Skill release `4.0.0` supports exactly:',
+        '',
+      ].join('\n'),
+    ],
+    ['moldea/references/local-tooling.md', '# Local tooling\n\nRelease `4.0.0` supports:\n'],
     [
       'qualification/package.json',
       `${JSON.stringify({

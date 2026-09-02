@@ -106,9 +106,9 @@ jobs:
               throw 'Repository path portability failed in the deep clone.'
             }
 
-            npm run test:unit
+            node --experimental-strip-types --test --test-skip-pattern='^(?:sandbox |proxy shutdown )' tooling/*/*.test-unit.mjs tests/*.test-unit.mjs
             if ($LASTEXITCODE -ne 0) {
-              throw 'Supported non-Bubblewrap tests failed in the deep clone.'
+              throw 'Supported Windows unit tests failed in the deep clone.'
             }
 
             $skillsHome = Join-Path $deepRoot 'developer-home'

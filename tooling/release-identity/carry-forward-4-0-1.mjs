@@ -91,6 +91,7 @@ const RecordedCandidatePackageSchema = CandidatePackageSchema.omit({
 
 // reviewed non-result surfaces that the one-time migration may change
 const ALLOWED_CHANGED_FILES = new Set([
+  '.gitattributes',
   '.gitignore',
   '.github/workflows/conformance.yml',
   '.github/workflows/pages.yml',

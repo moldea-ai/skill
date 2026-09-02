@@ -1,7 +1,7 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, relative, sep } from 'node:path';
 import test from 'node:test';
 
 import {
@@ -1841,7 +1841,7 @@ test('collects the exact published CLI production dependency closure', () => {
   const packageEntries = collectProductionPackageRoots(
     join(process.cwd(), 'node_modules', '@moldea.ai', 'cli'),
   ).map((packageRoot) => ({
-    lockPath: `node_modules/${relative(rootNodeModules, packageRoot)}`,
+    lockPath: `node_modules/${relative(rootNodeModules, packageRoot).split(sep).join('/')}`,
     manifest: JSON.parse(readFileSync(join(packageRoot, 'package.json'), 'utf8')),
   }));
   const manifestsByName = new Map(packageEntries.map(({ manifest }) => [manifest.name, manifest]));

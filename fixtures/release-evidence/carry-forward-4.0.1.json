@@ -53985,6 +53985,15 @@
   },
   "changedPaths": [
     {
+      "path": ".gitattributes",
+      "source": null,
+      "candidate": {
+        "mode": "100644",
+        "path": ".gitattributes",
+        "sha256": "d60f352d0db1404c70afb4bb8b2ca3fd1c610572aa40720e8a0b7baa7885418c"
+      }
+    },
+    {
       "path": ".github/workflows/conformance.yml",
       "source": {
         "mode": "100644",
@@ -53994,7 +54003,7 @@
       "candidate": {
         "mode": "100644",
         "path": ".github/workflows/conformance.yml",
-        "sha256": "26fc0899b9ce4292fb2ca5e88b02c8e9a82fe785269bdd54db1cc490ed7b1e1d"
+        "sha256": "c1a42d6e74993df943e3684c68bbff3a3d649e4a14b930699e660e309ed555ca"
       }
     },
     {
@@ -89836,7 +89845,20 @@
       "candidate": {
         "mode": "100644",
         "path": "tests/conformance.test-unit.mjs",
-        "sha256": "75ffef183ac2dbf93ecfc8cebf080c7a45a980d245b5e8d515b633f502dc6436"
+        "sha256": "23510af2820673e06bcc6ede3c2634072d768f9164fc3b0655230b1dd6659936"
+      }
+    },
+    {
+      "path": "tests/semantic-evaluation-runner.test-unit.mjs",
+      "source": {
+        "mode": "100644",
+        "path": "tests/semantic-evaluation-runner.test-unit.mjs",
+        "sha256": "dc4eedf00b8f4c59098ae6ec66b6eb334e1aa0c708867e9da8503e01e16988f6"
+      },
+      "candidate": {
+        "mode": "100644",
+        "path": "tests/semantic-evaluation-runner.test-unit.mjs",
+        "sha256": "4e1242a91ec0d1e62070f4e1341c6432fa379e8d8bd424a3c854356e3ddd0dff"
       }
     },
     {
@@ -89953,7 +89975,7 @@
       "candidate": {
         "mode": "100644",
         "path": "tooling/evidence-identity/semantic-evaluation.test-integration.mjs",
-        "sha256": "119275539d3853c97c242020bdb340b98e5f643909ce6e8ec983cabc4039132d"
+        "sha256": "e4f1bbddf300db1f5d34238aba886faf4d57e720b9a4d19a32df13906c7e8311"
       }
     },
     {
@@ -90052,7 +90074,7 @@
       "candidate": {
         "mode": "100644",
         "path": "tooling/release-identity/carry-forward-4-0-1.mjs",
-        "sha256": "e9e5a0b5544c25435be0a09e519bdd683f01448366b51f541ae63b1a1f735250"
+        "sha256": "05a3542e54a763d299849862f2de7e9571afdba75bc9ad155a6e737a07465a6d"
       }
     },
     {

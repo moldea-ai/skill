@@ -270,6 +270,9 @@ test('passes non-recording arguments, streams, and exit status through unchanged
   const { completion } = startHarness(repositoryRoot, ['--case', 'case-a'], {
     MOLDEA_FAKE_EXIT_CODE: '3',
     MOLDEA_FAKE_MODE: 'pass-through',
+    NODE_OPTIONS: [process.env.NODE_OPTIONS, '--disable-warning=ExperimentalWarning']
+      .filter(Boolean)
+      .join(' '),
   });
   const result = await completion;
 

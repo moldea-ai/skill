@@ -63,7 +63,9 @@ const evidenceLayers = [
       <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
         Realistic projects exercise exact published package artifacts, the portable skill,
         deterministic repository behavior, and separate actor and judge stages using the frontier
-        assurance model. Profiles and every recorded outcome remain inspectable in Git.
+        assurance model. Current short storage and immutable release history are validated together
+        at build time, so every recorded outcome remains inspectable without restoring long paths to
+        the working tree.
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
@@ -210,9 +212,10 @@ const evidenceLayers = [
         <div>
           <h2 class="text-2xl font-semibold tracking-tight">Every outcome remains inspectable.</h2>
           <p class="mt-3 max-w-3xl leading-7 text-muted-foreground">
-            Website generation validates each profile's newest terminal attempt and its independent
-            last-passing pointer. Every result links to its committed artifacts so you can inspect
-            failures and execution errors instead of losing them behind a release gate.
+            Website generation validates each profile's complete current and historical record,
+            proves the migrated Custom copy before deduplicating it, and resolves the newest and
+            last-passing attempts. Historical artifact links stay pinned to their exact source
+            commit.
           </p>
         </div>
         <ActionLink

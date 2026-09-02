@@ -463,7 +463,7 @@ test(
       await expect(initialTrial.getByText('timed-out', { exact: true })).toBeVisible();
       await expect(initialTrial.getByRole('link', { name: /actor-output\.json/u })).toHaveAttribute(
         'href',
-        /cases\/release-case\/trials\/initial\/actor-output\.json$/u,
+        /\/main\/qualification\/results\/t1\/attempts\/a-[a-f0-9]{32}\/artifacts\/f[a-f0-9]{2}\.json$/u,
       );
 
       const widths = await page.evaluate(() => ({

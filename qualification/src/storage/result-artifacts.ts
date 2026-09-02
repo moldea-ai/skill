@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 import { readdir } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -17,6 +18,8 @@ import {
 } from './types.ts';
 
 const POSIX_RELATIVE_PATH_PATTERN = /^(?!\/)(?!.*(?:^|\/)\.\.(?:\/|$))(?!.*\\)(?!.*\0).+$/u;
+const MAXIMUM_PHYSICAL_ARTIFACT_NAME_LENGTH = 64;
+const PHYSICAL_ARTIFACT_NAME_PATTERN = /^f[1-9][0-9]*(?:\.[a-z0-9]+)?$/u;
 
 const assertLogicalArtifactPath = (logicalPath: string): void => {
   if (
@@ -40,7 +43,18 @@ export const createQualificationArtifactStorageEntries = (
     .map(([logicalPath, sha256], artifactIndex) => {
       assertLogicalArtifactPath(logicalPath);
       const extension = path.posix.extname(logicalPath).toLowerCase();
-      const physicalPath = `artifacts/f${artifactIndex + 1}${extension}`;
+      const physicalName = `f${artifactIndex + 1}${extension}`;
+
+      if (
+        !PHYSICAL_ARTIFACT_NAME_PATTERN.test(physicalName) ||
+        Buffer.byteLength(physicalName, 'utf8') > MAXIMUM_PHYSICAL_ARTIFACT_NAME_LENGTH
+      ) {
+        throw new Error(
+          `Qualification artifact storage name is not portable within ${MAXIMUM_PHYSICAL_ARTIFACT_NAME_LENGTH} bytes: ${logicalPath}`,
+        );
+      }
+
+      const physicalPath = `artifacts/${physicalName}`;
 
       return { logicalPath, physicalPath, sha256 };
     });

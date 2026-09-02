@@ -2166,11 +2166,29 @@ describe('source repository conformance', () => {
 
   test('CI installs and compares the complete portable artifact', () => {
     const workflow = readRepositoryFile('.github/workflows/conformance.yml');
+    const document = parseDocument(workflow, { uniqueKeys: true });
+    const conformance = document.toJS();
+    const windowsJob = conformance.jobs['windows-portability'];
+    const windowsCheckout = windowsJob.steps.find((step) =>
+      step.uses?.startsWith('actions/checkout@'),
+    );
+    const windowsVerification = windowsJob.steps.find(
+      (step) => step.name === 'Clone under a realistic deep temporary path',
+    )?.run;
 
+    assert.equal(document.errors.length, 0);
     assert.match(workflow, /skills@1\.5\.22 add .* -g -a codex -y --copy/);
     assert.match(workflow, /\.agents\/skills\/moldea/);
     assert.match(workflow, /diff --recursive --brief moldea/);
     assert.doesNotMatch(workflow, /add .* --list/);
+    assert.equal(windowsJob['runs-on'], 'windows-2025');
+    assert.equal(windowsCheckout?.with, undefined);
+    assert.match(windowsVerification, /git clone --no-hardlinks --no-checkout/);
+    assert.match(windowsVerification, /git -C \$clonePath checkout --detach \$env:GITHUB_SHA/);
+    assert.match(windowsVerification, /npm run path:check/);
+    assert.match(windowsVerification, /npm run test:unit/);
+    assert.match(windowsVerification, /git diff --no-index --exit-code/);
+    assert.doesNotMatch(windowsVerification, /core\.longpaths|LongPathsEnabled/i);
   });
 
   test('runs root source checks across every supported Node.js line', () => {
@@ -2220,6 +2238,27 @@ describe('source repository conformance', () => {
     }
   });
 
+  test('fetches complete Git history only for website evidence consumers', () => {
+    const conformance = parseDocument(readRepositoryFile('.github/workflows/conformance.yml'), {
+      uniqueKeys: true,
+    }).toJS();
+    const releaseCandidate = parseDocument(
+      readRepositoryFile('.github/workflows/release-candidate.yml'),
+      { uniqueKeys: true },
+    ).toJS();
+    const conformanceCheckouts = Object.values(conformance.jobs).flatMap(({ steps }) =>
+      steps.filter((step) => step.uses?.startsWith('actions/checkout@')),
+    );
+    const releaseCheckouts = Object.values(releaseCandidate.jobs).flatMap(({ steps }) =>
+      steps.filter((step) => step.uses?.startsWith('actions/checkout@')),
+    );
+
+    assert.ok(conformanceCheckouts.length > 0);
+    assert.ok(releaseCheckouts.length > 0);
+    assert.ok(conformanceCheckouts.every((step) => step.with?.['fetch-depth'] === undefined));
+    assert.ok(releaseCheckouts.every((step) => step.with?.['fetch-depth'] === 1));
+  });
+
   test('CI derives one exact release CLI across every package manager', () => {
     const workflow = readRepositoryFile('.github/workflows/conformance.yml');
     const packageManifest = JSON.parse(readRepositoryFile('package.json'));
@@ -2227,7 +2266,7 @@ describe('source repository conformance', () => {
     assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], RELEASE_CLI_VERSION);
     assert.doesNotMatch(workflow, /cli_version:|MOLDEA_TEST_CLI_VERSION/);
     assert.match(workflow, /\/ release CLI/);
-    assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 2);
+    assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 3);
     assert.equal(
       workflow.match(
         /sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap socat/g,

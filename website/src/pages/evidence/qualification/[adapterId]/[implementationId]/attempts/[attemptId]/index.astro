@@ -69,6 +69,10 @@ const getArtifactLabel = (artifactPath: string): string =>
   artifactPath.endsWith('-events.jsonl')
     ? `${artifactPath} (projected execution evidence)`
     : artifactPath;
+const evidenceSourceLabel =
+  attempt.evidenceSource.kind === 'historical'
+    ? `${attempt.evidenceSource.release} at ${attempt.evidenceSource.commit}`
+    : 'Current short storage';
 ---
 
 <BaseLayout
@@ -105,6 +109,9 @@ const getArtifactLabel = (artifactPath: string): string =>
         Open any journey to replay the developer request, coding-agent activity, workspace changes,
         and independent verdict. Human-readable evidence comes next, while the complete technical
         record remains available in its own tab.
+      </p>
+      <p class="mt-3 max-w-4xl text-sm leading-6 text-muted-foreground">
+        Evidence source: <span class="font-mono break-all">{evidenceSourceLabel}</span>
       </p>
       <ActionLink
         class="mt-7 font-bold"
@@ -255,6 +262,10 @@ const getArtifactLabel = (artifactPath: string): string =>
                 <dd class="mt-1 font-mono break-all">
                   {result.provenance.skillRepositoryCommit}
                 </dd>
+              </div>
+              <div>
+                <dt class="text-muted-foreground">Public evidence source</dt>
+                <dd class="mt-1 font-mono break-all">{evidenceSourceLabel}</dd>
               </div>
               <div>
                 <dt class="text-muted-foreground">Model configuration</dt>

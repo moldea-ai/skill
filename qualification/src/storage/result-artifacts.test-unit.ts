@@ -31,3 +31,17 @@ test.each(['../attempt.json', '/absolute.json', 'cases\\example.json', 'a/../b.j
     ).toThrow(/contained POSIX path/u);
   },
 );
+
+test('rejects a generated physical artifact name above the portable component budget', () => {
+  const logicalPath = `cases/example/artifact.${'x'.repeat(63)}`;
+
+  expect(() =>
+    createQualificationArtifactStorageEntries({ [logicalPath]: 'a'.repeat(64) }),
+  ).toThrow('Qualification artifact storage name is not portable within 64 bytes');
+});
+
+test('rejects a generated physical artifact name with an unsafe extension', () => {
+  expect(() =>
+    createQualificationArtifactStorageEntries({ 'cases/example/artifact.bad?': 'a'.repeat(64) }),
+  ).toThrow('Qualification artifact storage name is not portable within 64 bytes');
+});

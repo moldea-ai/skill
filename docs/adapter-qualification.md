@@ -76,6 +76,8 @@ The current checkout contains only the verified latest passing Custom attempt. T
 
 Release verification handles historical source access separately. It verifies the immutable source attempts and the checked-in carry-forward attestation, then selects current compatible evidence first and historical compatible evidence second. A missing source tag produces an explicit fetch requirement. It never checks out the long historical result tree and never invokes an actor, judge, model host, semantic evaluation, or adapter qualification.
 
+Website generation also uses complete history without restoring those paths. At build time it reads all 60 `v4.0.0` attempts directly from immutable Git objects into memory, validates their complete artifact inventory and recorded contracts through the same website evidence boundary as current short storage, and combines them by logical profile and attempt id. The only permitted duplicate is the carried Custom attempt, and it is removed only after the source attempt, every artifact byte, source commit, source release, and source digest match. Historical artifact links remain pinned to commit `fcbc34f60b12b1b66cd9ebb28b1865979a259429`; browser output receives only the resolved static evidence model and no Git or filesystem capability.
+
 ## When qualification must run again
 
 Evidence validity follows the inputs that can affect the result, not the release number.

@@ -27,10 +27,13 @@ jobs:
     steps:
       - name: Checkout skill tooling
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Checkout packages candidate
         uses: actions/checkout@v6
         with:
+          fetch-depth: 1
           repository: moldea-ai/packages
           ref: ${{ inputs.packages_ref }}
           path: packages
@@ -100,6 +103,8 @@ jobs:
     steps:
       - name: Checkout skill
         uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
 
       - name: Setup Node.js
         uses: actions/setup-node@v6

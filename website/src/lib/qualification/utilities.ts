@@ -95,13 +95,17 @@ const encodeRepositoryPath = (path: string): string =>
     .join('/');
 
 /** Creates a GitHub source link for a committed file or directory. */
-export const createSourceUrl = (path: string, kind: 'blob' | 'tree' = 'blob'): string => {
-  return `${SOURCE_REPOSITORY_URL}/${kind}/main/${encodeRepositoryPath(path)}`;
+export const createSourceUrl = (
+  path: string,
+  kind: 'blob' | 'tree' = 'blob',
+  revision = 'main',
+): string => {
+  return `${SOURCE_REPOSITORY_URL}/${kind}/${encodeURIComponent(revision)}/${encodeRepositoryPath(path)}`;
 };
 
 /** Creates a direct raw-content link for one committed evidence artifact. */
-export const createRawSourceUrl = (path: string): string => {
-  return `${RAW_SOURCE_REPOSITORY_URL}/main/${encodeRepositoryPath(path)}`;
+export const createRawSourceUrl = (path: string, revision = 'main'): string => {
+  return `${RAW_SOURCE_REPOSITORY_URL}/${encodeURIComponent(revision)}/${encodeRepositoryPath(path)}`;
 };
 
 /** Calculates the exact SHA-256 digest of one regular evidence file. */

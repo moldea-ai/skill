@@ -93,6 +93,7 @@ const RecordedCandidatePackageSchema = CandidatePackageSchema.omit({
 const ALLOWED_CHANGED_FILES = new Set([
   '.gitignore',
   '.github/workflows/conformance.yml',
+  '.github/workflows/release-candidate.yml',
   'README.md',
   'docs/adapter-qualification.md',
   'docs/getting-started.md',
@@ -109,6 +110,7 @@ const ALLOWED_CHANGED_FILES = new Set([
   'qualification/src/result/evidence.ts',
   'qualification/src/result/index.ts',
   'qualification/src/result/recorder.ts',
+  'website/scripts/generate-qualification-current-e2e-fixture.ts',
 ]);
 const ALLOWED_CHANGED_PREFIXES = [
   'coding-agent-planning/',

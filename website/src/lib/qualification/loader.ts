@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
+import type { z } from 'zod';
 
 import {
   createQualificationArtifactStorageEntries,
@@ -38,12 +39,19 @@ import {
   type IQualificationAttemptModel,
   type IQualificationAttemptResult,
   type IQualificationCurrentCaseResult,
+  type IQualificationEvidenceSourceModel,
+  type IQualificationLatestResult,
   type IQualificationProjectedExecutionEvent,
   type IQualificationProfileCaseModel,
   type IQualificationProfileModel,
   type IQualificationWebsiteModel,
 } from './types.ts';
 import { readRecordedQualificationContract } from './contract-reader.ts';
+import {
+  readHistoricalQualificationTargets,
+  type IHistoricalQualificationAttemptSource,
+} from './historical-reader.ts';
+import { assertMigratedCustomDuplicate } from './history-validations.ts';
 import { createQualificationReplay } from './replay-transformers.ts';
 import {
   calculateFileSha256,
@@ -81,7 +89,35 @@ Execution rules:
 
 type ICaseCatalogEntry = ReturnType<typeof QualificationCaseCatalogSchema.parse>['cases'][number];
 type IProfile = ReturnType<typeof QualificationProfileSchema.parse>;
-type IResolveAttemptArtifactPath = (logicalPath: string) => string;
+type IReadAttemptArtifact = (logicalPath: string) => Buffer | undefined;
+
+interface IQualificationAttemptSource {
+  artifactModels: IQualificationArtifactModel[];
+  artifactSources: ReadonlyMap<string, Buffer>;
+  attemptPath: string;
+  attemptSource: Buffer;
+  carryForward:
+    | {
+        sourceCommit: string;
+        sourceRelease: string;
+        sourceAttemptDigest: string;
+      }
+    | undefined;
+  evidenceSource: IQualificationEvidenceSourceModel;
+  result: IQualificationAttemptResult;
+}
+
+interface ILoadedQualificationAttempt {
+  model: IQualificationAttemptModel;
+  source: IQualificationAttemptSource;
+}
+
+interface ILoadedQualificationProfile {
+  currentAttempts: ILoadedQualificationAttempt[];
+  currentLatest: IQualificationProfileModel['latest'];
+  model: IQualificationProfileModel;
+  targetKey: string;
+}
 
 const createExpectedCurrentTrialArtifactPaths = (
   caseId: string,
@@ -164,12 +200,27 @@ const createArtifactModel = (
   path: string,
   sha256: string | null,
   logicalPath?: string,
+  revision = 'main',
 ): IQualificationArtifactModel => {
   const sourcePath = toArtifactPath(repositoryRoot, path);
 
   return {
     path: logicalPath ?? sourcePath,
-    rawUrl: createRawSourceUrl(sourcePath),
+    rawUrl: createRawSourceUrl(sourcePath, revision),
+    sha256,
+  };
+};
+
+const createHistoricalArtifactModel = (
+  source: IHistoricalQualificationAttemptSource,
+  logicalPath: string,
+  sha256: string,
+): IQualificationArtifactModel => {
+  const attemptRoot = source.attemptPath.slice(0, -'/attempt.json'.length);
+
+  return {
+    path: logicalPath,
+    rawUrl: createRawSourceUrl(`${attemptRoot}/${logicalPath}`, source.sourceCommit),
     sha256,
   };
 };
@@ -216,7 +267,10 @@ const verifyArtifactDigests = (
   attemptDirectory: string,
   result: IQualificationAttemptResult,
   storage: IQualificationAttemptStorage,
-): IQualificationArtifactModel[] => {
+): {
+  artifactModels: IQualificationArtifactModel[];
+  artifactSources: ReadonlyMap<string, Buffer>;
+} => {
   const attemptPath = join(attemptDirectory, 'attempt.json');
   const expectedArtifacts = createQualificationArtifactStorageEntries(result.artifactDigests);
   const actualPaths = listFiles(attemptDirectory)
@@ -234,16 +288,24 @@ const verifyArtifactDigests = (
     storage.attemptId !== result.attemptId ||
     storage.attemptIdDigest !== createHash('sha256').update(result.attemptId).digest('hex') ||
     storage.attemptDigest !== calculateFileSha256(attemptPath) ||
-    storage.sourceCommit !== result.provenance.qualificationRepositoryCommit ||
-    JSON.stringify(storage.artifacts) !== JSON.stringify(expectedArtifacts) ||
-    JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)
+    storage.sourceCommit !== result.provenance.qualificationRepositoryCommit
   ) {
-    throw new Error(`Qualification short storage does not match attempt.json.`);
+    throw new Error('Qualification short-storage identity does not match attempt.json.');
   }
 
-  return storage.artifacts.map(({ logicalPath, physicalPath, sha256 }) => {
+  if (JSON.stringify(storage.artifacts) !== JSON.stringify(expectedArtifacts)) {
+    throw new Error('Qualification short-storage artifact mapping does not match attempt.json.');
+  }
+
+  if (JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)) {
+    throw new Error('Qualification short-storage file inventory is incomplete.');
+  }
+
+  const artifactSources = new Map<string, Buffer>();
+  const artifactModels = storage.artifacts.map(({ logicalPath, physicalPath, sha256 }) => {
     const artifactPath = resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath);
-    const actualDigest = calculateFileSha256(artifactPath);
+    const artifactSource = readFileSync(artifactPath);
+    const actualDigest = createHash('sha256').update(artifactSource).digest('hex');
 
     if (actualDigest !== sha256) {
       throw new Error(`Qualification artifact digest does not match: ${logicalPath}`);
@@ -253,35 +315,49 @@ const verifyArtifactDigests = (
       throw new Error(`Qualification artifact mapping does not match: ${logicalPath}`);
     }
 
+    artifactSources.set(logicalPath, artifactSource);
     return createArtifactModel(repositoryRoot, artifactPath, actualDigest, logicalPath);
   });
+
+  return { artifactModels, artifactSources };
 };
 
 const readAttemptArtifact = <Output>(
-  resolveArtifactPath: IResolveAttemptArtifactPath,
+  readArtifact: IReadAttemptArtifact,
   relativePath: string,
-  schema: Parameters<typeof readJsonFile<Output>>[1],
+  schema: z.ZodType<Output>,
 ): Output => {
-  const path = resolveArtifactPath(relativePath);
-  requireFile(path);
-  return readJsonFile(path, schema);
+  const source = readArtifact(relativePath);
+
+  if (source === undefined) {
+    throw new Error(`Required qualification artifact is missing: ${relativePath}`);
+  }
+
+  try {
+    return schema.parse(JSON.parse(source.toString('utf8')) as unknown);
+  } catch (error) {
+    throw new Error(`Invalid qualification JSON artifact ${relativePath}.`, { cause: error });
+  }
 };
 
 const readDeterministicArtifactSummary = (
-  resolveArtifactPath: IResolveAttemptArtifactPath,
+  readArtifact: IReadAttemptArtifact,
   relativePath: string,
 ): IDeterministicVerification =>
-  readAttemptArtifact(resolveArtifactPath, relativePath, DeterministicVerificationArtifactSchema)
-    .summary;
+  readAttemptArtifact(readArtifact, relativePath, DeterministicVerificationArtifactSchema).summary;
 
 const readProjectedExecutionEvents = (
-  resolveArtifactPath: IResolveAttemptArtifactPath,
+  readArtifact: IReadAttemptArtifact,
   relativePath: string,
 ): IQualificationProjectedExecutionEvent[] => {
-  const path = resolveArtifactPath(relativePath);
-  requireFile(path);
+  const source = readArtifact(relativePath);
 
-  return readFileSync(path, 'utf8')
+  if (source === undefined) {
+    throw new Error(`Required qualification artifact is missing: ${relativePath}`);
+  }
+
+  return source
+    .toString('utf8')
     .split('\n')
     .filter((eventLine) => eventLine.trim() !== '')
     .map((eventLine) =>
@@ -290,12 +366,16 @@ const readProjectedExecutionEvents = (
 };
 
 const readRecordedDeveloperTask = (
-  resolveArtifactPath: IResolveAttemptArtifactPath,
+  readArtifact: IReadAttemptArtifact,
   relativePath: string,
 ): string => {
-  const path = resolveArtifactPath(relativePath);
-  requireFile(path);
-  const prompt = readFileSync(path, 'utf8');
+  const source = readArtifact(relativePath);
+
+  if (source === undefined) {
+    throw new Error(`Required qualification artifact is missing: ${relativePath}`);
+  }
+
+  const prompt = source.toString('utf8');
   const taskEndIndex = prompt.length - QUALIFICATION_ACTOR_PROMPT_SUFFIX.length;
   const developerTask = removeLeadingMarkdownTitle(
     prompt.slice(QUALIFICATION_ACTOR_PROMPT_PREFIX.length, taskEndIndex),
@@ -316,15 +396,15 @@ const readRecordedDeveloperTask = (
 };
 
 const loadCurrentAttemptCase = (
-  resolveArtifactPath: IResolveAttemptArtifactPath,
+  readArtifact: IReadAttemptArtifact,
   attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 6 }>,
   result: IQualificationCurrentCaseResult,
   artifacts: IQualificationArtifactModel[],
-  profileCase: IQualificationProfileCaseModel,
+  profileCase: Pick<IQualificationProfileCaseModel, 'id' | 'scenario'>,
 ): IQualificationAttemptCaseModel => {
   const casePrefix = `cases/${result.caseId}/`;
   const recordedCaseResult = readAttemptArtifact(
-    resolveArtifactPath,
+    readArtifact,
     `cases/${result.caseId}/case-result.json`,
     QualificationCurrentCaseResultSchema,
   );
@@ -366,10 +446,10 @@ const loadCurrentAttemptCase = (
     }
 
     for (const relativePath of referencedPaths) {
-      const artifactPath = resolveArtifactPath(relativePath);
-      requireFile(artifactPath);
-
-      if (!artifacts.some(({ path }) => path === relativePath)) {
+      if (
+        readArtifact(relativePath) === undefined ||
+        !artifacts.some(({ path }) => path === relativePath)
+      ) {
         throw new Error(
           `Qualification case ${result.caseId} trial ${trial.trialId} references an unrecorded artifact.`,
         );
@@ -377,7 +457,7 @@ const loadCurrentAttemptCase = (
     }
 
     const recordedTrialResult = readAttemptArtifact(
-      resolveArtifactPath,
+      readArtifact,
       trialResultPath,
       QualificationTrialResultSchema,
     );
@@ -391,14 +471,14 @@ const loadCurrentAttemptCase = (
     const actorStage = stageById.get(`case:${result.caseId}:trial:${trial.trialId}:actor`);
     const judgeStage = stageById.get(`case:${result.caseId}:trial:${trial.trialId}:judge`);
     const actorEvidence = readAttemptArtifact(
-      resolveArtifactPath,
+      readArtifact,
       actorEvidencePath,
       QualificationModelStageEvidenceSchema,
     );
     const judgeEvidence =
       trial.judgeStatus === 'completed'
         ? readAttemptArtifact(
-            resolveArtifactPath,
+            readArtifact,
             judgeEvidencePath,
             QualificationModelStageEvidenceSchema,
           )
@@ -431,30 +511,30 @@ const loadCurrentAttemptCase = (
       });
     }
     const trialEvidence = {
-      actor: readAttemptArtifact(resolveArtifactPath, trial.actorOutputPath, ActorOutputSchema),
+      actor: readAttemptArtifact(readArtifact, trial.actorOutputPath, ActorOutputSchema),
       actorCommandPolicy: actorEvidence.commandPolicy,
-      actorExecutionEvents: readProjectedExecutionEvents(resolveArtifactPath, actorEventsPath),
+      actorExecutionEvents: readProjectedExecutionEvents(readArtifact, actorEventsPath),
       artifacts: artifacts.filter(({ path }) =>
         path.startsWith(`${casePrefix}trials/${trial.trialId}/`),
       ),
       deterministicAfter: readDeterministicArtifactSummary(
-        resolveArtifactPath,
+        readArtifact,
         trial.deterministicAfterPath,
       ),
       deterministicBefore: readDeterministicArtifactSummary(
-        resolveArtifactPath,
+        readArtifact,
         trial.deterministicBeforePath,
       ),
-      developerTask: readRecordedDeveloperTask(resolveArtifactPath, actorPromptPath),
+      developerTask: readRecordedDeveloperTask(readArtifact, actorPromptPath),
       judge:
         trial.judgeOutputPath === null
           ? null
-          : readAttemptArtifact(resolveArtifactPath, trial.judgeOutputPath, JudgeOutputSchema),
+          : readAttemptArtifact(readArtifact, trial.judgeOutputPath, JudgeOutputSchema),
       judgeSkipped:
         trial.judgeSkippedPath === null
           ? null
           : readAttemptArtifact(
-              resolveArtifactPath,
+              readArtifact,
               trial.judgeSkippedPath,
               QualificationJudgeSkippedSchema,
             ),
@@ -464,7 +544,7 @@ const loadCurrentAttemptCase = (
         judge: judgeStage?.operationalRetries ?? [],
       },
       workspaceAssertions: readAttemptArtifact(
-        resolveArtifactPath,
+        readArtifact,
         trial.workspaceAssertionsPath,
         WorkspaceAssertionResultSchema,
       ),
@@ -488,37 +568,72 @@ const loadCurrentAttemptCase = (
 };
 
 const readOptionalArtifact = <Output>(
-  resolveArtifactPath: IResolveAttemptArtifactPath,
+  readArtifact: IReadAttemptArtifact,
   relativePath: string,
-  schema: Parameters<typeof readJsonFile<Output>>[1],
+  schema: z.ZodType<Output>,
 ): Output | null => {
-  let path: string;
-
-  try {
-    path = resolveArtifactPath(relativePath);
-  } catch {
-    return null;
-  }
-  return existsSync(path) ? readJsonFile(path, schema) : null;
+  return readArtifact(relativePath) === undefined
+    ? null
+    : readAttemptArtifact(readArtifact, relativePath, schema);
 };
 
-const loadAttempt = (
+const createCurrentAttemptSource = (
   repositoryRoot: string,
-  resultsRoot: string,
   attemptDirectory: string,
-  targetKey: string,
-  adapterId: string,
-  implementationId: string,
-  currentProfileCases: ReadonlyMap<string, IQualificationProfileCaseModel>,
-): IQualificationAttemptModel => {
+): IQualificationAttemptSource => {
   const attemptPath = join(attemptDirectory, 'attempt.json');
   const result = readJsonFile(attemptPath, QualificationAttemptResultSchema);
   const storage = readJsonFile(
     join(attemptDirectory, 'storage.json'),
     QualificationAttemptStorageSchema,
   );
-  const resolveArtifactPath: IResolveAttemptArtifactPath = (logicalPath) =>
-    resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath);
+  const { artifactModels, artifactSources } = verifyArtifactDigests(
+    repositoryRoot,
+    attemptDirectory,
+    result,
+    storage,
+  );
+
+  return {
+    artifactModels,
+    artifactSources,
+    attemptPath: getRepositoryRelativePath(repositoryRoot, attemptPath),
+    attemptSource: readFileSync(attemptPath),
+    carryForward: storage.carryForward,
+    evidenceSource: { commit: null, kind: 'current', release: null },
+    result,
+  };
+};
+
+const createHistoricalAttemptSource = (
+  source: IHistoricalQualificationAttemptSource,
+): IQualificationAttemptSource => ({
+  artifactModels: Object.entries(source.result.artifactDigests)
+    .sort(([left], [right]) => left.localeCompare(right, 'en'))
+    .map(([logicalPath, sha256]) => createHistoricalArtifactModel(source, logicalPath, sha256)),
+  artifactSources: source.artifactSources,
+  attemptPath: source.attemptPath,
+  attemptSource: source.attemptSource,
+  carryForward: undefined,
+  evidenceSource: {
+    commit: source.sourceCommit,
+    kind: 'historical',
+    release: source.sourceRelease,
+  },
+  result: source.result,
+});
+
+const loadAttempt = (
+  repositoryRoot: string,
+  qualificationRoot: string,
+  source: IQualificationAttemptSource,
+  targetKey: string,
+  adapterId: string,
+  implementationId: string,
+): ILoadedQualificationAttempt => {
+  const { artifactModels: artifacts, result } = source;
+  const readArtifact: IReadAttemptArtifact = (logicalPath) =>
+    source.artifactSources.get(logicalPath);
 
   if (
     result.selection.adapterId !== adapterId ||
@@ -535,10 +650,12 @@ const loadAttempt = (
   const recordedContract = readRecordedQualificationContract({
     adapterId,
     implementationId,
-    ...(storage.carryForward === undefined ? { profileKey: targetKey } : {}),
+    ...(source.evidenceSource.kind === 'current' && source.carryForward === undefined
+      ? { profileKey: targetKey }
+      : {}),
     qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
+    qualificationRoot,
     repositoryRoot,
-    resultsRoot,
   });
 
   for (const caseResult of result.cases) {
@@ -551,37 +668,41 @@ const loadAttempt = (
     assertCurrentArtifactInventory(result);
   }
 
-  const artifacts = verifyArtifactDigests(repositoryRoot, attemptDirectory, result, storage);
   for (const artifact of artifacts.filter(({ path }) => path.endsWith('-events.jsonl'))) {
-    const eventPath = resolveArtifactPath(artifact.path);
-    for (const eventLine of readFileSync(eventPath, 'utf8').split('\n')) {
+    const eventSource = readArtifact(artifact.path);
+
+    if (eventSource === undefined) {
+      throw new Error(`Required qualification artifact is missing: ${artifact.path}`);
+    }
+
+    for (const eventLine of eventSource.toString('utf8').split('\n')) {
       if (eventLine.trim() !== '') {
         QualificationProjectedExecutionEventSchema.parse(JSON.parse(eventLine) as unknown);
       }
     }
   }
   const coverage = readOptionalArtifact(
-    resolveArtifactPath,
+    readArtifact,
     'coverage.json',
     QualificationCoverageResultSchema,
   );
   const sourceState = readOptionalArtifact(
-    resolveArtifactPath,
+    readArtifact,
     'source-state.json',
     QualificationSourceStateResultSchema,
   );
   const baseline = readOptionalArtifact(
-    resolveArtifactPath,
+    readArtifact,
     'baseline.json',
     QualificationBaselineCheckSchema,
   );
   const executionError = readOptionalArtifact(
-    resolveArtifactPath,
+    readArtifact,
     'error.json',
     QualificationExecutionErrorSchema,
   );
   const interruption = readOptionalArtifact(
-    resolveArtifactPath,
+    readArtifact,
     'interruption.json',
     QualificationExecutionErrorSchema,
   );
@@ -592,16 +713,15 @@ const loadAttempt = (
 
   const error = executionError ?? interruption;
   const cases = result.cases.map((caseResult) => {
-    const currentProfileCase = currentProfileCases.get(caseResult.caseId);
     const recordedScenario = recordedContract.caseScenarios.get(caseResult.caseId);
 
-    if (!currentProfileCase || !recordedScenario) {
+    if (!recordedScenario) {
       throw new Error(`Qualification attempt ${result.attemptId} references an unknown case.`);
     }
 
-    const profileCase = { ...currentProfileCase, scenario: recordedScenario };
+    const profileCase = { id: caseResult.caseId, scenario: recordedScenario };
 
-    return loadCurrentAttemptCase(resolveArtifactPath, result, caseResult, artifacts, profileCase);
+    return loadCurrentAttemptCase(readArtifact, result, caseResult, artifacts, profileCase);
   });
 
   assertUnique(
@@ -619,27 +739,41 @@ const loadAttempt = (
     sourceState,
   });
 
-  return {
-    artifacts: [createArtifactModel(repositoryRoot, attemptPath, null), ...artifacts],
+  const revision = source.evidenceSource.commit ?? 'main';
+  const model: IQualificationAttemptModel = {
+    artifacts: [
+      {
+        path: source.attemptPath,
+        rawUrl: createRawSourceUrl(source.attemptPath, revision),
+        sha256: null,
+      },
+      ...artifacts,
+    ],
     baseline,
     cases,
     coverage,
     error,
-    rawAttemptUrl: createRawSourceUrl(getRepositoryRelativePath(repositoryRoot, attemptPath)),
+    evidenceSource: source.evidenceSource,
+    rawAttemptUrl: createRawSourceUrl(source.attemptPath, revision),
     result,
     route: `${QUALIFICATION_ROUTE}${adapterId}/${implementationId}/attempts/${result.attemptId}/`,
     sourceState,
   };
+
+  return { model, source };
 };
 
 const loadAttempts = (
   repositoryRoot: string,
+  qualificationRoot: string,
   resultsRoot: string,
   targetKey: string,
   adapterId: string,
   implementationId: string,
-  currentProfileCases: ReadonlyMap<string, IQualificationProfileCaseModel>,
-): { attempts: IQualificationAttemptModel[]; latest: IQualificationProfileModel['latest'] } => {
+): {
+  attempts: ILoadedQualificationAttempt[];
+  latest: IQualificationProfileModel['latest'];
+} => {
   const targetRoot = resolveContainedPath(resultsRoot, targetKey);
   const attemptsRoot = join(targetRoot, 'attempts');
   const latestPath = join(targetRoot, 'latest.json');
@@ -647,18 +781,17 @@ const loadAttempts = (
     .map((entry) =>
       loadAttempt(
         repositoryRoot,
-        resultsRoot,
-        join(attemptsRoot, entry.name),
+        qualificationRoot,
+        createCurrentAttemptSource(repositoryRoot, join(attemptsRoot, entry.name)),
         targetKey,
         adapterId,
         implementationId,
-        currentProfileCases,
       ),
     )
     .sort(
       (left, right) =>
-        left.result.createdAt.localeCompare(right.result.createdAt, 'en') ||
-        left.result.attemptId.localeCompare(right.result.attemptId, 'en'),
+        left.model.result.createdAt.localeCompare(right.model.result.createdAt, 'en') ||
+        left.model.result.attemptId.localeCompare(right.model.result.attemptId, 'en'),
     );
 
   if (attempts.length === 0) {
@@ -671,10 +804,9 @@ const loadAttempts = (
 
   requireFile(latestPath);
   const latest = readJsonFile(latestPath, QualificationLatestResultSchema);
-  const expectedLatest = attempts.at(-1)?.result;
-  const expectedPassing = attempts
-    .filter(({ result }) => result.status === 'passed')
-    .at(-1)?.result;
+  const expectedLatest = attempts.at(-1)?.model.result;
+  const expectedPassing = attempts.filter(({ model }) => model.result.status === 'passed').at(-1)
+    ?.model.result;
 
   if (
     latest.adapterId !== adapterId ||
@@ -692,11 +824,12 @@ const loadAttempts = (
 
 const loadProfile = (
   repositoryRoot: string,
+  qualificationRoot: string,
   profileDirectory: string,
   catalog: Map<string, ICaseCatalogEntry>,
   resultsRoot: string,
   target: IQualificationProfileIndexTarget,
-): IQualificationProfileModel => {
+): ILoadedQualificationProfile => {
   const profilePath = join(profileDirectory, 'profile.yaml');
   const profile = readYamlFile(profilePath, QualificationProfileSchema);
 
@@ -760,18 +893,20 @@ const loadProfile = (
   });
   const { attempts, latest } = loadAttempts(
     repositoryRoot,
+    qualificationRoot,
     resultsRoot,
     target.key,
     profile.adapterId,
     profile.implementationId,
-    new Map(cases.map((profileCase) => [profileCase.id, profileCase])),
   );
-  return {
+  const currentAttemptModels = attempts.map(({ model }) => model);
+  const model: IQualificationProfileModel = {
     adapterId: profile.adapterId,
-    attempts,
+    attempts: currentAttemptModels,
     cases,
-    currentLastPassing: attempts.filter(({ result }) => result.status === 'passed').at(-1) ?? null,
-    currentLatest: attempts.at(-1) ?? null,
+    currentLastPassing:
+      currentAttemptModels.filter(({ result }) => result.status === 'passed').at(-1) ?? null,
+    currentLatest: currentAttemptModels.at(-1) ?? null,
     description: profile.description,
     implementationId: profile.implementationId,
     latest,
@@ -780,6 +915,13 @@ const loadProfile = (
     route: `${QUALIFICATION_ROUTE}${profile.adapterId}/${profile.implementationId}/`,
     sourceUrl: createSourceUrl(getRepositoryRelativePath(repositoryRoot, profilePath)),
     title: profile.title,
+  };
+
+  return {
+    currentAttempts: attempts,
+    currentLatest: latest,
+    model,
+    targetKey: target.key,
   };
 };
 
@@ -792,6 +934,189 @@ const verifyResultTargetsHaveProfiles = (
       throw new Error(`Qualification results have no committed profile: ${targetEntry.name}`);
     }
   }
+};
+
+const createCombinedLatestPointer = (
+  attempts: readonly ILoadedQualificationAttempt[],
+  currentLatest: IQualificationProfileModel['latest'],
+  historicalLatest: IQualificationProfileModel['latest'],
+): IQualificationLatestResult | null => {
+  const expectedLatest = attempts.at(-1)?.model.result;
+
+  if (expectedLatest === undefined) return null;
+
+  const expectedPassing = attempts.filter(({ model }) => model.result.status === 'passed').at(-1)
+    ?.model.result;
+  const updatedAt = [currentLatest?.updatedAt, historicalLatest?.updatedAt]
+    .filter((candidate): candidate is string => candidate !== undefined)
+    .sort((left, right) => left.localeCompare(right, 'en'))
+    .at(-1);
+
+  if (updatedAt === undefined) {
+    throw new Error('Qualification history has attempts without a validated latest pointer.');
+  }
+
+  return QualificationLatestResultSchema.parse({
+    protocolVersion: expectedLatest.protocolVersion,
+    adapterId: expectedLatest.selection.adapterId,
+    implementationId: expectedLatest.selection.implementationId,
+    latestAttemptId: expectedLatest.attemptId,
+    latestStatus: expectedLatest.status,
+    lastPassingAttemptId: expectedPassing?.attemptId ?? null,
+    updatedAt,
+  });
+};
+
+const combineQualificationHistory = (
+  repositoryRoot: string,
+  qualificationRoot: string,
+  loadedProfiles: ILoadedQualificationProfile[],
+): IQualificationProfileModel[] => {
+  const carriedAttempts = loadedProfiles.flatMap(({ currentAttempts }) =>
+    currentAttempts.filter(({ source }) => source.carryForward !== undefined),
+  );
+
+  if (carriedAttempts.length === 0) return loadedProfiles.map(({ model }) => model);
+
+  if (
+    carriedAttempts.length !== 1 ||
+    carriedAttempts[0]?.model.result.selection.adapterId !== 'custom' ||
+    carriedAttempts[0].model.result.selection.implementationId !== 'custom'
+  ) {
+    throw new Error(
+      'Historical qualification history requires exactly one carried Custom attempt.',
+    );
+  }
+
+  const sourceIdentities = new Set(
+    carriedAttempts.map(({ source }) => {
+      const carryForward = source.carryForward;
+
+      if (carryForward === undefined)
+        throw new Error('Missing qualification carry-forward source.');
+
+      return `${carryForward.sourceRelease}\0${carryForward.sourceCommit}`;
+    }),
+  );
+
+  if (sourceIdentities.size !== 1) {
+    throw new Error('Current qualification storage references multiple historical sources.');
+  }
+
+  const carryForward = carriedAttempts[0]?.source.carryForward;
+
+  if (carryForward === undefined) throw new Error('Missing qualification carry-forward source.');
+
+  const historicalTargets = readHistoricalQualificationTargets({
+    repositoryRoot,
+    sourceCommit: carryForward.sourceCommit,
+    sourceRelease: carryForward.sourceRelease,
+  });
+  const profileByTarget = new Map(
+    loadedProfiles.map((profile) => [
+      `${profile.model.adapterId}\0${profile.model.implementationId}`,
+      profile,
+    ]),
+  );
+  const historicalTargetByIdentity = new Map(
+    historicalTargets.map((target) => [`${target.adapterId}\0${target.implementationId}`, target]),
+  );
+
+  for (const historicalTarget of historicalTargets) {
+    const identity = `${historicalTarget.adapterId}\0${historicalTarget.implementationId}`;
+
+    if (!profileByTarget.has(identity)) {
+      throw new Error(
+        `Historical qualification target has no current profile: ${historicalTarget.adapterId}/${historicalTarget.implementationId}`,
+      );
+    }
+  }
+
+  return loadedProfiles.map((profile): IQualificationProfileModel => {
+    const identity = `${profile.model.adapterId}\0${profile.model.implementationId}`;
+    const historicalTarget = historicalTargetByIdentity.get(identity);
+
+    if (historicalTarget === undefined) return profile.model;
+
+    const historicalAttempts = historicalTarget.attempts.map((historicalSource) =>
+      loadAttempt(
+        repositoryRoot,
+        qualificationRoot,
+        createHistoricalAttemptSource(historicalSource),
+        profile.targetKey,
+        profile.model.adapterId,
+        profile.model.implementationId,
+      ),
+    );
+    const currentByAttemptId = new Map(
+      profile.currentAttempts.map((attempt) => [attempt.model.result.attemptId, attempt]),
+    );
+    const combinedAttempts = historicalAttempts.map((historicalAttempt) => {
+      const currentAttempt = currentByAttemptId.get(historicalAttempt.model.result.attemptId);
+
+      if (currentAttempt === undefined) return historicalAttempt;
+
+      const currentResult = currentAttempt.model.result;
+      const historicalResult = historicalAttempt.model.result;
+
+      if (historicalAttempt.source.evidenceSource.kind !== 'historical') {
+        throw new Error('Historical qualification attempt has no immutable source identity.');
+      }
+
+      assertMigratedCustomDuplicate(
+        {
+          adapterId: currentResult.selection.adapterId,
+          artifactSources: currentAttempt.source.artifactSources,
+          attemptId: currentResult.attemptId,
+          attemptSource: currentAttempt.source.attemptSource,
+          carryForward: currentAttempt.source.carryForward,
+          implementationId: currentResult.selection.implementationId,
+        },
+        {
+          adapterId: historicalResult.selection.adapterId,
+          artifactSources: historicalAttempt.source.artifactSources,
+          attemptId: historicalResult.attemptId,
+          attemptSource: historicalAttempt.source.attemptSource,
+          implementationId: historicalResult.selection.implementationId,
+          sourceCommit: historicalAttempt.source.evidenceSource.commit,
+          sourceRelease: historicalAttempt.source.evidenceSource.release,
+        },
+      );
+      currentByAttemptId.delete(historicalAttempt.model.result.attemptId);
+      return historicalAttempt;
+    });
+    const unmatchedCarriedAttempt = [...currentByAttemptId.values()].find(
+      ({ source }) => source.carryForward !== undefined,
+    );
+
+    if (unmatchedCarriedAttempt !== undefined) {
+      throw new Error(
+        `Carried Custom attempt ${unmatchedCarriedAttempt.model.result.attemptId} has no byte-identical historical source.`,
+      );
+    }
+
+    combinedAttempts.push(...currentByAttemptId.values());
+    combinedAttempts.sort(
+      (left, right) =>
+        left.model.result.createdAt.localeCompare(right.model.result.createdAt, 'en') ||
+        left.model.result.attemptId.localeCompare(right.model.result.attemptId, 'en'),
+    );
+    const latest = createCombinedLatestPointer(
+      combinedAttempts,
+      profile.currentLatest,
+      historicalTarget.latest,
+    );
+    const attemptModels = combinedAttempts.map(({ model }) => model);
+
+    return {
+      ...profile.model,
+      attempts: attemptModels,
+      currentLastPassing:
+        attemptModels.filter(({ result }) => result.status === 'passed').at(-1) ?? null,
+      currentLatest: attemptModels.at(-1) ?? null,
+      latest,
+    };
+  });
 };
 
 /** Loads every transparent profile and validates all committed result history for static pages. */
@@ -814,10 +1139,11 @@ export const loadQualificationWebsiteModel = (
     join(profilesRoot, 'index.yaml'),
     QualificationProfileIndexSchema,
   );
-  const profiles = profileIndex.targets
+  const loadedProfiles = profileIndex.targets
     .map((target) =>
       loadProfile(
         repositoryRoot,
+        qualificationRoot,
         resolveContainedPath(profilesRoot, target.key),
         catalog,
         resultsRoot,
@@ -826,8 +1152,8 @@ export const loadQualificationWebsiteModel = (
     )
     .sort(
       (left, right) =>
-        left.adapterId.localeCompare(right.adapterId, 'en') ||
-        left.implementationId.localeCompare(right.implementationId, 'en'),
+        left.model.adapterId.localeCompare(right.model.adapterId, 'en') ||
+        left.model.implementationId.localeCompare(right.model.implementationId, 'en'),
     );
   const profileKeys = new Set(profileIndex.targets.map(({ key }) => key));
 
@@ -839,6 +1165,8 @@ export const loadQualificationWebsiteModel = (
   }
 
   verifyResultTargetsHaveProfiles(resultsRoot, profileKeys);
+
+  const profiles = combineQualificationHistory(repositoryRoot, qualificationRoot, loadedProfiles);
 
   return { profiles, route: QUALIFICATION_ROUTE };
 };

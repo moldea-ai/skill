@@ -20,6 +20,8 @@ import type {
 
 const OFFICIAL_EGRESS_HOSTS = ['api.openai.com', 'auth.openai.com', 'chatgpt.com'] as const;
 const TRIAL_IDS = ['initial', 'confirmation-1', 'confirmation-2'] as const;
+// minimal recorded case contract required to revalidate an immutable attempt
+type IQualificationRecordedCaseContract = Pick<IQualificationProfileCaseModel, 'id' | 'scenario'>;
 
 const createExpectedCurrentStageIds = (caseIds: readonly string[]): string[] => [
   'source-state',
@@ -140,7 +142,7 @@ const containsWorkspacePath = (
 const assertWorkspaceEvidence = (
   actor: IActorOutput,
   assertions: IWorkspaceAssertionResult,
-  profileCase: IQualificationProfileCaseModel,
+  profileCase: IQualificationRecordedCaseContract,
 ): void => {
   const { scenario } = profileCase;
   const observedChangedPaths = calculateChangedPaths(assertions);
@@ -200,7 +202,7 @@ const deriveCurrentTrialFailures = (options: {
   deterministicAfter: IDeterministicVerification;
   judge: IJudgeOutput | null;
   judgeCommandPolicy: IQualificationModelStageEvidence['commandPolicy'] | null;
-  profileCase: IQualificationProfileCaseModel;
+  profileCase: IQualificationRecordedCaseContract;
   requirementAssessments: Extract<
     IQualificationAttemptResult,
     { protocolVersion: 6 }
@@ -232,7 +234,7 @@ const deriveCurrentTrialFailures = (options: {
   ...(options.judge?.verdict === 'fail' ? options.judge.failures : []),
 ];
 
-/** Validates one current trial against its scenario and evidence artifacts. */
+/** Validates one recorded trial against its scenario and evidence artifacts. */
 export const assertQualificationCaseEvidence = (options: {
   actor: IActorOutput;
   actorCommandPolicy: IQualificationModelStageEvidence['commandPolicy'] | null;
@@ -241,7 +243,7 @@ export const assertQualificationCaseEvidence = (options: {
   judge: IJudgeOutput | null;
   judgeCommandPolicy: IQualificationModelStageEvidence['commandPolicy'] | null;
   judgeSkipped: IQualificationJudgeSkipped | null;
-  profileCase: IQualificationProfileCaseModel;
+  profileCase: IQualificationRecordedCaseContract;
   result: IQualificationAttemptTrialModel['result'];
   workspaceAssertions: IWorkspaceAssertionResult;
 }): void => {

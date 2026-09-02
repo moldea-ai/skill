@@ -4,7 +4,8 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, dirname, join } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, test } from 'vitest';
 
@@ -20,8 +21,10 @@ import { seedPassingQualificationEvidenceFixture } from '../../../../qualificati
 import { assertPublishableQualificationEvidence, loadQualificationWebsiteModel } from './loader.ts';
 
 const SHA_A = 'a'.repeat(64);
+const HISTORICAL_SOURCE_COMMIT = 'fcbc34f60b12b1b66cd9ebb28b1865979a259429';
 const TARGET_KEY = 't1';
 const temporaryRoots: string[] = [];
+const canonicalRepositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
 
 interface IAttemptFixture extends Record<string, unknown> {
   artifactDigests: Record<string, string>;
@@ -529,6 +532,31 @@ afterEach(() => {
 });
 
 describe('loadQualificationWebsiteModel', () => {
+  test('combines all immutable v4 attempts with current short storage without duplicate routes', () => {
+    const model = loadQualificationWebsiteModel(canonicalRepositoryRoot);
+    const attempts = model.profiles.flatMap(({ attempts }) => attempts);
+    const customProfile = model.profiles.find(
+      ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
+    );
+
+    expect(model.profiles).toHaveLength(14);
+    expect(attempts).toHaveLength(60);
+    expect(customProfile?.attempts).toHaveLength(10);
+    expect(new Set(attempts.map(({ route }) => route))).toHaveLength(60);
+    expect(attempts.every(({ evidenceSource }) => evidenceSource.kind === 'historical')).toBe(true);
+    expect(
+      attempts.every(
+        ({ artifacts, rawAttemptUrl }) =>
+          rawAttemptUrl.includes(`/${HISTORICAL_SOURCE_COMMIT}/`) &&
+          artifacts.every(({ rawUrl }) => rawUrl.includes(`/${HISTORICAL_SOURCE_COMMIT}/`)),
+      ),
+    ).toBe(true);
+
+    const serializedModel = JSON.stringify(model);
+    expect(serializedModel).not.toContain(canonicalRepositoryRoot);
+    expect(serializedModel).not.toContain('file://');
+  });
+
   test('loads a profile without unrelated adapter-specific catalog cases', () => {
     const root = createTemporaryRoot();
     seedProfile(root);
@@ -744,6 +772,78 @@ cases:
     expect(() => loadQualificationWebsiteModel(root)).not.toThrow();
   });
 
+  test('keeps recorded attempts readable after the current profile replaces their case', async () => {
+    const root = createTemporaryRoot();
+    const attemptId = 'attempt-replaced-profile-case';
+    await seedCurrentQualificationAttempt(root, attemptId);
+    executeGit(root, ['init', '--quiet']);
+    executeGit(root, ['config', 'user.email', 'qualification@example.com']);
+    executeGit(root, ['config', 'user.name', 'Qualification Fixture']);
+    executeGit(root, ['add', 'qualification/profiles']);
+    executeGit(root, ['commit', '--quiet', '-m', 'test: record original qualification case']);
+    const qualificationRepositoryCommit = executeGit(root, ['rev-parse', 'HEAD']);
+    const attempt = readAttemptFixture(root, attemptId);
+    const provenance = attempt['provenance'];
+
+    if (typeof provenance !== 'object' || provenance === null) {
+      throw new Error('Missing qualification provenance fixture.');
+    }
+
+    (provenance as Record<string, unknown>)['qualificationRepositoryCommit'] =
+      qualificationRepositoryCommit;
+    writeAttemptFixture(root, attemptId, attempt);
+
+    const originalCaseRoot = 'qualification/profiles/t1/cases/c1';
+    const replacementCaseRoot = 'qualification/profiles/t1/cases/c2';
+    writeText(
+      root,
+      'qualification/cases/cases.yaml',
+      readFileSync(join(root, 'qualification/cases/cases.yaml'), 'utf8')
+        .replaceAll('release-case', 'replacement-case')
+        .replaceAll('Release case', 'Replacement case'),
+    );
+    writeText(
+      root,
+      'qualification/profiles/t1/profile.yaml',
+      readFileSync(join(root, 'qualification/profiles/t1/profile.yaml'), 'utf8')
+        .replace('id: release-case', 'id: replacement-case')
+        .replace('projectDirectory: cases/c1', 'projectDirectory: cases/c2'),
+    );
+    writeText(
+      root,
+      'qualification/profiles/t1/probes/claims.yaml',
+      readFileSync(join(root, 'qualification/profiles/t1/probes/claims.yaml'), 'utf8').replaceAll(
+        'release-case',
+        'replacement-case',
+      ),
+    );
+    writeText(
+      root,
+      `${replacementCaseRoot}/scenario.yaml`,
+      readFileSync(join(root, originalCaseRoot, 'scenario.yaml'), 'utf8')
+        .replace('id: release-case', 'id: replacement-case')
+        .replace('title: Release case', 'title: Replacement case'),
+    );
+    writeText(
+      root,
+      `${replacementCaseRoot}/task.md`,
+      '# Replacement case\n\nInspect the replacement case.\n',
+    );
+    writeText(
+      root,
+      `${replacementCaseRoot}/README.md`,
+      '# Replacement case\n\nThis is the current replacement project.\n',
+    );
+    rmSync(join(root, originalCaseRoot), { recursive: true });
+
+    const profile = loadQualificationWebsiteModel(root).profiles[0];
+
+    expect(profile?.cases.map(({ id }) => id)).toStrictEqual(['replacement-case']);
+    expect(
+      profile?.attempts[0]?.cases.map(({ result: caseResult }) => caseResult.caseId),
+    ).toStrictEqual(['release-case']);
+  });
+
   test('loads a failed trial caused by judge command policy evidence', async () => {
     const root = createTemporaryRoot();
     const attemptId = 'attempt-judge-policy-failure';
@@ -807,12 +907,21 @@ cases:
   test('rejects a current attempt with a self-consistent but incomplete artifact inventory', async () => {
     const root = createTemporaryRoot();
     const attemptId = 'attempt-missing-artifact';
-    const relativePath = 'cases/release-case/trials/initial/actor-prompt.md';
+    const relativePath = 'source-state.json';
     await seedCurrentQualificationAttempt(root, attemptId);
     const attempt = readAttemptFixture(root, attemptId);
     delete attempt.artifactDigests[relativePath];
     rmSync(getArtifactPath(root, attemptId, relativePath));
     writeAttemptFixture(root, attemptId, attempt);
+    const attemptDirectory = getAttemptDirectory(root, attemptId);
+    const storagePath = join(attemptDirectory, 'storage.json');
+    const storage = QualificationAttemptStorageSchema.parse(
+      JSON.parse(readFileSync(storagePath, 'utf8')) as unknown,
+    );
+    writeJson(attemptDirectory, 'storage.json', {
+      ...storage,
+      artifacts: storage.artifacts.filter(({ logicalPath }) => logicalPath !== relativePath),
+    });
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
       'Qualification evidence has an incomplete protocol 6 artifact inventory.',

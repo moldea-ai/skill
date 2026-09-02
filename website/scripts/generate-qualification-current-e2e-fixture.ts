@@ -15,29 +15,11 @@ try {
   const artifactDirectory = join(fixtureRoot, '.qualification-artifacts');
   await Promise.all([
     writeTextFileAtomically(
-      join(
-        fixtureRoot,
-        'qualification',
-        'profiles',
-        'custom',
-        'custom',
-        'projects',
-        'release-case',
-        'task.md',
-      ),
+      join(fixtureRoot, 'qualification', 'profiles', 't1', 'cases', 'c1', 'task.md'),
       '# Release case\n\nInspect the current evidence.\n',
     ),
     writeTextFileAtomically(
-      join(
-        fixtureRoot,
-        'qualification',
-        'profiles',
-        'custom',
-        'custom',
-        'projects',
-        'release-case',
-        'README.md',
-      ),
+      join(fixtureRoot, 'qualification', 'profiles', 't1', 'cases', 'c1', 'README.md'),
       '# Release case\n\nThis fixture exercises recovered protocol 6 evidence.\n',
     ),
     writeTextFileAtomically(

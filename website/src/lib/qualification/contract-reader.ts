@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 
 import { parse as parseYaml } from 'yaml';
 import type { z } from 'zod';
@@ -35,20 +35,19 @@ const assertAllowedContractPath = (relativePath: string): void => {
 /**
  * Reads one qualification contract from the exact commit recorded by an attempt.
  * Non-repository test fixtures keep using their adjacent contract files.
- * @param options The repository, result root, recorded commit, contract path, and schema.
+ * @param options The repository, qualification root, recorded commit, contract path, and schema.
  * @returns The validated qualification contract.
  * @throws If repository evidence lacks an exact commit or the recorded contract cannot be read.
  */
 const readRecordedQualificationYaml = <TResult>(options: {
   qualificationRepositoryCommit: string;
+  qualificationRoot: string;
   relativePath: string;
   repositoryRoot: string;
-  resultsRoot: string;
   schema: z.ZodType<TResult>;
 }): TResult => {
   assertAllowedContractPath(options.relativePath);
-  const qualificationRoot = resolve(options.resultsRoot, '..');
-  const contractPath = resolveContainedPath(qualificationRoot, options.relativePath);
+  const contractPath = resolveContainedPath(options.qualificationRoot, options.relativePath);
   const hasRepository = existsSync(join(options.repositoryRoot, '.git'));
 
   if (!hasRepository) {
@@ -89,7 +88,7 @@ const assertUnique = (identities: string[], label: string): void => {
 
 /**
  * Loads the complete profile, probe, and scenario contract recorded by one attempt.
- * @param options The selected target, recorded commit, repository, and results root.
+ * @param options The selected target, recorded commit, repository, and qualification root.
  * @returns The case sequence, probe claims, and scenarios used by the attempt.
  * @throws If the recorded contracts are unavailable, invalid, or internally inconsistent.
  */
@@ -98,8 +97,8 @@ export const readRecordedQualificationContract = (options: {
   implementationId: string;
   profileKey?: string;
   qualificationRepositoryCommit: string;
+  qualificationRoot: string;
   repositoryRoot: string;
-  resultsRoot: string;
 }): IRecordedQualificationContract => {
   const profileRelativeDirectory = join(
     'profiles',
@@ -111,9 +110,9 @@ export const readRecordedQualificationContract = (options: {
   ): TResult =>
     readRecordedQualificationYaml({
       qualificationRepositoryCommit: options.qualificationRepositoryCommit,
+      qualificationRoot: options.qualificationRoot,
       relativePath,
       repositoryRoot: options.repositoryRoot,
-      resultsRoot: options.resultsRoot,
       schema,
     });
   const profile = readRecordedYaml(

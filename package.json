@@ -28,6 +28,7 @@
     "qualification:test:unit": "npm --prefix qualification run test:unit",
     "qualification:typecheck": "npm --prefix qualification run typecheck",
     "qualification:verify": "npm --prefix qualification run qualification -- verify",
+    "path:check": "node tooling/path-portability/index.mjs",
     "release:check": "npm test && npm run eval:semantic:verify && npm run qualification:verify && node --experimental-strip-types tooling/release-identity/check-release.mjs",
     "release:carry-forward:write": "node --experimental-strip-types tooling/release-identity/carry-forward-4-0-1.mjs --write",
     "release:identity:check": "node --experimental-strip-types tooling/release-identity/check-release.mjs --identity-only",

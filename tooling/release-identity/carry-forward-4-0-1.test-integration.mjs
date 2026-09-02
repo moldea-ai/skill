@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import {
   chmodSync,
   copyFileSync,
+  existsSync,
   lstatSync,
   mkdirSync,
   mkdtempSync,
@@ -28,6 +29,7 @@ import {
 
 const REPOSITORY_ROOT = resolve(import.meta.dirname, '..', '..');
 const PACKAGES_REPOSITORY = resolve(REPOSITORY_ROOT, '..', 'packages');
+const HAS_PACKAGES_REPOSITORY = existsSync(join(PACKAGES_REPOSITORY, '.git'));
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 
 const writeJson = (path, input) => {
@@ -87,7 +89,7 @@ const setCandidateVersion = (repositoryRoot, version) => {
 
 test(
   'the exact 4.0.1 bridge proves every immutable envelope without model execution',
-  { timeout: 240_000 },
+  { skip: !HAS_PACKAGES_REPOSITORY, timeout: 240_000 },
   async () => {
     const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-cf401-test-'));
 

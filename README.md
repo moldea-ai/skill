@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or explore the complete documentation at [`skill.moldea.ai`](https://skill.moldea.ai).
 
-The current release is `4.0.0`. Install the latest version from `main` in the current project with:
+The current release is `4.0.1`. Install the latest version from `main` in the current project with:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.0"
+npx skills add "moldea-ai/skill#v4.0.1"
 ```
 
 Both sources install the portable skill as `moldea`. They do not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
@@ -51,7 +51,7 @@ npx skills add moldea-ai/skill
 This source follows `main`. To install the current release reproducibly, use its immutable tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.0"
+npx skills add "moldea-ai/skill#v4.0.1"
 ```
 
 The `skills` CLI supports Agent Skills-compatible hosts including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and many others. Host detection and installation location are handled by the installer; the portable skill itself remains vendor-neutral.
@@ -80,10 +80,10 @@ Refresh a branch-tracking global installation with:
 npx skills add moldea-ai/skill -g
 ```
 
-A release-pinned installation remains on its immutable tag. To update it, replace `v4.0.0` in the following command with the desired newer published tag:
+A release-pinned installation remains on its immutable tag. To update it, replace `v4.0.1` in the following command with the desired newer published tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.0"
+npx skills add "moldea-ai/skill#v4.0.1"
 ```
 
 Add `-g` to the tagged command only when updating a global installation.
@@ -105,7 +105,7 @@ Installing the skill has no `moldea` runtime prerequisite. Using it for determin
 - an established supported package manager, or npm when none is established
 - this skill release's exact repository-local `@moldea.ai/cli` development dependency
 
-Release `4.0.0` supports:
+Release `4.0.1` supports:
 
 - `@moldea.ai/cli 5.0.0`
 - CLI JSON schema `2`
@@ -214,11 +214,11 @@ moldea/
 - `website/` is the isolated private Astro application that validates and renders `/docs/**`, complete semantic and qualification history under `/evidence/**`, local search, and generated `llms.txt` for [`skill.moldea.ai`](https://skill.moldea.ai). It consumes the public `@moldea.ai/website-ui` package for shared moldea website foundations while retaining its own content, assets, navigation, SEO identity, and theme storage.
 - `CNAME` declares `skill.moldea.ai` as the GitHub Pages custom domain.
 - `tests/` contains deterministic metadata, packaging, published-package, candidate-release, reference, and semantic-contract checks.
-- `tooling/` contains shared development-only Codex evaluation isolation, sourced scenario and repository-control evidence, semantic coverage validation, source and published package-candidate construction, and exact release-identity management.
+- `tooling/` contains shared development-only Codex evaluation isolation, sourced scenario and repository-control evidence, semantic coverage validation, source and published package-candidate construction, evidence-identity capture, exact release-identity management, repository path-portability validation, and the source-bound `v4.0.0` carry-forward bridge used for selective evidence reuse.
 - `fixtures/` contains development-only conformance cases, the semantic coverage map, append-only semantic attempt history, the current passing result when one exists, a hostile lifecycle-script fixture, a narrow synthetic composition fixture, and a narrow runtime-compatibility publication fixture.
-- `qualification/` contains the isolated local adapter-support qualification runner, transparent mock projects, checkpoints, and committed result history.
+- `qualification/` contains the isolated local adapter-support qualification runner, transparent mock projects, checkpoints, short current result storage, and compatibility identities that let release verification reuse only matching immutable historical attempts.
 - `.github/workflows/pages.yml` verifies and deploys the documentation website, then submits its sitemap to Google Search Console after successful push deployments.
-- `.github/workflows/conformance.yml` runs portable conformance across supported Node.js lines and representative minimum/latest package-manager versions.
+- `.github/workflows/conformance.yml` runs portable conformance across supported Node.js lines and representative minimum/latest package-manager versions, then proves a default Windows 2025 deep-path clone and pinned `skills` CLI installation without path-policy changes.
 - `.github/workflows/release-candidate.yml` manually packs an exact packages-repository ref and runs the real CLI candidate closure across the same package-manager matrix without publishing it.
 - `README.md` documents public installation, adoption, development, and release behavior.
 
@@ -229,6 +229,7 @@ Development-only tests and fixtures are not required runtime inputs and are not 
 Run the portable skill and conformance correctness checks:
 
 ```bash
+npm run path:check
 npm test
 ```
 
@@ -248,9 +249,17 @@ npm run release:update-cli -- <exact-version>
 npm run release:identity:check
 ```
 
-The updater verifies a stable public npm release, updates the exact root dependency and lockfile, synchronizes the portable compatibility contract and conformance fixtures, and records the CLI's complete internal dependency inventory in the synthetic semantic fixture. `npm run release:check` is the final local gate: it runs deterministic verification and additionally requires fresh passing semantic and qualification evidence. It is expected to fail while a release candidate deliberately has no model evidence.
+The updater verifies a stable public npm release, updates the exact root dependency and lockfile, synchronizes the portable compatibility contract and conformance fixtures, and records the CLI's complete internal dependency inventory in the synthetic semantic fixture. `npm run release:check` is the final local gate: it runs deterministic verification and requires compatible passing semantic and qualification evidence. It selects current evidence first and source-attested historical evidence second, and it fails when neither source provides a compatible pass.
 
-Release evidence must be generated from committed source that will be tagged. First commit the completed skill, qualification suite, profile, and release identity. Then run and record the complete semantic evaluation, run the Custom qualification, and run each adapter profile only after a compatible Custom baseline exists. Inspect and commit every generated result, run `npm run release:check` on that final tree, and tag only after the gate passes. The gate rejects a stale semantic artifact, an incomplete qualification profile, missing or non-passing stages and cases, a shared evaluator or selected-profile mismatch, a behavior-bearing selected-target mismatch, an incomplete or mismatched selected published package closure, dirty-source evidence, incomplete claim coverage, a missing current Custom result, or an adapter attempt that lacks a committed passing Custom baseline.
+Release evidence is selected by behavior-bearing identity rather than by release number alone. Stabilize the skill, qualification suite, profiles, and release identity that will be committed and tagged, then run the deterministic gates. Run the semantic evaluation, Custom qualification, or a selected adapter qualification only when that evidence boundary has no compatible passing result. A distributed-skill behavior or CLI-closure change invalidates semantic and qualification evidence; a shared qualification evaluator or universal-input change invalidates Custom and affected adapters; and an adapter-specific profile, target, fixture, or package change invalidates only that selection. Inspect and commit every newly generated result, run `npm run release:check` on the final tree, and tag only after the gate passes.
+
+Release `4.0.1` uses a one-time, source-bound carry-forward attestation for the unchanged `v4.0.0` semantic result and 60 qualification attempts. Generate it only after the candidate is otherwise stable. The generator verifies the immutable source bytes, candidate compatibility identities, migrated Custom copy, deleted-result inventory, and reviewed path changes without invoking a model. Later releases continue to compare attested evidence with their current identities instead of adding another release-number exception.
+
+```bash
+npm run release:carry-forward:write
+```
+
+The root `eval:semantic` command invokes the unchanged semantic runner through an identity wrapper. Non-recording options pass through directly. Before `--record` or `--record-checkpoint`, the wrapper requires every relevant skill, runner, fixture, host, protocol, and CLI source to match `HEAD`, starts a supervised evaluator behind an IPC barrier, and writes an ignored atomic receipt owned by both processes before allowing runner code to begin. Losing the wrapper terminates the supervised evaluator, and recovery waits for both recorded processes to end. A recorded passing, failed, or incomplete attempt receives `identity.json`, which binds its exact attempt and evidence bytes to that source commit, the portable-skill behavior identity, locked CLI dependency closure, semantic compatibility identity, and exact argument digest without storing prompts, responses, environment values, or credentials. If finalization is interrupted, `npm run eval:semantic:identity` can finalize one attributable attempt, safely retire a no-attempt receipt, or resume one exact interrupted receipt-consumption claim without invoking the runner or a model. Active processes, multiple or mismatched claims, source drift, and ambiguous evidence block another recording instead of being overwritten. `eval:semantic:preflight` and `eval:semantic:verify` continue to invoke the existing runner directly.
 
 Adapter qualification is a separate local workflow and is not included in `npm test` or CI. Install its isolated dependency closure with `npm --prefix qualification ci --ignore-scripts`, then use:
 
@@ -281,7 +290,7 @@ Run the local website with:
 npm run website:dev
 ```
 
-The static build defaults to `SITE_URL=https://skill.moldea.ai` and `BASE_PATH=/`. The build derives documentation routes, the `/evidence/**` hierarchy, semantic and qualification attempt routes, navigation, local search, and public `llms.txt` from repository-owned sources. It verifies immutable evidence digests and the independent latest and last-passing pointers, then validates each qualification attempt against the profile, probes, and scenarios at its recorded commit. Website verification and deployment therefore use complete Git history. The build presents current failures and incomplete runs without treating them as release passes. The separate release gate still requires current passing semantic and qualification evidence. Generated model output is ignored and must not be edited directly.
+The static build defaults to `SITE_URL=https://skill.moldea.ai` and `BASE_PATH=/`. The build derives documentation routes, the `/evidence/**` hierarchy, semantic and qualification attempt routes, navigation, local search, and public `llms.txt` from repository-owned sources. It combines current short qualification storage with all 60 immutable `v4.0.0` attempts read directly from Git objects in memory, validates every digest and recorded contract, and deduplicates only the byte-identical carried Custom attempt. Historical source and artifact links are pinned to the exact source commit. Git and filesystem access remain build-time capabilities and are not emitted into the browser application. Website verification and deployment therefore use complete Git history. The build presents current failures and incomplete runs without treating them as release passes. The separate release gate still requires compatible passing semantic and qualification evidence. Generated model output is ignored and must not be edited directly.
 
 The Pages deployment reads the repository's configured host and base path, builds for that canonical HTTPS origin, and publishes through GitHub's official Pages artifact flow. Keep the GitHub Pages custom-domain setting and DNS record aligned with `CNAME`; the canonical production origin is [`https://skill.moldea.ai`](https://skill.moldea.ai). After a successful push deployment, the workflow submits `https://skill.moldea.ai/sitemap-index.xml` to the `sc-domain:moldea.ai` Google Search Console property.
 
@@ -293,7 +302,7 @@ The ordinary package-manager integration suite first serves the adversarial life
 
 When `MOLDEA_CLI_ARTIFACT_DIRECTORY` identifies a packed candidate closure rooted at `@moldea.ai/cli`, the same suite derives package identities, versions, and internal dependency composition from the packed manifests. It rejects missing, duplicate, unreachable, mismatched, and non-exact CLI dependencies before building a scoped loopback registry and running the shared real-CLI checks. Set `MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS=1` at the release boundary so a missing artifact directory fails instead of skipping that candidate-only case. The manual Release Candidate workflow accepts an exact `moldea-ai/packages` ref, records the resolved commit, builds the packages website, validates its generated runtime publication against the Skill contract, discovers the current source package graph, builds local package dependencies in dependency-first order, packs the complete reachable runtime closure, and runs this path across every supported package-manager version without publishing or tagging either repository.
 
-`fixtures/conformance-cases.json` contains package-manager, CLI-envelope, README-marker, planning, Agent Skill, runtime, security, and semantic forward-evaluation scenarios. Deterministic tests execute the mechanical decisions and validate every semantic case's evidence, requested operation, expected outcomes, and forbidden outcomes. CI also installs the portable artifact into an isolated Agent Skills home and compares the installed tree byte-for-byte with `moldea/`.
+`fixtures/conformance-cases.json` contains package-manager, CLI-envelope, README-marker, planning, Agent Skill, runtime, security, and semantic forward-evaluation scenarios. Deterministic tests execute the mechanical decisions and validate every semantic case's evidence, requested operation, expected outcomes, and forbidden outcomes. CI also checks all tracked and non-ignored candidate paths against the repository portability budget. Ubuntu and Windows 2025 jobs install the portable artifact into isolated Agent Skills homes and compare the installed tree byte-for-byte with `moldea/`; the Windows job first performs a normal clone under a realistic deep temporary path and does not enable `core.longpaths`.
 
 Semantic evaluation is intentionally lengthy and can consume a significant number of model tokens because every trial runs separate actor and judge processes. The suite contains 57 cases and uses 114 model requests when every case passes initially. One bounded confirmation sequence adds up to four requests, and the theoretical full-run maximum is 342 requests when every case needs both confirmations. Operational retries are additional. Its runtime-selection cases keep repository evidence, local CLI composition, and the public technical and maturity publication separate. Do not start a full evaluation or standalone diagnostic without first explaining why fresh semantic evidence is important, why existing evidence or deterministic verification is insufficient, and the estimated model-request count and expected duration. Obtain the developer's explicit approval for that exact paid operation before running it. Approval for a full evaluation includes its automatic bounded confirmations, compatible checkpoint resume, and operational retries. It never authorizes a restart, source correction, changed evidence boundary, or additional evaluation.
 
@@ -364,7 +373,7 @@ The skill uses independent semantic versioning. Every release must:
 - use an immutable `v<version>` tag
 - preserve semantically identical `moldea/` content across every official distribution channel
 
-Release `4.0.0` will use the immutable `v4.0.0` tag.
+Release `4.0.1` will use the immutable `v4.0.1` tag.
 
 ## License
 

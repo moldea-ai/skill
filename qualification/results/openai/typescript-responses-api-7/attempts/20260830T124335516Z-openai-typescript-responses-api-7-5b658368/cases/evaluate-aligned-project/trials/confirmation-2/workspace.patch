@@ -1,7 +1,0 @@
-diff --git a/moldea/agents/summary/description.md b/moldea/agents/summary/description.md
-index 986e3c4..9efc8e1 100644
---- a/moldea/agents/summary/description.md
-+++ b/moldea/agents/summary/description.md
-@@ -1 +1 @@
--Streams a concise summary of a customer support request.
-+Produces a concise summary of a customer support request.

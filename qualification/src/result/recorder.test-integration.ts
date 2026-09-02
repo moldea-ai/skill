@@ -18,9 +18,63 @@ import {
   readJsonFile,
   writeJsonFileAtomically,
 } from '../filesystem/index.ts';
-import { executeProcess } from '../process/index.ts';
+import {
+  createQualificationAttemptKey,
+  readQualificationAttemptStorage,
+  resolveQualificationArtifactPath,
+} from '../storage/index.ts';
 import { seedPassingQualificationEvidenceFixture } from '../../vitest/evidence-fixture.ts';
 import { recordQualificationResult, verifyQualificationResults } from './recorder.ts';
+
+const TARGET_KEY = 't1';
+const REPOSITORY_CUSTOM_TARGET_KEY = 't5';
+
+const getRecordedAttemptDirectory = (
+  resultsRoot: string,
+  attemptId: string,
+  targetKey: string = TARGET_KEY,
+): string =>
+  path.join(resultsRoot, targetKey, 'attempts', createQualificationAttemptKey(attemptId));
+
+const getRecordedArtifactPath = async (
+  resultsRoot: string,
+  attemptId: string,
+  logicalPath: string,
+  targetKey: string = TARGET_KEY,
+): Promise<string> => {
+  const attemptDirectory = getRecordedAttemptDirectory(resultsRoot, attemptId, targetKey);
+  const storage = await readQualificationAttemptStorage(attemptDirectory);
+
+  return resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath);
+};
+
+const synchronizeRecordedArtifactDigests = async (
+  resultsRoot: string,
+  attemptId: string,
+  logicalPaths: readonly string[],
+): Promise<void> => {
+  const attemptDirectory = getRecordedAttemptDirectory(resultsRoot, attemptId);
+  const attemptPath = path.join(attemptDirectory, 'attempt.json');
+  const result = await readJsonFile(attemptPath, QualificationAttemptResultSchema);
+  const storage = await readQualificationAttemptStorage(attemptDirectory);
+  const artifactDigests = { ...result.artifactDigests };
+
+  for (const logicalPath of logicalPaths) {
+    artifactDigests[logicalPath] = await calculateFileSha256(
+      resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath),
+    );
+  }
+
+  await writeJsonFileAtomically(attemptPath, { ...result, artifactDigests });
+  await writeJsonFileAtomically(path.join(attemptDirectory, 'storage.json'), {
+    ...storage,
+    attemptDigest: await calculateFileSha256(attemptPath),
+    artifacts: storage.artifacts.map((artifact) => ({
+      ...artifact,
+      sha256: artifactDigests[artifact.logicalPath],
+    })),
+  });
+};
 
 const sanitizationContext = {
   attemptDirectory: '/attempt',
@@ -59,7 +113,7 @@ const createResult = (
       packagesRepositoryCommit: 'packages-commit',
       packagesRepositoryFingerprint: 'a'.repeat(64),
       packagesRepositoryDirty: false,
-      qualificationRepositoryCommit: 'qualification-commit',
+      qualificationRepositoryCommit: 'd'.repeat(40),
       qualificationRepositoryDirty: false,
       skillRepositoryCommit: 'skill-commit',
       skillRepositoryFingerprint: 'b'.repeat(64),
@@ -112,7 +166,7 @@ describe('qualification result recording', () => {
       resultsRoot,
     );
     const latest = await readJsonFile(
-      path.join(resultsRoot, 'custom', 'custom', 'latest.json'),
+      path.join(resultsRoot, TARGET_KEY, 'latest.json'),
       QualificationLatestResultSchema,
     );
 
@@ -132,7 +186,7 @@ describe('qualification result recording', () => {
     });
 
     await writeFile(
-      path.join(resultsRoot, 'custom', 'custom', 'attempts', 'attempt-failed', 'coverage.json'),
+      await getRecordedArtifactPath(resultsRoot, 'attempt-failed', 'coverage.json'),
       `${JSON.stringify({
         passed: false,
         requiredClaims: ['qualification.support-gate'],
@@ -146,19 +200,19 @@ describe('qualification result recording', () => {
 
     expect(await verifyQualificationResults(resultsRoot)).toMatchObject({
       passed: false,
-      attempts: 2,
+      attempts: 0,
       issues: [
         {
-          path: 'custom/custom/attempts/attempt-failed',
-          message: 'Artifact digests do not match attempt.json.',
+          path: TARGET_KEY,
+          message: 'Qualification artifact digest does not match coverage.json.',
         },
       ],
     });
   });
 
-  test('verifies historical evidence against its recorded qualification contract', async () => {
+  test('verifies recorded evidence without a readable historical Git repository', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
-    const resultsRoot = path.join(temporaryRoot, 'qualification', 'results');
+    const resultsRoot = path.join(temporaryRoot, 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
     await ensureDirectory(artifactDirectory);
     const passingResult = await seedPassingQualificationEvidenceFixture({
@@ -166,64 +220,46 @@ describe('qualification result recording', () => {
       attemptId: 'attempt-historical-contract',
       resultsRoot,
     });
-    await executeProcess({
-      command: 'git',
-      args: ['init', '--initial-branch=main'],
-      cwd: temporaryRoot,
-    });
-    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: temporaryRoot });
-    await executeProcess({
-      command: 'git',
-      args: [
-        '-c',
-        'commit.gpgsign=false',
-        '-c',
-        'user.name=moldea qualification',
-        '-c',
-        'user.email=qualification@moldea.local',
-        'commit',
-        '-m',
-        'test: preserve historical qualification contract',
-      ],
-      cwd: temporaryRoot,
-    });
-    const { stdout: qualificationRepositoryCommit } = await executeProcess({
-      command: 'git',
-      args: ['rev-parse', 'HEAD'],
-      cwd: temporaryRoot,
-    });
-    const recordedResult = QualificationAttemptResultSchema.parse({
-      ...passingResult,
-      provenance: {
-        ...passingResult.provenance,
-        qualificationRepositoryCommit: qualificationRepositoryCommit.trim(),
-      },
-    });
     await recordQualificationResult(
-      { artifactDirectory, result: recordedResult, sanitizationContext },
+      { artifactDirectory, result: passingResult, sanitizationContext },
       resultsRoot,
-    );
-    const currentScenarioPath = path.join(
-      temporaryRoot,
-      'qualification',
-      'profiles',
-      'custom',
-      'custom',
-      'projects',
-      'release-case',
-      'scenario.yaml',
-    );
-    const currentScenario = await readFile(currentScenarioPath, 'utf8');
-    await writeFile(
-      currentScenarioPath,
-      currentScenario.replaceAll('moldea/runtimes/**/*.md', 'moldea/other/**/*.md'),
-      'utf8',
     );
 
     expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
       passed: true,
       attempts: 1,
       issues: [],
+    });
+  });
+
+  test('rejects undeclared entries beside recorded attempts', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
+    const resultsRoot = path.join(temporaryRoot, 'results');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    await ensureDirectory(artifactDirectory);
+    const passingResult = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'attempt-unexpected-entry',
+      resultsRoot,
+    });
+    await recordQualificationResult(
+      { artifactDirectory, result: passingResult, sanitizationContext },
+      resultsRoot,
+    );
+    await writeFile(
+      path.join(resultsRoot, TARGET_KEY, 'attempts', 'unexpected.txt'),
+      'unexpected\n',
+    );
+
+    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
+      passed: false,
+      attempts: 0,
+      issues: [
+        {
+          path: TARGET_KEY,
+          message: 'Qualification attempts contain an unexpected entry: unexpected.txt',
+        },
+      ],
     });
   });
 
@@ -261,7 +297,7 @@ describe('qualification result recording', () => {
       resultsRoot,
     );
     const latest = await readJsonFile(
-      path.join(resultsRoot, 'custom', 'custom', 'latest.json'),
+      path.join(resultsRoot, REPOSITORY_CUSTOM_TARGET_KEY, 'latest.json'),
       QualificationLatestResultSchema,
     );
 
@@ -295,7 +331,7 @@ describe('qualification result recording', () => {
       },
       resultsRoot,
     );
-    const latestPath = path.join(resultsRoot, 'custom', 'custom', 'latest.json');
+    const latestPath = path.join(resultsRoot, TARGET_KEY, 'latest.json');
     const latest = await readJsonFile(latestPath, QualificationLatestResultSchema);
     await writeFile(
       latestPath,
@@ -308,7 +344,7 @@ describe('qualification result recording', () => {
       attempts: 1,
       issues: [
         {
-          path: 'custom/custom/latest.json',
+          path: `${TARGET_KEY}/latest.json`,
           message: 'Latest pointer does not match recorded attempt history.',
         },
       ],
@@ -333,7 +369,7 @@ describe('qualification result recording', () => {
       },
       resultsRoot,
     );
-    const latestPath = path.join(resultsRoot, 'custom', 'custom', 'latest.json');
+    const latestPath = path.join(resultsRoot, TARGET_KEY, 'latest.json');
     const latest = await readJsonFile(latestPath, QualificationLatestResultSchema);
     await writeFile(
       latestPath,
@@ -344,9 +380,9 @@ describe('qualification result recording', () => {
     const verification = await verifyQualificationResults(resultsRoot);
 
     expect(verification.passed).toBe(false);
-    expect(verification.attempts).toBe(1);
+    expect(verification.attempts).toBe(0);
     expect(verification.issues).toHaveLength(1);
-    expect(verification.issues[0]?.path).toBe('custom/custom');
+    expect(verification.issues[0]?.path).toBe(TARGET_KEY);
     expect(verification.issues[0]?.message).toContain('Invalid input: expected 6');
   });
 
@@ -371,28 +407,21 @@ describe('qualification result recording', () => {
         { artifactDirectory, result: passingResult, sanitizationContext },
         resultsRoot,
       );
-      const attemptDirectory = path.join(
+      const artifactPath = await getRecordedArtifactPath(
         resultsRoot,
-        'custom',
-        'custom',
-        'attempts',
         recorded.attemptId,
+        relativePath,
       );
-      const artifactPath = path.join(attemptDirectory, relativePath);
       await writeJsonFileAtomically(artifactPath, {});
-      await writeJsonFileAtomically(path.join(attemptDirectory, 'attempt.json'), {
-        ...recorded,
-        artifactDigests: {
-          ...recorded.artifactDigests,
-          [relativePath]: await calculateFileSha256(artifactPath),
-        },
-      });
+      await synchronizeRecordedArtifactDigests(resultsRoot, recorded.attemptId, [relativePath]);
 
       const verification = await verifyQualificationResults(resultsRoot);
 
       expect(verification.passed).toBe(false);
       expect(verification.issues).toHaveLength(1);
-      expect(verification.issues[0]?.path).toBe('custom/custom/attempts/attempt-passed');
+      expect(verification.issues[0]?.path).toBe(
+        path.posix.join(TARGET_KEY, 'attempts', createQualificationAttemptKey(recorded.attemptId)),
+      );
       expect(verification.issues[0]?.message).toContain('Invalid input');
     },
   );
@@ -411,28 +440,15 @@ describe('qualification result recording', () => {
       { artifactDirectory, result: passingResult, sanitizationContext },
       resultsRoot,
     );
-    const attemptDirectory = path.join(
+    const actorOutputPath = await getRecordedArtifactPath(
       resultsRoot,
-      'custom',
-      'custom',
-      'attempts',
       recorded.attemptId,
+      'cases/release-case/trials/initial/actor-output.json',
     );
-    const actorOutputPath = path.join(
-      attemptDirectory,
-      'cases',
-      'release-case',
-      'trials',
-      'initial',
-      'actor-output.json',
-    );
-    const workspaceAssertionsPath = path.join(
-      attemptDirectory,
-      'cases',
-      'release-case',
-      'trials',
-      'initial',
-      'workspace-assertions.json',
+    const workspaceAssertionsPath = await getRecordedArtifactPath(
+      resultsRoot,
+      recorded.attemptId,
+      'cases/release-case/trials/initial/workspace-assertions.json',
     );
     const unrelatedEntry = {
       path: 'src/unrelated.ts',
@@ -456,16 +472,10 @@ describe('qualification result recording', () => {
         changedPaths: [unrelatedEntry.path],
       }),
     ]);
-    await writeJsonFileAtomically(path.join(attemptDirectory, 'attempt.json'), {
-      ...recorded,
-      artifactDigests: {
-        ...recorded.artifactDigests,
-        'cases/release-case/trials/initial/actor-output.json':
-          await calculateFileSha256(actorOutputPath),
-        'cases/release-case/trials/initial/workspace-assertions.json':
-          await calculateFileSha256(workspaceAssertionsPath),
-      },
-    });
+    await synchronizeRecordedArtifactDigests(resultsRoot, recorded.attemptId, [
+      'cases/release-case/trials/initial/actor-output.json',
+      'cases/release-case/trials/initial/workspace-assertions.json',
+    ]);
 
     const verification = await verifyQualificationResults(resultsRoot);
 
@@ -491,27 +501,18 @@ describe('qualification result recording', () => {
       { artifactDirectory, result: passingResult, sanitizationContext },
       resultsRoot,
     );
-    const attemptDirectory = path.join(
-      resultsRoot,
-      'custom',
-      'custom',
-      'attempts',
-      recorded.attemptId,
-    );
     const relativePath = 'cases/release-case/trials/initial/deterministic-after.json';
-    const artifactPath = path.join(attemptDirectory, relativePath);
+    const artifactPath = await getRecordedArtifactPath(
+      resultsRoot,
+      recorded.attemptId,
+      relativePath,
+    );
     const artifact = JSON.parse(await readFile(artifactPath, 'utf8')) as {
       summary: { coreValid: boolean };
     };
     artifact.summary.coreValid = false;
     await writeJsonFileAtomically(artifactPath, artifact);
-    await writeJsonFileAtomically(path.join(attemptDirectory, 'attempt.json'), {
-      ...recorded,
-      artifactDigests: {
-        ...recorded.artifactDigests,
-        [relativePath]: await calculateFileSha256(artifactPath),
-      },
-    });
+    await synchronizeRecordedArtifactDigests(resultsRoot, recorded.attemptId, [relativePath]);
 
     const verification = await verifyQualificationResults(resultsRoot);
 
@@ -538,15 +539,12 @@ describe('qualification result recording', () => {
         { artifactDirectory, result: passingResult, sanitizationContext },
         resultsRoot,
       );
-      const attemptDirectory = path.join(
-        resultsRoot,
-        'custom',
-        'custom',
-        'attempts',
-        recorded.attemptId,
-      );
       const relativeEvidencePath = `cases/release-case/trials/initial/${role}-evidence.json`;
-      const evidencePath = path.join(attemptDirectory, relativeEvidencePath);
+      const evidencePath = await getRecordedArtifactPath(
+        resultsRoot,
+        recorded.attemptId,
+        relativeEvidencePath,
+      );
       const evidence = await readJsonFile(evidencePath, QualificationModelStageEvidenceSchema);
       await writeJsonFileAtomically(evidencePath, {
         ...evidence,
@@ -560,13 +558,9 @@ describe('qualification result recording', () => {
           },
         },
       });
-      await writeJsonFileAtomically(path.join(attemptDirectory, 'attempt.json'), {
-        ...recorded,
-        artifactDigests: {
-          ...recorded.artifactDigests,
-          [relativeEvidencePath]: await calculateFileSha256(evidencePath),
-        },
-      });
+      await synchronizeRecordedArtifactDigests(resultsRoot, recorded.attemptId, [
+        relativeEvidencePath,
+      ]);
 
       const verification = await verifyQualificationResults(resultsRoot);
 
@@ -618,7 +612,13 @@ describe('qualification result recording', () => {
   test('rejects a latest pointer without recorded attempt history', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
-    const targetRoot = path.join(resultsRoot, 'custom', 'custom');
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'unrecorded-attempt',
+      resultsRoot,
+    });
+    const targetRoot = path.join(resultsRoot, TARGET_KEY);
     await ensureDirectory(targetRoot);
     await writeFile(
       path.join(targetRoot, 'latest.json'),
@@ -643,7 +643,7 @@ describe('qualification result recording', () => {
       attempts: 0,
       issues: [
         {
-          path: 'custom/custom/latest.json',
+          path: `${TARGET_KEY}/latest.json`,
           message: 'Latest pointer exists without any recorded attempt history.',
         },
       ],
@@ -704,28 +704,21 @@ describe('qualification result recording', () => {
       },
       resultsRoot,
     );
-    const recordedDirectory = path.join(
+    const actorOutputPath = await getRecordedArtifactPath(
       resultsRoot,
-      'custom',
-      'custom',
-      'attempts',
       recorded.attemptId,
+      'cases/sanitization/trials/initial/actor-output.json',
+      REPOSITORY_CUSTOM_TARGET_KEY,
+    );
+    const actorEventsPath = await getRecordedArtifactPath(
+      resultsRoot,
+      recorded.attemptId,
+      'cases/sanitization/trials/initial/actor-events.jsonl',
+      REPOSITORY_CUSTOM_TARGET_KEY,
     );
 
     expect(recorded.summary).toBe('Failure at <skill-repository>/SKILL.md with <redacted-token>.');
-    expect(
-      await readFile(
-        path.join(
-          recordedDirectory,
-          'cases',
-          'sanitization',
-          'trials',
-          'initial',
-          'actor-output.json',
-        ),
-        'utf8',
-      ),
-    ).toBe(
+    expect(await readFile(actorOutputPath, 'utf8')).toBe(
       `${JSON.stringify(
         {
           outcome: 'blocked',
@@ -738,19 +731,7 @@ describe('qualification result recording', () => {
         2,
       )}\n`,
     );
-    expect(
-      await readFile(
-        path.join(
-          recordedDirectory,
-          'cases',
-          'sanitization',
-          'trials',
-          'initial',
-          'actor-events.jsonl',
-        ),
-        'utf8',
-      ),
-    ).toBe(
+    expect(await readFile(actorEventsPath, 'utf8')).toBe(
       `${JSON.stringify({
         eventType: 'command.completed',
         exitCode: 0,
@@ -843,13 +824,17 @@ describe('qualification result recording', () => {
   test('rejects manually committed dirty passing evidence during verification', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
-    const targetRoot = path.join(resultsRoot, 'custom', 'custom');
-    const attemptDirectory = path.join(targetRoot, 'attempts', 'dirty-passing-attempt');
-    const cleanPassingResult = createResult(
-      'dirty-passing-attempt',
-      '2026-08-20T10:00:00.000Z',
-      'passed',
+    const artifactDirectory = path.join(temporaryRoot, 'artifacts');
+    const cleanPassingResult = await seedPassingQualificationEvidenceFixture({
+      artifactDirectory,
+      attemptId: 'dirty-passing-attempt',
+      resultsRoot,
+    });
+    await recordQualificationResult(
+      { artifactDirectory, result: cleanPassingResult, sanitizationContext },
+      resultsRoot,
     );
+    const attemptDirectory = getRecordedAttemptDirectory(resultsRoot, cleanPassingResult.attemptId);
     const dirtyPassingResult: IQualificationAttemptResult = {
       ...cleanPassingResult,
       provenance: {
@@ -857,35 +842,18 @@ describe('qualification result recording', () => {
         skillRepositoryDirty: true,
       },
     };
-    const latestResult = QualificationLatestResultSchema.parse({
-      protocolVersion: 6,
-      adapterId: 'custom',
-      implementationId: 'custom',
-      latestAttemptId: dirtyPassingResult.attemptId,
-      latestStatus: dirtyPassingResult.status,
-      lastPassingAttemptId: dirtyPassingResult.attemptId,
-      updatedAt: dirtyPassingResult.createdAt,
-    });
-    await ensureDirectory(attemptDirectory);
-    await Promise.all([
-      writeFile(
-        path.join(attemptDirectory, 'attempt.json'),
-        `${JSON.stringify(dirtyPassingResult, null, 2)}\n`,
-        'utf8',
-      ),
-      writeFile(
-        path.join(targetRoot, 'latest.json'),
-        `${JSON.stringify(latestResult, null, 2)}\n`,
-        'utf8',
-      ),
-    ]);
+    await writeFile(
+      path.join(attemptDirectory, 'attempt.json'),
+      `${JSON.stringify(dirtyPassingResult, null, 2)}\n`,
+      'utf8',
+    );
 
     const verification = await verifyQualificationResults(resultsRoot);
 
     expect(verification.passed).toBe(false);
     expect(verification.attempts).toBe(0);
     expect(verification.issues).toHaveLength(1);
-    expect(verification.issues[0]?.path).toBe('custom/custom');
+    expect(verification.issues[0]?.path).toBe(TARGET_KEY);
     expect(verification.issues[0]?.message).toContain(
       'Passing qualification evidence requires clean repository inputs.',
     );

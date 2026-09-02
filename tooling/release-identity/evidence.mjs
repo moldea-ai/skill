@@ -25,17 +25,27 @@ import {
   calculateQualificationProfileDigest,
   calculateQualificationTargetDigest,
 } from '../../qualification/src/execution/fingerprints.ts';
-import {
-  calculateDirectoryFingerprint,
-  resolveContainedPath,
-} from '../../qualification/src/filesystem/index.ts';
+import { createQualificationCompatibilityIdentity } from '../../qualification/src/evidence-identity/index.ts';
+import { resolveContainedPath } from '../../qualification/src/filesystem/index.ts';
 import { inspectGitRepositoryState } from '../../qualification/src/repository-state/index.ts';
 import { verifyQualificationResults } from '../../qualification/src/result/index.ts';
+import {
+  createQualificationAttemptKey,
+  QualificationProfileIndexSchema,
+  resolveQualificationArtifactPath,
+  verifyQualificationAttemptStorage,
+} from '../../qualification/src/storage/index.ts';
 import {
   CODEX_EVALUATION_MODEL,
   CODEX_EVALUATION_REASONING_EFFORT,
   hasPassingCodexEvaluationCommandPolicy,
 } from '../codex-evaluation-host/index.mjs';
+import {
+  createCliClosureDigest,
+  createPortableSkillBehaviorDigest,
+  createSemanticCompatibilityDigest,
+  readSemanticAttemptIdentity,
+} from '../evidence-identity/index.mjs';
 import {
   createPortableSkillDigest,
   createSemanticCaseDefinitionDigest,
@@ -58,6 +68,13 @@ import {
   RELEASE_PATHS,
   SEMANTIC_EVALUATION_PROTOCOL_VERSION,
 } from './constants.mjs';
+import {
+  CARRY_FORWARD_401_PATH,
+  CARRY_FORWARD_401_TARGET_RELEASE,
+  verifyCarryForward401Attestation,
+  verifyCarryForward401SourceAttestation,
+} from './carry-forward-4-0-1.mjs';
+import { resolveCompatibleHistoricalSemanticAttemptId } from './historical-semantic.mjs';
 import { createSemanticCliIdentity, parseStableVersion } from './identity.mjs';
 
 const SEMANTIC_RESULTS_PATH = 'fixtures/semantic-evaluation-results';
@@ -160,35 +177,29 @@ const createAttemptTrialProvenance = (attempt) =>
 
 const listQualificationProfiles = (repositoryRoot) => {
   const profilesRoot = join(repositoryRoot, 'qualification', 'profiles');
-  const profiles = [];
+  const index = readYaml(join(profilesRoot, 'index.yaml'), QualificationProfileIndexSchema);
 
-  for (const adapterEntry of readdirSync(profilesRoot, {
-    withFileTypes: true,
-  })) {
-    if (!adapterEntry.isDirectory()) continue;
-    const adapterRoot = join(profilesRoot, adapterEntry.name);
+  return index.targets.map((target) => {
+    const profileDirectory = resolveContainedPath(profilesRoot, target.key);
+    const profile = readYaml(join(profileDirectory, 'profile.yaml'), QualificationProfileSchema);
 
-    for (const implementationEntry of readdirSync(adapterRoot, {
-      withFileTypes: true,
-    })) {
-      if (!implementationEntry.isDirectory()) continue;
-      const profilePath = join(adapterRoot, implementationEntry.name, 'profile.yaml');
-      if (!existsSync(profilePath)) continue;
-
-      const profile = readYaml(profilePath, QualificationProfileSchema);
-      const profileDirectory = join(adapterRoot, implementationEntry.name);
-      profiles.push({
-        adapterId: profile.adapterId,
-        caseIds: profile.cases.map(({ id }) => id),
-        cases: profile.cases,
-        implementationId: profile.implementationId,
-        profileDirectory,
-        runtimePackages: profile.runtimePackages ?? [],
-      });
+    if (
+      profile.adapterId !== target.adapterId ||
+      profile.implementationId !== target.implementationId
+    ) {
+      throw new Error(`Qualification profile ${target.key} contradicts its indexed identity.`);
     }
-  }
 
-  return profiles;
+    return {
+      adapterId: profile.adapterId,
+      caseIds: profile.cases.map(({ id }) => id),
+      cases: profile.cases,
+      implementationId: profile.implementationId,
+      profileDirectory,
+      runtimePackages: profile.runtimePackages ?? [],
+      targetKey: target.key,
+    };
+  });
 };
 
 const createQualificationStageIds = (caseIds) => [
@@ -463,17 +474,17 @@ const hasValidModelEvidence = (attempt, trial, role, stage, evidence) => {
   );
 };
 
-const hasValidArtifactDigest = (attemptDirectory, attempt, relativePath) => {
+const hasValidArtifactDigest = (resolveArtifactPath, attempt, relativePath) => {
   const expectedDigest = attempt.artifactDigests[relativePath];
   if (expectedDigest === undefined) return false;
-  const artifactPath = join(attemptDirectory, relativePath);
+  const artifactPath = resolveArtifactPath(relativePath);
   return (
     existsSync(artifactPath) &&
     createHash('sha256').update(readFileSync(artifactPath)).digest('hex') === expectedDigest
   );
 };
 
-const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profileCases) => {
+const hasCompletePassingQualificationCases = (resolveArtifactPath, attempt, profileCases) => {
   const caseIds = profileCases.map(({ id }) => id);
   if (attempt.cases.length !== caseIds.length) return false;
   const expectedArtifactPaths = ['baseline.json', 'coverage.json', 'source-state.json'];
@@ -530,25 +541,21 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
       if (!expectedReferences) return false;
 
       try {
-        const recordedTrial = readJson(
-          join(attemptDirectory, 'cases', caseId, 'trials', trial.trialId, 'trial-result.json'),
-        );
+        const recordedTrial = readJson(resolveArtifactPath(`${trialRoot}/trial-result.json`));
         const actorEvidence = QualificationModelStageEvidenceSchema.parse(
-          readJson(
-            join(attemptDirectory, 'cases', caseId, 'trials', trial.trialId, 'actor-evidence.json'),
-          ),
+          readJson(resolveArtifactPath(`${trialRoot}/actor-evidence.json`)),
         );
         const actor = ActorOutputSchema.parse(
-          readJson(join(attemptDirectory, `${trialRoot}/actor-output.json`)),
+          readJson(resolveArtifactPath(`${trialRoot}/actor-output.json`)),
         );
         const deterministicBefore = DeterministicVerificationArtifactSchema.parse(
-          readJson(join(attemptDirectory, `${trialRoot}/deterministic-before.json`)),
+          readJson(resolveArtifactPath(`${trialRoot}/deterministic-before.json`)),
         );
         const deterministicAfter = DeterministicVerificationArtifactSchema.parse(
-          readJson(join(attemptDirectory, `${trialRoot}/deterministic-after.json`)),
+          readJson(resolveArtifactPath(`${trialRoot}/deterministic-after.json`)),
         );
         const assertions = WorkspaceAssertionResultSchema.parse(
-          readJson(join(attemptDirectory, `${trialRoot}/workspace-assertions.json`)),
+          readJson(resolveArtifactPath(`${trialRoot}/workspace-assertions.json`)),
         );
         const hasJudgeRequirements = scenario.judgeRequirements.some(
           (requirement) => requirement.evaluation.kind === 'judge',
@@ -556,28 +563,19 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
         const judgeEvidence =
           trial.judgeStatus === 'completed'
             ? QualificationModelStageEvidenceSchema.parse(
-                readJson(
-                  join(
-                    attemptDirectory,
-                    'cases',
-                    caseId,
-                    'trials',
-                    trial.trialId,
-                    'judge-evidence.json',
-                  ),
-                ),
+                readJson(resolveArtifactPath(`${trialRoot}/judge-evidence.json`)),
               )
             : null;
         const judge =
           trial.judgeStatus === 'completed'
             ? JudgeOutputSchema.parse(
-                readJson(join(attemptDirectory, `${trialRoot}/judge-output.json`)),
+                readJson(resolveArtifactPath(`${trialRoot}/judge-output.json`)),
               )
             : null;
         const judgeSkipped =
           trial.judgeStatus === 'skipped'
             ? QualificationJudgeSkippedSchema.parse(
-                readJson(join(attemptDirectory, `${trialRoot}/judge-skipped.json`)),
+                readJson(resolveArtifactPath(`${trialRoot}/judge-skipped.json`)),
               )
             : null;
         const stages = new Map(attempt.stages.map((stage) => [stage.id, stage]));
@@ -628,7 +626,7 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
         return (
           JSON.stringify(recordedTrial) === JSON.stringify(trial) &&
           trialArtifactPaths.every((artifactPath) =>
-            hasValidArtifactDigest(attemptDirectory, attempt, artifactPath),
+            hasValidArtifactDigest(resolveArtifactPath, attempt, artifactPath),
           ) &&
           deterministicBefore.summary.passed &&
           hasValidDeterministicEvidence(deterministicBefore, scenario.inspection.before) &&
@@ -667,7 +665,7 @@ const hasCompletePassingQualificationCases = (attemptDirectory, attempt, profile
   return (
     hasPassingCases &&
     expectedArtifactPaths.every((artifactPath) =>
-      hasValidArtifactDigest(attemptDirectory, attempt, artifactPath),
+      hasValidArtifactDigest(resolveArtifactPath, attempt, artifactPath),
     ) &&
     JSON.stringify(actualArtifactPaths) ===
       JSON.stringify(expectedArtifactPaths.sort((left, right) => left.localeCompare(right, 'en')))
@@ -755,7 +753,7 @@ const hasCompletePassingQualificationStages = (attempt, caseIds) => {
 };
 
 const inspectQualificationControlEvidence = (
-  attemptDirectory,
+  resolveArtifactPath,
   attempt,
   adapterId,
   relativeLatestPath,
@@ -773,12 +771,12 @@ const inspectQualificationControlEvidence = (
   }
 
   const baseline = QualificationBaselineCheckSchema.parse(
-    readJson(join(attemptDirectory, 'baseline.json')),
+    readJson(resolveArtifactPath('baseline.json')),
   );
   const sourceState = QualificationSourceStateResultSchema.parse(
-    readJson(join(attemptDirectory, 'source-state.json')),
+    readJson(resolveArtifactPath('source-state.json')),
   );
-  const coverage = readJson(join(attemptDirectory, 'coverage.json'));
+  const coverage = readJson(resolveArtifactPath('coverage.json'));
   const hasCleanTrustedSource =
     sourceState.passed &&
     sourceState.requiresCleanInputs &&
@@ -830,6 +828,50 @@ const createRecordedPackageIdentity = (candidatePackage) => ({
 
 const sortPackageIdentities = (packages) =>
   [...packages].sort(({ name: left }, { name: right }) => left.localeCompare(right, 'en'));
+
+const hasSameJsonIdentity = (left, right) => JSON.stringify(left) === JSON.stringify(right);
+
+const listCompatibleHistoricalEnvelopes = ({
+  attestation,
+  candidateCliClosureDigest,
+  candidatePortableSkillBehaviorDigest,
+  currentCompatibility,
+  currentProfilePackages,
+  selection,
+  targetDigest,
+}) => {
+  if (attestation === null || currentProfilePackages === null || targetDigest === null) return [];
+  const currentPackageNames = new Set(currentProfilePackages.map(({ name }) => name));
+
+  return attestation.qualification.envelopes
+    .filter(
+      (envelope) =>
+        envelope.status === 'passed' &&
+        envelope.selection.adapterId === selection.adapterId &&
+        envelope.selection.implementationId === selection.implementationId &&
+        hasSameJsonIdentity(envelope.compatibility, currentCompatibility) &&
+        envelope.targetCompatibilityDigest === targetDigest &&
+        envelope.portableSkillBehaviorDigest === candidatePortableSkillBehaviorDigest &&
+        envelope.cliClosureDigest === candidateCliClosureDigest &&
+        envelope.environment.model === CODEX_EVALUATION_MODEL &&
+        envelope.environment.reasoningEffort === CODEX_EVALUATION_REASONING_EFFORT &&
+        (selection.adapterId === 'custom'
+          ? envelope.baselineReplay === 'not-required'
+          : envelope.baselineReplay === 'passed') &&
+        hasSameJsonIdentity(
+          envelope.packages.filter(({ name }) => currentPackageNames.has(name)),
+          currentProfilePackages,
+        ),
+    )
+    .sort((left, right) => {
+      const timestampOrder =
+        Date.parse(right.completedAt ?? right.createdAt) -
+        Date.parse(left.completedAt ?? left.createdAt);
+      return timestampOrder === 0
+        ? right.attemptId.localeCompare(left.attemptId, 'en')
+        : timestampOrder;
+    });
+};
 
 const readQualificationTypeScriptVersion = (repositoryRoot) => {
   const qualificationManifest = readJson(join(repositoryRoot, 'qualification', 'package.json'));
@@ -927,7 +969,8 @@ const resolveCurrentQualificationPackageIdentities = async ({
   }
 };
 
-const inspectSemanticEvidence = (repositoryRoot) => {
+/** Validates canonical semantic evidence against exact or sidecar-compatible release inputs. */
+const inspectSemanticEvidenceForAttempt = (repositoryRoot, compatibleSemanticAttemptId = null) => {
   const issues = [];
   const semanticResultPath = join(repositoryRoot, RELEASE_PATHS.semanticResult);
 
@@ -943,6 +986,9 @@ const inspectSemanticEvidence = (repositoryRoot) => {
   ) {
     return [`${RELEASE_PATHS.semanticResult} is not a semantic result object.`];
   }
+  const hasCompatibleSemanticIdentity =
+    compatibleSemanticAttemptId !== null &&
+    semanticResult.semanticAttemptId === compatibleSemanticAttemptId;
   const expectedCli = createSemanticCliIdentity(repositoryRoot);
   const conformanceCases = readJson(join(repositoryRoot, RELEASE_PATHS.conformanceCases));
   const semanticCases = conformanceCases.semanticCases ?? [];
@@ -992,7 +1038,10 @@ const inspectSemanticEvidence = (repositoryRoot) => {
       `${RELEASE_PATHS.semanticResult} does not use semantic protocol ${SEMANTIC_EVALUATION_PROTOCOL_VERSION}.`,
     );
   }
-  if (JSON.stringify(semanticResult.cli) !== JSON.stringify(expectedCli)) {
+  if (
+    !hasCompatibleSemanticIdentity &&
+    JSON.stringify(semanticResult.cli) !== JSON.stringify(expectedCli)
+  ) {
     issues.push(`${RELEASE_PATHS.semanticResult} does not match the exact release CLI identity.`);
   }
   const hasConsistentRecordedArtifact =
@@ -1000,7 +1049,7 @@ const inspectSemanticEvidence = (repositoryRoot) => {
     semanticResult.artifactDigest === semanticResult.skillDigest &&
     semanticResult.artifactSha256 === semanticResult.skillDigest;
   const hasCurrentArtifact = semanticResult.skillDigest === expectedSkillDigest;
-  if (!hasConsistentRecordedArtifact || !hasCurrentArtifact) {
+  if (!hasConsistentRecordedArtifact || (!hasCompatibleSemanticIdentity && !hasCurrentArtifact)) {
     issues.push(
       `${RELEASE_PATHS.semanticResult} does not match the exact portable skill artifact.`,
     );
@@ -1123,6 +1172,30 @@ const inspectSemanticEvidence = (repositoryRoot) => {
   return issues;
 };
 
+/** Returns every exact semantic-evidence issue for one repository tree. */
+export const inspectSemanticEvidence = (repositoryRoot) =>
+  inspectSemanticEvidenceForAttempt(repositoryRoot);
+
+/** Selects the canonical attempt only when its immutable sidecar matches current behavior inputs. */
+const resolveCompatibleCurrentSemanticAttemptId = ({
+  candidateCliClosureDigest,
+  candidatePortableSkillBehaviorDigest,
+  candidateSemanticCompatibilityDigest,
+  repositoryRoot,
+}) => {
+  const semanticResultPath = join(repositoryRoot, RELEASE_PATHS.semanticResult);
+  if (!existsSync(semanticResultPath)) return null;
+  const semanticResult = readJson(semanticResultPath);
+  if (typeof semanticResult?.semanticAttemptId !== 'string') return null;
+  const identity = readSemanticAttemptIdentity(repositoryRoot, semanticResult.semanticAttemptId);
+  if (identity === null) return null;
+  return identity.cliClosureDigest === candidateCliClosureDigest &&
+    identity.portableSkillBehaviorDigest === candidatePortableSkillBehaviorDigest &&
+    identity.semanticCompatibilityDigest === candidateSemanticCompatibilityDigest
+    ? identity.attemptId
+    : null;
+};
+
 /**
  * Inspects whether fresh semantic and qualification evidence completes the release gate.
  * @param repositoryRoot The skill repository whose release is being checked.
@@ -1137,9 +1210,97 @@ export const inspectReleaseEvidence = async (
     packagesRepository = resolve(repositoryRoot, '..', 'packages'),
     resolvePublishedManifest = resolvePublishedPackageManifest,
     resolvePublishedClosure = resolvePublishedPackageClosure,
+    verifyCarryForwardAttestation = verifyCarryForward401Attestation,
+    verifyCarryForwardSourceAttestation = verifyCarryForward401SourceAttestation,
   } = {},
 ) => {
-  const issues = inspectSemanticEvidence(repositoryRoot);
+  let currentSemanticIssues = inspectSemanticEvidence(repositoryRoot);
+  const issues = [];
+  const carryForwardPath = join(repositoryRoot, ...CARRY_FORWARD_401_PATH.split('/'));
+  const hasCarryForward = existsSync(carryForwardPath);
+  let releaseVersion = null;
+  let carryForward = null;
+  let candidateCliClosureDigest = null;
+  let candidatePortableSkillBehaviorDigest = null;
+  let candidateSemanticCompatibilityDigest = null;
+  let currentSemanticIdentityIssue = null;
+
+  try {
+    releaseVersion = parseStableVersion(readJson(join(repositoryRoot, 'package.json')).version);
+  } catch (error) {
+    issues.push(
+      `Unable to resolve the release version for historical evidence: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  if (releaseVersion === CARRY_FORWARD_401_TARGET_RELEASE && !hasCarryForward) {
+    issues.push(`${CARRY_FORWARD_401_PATH} is required for the exact 4.0.1 bridge.`);
+  }
+  try {
+    candidateCliClosureDigest = createCliClosureDigest(repositoryRoot);
+    candidatePortableSkillBehaviorDigest = createPortableSkillBehaviorDigest(repositoryRoot);
+    candidateSemanticCompatibilityDigest = createSemanticCompatibilityDigest(repositoryRoot);
+  } catch (error) {
+    issues.push(
+      `Unable to resolve current evidence identities: ${error instanceof Error ? error.message : String(error)}`,
+    );
+  }
+  if (
+    currentSemanticIssues.length > 0 &&
+    candidateCliClosureDigest !== null &&
+    candidatePortableSkillBehaviorDigest !== null &&
+    candidateSemanticCompatibilityDigest !== null
+  ) {
+    try {
+      const compatibleSemanticAttemptId = resolveCompatibleCurrentSemanticAttemptId({
+        candidateCliClosureDigest,
+        candidatePortableSkillBehaviorDigest,
+        candidateSemanticCompatibilityDigest,
+        repositoryRoot,
+      });
+      if (compatibleSemanticAttemptId !== null) {
+        currentSemanticIssues = inspectSemanticEvidenceForAttempt(
+          repositoryRoot,
+          compatibleSemanticAttemptId,
+        );
+      }
+    } catch (error) {
+      currentSemanticIdentityIssue = `${SEMANTIC_RESULTS_PATH} has invalid current compatibility identity: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+  if (hasCarryForward) {
+    try {
+      carryForward =
+        releaseVersion === CARRY_FORWARD_401_TARGET_RELEASE
+          ? await verifyCarryForwardAttestation({
+              packagesRepository,
+              repositoryRoot,
+            })
+          : await verifyCarryForwardSourceAttestation({
+              packagesRepository,
+              repositoryRoot,
+            });
+    } catch (error) {
+      issues.push(
+        `Unable to verify ${CARRY_FORWARD_401_PATH}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      carryForward = null;
+    }
+  }
+  const semanticResultPath = join(repositoryRoot, RELEASE_PATHS.semanticResult);
+  const compatibleHistoricalSemanticAttemptId = resolveCompatibleHistoricalSemanticAttemptId({
+    attestation: carryForward,
+    candidateCliClosureDigest,
+    candidatePortableSkillBehaviorDigest,
+    candidateSemanticCompatibilityDigest,
+    semanticResultSha256: existsSync(semanticResultPath)
+      ? createHash('sha256').update(readFileSync(semanticResultPath)).digest('hex')
+      : null,
+  });
+  const canSelectHistoricalSemanticEvidence = compatibleHistoricalSemanticAttemptId !== null;
+  if (currentSemanticIssues.length > 0 && !canSelectHistoricalSemanticEvidence) {
+    if (currentSemanticIdentityIssue !== null) issues.push(currentSemanticIdentityIssue);
+    issues.push(...currentSemanticIssues);
+  }
   const resultsRoot = join(repositoryRoot, 'qualification', 'results');
   const resultVerification = await verifyQualificationResults(resultsRoot);
 
@@ -1149,7 +1310,6 @@ export const inspectReleaseEvidence = async (
     );
   }
 
-  const skillDigest = await calculateDirectoryFingerprint(join(repositoryRoot, 'moldea'));
   const releaseCli = createSemanticCliIdentity(repositoryRoot);
   let currentInputs = null;
 
@@ -1182,6 +1342,8 @@ export const inspectReleaseEvidence = async (
   }
 
   const passingEvidence = new Map();
+  const compatibleHistoricalByAttemptId = new Map();
+  const qualificationProfiles = listQualificationProfiles(repositoryRoot);
 
   for (const {
     adapterId,
@@ -1190,74 +1352,21 @@ export const inspectReleaseEvidence = async (
     implementationId,
     profileDirectory,
     runtimePackages,
-  } of listQualificationProfiles(repositoryRoot)) {
-    const relativeLatestPath = join(
-      'qualification',
-      'results',
-      adapterId,
-      implementationId,
-      'latest.json',
-    );
-    const latestPath = join(repositoryRoot, relativeLatestPath);
-    if (!existsSync(latestPath)) {
-      issues.push(`${relativeLatestPath} is missing qualification evidence.`);
-      continue;
-    }
-
-    let latest;
-    try {
-      latest = QualificationLatestResultSchema.parse(readJson(latestPath));
-    } catch (error) {
-      issues.push(
-        `${relativeLatestPath} is invalid: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      continue;
-    }
-    if (
-      latest.protocolVersion !== QUALIFICATION_EVIDENCE_PROTOCOL_VERSION ||
-      latest.latestStatus !== 'passed' ||
-      latest.lastPassingAttemptId !== latest.latestAttemptId
-    ) {
-      issues.push(
-        `${relativeLatestPath} must point to a latest passing protocol ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION} attempt.`,
-      );
-      continue;
-    }
-
-    const attemptDirectory = join(
-      repositoryRoot,
-      'qualification',
-      'results',
-      adapterId,
-      implementationId,
-      'attempts',
-      latest.latestAttemptId,
-    );
-    const attemptPath = join(attemptDirectory, 'attempt.json');
-    if (!existsSync(attemptPath)) {
-      issues.push(`${relativeLatestPath} points to a missing attempt.`);
-      continue;
-    }
-
-    let attempt;
-    try {
-      attempt = QualificationAttemptResultSchema.parse(readJson(attemptPath));
-    } catch (error) {
-      issues.push(
-        `${relativeLatestPath} points to an invalid attempt: ${error instanceof Error ? error.message : String(error)}`,
-      );
-      continue;
-    }
+    targetKey,
+  } of qualificationProfiles) {
+    const relativeLatestPath = join('qualification', 'results', targetKey, 'latest.json');
+    const selection = { adapterId, implementationId };
     const adapter = currentInputs?.matrix.adapters[adapterId];
     const target = adapter?.targets?.find(({ id }) => id === implementationId);
     const hasCurrentTarget =
       adapter !== undefined && adapter.implementationStatus === 'available' && target !== undefined;
     let profileDigest = null;
     let qualificationDigest = null;
+    let currentCompatibility = null;
     let currentProfilePackages = null;
 
     try {
-      [profileDigest, qualificationDigest] = await Promise.all([
+      [profileDigest, qualificationDigest, currentCompatibility] = await Promise.all([
         calculateQualificationProfileDigest(profileDirectory),
         calculateQualificationExecutionDigest({
           caseIds,
@@ -1268,6 +1377,11 @@ export const inspectReleaseEvidence = async (
             qualificationRoot: join(repositoryRoot, 'qualification'),
             repositoryRoot,
           },
+        }),
+        createQualificationCompatibilityIdentity({
+          qualificationRoot: join(repositoryRoot, 'qualification'),
+          repositoryRoot,
+          selection,
         }),
       ]);
       if (hasCurrentTarget && currentInputs !== null) {
@@ -1291,6 +1405,94 @@ export const inspectReleaseEvidence = async (
       hasCurrentTarget && adapter !== undefined && target !== undefined
         ? calculateQualificationTargetDigest(adapter, target)
         : null;
+    const historicalEnvelopes = listCompatibleHistoricalEnvelopes({
+      attestation: carryForward,
+      candidateCliClosureDigest,
+      candidatePortableSkillBehaviorDigest,
+      currentCompatibility,
+      currentProfilePackages,
+      selection,
+      targetDigest,
+    });
+    for (const envelope of historicalEnvelopes) {
+      compatibleHistoricalByAttemptId.set(envelope.attemptId, envelope);
+    }
+    const historicalEnvelope = historicalEnvelopes[0];
+    if (historicalEnvelope !== undefined) {
+      passingEvidence.set(`${adapterId}/${implementationId}`, {
+        envelope: historicalEnvelope,
+        relativeLatestPath,
+        source: 'historical',
+      });
+    }
+
+    const latestPath = join(repositoryRoot, relativeLatestPath);
+    if (!existsSync(latestPath)) {
+      if (historicalEnvelope === undefined) {
+        issues.push(`${relativeLatestPath} is missing qualification evidence.`);
+      }
+      continue;
+    }
+
+    let latest;
+    try {
+      latest = QualificationLatestResultSchema.parse(readJson(latestPath));
+    } catch (error) {
+      issues.push(
+        `${relativeLatestPath} is invalid: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      continue;
+    }
+    if (
+      latest.protocolVersion !== QUALIFICATION_EVIDENCE_PROTOCOL_VERSION ||
+      latest.latestStatus !== 'passed' ||
+      latest.lastPassingAttemptId !== latest.latestAttemptId
+    ) {
+      if (historicalEnvelope === undefined) {
+        issues.push(
+          `${relativeLatestPath} must point to a latest passing protocol ${QUALIFICATION_EVIDENCE_PROTOCOL_VERSION} attempt.`,
+        );
+      }
+      continue;
+    }
+
+    const attemptDirectory = join(
+      repositoryRoot,
+      'qualification',
+      'results',
+      targetKey,
+      'attempts',
+      createQualificationAttemptKey(latest.latestAttemptId),
+    );
+    const attemptPath = join(attemptDirectory, 'attempt.json');
+    if (!existsSync(attemptPath)) {
+      issues.push(`${relativeLatestPath} points to a missing attempt.`);
+      continue;
+    }
+
+    let attempt;
+    try {
+      attempt = QualificationAttemptResultSchema.parse(readJson(attemptPath));
+    } catch (error) {
+      issues.push(
+        `${relativeLatestPath} points to an invalid attempt: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      continue;
+    }
+    let storage;
+    try {
+      storage = await verifyQualificationAttemptStorage({
+        attemptDirectory,
+        result: attempt,
+      });
+    } catch (error) {
+      issues.push(
+        `${relativeLatestPath} points to invalid short storage: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      continue;
+    }
+    const resolveArtifactPath = (logicalPath) =>
+      resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath);
     const currentProfilePackageNames = new Set(
       currentProfilePackages?.map(({ name }) => name) ?? [],
     );
@@ -1313,8 +1515,10 @@ export const inspectReleaseEvidence = async (
       attempt.selection?.adapterId !== adapterId ||
       attempt.selection?.implementationId !== implementationId ||
       attempt.provenance?.qualificationDigest !== qualificationDigest ||
-      attempt.provenance?.skillRepositoryFingerprint !== skillDigest ||
+      storage.portableSkillBehaviorDigest !== candidatePortableSkillBehaviorDigest ||
+      storage.cliClosureDigest !== candidateCliClosureDigest ||
       attempt.provenance?.profileDigest !== profileDigest ||
+      !hasSameJsonIdentity(storage.compatibility, currentCompatibility) ||
       currentInputs === null ||
       attempt.provenance?.packagesRepositoryDirty ||
       targetDigest === null ||
@@ -1322,7 +1526,9 @@ export const inspectReleaseEvidence = async (
       !hasExactPublishedClosure ||
       !hasSelectedPackage
     ) {
-      issues.push(`${relativeLatestPath} does not match the current release inputs.`);
+      if (historicalEnvelope === undefined) {
+        issues.push(`${relativeLatestPath} does not match the current release inputs.`);
+      }
       continue;
     }
 
@@ -1346,7 +1552,7 @@ export const inspectReleaseEvidence = async (
       continue;
     }
     const hasPassingCases = hasCompletePassingQualificationCases(
-      attemptDirectory,
+      resolveArtifactPath,
       attempt,
       profileCases,
     );
@@ -1359,7 +1565,7 @@ export const inspectReleaseEvidence = async (
 
     try {
       const controlEvidence = inspectQualificationControlEvidence(
-        attemptDirectory,
+        resolveArtifactPath,
         attempt,
         adapterId,
         relativeLatestPath,
@@ -1370,6 +1576,7 @@ export const inspectReleaseEvidence = async (
           attempt,
           baseline: controlEvidence.baseline,
           relativeLatestPath,
+          source: 'current',
         });
       }
     } catch (error) {
@@ -1380,35 +1587,62 @@ export const inspectReleaseEvidence = async (
   }
 
   const customEvidence = passingEvidence.get('custom/custom');
+  const customTargetKey = qualificationProfiles.find(
+    ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
+  )?.targetKey;
   for (const [selectionKey, evidence] of passingEvidence) {
     if (selectionKey === 'custom/custom') continue;
-    const baselineAttemptId = evidence.attempt.provenance.baselineAttemptId;
-    const recordedBaselinePath =
-      baselineAttemptId === null
-        ? null
-        : join(resultsRoot, 'custom', 'custom', 'attempts', baselineAttemptId, 'attempt.json');
+    const baselineAttemptId =
+      evidence.source === 'historical'
+        ? evidence.envelope.baselineAttemptId
+        : evidence.attempt.provenance.baselineAttemptId;
     let hasRecordedPassingBaseline = false;
-    if (recordedBaselinePath !== null && existsSync(recordedBaselinePath)) {
-      try {
-        const recordedBaseline = QualificationAttemptResultSchema.parse(
-          readJson(recordedBaselinePath),
-        );
-        hasRecordedPassingBaseline =
-          recordedBaseline.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
-          recordedBaseline.status === 'passed' &&
-          recordedBaseline.selection.adapterId === 'custom' &&
-          recordedBaseline.selection.implementationId === 'custom';
-      } catch {
-        hasRecordedPassingBaseline = false;
+    if (evidence.source === 'historical' && baselineAttemptId !== null) {
+      const historicalBaseline = compatibleHistoricalByAttemptId.get(baselineAttemptId);
+      hasRecordedPassingBaseline =
+        historicalBaseline?.status === 'passed' &&
+        historicalBaseline.selection.adapterId === 'custom' &&
+        historicalBaseline.selection.implementationId === 'custom';
+    } else if (baselineAttemptId !== null && customTargetKey !== undefined) {
+      const recordedBaselineDirectory = join(
+        resultsRoot,
+        customTargetKey,
+        'attempts',
+        createQualificationAttemptKey(baselineAttemptId),
+      );
+      const recordedBaselinePath = join(recordedBaselineDirectory, 'attempt.json');
+
+      if (existsSync(recordedBaselinePath)) {
+        try {
+          const recordedBaseline = QualificationAttemptResultSchema.parse(
+            readJson(recordedBaselinePath),
+          );
+          await verifyQualificationAttemptStorage({
+            attemptDirectory: recordedBaselineDirectory,
+            result: recordedBaseline,
+          });
+          hasRecordedPassingBaseline =
+            recordedBaseline.attemptId === baselineAttemptId &&
+            recordedBaseline.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
+            recordedBaseline.status === 'passed' &&
+            recordedBaseline.selection.adapterId === 'custom' &&
+            recordedBaseline.selection.implementationId === 'custom';
+        } catch {
+          hasRecordedPassingBaseline = false;
+        }
       }
     }
     if (customEvidence === undefined) {
       issues.push(
-        `${evidence.relativeLatestPath} requires current passing Custom qualification evidence.`,
+        evidence.source === 'historical'
+          ? `${evidence.relativeLatestPath} requires compatible passing Custom qualification evidence.`
+          : `${evidence.relativeLatestPath} requires current passing Custom qualification evidence.`,
       );
     } else if (!hasRecordedPassingBaseline) {
       issues.push(
-        `${evidence.relativeLatestPath} does not reference a committed passing Custom baseline.`,
+        evidence.source === 'historical'
+          ? `${evidence.relativeLatestPath} does not reference a compatible passing Custom baseline.`
+          : `${evidence.relativeLatestPath} does not reference a committed passing Custom baseline.`,
       );
     }
   }

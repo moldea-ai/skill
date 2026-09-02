@@ -4,7 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { createOrderTriageAgent } from '../../profiles/custom/custom/projects/create-grounded-agent/seed/src/order-triage-agent.ts';
+import { createOrderTriageAgent } from '../../profiles/t5/cases/c3/seed/src/order-triage-agent.ts';
 
 import { DEFAULT_SKILL_REPOSITORY, QUALIFICATION_PROFILES_ROOT } from '../constants/index.ts';
 import { QualificationCaseScenarioSchema, type ICandidateClosure } from '../contracts/index.ts';
@@ -23,6 +23,8 @@ import {
   inspectWorkspaceAssertions,
   prepareQualificationProject,
 } from './index.ts';
+
+const CUSTOM_PROFILE_DIRECTORY = path.join(QUALIFICATION_PROFILES_ROOT, 't5');
 
 const createCandidateFixture = async (
   temporaryRoot: string,
@@ -162,14 +164,7 @@ describe('qualification project fixtures', () => {
 
   test('keeps the Vercel static-boundary runtime-guidance filename actor-selected', async () => {
     const scenario = await readYamlFile(
-      path.join(
-        QUALIFICATION_PROFILES_ROOT,
-        'vercel-ai-sdk',
-        'typescript-generate-stream-text-7',
-        'projects',
-        'preserve-vercel-static-boundary',
-        'scenario.yaml',
-      ),
+      path.join(QUALIFICATION_PROFILES_ROOT, 't13', 'cases', 'c10', 'scenario.yaml'),
       QualificationCaseScenarioSchema,
     );
 
@@ -207,10 +202,10 @@ describe('qualification project fixtures', () => {
       candidate,
       profileCase: {
         id: 'maintain-dirty-project',
-        projectDirectory: 'projects/maintain-dirty-project',
+        projectDirectory: 'cases/c4',
         scenarioFile: 'scenario.yaml',
       },
-      profileDirectory: path.join(QUALIFICATION_PROFILES_ROOT, 'custom', 'custom'),
+      profileDirectory: CUSTOM_PROFILE_DIRECTORY,
       skillRepository,
       skillState,
     });
@@ -273,10 +268,10 @@ describe('qualification project fixtures', () => {
       candidate,
       profileCase: {
         id: 'evaluate-aligned-project',
-        projectDirectory: 'projects/evaluate-aligned-project',
+        projectDirectory: 'cases/c1',
         scenarioFile: 'scenario.yaml',
       },
-      profileDirectory: path.join(QUALIFICATION_PROFILES_ROOT, 'custom', 'custom'),
+      profileDirectory: CUSTOM_PROFILE_DIRECTORY,
       skillRepository: DEFAULT_SKILL_REPOSITORY,
       skillState,
     });
@@ -408,18 +403,9 @@ describe('qualification project fixtures', () => {
     const skillRepository = path.join(temporaryRoot, 'skill');
     const candidate = await createCandidateFixture(temporaryRoot);
     const originalPnpmWorkspace = 'overrides:\n  fixture-only: 1.0.0\n';
-    await copyDirectory(
-      path.join(QUALIFICATION_PROFILES_ROOT, 'custom', 'custom'),
-      profileDirectory,
-    );
+    await copyDirectory(CUSTOM_PROFILE_DIRECTORY, profileDirectory);
     await writeFile(
-      path.join(
-        profileDirectory,
-        'projects',
-        'evaluate-aligned-project',
-        'seed',
-        'pnpm-workspace.yaml',
-      ),
+      path.join(profileDirectory, 'cases', 'c1', 'seed', 'pnpm-workspace.yaml'),
       originalPnpmWorkspace,
       'utf8',
     );
@@ -431,7 +417,7 @@ describe('qualification project fixtures', () => {
       candidate,
       profileCase: {
         id: 'evaluate-aligned-project',
-        projectDirectory: 'projects/evaluate-aligned-project',
+        projectDirectory: 'cases/c1',
         scenarioFile: 'scenario.yaml',
       },
       profileDirectory,
@@ -461,17 +447,8 @@ describe('qualification project fixtures', () => {
     const profileDirectory = path.join(temporaryRoot, 'profile');
     const skillRepository = path.join(temporaryRoot, 'skill');
     const candidate = await createCandidateFixture(temporaryRoot, { includeRuntimePackage: true });
-    await copyDirectory(
-      path.join(QUALIFICATION_PROFILES_ROOT, 'custom', 'custom'),
-      profileDirectory,
-    );
-    const projectManifestPath = path.join(
-      profileDirectory,
-      'projects',
-      'evaluate-aligned-project',
-      'seed',
-      'package.json',
-    );
+    await copyDirectory(CUSTOM_PROFILE_DIRECTORY, profileDirectory);
+    const projectManifestPath = path.join(profileDirectory, 'cases', 'c1', 'seed', 'package.json');
     const writeProjectManifest = async (runtimeVersion: string): Promise<void> => {
       await writeFile(
         projectManifestPath,
@@ -510,7 +487,7 @@ describe('qualification project fixtures', () => {
       candidate,
       profileCase: {
         id: 'evaluate-aligned-project',
-        projectDirectory: 'projects/evaluate-aligned-project',
+        projectDirectory: 'cases/c1',
         scenarioFile: 'scenario.yaml',
       },
       profileDirectory,

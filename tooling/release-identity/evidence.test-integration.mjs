@@ -11,6 +11,12 @@ import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from './constants.mjs';
 import { inspectReleaseEvidence } from './evidence.mjs';
 import { createSemanticCliIdentity } from './identity.mjs';
 import {
+  createCliClosureDigest,
+  createPortableSkillBehaviorDigest,
+  createSemanticCompatibilityDigest,
+  readSemanticAttemptIdentity,
+} from '../evidence-identity/index.mjs';
+import {
   createPortableSkillDigest,
   createRepositoryControlEvidence,
   createSemanticCaseDefinitionDigest,
@@ -26,6 +32,11 @@ import {
 import { calculateDirectoryFingerprint } from '../../qualification/src/filesystem/index.ts';
 import { inspectGitRepositoryState } from '../../qualification/src/repository-state/index.ts';
 import { recordQualificationResult } from '../../qualification/src/result/index.ts';
+import {
+  createQualificationAttemptKey,
+  QualificationAttemptStorageSchema,
+  resolveQualificationArtifactPath,
+} from '../../qualification/src/storage/index.ts';
 import { seedPassingQualificationEvidenceFixture } from '../../qualification/vitest/evidence-fixture.ts';
 
 const PUBLISHED_MOLDEA_MANIFESTS = [
@@ -59,6 +70,7 @@ const TYPESCRIPT_MANIFEST = {
   },
 };
 const TOOLING_SEMVER_VERSION = '7.8.5';
+const QUALIFICATION_TARGET_KEY = 't1';
 
 const PROFILE_RUNTIME_MANIFEST = {
   name: 'external-runtime',
@@ -74,6 +86,73 @@ const writeFile = (root, relativePath, content) => {
   const path = join(root, relativePath);
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, content, 'utf8');
+};
+
+const getQualificationAttemptDirectory = (root, attemptId, targetKey = QUALIFICATION_TARGET_KEY) =>
+  join(
+    root,
+    'qualification',
+    'results',
+    targetKey,
+    'attempts',
+    createQualificationAttemptKey(attemptId),
+  );
+
+const getQualificationArtifactPath = (
+  root,
+  attemptId,
+  logicalPath,
+  targetKey = QUALIFICATION_TARGET_KEY,
+) => {
+  const attemptDirectory = getQualificationAttemptDirectory(root, attemptId, targetKey);
+  const storage = QualificationAttemptStorageSchema.parse(
+    JSON.parse(readFileSync(join(attemptDirectory, 'storage.json'), 'utf8')),
+  );
+
+  return resolveQualificationArtifactPath(attemptDirectory, storage, logicalPath);
+};
+
+const synchronizeQualificationStorage = (root, attemptId, targetKey = QUALIFICATION_TARGET_KEY) => {
+  const attemptDirectory = getQualificationAttemptDirectory(root, attemptId, targetKey);
+  const attemptPath = join(attemptDirectory, 'attempt.json');
+  const attemptSource = readFileSync(attemptPath);
+  const attempt = JSON.parse(attemptSource.toString('utf8'));
+  const storagePath = join(attemptDirectory, 'storage.json');
+  const storage = QualificationAttemptStorageSchema.parse(
+    JSON.parse(readFileSync(storagePath, 'utf8')),
+  );
+  writeFileSync(
+    storagePath,
+    `${JSON.stringify(
+      {
+        ...storage,
+        attemptDigest: createHash('sha256').update(attemptSource).digest('hex'),
+        artifacts: storage.artifacts.map((artifact) => ({
+          ...artifact,
+          sha256: attempt.artifactDigests[artifact.logicalPath],
+        })),
+      },
+      null,
+      2,
+    )}\n`,
+    'utf8',
+  );
+};
+
+const copyQualificationArtifacts = (root, attemptId, destinationDirectory) => {
+  const attemptDirectory = getQualificationAttemptDirectory(root, attemptId);
+  const storage = QualificationAttemptStorageSchema.parse(
+    JSON.parse(readFileSync(join(attemptDirectory, 'storage.json'), 'utf8')),
+  );
+
+  for (const artifact of storage.artifacts) {
+    const destinationPath = join(destinationDirectory, artifact.logicalPath);
+    mkdirSync(dirname(destinationPath), { recursive: true });
+    cpSync(
+      resolveQualificationArtifactPath(attemptDirectory, storage, artifact.logicalPath),
+      destinationPath,
+    );
+  }
 };
 
 const createRecordedPackages = (manifests) =>
@@ -287,7 +366,19 @@ const seedReleaseManifests = (root) => {
   );
   writeFile(
     root,
-    'qualification/profiles/custom/custom/profile.yaml',
+    'qualification/profiles/index.yaml',
+    [
+      'version: 1',
+      'targets:',
+      '  - key: t1',
+      '    adapterId: custom',
+      '    implementationId: custom',
+      '',
+    ].join('\n'),
+  );
+  writeFile(
+    root,
+    'qualification/profiles/t1/profile.yaml',
     [
       'version: 2',
       'adapterId: custom',
@@ -297,7 +388,7 @@ const seedReleaseManifests = (root) => {
       'probesFile: probes/claims.yaml',
       'cases:',
       '  - id: release-case',
-      '    projectDirectory: projects/release-case',
+      '    projectDirectory: cases/c1',
       '    scenarioFile: scenario.yaml',
       '',
     ].join('\n'),
@@ -317,9 +408,38 @@ const seedReleaseManifests = (root) => {
     ].join('\n'),
   );
   writeFile(root, 'qualification/src/fixture.ts', 'export const fixture = true;\n');
+  writeFile(
+    root,
+    'tests/semantic-evaluation-runner.mjs',
+    'export const semanticRunnerFixture = true;\n',
+  );
   writeFile(root, 'tooling/codex-evaluation-host/fixture.mjs', 'export const fixture = true;\n');
+  writeFile(root, 'tooling/release-identity/constants.mjs', 'export const protocol = 1;\n');
+  writeFile(root, 'tooling/release-identity/identity.mjs', 'export const identity = true;\n');
+  writeFile(root, 'tooling/semantic-evaluation/fixture.mjs', 'export const fixture = true;\n');
   writeFile(root, 'tooling/package-candidate/fixture.mjs', 'export const fixture = true;\n');
-  writeFile(root, 'moldea/SKILL.md', '# moldea fixture\n');
+  writeFile(
+    root,
+    'moldea/SKILL.md',
+    [
+      '---',
+      'name: moldea-fixture',
+      'description: Release evidence fixture.',
+      'metadata:',
+      '  version: 4.0.0',
+      '---',
+      '',
+      '# moldea fixture',
+      '',
+      'Skill release `4.0.0` supports exactly:',
+      '',
+    ].join('\n'),
+  );
+  writeFile(
+    root,
+    'moldea/references/local-tooling.md',
+    '# Local tooling\n\nRelease `4.0.0` supports:\n',
+  );
   writeFile(root, 'fixtures/conformance-cases.json', '{"semanticCases":[]}\n');
   writeFile(
     root,
@@ -360,7 +480,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     };
     assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), [
       'fixtures/semantic-evaluation-result.json is missing fresh semantic evidence.',
-      'qualification/results/custom/custom/latest.json is missing qualification evidence.',
+      'qualification/results/t1/latest.json is missing qualification evidence.',
     ]);
 
     const semanticCases = [
@@ -470,6 +590,30 @@ test('release evidence inspection requires fresh passing semantic and qualificat
         semanticAttemptId: semanticAttempt.attemptId,
       })}\n`,
     );
+    const semanticAttemptDirectory = join(
+      temporaryRoot,
+      'fixtures/semantic-evaluation-results/attempts',
+      semanticAttempt.attemptId,
+    );
+    const semanticAttemptSource = readFileSync(join(semanticAttemptDirectory, 'attempt.json'));
+    const semanticEvidenceSource = readFileSync(join(semanticAttemptDirectory, 'evidence.json'));
+    writeFile(
+      temporaryRoot,
+      `fixtures/semantic-evaluation-results/attempts/${semanticAttempt.attemptId}/identity.json`,
+      `${JSON.stringify({
+        argumentDigest: '1'.repeat(64),
+        attemptId: semanticAttempt.attemptId,
+        attemptSha256: createHash('sha256').update(semanticAttemptSource).digest('hex'),
+        cliClosureDigest: createCliClosureDigest(temporaryRoot),
+        evidenceSha256: createHash('sha256').update(semanticEvidenceSource).digest('hex'),
+        invocationId: '00000000-0000-4000-8000-000000000000',
+        portableSkillBehaviorDigest: createPortableSkillBehaviorDigest(temporaryRoot),
+        schemaVersion: 1,
+        semanticCompatibilityDigest: createSemanticCompatibilityDigest(temporaryRoot),
+        sourceCommit: '1'.repeat(40),
+        sourceDigest: '2'.repeat(64),
+      })}\n`,
+    );
     const packagesState = await inspectGitRepositoryState(packagesRepository);
     const adapter = matrix.adapters.custom;
     const target = adapter.targets[0];
@@ -497,7 +641,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     skippedInitialJudgeStage.durationMs = 2;
     const qualificationDigest = await calculateQualificationExecutionDigest({
       caseIds: ['release-case'],
-      profileDirectory: join(temporaryRoot, 'qualification/profiles/custom/custom'),
+      profileDirectory: join(temporaryRoot, 'qualification/profiles/t1'),
       roots: {
         evaluationHostRoot: join(temporaryRoot, 'tooling/codex-evaluation-host'),
         packageCandidateRoot: join(temporaryRoot, 'tooling/package-candidate'),
@@ -526,6 +670,228 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     rmSync(qualificationArtifacts, { force: true, recursive: true });
 
     assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
+
+    const metadataSources = new Map(
+      [
+        ['package.json', '3.1.0', '3.1.1'],
+        ['package-lock.json', '3.1.0', '3.1.1'],
+        ['moldea/SKILL.md', '4.0.0', '4.0.1'],
+        ['moldea/references/local-tooling.md', '4.0.0', '4.0.1'],
+      ].map(([relativePath, currentVersion, nextVersion]) => {
+        const absolutePath = join(temporaryRoot, ...relativePath.split('/'));
+        const source = readFileSync(absolutePath, 'utf8');
+        writeFileSync(absolutePath, source.replaceAll(currentVersion, nextVersion), 'utf8');
+        return [absolutePath, source];
+      }),
+    );
+    const metadataOnlyIssues = await inspectReleaseEvidence(temporaryRoot, inspectionOptions);
+    const compatibleSemanticIdentity = readSemanticAttemptIdentity(
+      temporaryRoot,
+      semanticAttempt.attemptId,
+    );
+    assert.ok(compatibleSemanticIdentity);
+    assert.equal(
+      compatibleSemanticIdentity.cliClosureDigest,
+      createCliClosureDigest(temporaryRoot),
+    );
+    assert.equal(
+      compatibleSemanticIdentity.portableSkillBehaviorDigest,
+      createPortableSkillBehaviorDigest(temporaryRoot),
+    );
+    assert.equal(
+      compatibleSemanticIdentity.semanticCompatibilityDigest,
+      createSemanticCompatibilityDigest(temporaryRoot),
+    );
+    assert.deepEqual(metadataOnlyIssues, []);
+    const semanticRunnerPath = join(temporaryRoot, 'tests/semantic-evaluation-runner.mjs');
+    const exactSemanticRunner = readFileSync(semanticRunnerPath);
+    writeFileSync(
+      semanticRunnerPath,
+      Buffer.concat([exactSemanticRunner, Buffer.from('\n// changed semantic input\n')]),
+    );
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).some((issue) =>
+        issue.startsWith('fixtures/'),
+      ),
+    );
+    writeFileSync(semanticRunnerPath, exactSemanticRunner);
+    for (const [absolutePath, source] of metadataSources) {
+      writeFileSync(absolutePath, source, 'utf8');
+    }
+    assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
+
+    const historicalAttemptDirectory = getQualificationAttemptDirectory(temporaryRoot, attemptId);
+    const historicalAttempt = JSON.parse(
+      readFileSync(join(historicalAttemptDirectory, 'attempt.json'), 'utf8'),
+    );
+    const historicalStorage = QualificationAttemptStorageSchema.parse(
+      JSON.parse(readFileSync(join(historicalAttemptDirectory, 'storage.json'), 'utf8')),
+    );
+    const historicalStoragePath = join(historicalAttemptDirectory, 'storage.json');
+    writeFileSync(
+      historicalStoragePath,
+      `${JSON.stringify({
+        ...historicalStorage,
+        portableSkillBehaviorDigest: '0'.repeat(64),
+      })}\n`,
+      'utf8',
+    );
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
+        'qualification/results/t1/latest.json does not match the current release inputs.',
+      ),
+    );
+    writeFileSync(historicalStoragePath, `${JSON.stringify(historicalStorage)}\n`, 'utf8');
+    const historicalPackages = [...historicalAttempt.provenance.packages].sort(
+      ({ name: left }, { name: right }) => left.localeCompare(right, 'en'),
+    );
+    const candidateCliClosureDigest = createCliClosureDigest(temporaryRoot);
+    const candidatePortableSkillBehaviorDigest = createPortableSkillBehaviorDigest(temporaryRoot);
+    const candidateSemanticCompatibilityDigest = createSemanticCompatibilityDigest(temporaryRoot);
+    const historicalAttestation = {
+      semantic: {
+        cliClosureDigest: candidateCliClosureDigest,
+        portableSkillBehaviorDigest: candidatePortableSkillBehaviorDigest,
+        semanticCompatibilityDigest: candidateSemanticCompatibilityDigest,
+      },
+      qualification: {
+        envelopes: [
+          {
+            attemptId: historicalAttempt.attemptId,
+            status: 'passed',
+            selection: historicalAttempt.selection,
+            compatibility: historicalStorage.compatibility,
+            targetCompatibilityDigest: historicalAttempt.provenance.targetDigest,
+            portableSkillBehaviorDigest: candidatePortableSkillBehaviorDigest,
+            cliClosureDigest: candidateCliClosureDigest,
+            environment: {
+              model: historicalAttempt.provenance.model,
+              reasoningEffort: historicalAttempt.provenance.reasoningEffort,
+            },
+            packages: historicalPackages,
+            baselineAttemptId: null,
+            baselineReplay: 'not-required',
+            completedAt: historicalAttempt.completedAt,
+            createdAt: historicalAttempt.createdAt,
+          },
+        ],
+      },
+    };
+    const carryForwardPath = join(
+      temporaryRoot,
+      'fixtures/release-evidence/carry-forward-4.0.1.json',
+    );
+    mkdirSync(dirname(carryForwardPath), { recursive: true });
+    writeFileSync(carryForwardPath, '{}\n');
+    const historicalInspectionOptions = {
+      ...inspectionOptions,
+      verifyCarryForwardSourceAttestation: async () => historicalAttestation,
+    };
+    const currentQualificationCopy = join(temporaryRoot, '.current-qualification-result');
+    cpSync(join(temporaryRoot, 'qualification/results/t1'), currentQualificationCopy, {
+      recursive: true,
+    });
+    rmSync(join(temporaryRoot, 'qualification/results/t1'), {
+      force: true,
+      recursive: true,
+    });
+    assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, historicalInspectionOptions), []);
+
+    for (const mutateAttestation of [
+      (candidate) => {
+        candidate.qualification.envelopes[0].portableSkillBehaviorDigest = '0'.repeat(64);
+      },
+      (candidate) => {
+        candidate.qualification.envelopes[0].cliClosureDigest = '0'.repeat(64);
+      },
+      (candidate) => {
+        candidate.qualification.envelopes[0].compatibility.qualificationEvaluatorDigest =
+          '0'.repeat(64);
+      },
+      (candidate) => {
+        candidate.qualification.envelopes[0].compatibility.qualificationLogicalInputDigest =
+          '0'.repeat(64);
+      },
+      (candidate) => {
+        candidate.qualification.envelopes[0].compatibility.qualificationBaselineEvaluatorDigest =
+          '0'.repeat(64);
+      },
+      (candidate) => {
+        candidate.qualification.envelopes[0].targetCompatibilityDigest = '0'.repeat(64);
+      },
+      (candidate) => {
+        candidate.qualification.envelopes[0].environment.model = 'changed-model';
+      },
+      (candidate) => {
+        candidate.qualification.envelopes[0].packages[0].sha256 = '0'.repeat(64);
+      },
+      (candidate) => {
+        candidate.qualification.envelopes[0].baselineReplay = 'passed';
+      },
+    ]) {
+      const incompatibleAttestation = structuredClone(historicalAttestation);
+      mutateAttestation(incompatibleAttestation);
+      const incompatibleIssues = await inspectReleaseEvidence(temporaryRoot, {
+        ...inspectionOptions,
+        verifyCarryForwardSourceAttestation: async () => incompatibleAttestation,
+      });
+      assert.ok(
+        incompatibleIssues.includes(
+          'qualification/results/t1/latest.json is missing qualification evidence.',
+        ),
+      );
+    }
+
+    cpSync(currentQualificationCopy, join(temporaryRoot, 'qualification/results/t1'), {
+      recursive: true,
+    });
+    rmSync(currentQualificationCopy, { force: true, recursive: true });
+    const incompatibleAttestation = structuredClone(historicalAttestation);
+    incompatibleAttestation.qualification.envelopes[0].compatibility.qualificationEvaluatorDigest =
+      '0'.repeat(64);
+    assert.deepEqual(
+      await inspectReleaseEvidence(temporaryRoot, {
+        ...inspectionOptions,
+        verifyCarryForwardSourceAttestation: async () => incompatibleAttestation,
+      }),
+      [],
+    );
+    const currentSemanticResultPath = join(
+      temporaryRoot,
+      'fixtures/semantic-evaluation-result.json',
+    );
+    const currentSemanticResult = readFileSync(currentSemanticResultPath);
+    rmSync(currentSemanticResultPath);
+    assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, historicalInspectionOptions), []);
+    writeFileSync(currentSemanticResultPath, '{}\n');
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, historicalInspectionOptions)).includes(
+        'fixtures/semantic-evaluation-result.json does not use the exact semantic result fields.',
+      ),
+    );
+    rmSync(currentSemanticResultPath);
+    const incompatibleSemanticAttestation = structuredClone(historicalAttestation);
+    incompatibleSemanticAttestation.semantic.portableSkillBehaviorDigest = '0'.repeat(64);
+    assert.ok(
+      (
+        await inspectReleaseEvidence(temporaryRoot, {
+          ...inspectionOptions,
+          verifyCarryForwardSourceAttestation: async () => incompatibleSemanticAttestation,
+        })
+      ).includes('fixtures/semantic-evaluation-result.json is missing fresh semantic evidence.'),
+    );
+    writeFileSync(
+      semanticRunnerPath,
+      Buffer.concat([exactSemanticRunner, Buffer.from('\n// changed semantic input\n')]),
+    );
+    assert.ok(
+      (await inspectReleaseEvidence(temporaryRoot, historicalInspectionOptions)).includes(
+        'fixtures/semantic-evaluation-result.json is missing fresh semantic evidence.',
+      ),
+    );
+    writeFileSync(semanticRunnerPath, exactSemanticRunner);
+    writeFileSync(currentSemanticResultPath, currentSemanticResult);
+    rmSync(carryForwardPath);
 
     const semanticResultPath = join(temporaryRoot, 'fixtures/semantic-evaluation-result.json');
     const exactSemanticResult = JSON.parse(readFileSync(semanticResultPath, 'utf8'));
@@ -637,9 +1003,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
 
     const attemptPath = join(
-      temporaryRoot,
-      'qualification/results/custom/custom/attempts',
-      attemptId,
+      getQualificationAttemptDirectory(temporaryRoot, attemptId),
       'attempt.json',
     );
     const exactAttempt = JSON.parse(readFileSync(attemptPath, 'utf8'));
@@ -649,16 +1013,17 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     );
     actorRetryStage.operationalRetries[0].retryDelayMs = 0;
     writeFileSync(attemptPath, `${JSON.stringify(invalidRetryAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, attemptId);
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).some((issue) =>
         issue.includes('Operational retry delay does not match the bounded backoff policy.'),
       ),
     );
     writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, attemptId);
 
-    const actorOutputPath = join(
+    const actorOutputPath = getQualificationArtifactPath(
       temporaryRoot,
-      'qualification/results/custom/custom/attempts',
       attemptId,
       'cases/release-case/trials/initial/actor-output.json',
     );
@@ -670,21 +1035,20 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     ] = createHash('sha256').update(malformedActorOutput).digest('hex');
     writeFileSync(actorOutputPath, malformedActorOutput, 'utf8');
     writeFileSync(attemptPath, `${JSON.stringify(malformedArtifactAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, attemptId);
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).some((issue) =>
-        issue.startsWith(
-          'qualification/results/custom/custom/attempts/custom-release-baseline is invalid:',
-        ),
+        issue.startsWith('qualification/results/t1/attempts/a-'),
       ),
     );
     writeFileSync(actorOutputPath, exactActorOutput, 'utf8');
     writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, attemptId);
 
     for (const role of ['actor', 'judge']) {
       const relativeEvidencePath = `cases/release-case/trials/confirmation-1/${role}-evidence.json`;
-      const evidencePath = join(
+      const evidencePath = getQualificationArtifactPath(
         temporaryRoot,
-        'qualification/results/custom/custom/attempts',
         attemptId,
         relativeEvidencePath,
       );
@@ -703,20 +1067,19 @@ test('release evidence inspection requires fresh passing semantic and qualificat
         .digest('hex');
       writeFileSync(evidencePath, observedEvidenceContent, 'utf8');
       writeFileSync(attemptPath, `${JSON.stringify(observedPolicyAttempt)}\n`, 'utf8');
+      synchronizeQualificationStorage(temporaryRoot, attemptId);
       assert.ok(
         (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).some((issue) =>
-          issue.startsWith(
-            'qualification/results/custom/custom/attempts/custom-release-baseline is invalid:',
-          ),
+          issue.startsWith('qualification/results/t1/attempts/a-'),
         ),
       );
       writeFileSync(evidencePath, exactEvidence, 'utf8');
       writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
+      synchronizeQualificationStorage(temporaryRoot, attemptId);
     }
 
-    const deterministicAfterPath = join(
+    const deterministicAfterPath = getQualificationArtifactPath(
       temporaryRoot,
-      'qualification/results/custom/custom/attempts',
       attemptId,
       'cases/release-case/trials/initial/deterministic-after.json',
     );
@@ -730,20 +1093,23 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     ] = createHash('sha256').update(contradictoryDeterministicContent).digest('hex');
     writeFileSync(deterministicAfterPath, contradictoryDeterministicContent, 'utf8');
     writeFileSync(attemptPath, `${JSON.stringify(contradictoryAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, attemptId);
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
-        'qualification/results/custom/custom/latest.json does not contain every current passing case artifact.',
+        'qualification/results/t1/latest.json does not contain every current passing case artifact.',
       ),
     );
     writeFileSync(deterministicAfterPath, exactDeterministicAfter, 'utf8');
     writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, attemptId);
 
     const staleTargetAttempt = structuredClone(exactAttempt);
     staleTargetAttempt.provenance.targetDigest = 'f'.repeat(64);
     writeFileSync(attemptPath, `${JSON.stringify(staleTargetAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, attemptId);
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
-        'qualification/results/custom/custom/latest.json does not match the current release inputs.',
+        'qualification/results/t1/latest.json does not match the current release inputs.',
       ),
     );
 
@@ -751,9 +1117,10 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     incompleteClosureAttempt.provenance.packages =
       incompleteClosureAttempt.provenance.packages.filter(({ name }) => name !== '@moldea.ai/core');
     writeFileSync(attemptPath, `${JSON.stringify(incompleteClosureAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, attemptId);
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
-        'qualification/results/custom/custom/latest.json does not match the current release inputs.',
+        'qualification/results/t1/latest.json does not match the current release inputs.',
       ),
     );
 
@@ -764,13 +1131,15 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     assert.ok(compilerPackage);
     compilerPackage.sha256 = 'f'.repeat(64);
     writeFileSync(attemptPath, `${JSON.stringify(mismatchedCompilerAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, attemptId);
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
-        'qualification/results/custom/custom/latest.json does not match the current release inputs.',
+        'qualification/results/t1/latest.json does not match the current release inputs.',
       ),
     );
 
     writeFileSync(attemptPath, `${JSON.stringify(exactAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, attemptId);
     const toolingManifestPath = join(temporaryRoot, 'package.json');
     const toolingLockPath = join(temporaryRoot, 'package-lock.json');
     const exactToolingManifest = readFileSync(toolingManifestPath, 'utf8');
@@ -788,7 +1157,7 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     writeFileSync(toolingLockPath, `${JSON.stringify(changedToolingLock)}\n`, 'utf8');
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
-        'qualification/results/custom/custom/latest.json does not match the current release inputs.',
+        'qualification/results/t1/latest.json does not match the current release inputs.',
       ),
     );
     writeFileSync(toolingManifestPath, exactToolingManifest, 'utf8');
@@ -805,19 +1174,34 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     );
     assert.ok(
       !stalePackagesIssues.includes(
-        'qualification/results/custom/custom/latest.json does not match the current release inputs.',
+        'qualification/results/t1/latest.json does not match the current release inputs.',
       ),
     );
     writeFileSync(matrixPath, matrixContent, 'utf8');
 
     cpSync(
-      join(temporaryRoot, 'qualification/profiles/custom/custom'),
-      join(temporaryRoot, 'qualification/profiles/external/external-stream'),
+      join(temporaryRoot, 'qualification/profiles/t1'),
+      join(temporaryRoot, 'qualification/profiles/t2'),
       { recursive: true },
     );
     writeFile(
       temporaryRoot,
-      'qualification/profiles/external/external-stream/profile.yaml',
+      'qualification/profiles/index.yaml',
+      [
+        'version: 1',
+        'targets:',
+        '  - key: t1',
+        '    adapterId: custom',
+        '    implementationId: custom',
+        '  - key: t2',
+        '    adapterId: external',
+        '    implementationId: external-stream',
+        '',
+      ].join('\n'),
+    );
+    writeFile(
+      temporaryRoot,
+      'qualification/profiles/t2/profile.yaml',
       [
         'version: 2',
         'adapterId: external',
@@ -830,14 +1214,14 @@ test('release evidence inspection requires fresh passing semantic and qualificat
         'probesFile: probes/claims.yaml',
         'cases:',
         '  - id: release-case',
-        '    projectDirectory: projects/release-case',
+        '    projectDirectory: cases/c1',
         '    scenarioFile: scenario.yaml',
         '',
       ].join('\n'),
     );
     writeFile(
       temporaryRoot,
-      'qualification/profiles/external/external-stream/probes/claims.yaml',
+      'qualification/profiles/t2/probes/claims.yaml',
       [
         'version: 2',
         'adapterId: external',
@@ -892,27 +1276,19 @@ test('release evidence inspection requires fresh passing semantic and qualificat
     );
     assert.ok(
       issuesAfterUnrelatedAdapterAddition.includes(
-        'qualification/results/external/external-stream/latest.json is missing qualification evidence.',
+        'qualification/results/t2/latest.json is missing qualification evidence.',
       ),
     );
     assert.ok(
       !issuesAfterUnrelatedAdapterAddition.includes(
-        'qualification/results/custom/custom/latest.json does not match the current release inputs.',
+        'qualification/results/t1/latest.json does not match the current release inputs.',
       ),
     );
 
     const externalAttemptId = 'external-release-attempt';
-    const externalAttemptDirectory = join(
-      temporaryRoot,
-      'qualification/results/external/external-stream/attempts',
-      externalAttemptId,
-    );
-    cpSync(
-      join(temporaryRoot, 'qualification/results/custom/custom/attempts', attemptId),
-      externalAttemptDirectory,
-      { recursive: true },
-    );
-    const externalBaselinePath = join(externalAttemptDirectory, 'baseline.json');
+    const externalArtifacts = join(temporaryRoot, '.qualification-external-artifacts');
+    copyQualificationArtifacts(temporaryRoot, attemptId, externalArtifacts);
+    const externalBaselinePath = join(externalArtifacts, 'baseline.json');
     const externalBaselineContent = `${JSON.stringify({
       required: true,
       passed: true,
@@ -921,19 +1297,18 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       failures: [],
     })}\n`;
     writeFileSync(externalBaselinePath, externalBaselineContent, 'utf8');
-    const externalAttemptPath = join(externalAttemptDirectory, 'attempt.json');
-    const externalAttempt = JSON.parse(readFileSync(externalAttemptPath, 'utf8'));
+    const externalAttempt = structuredClone(exactAttempt);
     externalAttempt.attemptId = externalAttemptId;
     externalAttempt.selection = {
       adapterId: 'external',
       implementationId: 'external-stream',
     };
     externalAttempt.provenance.profileDigest = await calculateQualificationProfileDigest(
-      join(temporaryRoot, 'qualification', 'profiles', 'external', 'external-stream'),
+      join(temporaryRoot, 'qualification', 'profiles', 't2'),
     );
     externalAttempt.provenance.qualificationDigest = await calculateQualificationExecutionDigest({
       caseIds: ['release-case'],
-      profileDirectory: join(temporaryRoot, 'qualification/profiles/external/external-stream'),
+      profileDirectory: join(temporaryRoot, 'qualification/profiles/t2'),
       roots: {
         evaluationHostRoot: join(temporaryRoot, 'tooling/codex-evaluation-host'),
         packageCandidateRoot: join(temporaryRoot, 'tooling/package-candidate'),
@@ -956,30 +1331,26 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       const roles = trialId === 'initial' ? ['actor'] : ['actor', 'judge'];
       for (const role of roles) {
         const relativeEvidencePath = `cases/release-case/trials/${trialId}/${role}-evidence.json`;
-        const evidencePath = join(externalAttemptDirectory, relativeEvidencePath);
+        const evidencePath = join(externalArtifacts, relativeEvidencePath);
         const evidence = JSON.parse(readFileSync(evidencePath, 'utf8'));
         evidence.sourceAttemptId = externalAttemptId;
         const evidenceContent = `${JSON.stringify(evidence, null, 2)}\n`;
         writeFileSync(evidencePath, evidenceContent, 'utf8');
-        externalAttempt.artifactDigests[relativeEvidencePath] = createHash('sha256')
-          .update(evidenceContent)
-          .digest('hex');
       }
     }
-    writeFileSync(externalAttemptPath, `${JSON.stringify(externalAttempt)}\n`, 'utf8');
-    writeFile(
-      temporaryRoot,
-      'qualification/results/external/external-stream/latest.json',
-      `${JSON.stringify({
-        protocolVersion: 6,
-        adapterId: 'external',
-        implementationId: 'external-stream',
-        latestAttemptId: externalAttemptId,
-        latestStatus: 'passed',
-        lastPassingAttemptId: externalAttemptId,
-        updatedAt: '2026-08-21T10:01:00.000Z',
-      })}\n`,
+    await recordQualificationResult(
+      {
+        artifactDirectory: externalArtifacts,
+        result: externalAttempt,
+        sanitizationContext: {
+          attemptDirectory: '/attempt',
+          packagesRepository: '/packages',
+          skillRepository: '/skill',
+        },
+      },
+      join(temporaryRoot, 'qualification', 'results'),
     );
+    rmSync(externalArtifacts, { force: true, recursive: true });
     assert.deepEqual(await inspectReleaseEvidence(temporaryRoot, inspectionOptions), []);
 
     const replacementBaselineArtifacts = join(
@@ -998,6 +1369,21 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       ),
       targetDigest: calculateQualificationTargetDigest(adapter, target),
     });
+    writeFile(
+      temporaryRoot,
+      'qualification/profiles/index.yaml',
+      [
+        'version: 1',
+        'targets:',
+        '  - key: t1',
+        '    adapterId: custom',
+        '    implementationId: custom',
+        '  - key: t2',
+        '    adapterId: external',
+        '    implementationId: external-stream',
+        '',
+      ].join('\n'),
+    );
     await recordQualificationResult(
       {
         artifactDirectory: replacementBaselineArtifacts,
@@ -1020,28 +1406,41 @@ test('release evidence inspection requires fresh passing semantic and qualificat
       baselineAttemptId: 'stale-custom-attempt',
       failures: [],
     })}\n`;
-    writeFileSync(externalBaselinePath, staleBaselineContent, 'utf8');
-    externalAttempt.provenance.baselineAttemptId = 'stale-custom-attempt';
-    externalAttempt.artifactDigests['baseline.json'] = createHash('sha256')
+    const recordedExternalBaselinePath = getQualificationArtifactPath(
+      temporaryRoot,
+      externalAttemptId,
+      'baseline.json',
+      't2',
+    );
+    const externalAttemptPath = join(
+      getQualificationAttemptDirectory(temporaryRoot, externalAttemptId, 't2'),
+      'attempt.json',
+    );
+    const recordedExternalAttempt = JSON.parse(readFileSync(externalAttemptPath, 'utf8'));
+    writeFileSync(recordedExternalBaselinePath, staleBaselineContent, 'utf8');
+    recordedExternalAttempt.provenance.baselineAttemptId = 'stale-custom-attempt';
+    recordedExternalAttempt.artifactDigests['baseline.json'] = createHash('sha256')
       .update(staleBaselineContent)
       .digest('hex');
-    writeFileSync(externalAttemptPath, `${JSON.stringify(externalAttempt)}\n`, 'utf8');
+    writeFileSync(externalAttemptPath, `${JSON.stringify(recordedExternalAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, externalAttemptId, 't2');
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
-        'qualification/results/external/external-stream/latest.json does not reference a committed passing Custom baseline.',
+        'qualification/results/t2/latest.json does not reference a committed passing Custom baseline.',
       ),
     );
 
     const replacementBaselineAttemptPath = join(
-      temporaryRoot,
-      'qualification/results/custom/custom/attempts/zz-current-custom-baseline/attempt.json',
+      getQualificationAttemptDirectory(temporaryRoot, 'zz-current-custom-baseline'),
+      'attempt.json',
     );
     const incompleteAttempt = JSON.parse(readFileSync(replacementBaselineAttemptPath, 'utf8'));
     incompleteAttempt.cases = [];
     writeFileSync(replacementBaselineAttemptPath, `${JSON.stringify(incompleteAttempt)}\n`, 'utf8');
+    synchronizeQualificationStorage(temporaryRoot, 'zz-current-custom-baseline');
     assert.ok(
       (await inspectReleaseEvidence(temporaryRoot, inspectionOptions)).includes(
-        'qualification/results/custom/custom/latest.json does not contain every current passing case artifact.',
+        'qualification/results/t1/latest.json does not contain every current passing case artifact.',
       ),
     );
   } finally {

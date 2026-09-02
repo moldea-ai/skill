@@ -43,11 +43,11 @@ const successfulCaseCount =
       <p class="eyebrow mt-5">Behavioral release evidence</p>
       <h1 class="section-title mt-3 max-w-5xl font-semibold">Semantic evaluation</h1>
       <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-        Every immutable attempt is shown as it happened, but only evidence matching the current Sol
-        protocol and exact release inputs counts as release assurance. Each completed scenario uses
-        a blind actor and an independent judge. Open a scenario to replay the recorded interaction,
-        safe command results, workspace changes, and verdict before inspecting its evaluation
-        criteria.
+        Every immutable attempt is shown as it happened, but only evidence verified against the
+        current skill behavior, CLI closure, scenario suite, coverage, and Sol protocol counts as
+        release assurance. Each completed scenario uses a blind actor and an independent judge. Open
+        a scenario to replay the recorded interaction, safe command results, workspace changes, and
+        verdict before inspecting its evaluation criteria.
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink
@@ -62,15 +62,15 @@ const successfulCaseCount =
           />
         </ActionLink>
         {
-          semanticEvaluation.latest !== null && (
+          semanticEvaluation.currentAssurance !== null && (
             <ActionLink
               class="font-bold"
-              href={semanticEvaluation.latest.rawEvidenceUrl}
+              href={semanticEvaluation.currentAssurance.rawEvidenceUrl}
               target="_blank"
               rel="noopener noreferrer"
               variant="outline"
             >
-              Inspect latest raw evidence
+              Inspect current raw evidence
               <ExternalLink
                 class="size-4"
                 aria-hidden="true"
@@ -93,6 +93,37 @@ const successfulCaseCount =
         </ActionLink>
       </div>
     </header>
+
+    {
+      semanticEvaluation.evidenceMatch === 'compatible' &&
+        semanticEvaluation.currentAssurance !== null && (
+          <section
+            class="border-b border-border py-8"
+            aria-labelledby="compatible-semantic-evidence-title"
+          >
+            <div class="surface-card max-w-4xl p-5 sm:p-6">
+              <p class="eyebrow mb-3">Source-attested compatible evidence</p>
+              <h2
+                id="compatible-semantic-evidence-title"
+                class="text-xl font-semibold tracking-tight"
+              >
+                This release reuses a verified semantic attempt.
+              </h2>
+              <p class="mt-3 leading-7 text-muted-foreground">
+                The release gate verified that immutable attempt{' '}
+                <a
+                  class="font-mono text-sm font-semibold break-all text-link underline-offset-4 hover:underline"
+                  href={withBase(semanticEvaluation.currentAssurance.route, basePath)}
+                >
+                  {semanticEvaluation.currentAssurance.result.attemptId}
+                </a>{' '}
+                matches the current skill behavior, CLI closure, scenario suite, coverage, and
+                evaluation protocol. No new model run was performed for this release.
+              </p>
+            </div>
+          </section>
+        )
+    }
 
     <section
       class="grid gap-3 border-b border-border py-10 sm:grid-cols-2 lg:grid-cols-4"
@@ -229,6 +260,35 @@ const successfulCaseCount =
         </summary>
         <dl class="mt-5 grid min-w-0 gap-4 text-sm sm:grid-cols-2">
           <div>
+            <dt class="text-muted-foreground">Evidence match</dt>
+            <dd class="mt-1 font-mono break-all">
+              {
+                semanticEvaluation.evidenceMatch === 'compatible'
+                  ? 'Source-attested compatible inputs'
+                  : semanticEvaluation.evidenceMatch === 'exact'
+                    ? 'Exact release inputs'
+                    : 'No current evidence'
+              }
+            </dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Source attempt</dt>
+            <dd class="mt-1 font-mono break-all">
+              {
+                semanticEvaluation.currentAssurance === null ? (
+                  'Not recorded'
+                ) : (
+                  <a
+                    class="text-link underline-offset-4 hover:underline"
+                    href={withBase(semanticEvaluation.currentAssurance.route, basePath)}
+                  >
+                    {semanticEvaluation.currentAssurance.result.attemptId}
+                  </a>
+                )
+              }
+            </dd>
+          </div>
+          <div>
             <dt class="text-muted-foreground">Evaluated at</dt>
             <dd class="mt-1 font-mono break-all">
               {semanticEvaluation.evaluatedAt ?? 'Not recorded'}
@@ -245,7 +305,13 @@ const successfulCaseCount =
             </dd>
           </div>
           <div>
-            <dt class="text-muted-foreground">Portable artifact digest</dt>
+            <dt class="text-muted-foreground">Evaluated artifact digest</dt>
+            <dd class="mt-1 font-mono text-xs break-all">
+              {semanticEvaluation.currentAssurance?.result.artifactDigest ?? 'Not recorded'}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">Current candidate artifact digest</dt>
             <dd class="mt-1 font-mono text-xs break-all">
               {semanticEvaluation.artifactDigest}
             </dd>

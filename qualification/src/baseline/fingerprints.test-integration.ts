@@ -114,20 +114,17 @@ describe('qualification baseline fingerprint', () => {
   test('ignores adapter-only growth while retaining universal evaluator behavior', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-baseline-fingerprint-'));
     const files = {
-      adapterProfile: path.join(
-        temporaryRoot,
-        'qualification/profiles/example/typescript/profile.yaml',
-      ),
+      adapterProfile: path.join(temporaryRoot, 'qualification/profiles/t2/profile.yaml'),
       caseCatalog: path.join(temporaryRoot, 'qualification/cases/cases.yaml'),
-      customReadme: path.join(temporaryRoot, 'qualification/profiles/custom/custom/README.md'),
+      profileIndex: path.join(temporaryRoot, 'qualification/profiles/index.yaml'),
+      customProfile: path.join(temporaryRoot, 'qualification/profiles/t1/profile.yaml'),
+      customProbes: path.join(temporaryRoot, 'qualification/profiles/t1/probes/claims.yaml'),
+      customReadme: path.join(temporaryRoot, 'qualification/profiles/t1/README.md'),
       customFixtureReadme: path.join(
         temporaryRoot,
-        'qualification/profiles/custom/custom/projects/evaluate/seed/README.md',
+        'qualification/profiles/t1/cases/c1/seed/README.md',
       ),
-      customTask: path.join(
-        temporaryRoot,
-        'qualification/profiles/custom/custom/projects/evaluate/task.md',
-      ),
+      customTask: path.join(temporaryRoot, 'qualification/profiles/t1/cases/c1/task.md'),
       evaluator: path.join(temporaryRoot, 'qualification/src/execution/executor.ts'),
       evaluatorDeclaration: path.join(temporaryRoot, 'qualification/src/execution/executor.d.ts'),
       evaluatorTest: path.join(
@@ -153,6 +150,45 @@ describe('qualification baseline fingerprint', () => {
     await Promise.all([
       writeFile(files.adapterProfile, 'version: 2\nadapterId: example\n', 'utf8'),
       writeFile(files.caseCatalog, createCaseCatalog('Initial adapter case.'), 'utf8'),
+      writeFile(
+        files.profileIndex,
+        [
+          'version: 1',
+          'targets:',
+          '  - key: t1',
+          '    adapterId: custom',
+          '    implementationId: custom',
+          '  - key: t2',
+          '    adapterId: example',
+          '    implementationId: typescript',
+          '',
+        ].join('\n'),
+        'utf8',
+      ),
+      writeFile(
+        files.customProfile,
+        [
+          'version: 2',
+          'adapterId: custom',
+          'implementationId: custom',
+          'title: Custom fixture',
+          'description: Custom universal baseline fixture.',
+          'probesFile: probes/claims.yaml',
+          'cases:',
+          '  - id: evaluate-aligned-project',
+          '    projectDirectory: cases/c1',
+          '    scenarioFile: scenario.yaml',
+          '',
+        ].join('\n'),
+        'utf8',
+      ),
+      writeFile(
+        files.customProbes,
+        ['version: 2', 'adapterId: custom', 'implementationId: custom', 'probes: []', ''].join(
+          '\n',
+        ),
+        'utf8',
+      ),
       writeFile(files.customReadme, '# Custom profile\n', 'utf8'),
       writeFile(files.customFixtureReadme, '# Existing project documentation\n', 'utf8'),
       writeFile(files.customTask, '# Evaluate the project\n', 'utf8'),

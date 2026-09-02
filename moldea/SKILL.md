@@ -5,7 +5,7 @@ description: >-
 license: MIT
 metadata:
   # prettier-ignore
-  version: '4.0.0'
+  version: '4.0.1'
 ---
 
 # moldea
@@ -26,7 +26,7 @@ Agent-system planning applies only when the developer asks how an AI-enabled obj
 
 ## Release compatibility
 
-Skill release `4.0.0` supports exactly:
+Skill release `4.0.1` supports exactly:
 
 - `@moldea.ai/cli: 5.0.0`
 - CLI JSON schema: `2`

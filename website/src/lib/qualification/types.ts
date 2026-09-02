@@ -622,6 +622,19 @@ export interface IQualificationArtifactModel {
   sha256: string | null;
 }
 
+// repository location from which one website attempt was resolved at build time
+export type IQualificationEvidenceSourceModel =
+  | {
+      commit: null;
+      kind: 'current';
+      release: null;
+    }
+  | {
+      commit: string;
+      kind: 'historical';
+      release: string;
+    };
+
 // one transparent case and project selected by a qualification profile
 export interface IQualificationProfileCaseModel {
   catalogChallenge: string;
@@ -671,6 +684,7 @@ export interface IQualificationAttemptModel {
   baseline: IQualificationBaselineCheck | null;
   coverage: IQualificationCoverageResult | null;
   error: IQualificationExecutionError | null;
+  evidenceSource: IQualificationEvidenceSourceModel;
   rawAttemptUrl: string;
   result: IQualificationAttemptResult;
   route: string;

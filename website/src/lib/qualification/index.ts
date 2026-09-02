@@ -13,6 +13,7 @@ export type {
   IQualificationCoverageResult,
   IQualificationCurrentCaseResult,
   IQualificationExecutionError,
+  IQualificationEvidenceSourceModel,
   IQualificationLatestResult,
   IQualificationJudgeSkipped,
   IQualificationOperationalRetry,

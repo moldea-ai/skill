@@ -194,6 +194,8 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.route).toBe('/evidence/semantic/');
     expect(model.status).toBe('passed');
     expect(model.hasAttempt).toBe(true);
+    expect(model.evidenceMatch).toBe('exact');
+    expect(model.currentAssurance?.result.attemptId).toBe(model.latest?.result.attemptId);
     expect(model.latest?.rawAttemptUrl).toContain(
       `/attempts/${model.latest?.result.attemptId}/attempt.json`,
     );
@@ -248,6 +250,8 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.failedCaseCount).toBe(1);
     expect(model.pendingCaseCount).toBe(cases.length - 2);
     expect(model.hasAttempt).toBe(true);
+    expect(model.evidenceMatch).toBe('exact');
+    expect(model.currentAssurance?.result.attemptId).toBe(model.latest?.result.attemptId);
     expect(model.latest?.result.attemptId).not.toBe(model.lastPassing?.result.attemptId);
   });
 
@@ -586,6 +590,8 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
     expect(model.status).toBe('not-recorded');
     expect(model.hasAttempt).toBe(false);
+    expect(model.currentAssurance).toBeNull();
+    expect(model.evidenceMatch).toBeNull();
     expect(model.attempts).toStrictEqual([]);
     expect(model.latest).toBeNull();
     expect(model.latestPointer).toBeNull();

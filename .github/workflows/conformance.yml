@@ -43,6 +43,8 @@ jobs:
           sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict
       - name: Install development dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
+      - name: Check repository path portability
+        run: npm run path:check
       - name: Run all correctness tests
         env:
           MOLDEA_RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
@@ -64,6 +66,73 @@ jobs:
           HOME="$SKILLS_TEST_HOME" XDG_CONFIG_HOME="$SKILLS_TEST_HOME/.config" npx --yes skills@1.5.22 add "https://github.com/moldea-ai/skill/tree/${{ github.ref_name }}/moldea" -g -a codex -y --copy
           test -d "$SKILLS_TEST_HOME/.agents/skills/moldea"
           diff --recursive --brief moldea "$SKILLS_TEST_HOME/.agents/skills/moldea"
+
+  windows-portability:
+    name: Windows 2025 deep-path clone and install
+    runs-on: windows-2025
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24.11.0"
+      - name: Clone under a realistic deep temporary path
+        shell: pwsh
+        env:
+          SOURCE_REPOSITORY: ${{ github.workspace }}
+        run: |
+          $deepRoot = Join-Path $env:RUNNER_TEMP 'users\windows-developer\appdata\local\temp\skills-portability-clone'
+          $clonePath = Join-Path $deepRoot 'skill'
+          New-Item -ItemType Directory -Force -Path $deepRoot | Out-Null
+          git clone --no-hardlinks --no-checkout $env:SOURCE_REPOSITORY $clonePath
+          if ($LASTEXITCODE -ne 0) {
+            throw 'The repository objects could not be cloned with default Windows path behavior.'
+          }
+
+          git -C $clonePath checkout --detach $env:GITHUB_SHA
+          if ($LASTEXITCODE -ne 0) {
+            throw 'The exact candidate could not be checked out with default Windows path behavior.'
+          }
+
+          Push-Location $clonePath
+          try {
+            npm ci --ignore-scripts
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Development dependencies could not be installed in the deep clone.'
+            }
+
+            npm run path:check
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Repository path portability failed in the deep clone.'
+            }
+
+            node --experimental-strip-types --test --test-skip-pattern='^(?:sandbox |proxy shutdown )' tooling/*/*.test-unit.mjs tests/*.test-unit.mjs
+            if ($LASTEXITCODE -ne 0) {
+              throw 'Supported Windows unit tests failed in the deep clone.'
+            }
+
+            $skillsHome = Join-Path $deepRoot 'developer-home'
+            $sourceSkill = Join-Path $clonePath 'moldea'
+            New-Item -ItemType Directory -Force -Path $skillsHome | Out-Null
+            $env:USERPROFILE = $skillsHome
+            $env:XDG_CONFIG_HOME = Join-Path $skillsHome '.config'
+            npx --yes skills@1.5.22 add $sourceSkill -g -a codex -y --copy
+            if ($LASTEXITCODE -ne 0) {
+              throw 'The skill could not be installed from the deep clone.'
+            }
+
+            $installedSkill = Join-Path $skillsHome '.agents\skills\moldea'
+            if (-not (Test-Path -PathType Container $installedSkill)) {
+              throw 'The installed skill directory is missing.'
+            }
+
+            git diff --no-index --exit-code -- moldea $installedSkill
+            if ($LASTEXITCODE -ne 0) {
+              throw 'The installed skill differs from the portable source.'
+            }
+          } finally {
+            Pop-Location
+          }
 
   package-managers:
     name: ${{ matrix.manager }} ${{ matrix.version }} / release CLI

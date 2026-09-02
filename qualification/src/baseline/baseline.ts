@@ -1,5 +1,11 @@
 import path from 'node:path';
 
+import {
+  createCliClosureDigest,
+  createPortableSkillBehaviorDigest,
+} from '../../../tooling/evidence-identity/index.mjs';
+import { hasLocalCarryForward401Qualification } from '../../../tooling/release-identity/carry-forward-4-0-1.mjs';
+
 import { createPublicCandidatePackage } from '../candidate-closure/index.ts';
 import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import {
@@ -10,9 +16,15 @@ import {
   type IQualificationSelection,
 } from '../contracts/index.ts';
 import { readJsonFile } from '../filesystem/index.ts';
+import { createQualificationCompatibilityIdentity } from '../evidence-identity/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
-import { calculateQualificationBaselineDigestAtCommit } from './fingerprints.ts';
+import {
+  createQualificationAttemptKey,
+  readQualificationAttemptStorage,
+  resolveQualificationResultTargetDirectory,
+  verifyQualificationAttemptStorage,
+} from '../storage/index.ts';
 import { QualificationBaselineCheckSchema, type IQualificationBaselineCheck } from './types.ts';
 
 const CUSTOM_SELECTION = {
@@ -46,6 +58,21 @@ const getPublicPackageIdentity = (
   [...candidate.packages, candidate.typeScriptPackage]
     .map(createPublicCandidatePackage)
     .sort(({ name: left }, { name: right }) => left.localeCompare(right, 'en'));
+
+const selectExecutionEnvironment = (
+  environment: IQualificationExecutionEnvironment,
+): IQualificationExecutionEnvironment => ({
+  model: environment.model,
+  reasoningEffort: environment.reasoningEffort,
+  codexVersion: environment.codexVersion,
+  nodeVersion: environment.nodeVersion,
+  pnpmVersion: environment.pnpmVersion,
+  gitVersion: environment.gitVersion,
+  allowedEgressHosts: environment.allowedEgressHosts,
+  hostTimeoutMs: environment.hostTimeoutMs,
+  modelEndpoint: environment.modelEndpoint,
+  sslCertificateFileSha256: environment.sslCertificateFileSha256,
+});
 
 /**
  * Verifies that adapter qualification is anchored to a passing Custom attempt with identical universal inputs.
@@ -85,10 +112,14 @@ export const inspectQualificationBaseline = async (options: {
   }
 
   let latest;
+  const customTargetRoot = await resolveQualificationResultTargetDirectory(
+    options.resultsRoot,
+    CUSTOM_SELECTION,
+  );
 
   try {
     latest = await readJsonFile(
-      path.join(options.resultsRoot, 'custom', 'custom', 'latest.json'),
+      path.join(customTargetRoot, 'latest.json'),
       QualificationLatestResultSchema,
     );
   } catch {
@@ -101,19 +132,24 @@ export const inspectQualificationBaseline = async (options: {
 
   const baselineAttemptId = latest.lastPassingAttemptId;
   let baseline;
+  let baselineStorage;
+  const baselineAttemptDirectory = path.join(
+    customTargetRoot,
+    'attempts',
+    createQualificationAttemptKey(baselineAttemptId),
+  );
 
   try {
     baseline = await readJsonFile(
-      path.join(
-        options.resultsRoot,
-        'custom',
-        'custom',
-        'attempts',
-        baselineAttemptId,
-        'attempt.json',
-      ),
+      path.join(baselineAttemptDirectory, 'attempt.json'),
       QualificationAttemptResultSchema,
     );
+    baselineStorage = await readQualificationAttemptStorage(baselineAttemptDirectory);
+    await verifyQualificationAttemptStorage({
+      attemptDirectory: baselineAttemptDirectory,
+      result: baseline,
+      storage: baselineStorage,
+    });
   } catch {
     return createFailure(
       'incompatible',
@@ -121,24 +157,54 @@ export const inspectQualificationBaseline = async (options: {
     );
   }
 
-  const expectedPackages = getPublicPackageIdentity(options.candidate);
+  const expectedPackages = new Map(
+    getPublicPackageIdentity(options.candidate).map((candidatePackage) => [
+      candidatePackage.name,
+      candidatePackage,
+    ]),
+  );
   const actualPackages = [...baseline.provenance.packages].sort(({ name: left }, { name: right }) =>
     left.localeCompare(right, 'en'),
   );
-  const qualificationRepositoryRoot = path.resolve(options.resultsRoot, '..', '..');
-  let baselineQualificationDigest: string;
+  let currentCompatibility;
+  let currentCliClosureDigest;
+  let currentPortableSkillBehaviorDigest;
 
   try {
-    baselineQualificationDigest = await calculateQualificationBaselineDigestAtCommit(
-      baseline.provenance.qualificationRepositoryCommit,
-      qualificationRepositoryRoot,
-    );
+    const repositoryRoot = path.resolve(options.resultsRoot, '..', '..');
+    currentCompatibility = await createQualificationCompatibilityIdentity({
+      qualificationRoot: path.resolve(options.resultsRoot, '..'),
+      repositoryRoot,
+      selection: baseline.selection,
+    });
+    currentCliClosureDigest = createCliClosureDigest(repositoryRoot);
+    currentPortableSkillBehaviorDigest = createPortableSkillBehaviorDigest(repositoryRoot);
   } catch {
     return createFailure(
       'incompatible',
-      `Custom baseline attempt ${baselineAttemptId} does not have readable universal source inputs.`,
+      `Custom baseline attempt ${baselineAttemptId} cannot resolve current compatibility inputs.`,
     );
   }
+
+  let isCarryForwardAuthorized = baselineStorage.carryForward === undefined;
+
+  if (baselineStorage.carryForward !== undefined) {
+    try {
+      isCarryForwardAuthorized = hasLocalCarryForward401Qualification({
+        repositoryRoot: path.resolve(options.resultsRoot, '..', '..'),
+        result: baseline,
+        storage: baselineStorage,
+      });
+    } catch {
+      isCarryForwardAuthorized = false;
+    }
+  }
+  const hasSharedPublishedClosure = actualPackages.every(
+    (recordedPackage) =>
+      JSON.stringify(expectedPackages.get(recordedPackage.name)) ===
+      JSON.stringify(recordedPackage),
+  );
+  const baselineExecutionEnvironment = selectExecutionEnvironment(baseline.provenance);
 
   const hasCompatibleIdentity =
     latest.protocolVersion === QUALIFICATION_EVIDENCE_PROTOCOL_VERSION &&
@@ -146,16 +212,15 @@ export const inspectQualificationBaseline = async (options: {
     baseline.status === 'passed' &&
     baseline.selection.adapterId === CUSTOM_SELECTION.adapterId &&
     baseline.selection.implementationId === CUSTOM_SELECTION.implementationId &&
-    baselineQualificationDigest === options.qualificationBaselineDigest &&
+    JSON.stringify(baselineStorage.compatibility) === JSON.stringify(currentCompatibility) &&
+    currentCompatibility.qualificationBaselineEvaluatorDigest ===
+      options.qualificationBaselineDigest &&
     baseline.provenance.targetDigest === options.customTargetDigest &&
-    baseline.provenance.skillRepositoryFingerprint === options.skillState.fingerprint &&
-    baseline.provenance.model === options.executionEnvironment.model &&
-    baseline.provenance.reasoningEffort === options.executionEnvironment.reasoningEffort &&
-    baseline.provenance.codexVersion === options.executionEnvironment.codexVersion &&
-    baseline.provenance.nodeVersion === options.executionEnvironment.nodeVersion &&
-    baseline.provenance.pnpmVersion === options.executionEnvironment.pnpmVersion &&
-    baseline.provenance.gitVersion === options.executionEnvironment.gitVersion &&
-    JSON.stringify(actualPackages) === JSON.stringify(expectedPackages);
+    baselineStorage.portableSkillBehaviorDigest === currentPortableSkillBehaviorDigest &&
+    baselineStorage.cliClosureDigest === currentCliClosureDigest &&
+    isCarryForwardAuthorized &&
+    JSON.stringify(baselineExecutionEnvironment) === JSON.stringify(options.executionEnvironment) &&
+    hasSharedPublishedClosure;
 
   if (!hasCompatibleIdentity) {
     return createFailure(

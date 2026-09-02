@@ -12,6 +12,7 @@ import type { ISemanticAttemptRecord, ISemanticLatestResult } from './validation
 export type ISemanticEvaluationGroupId = keyof typeof SEMANTIC_EVALUATION_GROUPS;
 export type ISemanticEvaluationCaseId = keyof typeof SEMANTIC_CASE_PRESENTATION;
 export type ISemanticEvaluationCaseStatus = 'failed' | 'passed' | 'pending' | 'recovered';
+export type ISemanticEvidenceMatch = 'compatible' | 'exact';
 
 // exact actor or judge host shown with one trial
 export interface ISemanticEvaluationHostModel {
@@ -44,7 +45,7 @@ export interface ISemanticAttemptTrialModel {
 export type ISemanticCriterion = ISemanticCriterionContract;
 export type ISemanticCaseDefinition = ISemanticCaseContract;
 
-// current case state derived from the latest immutable attempt
+// current case state derived from the release-assurance attempt
 export interface ISemanticEvaluationCaseModel {
   confirmationStatus: ISemanticAttemptRecord['cases'][number]['confirmationStatus'] | null;
   developerDirection: string | null;
@@ -88,6 +89,8 @@ export interface ISemanticEvaluationWebsiteModel {
   cli: ISemanticCliIdentity;
   coverageDigest: string;
   coverageUrl: string;
+  currentAssurance: ISemanticAttemptModel | null;
+  evidenceMatch: ISemanticEvidenceMatch | null;
   evaluatedAt: string | null;
   evaluationModel: ISemanticEvaluationHostModel['model'];
   failedCaseCount: number;

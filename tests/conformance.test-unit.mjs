@@ -2,8 +2,9 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isDeepStrictEqual } from 'node:util';
 import { describe, test } from 'node:test';
 import { parseDocument } from 'yaml';
 
@@ -371,7 +372,7 @@ describe('portable Agent Skill contract', () => {
     assert.equal(frontmatter.license, 'MIT');
     assert.equal(frontmatter.metadata.version, ROOT_PACKAGE_MANIFEST.version);
     assert.equal(dirname(SKILL_PATH), SKILL_DIRECTORY);
-    assert.equal(dirname(SKILL_PATH).split('/').at(-1), frontmatter.name);
+    assert.equal(basename(dirname(SKILL_PATH)), frontmatter.name);
     assert.ok(frontmatter.description.length >= 1 && frontmatter.description.length <= 1024);
     assert.match(frontmatter.description, /^Use first when a message/u);
     assertMatchesEvery(frontmatter.description, [
@@ -1883,13 +1884,16 @@ describe('source repository conformance', () => {
       );
 
       const portableSkillDigest = createPortableSkillDigest();
+      const currentCli = createSemanticCliIdentity(REPOSITORY_ROOT);
       const coverage = JSON.parse(readRepositoryFile('fixtures/semantic-evaluation-coverage.json'));
       const currentCaseSuiteDigest = createSemanticCaseSuiteDigest(cases.semanticCases);
       if (
         result.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
-        result.caseSuiteDigest !== currentCaseSuiteDigest
+        result.caseSuiteDigest !== currentCaseSuiteDigest ||
+        !isDeepStrictEqual(result.cli, currentCli) ||
+        result.skillDigest !== portableSkillDigest
       ) {
-        testContext.skip('Current protocol 21 semantic evidence has not been recorded.');
+        testContext.skip('Exact current protocol 21 semantic evidence has not been recorded.');
         return;
       }
       assert.equal(result.schemaVersion, 6);
@@ -1898,7 +1902,7 @@ describe('source repository conformance', () => {
         version: 1,
       });
       assert.equal(result.evaluationProtocolVersion, SEMANTIC_EVALUATION_PROTOCOL_VERSION);
-      assert.deepEqual(result.cli, createSemanticCliIdentity(REPOSITORY_ROOT));
+      assert.deepEqual(result.cli, currentCli);
       assert.equal(result.caseSuiteDigest, currentCaseSuiteDigest);
       assert.equal(
         result.coverageDigest,
@@ -2057,7 +2061,7 @@ describe('source repository conformance', () => {
         join(repositoryPath, 'moldea', 'agents', 'refund-agent', 'instruction.md'),
         '# Refund agent\n\nYou are the `refund-agent` agent.\n',
       );
-      const inspection = spawnSync(SEMANTIC_CLI_PATH, ['inspect', '--json'], {
+      const inspection = spawnSync(process.execPath, [SEMANTIC_CLI_PATH, 'inspect', '--json'], {
         cwd: repositoryPath,
         encoding: 'utf8',
       });
@@ -2071,10 +2075,14 @@ describe('source repository conformance', () => {
         'MOLDEA_RUNTIME_ADAPTER_UNAVAILABLE',
       );
 
-      const composition = spawnSync(SEMANTIC_CLI_PATH, ['composition', '--json'], {
-        cwd: repositoryPath,
-        encoding: 'utf8',
-      });
+      const composition = spawnSync(
+        process.execPath,
+        [SEMANTIC_CLI_PATH, 'composition', '--json'],
+        {
+          cwd: repositoryPath,
+          encoding: 'utf8',
+        },
+      );
       const compositionEnvelope = JSON.parse(composition.stdout);
       assert.equal(composition.status, 0);
       assert.equal(compositionEnvelope.cliVersion, RELEASE_CLI_VERSION);
@@ -2165,12 +2173,38 @@ describe('source repository conformance', () => {
   });
 
   test('CI installs and compares the complete portable artifact', () => {
+    const gitAttributes = readRepositoryFile('.gitattributes');
     const workflow = readRepositoryFile('.github/workflows/conformance.yml');
+    const document = parseDocument(workflow, { uniqueKeys: true });
+    const conformance = document.toJS();
+    const windowsJob = conformance.jobs['windows-portability'];
+    const windowsCheckout = windowsJob.steps.find((step) =>
+      step.uses?.startsWith('actions/checkout@'),
+    );
+    const windowsVerification = windowsJob.steps.find(
+      (step) => step.name === 'Clone under a realistic deep temporary path',
+    )?.run;
 
+    assert.equal(document.errors.length, 0);
+    assert.equal(gitAttributes, '* text=auto eol=lf\n');
     assert.match(workflow, /skills@1\.5\.22 add .* -g -a codex -y --copy/);
     assert.match(workflow, /\.agents\/skills\/moldea/);
     assert.match(workflow, /diff --recursive --brief moldea/);
     assert.doesNotMatch(workflow, /add .* --list/);
+    assert.equal(windowsJob['runs-on'], 'windows-2025');
+    assert.equal(windowsCheckout?.with, undefined);
+    assert.match(windowsVerification, /git clone --no-hardlinks --no-checkout/);
+    assert.match(windowsVerification, /git -C \$clonePath checkout --detach \$env:GITHUB_SHA/);
+    assert.match(windowsVerification, /npm run path:check/);
+    assert.match(
+      windowsVerification,
+      /node --experimental-strip-types --test --test-skip-pattern='\^\(\?:sandbox \|proxy shutdown \)' tooling\/\*\/\*\.test-unit\.mjs tests\/\*\.test-unit\.mjs/,
+    );
+    assert.match(windowsVerification, /\$sourceSkill = Join-Path \$clonePath 'moldea'/);
+    assert.match(windowsVerification, /skills@1\.5\.22 add \$sourceSkill -g -a codex -y --copy/);
+    assert.doesNotMatch(windowsVerification, /skills@1\.5\.22 add \.\\moldea/);
+    assert.match(windowsVerification, /git diff --no-index --exit-code/);
+    assert.doesNotMatch(windowsVerification, /core\.longpaths|LongPathsEnabled/i);
   });
 
   test('runs root source checks across every supported Node.js line', () => {
@@ -2205,6 +2239,7 @@ describe('source repository conformance', () => {
       const setupNodeStep = workflow.jobs[jobName].steps.find(
         (step) => step.uses === 'actions/setup-node@v6',
       );
+      const triggerPaths = workflow.on.pull_request?.paths ?? workflow.on.push?.paths;
 
       assert.equal(
         document.errors.length,
@@ -2217,7 +2252,30 @@ describe('source repository conformance', () => {
         setupNodeStep?.with?.['cache-dependency-path'],
         'package-lock.json\nwebsite/package-lock.json\n',
       );
+      assert.ok(triggerPaths.includes('fixtures/release-evidence/**'));
+      assert.ok(triggerPaths.includes('tooling/evidence-identity/**'));
     }
+  });
+
+  test('fetches complete Git history only for website evidence consumers', () => {
+    const conformance = parseDocument(readRepositoryFile('.github/workflows/conformance.yml'), {
+      uniqueKeys: true,
+    }).toJS();
+    const releaseCandidate = parseDocument(
+      readRepositoryFile('.github/workflows/release-candidate.yml'),
+      { uniqueKeys: true },
+    ).toJS();
+    const conformanceCheckouts = Object.values(conformance.jobs).flatMap(({ steps }) =>
+      steps.filter((step) => step.uses?.startsWith('actions/checkout@')),
+    );
+    const releaseCheckouts = Object.values(releaseCandidate.jobs).flatMap(({ steps }) =>
+      steps.filter((step) => step.uses?.startsWith('actions/checkout@')),
+    );
+
+    assert.ok(conformanceCheckouts.length > 0);
+    assert.ok(releaseCheckouts.length > 0);
+    assert.ok(conformanceCheckouts.every((step) => step.with?.['fetch-depth'] === undefined));
+    assert.ok(releaseCheckouts.every((step) => step.with?.['fetch-depth'] === 1));
   });
 
   test('CI derives one exact release CLI across every package manager', () => {
@@ -2227,7 +2285,7 @@ describe('source repository conformance', () => {
     assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], RELEASE_CLI_VERSION);
     assert.doesNotMatch(workflow, /cli_version:|MOLDEA_TEST_CLI_VERSION/);
     assert.match(workflow, /\/ release CLI/);
-    assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 2);
+    assert.equal(workflow.match(/npm ci --ignore-scripts/g)?.length, 3);
     assert.equal(
       workflow.match(
         /sudo apt-get install --yes apparmor-profiles apparmor-utils bubblewrap socat/g,

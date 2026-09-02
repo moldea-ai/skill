@@ -10,7 +10,7 @@ order: 175
 
 Adapter qualification is the evidence gate for deciding whether one exact adapter implementation is ready for **Supported** maturity. It tests whether the current `moldea` skill and the exact published package release can understand and safely maintain realistic projects. It does not invoke the provider, run the agent, or replace provider integration tests.
 
-Every profile, project, requirement, attempt, failure, and artifact is stored in this repository. The [qualification evidence index](/evidence/qualification/) presents the current result, complete history, and inspectable committed evidence without requiring a hosted service.
+Every profile, project, requirement, attempt, failure, and artifact is stored in this repository or its immutable release history. The [qualification evidence index](/evidence/qualification/) presents inspectable committed evidence without requiring a hosted service.
 
 ## What the gate exercises
 
@@ -60,11 +60,41 @@ Each project commits its scenario, natural task, baseline, optional dirty overla
 
 Terminal paid attempts are recorded whether they pass, fail, or stop with an execution error. An interrupted attempt remains local and resumable unless the operator explicitly records it as incomplete.
 
-A committed profile remains visible with an explicit no-attempt state until its first official run. This lets anyone inspect the projects and requirements before evidence exists. The release gate still requires current passing evidence.
+A committed profile remains visible with an explicit no-attempt state until its first official run. This lets anyone inspect the projects and requirements before evidence exists. The release gate still requires compatible passing evidence.
 
 The website publishes every valid terminal attempt, including failures and execution errors, while maintaining independent latest and last-passing pointers. Attempt pages lead with the verdict and realistic project journeys. Each journey opens to a Replay reconstructed from the digest-verified actor prompt, projected command outcomes, exact path-only workspace snapshots, recorded actor response, runner-owned verification, and independent judge rationale. The Evidence view explains what had to happen, what was prohibited, why the journey passed, recovered, or failed, and the final requirement results. The Technical view keeps source cleanliness, host identity, exact package checksums, stage outcomes, deterministic results, requirement ownership, workspace assertions, cache provenance, token usage when available, retries, and committed artifacts available without placing them in the primary reading path.
 
-Qualification replay is a bounded reconstruction, not a verbatim terminal transcript or hidden reasoning. Current event evidence records command completion, exit status, and output size but intentionally omits command text and command output. The replay therefore summarizes successful and non-zero command activity without inventing operations. An attempt whose immutable actor prompt does not retain the recorded developer-task boundary is rejected instead of being reconstructed from current profile text. Release eligibility still requires fresh passing evidence through the separate release gate.
+Qualification replay is a bounded reconstruction, not a verbatim terminal transcript or hidden reasoning. Current event evidence records command completion, exit status, and output size but intentionally omits command text and command output. The replay therefore summarizes successful and non-zero command activity without inventing operations. An attempt whose immutable actor prompt does not retain the recorded developer-task boundary is rejected instead of being reconstructed from current profile text. Release eligibility still requires compatible passing evidence through the separate release gate.
+
+## Current repository storage
+
+Qualification keeps logical adapter, implementation, case, attempt, and artifact identities separate from their physical repository paths. [`qualification/profiles/index.yaml`](https://github.com/moldea-ai/skill/blob/main/qualification/profiles/index.yaml) maps each target to an append-only `t<number>` directory. Each profile maps its logical case ids to short `cases/c<number>` directories.
+
+Current results use the same target key, a deterministic `a-<attempt-id-digest-prefix>` attempt directory, and numbered artifact files. The unchanged logical attempt is stored in `attempt.json`; `storage.json` binds every logical artifact path to its contained physical file and verifies the attempt, artifact, source, portable-skill behavior, CLI closure, and qualification compatibility digests. Ordinary qualification commands resolve these mappings internally and continue to display logical identities.
+
+The current checkout contains only the verified latest passing Custom attempt. The other 59 attempts from release `v4.0.0` remain unchanged in immutable tag `v4.0.0` at commit `fcbc34f60b12b1b66cd9ebb28b1865979a259429`. Current qualification commands do not enumerate or copy those 59 historical attempts and do not need historical Git. The carried Custom attempt is accepted locally only when its short storage and checked-in source binding match the current portable-skill behavior, CLI closure, qualification evaluator, universal logical input, execution environment, Custom target, and shared package closure.
+
+Release verification handles historical source access separately. It verifies the immutable source attempts and the checked-in carry-forward attestation, then selects current compatible evidence first and historical compatible evidence second. A missing source tag produces an explicit fetch requirement. It never checks out the long historical result tree and never invokes an actor, judge, model host, semantic evaluation, or adapter qualification.
+
+Website generation also uses complete history without restoring those paths. At build time it reads all 60 `v4.0.0` attempts directly from immutable Git objects into memory, validates their complete artifact inventory and recorded contracts through the same website evidence boundary as current short storage, and combines them by logical profile and attempt id. The only permitted duplicate is the carried Custom attempt, and it is removed only after the source attempt, every artifact byte, source commit, source release, and source digest match. Historical artifact links remain pinned to commit `fcbc34f60b12b1b66cd9ebb28b1865979a259429`; browser output receives only the resolved static evidence model and no Git or filesystem capability.
+
+## When qualification must run again
+
+Evidence validity follows the inputs that can affect the result, not the release number.
+
+| Change                                                                                                      | Required evidence                                                                                                             |
+| ----------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Release-version metadata only                                                                               | Existing semantic, Custom, and adapter evidence remains eligible.                                                             |
+| Any other portable-skill path or byte                                                                       | Semantic, Custom, and every adapter must run again.                                                                           |
+| CLI closure or supported runtime contract                                                                   | Semantic, Custom, and every adapter must run again.                                                                           |
+| Semantic cases, coverage, host, evaluator, or protocol                                                      | Semantic evaluation must run again. Qualification is unchanged.                                                               |
+| Shared qualification evaluator, universal input, execution environment, or shared published package closure | Custom and every adapter must run again. Semantic evaluation is unchanged.                                                    |
+| One adapter profile, provider runtime, target contract, or target-local package                             | Only that adapter must run again. Custom and sibling adapters remain eligible.                                                |
+| A new adapter                                                                                               | Add its complete profile and run only that adapter after the existing Custom baseline passes the current compatibility check. |
+
+The `4.0.1` bridge is a one-time proof that maps all 60 original attempts to source-computed compatibility envelopes without rewriting them. Future releases do not add another version exception. They compare each attested source envelope with current portable-skill, CLI, evaluator, logical-input, target, environment, package, and baseline identities. A historical attempt is selected only when all applicable identities still match.
+
+Historical baseline replay checks the complete recorded environment. The original adapter retries could increase their host timeout, so replay permits only an adapter timeout that is at least its Custom baseline timeout while requiring exact model, toolchain, network allowlist, model endpoint, and TLS certificate identities. Each adapter's exact timeout remains bound to its own envelope. New adapter runs require an exact complete environment match with the current carried Custom baseline.
 
 ## Checkpoints and cache integrity
 
@@ -82,7 +112,7 @@ A paid `diagnose` command can run one selected initial trial through the same cl
 
 ## Supported maturity eligibility
 
-Qualification is necessary evidence for **Supported** maturity, not an automatic promotion. The Custom profile must pass first as the universal baseline, and the selected adapter implementation must then pass its complete current behavior-bearing profile against the same portable skill and shared evaluator contract with its own selected target and exact package closure. The release gate requires current passing Custom evidence, but a newer compatible Custom attempt does not invalidate adapter evidence that still matches its selected inputs and retains its original passing baseline in committed history. The profile must cover every applicable compatibility claim and every distinct adapter risk.
+Qualification is necessary evidence for **Supported** maturity, not an automatic promotion. The Custom profile must pass first as the universal baseline, and the selected adapter implementation must then pass its complete current behavior-bearing profile against the same portable skill and shared evaluator contract with its own selected target and exact package closure. The release gate requires compatible passing Custom evidence, which may be current or source-attested. A newer compatible Custom attempt does not invalidate adapter evidence that still matches its selected inputs and retains its original passing baseline in committed history. The profile must cover every applicable compatibility claim and every distinct adapter risk.
 
 Maturity is an outcome considered after qualification. It is not an input, compatibility claim, or provenance field used to make the test pass.
 

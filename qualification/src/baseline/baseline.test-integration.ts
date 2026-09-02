@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
@@ -10,10 +10,19 @@ import {
   type ICandidateClosure,
   type IQualificationExecutionEnvironment,
 } from '../contracts/index.ts';
-import { ensureDirectory, writeTextFileAtomically } from '../filesystem/index.ts';
+import {
+  ensureDirectory,
+  readJsonFile,
+  writeJsonFileAtomically,
+  writeTextFileAtomically,
+} from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
 import type { IGitRepositoryState } from '../repository-state/index.ts';
 import { recordQualificationResult } from '../result/index.ts';
+import {
+  createQualificationAttemptKey,
+  QualificationAttemptStorageSchema,
+} from '../storage/index.ts';
 import { seedPassingQualificationEvidenceFixture } from '../../vitest/evidence-fixture.ts';
 import { inspectQualificationBaseline } from './baseline.ts';
 import { calculateQualificationBaselineDigestAtCommit } from './fingerprints.ts';
@@ -92,8 +101,10 @@ const createQualificationSourceCommit = async (repositoryRoot: string): Promise<
     [
       'package.json',
       `${JSON.stringify({
+        version: '4.0.0',
         type: 'module',
         devDependencies: { '@moldea.ai/cli': '5.0.0', semver: '7.8.5' },
+        moldeaRelease: { cliJsonSchemaVersion: 2 },
       })}\n`,
     ],
     [
@@ -102,6 +113,7 @@ const createQualificationSourceCommit = async (repositoryRoot: string): Promise<
         lockfileVersion: 3,
         packages: {
           '': {
+            version: '4.0.0',
             devDependencies: { '@moldea.ai/cli': '5.0.0', semver: '7.8.5' },
           },
           'node_modules/@moldea.ai/cli': {
@@ -117,6 +129,21 @@ const createQualificationSourceCommit = async (repositoryRoot: string): Promise<
         },
       })}\n`,
     ],
+    [
+      'moldea/SKILL.md',
+      [
+        '---',
+        'name: moldea-fixture',
+        'description: Qualification baseline fixture.',
+        'metadata:',
+        '  version: 4.0.0',
+        '---',
+        '',
+        'Skill release `4.0.0` supports exactly:',
+        '',
+      ].join('\n'),
+    ],
+    ['moldea/references/local-tooling.md', '# Local tooling\n\nRelease `4.0.0` supports:\n'],
     [
       'qualification/cases/cases.yaml',
       [
@@ -245,12 +272,12 @@ describe('Custom qualification baseline', () => {
     ).resolves.toMatchObject({ passed: true, status: 'not-required' });
   });
 
-  test('rejects a recorded baseline without readable immutable source inputs', async () => {
+  test('rejects a recorded baseline with an incompatible stored identity', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-baseline-'));
     const resultsRoot = path.join(temporaryRoot, 'qualification', 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
     await ensureDirectory(artifactDirectory);
-    const passingBaseline = await seedPassingQualificationEvidenceFixture({
+    const baselineFixture = await seedPassingQualificationEvidenceFixture({
       artifactDirectory,
       attemptId: 'custom-baseline-unreadable-source',
       packages: [...candidate.packages, candidate.typeScriptPackage].map(
@@ -259,6 +286,14 @@ describe('Custom qualification baseline', () => {
       resultsRoot,
       skillRepositoryCommit: skillState.commit,
       skillRepositoryFingerprint: skillState.fingerprint,
+    });
+    const qualificationRepositoryCommit = await createQualificationSourceCommit(temporaryRoot);
+    const passingBaseline = QualificationAttemptResultSchema.parse({
+      ...baselineFixture,
+      provenance: {
+        ...baselineFixture.provenance,
+        qualificationRepositoryCommit,
+      },
     });
     await recordQualificationResult(
       {
@@ -288,7 +323,7 @@ describe('Custom qualification baseline', () => {
       passed: false,
       status: 'incompatible',
       failures: [
-        'Custom baseline attempt custom-baseline-unreadable-source does not have readable universal source inputs.',
+        'Custom baseline attempt custom-baseline-unreadable-source does not match the current universal suite, Custom target, portable skill, execution environment, and published candidate closure.',
       ],
     });
   });
@@ -363,6 +398,47 @@ describe('Custom qualification baseline', () => {
       status: 'passed',
       baselineAttemptId: 'custom-baseline',
     });
+
+    for (const [relativePath, currentVersionSource, nextVersionSource] of [
+      ['package.json', '"version":"4.0.0"', '"version":"4.0.1"'],
+      ['package-lock.json', '"version":"4.0.0"', '"version":"4.0.1"'],
+      ['moldea/SKILL.md', '4.0.0', '4.0.1'],
+      ['moldea/references/local-tooling.md', '4.0.0', '4.0.1'],
+    ] as const) {
+      const absolutePath = path.join(temporaryRoot, relativePath);
+      await writeTextFileAtomically(
+        absolutePath,
+        (await readFile(absolutePath, 'utf8')).replaceAll(currentVersionSource, nextVersionSource),
+      );
+    }
+    await expect(
+      inspectQualificationBaseline({
+        ...commonOptions,
+        skillState: { ...skillState, fingerprint: '9'.repeat(64) },
+      }),
+    ).resolves.toMatchObject({
+      passed: true,
+      status: 'passed',
+      baselineAttemptId: 'custom-baseline',
+    });
+    for (const environmentChange of [
+      { allowedEgressHosts: [...executionEnvironment.allowedEgressHosts, 'example.com'] },
+      { hostTimeoutMs: executionEnvironment.hostTimeoutMs + 1 },
+      {
+        modelEndpoint: {
+          origin: 'https://example.com',
+          sha256: '9'.repeat(64),
+        },
+      },
+      { sslCertificateFileSha256: '9'.repeat(64) },
+    ]) {
+      await expect(
+        inspectQualificationBaseline({
+          ...commonOptions,
+          executionEnvironment: { ...executionEnvironment, ...environmentChange },
+        }),
+      ).resolves.toMatchObject({ passed: false, status: 'incompatible' });
+    }
     await expect(
       inspectQualificationBaseline({
         ...commonOptions,
@@ -378,5 +454,36 @@ describe('Custom qualification baseline', () => {
         },
       }),
     ).resolves.toMatchObject({ passed: false, status: 'incompatible' });
+
+    const storagePath = path.join(
+      resultsRoot,
+      't1',
+      'attempts',
+      createQualificationAttemptKey(passingBaseline.attemptId),
+      'storage.json',
+    );
+    const storage = await readJsonFile(storagePath, QualificationAttemptStorageSchema);
+    await writeJsonFileAtomically(storagePath, {
+      ...storage,
+      cliClosureDigest: '9'.repeat(64),
+    });
+    await expect(inspectQualificationBaseline(commonOptions)).resolves.toMatchObject({
+      passed: false,
+      status: 'incompatible',
+    });
+    await writeJsonFileAtomically(storagePath, storage);
+
+    await writeJsonFileAtomically(storagePath, {
+      ...storage,
+      compatibility: {
+        ...storage.compatibility,
+        qualificationBaselineEvaluatorDigest: '9'.repeat(64),
+      },
+    });
+
+    await expect(inspectQualificationBaseline(commonOptions)).resolves.toMatchObject({
+      passed: false,
+      status: 'incompatible',
+    });
   });
 });

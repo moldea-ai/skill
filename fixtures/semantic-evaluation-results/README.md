@@ -5,8 +5,12 @@ This directory stores append-only protocol 21 semantic evaluation history genera
 - `attempt.json`: the derived status, cases, confirmations, command-policy aggregates, and exact actor and judge provenance
 - `evidence.json`: the exact schema-6 checkpoint that produced the summary
 
+Recording through `npm run eval:semantic` also writes `identity.json`. This versioned sidecar binds the exact attempt and evidence digests to the clean pre-run source commit, complete relevant-source digest, portable-skill behavior digest, CLI closure digest, semantic compatibility digest, and argument digest. It does not change the attempt, evidence, recorder, or protocol contracts. Historical attempts recorded before this wrapper remain valid under their original exact evidence contract.
+
 `latest.json` is created with the first attempt and points independently to the newest attempt and the last passing attempt. A later failure never overwrites a pass, and an earlier pass never makes a newer failure look successful.
 
-The release gate does not treat stale history as current passing evidence. Only a complete protocol 21 run can create `fixtures/semantic-evaluation-result.json`, and that canonical result must match the exact release inputs.
+The release gate first prefers a canonical result that matches the current exact release inputs, then a result with a valid current compatibility sidecar, and finally source-attested historical evidence. Compatibility requires the normalized portable-skill behavior, exact CLI closure, semantic cases, coverage, runner, host, evaluator, and protocol inputs to match. A present result that matches none of those contracts remains an error rather than being hidden by fallback. Only a complete protocol 21 run can create `fixtures/semantic-evaluation-result.json`.
 
-Run `npm run eval:semantic:verify` to recalculate every evidence digest, summary, directory identity, and pointer without making model calls.
+The wrapper keeps an ignored receipt at `fixtures/.semantic-evaluation-identity-receipt.json` only while a recording invocation is unresolved. The receipt owns both the wrapper and supervised evaluator processes, and runner code begins only after that receipt is published. It is never overwritten. Sidecar staging remains outside immutable attempt directories and is removed only after its writer is inactive. After both processes end, run `npm run eval:semantic:identity` to finalize one attributable attempt, retire a no-attempt receipt when the source and attempt history are unchanged, or complete one exact interrupted receipt-consumption claim. The command does not invoke the runner or a model and rejects active processes, multiple or mismatched claims, stale state, and ambiguous evidence.
+
+Run `npm run eval:semantic:verify` to recalculate every evidence digest, summary, directory identity, and pointer without making model calls. The verification command still invokes the existing runner directly.

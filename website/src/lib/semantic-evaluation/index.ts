@@ -6,6 +6,7 @@ export type {
   ISemanticEvaluationCaseId,
   ISemanticEvaluationCaseModel,
   ISemanticEvaluationCaseStatus,
+  ISemanticEvidenceMatch,
   ISemanticEvaluationGroupId,
   ISemanticEvaluationGroupModel,
   ISemanticEvaluationWebsiteModel,

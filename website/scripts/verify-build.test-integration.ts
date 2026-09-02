@@ -3,9 +3,9 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, test } from 'vitest';
 
-import { createCanonicalUrl, DEFAULT_BASE_PATH } from '@moldea.ai/website-ui/site';
+import { createCanonicalUrl, DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
-import { getRepositoryRoot } from '../src/lib/generation/generation.ts';
+import { getRepositoryRoot, loadWebsiteModel } from '../src/lib/generation/generation.ts';
 import { SKILLS_DIRECTORY_URL } from '../src/lib/model/constants.ts';
 import {
   DEFAULT_SITE_URL,
@@ -37,6 +37,47 @@ describe('verifyProductionBuild', () => {
     expect(llmsText).toContain('# `moldea` Agent Skill');
     expect(llmsText).toContain(SKILLS_DIRECTORY_URL);
     expect(llmsText).toContain(gettingStartedUrl);
+  });
+
+  test('publishes compatible semantic assurance across human and machine surfaces', () => {
+    const siteUrl = process.env['SITE_URL'] ?? DEFAULT_SITE_URL;
+    const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
+    const model = loadWebsiteModel();
+    const homeHtml = readFileSync(getDistPath('index.html'), 'utf8');
+    const evidenceHtml = readFileSync(getDistPath('evidence/index.html'), 'utf8');
+    const semanticHtml = readFileSync(getDistPath('evidence/semantic/index.html'), 'utf8');
+    const llmsText = readFileSync(getDistPath('llms.txt'), 'utf8');
+    const sitemap = readFileSync(getDistPath('sitemap-0.xml'), 'utf8');
+    const searchRecords = JSON.parse(
+      readFileSync(getDistPath('search-index.json'), 'utf8'),
+    ) as Array<{
+      description: string;
+      url: string;
+    }>;
+    const semanticSearchRecord = searchRecords.find(
+      ({ url }) => url === withBase(model.semanticEvaluation.route, basePath),
+    );
+
+    expect(model.semanticEvaluation.status).toBe('passed');
+    expect(model.semanticEvaluation.evidenceMatch).toBe('compatible');
+    expect(model.semanticEvaluation.currentAssurance?.result.attemptId).toBe(
+      '20260830T054330932Z-semantic-441e439c',
+    );
+    expect(homeHtml).toContain('57/57');
+    expect(evidenceHtml).toContain('57 of 57 scenarios successful for current assurance');
+    expect(semanticHtml).toContain('57/57 scenarios');
+    expect(semanticHtml).toContain('Source-attested compatible evidence');
+    expect(semanticHtml).not.toContain('No recorded attempt');
+    expect(llmsText).toContain('Review the latest passed attempt');
+    expect(llmsText).not.toContain('before the first attempt is recorded');
+    expect(semanticSearchRecord?.description).toContain('latest passed semantic attempt');
+
+    for (const route of [
+      model.semanticEvaluation.route,
+      ...model.semanticEvaluation.attempts.map(({ route }) => route),
+    ]) {
+      expect(sitemap).toContain(createCanonicalUrl(route, siteUrl, basePath));
+    }
   });
 
   test('publishes one canonical SEO identity and excludes utility routes from discovery', () => {

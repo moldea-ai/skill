@@ -3,8 +3,14 @@ import { access, lstat, readFile, readdir, rename, rm } from 'node:fs/promises';
 import path from 'node:path';
 
 import {
+  createCliClosureDigest,
+  createPortableSkillBehaviorDigest,
+} from '../../../tooling/evidence-identity/index.mjs';
+
+import {
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
   QUALIFICATION_RESULTS_ROOT,
+  SKILL_REPOSITORY_ROOT,
 } from '../constants/index.ts';
 import {
   QualificationAttemptResultSchema,
@@ -15,14 +21,28 @@ import {
   type IQualificationRecordedAttemptResult,
   type IQualificationRecordedLatestResult,
 } from '../contracts/index.ts';
+import { createQualificationCompatibilityIdentity } from '../evidence-identity/index.ts';
 import {
-  calculateFileSha256,
+  calculateSha256,
   ensureDirectory,
   listDirectoryFiles,
   readJsonFile,
+  resolveContainedPath,
   writeJsonFileAtomically,
   writeTextFileAtomically,
 } from '../filesystem/index.ts';
+import {
+  createQualificationAttemptKey,
+  createQualificationAttemptStorage,
+  loadQualificationProfileIndex,
+  readQualificationAttemptStorage,
+  resolveQualificationArtifactPath,
+  resolveQualificationProfilesRootForResults,
+  resolveQualificationResultTargetDirectory,
+  verifyQualificationAttemptStorage,
+  type IQualificationAttemptStorage,
+  type IQualificationProfileIndexTarget,
+} from '../storage/index.ts';
 import { validateQualificationAttemptEvidence } from './evidence.ts';
 import { sanitizeEvidenceText, sanitizeEvidenceValue } from './sanitizer.ts';
 import type {
@@ -30,6 +50,12 @@ import type {
   IQualificationResultVerificationIssue,
   IRecordQualificationResultOptions,
 } from './types.ts';
+
+type ISanitizedArtifact = {
+  content: string;
+  logicalPath: string;
+  sha256: string;
+};
 
 const pathExists = async (candidatePath: string): Promise<boolean> => {
   try {
@@ -40,27 +66,12 @@ const pathExists = async (candidatePath: string): Promise<boolean> => {
   }
 };
 
-const getTargetRoot = (resultsRoot: string, adapterId: string, implementationId: string): string =>
-  path.join(resultsRoot, adapterId, implementationId);
-
-const calculateArtifactDigests = async (
-  artifactDirectory: string,
-): Promise<Record<string, string>> => {
-  const artifactPaths = (await listDirectoryFiles(artifactDirectory)).filter(
-    (artifactPath) => artifactPath !== 'attempt.json',
-  );
-  const digestEntries = await Promise.all(
-    artifactPaths.map(
-      async (artifactPath) =>
-        [
-          artifactPath,
-          await calculateFileSha256(path.join(artifactDirectory, artifactPath)),
-        ] as const,
-    ),
-  );
-
-  return Object.fromEntries(digestEntries);
-};
+const getTargetRoot = (
+  resultsRoot: string,
+  adapterId: string,
+  implementationId: string,
+): Promise<string> =>
+  resolveQualificationResultTargetDirectory(resultsRoot, { adapterId, implementationId });
 
 /** Sanitizes every structured event in a JSON Lines artifact while preserving line boundaries. */
 const sanitizeJsonLines = (
@@ -76,37 +87,66 @@ const sanitizeJsonLines = (
     )
     .join('\n');
 
-/** Copies public evidence through a final path, credential, JSON, and symlink sanitization boundary. */
-const sanitizeArtifactDirectory = async (
-  sourceDirectory: string,
-  destinationDirectory: string,
+const sanitizeArtifactSource = (
+  source: string,
+  logicalPath: string,
   context: IRecordQualificationResultOptions['sanitizationContext'],
-): Promise<void> => {
-  const artifactPaths = await listDirectoryFiles(sourceDirectory);
-  await ensureDirectory(destinationDirectory);
-
-  for (const artifactPath of artifactPaths) {
-    const sourcePath = path.join(sourceDirectory, artifactPath);
-    const stats = await lstat(sourcePath);
-
-    if (!stats.isFile()) {
-      throw new Error(`Public qualification evidence must be a regular file: ${artifactPath}`);
-    }
-
-    const destinationPath = path.join(destinationDirectory, artifactPath);
-    const source = await readFile(sourcePath, 'utf8');
-
-    if (artifactPath.endsWith('.json')) {
-      await writeJsonFileAtomically(
-        destinationPath,
-        sanitizeEvidenceValue(JSON.parse(source) as unknown, context),
-      );
-    } else if (artifactPath.endsWith('.jsonl')) {
-      await writeTextFileAtomically(destinationPath, sanitizeJsonLines(source, context));
-    } else {
-      await writeTextFileAtomically(destinationPath, sanitizeEvidenceText(source, context));
-    }
+): string => {
+  if (logicalPath.endsWith('.json')) {
+    return `${JSON.stringify(
+      sanitizeEvidenceValue(JSON.parse(source) as unknown, context),
+      null,
+      2,
+    )}\n`;
   }
+  if (logicalPath.endsWith('.jsonl')) {
+    return sanitizeJsonLines(source, context);
+  }
+  return sanitizeEvidenceText(source, context);
+};
+
+/** Reads and sanitizes public artifacts before assigning any physical storage path. */
+const readSanitizedArtifacts = async (
+  sourceDirectory: string,
+  context: IRecordQualificationResultOptions['sanitizationContext'],
+): Promise<ISanitizedArtifact[]> => {
+  const logicalPaths = await listDirectoryFiles(sourceDirectory);
+
+  return Promise.all(
+    logicalPaths.map(async (logicalPath) => {
+      const sourcePath = resolveContainedPath(sourceDirectory, logicalPath);
+      const stats = await lstat(sourcePath);
+
+      if (!stats.isFile()) {
+        throw new Error(`Public qualification evidence must be a regular file: ${logicalPath}`);
+      }
+
+      const content = sanitizeArtifactSource(
+        await readFile(sourcePath, 'utf8'),
+        logicalPath,
+        context,
+      );
+      return { content, logicalPath, sha256: calculateSha256(content) };
+    }),
+  );
+};
+
+/** Writes sanitized logical artifacts only through their short contained physical mappings. */
+const writeSanitizedArtifacts = async (
+  attemptDirectory: string,
+  storage: IQualificationAttemptStorage,
+  artifacts: readonly ISanitizedArtifact[],
+): Promise<void> => {
+  await Promise.all(
+    artifacts.map(async (artifact) => {
+      const destinationPath = resolveQualificationArtifactPath(
+        attemptDirectory,
+        storage,
+        artifact.logicalPath,
+      );
+      await writeTextFileAtomically(destinationPath, artifact.content);
+    }),
+  );
 };
 
 const readRecordedAttempts = async (
@@ -123,23 +163,25 @@ const readRecordedAttempts = async (
   const attempts: IQualificationRecordedAttemptResult[] = [];
 
   for (const entry of entries) {
-    if (!entry.isDirectory() || entry.name.startsWith('.')) {
-      continue;
+    if (!entry.isDirectory() || !/^a-[a-f0-9]{32}$/u.test(entry.name)) {
+      throw new Error(`Qualification attempts contain an unexpected entry: ${entry.name}`);
     }
 
+    const attemptDirectory = path.join(attemptsRoot, entry.name);
     const result = await readJsonFile(
-      path.join(attemptsRoot, entry.name, 'attempt.json'),
+      path.join(attemptDirectory, 'attempt.json'),
       QualificationRecordedAttemptResultSchema,
     );
 
     if (
-      result.attemptId !== entry.name ||
+      createQualificationAttemptKey(result.attemptId) !== entry.name ||
       result.selection.adapterId !== expectedSelection.adapterId ||
       result.selection.implementationId !== expectedSelection.implementationId
     ) {
       throw new Error(`Attempt ${entry.name} does not match its result directory identity.`);
     }
 
+    await verifyQualificationAttemptStorage({ attemptDirectory, result });
     attempts.push(result);
   }
 
@@ -155,7 +197,7 @@ const updateLatestResult = async (
   adapterId: string,
   implementationId: string,
 ): Promise<void> => {
-  const targetRoot = getTargetRoot(resultsRoot, adapterId, implementationId);
+  const targetRoot = await getTargetRoot(resultsRoot, adapterId, implementationId);
   const attempts = await readRecordedAttempts(targetRoot, { adapterId, implementationId });
   const latestAttempt = attempts.at(-1);
 
@@ -198,34 +240,71 @@ export const recordQualificationResult = async (
   }
 
   const sanitizedDraft = sanitizeEvidenceValue(options.result, options.sanitizationContext);
-  const targetRoot = getTargetRoot(
+  const targetRoot = await getTargetRoot(
     resultsRoot,
     sanitizedDraft.selection.adapterId,
     sanitizedDraft.selection.implementationId,
   );
   const attemptsRoot = path.join(targetRoot, 'attempts');
-  const attemptDirectory = path.join(attemptsRoot, sanitizedDraft.attemptId);
+  const attemptKey = createQualificationAttemptKey(sanitizedDraft.attemptId);
+  const attemptDirectory = path.join(attemptsRoot, attemptKey);
   const stagingDirectory = path.join(
     attemptsRoot,
-    `.${sanitizedDraft.attemptId}.${process.pid}.${randomUUID()}.tmp`,
+    `.${attemptKey}.${process.pid}.${randomUUID()}.tmp`,
   );
+  const artifacts = await readSanitizedArtifacts(
+    options.artifactDirectory,
+    options.sanitizationContext,
+  );
+  const artifactDigests = Object.fromEntries(
+    artifacts.map(({ logicalPath, sha256 }) => [logicalPath, sha256]),
+  );
+  const result = QualificationAttemptResultSchema.parse({
+    ...sanitizedDraft,
+    artifactDigests,
+  });
+  const qualificationRoot = path.resolve(
+    await resolveQualificationProfilesRootForResults(resultsRoot),
+    '..',
+  );
+  const adjacentRepositoryRoot = path.resolve(qualificationRoot, '..');
+  const hasAdjacentRepository =
+    path.basename(qualificationRoot) === 'qualification' &&
+    ((await pathExists(path.join(adjacentRepositoryRoot, '.git'))) ||
+      (await pathExists(path.join(qualificationRoot, 'src'))));
+  const repositoryRoot = hasAdjacentRepository ? adjacentRepositoryRoot : SKILL_REPOSITORY_ROOT;
+  const compatibility = await createQualificationCompatibilityIdentity({
+    qualificationRoot,
+    repositoryRoot,
+    selection: result.selection,
+  });
+  const cliClosureDigest = createCliClosureDigest(repositoryRoot);
+  const portableSkillBehaviorDigest = createPortableSkillBehaviorDigest(repositoryRoot);
+  const attemptSource = `${JSON.stringify(result, null, 2)}\n`;
+  const storage = createQualificationAttemptStorage({
+    attemptDigest: calculateSha256(attemptSource),
+    cliClosureDigest,
+    compatibility,
+    portableSkillBehaviorDigest,
+    result,
+  });
+
   await ensureDirectory(attemptsRoot);
 
   try {
     await rm(stagingDirectory, { force: true, recursive: true });
-    await sanitizeArtifactDirectory(
-      options.artifactDirectory,
-      stagingDirectory,
-      options.sanitizationContext,
-    );
-    const artifactDigests = await calculateArtifactDigests(stagingDirectory);
-    const result = QualificationAttemptResultSchema.parse({
-      ...sanitizedDraft,
-      artifactDigests,
+    await ensureDirectory(stagingDirectory);
+    await writeSanitizedArtifacts(stagingDirectory, storage, artifacts);
+    await writeTextFileAtomically(path.join(stagingDirectory, 'attempt.json'), attemptSource);
+    await writeJsonFileAtomically(path.join(stagingDirectory, 'storage.json'), storage);
+    await verifyQualificationAttemptStorage({
+      attemptDirectory: stagingDirectory,
+      result,
+      storage,
     });
-
     await validateQualificationAttemptEvidence({
       attemptDirectory: stagingDirectory,
+      contractSource: 'current',
       result,
       resultsRoot,
     });
@@ -235,11 +314,20 @@ export const recordQualificationResult = async (
         path.join(attemptDirectory, 'attempt.json'),
         QualificationAttemptResultSchema,
       );
+      const recordedStorage = await readQualificationAttemptStorage(attemptDirectory);
 
-      if (JSON.stringify(recordedResult) !== JSON.stringify(result)) {
+      if (
+        JSON.stringify(recordedResult) !== JSON.stringify(result) ||
+        JSON.stringify(recordedStorage) !== JSON.stringify(storage)
+      ) {
         throw new Error(`Attempt ${result.attemptId} is already recorded with different evidence.`);
       }
 
+      await verifyQualificationAttemptStorage({
+        attemptDirectory,
+        result: recordedResult,
+        storage: recordedStorage,
+      });
       await updateLatestResult(
         resultsRoot,
         result.selection.adapterId,
@@ -248,9 +336,7 @@ export const recordQualificationResult = async (
       return recordedResult;
     }
 
-    await writeJsonFileAtomically(path.join(stagingDirectory, 'attempt.json'), result);
     await rename(stagingDirectory, attemptDirectory);
-
     await updateLatestResult(
       resultsRoot,
       result.selection.adapterId,
@@ -266,21 +352,131 @@ const verifyAttemptArtifacts = async (
   attemptDirectory: string,
   result: IQualificationRecordedAttemptResult,
   issues: IQualificationResultVerificationIssue[],
+  repositoryRoot: string,
   resultsRoot: string,
 ): Promise<void> => {
-  const actualDigests = await calculateArtifactDigests(attemptDirectory);
+  try {
+    const storage = await verifyQualificationAttemptStorage({ attemptDirectory, result });
 
-  if (JSON.stringify(actualDigests) !== JSON.stringify(result.artifactDigests)) {
+    if (storage.carryForward !== undefined) {
+      const expectedCompatibility = await createQualificationCompatibilityIdentity({
+        qualificationRoot: path.resolve(resultsRoot, '..'),
+        repositoryRoot,
+        selection: result.selection,
+      });
+
+      if (JSON.stringify(storage.compatibility) !== JSON.stringify(expectedCompatibility)) {
+        throw new Error('Qualification carry-forward compatibility does not match current inputs.');
+      }
+    }
+  } catch (error) {
     issues.push({
       path: path.relative(resultsRoot, attemptDirectory),
-      message: 'Artifact digests do not match attempt.json.',
+      message: error instanceof Error ? error.message : 'Unknown qualification storage failure.',
     });
   }
 };
 
-/** Verifies every committed attempt, artifact digest, and latest pointer without executing a test. */
+const verifyQualificationTarget = async (options: {
+  issues: IQualificationResultVerificationIssue[];
+  repositoryRoot: string;
+  resultsRoot: string;
+  target: IQualificationProfileIndexTarget;
+}): Promise<number> => {
+  const targetRoot = resolveContainedPath(options.resultsRoot, options.target.key);
+
+  try {
+    if (!(await pathExists(targetRoot))) {
+      return 0;
+    }
+
+    const recordedAttempts = await readRecordedAttempts(targetRoot, options.target);
+    const targetEntries = await readdir(targetRoot, { withFileTypes: true });
+    const attemptsEntry = targetEntries.find(({ name }) => name === 'attempts');
+    const latestEntry = targetEntries.find(({ name }) => name === 'latest.json');
+
+    if (
+      targetEntries.length === 0 ||
+      targetEntries.some(({ name }) => name !== 'attempts' && name !== 'latest.json') ||
+      (attemptsEntry !== undefined && !attemptsEntry.isDirectory()) ||
+      (latestEntry !== undefined && !latestEntry.isFile())
+    ) {
+      throw new Error('Qualification result target has an unexpected physical inventory.');
+    }
+
+    for (const result of recordedAttempts) {
+      const attemptDirectory = path.join(
+        targetRoot,
+        'attempts',
+        createQualificationAttemptKey(result.attemptId),
+      );
+      await verifyAttemptArtifacts(
+        attemptDirectory,
+        result,
+        options.issues,
+        options.repositoryRoot,
+        options.resultsRoot,
+      );
+
+      try {
+        await validateQualificationAttemptEvidence({
+          attemptDirectory,
+          contractSource: 'current',
+          result,
+          resultsRoot: options.resultsRoot,
+        });
+      } catch (error) {
+        options.issues.push({
+          path: path.relative(options.resultsRoot, attemptDirectory),
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Unknown qualification evidence validation failure.',
+        });
+      }
+    }
+
+    const latestPath = path.join(targetRoot, 'latest.json');
+
+    if (recordedAttempts.length > 0) {
+      const latest = await readJsonFile(latestPath, QualificationRecordedLatestResultSchema);
+      const expectedLatest = recordedAttempts.at(-1);
+      const expectedPassing = recordedAttempts.filter(({ status }) => status === 'passed').at(-1);
+
+      if (
+        latest.adapterId !== options.target.adapterId ||
+        latest.implementationId !== options.target.implementationId ||
+        latest.protocolVersion !== expectedLatest?.protocolVersion ||
+        latest.latestAttemptId !== expectedLatest?.attemptId ||
+        latest.latestStatus !== expectedLatest?.status ||
+        latest.lastPassingAttemptId !== (expectedPassing?.attemptId ?? null)
+      ) {
+        options.issues.push({
+          path: path.relative(options.resultsRoot, latestPath),
+          message: 'Latest pointer does not match recorded attempt history.',
+        });
+      }
+    } else if (await pathExists(latestPath)) {
+      options.issues.push({
+        path: path.relative(options.resultsRoot, latestPath),
+        message: 'Latest pointer exists without any recorded attempt history.',
+      });
+    }
+
+    return recordedAttempts.length;
+  } catch (error) {
+    options.issues.push({
+      path: path.relative(options.resultsRoot, targetRoot),
+      message: error instanceof Error ? error.message : 'Unknown result verification failure.',
+    });
+    return 0;
+  }
+};
+
+/** Verifies every current short attempt, artifact digest, manifest, and latest pointer. */
 export const verifyQualificationResults = async (
   resultsRoot: string = QUALIFICATION_RESULTS_ROOT,
+  repositoryRoot: string = path.resolve(resultsRoot, '..', '..'),
 ): Promise<IQualificationResultVerification> => {
   const issues: IQualificationResultVerificationIssue[] = [];
   let attempts = 0;
@@ -289,92 +485,41 @@ export const verifyQualificationResults = async (
     return { passed: true, attempts, issues };
   }
 
-  const adapterEntries = await readdir(resultsRoot, { withFileTypes: true });
+  try {
+    const profilesRoot = await resolveQualificationProfilesRootForResults(resultsRoot);
+    const index = await loadQualificationProfileIndex(profilesRoot);
+    const targetsByKey = new Map(index.targets.map((target) => [target.key, target]));
+    const resultEntries = await readdir(resultsRoot, { withFileTypes: true });
 
-  for (const adapterEntry of adapterEntries) {
-    if (!adapterEntry.isDirectory()) {
-      continue;
-    }
-
-    const adapterRoot = path.join(resultsRoot, adapterEntry.name);
-    const implementationEntries = await readdir(adapterRoot, { withFileTypes: true });
-
-    for (const implementationEntry of implementationEntries) {
-      if (!implementationEntry.isDirectory()) {
+    for (const resultEntry of resultEntries) {
+      if (!resultEntry.isDirectory()) {
+        issues.push({
+          path: resultEntry.name,
+          message: 'Result root entries must be directories.',
+        });
         continue;
       }
-
-      const targetRoot = path.join(adapterRoot, implementationEntry.name);
-
-      try {
-        const recordedAttempts = await readRecordedAttempts(targetRoot, {
-          adapterId: adapterEntry.name,
-          implementationId: implementationEntry.name,
-        });
-        attempts += recordedAttempts.length;
-
-        for (const result of recordedAttempts) {
-          const attemptDirectory = path.join(targetRoot, 'attempts', result.attemptId);
-          await verifyAttemptArtifacts(attemptDirectory, result, issues, resultsRoot);
-
-          try {
-            await validateQualificationAttemptEvidence({
-              attemptDirectory,
-              result,
-              resultsRoot,
-            });
-          } catch (error) {
-            issues.push({
-              path: path.relative(resultsRoot, attemptDirectory),
-              message:
-                error instanceof Error
-                  ? error.message
-                  : 'Unknown qualification evidence validation failure.',
-            });
-          }
-        }
-
-        const latestPath = path.join(targetRoot, 'latest.json');
-
-        if (recordedAttempts.length > 0) {
-          const latest = await readJsonFile(latestPath, QualificationRecordedLatestResultSchema);
-          const expectedLatest = recordedAttempts.at(-1);
-          const expectedPassing = recordedAttempts
-            .filter(({ status }) => status === 'passed')
-            .at(-1);
-
-          if (
-            latest.adapterId !== adapterEntry.name ||
-            latest.implementationId !== implementationEntry.name ||
-            latest.protocolVersion !== expectedLatest?.protocolVersion ||
-            latest.latestAttemptId !== expectedLatest?.attemptId ||
-            latest.latestStatus !== expectedLatest?.status ||
-            latest.lastPassingAttemptId !== (expectedPassing?.attemptId ?? null)
-          ) {
-            issues.push({
-              path: path.relative(resultsRoot, path.join(targetRoot, 'latest.json')),
-              message: 'Latest pointer does not match recorded attempt history.',
-            });
-          }
-        } else if (await pathExists(latestPath)) {
-          issues.push({
-            path: path.relative(resultsRoot, latestPath),
-            message: 'Latest pointer exists without any recorded attempt history.',
-          });
-        }
-      } catch (error) {
+      const target = targetsByKey.get(resultEntry.name);
+      if (target === undefined) {
         issues.push({
-          path: path.relative(resultsRoot, targetRoot),
-          message: error instanceof Error ? error.message : 'Unknown result verification failure.',
+          path: resultEntry.name,
+          message: 'Result target key is not present in the qualification profile index.',
         });
+        continue;
       }
+      attempts += await verifyQualificationTarget({ issues, repositoryRoot, resultsRoot, target });
     }
+  } catch (error) {
+    issues.push({
+      path: '.',
+      message: error instanceof Error ? error.message : 'Unknown result verification failure.',
+    });
   }
 
   return { passed: issues.length === 0, attempts, issues };
 };
 
-/** Lists every committed latest pointer for local status presentation. */
+/** Lists every current short latest pointer while returning unchanged logical identifiers. */
 export const listLatestQualificationResults = async (
   resultsRoot: string = QUALIFICATION_RESULTS_ROOT,
 ): Promise<IQualificationRecordedLatestResult[]> => {
@@ -382,33 +527,22 @@ export const listLatestQualificationResults = async (
     return [];
   }
 
+  const profilesRoot = await resolveQualificationProfilesRootForResults(resultsRoot);
+  const index = await loadQualificationProfileIndex(profilesRoot);
   const latestResults: IQualificationRecordedLatestResult[] = [];
-  const adapterEntries = await readdir(resultsRoot, { withFileTypes: true });
 
-  for (const adapterEntry of adapterEntries) {
-    if (!adapterEntry.isDirectory()) {
-      continue;
-    }
+  for (const target of index.targets) {
+    const latestPath = path.join(resultsRoot, target.key, 'latest.json');
 
-    const implementationEntries = await readdir(path.join(resultsRoot, adapterEntry.name), {
-      withFileTypes: true,
-    });
-
-    for (const implementationEntry of implementationEntries) {
-      if (!implementationEntry.isDirectory()) {
-        continue;
+    if (await pathExists(latestPath)) {
+      const latest = await readJsonFile(latestPath, QualificationRecordedLatestResultSchema);
+      if (
+        latest.adapterId !== target.adapterId ||
+        latest.implementationId !== target.implementationId
+      ) {
+        throw new Error(`Latest result ${target.key} does not match its indexed target.`);
       }
-
-      const latestPath = path.join(
-        resultsRoot,
-        adapterEntry.name,
-        implementationEntry.name,
-        'latest.json',
-      );
-
-      if (await pathExists(latestPath)) {
-        latestResults.push(await readJsonFile(latestPath, QualificationRecordedLatestResultSchema));
-      }
+      latestResults.push(latest);
     }
   }
 

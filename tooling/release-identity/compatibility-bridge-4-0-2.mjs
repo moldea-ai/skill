@@ -1235,7 +1235,6 @@ const createExpectedCliPeerJob = () => ({
     {
       name: 'Setup pnpm',
       uses: 'pnpm/action-setup@v6',
-      with: { version: '${{ env.PNPM_VERSION }}' },
     },
     {
       name: 'Setup Node.js',

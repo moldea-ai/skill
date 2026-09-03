@@ -202,6 +202,8 @@ export const PACKAGES_402_CHANGED_PATHS = Object.freeze(
     'projects/cli/src/composition/transformers.test-unit.ts',
     'projects/cli/src/package-metadata/loader.test-integration.ts',
     'projects/cli/src/presentation/formatters.test-unit.ts',
+    'projects/core/package.json',
+    'projects/core/src/index.test-integration.ts',
     'projects/repository-fs/README.md',
     'projects/repository-fs/docs/security-and-limits.md',
     'projects/repository-fs/package.json',

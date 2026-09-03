@@ -684,10 +684,11 @@ const createRegistryFetch = (sourceArtifacts) => {
 
 test('freezes the exact skill and packages path inventories', () => {
   assert.equal(SKILL_402_CHANGED_PATHS.length, 36);
-  assert.equal(PACKAGES_402_CHANGED_PATHS.length, 63);
+  assert.equal(PACKAGES_402_CHANGED_PATHS.length, 65);
   assert.equal(new Set(SKILL_402_CHANGED_PATHS).size, SKILL_402_CHANGED_PATHS.length);
   assert.equal(new Set(PACKAGES_402_CHANGED_PATHS).size, PACKAGES_402_CHANGED_PATHS.length);
   assert.ok(SKILL_402_CHANGED_PATHS.includes('tests/package-manager.test-integration.mjs'));
+  assert.ok(PACKAGES_402_CHANGED_PATHS.includes('projects/core/package.json'));
   assert.ok(PACKAGES_402_CHANGED_PATHS.includes('projects/repository/package.json'));
   assert.equal(
     [...SKILL_402_CHANGED_PATHS].some((path) => path.includes('*')),
@@ -703,7 +704,7 @@ test('freezes the exact skill and packages path inventories', () => {
   );
   assert.equal(
     createHash('sha256').update(JSON.stringify(PACKAGES_402_CHANGED_PATHS)).digest('hex'),
-    'f16bae7b48bc7fcd3daee81b8dcec22bcba5553c0cc0029d31c598f1da86b505',
+    'df6a10bed3c388b4a3fe5fdfdbb6bbc32648db722435b8ca94ae25f7a474ece8',
   );
   assert.equal(
     createHash('sha256').update(JSON.stringify(PACKAGE_VERSION_MAP)).digest('hex'),

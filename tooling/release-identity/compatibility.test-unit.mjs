@@ -48,9 +48,9 @@ test('parses immutable 4.0.1 and planned 4.0.2 compatibility from explicit conte
   });
 });
 
-test('keeps the ambient 4.0.1 repository synchronized without requiring 4.0.2', () => {
-  assert.deepEqual(assertRepositoryCompatibility(repositoryRoot, COMPATIBILITY_401), {
-    ...COMPATIBILITY_401,
+test('keeps the ambient 4.0.2 repository synchronized with the frozen contract', () => {
+  assert.deepEqual(assertRepositoryCompatibility(repositoryRoot, COMPATIBILITY_402), {
+    ...COMPATIBILITY_402,
   });
 });
 

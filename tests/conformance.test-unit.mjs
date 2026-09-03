@@ -9,7 +9,10 @@ import { describe, test } from 'node:test';
 import { parseDocument } from 'yaml';
 
 import {
+  COMPATIBILITY_402,
   createSemanticCliIdentity,
+  isCompatibilityVersionSupported,
+  parseCompatibility,
   SEMANTIC_EVALUATION_PROTOCOL_VERSION,
 } from '../tooling/release-identity/index.mjs';
 import {
@@ -72,18 +75,21 @@ const ALLOWED_FRONTMATTER_KEYS = new Set([
 ]);
 const REQUIRED_EVALUATION_CASE_IDS = {
   packageManagerCases: [
+    'below-floor-executable',
     'declared-executable-version-conflict',
     'different-installed-cli',
     'evaluate-missing-cli-read-only',
     'evaluate-release-cli-missing-required-capability',
     'existing-cli-with-executable-manager-config',
     'floating-cli-with-release-install',
+    'future-npm-major',
+    'future-pnpm-major',
+    'future-yarn-major',
     'matching-package-manager-and-lockfile',
     'metadata-lockfile-conflict',
     'missing-release-cli',
     'multiple-manager-lockfiles',
     'no-evidence-default-npm',
-    'out-of-range-executable',
     'plan-missing-cli-without-tooling-change',
     'pnpm-executable-hook-config',
     'release-cli-missing-required-capability',
@@ -177,6 +183,7 @@ const readRepositoryFile = (path) => readFileSync(join(REPOSITORY_ROOT, path), '
 const ROOT_PACKAGE_MANIFEST = JSON.parse(readRepositoryFile('package.json'));
 const RELEASE_CLI_VERSION = ROOT_PACKAGE_MANIFEST.devDependencies['@moldea.ai/cli'];
 const RELEASE_CLI_JSON_SCHEMA_VERSION = ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJsonSchemaVersion;
+const RELEASE_COMPATIBILITY = parseCompatibility(readRepositoryFile('moldea/SKILL.md'));
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
 
@@ -223,16 +230,13 @@ const assertMatchesEvery = (content, patterns) => {
 };
 
 const isSupportedManagerVersion = (manager, version) => {
-  const match = version.match(/^(\d+)\.(\d+)\.(\d+)$/);
-  if (!match) return false;
-  const [, majorText, minorText] = match;
-  const major = Number(majorText);
-  const minor = Number(minorText);
-
-  if (manager === 'npm') return (major === 10 && minor >= 9) || major === 11;
-  if (manager === 'pnpm') return major === 11 && minor >= 20;
-  if (manager === 'yarn') return major === 4;
-  return false;
+  const range = RELEASE_COMPATIBILITY[`${manager}Range`];
+  if (range === undefined) return false;
+  try {
+    return isCompatibilityVersionSupported(range, version);
+  } catch {
+    return false;
+  }
 };
 
 const isReleaseCliVersion = (version) => version === RELEASE_CLI_VERSION;
@@ -411,15 +415,10 @@ describe('portable Agent Skill contract', () => {
   });
 
   test('declares the exact release compatibility contract', () => {
-    assertMatchesEvery(skill, [
-      new RegExp(`@moldea\\.ai/cli: ${RELEASE_CLI_VERSION.replaceAll('.', '\\.')}\\b`),
-      new RegExp('CLI JSON schema: `' + RELEASE_CLI_JSON_SCHEMA_VERSION + '`'),
-      /Node\.js: `\^22\.11\.0 \|\| \^24\.11\.0`/,
-      /npm: `>=10\.9\.0 <12\.0\.0`/,
-      /pnpm: `>=11\.20\.0 <12\.0\.0`/,
-      /yarn: `>=4\.0\.0 <5\.0\.0`/,
-      /exact root development dependency/,
-    ]);
+    assert.deepEqual(RELEASE_COMPATIBILITY, { ...COMPATIBILITY_402 });
+    assert.equal(RELEASE_COMPATIBILITY.cliVersion, RELEASE_CLI_VERSION);
+    assert.equal(RELEASE_COMPATIBILITY.cliJsonSchemaVersion, RELEASE_CLI_JSON_SCHEMA_VERSION);
+    assert.match(skill, /exact root development dependency/);
   });
 
   test('uses explicit progressive-disclosure triggers and resolvable references', () => {
@@ -2088,6 +2087,7 @@ describe('source repository conformance', () => {
       assert.equal(compositionEnvelope.cliVersion, RELEASE_CLI_VERSION);
       assert.equal(compositionEnvelope.schemaVersion, RELEASE_CLI_JSON_SCHEMA_VERSION);
       assert.equal(compositionEnvelope.status, 'valid');
+      assert.equal(compositionEnvelope.result.supportedNodeRange, RELEASE_COMPATIBILITY.nodeRange);
       assert.deepEqual(
         compositionEnvelope.result.packages,
         Object.entries(SEMANTIC_CLI_MANIFEST.dependencies)
@@ -2321,7 +2321,7 @@ describe('source repository conformance', () => {
       /--workspace packages/,
       /--output "\$candidate_directory"/,
       /MOLDEA_CLI_ARTIFACT_DIRECTORY:/,
-      /MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS: "1"/,
+      /MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS: ['"]1['"]/,
       /node --test tests\/package-manager\.test-integration\.mjs/,
     ]);
     assert.doesNotMatch(workflow, /projects\/[a-z0-9-]+ pack/);

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
   chmodSync,
@@ -31,6 +32,7 @@ import {
   PACKAGES_SOURCE_BASELINE_COMMIT,
   PACKAGES_SOURCE_BASELINE_TREE,
   readPackageArchive,
+  SKILL_401_COMMIT,
   SKILL_402_CHANGED_PATHS,
   writeCompatibilityBridge402Attestation,
 } from './compatibility-bridge-4-0-2.mjs';
@@ -45,6 +47,13 @@ const sourceCoreDependencyRange = '^2.0.0';
 const candidateCoreDependencyRange = '>=2.0.2';
 const sourceRepositoryDependencyRange = '^1.0.0';
 const candidateRepositoryDependencyRange = '>=1.1.1';
+
+/** Reads one immutable source-release file for projection tests. */
+const readSkill401File = (path) =>
+  execFileSync('git', ['show', `${SKILL_401_COMMIT}:${path}`], {
+    cwd: repositoryRoot,
+    maxBuffer: 64 * 1024 * 1024,
+  });
 const newPackagesSourcePaths = new Set([
   'projects/cli/scripts/testing-peer-compatibility/index.mjs',
   'projects/repository/scripts/testing-peer-compatibility/index.mjs',
@@ -928,9 +937,9 @@ test('rejects behavior changes outside the exact portable compatibility projecti
   const skillPath = 'moldea/SKILL.md';
   const localToolingPath = 'moldea/references/local-tooling.md';
   const syntheticCliPath = 'fixtures/tooling/semantic-cli/bin/moldea.js';
-  const sourceSkill = readFileSync(join(repositoryRoot, skillPath));
-  const sourceLocalTooling = readFileSync(join(repositoryRoot, localToolingPath));
-  const sourceSyntheticCli = readFileSync(join(repositoryRoot, syntheticCliPath));
+  const sourceSkill = readSkill401File(skillPath);
+  const sourceLocalTooling = readSkill401File(localToolingPath);
+  const sourceSyntheticCli = readSkill401File(syntheticCliPath);
   const candidateSkill = Buffer.from(
     sourceSkill
       .toString('utf8')

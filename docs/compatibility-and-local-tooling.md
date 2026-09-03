@@ -11,14 +11,16 @@ order: 180
 The current skill release supports:
 
 - Git `>=2.30.0`
-- Node.js `^22.11.0 || ^24.11.0`
-- `@moldea.ai/cli 5.0.0`
+- Node.js `>=22.11.0`
+- `@moldea.ai/cli 5.0.3`
 - CLI JSON schema `2`
-- npm `>=10.9.0 <12.0.0`
-- pnpm `>=11.20.0 <12.0.0`
-- Yarn `>=4.0.0 <5.0.0`
+- npm `>=7.0.0`
+- pnpm `>=8.3.1`
+- Yarn `>=4.14.1`
 
 A client repository stores the exact release-owned repository-root `@moldea.ai/cli` development dependency. Another CLI version belongs to another skill release and is not treated as interchangeable.
+
+These open-ended ranges avoid rejecting a new stable manager major before any `moldea` command runs. The Node.js and selected package-manager ranges are independent: the active manager may impose a higher Node.js floor. `moldea` still verifies the exact manager executable, local CLI provider, lifecycle suppression, and machine-readable command envelope, so an incompatible future release fails at the concrete capability boundary.
 
 ## The coding agent owns the tooling boundary
 

@@ -1,6 +1,15 @@
 // release identity
 export { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from './constants.mjs';
 export {
+  assertCompatibility402Expansion,
+  assertRepositoryCompatibility,
+  COMPATIBILITY_401,
+  COMPATIBILITY_402,
+  isCompatibilityVersionSupported,
+  parseCompatibility,
+  validateCompatibilityContract,
+} from './compatibility.mjs';
+export {
   assertReleaseIdentity,
   createSemanticCliIdentity,
   inspectReleaseIdentity,
@@ -29,6 +38,17 @@ export {
   verifyCarryForward401SourceAttestation,
   writeCarryForward401Attestation,
 } from './carry-forward-4-0-1.mjs';
+
+// 4.0.2 compatibility bridge consumers
+export {
+  COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY,
+  hasCompatibilityBridge402Qualification,
+  hasLocalCompatibilityBridge402Qualification,
+  mapCompatibilityBridge402Packages,
+  parseCompatibilityBridge402Attestation,
+  readCompatibilityBridge402Attestation,
+  resolveCompatibleHistoricalSemanticAttemptId,
+} from './historical-semantic.mjs';
 
 // CLI updates
 export {

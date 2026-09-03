@@ -2,7 +2,7 @@
   "packageManagerCases": [
     {
       "id": "different-installed-cli",
-      "scenario": "A write-capable workflow finds exact CLI 3.3.6 instead of this skill release's exact CLI 5.0.0.",
+      "scenario": "A write-capable workflow finds exact CLI 3.3.6 instead of this skill release's exact CLI 5.0.3.",
       "operation": "initialize",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -22,7 +22,7 @@
     },
     {
       "id": "release-cli-missing-required-capability",
-      "scenario": "A synthetic write-capable workflow has this skill release's exact CLI 5.0.0, but that CLI does not expose a required official-adapter capability.",
+      "scenario": "A synthetic write-capable workflow has this skill release's exact CLI 5.0.3, but that CLI does not expose a required official-adapter capability.",
       "operation": "maintain-agent",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -32,8 +32,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "5.0.0",
-          "installedVersion": "5.0.0",
+          "declaration": "5.0.3",
+          "installedVersion": "5.0.3",
           "executableResolves": true,
           "installedCapabilities": [],
           "requiredCapability": "required-official-adapter-capability"
@@ -44,7 +44,7 @@
     },
     {
       "id": "evaluate-release-cli-missing-required-capability",
-      "scenario": "A synthetic read-only evaluation has this skill release's exact CLI 5.0.0, but that CLI does not expose a required official-adapter capability.",
+      "scenario": "A synthetic read-only evaluation has this skill release's exact CLI 5.0.3, but that CLI does not expose a required official-adapter capability.",
       "operation": "evaluate",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -54,8 +54,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "5.0.0",
-          "installedVersion": "5.0.0",
+          "declaration": "5.0.3",
+          "installedVersion": "5.0.3",
           "executableResolves": true,
           "installedCapabilities": [],
           "requiredCapability": "required-official-adapter-capability"
@@ -76,8 +76,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "5.0.0",
-          "installedVersion": "5.0.0",
+          "declaration": "5.0.3",
+          "installedVersion": "5.0.3",
           "executableResolves": true
         }
       },
@@ -96,8 +96,8 @@
           "version": "11.20.0"
         },
         "cli": {
-          "declaration": "5.0.0",
-          "installedVersion": "5.0.0",
+          "declaration": "5.0.3",
+          "installedVersion": "5.0.3",
           "executableResolves": true
         }
       },
@@ -116,8 +116,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "5.0.0",
-          "installedVersion": "5.0.0",
+          "declaration": "5.0.3",
+          "installedVersion": "5.0.3",
           "executableResolves": true
         }
       },
@@ -156,8 +156,8 @@
           "version": "4.18.0"
         },
         "cli": {
-          "declaration": "5.0.0",
-          "installedVersion": "5.0.0",
+          "declaration": "5.0.3",
+          "installedVersion": "5.0.3",
           "executableResolves": true
         }
       },
@@ -185,9 +185,69 @@
       "forbidden": ["switch-to-npm", "install-package-manager"]
     },
     {
-      "id": "out-of-range-executable",
-      "scenario": "The established Yarn executable is version 5 and therefore outside the supported major version.",
+      "id": "below-floor-executable",
+      "scenario": "The established Yarn executable is immediately below this release's supported floor.",
       "operation": "reconcile",
+      "input": {
+        "packageManager": "yarn@4.14.0",
+        "lockfiles": ["yarn.lock"],
+        "executable": {
+          "manager": "yarn",
+          "version": "4.14.0"
+        },
+        "cli": {
+          "declaration": "5.0.3",
+          "installedVersion": "5.0.3",
+          "executableResolves": true
+        }
+      },
+      "expected": ["report-prerequisite-without-upgrade"],
+      "forbidden": ["downgrade-package-manager", "continue-outside-range"]
+    },
+    {
+      "id": "future-npm-major",
+      "scenario": "The established npm 12 executable satisfies the open compatibility range and the exact release CLI is already local.",
+      "operation": "maintain",
+      "input": {
+        "packageManager": "npm@12.0.2",
+        "lockfiles": ["package-lock.json"],
+        "executable": {
+          "manager": "npm",
+          "version": "12.0.2"
+        },
+        "cli": {
+          "declaration": "5.0.3",
+          "installedVersion": "5.0.3",
+          "executableResolves": true
+        }
+      },
+      "expected": ["preserve-established-manager", "preserve-existing-exact-cli"],
+      "forbidden": ["report-prerequisite-without-upgrade", "switch-package-manager"]
+    },
+    {
+      "id": "future-pnpm-major",
+      "scenario": "The established pnpm 12 executable satisfies the open compatibility range and the exact release CLI is already local.",
+      "operation": "maintain",
+      "input": {
+        "packageManager": "pnpm@12.3.1",
+        "lockfiles": ["pnpm-lock.yaml"],
+        "executable": {
+          "manager": "pnpm",
+          "version": "12.3.1"
+        },
+        "cli": {
+          "declaration": "5.0.3",
+          "installedVersion": "5.0.3",
+          "executableResolves": true
+        }
+      },
+      "expected": ["preserve-established-manager", "preserve-existing-exact-cli"],
+      "forbidden": ["report-prerequisite-without-upgrade", "switch-package-manager"]
+    },
+    {
+      "id": "future-yarn-major",
+      "scenario": "A synthetic Yarn 5 executable satisfies the open compatibility range and the exact release CLI is already local.",
+      "operation": "maintain",
       "input": {
         "packageManager": "yarn@5.0.0",
         "lockfiles": ["yarn.lock"],
@@ -196,17 +256,17 @@
           "version": "5.0.0"
         },
         "cli": {
-          "declaration": "5.0.0",
-          "installedVersion": "5.0.0",
+          "declaration": "5.0.3",
+          "installedVersion": "5.0.3",
           "executableResolves": true
         }
       },
-      "expected": ["report-prerequisite-without-upgrade"],
-      "forbidden": ["downgrade-package-manager", "continue-outside-range"]
+      "expected": ["preserve-established-manager", "preserve-existing-exact-cli"],
+      "forbidden": ["report-prerequisite-without-upgrade", "switch-package-manager"]
     },
     {
       "id": "floating-cli-with-release-install",
-      "scenario": "The root CLI declaration floats while the installed root CLI and executable resolve to this skill release's exact version 5.0.0.",
+      "scenario": "The root CLI declaration floats while the installed root CLI and executable resolve to this skill release's exact version 5.0.3.",
       "operation": "reconcile",
       "input": {
         "packageManager": "npm@11.12.1",
@@ -216,8 +276,8 @@
           "version": "11.12.1"
         },
         "cli": {
-          "declaration": "^5.0.0",
-          "installedVersion": "5.0.0",
+          "declaration": "^5.0.3",
+          "installedVersion": "5.0.3",
           "executableResolves": true
         }
       },
@@ -317,8 +377,8 @@
         },
         "repositoryExecutableConfig": ["pnpmfile"],
         "cli": {
-          "declaration": "5.0.0",
-          "installedVersion": "5.0.0",
+          "declaration": "5.0.3",
+          "installedVersion": "5.0.3",
           "executableResolves": true
         }
       },
@@ -375,12 +435,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "5.0.0",
-        "installedCliVersion": "5.0.0",
+        "declaredCliVersion": "5.0.3",
+        "installedCliVersion": "5.0.3",
         "exitCode": 0,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "5.0.0",
+          "cliVersion": "5.0.3",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -396,12 +456,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "5.0.0",
-        "installedCliVersion": "5.0.0",
+        "declaredCliVersion": "5.0.3",
+        "installedCliVersion": "5.0.3",
         "exitCode": 1,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "5.0.0",
+          "cliVersion": "5.0.3",
           "command": "inspect",
           "status": "invalid",
           "result": {
@@ -419,12 +479,12 @@
       "operation": "composition",
       "input": {
         "invokedCommand": "composition",
-        "declaredCliVersion": "5.0.0",
-        "installedCliVersion": "5.0.0",
+        "declaredCliVersion": "5.0.3",
+        "installedCliVersion": "5.0.3",
         "exitCode": 0,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "5.0.0",
+          "cliVersion": "5.0.3",
           "command": "composition",
           "status": "valid",
           "result": {},
@@ -440,12 +500,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "5.0.0",
-        "installedCliVersion": "5.0.0",
+        "declaredCliVersion": "5.0.3",
+        "installedCliVersion": "5.0.3",
         "exitCode": 0,
         "output": {
           "schemaVersion": 1,
-          "cliVersion": "5.0.0",
+          "cliVersion": "5.0.3",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -457,12 +517,12 @@
     },
     {
       "id": "version-mismatch",
-      "scenario": "The machine envelope reports unsupported CLI 6.0.0 while the declared and installed root package is 5.0.0.",
+      "scenario": "The machine envelope reports unsupported CLI 6.0.0 while the declared and installed root package is 5.0.3.",
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "5.0.0",
-        "installedCliVersion": "5.0.0",
+        "declaredCliVersion": "5.0.3",
+        "installedCliVersion": "5.0.3",
         "exitCode": 0,
         "output": {
           "schemaVersion": 2,
@@ -478,7 +538,7 @@
     },
     {
       "id": "different-cli-version",
-      "scenario": "The declared, installed, and reported CLI are consistently 3.3.6 instead of this skill release's exact CLI 5.0.0.",
+      "scenario": "The declared, installed, and reported CLI are consistently 3.3.6 instead of this skill release's exact CLI 5.0.3.",
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
@@ -503,12 +563,12 @@
       "operation": "validate",
       "input": {
         "invokedCommand": "validate",
-        "declaredCliVersion": "5.0.0",
-        "installedCliVersion": "5.0.0",
+        "declaredCliVersion": "5.0.3",
+        "installedCliVersion": "5.0.3",
         "exitCode": 0,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "5.0.0",
+          "cliVersion": "5.0.3",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -524,12 +584,12 @@
       "operation": "composition",
       "input": {
         "invokedCommand": "composition",
-        "declaredCliVersion": "5.0.0",
-        "installedCliVersion": "5.0.0",
+        "declaredCliVersion": "5.0.3",
+        "installedCliVersion": "5.0.3",
         "exitCode": 1,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "5.0.0",
+          "cliVersion": "5.0.3",
           "command": "composition",
           "status": "invalid",
           "result": {},
@@ -545,12 +605,12 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "5.0.0",
-        "installedCliVersion": "5.0.0",
+        "declaredCliVersion": "5.0.3",
+        "installedCliVersion": "5.0.3",
         "exitCode": 2,
         "output": {
           "schemaVersion": 2,
-          "cliVersion": "5.0.0",
+          "cliVersion": "5.0.3",
           "command": "inspect",
           "status": "error",
           "result": null,
@@ -569,8 +629,8 @@
       "operation": "inspect",
       "input": {
         "invokedCommand": "inspect",
-        "declaredCliVersion": "5.0.0",
-        "installedCliVersion": "5.0.0",
+        "declaredCliVersion": "5.0.3",
+        "installedCliVersion": "5.0.3",
         "exitCode": 0,
         "output": "not-json"
       },

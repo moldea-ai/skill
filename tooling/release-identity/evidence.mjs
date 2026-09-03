@@ -74,7 +74,13 @@ import {
   verifyCarryForward401Attestation,
   verifyCarryForward401SourceAttestation,
 } from './carry-forward-4-0-1.mjs';
-import { resolveCompatibleHistoricalSemanticAttemptId } from './historical-semantic.mjs';
+import { COMPATIBILITY_BRIDGE_402_PATH } from './compatibility-bridge-4-0-2.mjs';
+import {
+  COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY,
+  mapCompatibilityBridge402Packages,
+  readCompatibilityBridge402Attestation,
+  resolveCompatibleHistoricalSemanticAttemptId,
+} from './historical-semantic.mjs';
 import { createSemanticCliIdentity, parseStableVersion } from './identity.mjs';
 
 const SEMANTIC_RESULTS_PATH = 'fixtures/semantic-evaluation-results';
@@ -835,6 +841,7 @@ const listCompatibleHistoricalEnvelopes = ({
   attestation,
   candidateCliClosureDigest,
   candidatePortableSkillBehaviorDigest,
+  compatibilityBridge402,
   currentCompatibility,
   currentProfilePackages,
   selection,
@@ -844,25 +851,48 @@ const listCompatibleHistoricalEnvelopes = ({
   const currentPackageNames = new Set(currentProfilePackages.map(({ name }) => name));
 
   return attestation.qualification.envelopes
-    .filter(
-      (envelope) =>
+    .filter((envelope) => {
+      const mappedPackages =
+        compatibilityBridge402 === null
+          ? envelope.packages
+          : mapCompatibilityBridge402Packages(compatibilityBridge402, envelope.packages);
+      const hasMappedPackageFailure = mappedPackages.some(
+        (candidatePackage) => candidatePackage === null,
+      );
+      const hasExactCandidateIdentity =
+        envelope.portableSkillBehaviorDigest === candidatePortableSkillBehaviorDigest &&
+        envelope.cliClosureDigest === candidateCliClosureDigest;
+      const hasMappedCandidateIdentity =
+        compatibilityBridge402 !== null &&
+        envelope.isCompatible === true &&
+        envelope.portableSkillBehaviorDigest ===
+          attestation.candidate.portableSkillBehaviorDigest &&
+        envelope.cliClosureDigest === attestation.candidate.cliClosureDigest &&
+        candidatePortableSkillBehaviorDigest ===
+          COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY.portableSkillBehaviorDigest &&
+        candidateCliClosureDigest === COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY.cliClosureDigest;
+      return (
+        !hasMappedPackageFailure &&
         envelope.status === 'passed' &&
         envelope.selection.adapterId === selection.adapterId &&
         envelope.selection.implementationId === selection.implementationId &&
         hasSameJsonIdentity(envelope.compatibility, currentCompatibility) &&
         envelope.targetCompatibilityDigest === targetDigest &&
-        envelope.portableSkillBehaviorDigest === candidatePortableSkillBehaviorDigest &&
-        envelope.cliClosureDigest === candidateCliClosureDigest &&
+        (hasExactCandidateIdentity || hasMappedCandidateIdentity) &&
         envelope.environment.model === CODEX_EVALUATION_MODEL &&
         envelope.environment.reasoningEffort === CODEX_EVALUATION_REASONING_EFFORT &&
         (selection.adapterId === 'custom'
           ? envelope.baselineReplay === 'not-required'
           : envelope.baselineReplay === 'passed') &&
         hasSameJsonIdentity(
-          envelope.packages.filter(({ name }) => currentPackageNames.has(name)),
+          mappedPackages.filter(
+            (candidatePackage) =>
+              candidatePackage !== null && currentPackageNames.has(candidatePackage.name),
+          ),
           currentProfilePackages,
-        ),
-    )
+        )
+      );
+    })
     .sort((left, right) => {
       const timestampOrder =
         Date.parse(right.completedAt ?? right.createdAt) -
@@ -1210,6 +1240,7 @@ export const inspectReleaseEvidence = async (
     packagesRepository = resolve(repositoryRoot, '..', 'packages'),
     resolvePublishedManifest = resolvePublishedPackageManifest,
     resolvePublishedClosure = resolvePublishedPackageClosure,
+    readCompatibilityBridgeAttestation = readCompatibilityBridge402Attestation,
     verifyCarryForwardAttestation = verifyCarryForward401Attestation,
     verifyCarryForwardSourceAttestation = verifyCarryForward401SourceAttestation,
   } = {},
@@ -1220,6 +1251,7 @@ export const inspectReleaseEvidence = async (
   const hasCarryForward = existsSync(carryForwardPath);
   let releaseVersion = null;
   let carryForward = null;
+  let compatibilityBridge402 = null;
   let candidateCliClosureDigest = null;
   let candidatePortableSkillBehaviorDigest = null;
   let candidateSemanticCompatibilityDigest = null;
@@ -1234,6 +1266,10 @@ export const inspectReleaseEvidence = async (
   }
   if (releaseVersion === CARRY_FORWARD_401_TARGET_RELEASE && !hasCarryForward) {
     issues.push(`${CARRY_FORWARD_401_PATH} is required for the exact 4.0.1 bridge.`);
+  }
+  const compatibilityBridgePath = join(repositoryRoot, ...COMPATIBILITY_BRIDGE_402_PATH.split('/'));
+  if (releaseVersion === '4.0.2' && !existsSync(compatibilityBridgePath)) {
+    issues.push(`${COMPATIBILITY_BRIDGE_402_PATH} is required for the exact 4.0.2 bridge.`);
   }
   try {
     candidateCliClosureDigest = createCliClosureDigest(repositoryRoot);
@@ -1286,9 +1322,20 @@ export const inspectReleaseEvidence = async (
       carryForward = null;
     }
   }
+  if (existsSync(compatibilityBridgePath)) {
+    try {
+      compatibilityBridge402 = readCompatibilityBridgeAttestation(repositoryRoot);
+    } catch (error) {
+      issues.push(
+        `Unable to verify ${COMPATIBILITY_BRIDGE_402_PATH}: ${error instanceof Error ? error.message : String(error)}`,
+      );
+      compatibilityBridge402 = null;
+    }
+  }
   const semanticResultPath = join(repositoryRoot, RELEASE_PATHS.semanticResult);
   const compatibleHistoricalSemanticAttemptId = resolveCompatibleHistoricalSemanticAttemptId({
     attestation: carryForward,
+    compatibilityBridge402,
     candidateCliClosureDigest,
     candidatePortableSkillBehaviorDigest,
     candidateSemanticCompatibilityDigest,
@@ -1409,6 +1456,7 @@ export const inspectReleaseEvidence = async (
       attestation: carryForward,
       candidateCliClosureDigest,
       candidatePortableSkillBehaviorDigest,
+      compatibilityBridge402,
       currentCompatibility,
       currentProfilePackages,
       selection,

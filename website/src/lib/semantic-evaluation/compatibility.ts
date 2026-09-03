@@ -8,7 +8,10 @@ import {
   createSemanticCompatibilityDigest,
 } from '../../../../tooling/evidence-identity/index.mjs';
 import { readCarryForward401Attestation } from '../../../../tooling/release-identity/carry-forward-4-0-1.mjs';
-import { resolveCompatibleHistoricalSemanticAttemptId } from '../../../../tooling/release-identity/historical-semantic.mjs';
+import {
+  readCompatibilityBridge402Attestation,
+  resolveCompatibleHistoricalSemanticAttemptId,
+} from '../../../../tooling/release-identity/historical-semantic.mjs';
 
 const SEMANTIC_RESULT_PATH = 'fixtures/semantic-evaluation-result.json';
 const SEMANTIC_ATTEMPTS_PATH = 'fixtures/semantic-evaluation-results/attempts';
@@ -24,12 +27,14 @@ const createFileSha256 = (path: string): string | null =>
 export const resolveCompatibleSemanticAttemptId = (repositoryRoot: string): string | null => {
   const attestation = readCarryForward401Attestation(repositoryRoot);
   if (attestation === null) return null;
+  const compatibilityBridge402 = readCompatibilityBridge402Attestation(repositoryRoot);
 
   const semanticResultSha256 = createFileSha256(join(repositoryRoot, SEMANTIC_RESULT_PATH));
   if (semanticResultSha256 === null) return null;
 
   const attemptId = resolveCompatibleHistoricalSemanticAttemptId({
     attestation,
+    compatibilityBridge402,
     candidateCliClosureDigest: createCliClosureDigest(repositoryRoot),
     candidatePortableSkillBehaviorDigest: createPortableSkillBehaviorDigest(repositoryRoot),
     candidateSemanticCompatibilityDigest: createSemanticCompatibilityDigest(repositoryRoot),

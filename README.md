@@ -4,7 +4,7 @@
 
 [Get `moldea` on skills.sh](https://www.skills.sh/moldea-ai/skill/moldea) or explore the complete documentation at [`skill.moldea.ai`](https://skill.moldea.ai).
 
-The current release is `4.0.1`. Install the latest version from `main` in the current project with:
+The current release is `4.0.2`. Install the latest version from `main` in the current project with:
 
 ```bash
 npx skills add moldea-ai/skill
@@ -13,7 +13,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin the immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.1"
+npx skills add "moldea-ai/skill#v4.0.2"
 ```
 
 Both sources install the portable skill as `moldea`. They do not install `@moldea.ai/cli` globally or require a `moldea` Cloud account.
@@ -51,7 +51,7 @@ npx skills add moldea-ai/skill
 This source follows `main`. To install the current release reproducibly, use its immutable tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.1"
+npx skills add "moldea-ai/skill#v4.0.2"
 ```
 
 The `skills` CLI supports Agent Skills-compatible hosts including Codex, Claude Code, Cursor, OpenCode, GitHub Copilot, Cline, and many others. Host detection and installation location are handled by the installer; the portable skill itself remains vendor-neutral.
@@ -80,10 +80,10 @@ Refresh a branch-tracking global installation with:
 npx skills add moldea-ai/skill -g
 ```
 
-A release-pinned installation remains on its immutable tag. To update it, replace `v4.0.1` in the following command with the desired newer published tag:
+A release-pinned installation remains on its immutable tag. To update it, replace `v4.0.2` in the following command with the desired newer published tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.1"
+npx skills add "moldea-ai/skill#v4.0.2"
 ```
 
 Add `-g` to the tagged command only when updating a global installation.
@@ -101,19 +101,19 @@ Add `-g` to remove the global installation instead.
 Installing the skill has no `moldea` runtime prerequisite. Using it for deterministic client-repository operations requires:
 
 - Git `>=2.30.0`
-- Node.js `^22.11.0 || ^24.11.0`
+- Node.js `>=22.11.0`
 - an established supported package manager, or npm when none is established
 - this skill release's exact repository-local `@moldea.ai/cli` development dependency
 
-Release `4.0.1` supports:
+Release `4.0.2` supports:
 
-- `@moldea.ai/cli 5.0.0`
+- `@moldea.ai/cli 5.0.3`
 - CLI JSON schema `2`
-- npm `>=10.9.0 <12.0.0`
-- pnpm `>=11.20.0 <12.0.0`
-- Yarn `>=4.0.0 <5.0.0`
+- npm `>=7.0.0`
+- pnpm `>=8.3.1`
+- Yarn `>=4.14.1`
 
-CLI `5.0.0` is part of this skill release's identity. Another CLI version belongs to another skill release and is not treated as interchangeable.
+CLI `5.0.3` is part of this skill release's identity. Another CLI version belongs to another skill release and is not treated as interchangeable.
 
 Write-capable workflows inspect executable package-manager configuration as file data before any package-manager process. A pnpmfile, hook, or Yarn `plugins[].path` declaration counts as executable configuration even when its code remains unread and unrun. Repository-supplied executable configuration blocks manager execution. The report retains every independent blocker even when another clarification also pauses the workflow. It names the exact path, blocked operation, unavailable evidence, and safe prerequisite: remove or disable the extension and retry, or independently verify and invoke an already declared and installed exact local CLI without the manager. It never recommends bypassing or executing the hidden extension merely to continue. For pnpm Plug'n'Play, the coding agent resolves the exact package through `pnpapi`, validates its relative binary and package containment, then invokes that binary through a separate `pnpm node` process. When an accessible repository-specific request asks for local CLI proof, it performs these checks and reports the accepted provider, version, command, and envelope instead of returning only a procedure. Result-dependent safety checks and deterministic CLI commands run as separate processes so each accepted result remains independently attributable. `evaluate` is strictly read-only and reports missing or mismatched tooling instead of installing it. Agent-system `plan` is also read-only and may run before adoption or local tooling exists. The skill never falls back to a global CLI or transient CLI download.
 
@@ -253,10 +253,10 @@ The updater verifies a stable public npm release, updates the exact root depende
 
 Release evidence is selected by behavior-bearing identity rather than by release number alone. Stabilize the skill, qualification suite, profiles, and release identity that will be committed and tagged, then run the deterministic gates. Run the semantic evaluation, Custom qualification, or a selected adapter qualification only when that evidence boundary has no compatible passing result. A distributed-skill behavior or CLI-closure change invalidates semantic and qualification evidence; a shared qualification evaluator or universal-input change invalidates Custom and affected adapters; and an adapter-specific profile, target, fixture, or package change invalidates only that selection. Inspect and commit every newly generated result, run `npm run release:check` on the final tree, and tag only after the gate passes.
 
-Release `4.0.1` uses a one-time, source-bound carry-forward attestation for the unchanged `v4.0.0` semantic result and 60 qualification attempts. Generate it only after the candidate is otherwise stable. The generator verifies the immutable source bytes, candidate compatibility identities, migrated Custom copy, deleted-result inventory, and reviewed path changes without invoking a model. Later releases continue to compare attested evidence with their current identities instead of adding another release-number exception.
+Release `4.0.2` chains a deterministic compatibility bridge to the immutable `4.0.1` carry-forward record. The bridge reauthorizes the original `v4.0.0` semantic and qualification evidence only when the exact skill projection, CLI and published package mapping, evaluator inputs, environments, targets, and attempt bytes still match. The widened Node.js and package-manager ranges are current deterministic compatibility claims backed by separate release checks; they are not new model results or stored hosted-job outcomes.
 
 ```bash
-npm run release:carry-forward:write
+npm run release:compatibility-bridge:write
 ```
 
 The root `eval:semantic` command invokes the unchanged semantic runner through an identity wrapper. Non-recording options pass through directly. Before `--record` or `--record-checkpoint`, the wrapper requires every relevant skill, runner, fixture, host, protocol, and CLI source to match `HEAD`, starts a supervised evaluator behind an IPC barrier, and writes an ignored atomic receipt owned by both processes before allowing runner code to begin. Losing the wrapper terminates the supervised evaluator, and recovery waits for both recorded processes to end. A recorded passing, failed, or incomplete attempt receives `identity.json`, which binds its exact attempt and evidence bytes to that source commit, the portable-skill behavior identity, locked CLI dependency closure, semantic compatibility identity, and exact argument digest without storing prompts, responses, environment values, or credentials. If finalization is interrupted, `npm run eval:semantic:identity` can finalize one attributable attempt, safely retire a no-attempt receipt, or resume one exact interrupted receipt-consumption claim without invoking the runner or a model. Active processes, multiple or mismatched claims, source drift, and ambiguous evidence block another recording instead of being overwritten. `eval:semantic:preflight` and `eval:semantic:verify` continue to invoke the existing runner directly.
@@ -373,7 +373,7 @@ The skill uses independent semantic versioning. Every release must:
 - use an immutable `v<version>` tag
 - preserve semantically identical `moldea/` content across every official distribution channel
 
-Release `4.0.1` will use the immutable `v4.0.1` tag.
+Release `4.0.2` will use the immutable `v4.0.2` tag.
 
 ## License
 

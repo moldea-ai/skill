@@ -49,6 +49,8 @@ const MAXIMUM_REGISTRY_RESPONSE_BYTES = 64 * 1024 * 1024;
 const REGISTRY_REQUEST_TIMEOUT_MS = 300_000;
 const SOURCE_NODE_RANGE = '^22.11.0 || ^24.11.0';
 const CANDIDATE_NODE_RANGE = '>=22.11.0';
+const SOURCE_CORE_DEPENDENCY_RANGE = '^2.0.0';
+const CANDIDATE_CORE_DEPENDENCY_RANGE = '>=2.0.2';
 const SOURCE_REPOSITORY_DEPENDENCY_RANGE = '^1.0.0';
 const CANDIDATE_REPOSITORY_DEPENDENCY_RANGE = '>=1.1.1';
 const PROHIBITED_IMPORT_PATHS = [
@@ -322,6 +324,11 @@ const REPOSITORY_DEPENDENT_PACKAGE_NAMES = new Set(
       packageName !== CLI_PACKAGE_NAME &&
       packageName !== '@moldea.ai/repository' &&
       packageName !== '@moldea.ai/website-ui',
+  ),
+);
+const CORE_DEPENDENT_PACKAGE_NAMES = new Set(
+  Object.keys(PACKAGE_VERSION_MAP).filter((packageName) =>
+    packageName.startsWith('@moldea.ai/adapter-'),
   ),
 );
 const COMPATIBILITY_DECISION_VERSIONS = Object.freeze({
@@ -899,6 +906,17 @@ const createExpectedReadme = (packageName, sourceReadme) => {
     );
     expected = expected.replace(sourceToken, `Version \`${candidate}\``);
   }
+  if (CORE_DEPENDENT_PACKAGE_NAMES.has(packageName)) {
+    const sourceToken = `\`@moldea.ai/core ${SOURCE_CORE_DEPENDENCY_RANGE}\``;
+    const sourceTokenCount = expected.split(sourceToken).length - 1;
+    if (sourceTokenCount > 0) {
+      assert.equal(sourceTokenCount, 1, `${packageName} README Core range token changed.`);
+      expected = expected.replace(
+        sourceToken,
+        `\`@moldea.ai/core ${CANDIDATE_CORE_DEPENDENCY_RANGE}\``,
+      );
+    }
+  }
   if (packageName === '@moldea.ai/repository') {
     const sourceText = 'Install its exact testing peers in the implementing package:';
     const candidateText =
@@ -963,6 +981,18 @@ const comparePackageManifests = (packageName, sourceManifest, candidateManifest)
       `${packageName} candidate must exclude Repository 1.1.0.`,
     );
     normalizedCandidate.dependencies['@moldea.ai/repository'] = SOURCE_REPOSITORY_DEPENDENCY_RANGE;
+  }
+  if (CORE_DEPENDENT_PACKAGE_NAMES.has(packageName)) {
+    assert.equal(
+      sourceManifest.dependencies?.['@moldea.ai/core'],
+      SOURCE_CORE_DEPENDENCY_RANGE,
+    );
+    assert.equal(
+      candidateManifest.dependencies?.['@moldea.ai/core'],
+      CANDIDATE_CORE_DEPENDENCY_RANGE,
+      `${packageName} candidate must exclude Core releases before 2.0.2.`,
+    );
+    normalizedCandidate.dependencies['@moldea.ai/core'] = SOURCE_CORE_DEPENDENCY_RANGE;
   }
   if (packageName === CLI_PACKAGE_NAME) {
     for (const [dependencyName, dependencyVersions] of Object.entries(PACKAGE_VERSION_MAP)) {
@@ -1096,6 +1126,14 @@ const assertCandidateSourceProjection = ({
       normalizedSourceManifest.dependencies['@moldea.ai/repository'] =
         `workspace:${SOURCE_REPOSITORY_DEPENDENCY_RANGE}`;
     }
+    if (CORE_DEPENDENT_PACKAGE_NAMES.has(packageName)) {
+      assert.equal(
+        sourceManifest.dependencies?.['@moldea.ai/core'],
+        `workspace:${CANDIDATE_CORE_DEPENDENCY_RANGE}`,
+      );
+      normalizedSourceManifest.dependencies['@moldea.ai/core'] =
+        `workspace:${SOURCE_CORE_DEPENDENCY_RANGE}`;
+    }
     if (packageName === CLI_PACKAGE_NAME) {
       for (const [dependencyName, versions] of Object.entries(PACKAGE_VERSION_MAP)) {
         if (dependencyName === CLI_PACKAGE_NAME || dependencyName === '@moldea.ai/website-ui') {
@@ -1215,6 +1253,22 @@ const assertCandidateSourceProjection = ({
       candidateDependency.specifier,
       `workspace:${CANDIDATE_REPOSITORY_DEPENDENCY_RANGE}`,
     );
+    normalizedDependency.specifier = baselineDependency.specifier;
+  }
+  for (const packageName of CORE_DEPENDENT_PACKAGE_NAMES) {
+    const sourceDirectory = PACKAGE_SOURCE_PATHS[packageName];
+    const baselineDependency =
+      baselineLockfile.importers?.[sourceDirectory]?.dependencies?.['@moldea.ai/core'];
+    const candidateDependency =
+      candidateLockfile.importers?.[sourceDirectory]?.dependencies?.['@moldea.ai/core'];
+    const normalizedDependency =
+      normalizedLockfile.importers?.[sourceDirectory]?.dependencies?.['@moldea.ai/core'];
+    assert.ok(
+      baselineDependency !== undefined &&
+        candidateDependency !== undefined &&
+        normalizedDependency !== undefined,
+    );
+    assert.equal(candidateDependency.specifier, `workspace:${CANDIDATE_CORE_DEPENDENCY_RANGE}`);
     normalizedDependency.specifier = baselineDependency.specifier;
   }
   assert.deepEqual(
@@ -1780,6 +1834,15 @@ export const compareSkillPackageLocks = (source, candidate) => {
       );
       normalizedPackage.dependencies['@moldea.ai/repository'] =
         sourcePackage.dependencies['@moldea.ai/repository'];
+    }
+    if (CORE_DEPENDENT_PACKAGE_NAMES.has(packageName)) {
+      assert.equal(
+        candidatePackage.dependencies?.['@moldea.ai/core'],
+        CANDIDATE_CORE_DEPENDENCY_RANGE,
+        `${packageName} candidate must exclude Core releases before 2.0.2.`,
+      );
+      normalizedPackage.dependencies['@moldea.ai/core'] =
+        sourcePackage.dependencies['@moldea.ai/core'];
     }
     if (packageName === CLI_PACKAGE_NAME) {
       for (const [dependencyName, dependencyVersions] of Object.entries(PACKAGE_VERSION_MAP)) {

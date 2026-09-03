@@ -41,6 +41,8 @@ const candidateCommit = 'c'.repeat(40);
 const skillCommit = 'd'.repeat(40);
 const sourceNodeRange = '^22.11.0 || ^24.11.0';
 const candidateNodeRange = '>=22.11.0';
+const sourceCoreDependencyRange = '^2.0.0';
+const candidateCoreDependencyRange = '>=2.0.2';
 const sourceRepositoryDependencyRange = '^1.0.0';
 const candidateRepositoryDependencyRange = '>=1.1.1';
 const newPackagesSourcePaths = new Set([
@@ -78,6 +80,11 @@ const repositoryDependentPackageNames = new Set(
       packageName !== '@moldea.ai/cli' &&
       packageName !== '@moldea.ai/repository' &&
       packageName !== '@moldea.ai/website-ui',
+  ),
+);
+const coreDependentPackageNames = new Set(
+  Object.keys(PACKAGE_VERSION_MAP).filter((packageName) =>
+    packageName.startsWith('@moldea.ai/adapter-'),
   ),
 );
 
@@ -158,6 +165,11 @@ const createPackageManifest = (packageName, isCandidate) => {
       ? candidateRepositoryDependencyRange
       : sourceRepositoryDependencyRange;
   }
+  if (coreDependentPackageNames.has(packageName)) {
+    manifest.dependencies['@moldea.ai/core'] = isCandidate
+      ? candidateCoreDependencyRange
+      : sourceCoreDependencyRange;
+  }
   if (packageName === '@moldea.ai/cli') {
     manifest.dependencies = Object.fromEntries(
       Object.entries(PACKAGE_VERSION_MAP)
@@ -177,7 +189,9 @@ const createPackageManifest = (packageName, isCandidate) => {
 /** Creates the source README text containing each authorized package token. */
 const createSourceReadme = (packageName) => {
   const version = PACKAGE_VERSION_MAP[packageName].source;
-  if (packageName.startsWith('@moldea.ai/adapter-')) return `Version \`${version}\` supports.\n`;
+  if (packageName.startsWith('@moldea.ai/adapter-')) {
+    return `Version \`${version}\` supports.\n\`@moldea.ai/core ${sourceCoreDependencyRange}\`\n`;
+  }
   if (packageName === '@moldea.ai/repository') {
     return 'Install its exact testing peers in the implementing package:\n';
   }
@@ -196,6 +210,7 @@ const createCandidateReadme = (packageName) => {
   const versions = PACKAGE_VERSION_MAP[packageName];
   if (packageName.startsWith('@moldea.ai/adapter-')) {
     readme = readme.replace(`Version \`${versions.source}\``, `Version \`${versions.candidate}\``);
+    readme = readme.replace(sourceCoreDependencyRange, candidateCoreDependencyRange);
   }
   if (packageName === '@moldea.ai/repository') {
     readme = readme.replace(
@@ -602,6 +617,17 @@ const createFullGitFixture = ({
       },
     };
   }
+  for (const packageName of coreDependentPackageNames) {
+    const sourceDirectory = packageSourcePaths[packageName];
+    baselineLockfile.importers[sourceDirectory].dependencies['@moldea.ai/core'] = {
+      specifier: `workspace:${sourceCoreDependencyRange}`,
+      version: 'link:../core',
+    };
+    candidateLockfile.importers[sourceDirectory].dependencies['@moldea.ai/core'] = {
+      specifier: `workspace:${candidateCoreDependencyRange}`,
+      version: 'link:../core',
+    };
+  }
   baselinePackageFiles.set('pnpm-lock.yaml', Buffer.from(stringify(baselineLockfile)));
   packageFiles.set('pnpm-lock.yaml', Buffer.from(stringify(candidateLockfile)));
   for (const path of PACKAGES_402_CHANGED_PATHS) {
@@ -803,6 +829,28 @@ test('permits only exact manifest, README, and unchanged tarball-byte projection
   assert.throws(
     () => comparePackageArtifactSets(sourceArtifacts, repositoryFloorMutation),
     /candidate must exclude Repository 1\.1\.0/u,
+  );
+
+  const coreFloorMutation = createArtifactSet(true);
+  coreFloorMutation.get('@moldea.ai/adapter-openai').manifest.dependencies['@moldea.ai/core'] =
+    '^2.0.0';
+  assert.throws(
+    () => comparePackageArtifactSets(sourceArtifacts, coreFloorMutation),
+    /candidate must exclude Core releases before 2\.0\.2/u,
+  );
+
+  const coreReadmeMutation = createArtifactSet(true);
+  const coreReadme = coreReadmeMutation
+    .get('@moldea.ai/adapter-openai')
+    .entries.get('package/README.md');
+  coreReadme.content = Buffer.from(
+    coreReadme.content
+      .toString('utf8')
+      .replace(candidateCoreDependencyRange, sourceCoreDependencyRange),
+  );
+  assert.throws(
+    () => comparePackageArtifactSets(sourceArtifacts, coreReadmeMutation),
+    /README contains an unauthorized change/u,
   );
 
   const readmeMutation = createArtifactSet(true);

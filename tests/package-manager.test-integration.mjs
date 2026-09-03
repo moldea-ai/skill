@@ -64,7 +64,7 @@ const isSupportedVersion = (manager, version) => {
 /** Returns whether the selected Yarn version supports its command-scoped age-gate override. */
 const supportsYarnNoTimeGate = (version) => {
   const [major, minor] = parseVersion(version);
-  return major > 4 || (major === 4 && minor >= 12);
+  return major > 4 || (major === 4 && minor >= 15);
 };
 
 const runSync = (command, args, options = {}) => {
@@ -559,13 +559,11 @@ test('supported package-manager command exact-pins the CLI and suppresses lifecy
   const packDirectory = mkdtempSync(join(tmpdir(), 'moldea-cli-pack-'));
   const sentinelPath = join(clientDirectory, 'lifecycle-ran.txt');
   const managerHomeDirectory = join(clientDirectory, '.manager-home');
-  const archiveName = runSync('npm', [
-    'pack',
-    '--ignore-scripts',
-    '--pack-destination',
-    packDirectory,
-    LIFECYCLE_FIXTURE_PATH,
-  ])
+  const archiveName = runSync(
+    'npm',
+    ['pack', LIFECYCLE_FIXTURE_PATH, '--ignore-scripts'],
+    { cwd: packDirectory },
+  )
     .split('\n')
     .at(-1);
   const archive = readFileSync(join(packDirectory, archiveName));

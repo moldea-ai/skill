@@ -41,6 +41,8 @@ const candidateCommit = 'c'.repeat(40);
 const skillCommit = 'd'.repeat(40);
 const sourceNodeRange = '^22.11.0 || ^24.11.0';
 const candidateNodeRange = '>=22.11.0';
+const sourceRepositoryDependencyRange = '^1.0.0';
+const candidateRepositoryDependencyRange = '>=1.1.1';
 const newPackagesSourcePaths = new Set([
   'projects/cli/scripts/testing-peer-compatibility/index.mjs',
   'projects/repository/scripts/testing-peer-compatibility/index.mjs',
@@ -66,6 +68,14 @@ const nodeBoundPackageNames = new Set(
   Object.keys(PACKAGE_VERSION_MAP).filter(
     (packageName) =>
       packageName !== '@moldea.ai/core' &&
+      packageName !== '@moldea.ai/repository' &&
+      packageName !== '@moldea.ai/website-ui',
+  ),
+);
+const repositoryDependentPackageNames = new Set(
+  Object.keys(PACKAGE_VERSION_MAP).filter(
+    (packageName) =>
+      packageName !== '@moldea.ai/cli' &&
       packageName !== '@moldea.ai/repository' &&
       packageName !== '@moldea.ai/website-ui',
   ),
@@ -143,6 +153,11 @@ const createPackageManifest = (packageName, isCandidate) => {
       'web-utils-kit': { optional: true },
     };
   }
+  if (repositoryDependentPackageNames.has(packageName)) {
+    manifest.dependencies['@moldea.ai/repository'] = isCandidate
+      ? candidateRepositoryDependencyRange
+      : sourceRepositoryDependencyRange;
+  }
   if (packageName === '@moldea.ai/cli') {
     manifest.dependencies = Object.fromEntries(
       Object.entries(PACKAGE_VERSION_MAP)
@@ -197,7 +212,7 @@ const createCandidateReadme = (packageName) => {
     readme = readme.replace(sourceRuntimeText, `${sourceRuntimeText}, and Node.js \`26.8.1\``);
   }
   if (packageName === '@moldea.ai/cli') {
-    readme = readme.replace('Anthropic adapter `2.0.3`', 'Anthropic adapter `2.0.4`');
+    readme = readme.replace('Anthropic adapter `2.0.3`', 'Anthropic adapter `2.0.5`');
   }
   return readme;
 };
@@ -328,20 +343,18 @@ const createFullGitFixture = ({
   for (const [packageName, sourceDirectory] of Object.entries(packageSourcePaths)) {
     const manifest = createPackageManifest(packageName, true);
     const baselineManifest = createPackageManifest(packageName, false);
-    if (packageName === '@moldea.ai/cli') {
-      manifest.dependencies = Object.fromEntries(
-        Object.entries(manifest.dependencies).map(([name, version]) => [
-          name,
-          `workspace:${version}`,
-        ]),
-      );
-      baselineManifest.dependencies = Object.fromEntries(
-        Object.entries(baselineManifest.dependencies).map(([name, version]) => [
-          name,
-          `workspace:${version}`,
-        ]),
-      );
-    }
+    manifest.dependencies = Object.fromEntries(
+      Object.entries(manifest.dependencies).map(([name, version]) => [
+        name,
+        `workspace:${version}`,
+      ]),
+    );
+    baselineManifest.dependencies = Object.fromEntries(
+      Object.entries(baselineManifest.dependencies).map(([name, version]) => [
+        name,
+        `workspace:${version}`,
+      ]),
+    );
     packageFiles.set(
       `${sourceDirectory}/package.json`,
       Buffer.from(`${JSON.stringify(manifest)}\n`),
@@ -570,6 +583,25 @@ const createFullGitFixture = ({
       version: `link:${packageName}`,
     };
   }
+  for (const packageName of repositoryDependentPackageNames) {
+    const sourceDirectory = packageSourcePaths[packageName];
+    baselineLockfile.importers[sourceDirectory] = {
+      dependencies: {
+        '@moldea.ai/repository': {
+          specifier: `workspace:${sourceRepositoryDependencyRange}`,
+          version: 'link:../repository',
+        },
+      },
+    };
+    candidateLockfile.importers[sourceDirectory] = {
+      dependencies: {
+        '@moldea.ai/repository': {
+          specifier: `workspace:${candidateRepositoryDependencyRange}`,
+          version: 'link:../repository',
+        },
+      },
+    };
+  }
   baselinePackageFiles.set('pnpm-lock.yaml', Buffer.from(stringify(baselineLockfile)));
   packageFiles.set('pnpm-lock.yaml', Buffer.from(stringify(candidateLockfile)));
   for (const path of PACKAGES_402_CHANGED_PATHS) {
@@ -675,7 +707,7 @@ test('freezes the exact skill and packages path inventories', () => {
   );
   assert.equal(
     createHash('sha256').update(JSON.stringify(PACKAGE_VERSION_MAP)).digest('hex'),
-    'bcf4188ea714c167bbc99b02ec593243f70bab8b2442ade79ca13d69146cfb51',
+    'c4b4fa966eb441c78273f9e4d16e758a29761e3289bce7f7dfba68355f3a24cf',
   );
 });
 
@@ -761,6 +793,15 @@ test('permits only exact manifest, README, and unchanged tarball-byte projection
   assert.throws(
     () => comparePackageArtifactSets(sourceArtifacts, manifestMutation),
     /unauthorized package\.json change/u,
+  );
+
+  const repositoryFloorMutation = createArtifactSet(true);
+  repositoryFloorMutation.get('@moldea.ai/adapter-openai').manifest.dependencies[
+    '@moldea.ai/repository'
+  ] = '^1.0.0';
+  assert.throws(
+    () => comparePackageArtifactSets(sourceArtifacts, repositoryFloorMutation),
+    /candidate must exclude Repository 1\.1\.0/u,
   );
 
   const readmeMutation = createArtifactSet(true);
@@ -923,7 +964,7 @@ test('accepts absent non-closure packages and requires registry lockfile tarball
   candidateLockfile.version = '4.0.2';
   candidateLockfile.packages[''].version = '4.0.2';
   candidateLockfile.packages[''].engines.node = candidateNodeRange;
-  candidateLockfile.packages[''].devDependencies['@moldea.ai/cli'] = '5.0.1';
+  candidateLockfile.packages[''].devDependencies['@moldea.ai/cli'] = '5.0.2';
   const repository = candidateLockfile.packages['node_modules/@moldea.ai/repository'];
   repository.version = '1.1.1';
   repository.resolved = 'https://registry.npmjs.org/@moldea.ai/repository/-/repository-1.1.1.tgz';

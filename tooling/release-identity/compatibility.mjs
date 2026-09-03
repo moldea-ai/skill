@@ -29,7 +29,7 @@ export const COMPATIBILITY_401 = Object.freeze({
 
 export const COMPATIBILITY_402 = Object.freeze({
   skillVersion: '4.0.2',
-  cliVersion: '5.0.1',
+  cliVersion: '5.0.2',
   cliJsonSchemaVersion: 2,
   nodeRange: '>=22.11.0',
   npmRange: '>=7.0.0',

@@ -180,7 +180,7 @@ if (command === '--version') {
       error: null,
       result: {
         minimumGitVersion: '2.30.0',
-        supportedNodeRange: '^22.11.0 || ^24.11.0',
+        supportedNodeRange: '>=22.11.0',
         packages: readCompositionPackages(),
         repositoryFormatVersions: [1],
         adapters,

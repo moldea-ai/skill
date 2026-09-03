@@ -1,8 +1,16 @@
 // @vitest-environment node
+import { createHash } from 'node:crypto';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
+
+import { PACKAGE_VERSION_MAP } from '../../../tooling/release-identity/compatibility-bridge-4-0-2.mjs';
+import {
+  COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY,
+  hasCompatibilityBridge402Qualification,
+  mapCompatibilityBridge402Packages,
+} from '../../../tooling/release-identity/historical-semantic.mjs';
 
 import { createPublicCandidatePackage } from '../candidate-closure/index.ts';
 import {
@@ -39,6 +47,9 @@ const executionEnvironment: IQualificationExecutionEnvironment = {
   modelEndpoint: null,
   sslCertificateFileSha256: null,
 };
+
+const CARRY_FORWARD_SOURCE_COMMIT = 'fcbc34f60b12b1b66cd9ebb28b1865979a259429';
+const CARRY_FORWARD_SOURCE_RELEASE = 'v4.0.0' as const;
 
 const candidate: ICandidateClosure = {
   fingerprint: 'a'.repeat(64),
@@ -90,6 +101,52 @@ const createRepositoryState = (commit: string, fingerprint: string): IGitReposit
 
 const packagesState = createRepositoryState('packages-commit', 'd'.repeat(64));
 const skillState = createRepositoryState('skill-commit', 'e'.repeat(64));
+
+/** Creates exact source and candidate package identities for bridge authorization tests. */
+const createBridgePackages = () => {
+  const packageDigests = Object.entries(PACKAGE_VERSION_MAP).map(
+    ([name, { candidate: candidateVersion, source: sourceVersion }], index) => {
+      const identity = String(index + 1);
+      return {
+        candidateSha256: identity.repeat(64),
+        name,
+        registry: {
+          candidate: {
+            integrity: `sha512-candidate-${identity}`,
+            shasum: identity.repeat(40),
+            tarball: `https://registry.npmjs.org/${name}/-/${name.split('/').at(-1)}-${candidateVersion}.tgz`,
+          },
+          source: {
+            integrity: `sha512-source-${identity}`,
+            shasum: identity.repeat(40),
+            tarball: `https://registry.npmjs.org/${name}/-/${name.split('/').at(-1)}-${sourceVersion}.tgz`,
+          },
+        },
+        sourceSha256: identity.repeat(64),
+      };
+    },
+  );
+  const sourcePackages = packageDigests.map((packageDigest) => ({
+    name: packageDigest.name,
+    registryIntegrity: packageDigest.registry.source.integrity,
+    registryShasum: packageDigest.registry.source.shasum,
+    registryTarballUrl: packageDigest.registry.source.tarball,
+    sha256: packageDigest.sourceSha256,
+    tarballName: new URL(packageDigest.registry.source.tarball).pathname.split('/').at(-1)!,
+    version: PACKAGE_VERSION_MAP[packageDigest.name]!.source,
+  }));
+  const candidatePackages = packageDigests.map((packageDigest) => ({
+    name: packageDigest.name,
+    version: PACKAGE_VERSION_MAP[packageDigest.name]!.candidate,
+    registryIntegrity: packageDigest.registry.candidate.integrity,
+    registryShasum: packageDigest.registry.candidate.shasum,
+    registryTarballUrl: packageDigest.registry.candidate.tarball,
+    tarballName: new URL(packageDigest.registry.candidate.tarball).pathname.split('/').at(-1)!,
+    sha256: packageDigest.candidateSha256,
+  }));
+
+  return { candidatePackages, packageDigests, sourcePackages };
+};
 
 /**
  * Creates the smallest committed qualification source tree required by baseline verification.
@@ -463,6 +520,174 @@ describe('Custom qualification baseline', () => {
       'storage.json',
     );
     const storage = await readJsonFile(storagePath, QualificationAttemptStorageSchema);
+    const { candidatePackages, packageDigests, sourcePackages } = createBridgePackages();
+    const sourceAttemptDigest = '7'.repeat(64);
+    const sourceCliClosureDigest = '8'.repeat(64);
+    const sourcePortableSkillBehaviorDigest = '9'.repeat(64);
+    const bridgeResult = {
+      ...passingBaseline,
+      provenance: {
+        ...passingBaseline.provenance,
+        packages: sourcePackages,
+      },
+    };
+    const bridgeStorage = {
+      ...storage,
+      attemptDigest: sourceAttemptDigest,
+      carryForward: {
+        attestationId: `v4.0.0-custom-${sourceAttemptDigest}`,
+        sourceAttemptDigest,
+        sourceCommit: CARRY_FORWARD_SOURCE_COMMIT,
+        sourceRelease: CARRY_FORWARD_SOURCE_RELEASE,
+      },
+      cliClosureDigest: sourceCliClosureDigest,
+      portableSkillBehaviorDigest: sourcePortableSkillBehaviorDigest,
+    } as const;
+    const sortedSourcePackages = [...sourcePackages].sort(({ name: left }, { name: right }) =>
+      left.localeCompare(right, 'en'),
+    );
+    const bridgeQualificationEnvelope = {
+      attestationId: bridgeStorage.carryForward.attestationId,
+      attemptId: bridgeResult.attemptId,
+      attemptSha256: sourceAttemptDigest,
+      candidateCompatibility: bridgeStorage.compatibility,
+      candidateTargetCompatibilityDigest: bridgeResult.provenance.targetDigest,
+      cliClosureDigest: sourceCliClosureDigest,
+      compatibility: bridgeStorage.compatibility,
+      environment: {
+        model: bridgeResult.provenance.model,
+        reasoningEffort: bridgeResult.provenance.reasoningEffort,
+        codexVersion: bridgeResult.provenance.codexVersion,
+        nodeVersion: bridgeResult.provenance.nodeVersion,
+        pnpmVersion: bridgeResult.provenance.pnpmVersion,
+        gitVersion: bridgeResult.provenance.gitVersion,
+        allowedEgressHosts: bridgeResult.provenance.allowedEgressHosts,
+        hostTimeoutMs: bridgeResult.provenance.hostTimeoutMs,
+        modelEndpoint: bridgeResult.provenance.modelEndpoint,
+        sslCertificateFileSha256: bridgeResult.provenance.sslCertificateFileSha256,
+      },
+      isCompatible: true,
+      packages: sortedSourcePackages,
+      packagesDigest: createHash('sha256')
+        .update(`${JSON.stringify(sortedSourcePackages)}\n`)
+        .digest('hex'),
+      portableSkillBehaviorDigest: sourcePortableSkillBehaviorDigest,
+      qualificationRepositoryCommit: bridgeResult.provenance.qualificationRepositoryCommit,
+      selection: bridgeResult.selection,
+      skillRepositoryCommit: bridgeResult.provenance.skillRepositoryCommit,
+      skillRepositoryFingerprint: bridgeResult.provenance.skillRepositoryFingerprint,
+      status: bridgeResult.status,
+      targetCompatibilityDigest: bridgeResult.provenance.targetDigest,
+      targetDigest: bridgeResult.provenance.targetDigest,
+    };
+    const compatibilityBridge = { packages: { packageDigests } };
+    const sourceAttestation = {
+      candidate: {
+        cliClosureDigest: sourceCliClosureDigest,
+        portableSkillBehaviorDigest: sourcePortableSkillBehaviorDigest,
+      },
+      qualification: { envelopes: [bridgeQualificationEnvelope] },
+    };
+    const bridgeOptions = {
+      attestation: compatibilityBridge,
+      candidateCliClosureDigest: COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY.cliClosureDigest,
+      candidatePackages,
+      candidatePortableSkillBehaviorDigest:
+        COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY.portableSkillBehaviorDigest,
+      result: bridgeResult,
+      sourceAttestation,
+      storage: bridgeStorage,
+    };
+
+    expect(mapCompatibilityBridge402Packages(compatibilityBridge, sourcePackages)).toStrictEqual(
+      [...candidatePackages].sort(({ name: left }, { name: right }) =>
+        left.localeCompare(right, 'en'),
+      ),
+    );
+    expect(hasCompatibilityBridge402Qualification(bridgeOptions)).toBe(true);
+    expect(
+      hasCompatibilityBridge402Qualification({
+        ...bridgeOptions,
+        candidatePackages: [
+          { ...candidatePackages[0]!, sha256: '0'.repeat(64) },
+          ...candidatePackages.slice(1),
+        ],
+      }),
+    ).toBe(false);
+    expect(
+      hasCompatibilityBridge402Qualification({
+        ...bridgeOptions,
+        candidateCliClosureDigest: '0'.repeat(64),
+      }),
+    ).toBe(false);
+    expect(
+      hasCompatibilityBridge402Qualification({
+        ...bridgeOptions,
+        candidatePortableSkillBehaviorDigest: '0'.repeat(64),
+      }),
+    ).toBe(false);
+    expect(
+      hasCompatibilityBridge402Qualification({
+        ...bridgeOptions,
+        sourceAttestation: {
+          ...sourceAttestation,
+          candidate: {
+            ...sourceAttestation.candidate,
+            portableSkillBehaviorDigest: '0'.repeat(64),
+          },
+        },
+      }),
+    ).toBe(false);
+    expect(
+      hasCompatibilityBridge402Qualification({
+        ...bridgeOptions,
+        sourceAttestation: {
+          ...sourceAttestation,
+          candidate: {
+            ...sourceAttestation.candidate,
+            cliClosureDigest: '0'.repeat(64),
+          },
+        },
+      }),
+    ).toBe(false);
+    expect(
+      hasCompatibilityBridge402Qualification({
+        ...bridgeOptions,
+        attestation: {
+          packages: {
+            packageDigests: [
+              { ...packageDigests[0]!, sourceSha256: '0'.repeat(64) },
+              ...packageDigests.slice(1),
+            ],
+          },
+        },
+      }),
+    ).toBe(false);
+    for (const registryIdentity of ['source', 'candidate'] as const) {
+      expect(
+        hasCompatibilityBridge402Qualification({
+          ...bridgeOptions,
+          attestation: {
+            packages: {
+              packageDigests: [
+                {
+                  ...packageDigests[0]!,
+                  registry: {
+                    ...packageDigests[0]!.registry,
+                    [registryIdentity]: {
+                      ...packageDigests[0]!.registry[registryIdentity],
+                      integrity: 'sha512-incompatible',
+                    },
+                  },
+                },
+                ...packageDigests.slice(1),
+              ],
+            },
+          },
+        }),
+      ).toBe(false);
+    }
+
     await writeJsonFileAtomically(storagePath, {
       ...storage,
       cliClosureDigest: '9'.repeat(64),

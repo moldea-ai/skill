@@ -9,6 +9,10 @@ import test from 'node:test';
 
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from './constants.mjs';
 import { inspectReleaseEvidence } from './evidence.mjs';
+import {
+  COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY,
+  resolveCompatibleHistoricalSemanticAttemptId,
+} from './historical-semantic.mjs';
 import { createSemanticCliIdentity } from './identity.mjs';
 import {
   createCliClosureDigest,
@@ -258,6 +262,81 @@ const createPublicSemanticCase = (trial) => ({
   readOnlyMountControlEvidence: trial.readOnlyMountControlEvidence,
   repositoryControlEvidence: trial.repositoryControlEvidence,
   scenarioEvidence: trial.scenarioEvidence,
+});
+
+test('binds the 4.0.2 compatibility bridge to the current candidate identities', () => {
+  assert.deepEqual(
+    {
+      cliClosureDigest: createCliClosureDigest(process.cwd()),
+      portableSkillBehaviorDigest: createPortableSkillBehaviorDigest(process.cwd()),
+      semanticCompatibilityDigest: createSemanticCompatibilityDigest(process.cwd()),
+    },
+    COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY,
+  );
+});
+
+test('historical semantic selection requires an exact source or bridged 4.0.2 identity', () => {
+  const attemptId = 'semantic-source-attempt';
+  const sourceIdentity = {
+    cliClosureDigest: '1'.repeat(64),
+    portableSkillBehaviorDigest: '2'.repeat(64),
+    semanticCompatibilityDigest: '3'.repeat(64),
+  };
+  const semanticResultSha256 = '4'.repeat(64);
+  const attestation = {
+    semantic: {
+      ...sourceIdentity,
+      attemptId,
+      resultSha256: semanticResultSha256,
+    },
+  };
+
+  assert.equal(
+    resolveCompatibleHistoricalSemanticAttemptId({
+      attestation,
+      candidateCliClosureDigest: sourceIdentity.cliClosureDigest,
+      candidatePortableSkillBehaviorDigest: sourceIdentity.portableSkillBehaviorDigest,
+      candidateSemanticCompatibilityDigest: sourceIdentity.semanticCompatibilityDigest,
+      semanticResultSha256,
+    }),
+    attemptId,
+  );
+  assert.equal(
+    resolveCompatibleHistoricalSemanticAttemptId({
+      attestation,
+      compatibilityBridge402: {},
+      candidateCliClosureDigest: COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY.cliClosureDigest,
+      candidatePortableSkillBehaviorDigest:
+        COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY.portableSkillBehaviorDigest,
+      candidateSemanticCompatibilityDigest:
+        COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY.semanticCompatibilityDigest,
+      semanticResultSha256,
+    }),
+    attemptId,
+  );
+
+  for (const incompatibleOptions of [
+    { compatibilityBridge402: null },
+    { candidateCliClosureDigest: '0'.repeat(64) },
+    { candidatePortableSkillBehaviorDigest: '0'.repeat(64) },
+    { candidateSemanticCompatibilityDigest: '0'.repeat(64) },
+    { semanticResultSha256: '0'.repeat(64) },
+  ]) {
+    assert.equal(
+      resolveCompatibleHistoricalSemanticAttemptId({
+        attestation,
+        compatibilityBridge402: {},
+        candidateCliClosureDigest: COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY.cliClosureDigest,
+        candidatePortableSkillBehaviorDigest:
+          COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY.portableSkillBehaviorDigest,
+        candidateSemanticCompatibilityDigest:
+          COMPATIBILITY_BRIDGE_402_CANDIDATE_IDENTITY.semanticCompatibilityDigest,
+        semanticResultSha256,
+        ...incompatibleOptions,
+      }),
+      null,
+    );
+  }
 });
 
 /** Creates one committed packages checkout for release-input freshness assertions. */

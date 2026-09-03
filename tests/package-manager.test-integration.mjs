@@ -21,6 +21,10 @@ import {
   loadCandidateArtifacts,
 } from '../tooling/package-candidate/index.mjs';
 import {
+  isCompatibilityVersionSupported,
+  parseCompatibility,
+} from '../tooling/release-identity/compatibility.mjs';
+import {
   parseRuntimeCompatibilityPublication,
   RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
 } from '../tooling/runtime-compatibility-publication/index.mjs';
@@ -45,7 +49,11 @@ const PUBLISHED_CLI_VERSION = ROOT_PACKAGE_MANIFEST.devDependencies['@moldea.ai/
 const EXECUTABLE = process.platform === 'win32' ? `${MANAGER}.cmd` : MANAGER;
 const CANDIDATE_ARTIFACT_DIRECTORY = process.env.MOLDEA_CLI_ARTIFACT_DIRECTORY;
 const REQUIRE_CANDIDATE_ARTIFACTS = process.env.MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS === '1';
+const EXISTING_VITEST_VERSION = process.env.MOLDEA_TEST_EXISTING_VITEST_VERSION || undefined;
 const NPM_REGISTRY_URL = 'https://registry.npmjs.org';
+const RELEASE_COMPATIBILITY = parseCompatibility(
+  readFileSync(join(REPOSITORY_ROOT, 'moldea', 'SKILL.md'), 'utf8'),
+);
 
 const parseVersion = (version) => {
   const match = version.trim().match(/^(\d+)\.(\d+)\.(\d+)$/);
@@ -54,17 +62,19 @@ const parseVersion = (version) => {
 };
 
 const isSupportedVersion = (manager, version) => {
-  const [major, minor] = parseVersion(version);
-  if (manager === 'npm') return (major === 10 && minor >= 9) || major === 11;
-  if (manager === 'pnpm') return major === 11 && minor >= 20;
-  if (manager === 'yarn') return major === 4;
-  return false;
+  const range = RELEASE_COMPATIBILITY[`${manager}Range`];
+  if (range === undefined) return false;
+  try {
+    return isCompatibilityVersionSupported(range, version);
+  } catch {
+    return false;
+  }
 };
 
 /** Returns whether the selected Yarn version supports its command-scoped age-gate override. */
 const supportsYarnNoTimeGate = (version) => {
   const [major, minor] = parseVersion(version);
-  return major > 4 || (major === 4 && minor >= 12);
+  return major > 4 || (major === 4 && minor >= 15);
 };
 
 const runSync = (command, args, options = {}) => {
@@ -118,6 +128,38 @@ const runDetailed = (command, args, options = {}) =>
 
 const run = async (command, args, options = {}) =>
   (await runDetailed(command, args, options)).stdout.trim();
+
+/** Rejects dependency installation output that reports a peer-resolution problem. */
+const assertNoPeerResolutionWarning = ({ stderr, stdout }) => {
+  assert.doesNotMatch(
+    `${stdout}\n${stderr}`,
+    /(?:warn(?:ing)?[^\n]*(?:peer|vitest)|(?:unmet|missing|conflicting)[^\n]*peer)/iu,
+  );
+};
+
+/** Collects every installed version of one named package from manager JSON output. */
+const collectInstalledPackageVersions = (input, packageName, versions = []) => {
+  if (Array.isArray(input)) {
+    for (const entry of input) collectInstalledPackageVersions(entry, packageName, versions);
+    return versions;
+  }
+  if (input === null || typeof input !== 'object') return versions;
+  if (input.name === packageName && typeof input.version === 'string') {
+    versions.push(input.version);
+  }
+  for (const [fieldName, fieldValue] of Object.entries(input)) {
+    if (
+      fieldName === packageName &&
+      fieldValue !== null &&
+      typeof fieldValue === 'object' &&
+      typeof fieldValue.version === 'string'
+    ) {
+      versions.push(fieldValue.version);
+    }
+    collectInstalledPackageVersions(fieldValue, packageName, versions);
+  }
+  return versions;
+};
 
 /** Confirms the selected package manager is one of the supported exact CI versions. */
 const readPackageManagerVersion = () => {
@@ -372,15 +414,59 @@ const exerciseRealCli = async ({ cliVersion, registryUrl, sourceLabel }) => {
   configureScopedRegistry(clientDirectory, registryUrl);
 
   try {
-    await run(EXECUTABLE, createInstallArguments(cliVersion, actualManagerVersion), {
-      cwd: clientDirectory,
-      env: managerEnvironment,
-    });
+    if (EXISTING_VITEST_VERSION !== undefined) {
+      assert.equal(MANAGER, 'pnpm');
+      assert.equal(EXISTING_VITEST_VERSION, '3.2.4');
+      const vitestInstallation = await runDetailed(
+        EXECUTABLE,
+        [
+          'add',
+          '--workspace-root',
+          '--save-dev',
+          '--save-exact',
+          '--ignore-scripts',
+          `vitest@${EXISTING_VITEST_VERSION}`,
+        ],
+        { cwd: clientDirectory, env: managerEnvironment },
+      );
+      assertNoPeerResolutionWarning(vitestInstallation);
+    }
+
+    const cliInstallation = await runDetailed(
+      EXECUTABLE,
+      createInstallArguments(cliVersion, actualManagerVersion),
+      {
+        cwd: clientDirectory,
+        env: managerEnvironment,
+      },
+    );
+    assertNoPeerResolutionWarning(cliInstallation);
     assert.equal(existsSync(lifecycleSentinelPath), false);
     const installedManifest = JSON.parse(
       readFileSync(join(clientDirectory, 'package.json'), 'utf8'),
     );
     assert.equal(installedManifest.devDependencies['@moldea.ai/cli'], cliVersion);
+    if (EXISTING_VITEST_VERSION === undefined) {
+      assert.equal(installedManifest.devDependencies.vitest, undefined);
+      if (MANAGER !== 'yarn') {
+        assert.equal(existsSync(join(clientDirectory, 'node_modules', 'vitest')), false);
+      }
+    } else {
+      assert.equal(installedManifest.devDependencies.vitest, EXISTING_VITEST_VERSION);
+      const vitestPackage = loadInstalledNodeModulesPackage(clientDirectory, 'vitest');
+      assert.equal(vitestPackage.manifest.version, EXISTING_VITEST_VERSION);
+      const installedVersions = collectInstalledPackageVersions(
+        JSON.parse(
+          await run(EXECUTABLE, ['list', 'vitest', '--depth', 'Infinity', '--json'], {
+            cwd: clientDirectory,
+            env: managerEnvironment,
+          }),
+        ),
+        'vitest',
+      );
+      assert.ok(installedVersions.length > 0);
+      assert.deepEqual([...new Set(installedVersions)], [EXISTING_VITEST_VERSION]);
+    }
     let binaryPath;
 
     if (MANAGER === 'yarn') {
@@ -559,13 +645,9 @@ test('supported package-manager command exact-pins the CLI and suppresses lifecy
   const packDirectory = mkdtempSync(join(tmpdir(), 'moldea-cli-pack-'));
   const sentinelPath = join(clientDirectory, 'lifecycle-ran.txt');
   const managerHomeDirectory = join(clientDirectory, '.manager-home');
-  const archiveName = runSync('npm', [
-    'pack',
-    '--ignore-scripts',
-    '--pack-destination',
-    packDirectory,
-    LIFECYCLE_FIXTURE_PATH,
-  ])
+  const archiveName = runSync('npm', ['pack', LIFECYCLE_FIXTURE_PATH, '--ignore-scripts'], {
+    cwd: packDirectory,
+  })
     .split('\n')
     .at(-1);
   const archive = readFileSync(join(packDirectory, archiveName));
@@ -682,10 +764,7 @@ test(
     const candidateArtifactDirectory = resolve(CANDIDATE_ARTIFACT_DIRECTORY);
     parseRuntimeCompatibilityPublication(
       readFileSync(
-        join(
-          candidateArtifactDirectory,
-          RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME,
-        ),
+        join(candidateArtifactDirectory, RUNTIME_COMPATIBILITY_PUBLICATION_ARTIFACT_NAME),
         'utf8',
       ),
     );

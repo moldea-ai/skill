@@ -84,22 +84,47 @@ jobs:
         include:
           - manager: npm
             package: npm
-            version: "10.9.0"
+            version: '7.0.0'
           - manager: npm
             package: npm
-            version: "11.19.0"
+            version: '8.0.0'
+          - manager: npm
+            package: npm
+            version: '9.0.0'
+          - manager: npm
+            package: npm
+            version: '10.0.0'
+          - manager: npm
+            package: npm
+            version: '11.0.0'
+          - manager: npm
+            package: npm
+            version: '12.0.2'
           - manager: pnpm
             package: pnpm
-            version: "11.20.0"
+            version: '8.3.1'
           - manager: pnpm
             package: pnpm
-            version: "11.21.0"
+            version: '9.0.0'
+          - manager: pnpm
+            package: pnpm
+            version: '10.0.0'
+          - manager: pnpm
+            package: pnpm
+            version: '11.0.0'
+          - manager: pnpm
+            package: pnpm
+            version: '12.3.1'
+          - manager: pnpm
+            package: pnpm
+            version: '11.21.0'
+            existing_vitest_version: '3.2.4'
           - manager: yarn
-            package: "@yarnpkg/cli-dist"
-            version: "4.0.0"
+            package: '@yarnpkg/cli-dist'
+            version: '4.14.1'
           - manager: yarn
-            package: "@yarnpkg/cli-dist"
-            version: "4.18.0"
+            package: '@yarnpkg/cli-dist'
+            version: '4.18.0'
     steps:
       - name: Checkout skill
         uses: actions/checkout@v6
@@ -109,7 +134,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "24.11.0"
+          node-version: '24.15.0'
           cache: npm
 
       - name: Install skill development dependencies
@@ -127,7 +152,8 @@ jobs:
       - name: Exercise real candidate conformance
         env:
           MOLDEA_CLI_ARTIFACT_DIRECTORY: ${{ runner.temp }}/cli-candidate-packages
-          MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS: "1"
+          MOLDEA_REQUIRE_REAL_CLI_ARTIFACTS: '1'
           MOLDEA_TEST_MANAGER: ${{ matrix.manager }}
           MOLDEA_TEST_MANAGER_VERSION: ${{ matrix.version }}
+          MOLDEA_TEST_EXISTING_VITEST_VERSION: ${{ matrix.existing_vitest_version || '' }}
         run: node --test tests/package-manager.test-integration.mjs

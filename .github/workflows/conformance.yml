@@ -8,7 +8,7 @@ on:
       - reopened
   push:
     tags:
-      - "v*"
+      - 'v*'
 
 permissions:
   contents: read
@@ -26,8 +26,9 @@ jobs:
       fail-fast: false
       matrix:
         node:
-          - "22.11.0"
-          - "24.11.0"
+          - '22.11.0'
+          - '24.11.0'
+          - '26.8.1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -75,7 +76,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "24.11.0"
+          node-version: '24.11.0'
       - name: Clone under a realistic deep temporary path
         shell: pwsh
         env:
@@ -144,27 +145,52 @@ jobs:
         include:
           - manager: npm
             package: npm
-            version: "10.9.0"
+            version: '7.0.0'
           - manager: npm
             package: npm
-            version: "11.19.0"
+            version: '8.0.0'
+          - manager: npm
+            package: npm
+            version: '9.0.0'
+          - manager: npm
+            package: npm
+            version: '10.0.0'
+          - manager: npm
+            package: npm
+            version: '11.0.0'
+          - manager: npm
+            package: npm
+            version: '12.0.2'
           - manager: pnpm
             package: pnpm
-            version: "11.20.0"
+            version: '8.3.1'
           - manager: pnpm
             package: pnpm
-            version: "11.21.0"
+            version: '9.0.0'
+          - manager: pnpm
+            package: pnpm
+            version: '10.0.0'
+          - manager: pnpm
+            package: pnpm
+            version: '11.0.0'
+          - manager: pnpm
+            package: pnpm
+            version: '12.3.1'
+          - manager: pnpm
+            package: pnpm
+            version: '11.21.0'
+            existing_vitest_version: '3.2.4'
           - manager: yarn
-            package: "@yarnpkg/cli-dist"
-            version: "4.0.0"
+            package: '@yarnpkg/cli-dist'
+            version: '4.14.1'
           - manager: yarn
-            package: "@yarnpkg/cli-dist"
-            version: "4.18.0"
+            package: '@yarnpkg/cli-dist'
+            version: '4.18.0'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: "24.11.0"
+          node-version: '24.15.0'
       - name: Install skill development dependencies without lifecycle scripts
         run: npm ci --ignore-scripts
       - name: Install tested package manager
@@ -173,4 +199,5 @@ jobs:
         env:
           MOLDEA_TEST_MANAGER: ${{ matrix.manager }}
           MOLDEA_TEST_MANAGER_VERSION: ${{ matrix.version }}
+          MOLDEA_TEST_EXISTING_VITEST_VERSION: ${{ matrix.existing_vitest_version || '' }}
         run: node --test tests/package-manager.test-integration.mjs

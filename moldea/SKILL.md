@@ -5,7 +5,7 @@ description: >-
 license: MIT
 metadata:
   # prettier-ignore
-  version: '4.0.1'
+  version: '4.0.2'
 ---
 
 # moldea
@@ -26,14 +26,14 @@ Agent-system planning applies only when the developer asks how an AI-enabled obj
 
 ## Release compatibility
 
-Skill release `4.0.1` supports exactly:
+Skill release `4.0.2` supports exactly:
 
-- `@moldea.ai/cli: 5.0.0`
+- `@moldea.ai/cli: 5.0.3`
 - CLI JSON schema: `2`
-- Node.js: `^22.11.0 || ^24.11.0`
-- npm: `>=10.9.0 <12.0.0`
-- pnpm: `>=11.20.0 <12.0.0`
-- yarn: `>=4.0.0 <5.0.0`
+- Node.js: `>=22.11.0`
+- npm: `>=7.0.0`
+- pnpm: `>=8.3.1`
+- yarn: `>=4.14.1`
 
 The CLI is an exact root development dependency; other entries retain their ranges.
 
@@ -101,7 +101,7 @@ Use the repository-local CLI as mechanical authority for Git inventory, snapshot
 
 When that publication is unavailable, invalid, unsupported, or missing the required target, the final report must state the unavailable fact and include the literal resolver URL `https://packages.moldea.ai/compatibility/runtimes.json`.
 
-Interpret command JSON only after an independently completed process has the expected exit code and a compatible envelope containing schema `2`, CLI `5.0.0`, the invoked command, and a valid status/payload combination. Structural `invalid` is completed diagnostic evidence, not successful validation; `error` is operational failure. A failed, incomplete, malformed, unsupported, or contradictory result supports no deterministic conclusion.
+Interpret command JSON only after an independently completed process has the expected exit code and a compatible envelope containing schema `2`, CLI `5.0.3`, the invoked command, and a valid status/payload combination. Structural `invalid` is completed diagnostic evidence, not successful validation; `error` is operational failure. A failed, incomplete, malformed, unsupported, or contradictory result supports no deterministic conclusion.
 
 Adapter evidence establishes detectable implementation, not intent. Core invalidity can prevent adapters from running, so empty evidence may mean unavailable evidence. External implementation can likewise make dedicated-repository evidence partial.
 

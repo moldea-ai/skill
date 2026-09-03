@@ -4,15 +4,15 @@ Read this reference after the skill entrypoint and before any Git, package-manag
 
 ## Compatibility contract
 
-Release `4.0.1` supports:
+Release `4.0.2` supports:
 
 - Git `>=2.30.0`
-- Node.js `^22.11.0 || ^24.11.0`
-- `@moldea.ai/cli 5.0.0`
+- Node.js `>=22.11.0`
+- `@moldea.ai/cli 5.0.3`
 - CLI JSON schema `2`
-- npm `>=10.9.0 <12.0.0`
-- pnpm `>=11.20.0 <12.0.0`
-- Yarn `>=4.0.0 <5.0.0`
+- npm `>=7.0.0`
+- pnpm `>=8.3.1`
+- Yarn `>=4.14.1`
 
 Use node-semver range semantics for the Node.js and package-manager entries. Do not substitute another CLI release or select a prerelease CLI.
 
@@ -44,19 +44,19 @@ After the file-only gate passes, verify the selected executable with `npm --vers
 Release tooling state requires all of the following:
 
 - `@moldea.ai/cli` is a root `devDependency` declared as one exact semantic version, not a range, tag, URL, workspace protocol, alias, or other floating specifier.
-- the declared version is exactly `5.0.0`
+- the declared version is exactly `5.0.3`
 - the installed repository-local package manifest reports the same exact version
 - the established manager resolves the repository-local `moldea` executable from that root package
 - the machine envelope reports the same exact `cliVersion` and schema `2`
 
-Preserve the exact version `5.0.0`. Another installed version belongs to another skill release. If the exact release CLI lacks a required official adapter or machine capability, report the release defect rather than selecting another version.
+Preserve the exact version `5.0.3`. Another installed version belongs to another skill release. If the exact release CLI lacks a required official adapter or machine capability, report the release defect rather than selecting another version.
 
 Inspect the manager-specific manifest and executable directly; Git or `rg` omission does not prove absence.
 
 During a write-capable workflow:
 
-- if the installed repository-local CLI is exactly `5.0.0` but the declaration floats, pin `5.0.0` exactly and update the ordinary lockfile
-- if the exact release CLI is absent or another version is installed, verify published registry metadata for `5.0.0`, install that version exactly, and update the ordinary lockfile
+- if the installed repository-local CLI is exactly `5.0.3` but the declaration floats, pin `5.0.3` exactly and update the ordinary lockfile
+- if the exact release CLI is absent or another version is installed, verify published registry metadata for `5.0.3`, install that version exactly, and update the ordinary lockfile
 - if installed and declared state conflict in a way that cannot be established reliably, stop and report the prerequisite instead of guessing
 
 During `plan`, `evaluate`, or `validate`, do not create manifests, change dependencies or lockfiles, or install packages. Report the state and relevant write-capable remediation.
@@ -74,7 +74,7 @@ pnpm add --workspace-root --save-dev --save-exact --ignore-scripts @moldea.ai/cl
 yarn add --dev --exact --mode=skip-build @moldea.ai/cli@<resolved-version>
 ```
 
-Use pnpm `--workspace-root` only for a root workspace. Yarn uses `skip-build`; npm and pnpm use `ignore-scripts`. Replace the placeholder with the exact version `5.0.0`, never a range.
+Use pnpm `--workspace-root` only for a root workspace. Yarn uses `skip-build`; npm and pnpm use `ignore-scripts`. Replace the placeholder with the exact version `5.0.3`, never a range.
 
 The file-only gate precedes command selection. Lifecycle-script suppression does not neutralize repository-supplied extensions and cannot bypass the manager prohibition.
 
@@ -97,7 +97,7 @@ Retain cumulative proof of the root declaration, installed identity and version,
 - For npm, resolve the root `node_modules/@moldea.ai/cli/package.json`, validate its exact name and version, read its `bin.moldea` entry, and canonicalize both that target and `node_modules/.bin/moldea`. Require the executable to resolve inside that same installed package before invoking the canonical local path.
 - For pnpm with the `isolated` or `hoisted` linker, perform the same manifest, `bin.moldea`, canonical-target, package-name, and exact-version checks before invoking the canonical root `node_modules/.bin/moldea` path.
 - For pnpm with `nodeLinker: pnp` or another configuration without a root `node_modules/.bin`, first pass the file-only extension gate, then run `pnpm --version` as its own process. In a separate repository-root `pnpm node` process, use the active `pnpapi.resolveToUnqualified('@moldea.ai/cli', '<root-package-json>')` to locate the package. Read that root's manifest; require exact name `@moldea.ai/cli`, the exact release version, and a relative `bin.moldea`. Canonicalize the package root and resolved bin and require the bin to remain inside that package. Only after accepting those checks may another process invoke `pnpm node <resolved-bin> <command> --json`. Do not use `pnpm exec moldea`: it does not prove a project-local provider. If the active linker cannot prove and invoke the exact provider without fallback, stop rather than changing linker configuration.
-- For Yarn 4, after the file-only safety gate, prove each stage separately: exact root declaration; installed identity, version, and exported `bin.moldea` through `yarn info @moldea.ai/cli --json`; then effective provider through `yarn bin -v --json`. Parse its newline-delimited JSON records and require exactly one `moldea` entry sourced by `@moldea.ai/cli`; `source` identifies the package, not its version. Any missing, malformed, duplicate, conflicting, or non-CLI provider ends this proof branch. Do not then resolve or invoke the executable through Yarn, symlink inspection, `readlink`, `realpath`, Node.js filesystem APIs, or another tool. Report accepted stages and later stages as unattempted; unrelated safe reporting checks may continue. Only an accepted provider record permits a new `yarn bin moldea` process; require its canonical path to equal the recorded path before another process runs `yarn exec moldea`.
+- For supported Yarn releases at or above 4, after the file-only safety gate, prove each stage separately: exact root declaration; installed identity, version, and exported `bin.moldea` through `yarn info @moldea.ai/cli --json`; then effective provider through `yarn bin -v --json`. Parse its newline-delimited JSON records and require exactly one `moldea` entry sourced by `@moldea.ai/cli`; `source` identifies the package, not its version. Any missing, malformed, duplicate, conflicting, or non-CLI provider ends this proof branch. Do not then resolve or invoke the executable through Yarn, symlink inspection, `readlink`, `realpath`, Node.js filesystem APIs, or another tool. Report accepted stages and later stages as unattempted; unrelated safe reporting checks may continue. Only an accepted provider record permits a new `yarn bin moldea` process; require its canonical path to equal the recorded path before another process runs `yarn exec moldea`.
 
 When repository evidence is accessible, perform safe provider and CLI checks even for an explanation; otherwise provide a procedure. Report provider, exact version, command, and envelope. Version alone does not prove provider.
 
@@ -108,7 +108,7 @@ When repository evidence is accessible, perform safe provider and CLI checks eve
 Run each CLI invocation independently, without shell-chaining it to manager checks, project verification, mirror comparison, Git inspection, or another CLI command. After completion, validate the version `2` envelope before reading `result`:
 
 - `schemaVersion` is integer `2`
-- `cliVersion` is exactly `5.0.0` and equals the declared and installed CLI version
+- `cliVersion` is exactly `5.0.3` and equals the declared and installed CLI version
 - `command` equals the command invoked
 - `status` is `valid`, `invalid`, or `error`
 - `valid` has non-null `result` and null `error`

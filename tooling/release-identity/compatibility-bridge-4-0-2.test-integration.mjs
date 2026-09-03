@@ -19,6 +19,7 @@ import { gunzipSync, gzipSync } from 'node:zlib';
 import { stringify } from 'yaml';
 
 import {
+  assertPackageTags,
   assertPackagesSourceState,
   checkCompatibilityBridgePackages,
   comparePackageArtifactSets,
@@ -744,6 +745,105 @@ test('freezes the exact skill and packages path inventories', () => {
   assert.equal(
     createHash('sha256').update(JSON.stringify(PACKAGE_VERSION_MAP)).digest('hex'),
     'b9608b83497db0dc1348fc0fc29f71b2e1a6f40f6978c60f056e149f9715dda0',
+  );
+});
+
+test('binds reused and changed package tags to exact ancestor manifests', () => {
+  const sourceTagCommit = 'a'.repeat(40);
+  const candidateTagCommit = 'b'.repeat(40);
+  const candidateTags = new Set(
+    Object.entries(PACKAGE_VERSION_MAP)
+      .filter(([, { candidate, source }]) => candidate !== source)
+      .map(
+        ([packageName, { candidate }]) =>
+          `${packageName.slice('@moldea.ai/'.length)}-v${candidate}`,
+      ),
+  );
+  const executeGitCommand = (_repositoryRoot, arguments_) => {
+    if (arguments_[0] === 'rev-parse') {
+      const tagRef = arguments_[2];
+      const tag = tagRef.slice('refs/tags/'.length, -'^{commit}'.length);
+      return {
+        status: 0,
+        stderr: Buffer.alloc(0),
+        stdout: Buffer.from(`${candidateTags.has(tag) ? candidateTagCommit : sourceTagCommit}\n`),
+      };
+    }
+    if (arguments_[0] === 'merge-base') {
+      return { status: 0, stderr: Buffer.alloc(0), stdout: Buffer.alloc(0) };
+    }
+    if (arguments_[0] === 'show') {
+      const separatorIndex = arguments_[1].indexOf(':');
+      const commit = arguments_[1].slice(0, separatorIndex);
+      const packagePath = arguments_[1].slice(separatorIndex + 1);
+      const packageName = Object.entries(packageSourcePaths).find(
+        ([, sourceDirectory]) => packagePath === `${sourceDirectory}/package.json`,
+      )?.[0];
+      assert.notEqual(packageName, undefined);
+      const versions = PACKAGE_VERSION_MAP[packageName];
+      return {
+        status: 0,
+        stderr: Buffer.alloc(0),
+        stdout: Buffer.from(
+          `${JSON.stringify({
+            name: packageName,
+            version: commit === candidateTagCommit ? versions.candidate : versions.source,
+          })}\n`,
+        ),
+      };
+    }
+    throw new Error(`Unexpected Git operation: ${arguments_.join(' ')}`);
+  };
+
+  const identity = assertPackageTags({
+    executeGitCommand,
+    packagesCommit: candidateCommit,
+    packagesRepository: '/controlled/packages',
+  });
+  assert.equal(identity.source.length, Object.keys(PACKAGE_VERSION_MAP).length);
+  assert.equal(identity.candidate.length, Object.keys(PACKAGE_VERSION_MAP).length);
+  assert.ok(identity.source.every(({ tagCommit }) => tagCommit === sourceTagCommit));
+  assert.ok(
+    identity.candidate.every(({ packageName, tagCommit }) =>
+      PACKAGE_VERSION_MAP[packageName].candidate === PACKAGE_VERSION_MAP[packageName].source
+        ? tagCommit === sourceTagCommit
+        : tagCommit === candidateTagCommit,
+    ),
+  );
+
+  assert.throws(
+    () =>
+      assertPackageTags({
+        executeGitCommand: (repositoryRoot, arguments_) =>
+          arguments_[0] === 'merge-base'
+            ? { status: 1, stderr: Buffer.alloc(0), stdout: Buffer.alloc(0) }
+            : executeGitCommand(repositoryRoot, arguments_),
+        packagesCommit: candidateCommit,
+        packagesRepository: '/controlled/packages',
+      }),
+    /not in the verified packages release ancestry/u,
+  );
+  assert.throws(
+    () =>
+      assertPackageTags({
+        executeGitCommand: (repositoryRoot, arguments_) => {
+          const result = executeGitCommand(repositoryRoot, arguments_);
+          return arguments_[0] === 'show'
+            ? {
+                ...result,
+                stdout: Buffer.from(
+                  `${JSON.stringify({
+                    ...JSON.parse(result.stdout.toString('utf8')),
+                    version: '0.0.0',
+                  })}\n`,
+                ),
+              }
+            : result;
+        },
+        packagesCommit: candidateCommit,
+        packagesRepository: '/controlled/packages',
+      }),
+    /contains another package version/u,
   );
 });
 

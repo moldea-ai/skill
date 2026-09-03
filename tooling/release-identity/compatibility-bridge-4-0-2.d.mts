@@ -215,6 +215,11 @@ export const compareSkillPackageLocks: (
   source: Record<string, unknown>,
   candidate: Record<string, unknown>,
 ) => void;
+export const assertPackageTags: (options: {
+  executeGitCommand: IExecuteGitCommand;
+  packagesCommit: string;
+  packagesRepository: string;
+}) => IPackageTagsIdentity;
 export const checkCompatibilityBridgePackages: (
   options: Omit<ICompatibilityBridgeOptions, 'repositoryRoot'> & {
     artifactDirectory: string;

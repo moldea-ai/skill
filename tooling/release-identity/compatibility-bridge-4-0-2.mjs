@@ -983,10 +983,7 @@ const comparePackageManifests = (packageName, sourceManifest, candidateManifest)
     normalizedCandidate.dependencies['@moldea.ai/repository'] = SOURCE_REPOSITORY_DEPENDENCY_RANGE;
   }
   if (CORE_DEPENDENT_PACKAGE_NAMES.has(packageName)) {
-    assert.equal(
-      sourceManifest.dependencies?.['@moldea.ai/core'],
-      SOURCE_CORE_DEPENDENCY_RANGE,
-    );
+    assert.equal(sourceManifest.dependencies?.['@moldea.ai/core'], SOURCE_CORE_DEPENDENCY_RANGE);
     assert.equal(
       candidateManifest.dependencies?.['@moldea.ai/core'],
       CANDIDATE_CORE_DEPENDENCY_RANGE,
@@ -2076,53 +2073,75 @@ const assertSkillSourceState = ({ executeGitCommand, repositoryRoot }) => {
   };
 };
 
-/** Records source tags and requires every changed candidate tag to target its release commit. */
-const assertPackageTags = ({ executeGitCommand, packagesCommit, packagesRepository }) => {
+/** Resolves one published package tag and binds it to an ancestor manifest. */
+const readPackageTagIdentity = ({
+  executeGitCommand,
+  packageName,
+  packagesCommit,
+  packagesRepository,
+  tag,
+  version,
+}) => {
+  const tagCommit = requireGit(
+    executeGitCommand,
+    packagesRepository,
+    ['rev-parse', '--verify', `refs/tags/${tag}^{commit}`],
+    `Unable to resolve published package tag ${tag}`,
+  )
+    .toString('utf8')
+    .trim();
+  assert.match(tagCommit, COMMIT_PATTERN);
+  requireGit(
+    executeGitCommand,
+    packagesRepository,
+    ['merge-base', '--is-ancestor', tagCommit, packagesCommit],
+    `${tag} is not in the verified packages release ancestry`,
+  );
+  const sourceDirectory = PACKAGE_SOURCE_PATHS[packageName];
+  assert.notEqual(sourceDirectory, undefined);
+  const manifest = JSON.parse(
+    requireGit(
+      executeGitCommand,
+      packagesRepository,
+      ['show', `${tagCommit}:${sourceDirectory}/package.json`],
+      `Unable to read ${packageName} at published tag ${tag}`,
+    ).toString('utf8'),
+  );
+  assert.equal(manifest.name, packageName, `${tag} contains another package identity.`);
+  assert.equal(manifest.version, version, `${tag} contains another package version.`);
+  return { packageName, tag, tagCommit };
+};
+
+/** Records exact package tags whose commits belong to the verified release ancestry. */
+export const assertPackageTags = ({ executeGitCommand, packagesCommit, packagesRepository }) => {
   const sourceTags = [];
   const candidateTags = [];
   for (const [packageName, { candidate, source }] of Object.entries(PACKAGE_VERSION_MAP)) {
     const sourceTag = `${PACKAGE_TAG_PREFIXES[packageName]}${source}`;
-    const sourceTagCommit = requireGit(
+    const sourceTagIdentity = readPackageTagIdentity({
       executeGitCommand,
-      packagesRepository,
-      ['rev-parse', '--verify', `refs/tags/${sourceTag}^{commit}`],
-      `Unable to resolve published package tag ${sourceTag}`,
-    )
-      .toString('utf8')
-      .trim();
-    assert.match(sourceTagCommit, COMMIT_PATTERN);
-    sourceTags.push({
       packageName,
+      packagesCommit,
+      packagesRepository,
       tag: sourceTag,
-      tagCommit: sourceTagCommit,
+      version: source,
     });
+    sourceTags.push(sourceTagIdentity);
     if (candidate === source) {
-      candidateTags.push({
-        packageName,
-        tag: sourceTag,
-        tagCommit: sourceTagCommit,
-      });
+      candidateTags.push(sourceTagIdentity);
       continue;
     }
     const candidateTag = `${PACKAGE_TAG_PREFIXES[packageName]}${candidate}`;
-    const candidateTagCommit = requireGit(
-      executeGitCommand,
-      packagesRepository,
-      ['rev-parse', '--verify', `refs/tags/${candidateTag}^{commit}`],
-      `Unable to resolve published package tag ${candidateTag}`,
-    )
-      .toString('utf8')
-      .trim();
-    assert.equal(
-      candidateTagCommit,
-      packagesCommit,
-      `${candidateTag} targets another packages commit.`,
+    candidateTags.push(
+      readPackageTagIdentity({
+        executeGitCommand,
+        packageName,
+        packagesCommit,
+        packagesRepository,
+        tag: candidateTag,
+        version: candidate,
+      }),
     );
-    candidateTags.push({
-      packageName,
-      tag: candidateTag,
-      tagCommit: candidateTagCommit,
-    });
   }
   return { candidate: candidateTags, source: sourceTags };
 };

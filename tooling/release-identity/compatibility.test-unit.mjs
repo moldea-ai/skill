@@ -58,7 +58,7 @@ test('validates a planned 4.0.2 repository through explicit synchronized fixture
   const fixtureRoot = mkdtempSync(join(tmpdir(), 'moldea-compatibility-'));
   const publicCopy = `Release \`4.0.2\` supports:
 - Node.js \`>=22.11.0\`
-- \`@moldea.ai/cli 5.0.2\`
+- \`@moldea.ai/cli 5.0.3\`
 - CLI JSON schema \`2\`
 - npm \`>=7.0.0\`
 - pnpm \`>=8.3.1\`
@@ -73,7 +73,7 @@ test('validates a planned 4.0.2 repository through explicit synchronized fixture
         version: '4.0.2',
         engines: { node: '>=22.11.0' },
         moldeaRelease: { cliJsonSchemaVersion: 2 },
-        devDependencies: { '@moldea.ai/cli': '5.0.2' },
+        devDependencies: { '@moldea.ai/cli': '5.0.3' },
       })}\n`,
     );
     writeFileSync(

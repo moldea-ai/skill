@@ -220,45 +220,45 @@ export const PACKAGES_402_CHANGED_PATHS = Object.freeze(
 export const PACKAGE_VERSION_MAP = Object.freeze({
   '@moldea.ai/adapter-anthropic': Object.freeze({
     source: '2.0.3',
-    candidate: '2.0.5',
+    candidate: '2.0.6',
   }),
   '@moldea.ai/adapter-claude-agent-sdk': Object.freeze({
     source: '1.0.2',
-    candidate: '1.0.4',
+    candidate: '1.0.5',
   }),
   '@moldea.ai/adapter-cloudflare-agents': Object.freeze({
     source: '1.0.2',
-    candidate: '1.0.4',
+    candidate: '1.0.5',
   }),
   '@moldea.ai/adapter-eve': Object.freeze({
     source: '1.0.2',
-    candidate: '1.0.4',
+    candidate: '1.0.5',
   }),
   '@moldea.ai/adapter-google-genai': Object.freeze({
     source: '1.0.5',
-    candidate: '1.0.7',
+    candidate: '1.0.8',
   }),
   '@moldea.ai/adapter-langchain': Object.freeze({
     source: '1.0.2',
-    candidate: '1.0.4',
+    candidate: '1.0.5',
   }),
   '@moldea.ai/adapter-langgraph': Object.freeze({
     source: '1.0.2',
-    candidate: '1.0.4',
+    candidate: '1.0.5',
   }),
   '@moldea.ai/adapter-openai': Object.freeze({
     source: '2.0.6',
-    candidate: '2.0.8',
+    candidate: '2.0.9',
   }),
   '@moldea.ai/adapter-openai-agents-sdk': Object.freeze({
     source: '1.0.4',
-    candidate: '1.0.6',
+    candidate: '1.0.7',
   }),
   '@moldea.ai/adapter-vercel-ai-sdk': Object.freeze({
     source: '1.0.2',
-    candidate: '1.0.4',
+    candidate: '1.0.5',
   }),
-  '@moldea.ai/cli': Object.freeze({ source: '5.0.0', candidate: '5.0.2' }),
+  '@moldea.ai/cli': Object.freeze({ source: '5.0.0', candidate: '5.0.3' }),
   '@moldea.ai/core': Object.freeze({ source: '2.0.1', candidate: '2.0.2' }),
   '@moldea.ai/repository': Object.freeze({
     source: '1.1.0',
@@ -617,7 +617,7 @@ const createExpectedPortableSkill = (source) => {
 - yarn: \`>=4.0.0 <5.0.0\``,
     `Skill release \`4.0.2\` supports exactly:
 
-- \`@moldea.ai/cli: 5.0.2\`
+- \`@moldea.ai/cli: 5.0.3\`
 - CLI JSON schema: \`2\`
 - Node.js: \`>=22.11.0\`
 - npm: \`>=7.0.0\`
@@ -625,7 +625,7 @@ const createExpectedPortableSkill = (source) => {
 - yarn: \`>=4.14.1\``,
     'portable compatibility section',
   );
-  return replaceRequired(expected, 'CLI `5.0.0`', 'CLI `5.0.2`', 'portable CLI envelope');
+  return replaceRequired(expected, 'CLI `5.0.0`', 'CLI `5.0.3`', 'portable CLI envelope');
 };
 
 /** Builds the only local-tooling candidate accepted by the compatibility bridge. */
@@ -641,7 +641,7 @@ const createExpectedLocalTooling = (source) => {
   ]) {
     expected = replaceRequired(expected, sourceToken, candidateToken, label);
   }
-  return replaceRequired(expected, '5.0.0', '5.0.2', 'local-tooling CLI version');
+  return replaceRequired(expected, '5.0.0', '5.0.3', 'local-tooling CLI version');
 };
 
 /** Parses one positive USTAR number field. */
@@ -920,7 +920,7 @@ const createExpectedReadme = (packageName, sourceReadme) => {
   if (packageName === CLI_PACKAGE_NAME) {
     const sourceToken = 'Anthropic adapter `2.0.3`';
     assert.equal(expected.split(sourceToken).length - 1, 1);
-    expected = expected.replace(sourceToken, 'Anthropic adapter `2.0.5`');
+    expected = expected.replace(sourceToken, 'Anthropic adapter `2.0.6`');
   }
   return expected;
 };

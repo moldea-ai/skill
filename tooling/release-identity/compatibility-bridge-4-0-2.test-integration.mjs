@@ -212,7 +212,7 @@ const createCandidateReadme = (packageName) => {
     readme = readme.replace(sourceRuntimeText, `${sourceRuntimeText}, and Node.js \`26.8.1\``);
   }
   if (packageName === '@moldea.ai/cli') {
-    readme = readme.replace('Anthropic adapter `2.0.3`', 'Anthropic adapter `2.0.5`');
+    readme = readme.replace('Anthropic adapter `2.0.3`', 'Anthropic adapter `2.0.6`');
   }
   return readme;
 };
@@ -708,7 +708,7 @@ test('freezes the exact skill and packages path inventories', () => {
   );
   assert.equal(
     createHash('sha256').update(JSON.stringify(PACKAGE_VERSION_MAP)).digest('hex'),
-    'c4b4fa966eb441c78273f9e4d16e758a29761e3289bce7f7dfba68355f3a24cf',
+    'b9608b83497db0dc1348fc0fc29f71b2e1a6f40f6978c60f056e149f9715dda0',
   );
 });
 
@@ -898,14 +898,14 @@ test('rejects behavior changes outside the exact portable compatibility projecti
 - yarn: \`>=4.0.0 <5.0.0\``,
         `Skill release \`4.0.2\` supports exactly:
 
-- \`@moldea.ai/cli: 5.0.2\`
+- \`@moldea.ai/cli: 5.0.3\`
 - CLI JSON schema: \`2\`
 - Node.js: \`>=22.11.0\`
 - npm: \`>=7.0.0\`
 - pnpm: \`>=8.3.1\`
 - yarn: \`>=4.14.1\``,
       )
-      .replace('CLI `5.0.0`', 'CLI `5.0.2`'),
+      .replace('CLI `5.0.0`', 'CLI `5.0.3`'),
   );
   const candidateLocalTooling = Buffer.from(
     sourceLocalTooling
@@ -916,7 +916,7 @@ test('rejects behavior changes outside the exact portable compatibility projecti
       .replace('>=11.20.0 <12.0.0', '>=8.3.1')
       .replace('>=4.0.0 <5.0.0', '>=4.14.1')
       .replace('For Yarn 4,', 'For supported Yarn releases at or above 4,')
-      .replaceAll('5.0.0', '5.0.2'),
+      .replaceAll('5.0.0', '5.0.3'),
   );
   const candidateSyntheticCli = Buffer.from(
     sourceSyntheticCli
@@ -965,7 +965,7 @@ test('accepts absent non-closure packages and requires registry lockfile tarball
   candidateLockfile.version = '4.0.2';
   candidateLockfile.packages[''].version = '4.0.2';
   candidateLockfile.packages[''].engines.node = candidateNodeRange;
-  candidateLockfile.packages[''].devDependencies['@moldea.ai/cli'] = '5.0.2';
+  candidateLockfile.packages[''].devDependencies['@moldea.ai/cli'] = '5.0.3';
   const repository = candidateLockfile.packages['node_modules/@moldea.ai/repository'];
   repository.version = '1.1.1';
   repository.resolved = 'https://registry.npmjs.org/@moldea.ai/repository/-/repository-1.1.1.tgz';

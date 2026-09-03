@@ -617,7 +617,7 @@ const createExpectedPortableSkill = (source) => {
 - yarn: \`>=4.0.0 <5.0.0\``,
     `Skill release \`4.0.2\` supports exactly:
 
-- \`@moldea.ai/cli: 5.0.1\`
+- \`@moldea.ai/cli: 5.0.2\`
 - CLI JSON schema: \`2\`
 - Node.js: \`>=22.11.0\`
 - npm: \`>=7.0.0\`
@@ -625,7 +625,7 @@ const createExpectedPortableSkill = (source) => {
 - yarn: \`>=4.14.1\``,
     'portable compatibility section',
   );
-  return replaceRequired(expected, 'CLI `5.0.0`', 'CLI `5.0.1`', 'portable CLI envelope');
+  return replaceRequired(expected, 'CLI `5.0.0`', 'CLI `5.0.2`', 'portable CLI envelope');
 };
 
 /** Builds the only local-tooling candidate accepted by the compatibility bridge. */
@@ -641,7 +641,7 @@ const createExpectedLocalTooling = (source) => {
   ]) {
     expected = replaceRequired(expected, sourceToken, candidateToken, label);
   }
-  return replaceRequired(expected, '5.0.0', '5.0.1', 'local-tooling CLI version');
+  return replaceRequired(expected, '5.0.0', '5.0.2', 'local-tooling CLI version');
 };
 
 /** Parses one positive USTAR number field. */

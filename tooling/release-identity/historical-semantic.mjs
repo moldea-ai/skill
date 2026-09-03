@@ -25,7 +25,7 @@ import {
   isCompatibilityVersionSupported,
 } from './compatibility.mjs';
 
-const FROZEN_COMPARATOR_COMMIT = '774f2b41f191dd6fb57d9265daa0881b7c352657';
+const FROZEN_COMPARATOR_COMMIT = '69702faa1fcfe4c36fb05ec9ea1ffa0a82bd00e7';
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const COMMIT_PATTERN = /^[a-f0-9]{40}$/u;
 const COMPATIBILITY_DECISION_VERSIONS = Object.freeze({

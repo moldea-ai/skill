@@ -1,5 +1,4 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
   chmodSync,
@@ -49,12 +48,6 @@ const candidateCoreDependencyRange = '>=2.0.2';
 const sourceRepositoryDependencyRange = '^1.0.0';
 const candidateRepositoryDependencyRange = '>=1.1.1';
 
-/** Reads one immutable source-release file for projection tests. */
-const readSkill401File = (path) =>
-  execFileSync('git', ['show', `${SKILL_401_COMMIT}:${path}`], {
-    cwd: repositoryRoot,
-    maxBuffer: 64 * 1024 * 1024,
-  });
 const newPackagesSourcePaths = new Set([
   'projects/cli/scripts/testing-peer-compatibility/index.mjs',
   'projects/repository/scripts/testing-peer-compatibility/index.mjs',
@@ -1037,9 +1030,28 @@ test('rejects behavior changes outside the exact portable compatibility projecti
   const skillPath = 'moldea/SKILL.md';
   const localToolingPath = 'moldea/references/local-tooling.md';
   const syntheticCliPath = 'fixtures/tooling/semantic-cli/bin/moldea.js';
-  const sourceSkill = readSkill401File(skillPath);
-  const sourceLocalTooling = readSkill401File(localToolingPath);
-  const sourceSyntheticCli = readSkill401File(syntheticCliPath);
+  const sourceSkill = Buffer.from(`version: '4.0.1'
+
+Skill release \`4.0.1\` supports exactly:
+
+- \`@moldea.ai/cli: 5.0.0\`
+- CLI JSON schema: \`2\`
+- Node.js: \`^22.11.0 || ^24.11.0\`
+- npm: \`>=10.9.0 <12.0.0\`
+- pnpm: \`>=11.20.0 <12.0.0\`
+- yarn: \`>=4.0.0 <5.0.0\`
+
+CLI \`5.0.0\`
+`);
+  const sourceLocalTooling = Buffer.from(`Release \`4.0.1\`
+Node.js \`^22.11.0 || ^24.11.0\`
+npm \`>=10.9.0 <12.0.0\`
+pnpm \`>=11.20.0 <12.0.0\`
+Yarn \`>=4.0.0 <5.0.0\`
+For Yarn 4,
+CLI 5.0.0
+`);
+  const sourceSyntheticCli = Buffer.from("const supportedNodeRange: '^22.11.0 || ^24.11.0';\n");
   const candidateSkill = Buffer.from(
     sourceSkill
       .toString('utf8')

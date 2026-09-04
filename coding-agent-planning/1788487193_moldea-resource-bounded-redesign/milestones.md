@@ -1,320 +1,353 @@
-# Milestones: Resource-bounded clean-slate moldea redesign
+# Milestones: Scalable clean-slate moldea activation and PR Assurance foundation
 
-## Sequence
+## Publication protocol
 
-Implement four dependency-ordered milestones. Each milestone owns a coherent finished state, its production code or documentation, directly affected tests and public contracts, focused and broader verification, read-only review, correction loop, signed commit, and explicit active-branch push. Do not begin a later milestone until the current milestone is ready and its Git commit has been published.
+For every incomplete milestone, preserve unrelated concurrent work, implement only the milestone's cohesive scope, run its focused and broader verification, perform the read-only `review` correction loop until the exact state is ready, create signed and signed-off commits, and push only explicit intended refs. Before integrating a feature branch, refresh the exact `origin/main`, run `review main`, require a conflict-free ready verdict, integrate with signed metadata, push only `HEAD:refs/heads/main`, and verify triggered workflows or published artifacts. Platform `new_skill` is synchronized with `main` at the remaining-work baseline. Skill work remains on `new_skill` until the final release milestone. Knowledge-base work remains on `main`.
 
-The trusted packages main-branch workflow must publish `@moldea.ai/core` 2.1.0 and `@moldea.ai/cli` 6.0.0 before Milestone 3 can finalize registry-backed dependency state. A feature-branch `repo push` does not satisfy that prerequisite and no local-tarball, schema-2, version alias, or compatibility bridge may be committed as a substitute.
+Fixture scenario branches are immutable publication artifacts rather than feature branches. Each receives one reviewed signed commit and is pushed with an explicit branch refspec to both fixture repositories. The exact same commit object must back each matching public/private branch. Corrections create a new scenario commit and coordinated consumer update; published fixture branch tips are never silently rewritten.
 
-## Milestone 1: Deterministic Core scope matching
-
-### Objective
-
-Publish the additive `@moldea.ai/core` 2.1.0 source change that determines whether repository-logical changed paths intersect declared manifest relationships without loading canonical bodies or executing runtime adapters. This becomes the single relationship-matching authority used by the CLI and skill.
-
-### Dependencies
-
-- The revised plan with SHA-256 `fd572ea827dfb8faac4c74ac82769479f0015595595f6702cbbdcdb26f9eee8a`.
-- A clean `../packages` worktree on `new_skill` and an unambiguous configured push destination.
-- Existing Core version-1 manifest, relationship-validation, repository-reference, and simple-glob contracts.
-
-### In-scope files and contracts
-
-- Add `../packages/projects/core/src/scope-matching/` with a thin `index.ts`, focused contract types, boundary validation, deterministic matching implementation, and co-located unit tests.
-- Update `../packages/projects/core/src/contracts/index.ts`, the root `src/index.ts`, public API fixtures, and public integration tests to expose the new operation and types without wildcard exports.
-- Reuse and, only where required, extend `manifest-relationship-validation`, `repository-reference-validation`, manifest parsing, and existing simple-glob ownership.
-- Update `../packages/projects/core/docs/repository-inspection.md`, the Core README/package documentation, `package.json` to 2.1.0, release metadata, and `../packages/pnpm-lock.yaml`.
-- Keep `ICore.inspectProject` and the rich project index intact because they remain current programmatic and runtime-adapter capabilities; do not add a schema-2 compatibility branch.
-
-### Implementation work
-
-1. Define strict public input and output types for normalized repository-logical paths, matched owner identity, relationship field, manifest declaration pointer, matched exact path or `affectedBy` glob, stable counts, and manifest/input digests.
-2. Validate that every supplied path begins with `/` and reject empty values, duplicate separators, dot and traversal segments, NUL characters, native absolute paths, Windows drive-relative paths, UNC/device paths, and values outside existing repository path limits.
-3. Parse the version-1 manifest through the existing parser. Build an exact-path lookup for bindings and reference fields and compile `affectedBy` patterns once per operation using the established simple-glob semantics.
-4. Match the normalized path set with stable owner/field/pattern/path ordering and deterministic deduplication. Empty manifests and empty path sets return no matches and do not manufacture relevance.
-5. Keep the matching step pure after manifest parsing. It must not read project/context/decision/agent/runtime/mirror/evidence bodies or execute adapters.
-6. Add representative large path and relationship fixtures that expose repeated compilation, accidental quadratic copying, unstable ordering, or unbounded output construction without brittle wall-clock assertions.
-7. Synchronize public exports, JSDoc, package documentation, version, release planning inputs, and lockfile.
-
-### Tests and verification
-
-- Unit coverage for every supported exact relationship field, `affectedBy` glob behavior, multiple owners, deduplication, empty inputs, stable ordering, malformed logical paths, Windows attack forms, manifest validation failures, and large representative inputs.
-- Public integration coverage proving the exported Core operation uses the repository's existing manifest contract and returns content-free match metadata.
-- Public API fixture coverage proving intended exports and the absence of accidental private exports.
-- Run:
-
-```bash
-pnpm --filter @moldea.ai/core test:unit
-pnpm --filter @moldea.ai/core test:integration
-pnpm --filter @moldea.ai/core typecheck
-pnpm --filter @moldea.ai/core lint
-pnpm --filter @moldea.ai/core build
-pnpm test:root
-pnpm typecheck:root
-pnpm lint:root
-pnpm format:check
-pnpm release:check-changes
-pnpm release:plan
-```
-
-### Acceptance criteria
-
-- One public Core implementation produces deterministic matches for all version-1 relationship forms relevant to changed paths.
-- The operation is body-free, adapter-free, source-neutral after manifest parsing, and handles empty/large inputs predictably.
-- Existing rich inspection and adapter behavior continue to pass their full Core regression suite.
-- Core package state, documentation, exports, version 2.1.0, release plan, and lockfile agree.
-- The exact uncommitted state receives `Ready to commit`, is committed with `-s -S`, and is pushed explicitly from `new_skill` without including unrelated changes.
-
-### Review checkpoint
-
-Review path normalization and containment semantics, relationship completeness, stable ordering/deduplication, large-input complexity, public API shape, additive-version justification, and proof that no project bodies or adapters participate. A material need to break Core or adapter contracts requires autonomous plan revision before publication.
-
-## Milestone 2: CLI schema 3, bounded output, and packages cleanup
+## Milestone 1: Atomic public package generation (complete)
 
 ### Objective
 
-Publish the complete `@moldea.ai/cli` 6.0.0 source contract: schema-3-only JSON, content-free metadata inspection, cheap relationship scope matching, explicit path-scoped content chunks, deterministic byte-bounded keyset pagination, and observational Git behavior. Remove the packages repository's temporary skill-4 compatibility bridge in the same packages release boundary.
+Preserve the already completed clean Repository 2, filesystem reader 2, Core 3, CLI 7/schema 4, and official adapter-major generation as the trusted dependency foundation.
 
 ### Dependencies
 
-- Milestone 1 committed and pushed.
-- Core 2.1.0 workspace source available to CLI builds and tests.
-- Existing CLI command-line, execution, Core composition, presentation, JSON contract, Git inventory, repository-reader, and working-tree snapshot boundaries.
+- None remaining.
 
-### In-scope files and contracts
+### Scope and implementation
 
-- Add `../packages/projects/cli/src/project-scope/`, `output-page/`, and `project-content/` with focused types, constants, validations, transformations/utilities, orchestration, thin entry files, and co-located tests.
-- Update `projects/cli/src/command-line/` constants, types, parser, validations, tests, and public entry.
-- Update `projects/cli/src/cli-execution/` command executor, runner, result contracts, types, tests, and entry.
-- Update `projects/cli/src/core-composition/`, `presentation/`, `json-output-contract/`, `working-tree-snapshot/`, `git-inventory/`, `repository-reader/`, `operational-error/`, package metadata, bin entry, fixtures, integration tests, and e2e tests.
-- Update CLI README/docs/examples, `package.json` to 6.0.0, Core dependency to 2.1.0, release metadata, runtime/testing compatibility fixtures, and root lockfile.
-- Remove the temporary skill 4.0.2 compatibility job from `../packages/.github/workflows/ci.yml` and its active descriptions from root `README.md` and `docs/npm-releases.md`; update directly affected release tests.
-- Use lowercase `moldea` in changed human-facing messages and prose while retaining required package and TypeScript identifier casing.
-
-### Implementation work
-
-1. Replace schema 2 with one strict schema-3 envelope containing `schemaVersion`, `cliVersion`, `command`, `status`, `error`, and `result`. Do not retain a legacy flag, environment variable, alias, fallback serializer, or schema-2 test fixture.
-2. Implement `inspect` as an explicit metadata projection. Return complete collection counts and a page of discriminated records for agents, context, decisions, relationships, requirements, mirrors, runtimes, unresolved items, diagnostics, and evidence summaries. Include logical paths, digests, UTF-8/scalar lengths, safe identifiers, and references but never canonical bodies or arbitrary adapter evidence detail.
-3. Add a recursive contract guard that fails if any non-`content` JSON result contains a `content` property or a seeded canonical body string. Build the projection from allowlisted fields rather than pruning the rich Core result.
-4. Add `scope --path <logical-path>` and `scope --paths-stdin`. The stdin form consumes NUL-delimited UTF-8 records with no shell interpolation. Read only `/moldea/moldea.yaml`, invoke the Milestone 1 matcher, execute no adapter, and return `relevant`, complete counts/digests, and paginated matches.
-5. Add `content --path <canonical-logical-path>`. Accept exactly one canonical file, reject directories, globs, traversal, non-canonical roots, and links escaping the trusted repository boundary, then return only that asset in Unicode-safe chunks.
-6. Add `--max-output-bytes` to collection/content JSON commands with inclusive range 4,096 to 1,048,576, default 65,536, and exact final UTF-8 serialization accounting. Human-readable output remains concise and below the 1 MiB hard ceiling.
-7. Implement stable keyset continuation. Encode cursor version, command, normalized filters, source snapshot digest, last composite key, and checksum in opaque base64url. Reject malformed, tampered, cross-command, filter-mismatched, unsupported-version, and changed-snapshot cursors with stable documented errors.
-8. Return structured `OUTPUT_BUDGET_TOO_SMALL` when an envelope cannot fit instead of malformed or silently truncated JSON. Prevent oversized evidence fields by projecting identifiers, references, digests, and lengths only.
-9. Extend working-tree snapshot identity without writing Git state. Every read-only command must preserve the worktree, real index, refs/HEAD, Git config, submodule state, and Git object-database path/metadata set. Do not use temporary indexes or object-writing plumbing.
-10. Keep `validate` and `composition` intent while moving them to schema 3 and the bounded serializer. Establish command-specific composition so `scope` does not load or verify adapters it cannot use.
-11. Remove packages-side compatibility-bridge CI/documentation and regenerate current release/compatibility metadata only where it remains part of the packages repository's general release system.
+- `../packages` main commit `7f20acf565e66daaae73107ac41c80c3e57685ee` and its dependency-connected history.
+- Published `@moldea.ai/repository` 2.0.0, `@moldea.ai/repository-fs` 2.0.0, `@moldea.ai/core` 3.0.0, `@moldea.ai/cli` 7.0.0, Anthropic/OpenAI adapters 3.0.0, and every other official adapter 2.0.0.
+- Matching platform package specifications merged through signed commit `6fb9bbebf6d99f08c3ace81f464a79b4cc0467ca`.
+- Do not repeat or change this milestone unless later concrete evidence exposes a public-contract defect and triggers the authorized re-planning loop.
 
 ### Tests and verification
 
-- Parser/validation tests for new commands, mutually exclusive path input modes, NUL records, byte-limit range, content-path constraints, and cursor arguments.
-- Unit tests for exact byte accounting, Unicode, empty/first/exact/final pages, deterministic record keys, continuation, tampering, filter changes, snapshot changes, too-small budgets, and large record sets.
-- Integration tests for Core scope composition, manifest-only reads, explicit canonical content reads, adapter-free `scope`, metadata-only `inspect`, and read-only repository behavior.
-- E2E tests for every command in human and JSON form, a zero-agent/zero-relationship adopted repository, the observed many-large-context shape, multi-page traversal without gaps/duplicates, stdout byte ceilings, clear errors, POSIX paths, and Windows attack paths.
-- Compare all relevant Git state before and after each read-only command, including the object database.
-- Run:
-
-```bash
-pnpm --filter @moldea.ai/cli test:unit
-pnpm --filter @moldea.ai/cli test:integration
-pnpm --filter @moldea.ai/cli test:e2e
-pnpm --filter @moldea.ai/cli typecheck
-pnpm --filter @moldea.ai/cli lint
-pnpm --filter @moldea.ai/cli build
-pnpm --filter @moldea.ai/core test
-pnpm test
-pnpm typecheck
-pnpm lint
-pnpm format:check
-pnpm build
-pnpm compatibility:check
-pnpm docs:check
-pnpm release:check-changes
-pnpm release:plan
-```
-
-Build and pack Core 2.1.0 and CLI 6.0.0 release candidates, record their digests, and execute CLI candidate smoke tests from outside the workspace so hoisted dependencies cannot hide packaging failures.
+- Reuse the completed package review, package/workspace checks, packed-candidate validation, registry-version verification, and published platform-specification evidence.
+- Include versions and removed-contract searches in the final cross-repository audit.
 
 ### Acceptance criteria
 
-- Schema 3 is the only active JSON contract and CLI/package documentation contains no schema-2 compatibility path.
-- `inspect` is recursively content-free and cannot reproduce the observed multi-thousand-line canonical-body dump.
-- Every JSON invocation honors the requested page limit and 1 MiB hard maximum; large repositories remain completely traversable through stable cursors.
-- `scope` uses one manifest-only Core path and reports no relevance for an empty relationship manifest.
-- `content` is explicit, single-path, repository-contained, and Unicode-safe.
-- All read-only commands preserve the complete defined Git and filesystem state.
-- CLI version 6.0.0, Core dependency 2.1.0, docs, error contracts, tests, release plan, and lockfile agree.
-- Packages CI/docs contain no temporary skill-4 compatibility bridge.
-- Focused and complete packages checks pass; the exact state receives `Ready to commit`, is signed/signed-off, and is pushed explicitly.
+- Complete. The new package generation is on `main`, available from npm, and consumed as the only supported foundation.
 
 ### Review checkpoint
 
-Review the schema break, allowlisted projection, byte accounting after JSON escaping, cursor correctness, snapshot identity, stdin/path security, command-specific dependency loading, read-only invariants, packaging candidate, error/JSDoc synchronization, and absence of hidden compatibility branches. Ask whether a full-content or oversized-output regression could survive every test; if yes, the milestone is not ready.
+No new review is required unless a later milestone invalidates the released contract.
 
-## External prerequisite: trusted package publication
-
-After Milestone 2 is pushed, the existing packages release workflow must merge the reviewed package changes to its trusted release branch and publish `@moldea.ai/core` 2.1.0 and `@moldea.ai/cli` 6.0.0. Verify registry versions, package provenance/checksums, packed contents, public exports, and CLI schema 3 from a clean consumer installation.
-
-This prerequisite is not an implementation milestone and does not authorize the agent to merge branches or run `npm publish` directly. If the registry artifacts are unavailable, continue only work that can reach a truthful finished state from packed candidates; do not commit local-path dependencies, fake lockfile integrity, version aliases, or compatibility bridges.
-
-## Milestone 3: Platform canonical context and registry adoption
+## Milestone 2: Paired GitHub fixture corpus
 
 ### Objective
 
-Publish a concise, selectively retrievable platform canonical model aligned with the released Core 2.1.0/CLI 6.0.0 contracts. Replace the 194,885-byte foundation document with a bounded foundation plus focused context, and update all directly affected moldea specifications, routing, dependency state, and deterministic documentation checks.
+Publish one production-representative, resource-conscious fixture corpus as identical immutable Git objects in the public and private GitHub repositories, including stable closed PR objects for real provider mapping when authenticated host access is available.
 
 ### Dependencies
 
-- Milestones 1 and 2 committed and pushed.
-- Trusted registry publication of Core 2.1.0 and CLI 6.0.0 verified from a clean consumer install.
-- A clean `../platform` worktree on `new_skill` with no unrelated protected-instruction or other changes.
+- Milestone 1 contracts and registry artifacts.
+- Clean public fixture worktree and authenticated Git access to both repositories.
+- Final challenged plan at `plan.md`, SHA-256 `bc765f91bf2c50fb74ead602a615dadcef8af183d14fab6b802e0711951aa4c8`.
 
-### In-scope files and contracts
+### Scope and implementation
 
-- Rewrite `../platform/moldea/project.md` to at most 16 KiB UTF-8.
-- Add `moldea/context/product-and-operating-model.md`, `cloud-and-assurance.md`, `access-security-and-billing.md`, and `platform-architecture.md`, each below 64 KiB UTF-8.
-- Update `moldea/context/agent-skill.md`, `cli-package.md`, `core-package.md`, `repository-format.md`, `context-gathering.md`, `skill-design-and-quality.md`, `packages.md`, `runtime-adapter-contract.md`, and every directly affected non-excluded reference discovered through bounded search.
-- Update root `README.md` routing, `package.json` from CLI 5.0.3 to 6.0.0, and `pnpm-lock.yaml` from the real registry artifact.
-- Add or extend a repository-owned deterministic documentation validator for local links, size budgets, authority routing, forbidden duplicate headings, lowercase product prose in affected documents, and absence of schema-2/full-default-inspection guidance.
-- Do not change `AGENTS.md` or any other protected instruction file.
-
-### Implementation work
-
-1. Inventory every heading and normative rule in the existing project foundation, assign each to exactly one target document, and preserve a coverage manifest during the edit so no product, Cloud, Assurance, access, security, billing, partner, or architecture contract disappears silently.
-2. Write the concise foundation with purpose, audience, core guarantees, repository model, major boundaries, and links to focused context. Remove repeated package-level detail.
-3. Move and deduplicate detailed rules into the four focused context files. Keep cross-links explicit and avoid creating a new catch-all document.
-4. Rewrite package and skill specifications to define narrow activation, host-workflow precedence, Core scope matching, CLI schema 3, bounded keyset pages, explicit content chunks, read-only invariants, semantic resource evidence, qualification ownership, clean release identity, and lowercase product prose.
-5. Update every reference that treats `project.md` as the sole detailed product specification. Do not add artificial manifest relationships merely to trigger the skill.
-6. Install CLI 6.0.0 through the repository's exact pnpm workflow and regenerate the authentic lockfile. Run metadata-only `validate` and `inspect` checks without custom wrappers or body output.
-7. Add deterministic documentation validation using the repository's existing runtime and scripts, with clear path/size/link/casing errors and no application test dependency.
+1. Preserve existing immutable fixture branches and create deterministic scenario commits for `uninitialized_fixture`, `initialized_unbound_fixture`, `assurance_base_fixture`, `assurance_relevant_change_fixture`, `assurance_irrelevant_change_fixture`, `assurance_binding_deleted_fixture`, and `assurance_large_repository_fixture`.
+2. Add realistic TypeScript access/refund behavior, canonical policy and relationships, bound and `affectedBy` paths, unrelated decoys, moved/deleted binding behavior, and source content suitable for on-demand Cloud exploration and PR Assurance findings.
+3. Build the large scenario deterministically with exactly 1,024 source files, nested and wide trees, multibyte Unicode content that requires multiple read pages, mostly irrelevant changes, and at least one relevant change. Keep total committed blob content at or below 16 MiB.
+4. Create `fixture_manifest` only after scenario commit identities are final. Its machine-readable manifest records scenario branches, base/head SHAs and trees, initialization/binding state, changed paths, relevance, expected reads, and expected deterministic/semantic outcomes while excluding its own commit identity.
+5. Establish the private repository locally or as a second remote and push the exact public commit objects to matching private branches. Do not recreate or amend commits per repository.
+6. Create matching PRs from the relevant, irrelevant, deleted-binding, and large candidates to `assurance_base_fixture`, then close them without merging. Keep repository-specific PR numbers outside the identical fixture trees.
+7. Document fixture immutability, generation, size envelope, scenario meaning, and correction policy in the fixture README/manifest branch without changing protected instructions.
 
 ### Tests and verification
 
-- Validate heading-to-target coverage against the pre-edit foundation inventory.
-- Validate all local Markdown links, exact size ceilings, unique authority ownership, required sections, marker preservation, lowercase product prose, and forbidden schema-2/full-content wording.
-- Verify installed CLI identity/version/schema and run:
-
-```bash
-pnpm exec prettier --check README.md moldea/project.md moldea/context
-pnpm exec moldea validate --json
-pnpm exec moldea inspect --json
-```
-
-- Assert `inspect --json` remains at or below its 65,536-byte default and recursively contains no canonical body.
-- Do not run application, browser, database, or full platform tests because the milestone changes canonical documentation and a development CLI dependency only. Run any established CLI-dependency or documentation script added by the milestone.
+- Run deterministic fixture generation twice in disposable worktrees and require identical file bytes, modes, trees, and commit inputs before signing.
+- Validate every manifest SHA/tree against Git objects and every expected changed-path set with Git diff-tree plumbing that does not inspect excluded directories.
+- Require public/private `git ls-remote` branch tips to match exactly after publication.
+- Verify repository blob totals, path portability, symlink behavior, Unicode paths/content, absence of credentials, and the 1,024-file/16-MiB envelope.
+- Verify every created PR resolves to the pinned base/head SHAs and is closed without merge; report authenticated PR creation as an exact external prerequisite if no usable host capability exists.
 
 ### Acceptance criteria
 
-- The foundation is at most 16 KiB, each focused context is below 64 KiB, and every still-current normative rule is present exactly once or intentionally summarized with an authoritative link.
-- All directly affected specs describe actual Core 2.1.0/CLI 6.0.0 behavior and no longer endorse broad activation, host-workflow capture, schema 2, or default body output.
-- README routing supports selective context retrieval.
-- Package and lockfile resolve the trusted registry CLI 6.0.0 artifact.
-- Documentation validation and metadata-only CLI checks pass without excessive output or repository mutation.
-- Human-facing changed prose uses `moldea`; technical identifiers retain valid casing.
-- The exact state receives `Ready to commit`, is committed with `-s -S`, and is pushed explicitly without protected-instruction changes.
+- Both repositories expose identical immutable scenario and manifest commits; visibility/authentication is their only behavioral difference.
+- The corpus covers uninitialized, initialized-unbound, bound base, relevant, irrelevant, deleted/moved binding, lazy large-tree, and on-demand content behavior.
+- Extreme GitHub caps remain synthetic-test responsibilities rather than permanent repository bloat.
+- Every fixture commit is signed/signed-off, reviewed, and explicitly pushed to both repositories without changing `main` or existing immutable branches.
 
 ### Review checkpoint
 
-Review content coverage and authority ownership, not only word count. Confirm that the split improves retrieval without losing security, billing, ownership, or platform rules; specifications match executable packages; links and budgets are enforced; no artificial activation relationships were introduced; and the dependency lock is registry-authentic.
+Inspect scenario realism, manifest truth, exact public/private object parity, branch immutability, PR state, secret safety, path portability, size/resource envelope, and whether expected outcomes can catch false relevance, false irrelevance, eager reads, and incomplete comparison.
 
-## Milestone 4: Skill 5.0.0, evaluations, qualifications, and release reset
+## Milestone 3: Lazy GitHub reader and comparison
 
 ### Objective
 
-Publish one internally complete skill 5.0.0 release state that abstains from unrelated work, consumes host workflow evidence, performs one cheap relationship gate when needed, uses bounded CLI schema-3 output, proves resource and read-only guarantees, avoids duplicated universal adapter cost, contains fresh evidence only, and has no active 4.0.x machinery or visible obsolete 4.0.x release refs.
+Replace the platform GitHub package's eager inventory with Repository 2 lazy immutable snapshots, deterministic pages and byte ranges, complete pairwise tree comparison, and explicit provider/resource failures.
 
 ### Dependencies
 
-- Milestones 1 through 3 committed and pushed.
-- Registry CLI 6.0.0 installed exactly in the npm-managed skill repository.
-- The skill-creator instructions and `agents/openai.yaml` contract already inspected.
-- Available model credentials and adapter environments for the required semantic and qualification executions. Missing provider credentials may block only the affected qualification evidence and must not be disguised as success.
+- Milestone 2 branch and manifest commits published to both fixture repositories.
+- Platform `new_skill` synchronized with `main` at `6fb9bbebf6d99f08c3ace81f464a79b4cc0467ca` or a freshly verified descendant containing no unrelated scoped changes.
 
-### In-scope files and contracts
+### Scope and implementation
 
-- Rewrite `moldea/SKILL.md`, `moldea/agents/openai.yaml`, and directly affected reference files, especially `local-tooling.md`, `context-gathering.md`, `continuous-maintenance.md`, `evaluate-and-reconcile.md`, and `skill-design-and-quality.md`.
-- Update `fixtures/conformance-cases.json`, semantic seeds/results, semantic runner modules, Codex evaluation-host evidence, execution-evidence schemas, identity tooling, tests, and docs.
-- Reorganize all `qualification/profiles/t1` through `t14` case ownership, probes, manifests, coverage, runtime assertions, result/storage schemas, tests, README, and documentation so Custom runs universal behavior once and every non-Custom profile retains only adapter-specific variance.
-- Remove all active files and references for `carry-forward-4-0-1`, `compatibility-bridge-4-0-2`, 4.0.1/4.0.2 compatibility constants/branches, historical semantic compatibility, obsolete qualification-storage migration, release-evidence bridge fixtures, old current-surface attempt/result directories, package scripts, website compatibility/history loaders, and generated compatibility fixtures.
-- Update root `package.json` to 5.0.0 and exact CLI 6.0.0, root and qualification/website lockfiles, release identity, README/docs, website copy/loaders/tests, generated documentation, homepage claims, path checks, and package-candidate tooling.
-- Delete local and remote skill tags `v4.0.0`, `v4.0.1`, and `v4.0.2` plus matching GitHub Releases/assets after the clean branch commit is pushed. Do not rewrite shared branches.
-- Do not modify protected instruction files.
-
-### Implementation work
-
-1. Rewrite skill frontmatter and `agents/openai.yaml` with lowercase `moldea`, a narrow implicit-invocation description, and `policy.allow_implicit_invocation: true`. Preserve explicit `$moldea` invocation.
-2. Make `SKILL.md` a short dispatcher: classify explicit/direct activation from known task paths and hunks; use at most one root-local `scope` call when a declared relationship is needed; abstain silently on no match; load only the owning reference after relevance; reuse host evidence; report only material results.
-3. Remove “Use first,” “potentially durable,” generic knowledge activation, and ordinary-development capture from all active instructions and examples.
-4. Restrict `local-tooling.md` to root-local moldea CLI establishment after relevance. Remove general Git/package-manager ownership, repeated hardened status calls, status-after-every-command rules, and review/commit/publication orchestration.
-5. Specify exact README hunk ownership: path-only README changes do not activate; only a changed hunk intersecting the managed marker block does.
-6. Update all skill paths to parse schema-3 metadata directly, follow cursor pages only when the relevant task requires them, use explicit `content` for one needed canonical asset, and never create custom wrappers to strip full CLI responses.
-7. Enforce silent abstention, one-line relevant/no-change reporting, detailed reporting only for material canonical changes or diagnostics, and no moldea-derived commit identity for unrelated work.
-8. Add deterministic and semantic cases for unrelated docs/source review, README outside/inside markers, exact bindings, `affectedBy`, direct canonical paths, explicit invocation, generic knowledge, host workflow precedence, zero-agent/zero-relationship projects, metadata pages, Git-object preservation, silent reports, malformed scope input, and cursor snapshot errors.
-9. Extend evidence contracts to assert per-case moldea command counts, moldea stdout bytes, model-visible moldea output bytes, tokens, duration, and Git-state preservation. Require exact zero command/output for abstention, exactly one pre-reference `scope` command for relationship gating, 65,536-byte ordinary pages, a 1 MiB invocation ceiling, and a 262,144-byte ordinary relevant-case aggregate unless a fixture intentionally traverses pages.
-10. Derive fresh per-case token/latency regression ceilings from measured 5.0.0 baselines with 25 percent headroom plus documented fixed variance allowance. Keep the existing 16 MiB host ceiling only as a crash guard.
-11. Move universal qualification cases to the Custom/shared profile once. Keep adapter-specific cases only where discovery, invocation syntax, layout, or platform behavior can differ. Apply deterministic resource/read-only/schema assertions to every attempt and validate the combined shared-plus-specific coverage matrix for all fourteen profiles.
-12. Run semantic and qualification attempts from clean seeds. Fix the skill or runner when evidence exposes a product defect; do not weaken assertions to accept wasteful behavior. Store only fresh 5.0.0 current evidence.
-13. Delete all active 4.0.x compatibility/carry-forward code, declarations, tests, fixtures, scripts, old result attempts, website historical readers, and documentation. Simplify release identity and website generation to one current contract.
-14. Update and generate current docs/website state, validate package candidates, set version 5.0.0 and CLI/schema identity, and run the skill-creator validator.
-15. Use an independent subagent for forward tests after deterministic checks pass, as required by the skill-creator workflow. Give it realistic tasks without expected-step hints, capture actual behavior, and turn material failures into regression coverage before release.
-16. Review and publish the complete skill tree. Then record the current remote tag objects, delete exact local and `origin` refs `v4.0.0`, `v4.0.1`, and `v4.0.2`, inspect authenticated GitHub Releases, delete matching releases/assets when present, and verify their absence. Do not force-push branches or claim provider-cache erasure.
+1. Replace `../platform/packages/api/repository-github/src/**` eager inventory/session/cache behavior with Repository 2 snapshots based on repository identity, commit SHA, and root-tree SHA.
+2. Resolve exact paths lazily through tree segments, page listings in stable bytewise order, range-read blobs, compare tree pairs by pruning equal SHAs, and descend only changed subtrees.
+3. Enforce separate request, response-byte, retry, concurrency, memory-cache, disk-spool, open-handle, cancellation, and duration controls; oversized entries bypass caches safely.
+4. Treat truncated aggregate trees as an optimization miss and descend through complete child trees. Treat an unpageable truncated individual tree as provider-incomplete and never as a complete result.
+5. Remove the eager inventory and full-tree fallback owners made obsolete. Keep public exports thin and exact, update package manifest/lockfile to trusted Repository 2 dependencies, and preserve NestJS module conventions.
+6. Add a platform-owned live fixture map containing the single pinned `fixture_manifest` commit, public/private repository identities, and closed PR numbers when available. Load scenario SHAs and outcomes from the repository manifest rather than scattering them across tests.
+7. Synchronize `moldea/context/api-repository-github-package.md`, direct repository/package references, and root blueprint statements affected by actual behavior.
 
 ### Tests and verification
 
-- Run focused unit/integration tests after each module change, then the complete release boundary:
-
-```bash
-npm test
-npm run eval:semantic:preflight
-npm run eval:semantic
-npm run eval:semantic:verify
-npm run qualification:test
-npm run qualification:typecheck
-npm run qualification:lint
-npm run qualification:format:check
-npm run qualification:dry-run
-npm run qualification:verify
-npm run docs:check
-npm run website:check
-npm run website:build
-npm run path:check
-npm run release:identity:check
-npm run release:check
-```
-
-- Run skill-creator `quick_validate.py` against `moldea/`.
-- Run candidate validation against a clean install of registry CLI 6.0.0 and compare its package digest/provenance with Milestone 2.
-- Run independent forward tests for unrelated abstention, relationship match, direct canonical work, large context, host workflow precedence, bounded output, and read-only state.
-- Verify active-tree absence of `4.0.0`, `4.0.1`, `4.0.2`, `carry-forward`, `compatibility-bridge`, schema 2, broad activation phrases, and obsolete scripts/readers, allowing only deliberately tested invalid legacy input when essential to a removal test.
-- Verify local/remote obsolete tag absence with `git tag --list` and `git ls-remote --tags origin`; verify GitHub Release absence through authenticated repository access when available.
-- Do not use `pnpm exec` to discover missing tools in this npm-managed repository.
+- Unit coverage for traversal ordering, directory synthesis, pages, ranges, cache bypass/LRU accounting, tree-pair pruning, additions/deletions/type changes, cursors, cancellation, retry policy, rate-limit mapping, authorization loss, and every typed provider/resource failure.
+- Integration coverage with deterministic synthetic providers for aggregate truncation above provider limits, unpageable child truncation, more than 3,000 PR-file hints, more than 300 compare-file hints, wide/deep trees, request amplification, large blobs, and resume.
+- Table-driven bounded live e2e coverage against public and private scenario commits for snapshot parity, complete comparison, on-demand reads, and PR mapping. Skip only behind the established GitHub App environment gate and never load credentials when skipped.
+- Assert that irrelevant comparison does not request blob content and that repository size does not force full inventory allocation.
+- Run package `test:unit`, `test:integration`, `test:e2e`, generic `test`, typecheck, lint, format, build, public API, platform affected regression, lockfile, canonical, link, and documentation checks.
 
 ### Acceptance criteria
 
-- Unrelated adopted-repository tasks produce zero moldea reference loads, CLI calls, CLI/output bytes, and progress/final mentions.
-- Direct canonical, owned marker hunk, explicit, exact-binding, and `affectedBy` cases activate once and remain bounded to matched owners.
-- Host planning, review, implementation, Git, commit, and publication workflows retain control.
-- The skill consumes only schema-3 metadata pages by default and never requests full canonical inspection output.
-- Read-only skill/evaluation/qualification paths preserve files, index, refs, config, submodules, and Git object database.
-- Resource evidence is enforced per scenario with realistic page and aggregate limits; token/latency ceilings are baseline-derived and diagnostic rather than product runtime errors.
-- Universal behavior runs once, all fourteen profiles have complete shared-plus-specific coverage, and adapter-specific qualifications pass.
-- Skill/package/docs/website/evidence identity all state 5.0.0 with exact CLI 6.0.0/schema 3.
-- Active source, tests, fixtures, results, scripts, docs, website, and release tooling contain no 4.0.x compatibility or carry-forward machinery.
-- Fresh semantic and qualification evidence passes without copied historical attempts.
-- Obsolete local/remote tags and accessible matching GitHub Releases are absent; shared branch history is not rewritten.
-- Complete deterministic, semantic, qualification, website, release, packaging, path, and skill-creator checks pass.
-- The exact state receives `Ready to commit`, is signed/signed-off, and is pushed explicitly before release refs are deleted.
+- Snapshot creation materializes no complete inventory; listing/comparison progress through deterministic continuation with bounded peaks.
+- Complete provider trees produce complete comparisons across both fixture visibilities; provider-incomplete states cannot approve or claim completion.
+- Blob content is fetched only on explicit read or after relevance, in bounded ranges.
+- The reviewed platform change is signed, pushed on `new_skill`, ready against current `main`, merged and pushed to `main`, and its workflows are proven. Fast-forward `new_skill` to the integrated commit before continuing.
 
 ### Review checkpoint
 
-Review activation false positives and false negatives, pre-reference command count, reference-loading size, host-workflow ownership, direct schema-3 parsing, report silence, Git read-only evidence, resource-budget clarity, universal-versus-adapter test ownership, result freshness, website/release simplification, lockfile authenticity, and exhaustive active-tree legacy removal. Independently confirm that a wasteful or Moldea-centric response could not pass the semantic and qualification assertions.
+Inspect provider completeness, ordering, cursor binding, request amplification, range behavior, path validation, caches/spool, cancellation/retries, public/private parity, no-irrelevant-blob evidence, and false-success prevention.
 
-## Final completion audit
+## Milestone 4: PR Assurance kernel and worker composition
 
-After Milestone 4 and release-ref cleanup, recheck all three active branches and remote destinations. Map every plan acceptance criterion to current file, package, test, evidence, registry, Git ref, and publication proof. Run targeted searches excluding `_archive`, `_archives`, `_backup`, and `_backups` for schema-2 contracts, full default content output, broad activation language, active 4.0.x machinery, obsolete tag refs, and unintended human-facing `Moldea`. Treat technical identifier casing and deliberately invalid negative-test fixtures separately.
+### Objective
 
-Confirm Core 2.1.0 and CLI 6.0.0 registry artifacts from clean installs; platform dependency integrity and canonical checks; skill 5.0.0 deterministic, semantic, qualification, website, release, and package-candidate evidence; signed/signed-off commit metadata; clean worktrees; exact pushed commits; and remote obsolete release-ref absence. Do not mark the goal complete while registry publication, an adapter qualification, an accessible GitHub Release deletion, a repository push, or any material acceptance criterion remains unverified.
+Create the private bounded/resumable PR Assurance analysis kernel and real worker composition without inventing the still-absent customer workflow, persistence, billing, or provider publication surface.
+
+### Dependencies
+
+- Milestone 3 integrated and verified on platform `main` and synchronized `new_skill`.
+
+### Scope and implementation
+
+1. Create `../platform/packages/api/pr-assurance/**` with focused contracts, strict schemas, resource profiles/ledger, checkpoint validation, base/candidate scope union, deterministic evidence and diff partitioning, redaction boundary, orchestration, semantic evaluator interface, and thin exports.
+2. Open immutable base/candidate snapshots, compare lazily, parse both manifests, union old and new ownership, finish irrelevant changes before content reads, validate structurally, fetch only relevant ranges, redact before semantic work, and checkpoint stable units.
+3. Implement the closed outcomes `irrelevant`, `readyForSemanticAnalysis`, `completed`, `structuralFailure`, `continuationRequired`, `analysisUnavailableResourceLimit`, and `operationalFailure`. Only `completed` can become success.
+4. Bind checkpoints to repository, base/candidate SHAs, contract version, selection, partition identities, and resource ledger. Resume idempotently without duplicate provider or semantic accounting.
+5. Compose the kernel into `apps/api-worker-pr-assurance` through existing process/lifecycle conventions and a deterministic internal integration harness with a fake semantic evaluator.
+6. Update `cloud-and-assurance.md`, `platform-architecture.md`, `packages.md`, `project.md`, direct references, root README, and `docs/database-analysis.md` to state the implemented foundation and explicit no-persistence/no-launch boundary.
+7. Add no migration, queue/webhook, public route, GitHub Check, discussion, billing, notification, production model, or UI behavior.
+
+### Tests and verification
+
+- Unit tests for every contract, schema, ledger dimension, standard/extended/absolute profile relationship, checkpoint, scope union, redaction decision, partition, and outcome map.
+- Integration tests for every outcome; base-only/candidate-only/new/deleted/moved relationships; irrelevant no-blob path; stale/tampered revisions; duplicate resume; provider/evaluator failure; partial work; and each resource dimension.
+- Real NestJS worker module/lifecycle integration with application-owned wiring and fake external boundaries.
+- Assert checkpoints contain no unnecessary source bodies and only `completed` can yield an approving result.
+- Run affected package/app unit and integration tests, broader platform tests, typecheck, lint, format, build, public API, canonical, link, and documentation checks.
+
+### Acceptance criteria
+
+- The kernel never invokes the skill or CLI, never hides relevance through candidate-only scope, and never turns partial or resource-failed work into success.
+- Resource state and resume are explicit, bounded, revision-bound, and idempotent.
+- The worker owns a real internal composition while customer-facing infrastructure remains truthfully absent.
+- The reviewed platform change is signed, published on `new_skill`, ready and merged into current `main`, workflow-verified, and synchronized back to `new_skill`.
+
+### Review checkpoint
+
+Inspect comparison completeness, manifest union, redaction, token/resource accounting, checkpoint security/idempotency, outcome-to-success mapping, worker lifecycle, error contracts, and excluded infrastructure.
+
+## Milestone 5: Repository-bound skill activation and deterministic protection
+
+### Objective
+
+Require initialization before repository-dependent moldea behavior, make post-init relevance cheap and silent, preserve host workflow ownership, use CLI 7/schema 4, and establish deterministic regressions before any paid evaluation.
+
+### Dependencies
+
+- Registry-final CLI 7/Core 3 and Milestone 4 platform foundation.
+- Skill `new_skill` with only planned scoped changes and current planning artifacts.
+
+### Scope and implementation
+
+1. Rewrite `moldea/SKILL.md`, `moldea/agents/openai.yaml`, and only the references owned by changed operations, following progressive disclosure and the skill-creator guidance.
+2. Implement the activation state machine: concise informational answer before adoption; explicit initialization; silent abstention for every other uninitialized task; direct explicit/canonical activation after adoption; one cheap changed-path/manifest gate for ordinary initialized work; and bounded owner validation only after a match.
+3. Make README activation hunk-aware. A README change outside the managed block abstains unless another exact relationship matches.
+4. Remove moldea ownership of host planning, review, Git, commit, and publication workflows. Local tooling governs only repository-local CLI establishment and moldea-specific commands after relevance.
+5. Require repository-local CLI 7.0.0/schema 4 and remove every active CLI 6/schema-3 or global-install path.
+6. Add deterministic conformance fixtures/assertions for every observed activation, reference-loading, command-count, output, continuation, read-only, zero-agent, large-file, and resource regression. Update semantic case definitions and qualification ownership metadata without running models.
+7. Update directly affected platform skill/activation specifications after verified skill behavior exists; do not publish unsupported website or knowledge-base claims yet.
+
+### Tests and verification
+
+- `npm test` plus focused activation, routing, CLI-candidate, docs, path, site-static, release-structure, formatting, and forbidden-contract checks that do not invoke models.
+- Skill-creator `quick_validate.py` against `moldea/` and independent isolated forward tests for pre-init information, pre-init abstention, initialized unrelated work, `affectedBy`, direct canonical changes, README hunks, host commands, zero-agent projects, and bounded content.
+- Assert irrelevant cases perform zero moldea reference loads, CLI calls, visible output, mutations, and final-report mentions.
+- Compare worktree, index, refs, configuration, submodules, and Git object storage around read-only scenarios without object-writing proof commands.
+
+### Acceptance criteria
+
+- Uninitialized ordinary work and initialized unrelated work are silent; relevant work loads only its owning reference and bounded evidence.
+- Host commands remain authoritative and do not acquire moldea Git or package-manager rituals.
+- CLI 7/schema 4 and repository-bound installation are the only supported paths.
+- The complete deterministic boundary passes and the skill-creator review finds no broad trigger or unnecessary instruction loading.
+- Commit and push the reviewed skill work to `new_skill`; do not merge or release skill `main` before final evidence.
+
+### Review checkpoint
+
+Inspect trigger wording, adoption proof, cheap-gate cost, README hunk logic, progressive reference disclosure, host precedence, read-only evidence, version closure, irrelevant silence, and whether tests reproduce every original failure.
+
+## Milestone 6: Public websites, documentation, and knowledge base
+
+### Objective
+
+Make all public and canonical surfaces agree on repository-bound installation, clean package versions, lazy bounded behavior, provider/resource failures, fixture-backed confidence, and the actual pre-launch state of PR Assurance.
+
+### Dependencies
+
+- Milestones 3 through 5 establish the behavior being documented.
+
+### Scope and implementation
+
+1. Update skill root/docs/site/generated content for installation, compatibility, activation, CLI/Core/readers/adapters, bounded output, resumability, semantic testing, and release status, while leaving evidence-pin details to its owning milestone.
+2. Update `../platform/apps/website/**`, metadata, pricing/availability statements, previews, generated `llms.txt`, website README, fixtures, and tests for the scalable foundation without claiming customer launch.
+3. Update `../knowledge-base/content/**` across installation/quick start, open-source tools, repository format, validation, readers/Core/CLI/adapters, compatibility, local tools, GitHub integration, PR Assurance lifecycle/scope/triage/findings/limitations/merge enforcement, privacy/security, billing boundaries, troubleshooting, FAQs, manifest, indexes, and links.
+4. State clearly that installation must be repository-bound even though external installers cannot be technically prevented from installing globally. Publish no global installation command.
+5. Explain that response/page limits protect individual outputs, not repository capacity; large work progresses through pages/checkpoints, extended runs raise cumulative work without raising dangerous peaks, and exhaustion yields an unavailable/incomplete result rather than approval.
+6. Use `moldea` in human-facing prose and preserve exact technical identifiers.
+
+### Tests and verification
+
+- Skill docs/site/path/link/generated/release-structure/format checks without model calls.
+- Platform website unit/e2e/build/API/static-metadata and `llms.txt` checks. For executable UI changes, inspect 320px through desktop, keyboard/focus/accessibility, light/dark themes, reduced motion, visual hierarchy, and React render behavior.
+- Knowledge-base `npm test`, `npm run validate`, link, manifest, route, generated, and format checks.
+- Cross-repository searches for global installation, old versions/contracts, body-bearing inspection, eager GitHub claims, false completeness, generic resource errors, incorrect casing, and false launch claims.
+
+### Acceptance criteria
+
+- Public and canonical content is mutually consistent and accurately distinguishes implemented foundation from unavailable customer workflow.
+- No supported instruction recommends global installation or old contracts.
+- Platform website/docs are reviewed and integrated through `new_skill` to `main`; knowledge-base changes are reviewed and pushed on `main`; skill docs are reviewed and pushed only to `new_skill` pending final release.
+
+### Review checkpoint
+
+Inspect installation commands, version tables, scale/resource language, privacy, provider limitations, customer availability, generated output, brand casing, links, visual behavior, and contradictions.
+
+## Milestone 7: Resource calibration
+
+### Objective
+
+Measure realistic and adversarial workloads, then finalize standard, extended, and absolute limits with defensible headroom and clear errors before model-backed evaluation.
+
+### Dependencies
+
+- Final deterministic packages, GitHub reader, PR Assurance kernel, skill behavior, fixture corpus, and public documentation from Milestones 1 through 6.
+
+### Scope and implementation
+
+1. Add or finalize source-controlled resource profiles and ledgers in their owning platform/skill modules plus deterministic calibration tooling and result artifacts.
+2. Exercise small, medium, 1,024-file remote, wide/deep synthetic, aggregate-truncated, unpageable, large-Unicode, mostly irrelevant, broadly relevant, binary/large-file, and diagnostic-heavy cases.
+3. Record fixture shape, versions, sample counts, distributions, peak memory/disk/handles/concurrency, requests/response bytes, stdout/model-visible bytes, deterministic token estimates, latency, resumptions, and completion state.
+4. Select ordinary defaults with meaningful headroom over upper ordinary observations, extended cumulative budgets with identical peak limits, and a finite absolute stop. Do not impose a low repository-size or universal command-count ceiling.
+5. Synchronize every changed value and dimension-specific error across code, specifications, skill/docs/sites, knowledge base, tests, and generated artifacts.
+6. If evidence requires a public package or material architecture change, stop this milestone only long enough to run the authorized revise/challenge/breakdown loop and publish a clean forward correction before recalibrating.
+
+### Tests and verification
+
+- Run all invalidated platform/skill/knowledge-base deterministic tests, typechecks, lint, formatting, builds, public API, docs, site, canonical, and packed-artifact checks.
+- Verify every error names dimension, configured limit, observed use, completion state, and safe next action.
+- Verify summaries/pages stay within encoded limits, progress is monotonic, checkpoints resume without raising peak risk, and pathological work terminates predictably.
+- Repeat representative samples enough to distinguish normal variation from implementation regressions; avoid brittle wall-clock pass/fail thresholds.
+
+### Acceptance criteria
+
+- Every shipped limit has reproducible evidence and realistic headroom; ordinary and legitimate large cases do not fail confusingly.
+- Extended work increases cumulative capacity only, and absolute limits protect memory, disk, handles, output, network, and semantic spend.
+- Updated repositories receive ready reviews, signed commits, explicit pushes, required platform/knowledge-base main integration, and verified workflows; skill remains on `new_skill`.
+
+### Review checkpoint
+
+Inspect corpus representativeness, reproducibility, peak/cumulative separation, headroom, machine safety, token and provider cost, dimension-specific errors, and any architecture assumption invalidated by measurement.
+
+## Milestone 8: Native local evidence pin
+
+### Objective
+
+Add the simple local release escape hatch that records fresh evidence normally or pins a new release to valid passing evidence from an earlier clean-envelope release, without a separate administrator system or hidden legacy carry-forward behavior.
+
+### Dependencies
+
+- Milestone 7 final deterministic behavior and resource contracts.
+- Existing exact-current semantic/qualification evidence ownership and release-identity tooling.
+
+### Scope and implementation
+
+1. Define one strict stable `fixtures/release-evidence.json` envelope with `fresh` and `pinned` modes, target version/portable identity, and bounded provenance. The target tag supplies the target commit identity, avoiding self-reference.
+2. Add `release:evidence:record` to write a fresh envelope only after current semantic and qualification verification succeeds.
+3. Add `release:evidence:pin -- --from v<version> --reason "..."` and `--clear`. Resolve exact source tags, require the stable envelope introduced by 5.0.0, validate referenced artifacts/digests/passing resource state, flatten pinned sources to original fresh evidence, and write only compact provenance.
+4. Make `release:check` read-only and mode-aware before any model-evidence verifier runs. Fresh mode requires exact-current evidence; pinned mode intentionally bypasses current skill/suite/CLI/target identity and freshness equality while preserving source integrity and passing-state checks.
+5. Remove unconditional current-only verifier execution from the root release script. Authority remains the signed target release and its publication credentials; add no local administrator role, remote approval service, age limit, or same-major restriction.
+6. Keep the current release envelope absent and release-not-ready until Milestone 9 records fresh evidence or an explicit developer instruction selects a pin. Add no placeholder or pending evidence mode.
+7. Update skill release/semantic/qualification documentation, website loaders/pages, generated fixtures, CI tag checkout behavior, and directly affected knowledge-base release guidance.
+
+### Tests and verification
+
+- Unit/integration tests in temporary Git repositories for deterministic fresh recording, read-only checking, direct pin, pinned-source flattening, previous-major/old clean-envelope sources, pre-envelope rejection, missing/corrupt/failed/over-budget evidence, tag/digest tampering, self-reference, absent reason, explicit clear, and changed-current-identity bypass.
+- Assert pinned checking invokes no current-only semantic or qualification verifier and no model call.
+- Assert fresh checking still rejects stale or mismatched current evidence and a hand-edited envelope.
+- Run `npm test`, release-identity, release-script, docs, website, path, format, fixture, and CI static checks; do not run expensive evaluations.
+
+### Acceptance criteria
+
+- A maintainer can direct Codex to pin a release with one local command and reason; the result is deterministic, compact, transparent, and flexible.
+- The pin bypasses only current-evidence freshness/identity equality, never source existence, stable-envelope integrity, passing state, target release signing, or publication credentials.
+- Public evidence pages identify pinned evidence and its reason without calling it fresh.
+- The reviewed implementation is signed and pushed to skill `new_skill`; skill `main` remains unreleased until Milestone 9.
+
+### Review checkpoint
+
+Inspect simplicity, mode selection order, read-only verification, source-tag handling, self-reference avoidance, provenance size, clean-envelope boundary, bypass scope, lack of hidden compatibility, website truth, and tests proving no model work occurs for a pin.
+
+## Milestone 9: Semantic qualification, clean release, and final audit
+
+### Objective
+
+Run the expensive evidence exactly once against the finalized system, select valid release evidence, remove remaining obsolete release surfaces, publish clean skill 5.0.0, and prove cross-repository launch-foundation consistency.
+
+### Dependencies
+
+- Milestones 1 through 8 complete and published at their required boundaries.
+- Authenticated model evaluation/qualification hosts, skill main/release publication, and hosted release deletion capabilities where required.
+
+### Scope and implementation
+
+1. Run semantic preflight and record its call/token maximum before model use. Execute universal Custom behavior once and every adapter-specific qualification profile once.
+2. Fix genuine product defects and rerun only evidence invalidated by those fixes. Preserve failed attempts and do not weaken assertions or budgets to obtain a pass.
+3. Record the final fresh `fixtures/release-evidence.json` after exact-current semantic and qualification evidence passes. Use a pinned envelope only if the developer explicitly names a qualifying prior release; 5.0.0 otherwise establishes the first clean fresh envelope.
+4. Remove any remaining active 4.0.x compatibility, hidden carry-forward, old loader/fixture/script/CI, schema-3, global-install, or unsupported-version paths. Keep the new evidence envelope/pin implementation independent of removed machinery.
+5. Run release identity/checks, website evidence rendering, full skill verification, and directly invalidated platform/packages/knowledge-base checks.
+6. Review and push final skill `new_skill`, refresh and review against current `main`, integrate with signed metadata, push `main`, monitor release/site workflows, create/verify immutable `v5.0.0`, and verify installed skill/package closure.
+7. Record exact obsolete `v4.0.0`, `v4.0.1`, and `v4.0.2` refs, delete their local/remote tags and matching hosted Releases/assets when authenticated capability exists, and verify absence without rewriting shared branches.
+8. Perform the final active-tree audit across every repository and fixture contract for all original 28 problems and all 29 plan acceptance criteria. Publish any necessary cohesive correction through its owning review workflow before declaring completion.
+
+### Tests and verification
+
+- Full semantic evaluation/verification with commands, stdout bytes, model-visible bytes, input/cached/reasoning/output tokens when reported, duration, and per-scenario budgets.
+- Qualification tests, typecheck, lint, format, dry-run/preflight, universal Custom run, every adapter-specific run, coverage ownership, result verification, and release identity.
+- Full skill tests/docs/site/path/release checks and skill-creator validation; all invalidated platform/package/knowledge-base tests and cross-repository contradiction searches.
+- Exact commit, signature, tag, branch, workflow, registry, hosted release, website, and installed-artifact verification.
+
+### Acceptance criteria
+
+- Semantic and adapter behavior passes calibrated independent resource budgets without duplicated universal work.
+- Skill 5.0.0 contains only CLI 7/Core 3/new adapter closure, one clean runtime contract, and a valid fresh or explicitly pinned evidence envelope.
+- Skill `main`, tag, website, and installed artifact are verified; obsolete 4.0.x tags/releases are absent when authenticated cleanup is available.
+- Every plan acceptance criterion and original failure regression is proven across active code, tests, specifications, sites, knowledge base, fixtures, and published artifacts.
+- The active goal is complete only when no required repository, workflow, registry, site, evidence, or hosted-release work remains; unavailable external capability is reported precisely rather than represented as success.
+
+### Review checkpoint
+
+Inspect model cost and quality, universal/adapter ownership, release evidence mode and provenance, active-tree legacy removal, version/lockfile closure, signed main integration, immutable tag/artifacts, old-release cleanup, public truth, and the complete original-problem regression ledger.
 
 ## Execution scope
 
-Execute Milestone 1 in `../packages`, review it to `Ready to commit`, commit and push it, then execute Milestone 2 and publish it the same way. After trusted Core 2.1.0 and CLI 6.0.0 registry publication, execute and publish Milestone 3 in `../platform`. Then execute the complete Skill 5.0.0 reset in the current repository, including deterministic tests, semantic evaluation, all adapter qualifications, fresh evidence, website/release synchronization, active 4.0.x removal, independent skill forward-testing, signed publication, and deletion/verification of the exact obsolete tags and matching GitHub Releases. Continue automatically through correction and re-planning loops unless a genuine safety, credential, registry, or repository-state blocker cannot be resolved from current evidence.
+Preserve completed Milestone 1 and execute Milestones 2 through 9 sequentially: publish identical public/private GitHub scenario objects and closed fixture PRs; replace the platform GitHub reader with lazy bounded snapshots, ranges, and comparison; build the resumable PR Assurance kernel and worker composition; rewrite the repository-bound skill activation contract with deterministic regressions; synchronize websites and knowledge base; calibrate realistic resource profiles; add the native local fresh/pinned evidence envelope and one-command pin escape hatch; then run expensive semantic/adapter evidence, release clean skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prove the final cross-repository state. Every incomplete milestone includes its production behavior, tests, direct documentation, review/correction loop, signed publication, required main integration, and workflow verification without modifying protected instructions, bundling unrelated work, adding compatibility paths, or allowing partial work to appear complete.

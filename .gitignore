@@ -153,3 +153,5 @@ vite.config.ts.timestamp-*
 /website/.qualification-current-dist/
 /website/playwright-report/
 /website/test-results/
+
+AGENTS.md

@@ -20,7 +20,7 @@ probes:
   - id: support-gate
     kind: support-gate
     matrixPath: qualification.support-gate
-    description: The profile includes all universal journeys and two StateGraph-specific adversarial cases.
+    description: The profile combines the shared universal baseline with two StateGraph-specific adversarial cases.
     coveredBy:
       [
         evaluate-aligned-project,

@@ -216,7 +216,7 @@ const createTrial = (
   });
 };
 
-describe('protocol 6 qualification contracts', () => {
+describe('protocol 7 qualification contracts', () => {
   test.each([
     ['passed', 'not-required', [createTrial('initial', true)], []],
     [

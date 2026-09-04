@@ -50,18 +50,23 @@ const { scenarioId, trials } = Astro.props;
               <dd class="mt-1 font-mono text-xs break-all">{trial.judgeHost.version}</dd>
             </div>
             <div>
-              <dt class="text-muted-foreground">Package-manager execution</dt>
+              <dt class="text-muted-foreground">Completed commands</dt>
               <dd class="mt-1 font-mono text-xs break-all">
-                {trial.actorCommandPolicyEvidence.packageManagerExecution}
+                {trial.actorCommandPolicyEvidence.completedCommandCount}
               </dd>
             </div>
             <div>
-              <dt class="text-muted-foreground">Command-policy coverage</dt>
+              <dt class="text-muted-foreground">moldea CLI use</dt>
               <dd class="mt-1">
-                {trial.actorCommandPolicyEvidence.completedCommandCount} completed,{' '}
-                {trial.actorCommandPolicyEvidence.indeterminateCommandCount} indeterminate,{' '}
-                {trial.actorCommandPolicyEvidence.packageManagerInvocationCount} package-manager
-                invocations
+                {trial.actorResourceEvidence.commandCount} commands,{' '}
+                {trial.actorResourceEvidence.stdoutByteCount} stdout bytes,{' '}
+                {trial.actorResourceEvidence.modelVisibleToolOutputByteCount} model-visible bytes
+              </dd>
+            </div>
+            <div>
+              <dt class="text-muted-foreground">Largest moldea response</dt>
+              <dd class="mt-1 font-mono text-xs break-all">
+                {trial.actorResourceEvidence.maximumInvocationByteCount} bytes
               </dd>
             </div>
             <div>

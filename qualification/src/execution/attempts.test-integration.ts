@@ -71,7 +71,7 @@ const createIncompleteAttemptFixture = async (options: {
     'utf8',
   );
   const result = QualificationAttemptResultDraftSchema.parse({
-    protocolVersion: 6,
+    protocolVersion: 7,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     mode,
     attemptId: options.attemptId,
@@ -223,7 +223,7 @@ describe('qualification attempt discovery', () => {
       {
         ...validCheckpoint,
         attemptId: unsupportedAttemptId,
-        protocolVersion: 7,
+        protocolVersion: 8,
       },
     );
     const unreadableAttemptId = '20260820T000003000Z-custom-custom-unreadable';
@@ -231,7 +231,7 @@ describe('qualification attempt discovery', () => {
     await writeFile(path.join(attemptsRoot, unreadableAttemptId, 'checkpoint.json'), '{', 'utf8');
     const invalidAttemptId = '20260820T000004000Z-custom-custom-invalid';
     await writeJsonFileAtomically(path.join(attemptsRoot, invalidAttemptId, 'checkpoint.json'), {
-      protocolVersion: 6,
+      protocolVersion: 7,
     });
     const mismatchedAttemptId = '20260820T000005000Z-custom-custom-mismatched';
     await writeJsonFileAtomically(
@@ -247,14 +247,14 @@ describe('qualification attempt discovery', () => {
       attemptId: mismatchedAttemptId,
       kind: 'invalid-checkpoint',
       message: `Checkpoint attempt id ${validAttemptId} does not match its directory and was left unchanged.`,
-      protocolVersion: 6,
+      protocolVersion: 7,
     });
     expect(inspection.unavailableAttempts[1]?.attemptId).toBe(invalidAttemptId);
     expect(inspection.unavailableAttempts[1]?.kind).toBe('invalid-checkpoint');
     expect(inspection.unavailableAttempts[1]?.message).toContain(
       'Checkpoint is invalid and was left unchanged.',
     );
-    expect(inspection.unavailableAttempts[1]?.protocolVersion).toBe(6);
+    expect(inspection.unavailableAttempts[1]?.protocolVersion).toBe(7);
     expect(inspection.unavailableAttempts.slice(2)).toStrictEqual([
       {
         attemptId: unreadableAttemptId,
@@ -266,8 +266,8 @@ describe('qualification attempt discovery', () => {
         attemptId: unsupportedAttemptId,
         kind: 'unsupported-protocol',
         message:
-          'Checkpoint protocol version 7 is not supported by protocol version 6 and was left unchanged.',
-        protocolVersion: 7,
+          'Checkpoint protocol version 8 is not supported by protocol version 7 and was left unchanged.',
+        protocolVersion: 8,
       },
     ]);
     expect(

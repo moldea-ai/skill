@@ -8,6 +8,8 @@ export {
 
 // actor execution evidence
 export {
+  createMoldeaResourceEvidence,
+  hasPassingMoldeaResourceBudget,
   hasValidActorExecutionEvidence,
   projectActorExecutionEvidenceEvent,
 } from './actor-execution-evidence.mjs';
@@ -16,7 +18,6 @@ export {
 export {
   classifyActorCommandPolicyEvent,
   createActorCommandPolicyEvidence,
-  hasPassingPackageManagerNonExecutionPolicy,
   hasValidActorCommandPolicyEvidence,
 } from './actor-command-policy-evidence.mjs';
 
@@ -28,12 +29,9 @@ export { collectScenarioEvidence, hasValidScenarioEvidence } from './scenario-ev
 
 // repository control
 export {
-  captureReadOnlyMountControlState,
   captureRepositoryControlState,
   createEvaluationTreeDigest,
-  createReadOnlyMountControlEvidence,
   createRepositoryControlEvidence,
-  hasValidReadOnlyMountControlEvidence,
   hasValidRepositoryControlEvidence,
 } from './repository-control.mjs';
 

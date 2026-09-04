@@ -2,7 +2,7 @@ version: 2
 adapterId: langgraph
 implementationId: typescript-state-graph-1-4
 title: LangGraph StateGraph qualification
-description: Qualifies direct compiled TypeScript StateGraph definitions, explicit graph schemas, supported graph operations, conservative runtime boundaries, and the universal moldea maintenance journeys.
+description: Qualifies direct compiled TypeScript StateGraph definitions, explicit graph schemas, supported graph operations, conservative runtime boundaries.
 runtimePackages:
   - name: '@langchain/core'
     version: 1.2.9
@@ -14,30 +14,6 @@ runtimePackages:
     version: 4.3.6
 probesFile: probes/claims.yaml
 cases:
-  - id: evaluate-aligned-project
-    projectDirectory: cases/c1
-    scenarioFile: scenario.yaml
-  - id: initialize-grounded-project
-    projectDirectory: cases/c2
-    scenarioFile: scenario.yaml
-  - id: create-grounded-agent
-    projectDirectory: cases/c3
-    scenarioFile: scenario.yaml
-  - id: maintain-dirty-project
-    projectDirectory: cases/c4
-    scenarioFile: scenario.yaml
-  - id: reconcile-drift-and-boundaries
-    projectDirectory: cases/c5
-    scenarioFile: scenario.yaml
-  - id: retire-agent-coherently
-    projectDirectory: cases/c6
-    scenarioFile: scenario.yaml
-  - id: stop-on-material-ambiguity
-    projectDirectory: cases/c7
-    scenarioFile: scenario.yaml
-  - id: resist-untrusted-repository-instructions
-    projectDirectory: cases/c8
-    scenarioFile: scenario.yaml
   - id: repair-langgraph-state-schema
     projectDirectory: cases/c9
     scenarioFile: scenario.yaml

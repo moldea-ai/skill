@@ -12,19 +12,6 @@ import {
 import { assertReleaseIdentity, parseStableVersion } from './identity.mjs';
 
 const NPM_EXECUTABLE = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-const CLI_VERSION_REFERENCE_TEMPLATES = [
-  '@moldea.ai/cli {version}',
-  '@moldea.ai/cli: {version}',
-  'CLI `{version}`',
-  'declared version is exactly `{version}`',
-  'existing exact `{version}` declaration',
-  'repository-local CLI is exactly `{version}`',
-  'pin `{version}` exactly',
-  'published registry metadata for `{version}`',
-  'exact version `{version}`',
-  '`cliVersion` is exactly `{version}`',
-];
-
 const createDifferentStableVersion = (version) => {
   const [major] = version.split('.').map(Number);
   return `${major + 1}.0.0`;
@@ -32,16 +19,17 @@ const createDifferentStableVersion = (version) => {
 
 /** Replaces only text references owned by the exact CLI release identity. */
 const replaceCliVersionReferences = ({ content, nextVersion, previousVersion }) => {
-  let updatedContent = content;
-
-  for (const template of CLI_VERSION_REFERENCE_TEMPLATES) {
-    updatedContent = updatedContent.replaceAll(
-      template.replace('{version}', previousVersion),
-      template.replace('{version}', nextVersion),
-    );
-  }
-
-  return updatedContent;
+  return content
+    .replaceAll(`@moldea.ai/cli ${previousVersion}`, `@moldea.ai/cli ${nextVersion}`)
+    .replaceAll(`@moldea.ai/cli\` ${previousVersion}`, `@moldea.ai/cli\` ${nextVersion}`)
+    .replaceAll(`@moldea.ai/cli@${previousVersion}`, `@moldea.ai/cli@${nextVersion}`)
+    .replaceAll(`CLI ${previousVersion}`, `CLI ${nextVersion}`)
+    .replaceAll(
+      `CLI version is ${previousVersion}`,
+      `CLI version is ${nextVersion}`,
+    )
+    .replaceAll(`cliVersion: "${previousVersion}"`, `cliVersion: "${nextVersion}"`)
+    .replaceAll(`cliVersion: '${previousVersion}'`, `cliVersion: '${nextVersion}'`);
 };
 
 const updateConformanceCases = ({
@@ -54,7 +42,9 @@ const updateConformanceCases = ({
   const nextCliVersion = publishedManifest.version;
   const nextCliJsonSchemaVersion = publishedManifest.jsonSchemaVersion;
   const replaceScenarioVersion = (scenario) =>
-    scenario.replaceAll(previousCliVersion, nextCliVersion);
+    typeof scenario === 'string'
+      ? scenario.replaceAll(previousCliVersion, nextCliVersion)
+      : scenario;
 
   for (const packageManagerCase of fixture.packageManagerCases ?? []) {
     packageManagerCase.scenario = replaceScenarioVersion(packageManagerCase.scenario);
@@ -311,6 +301,10 @@ export const createCliReleaseUpdate = ({
       updatedFiles
         .get(relativePath)
         .replaceAll(
+          `cliJsonSchemaVersion: ${previousCliJsonSchemaVersion}`,
+          `cliJsonSchemaVersion: ${publishedManifest.jsonSchemaVersion}`,
+        )
+        .replaceAll(
           `CLI JSON schema \`${previousCliJsonSchemaVersion}\``,
           `CLI JSON schema \`${publishedManifest.jsonSchemaVersion}\``,
         )
@@ -325,6 +319,10 @@ export const createCliReleaseUpdate = ({
         .replaceAll(
           `schema \`${previousCliJsonSchemaVersion}\``,
           `schema \`${publishedManifest.jsonSchemaVersion}\``,
+        )
+        .replaceAll(
+          `schema ${previousCliJsonSchemaVersion}`,
+          `schema ${publishedManifest.jsonSchemaVersion}`,
         )
         .replaceAll(
           `version \`${previousCliJsonSchemaVersion}\` envelope`,

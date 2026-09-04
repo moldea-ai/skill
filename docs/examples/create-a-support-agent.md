@@ -25,8 +25,8 @@ I found the existing order lookup service, refund policy, support queue, and run
 ## Coding agent and `moldea` under the hood
 
 1. The coding agent selects a write-capable agent-creation workflow and confirms that the request authorizes adoption.
-2. It reads local-tooling, context-gathering, continuous-maintenance, and agent-design guidance.
-3. It verifies the repository's package manager and exact local CLI provider, then runs deterministic inspection.
+2. It reads the agent-design guidance for the selected operation and follows only the additional boundary reference that the implementation actually reaches.
+3. It uses local-tooling guidance only to establish the exact repository-local CLI provider, then runs bounded deterministic inspection.
 4. It gathers the minimum order, refund, authorization, queue, schema, and runtime evidence needed to establish behavior.
 5. It creates `/moldea/moldea.yaml` and `/moldea/project.md`, then the support agent's description and instruction.
 6. It registers only real repository-local runtime, schema, and tool relationships.

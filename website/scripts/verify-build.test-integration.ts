@@ -39,7 +39,7 @@ describe('verifyProductionBuild', () => {
     expect(llmsText).toContain(gettingStartedUrl);
   });
 
-  test('publishes compatible semantic assurance across human and machine surfaces', () => {
+  test('publishes exact current semantic state across human and machine surfaces', () => {
     const siteUrl = process.env['SITE_URL'] ?? DEFAULT_SITE_URL;
     const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
     const model = loadWebsiteModel();
@@ -57,20 +57,33 @@ describe('verifyProductionBuild', () => {
     const semanticSearchRecord = searchRecords.find(
       ({ url }) => url === withBase(model.semanticEvaluation.route, basePath),
     );
+    const currentAssurance = model.semanticEvaluation.currentAssurance;
+    const successfulCaseCount =
+      model.semanticEvaluation.passedCaseCount + model.semanticEvaluation.recoveredCaseCount;
 
-    expect(model.semanticEvaluation.status).toBe('passed');
-    expect(model.semanticEvaluation.evidenceMatch).toBe('compatible');
-    expect(model.semanticEvaluation.currentAssurance?.result.attemptId).toBe(
-      '20260830T054330932Z-semantic-441e439c',
+    expect(model.semanticEvaluation.status).toBe(currentAssurance?.result.status ?? 'not-recorded');
+    expect(model.semanticEvaluation.evidenceMatch).toBe(currentAssurance === null ? null : 'exact');
+    expect(homeHtml).toContain(`${successfulCaseCount}/${model.semanticEvaluation.caseCount}`);
+    expect(evidenceHtml).toContain(
+      `${successfulCaseCount} of ${model.semanticEvaluation.caseCount} scenarios successful for current assurance`,
     );
-    expect(homeHtml).toContain('57/57');
-    expect(evidenceHtml).toContain('57 of 57 scenarios successful for current assurance');
-    expect(semanticHtml).toContain('57/57 scenarios');
-    expect(semanticHtml).toContain('Source-attested compatible evidence');
-    expect(semanticHtml).not.toContain('No recorded attempt');
-    expect(llmsText).toContain('Review the latest passed attempt');
-    expect(llmsText).not.toContain('before the first attempt is recorded');
-    expect(semanticSearchRecord?.description).toContain('latest passed semantic attempt');
+    expect(semanticHtml).toContain(
+      `${successfulCaseCount}/${model.semanticEvaluation.caseCount} scenarios`,
+    );
+    expect(semanticHtml).toContain(
+      currentAssurance === null ? 'No current evidence' : 'Exact release inputs',
+    );
+    expect(semanticHtml).toContain(
+      currentAssurance === null
+        ? 'No semantic attempt has been recorded for this release candidate yet.'
+        : currentAssurance.result.attemptId,
+    );
+    expect(llmsText).toContain(
+      currentAssurance === null ? 'before the first attempt is recorded' : 'Review the latest',
+    );
+    expect(semanticSearchRecord?.description).toContain(
+      currentAssurance === null ? 'before the first attempt is recorded' : 'latest',
+    );
 
     for (const route of [
       model.semanticEvaluation.route,

@@ -94,7 +94,7 @@ export const normalizeQualificationRuntimePackageManifest = (input: unknown): un
 };
 
 /**
- * Keeps universal cases and the cases selected by one adapter profile.
+ * Keeps only the cases owned by one qualification profile.
  * @throws If the case catalog does not satisfy the qualification contract.
  */
 export const normalizeQualificationCaseCatalog = (
@@ -106,9 +106,7 @@ export const normalizeQualificationCaseCatalog = (
 
   return normalizeRecord({
     version: catalog.version,
-    cases: catalog.cases.filter(
-      ({ id, layer }) => layer === 'universal-baseline' || selectedCaseIdSet.has(id),
-    ),
+    cases: catalog.cases.filter(({ id }) => selectedCaseIdSet.has(id)),
   });
 };
 

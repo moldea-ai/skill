@@ -568,6 +568,7 @@ export const runQualification = async (
             target.profile,
             target.adapter,
             target.target,
+            target.caseCatalog,
           );
           await writeJsonFileAtomically(coveragePath, coverageResult);
           checkpoint = await completeQualificationStage(

@@ -35,7 +35,7 @@ export interface ISemanticEvaluationReplayProjection {
 
 // truthful replacement when an older artifact did not retain developer-direction evidence
 const UNAVAILABLE_DEVELOPER_DIRECTION =
-  'The exact developer direction was not retained in this historical artifact.';
+  'The exact developer direction was not retained in this recorded artifact.';
 
 /** Returns the deterministic public label and short result for one projected command fact. */
 const createCommandPresentation = (
@@ -44,33 +44,10 @@ const createCommandPresentation = (
   const fact = command.item.outputEvidence.facts[0];
   if (fact === undefined) return null;
 
-  switch (fact.kind) {
-    case 'focused-runtime-test':
-      return {
-        operation: 'Focused runtime test',
-        results: [`${fact.path}: ${fact.status}.`],
-      };
-    case 'moldea-cli-envelope':
-      return {
-        operation: `moldea ${fact.command}`,
-        results: [`CLI ${fact.cliVersion} returned ${fact.status}.`],
-      };
-    case 'workspace-paths':
-      return {
-        operation: 'Resolve evaluator-owned workspace paths',
-        results: fact.paths.map((path) => `Resolved ${path}.`),
-      };
-    case 'yarn-package-info':
-      return {
-        operation: 'Inspect the Yarn package',
-        results: [`Resolved ${fact.packageName} ${fact.version} with ${fact.binaries.join(', ')}.`],
-      };
-    case 'yarn-binary-provider':
-      return {
-        operation: 'Inspect the Yarn binary provider',
-        results: [`${fact.binaryName} resolves from ${fact.source}.`],
-      };
-  }
+  return {
+    operation: `moldea ${fact.command}`,
+    results: [`CLI ${fact.cliVersion} returned ${fact.status}.`],
+  };
 };
 
 /** Returns whether one completed command represents a failed operation. */
@@ -177,6 +154,7 @@ const createTrialSummary = (
   confirmationIndex: 1 | 2 | null,
 ): ISemanticAttemptRecord['cases'][number]['trials'][number] => ({
   actorCommandPolicyEvidence: trial.actorCommandPolicyEvidence,
+  actorResourceEvidence: trial.actorResourceEvidence,
   actorHost: trial.actorHost,
   confirmationIndex,
   evaluatedAt: trial.evaluatedAt,

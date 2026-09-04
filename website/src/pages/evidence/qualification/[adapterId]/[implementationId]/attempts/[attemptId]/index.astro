@@ -69,10 +69,7 @@ const getArtifactLabel = (artifactPath: string): string =>
   artifactPath.endsWith('-events.jsonl')
     ? `${artifactPath} (projected execution evidence)`
     : artifactPath;
-const evidenceSourceLabel =
-  attempt.evidenceSource.kind === 'historical'
-    ? `${attempt.evidenceSource.release} at ${attempt.evidenceSource.commit}`
-    : 'Current short storage';
+const evidenceSourceLabel = 'Current evidence';
 ---
 
 <BaseLayout

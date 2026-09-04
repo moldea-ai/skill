@@ -10,36 +10,19 @@ export interface ISemanticActorExecutionEvidenceOptions {
 }
 
 // evaluator-owned facts that may be derived from complete recognized command output
-export type ISemanticActorExecutionOutputFact =
-  | {
-      kind: 'focused-runtime-test';
-      path: '/src/support-agent.test-integration.js';
-      status: 'failed' | 'passed';
-    }
-  | {
-      kind: 'moldea-cli-envelope';
-      cliVersion: string;
-      command: 'composition' | 'inspect' | 'validate';
-      errorPresent: boolean;
-      resultPresent: boolean;
-      schemaVersion: number;
-      status: 'error' | 'invalid' | 'valid';
-    }
-  | {
-      kind: 'workspace-paths';
-      paths: string[];
-    }
-  | {
-      binaries: ['moldea'];
-      kind: 'yarn-package-info';
-      packageName: '@moldea.ai/cli';
-      version: string;
-    }
-  | {
-      binaryName: 'moldea';
-      kind: 'yarn-binary-provider';
-      source: 'conflicting-moldea-provider';
-    };
+export type ISemanticActorExecutionOutputFact = {
+  kind: 'moldea-cli-envelope';
+  cliVersion: string;
+  command: 'composition' | 'content' | 'inspect' | 'scope' | 'validate';
+  containsContent: boolean;
+  errorPresent: boolean;
+  hasNextPage: boolean;
+  pageRecordCount: number;
+  relevant: boolean | null;
+  resultPresent: boolean;
+  schemaVersion: number;
+  status: 'error' | 'invalid' | 'valid';
+};
 
 // safe command-output metadata persisted without raw command output
 export interface ISemanticActorExecutionOutputEvidence {
@@ -52,6 +35,7 @@ export interface ISemanticActorExecutionOutputEvidence {
 export interface ISemanticActorExecutionEvidence {
   eventType: 'item.completed';
   item: {
+    commandKind: 'moldea' | 'other';
     exitCode: number;
     outputEvidence: ISemanticActorExecutionOutputEvidence;
     status: 'completed' | 'failed';
@@ -69,23 +53,40 @@ export const hasValidActorExecutionEvidence: (
   options: ISemanticActorExecutionEvidenceOptions,
 ) => boolean;
 
-export type ISemanticActorCommandClassification = 'indeterminate' | 'not-observed' | 'observed';
-
-export interface ISemanticActorCommandPolicyOptions {
-  hasGitCommandPolicyBoundary?: boolean;
+export interface IMoldeaResourceEvidence {
+  commandCount: number;
+  maximumInvocationByteCount: number;
+  modelVisibleToolOutputByteCount: number;
+  operations: Array<'composition' | 'content' | 'inspect' | 'scope' | 'unrecognized' | 'validate'>;
+  stdoutByteCount: number;
 }
+
+export interface IMoldeaResourceBudget {
+  activation: 'abstain' | 'direct' | 'relationship';
+  maximumMoldeaCommands: number;
+  maximumMoldeaOutputBytes: number;
+  minimumMoldeaCommands: number;
+}
+
+export const createMoldeaResourceEvidence: (
+  executionEvidence: ISemanticActorExecutionEvidence[],
+  options: ISemanticActorExecutionEvidenceOptions,
+) => IMoldeaResourceEvidence;
+
+export const hasPassingMoldeaResourceBudget: (
+  evidence: unknown,
+  budget: IMoldeaResourceBudget,
+) => boolean;
+
+export type ISemanticActorCommandClassification = 'completed';
 
 // strict aggregate retained after raw actor command text is discarded
 export interface ISemanticActorCommandPolicyEvidence {
   completedCommandCount: number;
-  indeterminateCommandCount: number;
-  packageManagerExecution: ISemanticActorCommandClassification;
-  packageManagerInvocationCount: number;
 }
 
 export const classifyActorCommandPolicyEvent: (
   event: unknown,
-  options?: ISemanticActorCommandPolicyOptions,
 ) => ISemanticActorCommandClassification | null;
 
 export const createActorCommandPolicyEvidence: (
@@ -93,8 +94,6 @@ export const createActorCommandPolicyEvidence: (
 ) => ISemanticActorCommandPolicyEvidence;
 
 export const hasValidActorCommandPolicyEvidence: (evidence: unknown) => boolean;
-
-export const hasPassingPackageManagerNonExecutionPolicy: (evidence: unknown) => boolean;
 
 export type ISemanticGitStateFact =
   | 'has-deleted-paths'
@@ -109,7 +108,6 @@ export type ISemanticGitStateFact =
 
 export type ISemanticRepositoryEvidenceSource =
   | { kind: 'developer-direction' }
-  | { kind: 'host-instructions' }
   | {
       fact: ISemanticGitStateFact;
       kind: 'git-state';
@@ -117,12 +115,6 @@ export type ISemanticRepositoryEvidenceSource =
   | {
       expectedType: 'directory' | 'file' | 'missing' | 'symlink';
       kind: 'workspace-path';
-      path: string;
-    }
-  | {
-      expectedType: 'directory' | 'file' | 'missing' | 'symlink';
-      kind: 'related-path';
-      mount: string;
       path: string;
     };
 
@@ -134,24 +126,14 @@ export interface ISemanticRepositoryEvidenceDeclaration {
 export interface ISemanticCaseDefinition {
   expected: ISemanticCriterion[];
   forbidden: ISemanticCriterion[];
-  hostInstructions?: string;
   id: string;
   input: {
     developerDirection: string;
     repositoryEvidence: ISemanticRepositoryEvidenceDeclaration[];
   };
   operation: string;
+  resourceBudget: IMoldeaResourceBudget;
   scenario: string;
-  skillEvidence?: {
-    activationScenarios: Array<{
-      request: string;
-      shouldActivate: boolean;
-    }>;
-    artifacts: Array<{
-      role: 'authoritative-source' | 'distributed-copy' | 'installed-copy';
-      root: string;
-    }>;
-  };
 }
 
 export interface ISemanticCoverage {
@@ -170,7 +152,6 @@ export interface ISemanticCoverage {
 
 export type ISemanticScenarioObservation =
   | { content: string; type: 'developer-direction' }
-  | { content: string; type: 'host-instructions' }
   | { fact: ISemanticGitStateFact; observed: true; type: 'git-state' }
   | { path: string; type: 'missing' }
   | { mode: number; path: string; type: 'directory' }
@@ -225,19 +206,6 @@ export interface ISemanticRepositoryControlEvidence {
   violations: ISemanticRepositoryControlViolation[];
 }
 
-// full-tree state for one evaluator-owned related read-only mount
-export interface ISemanticReadOnlyMountControlState {
-  mount: string;
-  treeDigest: string;
-}
-
-// independently captured before-and-after state for one related read-only mount
-export interface ISemanticReadOnlyMountControlEvidence {
-  after: ISemanticReadOnlyMountControlState;
-  before: ISemanticReadOnlyMountControlState;
-  violations: Array<'mount-changed' | 'tree-changed'>;
-}
-
 export const getSemanticCriterionLabels: (criteria: ISemanticCriterion[]) => string[];
 export const validateSemanticCaseDefinition: <T extends ISemanticCaseDefinition>(
   caseDefinition: T,
@@ -256,10 +224,6 @@ export const createSemanticCoverageDigest: (
 ) => string;
 export const collectScenarioEvidence: (options: {
   caseDefinition: ISemanticCaseDefinition;
-  readOnlyMounts: Array<{
-    source: string;
-    target: string;
-  }>;
   repositoryPath: string;
 }) => Promise<ISemanticScenarioEvidence[]>;
 export const hasValidScenarioEvidence: (
@@ -267,15 +231,6 @@ export const hasValidScenarioEvidence: (
   caseDefinition: ISemanticCaseDefinition,
 ) => boolean;
 export const createEvaluationTreeDigest: (root: string) => Promise<string>;
-export const captureReadOnlyMountControlState: (mount: {
-  source: string;
-  target: string;
-}) => Promise<ISemanticReadOnlyMountControlState>;
-export const createReadOnlyMountControlEvidence: (
-  before: ISemanticReadOnlyMountControlState,
-  after: ISemanticReadOnlyMountControlState,
-) => ISemanticReadOnlyMountControlEvidence;
-export const hasValidReadOnlyMountControlEvidence: (evidence: unknown) => boolean;
 export const captureRepositoryControlState: (
   repositoryPath: string,
 ) => Promise<ISemanticRepositoryControlState>;

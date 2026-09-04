@@ -1,4 +1,6 @@
 interface:
-  display_name: 'moldea'
-  short_description: 'Maintain project context and agent systems'
-  default_prompt: "Use $moldea to plan, initialize, design, maintain, evaluate, reconcile, or validate this repository's Git-owned project context, Agent Skills, and agent behavior."
+  display_name: "moldea"
+  short_description: "Maintain moldea context only when directly relevant"
+  default_prompt: "Use $moldea for explicit moldea work or for paths matched by an adopted project's declared moldea relationships; abstain silently from unrelated work."
+policy:
+  allow_implicit_invocation: true

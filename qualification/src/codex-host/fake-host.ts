@@ -40,6 +40,9 @@ export class FakeCodexHost implements ICodexHost {
       commandPolicy: {
         completedCommandCount: 0,
         credentialExposure: { status: 'not-observed', observedCount: 0 },
+        modelVisibleToolOutputByteCount: 0,
+        moldeaCommandCount: 0,
+        moldeaOutputByteCount: 0,
         networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
         sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
       },

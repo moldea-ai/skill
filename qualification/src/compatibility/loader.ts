@@ -181,15 +181,18 @@ export const resolveQualificationTarget = async (
   const catalogCasesById = new Map(
     caseCatalog.cases.map((catalogCase) => [catalogCase.id, catalogCase]),
   );
-  const missingCaseIds = caseCatalog.cases
+  const universalCaseIds = caseCatalog.cases
     .filter(({ layer }) => layer === 'universal-baseline')
-    .map(({ id }) => id)
-    .filter((caseId) => !caseIds.includes(caseId));
+    .map(({ id }) => id);
+  const selectedUniversalCaseIds = caseIds.filter((caseId) => universalCaseIds.includes(caseId));
+  const isCustom = selection.adapterId === 'custom' && selection.implementationId === 'custom';
 
-  if (missingCaseIds.length > 0) {
-    throw new Error(
-      `Qualification profile is missing required semantic cases: ${missingCaseIds.join(', ')}.`,
-    );
+  if (isCustom && selectedUniversalCaseIds.length !== universalCaseIds.length) {
+    throw new Error('The Custom qualification profile must own every universal-baseline case.');
+  }
+
+  if (!isCustom && selectedUniversalCaseIds.length > 0) {
+    throw new Error('Adapter qualification profiles must not duplicate universal-baseline cases.');
   }
 
   for (const caseId of caseIds) {

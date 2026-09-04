@@ -90,28 +90,57 @@ const createCandidate = (
     const caseDefinition = caseDefinitions.find(({ id: caseId }) => caseId === id);
     if (caseDefinition === undefined) throw new Error(`Unknown test case ${id}.`);
     const passed = id !== failedCaseId;
+    const moldeaOperation =
+      caseDefinition.resourceBudget.activation === 'abstain'
+        ? null
+        : caseDefinition.resourceBudget.activation === 'relationship'
+          ? 'scope'
+          : 'inspect';
+    const moldeaOutputByteCount = moldeaOperation === null ? 0 : 128;
     return {
       actorCommandPolicyEvidence: {
         completedCommandCount: 1,
-        indeterminateCommandCount: 0,
-        packageManagerExecution: 'not-observed',
-        packageManagerInvocationCount: 0,
       },
       actorExecutionEvidence: [
         {
           eventType: 'item.completed',
           item: {
+            commandKind: moldeaOperation === null ? 'other' : 'moldea',
             exitCode: 0,
             outputEvidence: {
-              byteCount: 0,
-              disposition: 'empty',
-              facts: [],
+              byteCount: moldeaOutputByteCount,
+              disposition: moldeaOperation === null ? 'empty' : 'projected',
+              facts:
+                moldeaOperation === null
+                  ? []
+                  : [
+                      {
+                        cliVersion: createSemanticCliIdentity(root).version,
+                        command: moldeaOperation,
+                        containsContent: false,
+                        errorPresent: false,
+                        hasNextPage: false,
+                        kind: 'moldea-cli-envelope',
+                        pageRecordCount: 1,
+                        relevant: moldeaOperation === 'scope' ? true : null,
+                        resultPresent: true,
+                        schemaVersion: createSemanticCliIdentity(root).jsonSchemaVersion,
+                        status: 'valid',
+                      },
+                    ],
             },
             status: 'completed',
             type: 'command_execution',
           },
         },
       ],
+      actorResourceEvidence: {
+        commandCount: moldeaOperation === null ? 0 : 1,
+        maximumInvocationByteCount: moldeaOutputByteCount,
+        modelVisibleToolOutputByteCount: moldeaOutputByteCount,
+        operations: moldeaOperation === null ? [] : [moldeaOperation],
+        stdoutByteCount: moldeaOutputByteCount,
+      },
       actorHost: index === 0 ? HOST : UPDATED_HOST,
       actorResponse: `Recorded actor replay for ${id}.`,
       caseDefinitionDigest: createSemanticCaseDefinitionDigest(caseDefinition),
@@ -125,7 +154,6 @@ const createCandidate = (
       rationale: passed
         ? 'The recorded response satisfies every declared criterion.'
         : 'The recorded response misses one declared criterion.',
-      readOnlyMountControlEvidence: [],
       scenarioEvidence: [
         {
           observation: {
@@ -277,9 +305,6 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.latest?.result.schemaVersion).toBe(4);
     expect(model.latest?.cases[0]?.trials[0]?.actorCommandPolicyEvidence).toStrictEqual({
       completedCommandCount: 1,
-      indeterminateCommandCount: 0,
-      packageManagerExecution: 'not-observed',
-      packageManagerInvocationCount: 0,
     });
     expect(model.latest?.cases[0]?.trials[0]?.actorHost.version).toBe(HOST.version);
     expect(model.latest?.cases[1]?.trials[0]?.actorHost.version).toBe(UPDATED_HOST.version);
@@ -353,14 +378,6 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
 
   test.each([
     [
-      'an arbitrary evaluator workspace path',
-      () => ({
-        byteCount: 24,
-        disposition: 'projected',
-        facts: [{ kind: 'workspace-paths', paths: ['/unrecognized/path'] }],
-      }),
-    ],
-    [
       'a mismatched moldea CLI version',
       (cli: ReturnType<typeof createSemanticCliIdentity>) => ({
         byteCount: 24,
@@ -369,8 +386,12 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
           {
             cliVersion: '999.0.0',
             command: 'inspect',
+            containsContent: false,
             errorPresent: false,
+            hasNextPage: false,
             kind: 'moldea-cli-envelope',
+            pageRecordCount: 1,
+            relevant: null,
             resultPresent: true,
             schemaVersion: cli.jsonSchemaVersion,
             status: 'valid',
@@ -379,30 +400,23 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
       }),
     ],
     [
-      'a mismatched Yarn package version',
-      () => ({
-        byteCount: 24,
-        disposition: 'projected',
-        facts: [
-          {
-            binaries: ['moldea'],
-            kind: 'yarn-package-info',
-            packageName: '@moldea.ai/cli',
-            version: '999.0.0',
-          },
-        ],
-      }),
-    ],
-    [
       'an oversized projected result',
-      () => ({
-        byteCount: 32_769,
+      (cli: ReturnType<typeof createSemanticCliIdentity>) => ({
+        byteCount: 1_048_577,
         disposition: 'projected',
         facts: [
           {
-            kind: 'focused-runtime-test',
-            path: '/src/support-agent.test-integration.js',
-            status: 'passed',
+            cliVersion: cli.version,
+            command: 'inspect',
+            containsContent: false,
+            errorPresent: false,
+            hasNextPage: false,
+            kind: 'moldea-cli-envelope',
+            pageRecordCount: 1,
+            relevant: null,
+            resultPresent: true,
+            schemaVersion: cli.jsonSchemaVersion,
+            status: 'valid',
           },
         ],
       }),
@@ -455,7 +469,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(loadSemanticEvaluationWebsiteModel(root).latest?.cases[0]?.replay).not.toBeNull();
   });
 
-  test('keeps historical replay bound to its recorded case definition', async () => {
+  test('keeps recorded replay bound to its recorded case definition', async () => {
     const root = createTemporaryRoot();
     const { cases, coverage } = loadInputs(root);
     const originalCaseDefinition = cases[0];
@@ -489,14 +503,14 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     writeFileSync(fixturePath, `${JSON.stringify(fixture, null, 2)}\n`, 'utf8');
 
     const model = loadSemanticEvaluationWebsiteModel(root);
-    const historicalCase = model.attempts[0]?.cases.find(
+    const recordedCase = model.attempts[0]?.cases.find(
       ({ id }) => id === originalCaseDefinition.id,
     );
     const currentCase = model.groups
       .flatMap(({ cases: groupCases }) => groupCases)
       .find(({ id }) => id === originalCaseDefinition.id);
 
-    expect(historicalCase).toMatchObject({
+    expect(recordedCase).toMatchObject({
       developerDirection: originalDeveloperDirection,
       expectedCriteria: [],
       forbiddenCriteria: [],
@@ -504,7 +518,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
       status: 'failed',
       title: originalCaseDefinition.id,
     });
-    expect(historicalCase?.replay?.trials[0]?.steps[0]).toMatchObject({
+    expect(recordedCase?.replay?.trials[0]?.steps[0]).toMatchObject({
       content: originalDeveloperDirection,
       role: 'developer',
     });

@@ -352,23 +352,10 @@ const verifyAttemptArtifacts = async (
   attemptDirectory: string,
   result: IQualificationRecordedAttemptResult,
   issues: IQualificationResultVerificationIssue[],
-  repositoryRoot: string,
   resultsRoot: string,
 ): Promise<void> => {
   try {
-    const storage = await verifyQualificationAttemptStorage({ attemptDirectory, result });
-
-    if (storage.carryForward !== undefined) {
-      const expectedCompatibility = await createQualificationCompatibilityIdentity({
-        qualificationRoot: path.resolve(resultsRoot, '..'),
-        repositoryRoot,
-        selection: result.selection,
-      });
-
-      if (JSON.stringify(storage.compatibility) !== JSON.stringify(expectedCompatibility)) {
-        throw new Error('Qualification carry-forward compatibility does not match current inputs.');
-      }
-    }
+    await verifyQualificationAttemptStorage({ attemptDirectory, result });
   } catch (error) {
     issues.push({
       path: path.relative(resultsRoot, attemptDirectory),
@@ -410,13 +397,7 @@ const verifyQualificationTarget = async (options: {
         'attempts',
         createQualificationAttemptKey(result.attemptId),
       );
-      await verifyAttemptArtifacts(
-        attemptDirectory,
-        result,
-        options.issues,
-        options.repositoryRoot,
-        options.resultsRoot,
-      );
+      await verifyAttemptArtifacts(attemptDirectory, result, options.issues, options.resultsRoot);
 
       try {
         await validateQualificationAttemptEvidence({

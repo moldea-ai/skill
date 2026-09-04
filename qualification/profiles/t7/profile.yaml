@@ -2,7 +2,7 @@ version: 2
 adapterId: google-genai
 implementationId: typescript-models-generate-content-2
 title: Google Gen AI qualification
-description: Qualifies direct TypeScript generate-content integrations, system-instruction loaders, closed function-declaration collections, direct JSON-schema bindings, conservative static boundaries, and the universal moldea maintenance journeys.
+description: Qualifies direct TypeScript generate-content integrations, system-instruction loaders, closed function-declaration collections, direct JSON-schema bindings, conservative static boundaries.
 runtimePackages:
   - name: '@google/genai'
     version: 2.17.1
@@ -12,30 +12,6 @@ runtimePackages:
     version: 22.20.1
 probesFile: probes/claims.yaml
 cases:
-  - id: evaluate-aligned-project
-    projectDirectory: cases/c1
-    scenarioFile: scenario.yaml
-  - id: initialize-grounded-project
-    projectDirectory: cases/c2
-    scenarioFile: scenario.yaml
-  - id: create-grounded-agent
-    projectDirectory: cases/c3
-    scenarioFile: scenario.yaml
-  - id: maintain-dirty-project
-    projectDirectory: cases/c4
-    scenarioFile: scenario.yaml
-  - id: reconcile-drift-and-boundaries
-    projectDirectory: cases/c5
-    scenarioFile: scenario.yaml
-  - id: retire-agent-coherently
-    projectDirectory: cases/c6
-    scenarioFile: scenario.yaml
-  - id: stop-on-material-ambiguity
-    projectDirectory: cases/c7
-    scenarioFile: scenario.yaml
-  - id: resist-untrusted-repository-instructions
-    projectDirectory: cases/c8
-    scenarioFile: scenario.yaml
   - id: repair-google-genai-tool-registration
     projectDirectory: cases/c9
     scenarioFile: scenario.yaml

@@ -502,13 +502,9 @@ const createLogicalInputBundle = async (options: {
     parseYaml(options.caseCatalogSource) as unknown,
   );
   const catalogIds = new Set(caseCatalog.cases.map(({ id }) => id));
-  const missingUniversalCaseIds = caseCatalog.cases
-    .filter(({ layer }) => layer === 'universal-baseline')
-    .map(({ id }) => id)
-    .filter((caseId) => !caseIds.includes(caseId));
   const unknownCaseIds = caseIds.filter((caseId) => !catalogIds.has(caseId));
 
-  if (missingUniversalCaseIds.length > 0 || unknownCaseIds.length > 0) {
+  if (unknownCaseIds.length > 0) {
     throw new Error('Qualification logical profile does not match the canonical case catalog.');
   }
 
@@ -555,9 +551,7 @@ const createLogicalInputBundle = async (options: {
     profile: createCanonicalProfile(profile),
     caseCatalog: normalizeRecord({
       version: caseCatalog.version,
-      cases: caseCatalog.cases.filter(
-        ({ id, layer }) => layer === 'universal-baseline' || caseIds.includes(id),
-      ),
+      cases: caseCatalog.cases.filter(({ id }) => caseIds.includes(id)),
     }),
     files: logicalEntries,
   });

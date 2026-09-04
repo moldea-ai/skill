@@ -22,9 +22,13 @@ const createAttemptRecord = (
         {
           actorCommandPolicyEvidence: {
             completedCommandCount: 0,
-            indeterminateCommandCount: 0,
-            packageManagerExecution: 'not-observed',
-            packageManagerInvocationCount: 0,
+          },
+          actorResourceEvidence: {
+            commandCount: 0,
+            maximumInvocationByteCount: 0,
+            modelVisibleToolOutputByteCount: 0,
+            operations: [],
+            stdoutByteCount: 0,
           },
           actorHost: {
             model: 'gpt-5.6-sol',
@@ -51,10 +55,10 @@ const createAttemptRecord = (
   ],
   cli: {
     integrity: 'sha512-test',
-    jsonSchemaVersion: 2,
+    jsonSchemaVersion: 3,
     name: '@moldea.ai/cli',
     packageLockSha256: 'c'.repeat(64),
-    version: '5.0.0',
+    version: '6.0.0',
   },
   coverageDigest: 'd'.repeat(64),
   createdAt: TIMESTAMP,
@@ -84,10 +88,10 @@ const createAttemptRecord = (
 
 describe('SemanticAttemptRecordSchema', () => {
   test.each([
-    [5, 21, false],
-    [6, 20, false],
-    [6, 21, true],
-    [6, 22, false],
+    [5, 22, false],
+    [6, 21, false],
+    [6, 22, true],
+    [6, 23, false],
   ])(
     'schema %d with protocol %d has validity %s',
     (schemaVersion, evaluationProtocolVersion, expectedValidity) => {

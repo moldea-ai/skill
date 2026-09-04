@@ -61,7 +61,7 @@ test('release identity inspection detects a stale maintained copy', () => {
       'utf8',
     );
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), [
-      `The semantic CLI fixture JSON schema version is not ${semanticCliManifest.moldeaRelease.cliJsonSchemaVersion}.`,
+      `The semantic CLI fixture JSON schema version is not ${readReleaseIdentity(REPOSITORY_ROOT).cliJsonSchemaVersion}.`,
     ]);
     writeFileSync(
       semanticCliManifestPath,
@@ -72,15 +72,12 @@ test('release identity inspection detects a stale maintained copy', () => {
     const compatibilityPath = join(temporaryRoot, 'docs', 'compatibility-and-local-tooling.md');
     writeFileSync(
       compatibilityPath,
-      readFileSync(compatibilityPath, 'utf8').replace(
-        `@moldea.ai/cli ${cliVersion}`,
-        '@moldea.ai/cli 0.0.0',
-      ),
+      readFileSync(compatibilityPath, 'utf8').replaceAll(cliVersion, '0.0.0'),
       'utf8',
     );
 
     assert.deepEqual(inspectReleaseIdentity(temporaryRoot), [
-      `docs/compatibility-and-local-tooling.md is missing: - \`@moldea.ai/cli ${cliVersion}\``,
+      `docs/compatibility-and-local-tooling.md does not name CLI ${cliVersion}.`,
     ]);
   } finally {
     rmSync(temporaryRoot, { force: true, recursive: true });

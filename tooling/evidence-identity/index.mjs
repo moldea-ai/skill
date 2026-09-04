@@ -7,8 +7,8 @@ export {
   createPortableSkillBehaviorDigest,
 } from './portable-skill.mjs';
 
-// semantic compatibility identity
-export { createSemanticCompatibilityDigest } from './semantic-compatibility.mjs';
+// semantic input identity
+export { createSemanticInputDigest } from './semantic-inputs.mjs';
 
 // semantic identity
 export {

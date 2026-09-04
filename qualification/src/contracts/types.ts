@@ -375,6 +375,9 @@ export const QualificationCommandPolicyEvidenceSchema = z
       status: z.enum(['not-observed', 'observed']),
       observedCount: z.number().int().nonnegative(),
     }),
+    modelVisibleToolOutputByteCount: z.number().int().min(0).max(16_777_216),
+    moldeaCommandCount: z.number().int().min(0).max(32),
+    moldeaOutputByteCount: z.number().int().min(0).max(8_388_608),
     networkAccess: QualificationCommandPolicyObservationSchema,
     sensitiveAccess: QualificationCommandPolicyObservationSchema,
   })
@@ -407,6 +410,16 @@ export const QualificationCommandPolicyEvidenceSchema = z
         path: ['credentialExposure'],
       });
     }
+    if (
+      (evidence.moldeaCommandCount === 0 && evidence.moldeaOutputByteCount !== 0) ||
+      evidence.moldeaOutputByteCount > evidence.modelVisibleToolOutputByteCount
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'moldea resource totals must remain consistent with completed command output.',
+        path: ['moldeaCommandCount'],
+      });
+    }
   });
 
 export type IQualificationCommandPolicyEvidence = z.infer<
@@ -417,6 +430,7 @@ export type IQualificationCommandPolicyEvidence = z.infer<
 export const QualificationProjectedExecutionEventSchema = z.strictObject({
   eventType: z.literal('command.completed'),
   exitCode: z.number().int(),
+  moldeaCommandCount: z.number().int().min(0).max(32),
   outputByteCount: z.number().int().nonnegative(),
   status: z.enum(['completed', 'failed']),
 });
@@ -775,7 +789,7 @@ export const QualificationAttemptCheckpointSchema = z
 
 export type IQualificationAttemptCheckpoint = z.infer<typeof QualificationAttemptCheckpointSchema>;
 
-// one protocol 6 initial or confirmation trial and its complete artifact references
+// one protocol 7 initial or confirmation trial and its complete artifact references
 export const QualificationTrialResultSchema = z
   .strictObject({
     trialId: z.enum(QUALIFICATION_TRIAL_IDS),
@@ -852,7 +866,7 @@ export const QualificationTrialResultSchema = z
 
 export type IQualificationTrialResult = z.infer<typeof QualificationTrialResultSchema>;
 
-// terminal protocol 6 case history preserving the original trial and every confirmation
+// terminal protocol 7 case history preserving the original trial and every confirmation
 export const QualificationCaseResultSchema = z
   .strictObject({
     caseId: StableIdSchema,
@@ -955,7 +969,7 @@ const QualificationAttemptResultSharedShape = {
   artifactDigests: z.record(RelativePathSchema, z.string().regex(/^[a-f0-9]{64}$/u)),
 };
 
-// fixed protocol 6 confirmation policy committed with every current attempt
+// fixed protocol 7 confirmation policy committed with every current attempt
 export const QualificationConfirmationPolicySchema = z.strictObject({
   version: z.literal(QUALIFICATION_CONFIRMATION_POLICY.version),
   requiredPassingConfirmations: z.literal(
@@ -963,7 +977,7 @@ export const QualificationConfirmationPolicySchema = z.strictObject({
   ),
 });
 
-// local protocol 6 result draft shared by dry runs and official result publication
+// local protocol 7 result draft shared by dry runs and official result publication
 export const QualificationAttemptResultDraftSchema = z.strictObject({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationAttemptResultSharedShape,

@@ -31,9 +31,13 @@ const createEvidence = (id, passed, updatedAt) => ({
     {
       actorCommandPolicyEvidence: {
         completedCommandCount: 0,
-        indeterminateCommandCount: 0,
-        packageManagerExecution: 'not-observed',
-        packageManagerInvocationCount: 0,
+      },
+      actorResourceEvidence: {
+        commandCount: 0,
+        maximumInvocationByteCount: 0,
+        modelVisibleToolOutputByteCount: 0,
+        operations: [],
+        stdoutByteCount: 0,
       },
       actorHost: {
         model: 'gpt-5.6-sol',
@@ -137,7 +141,7 @@ test('semantic attempt recording rejects a noncurrent evidence protocol', async 
     const noncurrentEvidence = `${JSON.stringify(
       {
         ...createEvidence('noncurrent-case', true, '2026-08-25T00:00:00.000Z'),
-        evaluationProtocolVersion: 22,
+        evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION - 1,
       },
       null,
       2,

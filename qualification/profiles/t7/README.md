@@ -1,6 +1,6 @@
 # Google Gen AI profile
 
-This profile qualifies `@moldea.ai/adapter-google-genai` target `typescript-models-generate-content-2` against ten transparent projects. It runs the eight universal moldea journeys plus two adapter-specific cases for function-declaration registration and conservative handling of request indirection and Google-hosted tools.
+This profile qualifies `@moldea.ai/adapter-google-genai` target `typescript-models-generate-content-2` with the shared eight-case `custom/custom` baseline and two adapter-specific projects for function-declaration registration and conservative handling of request indirection and Google-hosted tools. This profile executes only its adapter-specific projects; the universal baseline executes and publishes once under `custom/custom`.
 
 Each project pins `@google/genai@2.17.1`, its optional type-level peer `@modelcontextprotocol/sdk@1.29.0`, `@types/node@22.20.1`, and `typescript@6.0.3`. Qualification downloads and verifies the exact published runtime and type artifacts once, records their checksums with the candidate evidence, primes the attempt-local package store, and installs the projects offline. The deterministic stages typecheck against the real SDK package but never call a provider or execute a tool.
 

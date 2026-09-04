@@ -200,17 +200,12 @@ const collectGitFacts = (repositoryPath) => {
 };
 
 /** Collects evaluator-owned scenario evidence before actor execution. */
-export const collectScenarioEvidence = async ({
-  caseDefinition,
-  readOnlyMounts,
-  repositoryPath,
-}) => {
+export const collectScenarioEvidence = async ({ caseDefinition, repositoryPath }) => {
   const gitFacts = caseDefinition.input.repositoryEvidence.some(
     ({ source }) => source.kind === 'git-state',
   )
     ? collectGitFacts(repositoryPath)
     : null;
-  const mountsByTarget = new Map(readOnlyMounts.map(({ source, target }) => [target, source]));
   const evidence = [];
 
   for (const declaration of caseDefinition.input.repositoryEvidence) {
@@ -221,8 +216,6 @@ export const collectScenarioEvidence = async ({
         content: caseDefinition.input.developerDirection,
         type: 'developer-direction',
       };
-    } else if (source.kind === 'host-instructions') {
-      observation = { content: caseDefinition.hostInstructions, type: 'host-instructions' };
     } else if (source.kind === 'git-state') {
       observation = {
         fact: source.fact,
@@ -232,14 +225,8 @@ export const collectScenarioEvidence = async ({
       if (!observation.observed) {
         throw new Error(`Scenario Git fact ${source.fact} is not present.`);
       }
-    } else if (source.kind === 'workspace-path') {
-      observation = await inspectEvidencePath(repositoryPath, source.path, source.expectedType);
     } else {
-      const mountSource = mountsByTarget.get(source.mount);
-      if (!mountSource) {
-        throw new Error(`Scenario evidence requires missing mount ${source.mount}.`);
-      }
-      observation = await inspectEvidencePath(mountSource, source.path, source.expectedType);
+      observation = await inspectEvidencePath(repositoryPath, source.path, source.expectedType);
     }
     evidence.push({ claim: declaration.claim, observation, source });
   }
@@ -275,13 +262,6 @@ export const hasValidScenarioEvidence = (evidence, caseDefinition) => {
         hasExactKeys(observation, ['content', 'type']) &&
         observation.type === 'developer-direction' &&
         observation.content === caseDefinition.input.developerDirection
-      );
-    }
-    if (declaration.source.kind === 'host-instructions') {
-      return (
-        hasExactKeys(observation, ['content', 'type']) &&
-        observation.type === 'host-instructions' &&
-        observation.content === caseDefinition.hostInstructions
       );
     }
     if (declaration.source.kind === 'git-state') {

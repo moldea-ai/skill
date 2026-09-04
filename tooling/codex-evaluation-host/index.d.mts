@@ -32,6 +32,9 @@ export type ICodexEvaluationCommandPolicyEvidence = {
     status: 'not-observed' | 'observed';
     observedCount: number;
   };
+  modelVisibleToolOutputByteCount: number;
+  moldeaCommandCount: number;
+  moldeaOutputByteCount: number;
   networkAccess: {
     status: ICodexEvaluationCommandPolicyStatus;
     observedCount: number;

@@ -1,6 +1,6 @@
 # Agent design
 
-Read this reference before creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, runtime relationship, or unresolved requirement.
+Read this reference after moldea relevance is established for creating or materially changing an agent, instruction, description, handoff description, schema, capability, variable, mirror, runtime relationship, or unresolved requirement.
 
 Agent-system planning decides whether an agent should exist and proposes its responsibility. Agent design begins after a direct request or accepted candidate. Revalidate repository evidence rather than copying a recommendation into canonical state or model-facing instructions.
 
@@ -113,6 +113,6 @@ Requirements are not a roadmap. Do not create one to avoid an answerable questio
 
 ## Verify agent readiness
 
-After writes, run relevant project checks, rerun `inspect --json`, and review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state.
+After writes, run relevant project checks and the narrowest schema-3 metadata command that covers the changed owners. Review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state without loading unrelated canonical bodies.
 
 Do not claim production readiness when behavior lacks support, a material contract is hidden or contradictory, affected validation fails, or a blocking requirement remains.

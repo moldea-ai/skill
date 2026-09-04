@@ -88,7 +88,7 @@ const createResult = (
   status: 'errored' | 'failed' | 'incomplete' | 'passed',
 ): IQualificationAttemptResult =>
   QualificationAttemptResultSchema.parse({
-    protocolVersion: 6,
+    protocolVersion: 7,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     mode: 'official',
     attemptId,
@@ -138,7 +138,7 @@ describe('qualification result recording', () => {
     }
   });
 
-  test('preserves history, latest status, last passing attempt, and artifact integrity', async () => {
+  test('preserves attempts, latest status, last passing attempt, and artifact integrity', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
@@ -210,14 +210,14 @@ describe('qualification result recording', () => {
     });
   });
 
-  test('verifies recorded evidence without a readable historical Git repository', async () => {
+  test('verifies self-contained recorded evidence without reading Git objects', async () => {
     temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-results-'));
     const resultsRoot = path.join(temporaryRoot, 'results');
     const artifactDirectory = path.join(temporaryRoot, 'artifacts');
     await ensureDirectory(artifactDirectory);
     const passingResult = await seedPassingQualificationEvidenceFixture({
       artifactDirectory,
-      attemptId: 'attempt-historical-contract',
+      attemptId: 'attempt-recorded-contract',
       resultsRoot,
     });
     await recordQualificationResult(
@@ -373,7 +373,7 @@ describe('qualification result recording', () => {
     const latest = await readJsonFile(latestPath, QualificationLatestResultSchema);
     await writeFile(
       latestPath,
-      `${JSON.stringify({ ...latest, protocolVersion: 7 }, null, 2)}\n`,
+      `${JSON.stringify({ ...latest, protocolVersion: 8 }, null, 2)}\n`,
       'utf8',
     );
 
@@ -383,7 +383,7 @@ describe('qualification result recording', () => {
     expect(verification.attempts).toBe(0);
     expect(verification.issues).toHaveLength(1);
     expect(verification.issues[0]?.path).toBe(TARGET_KEY);
-    expect(verification.issues[0]?.message).toContain('Invalid input: expected 6');
+    expect(verification.issues[0]?.message).toContain('Invalid input: expected 7');
   });
 
   test.each([
@@ -624,7 +624,7 @@ describe('qualification result recording', () => {
       path.join(targetRoot, 'latest.json'),
       `${JSON.stringify(
         {
-          protocolVersion: 6,
+          protocolVersion: 7,
           adapterId: 'custom',
           implementationId: 'custom',
           latestAttemptId: 'missing-attempt',
@@ -687,6 +687,7 @@ describe('qualification result recording', () => {
       `${JSON.stringify({
         eventType: 'command.completed',
         exitCode: 0,
+        moldeaCommandCount: 0,
         outputByteCount: 0,
         status: 'completed',
       })}\n`,
@@ -735,6 +736,7 @@ describe('qualification result recording', () => {
       `${JSON.stringify({
         eventType: 'command.completed',
         exitCode: 0,
+        moldeaCommandCount: 0,
         outputByteCount: 0,
         status: 'completed',
       })}\n`,

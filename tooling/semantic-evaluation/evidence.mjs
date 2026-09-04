@@ -18,17 +18,14 @@ const GIT_STATE_FACTS = new Set([
 ]);
 const STABLE_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const SEMANTIC_CRITERION_KEYS = new Set(['criterion', 'label']);
-// maximum evaluator-authored host instruction context for one isolated case
-const MAX_HOST_INSTRUCTIONS_BYTES = 16_384;
 const SEMANTIC_CASE_KEYS = new Set([
   'expected',
   'forbidden',
-  'hostInstructions',
   'id',
   'input',
   'operation',
+  'resourceBudget',
   'scenario',
-  'skillEvidence',
 ]);
 
 const isPlainRecord = (input) =>
@@ -72,9 +69,6 @@ const isValidRepositoryEvidence = (entry) => {
   if (entry.source.kind === 'developer-direction') {
     return Object.keys(entry.source).length === 1;
   }
-  if (entry.source.kind === 'host-instructions') {
-    return Object.keys(entry.source).length === 1;
-  }
   if (entry.source.kind === 'git-state') {
     return Object.keys(entry.source).length === 2 && GIT_STATE_FACTS.has(entry.source.fact);
   }
@@ -85,16 +79,6 @@ const isValidRepositoryEvidence = (entry) => {
       ['directory', 'file', 'missing', 'symlink'].includes(entry.source.expectedType)
     );
   }
-  if (entry.source.kind === 'related-path') {
-    return (
-      Object.keys(entry.source).length === 4 &&
-      typeof entry.source.mount === 'string' &&
-      /^\/[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(entry.source.mount) &&
-      isSafeEvidencePath(entry.source.path) &&
-      ['directory', 'file', 'missing', 'symlink'].includes(entry.source.expectedType)
-    );
-  }
-
   return false;
 };
 
@@ -111,7 +95,6 @@ export const getSemanticCriterionLabels = (criteria) => criteria.map(({ label })
  * @returns The validated semantic case contract.
  * @throws
  * - If the case identity, scenario, or criteria collection is incomplete
- * - If declared host instructions are empty, oversized, or contain a null byte
  * - If an evaluator criterion has an unsupported shape
  * - If evaluator labels are duplicated
  */
@@ -132,12 +115,31 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
     Array.isArray(caseDefinition.input.repositoryEvidence) &&
     caseDefinition.input.repositoryEvidence.length > 0 &&
     caseDefinition.input.repositoryEvidence.every(isValidRepositoryEvidence);
+  const resourceBudget = caseDefinition?.resourceBudget;
+  const hasValidResourceBudget =
+    isPlainRecord(resourceBudget) &&
+    Object.keys(resourceBudget).length === 4 &&
+    ['abstain', 'direct', 'relationship'].includes(resourceBudget.activation) &&
+    Number.isSafeInteger(resourceBudget.minimumMoldeaCommands) &&
+    resourceBudget.minimumMoldeaCommands >= 0 &&
+    Number.isSafeInteger(resourceBudget.maximumMoldeaCommands) &&
+    resourceBudget.maximumMoldeaCommands >= resourceBudget.minimumMoldeaCommands &&
+    resourceBudget.maximumMoldeaCommands <= 16 &&
+    Number.isSafeInteger(resourceBudget.maximumMoldeaOutputBytes) &&
+    resourceBudget.maximumMoldeaOutputBytes >= 0 &&
+    resourceBudget.maximumMoldeaOutputBytes <= 1_048_576 &&
+    (resourceBudget.activation !== 'abstain' ||
+      (resourceBudget.minimumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaOutputBytes === 0)) &&
+    (resourceBudget.activation === 'abstain' || resourceBudget.minimumMoldeaCommands > 0);
   if (
     !isPlainRecord(caseDefinition) ||
     'prompt' in caseDefinition ||
     typeof caseDefinition.id !== 'string' ||
     !STABLE_ID_PATTERN.test(caseDefinition.id) ||
     !hasStructuredScenario ||
+    !hasValidResourceBudget ||
     !Array.isArray(caseDefinition.expected) ||
     caseDefinition.expected.length === 0 ||
     !Array.isArray(caseDefinition.forbidden) ||
@@ -152,26 +154,6 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
   if (new Set(evidenceClaims).size !== evidenceClaims.length) {
     throw new Error(`Semantic case ${caseDefinition.id} has duplicate evidence claims.`);
   }
-  const hasDeclaredHostInstructions = caseDefinition.input.repositoryEvidence.some(
-    ({ source }) => source.kind === 'host-instructions',
-  );
-  const hasHostInstructions = 'hostInstructions' in caseDefinition;
-  if (hasDeclaredHostInstructions !== hasHostInstructions) {
-    throw new Error(
-      `Semantic case ${caseDefinition.id} must source every applicable host instruction.`,
-    );
-  }
-
-  if (
-    'hostInstructions' in caseDefinition &&
-    (typeof caseDefinition.hostInstructions !== 'string' ||
-      caseDefinition.hostInstructions.trim().length === 0 ||
-      Buffer.byteLength(caseDefinition.hostInstructions, 'utf8') > MAX_HOST_INSTRUCTIONS_BYTES ||
-      caseDefinition.hostInstructions.includes('\0'))
-  ) {
-    throw new Error(`Semantic case ${caseDefinition.id} has invalid host instructions.`);
-  }
-
   const criteria = [...caseDefinition.expected, ...caseDefinition.forbidden];
   if (
     !criteria.every(

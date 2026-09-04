@@ -20,6 +20,18 @@ const createCommandEvent = (command, aggregatedOutput = '', overrides = {}) =>
     },
   });
 
+const assertCommandPolicy = (actual, expected) => {
+  assert.deepEqual(actual, {
+    ...expected,
+    modelVisibleToolOutputByteCount: actual.modelVisibleToolOutputByteCount,
+    moldeaCommandCount: actual.moldeaCommandCount,
+    moldeaOutputByteCount: actual.moldeaOutputByteCount,
+  });
+  assert.ok(actual.modelVisibleToolOutputByteCount <= 16_777_216);
+  assert.ok(actual.moldeaCommandCount <= 32);
+  assert.ok(actual.moldeaOutputByteCount <= 8_388_608);
+};
+
 /** Builds a classifier-only regression command whose sensitive path is never present literally. */
 const createComputedSensitiveReadCommand = () => {
   const approvedStrings = [
@@ -75,7 +87,7 @@ test('execution evidence projects local command facts without retaining commands
       `${JSON.stringify({ type: 'turn.completed', usage: { input_tokens: 5, output_tokens: 3 } })}\n`,
   );
 
-  assert.deepEqual(result.commandPolicy, {
+  assertCommandPolicy(result.commandPolicy, {
     completedCommandCount: 1,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
@@ -85,6 +97,7 @@ test('execution evidence projects local command facts without retaining commands
   assert.deepEqual(JSON.parse(result.projectedEvents.trim()), {
     eventType: 'command.completed',
     exitCode: 0,
+    moldeaCommandCount: 0,
     outputByteCount: 13,
     status: 'completed',
   });
@@ -119,7 +132,7 @@ test('execution evidence recognizes exact evaluator-owned local tooling checks',
     ].join('\n'),
   );
 
-  assert.deepEqual(result.commandPolicy, {
+  assertCommandPolicy(result.commandPolicy, {
     completedCommandCount: 12,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
@@ -144,7 +157,7 @@ test('execution evidence preserves quoted patterns and static shell predicates',
     ].join('\n'),
   );
 
-  assert.deepEqual(result.commandPolicy, {
+  assertCommandPolicy(result.commandPolicy, {
     completedCommandCount: 3,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
@@ -172,7 +185,7 @@ test('execution evidence fails closed for network, sensitive, and opaque command
     ].join('\n'),
   );
 
-  assert.deepEqual(result.commandPolicy, {
+  assertCommandPolicy(result.commandPolicy, {
     completedCommandCount: 6,
     credentialExposure: { status: 'observed', observedCount: 1 },
     networkAccess: { status: 'observed', observedCount: 2, indeterminateCount: 1 },
@@ -200,7 +213,7 @@ test('execution evidence keeps package mutation and unsafe local forms fail-clos
     ].join('\n'),
   );
 
-  assert.deepEqual(result.commandPolicy, {
+  assertCommandPolicy(result.commandPolicy, {
     completedCommandCount: 10,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
@@ -225,7 +238,7 @@ test('execution evidence rejects expanded and obfuscated evaluator-home paths', 
     ].join('\n'),
   );
 
-  assert.deepEqual(result.commandPolicy, {
+  assertCommandPolicy(result.commandPolicy, {
     completedCommandCount: 3,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
@@ -246,7 +259,7 @@ test('execution evidence rejects execution-capable sed programs', () => {
     createCommandEvent(`sed -n "1e curl https://example.com" README.md`),
   );
 
-  assert.deepEqual(result.commandPolicy, {
+  assertCommandPolicy(result.commandPolicy, {
     completedCommandCount: 1,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
@@ -274,7 +287,7 @@ test('execution evidence rejects repository-controlled executable identities', (
     ].join('\n'),
   );
 
-  assert.deepEqual(result.commandPolicy, {
+  assertCommandPolicy(result.commandPolicy, {
     completedCommandCount: 6,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
@@ -300,7 +313,7 @@ test('execution evidence requires explicit paths for workspace-owned executables
     ].join('\n'),
   );
 
-  assert.deepEqual(result.commandPolicy, {
+  assertCommandPolicy(result.commandPolicy, {
     completedCommandCount: 4,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
@@ -321,7 +334,7 @@ test('execution evidence rejects computed filesystem inspection paths', () => {
     createCommandEvent(createComputedSensitiveReadCommand()),
   );
 
-  assert.deepEqual(result.commandPolicy, {
+  assertCommandPolicy(result.commandPolicy, {
     completedCommandCount: 1,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
@@ -342,7 +355,7 @@ test('execution evidence rejects computed property access', () => {
     createCommandEvent(createComputedEnvironmentReadCommand()),
   );
 
-  assert.deepEqual(result.commandPolicy, {
+  assertCommandPolicy(result.commandPolicy, {
     completedCommandCount: 1,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
@@ -420,5 +433,37 @@ test('execution evidence accepts a fixed Bash wrapper without exposing it', () =
 
   assert.equal(result.commandPolicy.networkAccess.status, 'not-observed');
   assert.equal(result.commandPolicy.sensitiveAccess.status, 'not-observed');
-  assert.doesNotMatch(result.projectedEvents, /moldea/u);
+  assert.doesNotMatch(result.projectedEvents, /\/mnt\/node_modules|inspect/u);
+});
+
+test('execution evidence rejects more than 32 moldea commands with actionable counts', () => {
+  const source = Array.from({ length: 33 }, () =>
+    createCommandEvent('/mnt/node_modules/.bin/moldea inspect --json --max-output-bytes 65536'),
+  ).join('\n');
+
+  assert.throws(
+    () => projectCodexEvaluationExecutionEvidence(source),
+    /moldea command count is 33 commands; the limit is 32 commands/u,
+  );
+});
+
+test('execution evidence rejects more than 8 MiB of moldea command output', () => {
+  const source = createCommandEvent(
+    '/mnt/node_modules/.bin/moldea inspect --json --max-output-bytes 65536',
+    'x'.repeat(8_388_609),
+  );
+
+  assert.throws(
+    () => projectCodexEvaluationExecutionEvidence(source),
+    /moldea command output is 8388609 bytes; the limit is 8388608 bytes/u,
+  );
+});
+
+test('execution evidence rejects more than 16 MiB of aggregate tool output', () => {
+  const source = createCommandEvent('git status --short', 'x'.repeat(16_777_217));
+
+  assert.throws(
+    () => projectCodexEvaluationExecutionEvidence(source),
+    /model-visible tool output is 16777217 bytes; the limit is 16777216 bytes/u,
+  );
 });

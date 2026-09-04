@@ -4,9 +4,6 @@ import {
   createCliClosureDigest,
   createPortableSkillBehaviorDigest,
 } from '../../../tooling/evidence-identity/index.mjs';
-import { hasLocalCarryForward401Qualification } from '../../../tooling/release-identity/carry-forward-4-0-1.mjs';
-import { hasLocalCompatibilityBridge402Qualification } from '../../../tooling/release-identity/historical-semantic.mjs';
-
 import { createPublicCandidatePackage } from '../candidate-closure/index.ts';
 import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import {
@@ -185,34 +182,11 @@ export const inspectQualificationBaseline = async (options: {
     );
   }
 
-  let isCarryForwardAuthorized = baselineStorage.carryForward === undefined;
-  let isCompatibilityBridgeAuthorized = false;
-
-  if (baselineStorage.carryForward !== undefined) {
-    try {
-      isCarryForwardAuthorized = hasLocalCarryForward401Qualification({
-        repositoryRoot: path.resolve(options.resultsRoot, '..', '..'),
-        result: baseline,
-        storage: baselineStorage,
-      });
-    } catch {
-      isCarryForwardAuthorized = false;
-    }
-    isCompatibilityBridgeAuthorized = hasLocalCompatibilityBridge402Qualification({
-      candidateCliClosureDigest: currentCliClosureDigest,
-      candidatePackages,
-      candidatePortableSkillBehaviorDigest: currentPortableSkillBehaviorDigest,
-      repositoryRoot: path.resolve(options.resultsRoot, '..', '..'),
-      result: baseline,
-      storage: baselineStorage,
-    });
-  }
-  const hasSharedPublishedClosure =
-    actualPackages.every(
-      (recordedPackage) =>
-        JSON.stringify(expectedPackages.get(recordedPackage.name)) ===
-        JSON.stringify(recordedPackage),
-    ) || isCompatibilityBridgeAuthorized;
+  const hasSharedPublishedClosure = actualPackages.every(
+    (recordedPackage) =>
+      JSON.stringify(expectedPackages.get(recordedPackage.name)) ===
+      JSON.stringify(recordedPackage),
+  );
   const baselineExecutionEnvironment = selectExecutionEnvironment(baseline.provenance);
 
   const hasCompatibleIdentity =
@@ -225,10 +199,8 @@ export const inspectQualificationBaseline = async (options: {
     currentCompatibility.qualificationBaselineEvaluatorDigest ===
       options.qualificationBaselineDigest &&
     baseline.provenance.targetDigest === options.customTargetDigest &&
-    ((baselineStorage.portableSkillBehaviorDigest === currentPortableSkillBehaviorDigest &&
-      baselineStorage.cliClosureDigest === currentCliClosureDigest) ||
-      isCompatibilityBridgeAuthorized) &&
-    (isCarryForwardAuthorized || isCompatibilityBridgeAuthorized) &&
+    baselineStorage.portableSkillBehaviorDigest === currentPortableSkillBehaviorDigest &&
+    baselineStorage.cliClosureDigest === currentCliClosureDigest &&
     JSON.stringify(baselineExecutionEnvironment) === JSON.stringify(options.executionEnvironment) &&
     hasSharedPublishedClosure;
 

@@ -14,7 +14,6 @@ import { createSemanticCliIdentity } from '../../../../tooling/release-identity/
 
 import { RAW_SOURCE_REPOSITORY_URL } from '../model/constants.ts';
 
-import { resolveCompatibleSemanticAttemptId } from './compatibility.ts';
 import {
   SEMANTIC_CASE_PRESENTATION,
   SEMANTIC_EVALUATION_GROUPS,
@@ -85,7 +84,6 @@ const hasCurrentAttemptIdentity = (
   caseDefinitions: ISemanticCaseDefinition[],
   coverage: unknown,
   repositoryRoot: string,
-  compatibleAttemptId: string | null,
 ): boolean => {
   const caseIds = caseDefinitions.map(({ id }) => id);
   const presentationIds = Object.keys(SEMANTIC_CASE_PRESENTATION);
@@ -97,15 +95,12 @@ const hasCurrentAttemptIdentity = (
   }
 
   const attemptCaseIds = attempt.cases.map(({ id }) => id);
-  const hasCompatibleIdentity = attempt.attemptId === compatibleAttemptId;
   const hasInputMismatch =
-    (attempt.artifactDigest !== createPortableSkillDigest(repositoryRoot) &&
-      !hasCompatibleIdentity) ||
+    attempt.artifactDigest !== createPortableSkillDigest(repositoryRoot) ||
     attempt.caseSuiteDigest !== createSemanticCaseSuiteDigest(caseDefinitions) ||
     attempt.coverageDigest !== createSemanticCoverageDigest(coverage, caseDefinitions) ||
     attempt.evidence.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
-    (JSON.stringify(attempt.cli) !== JSON.stringify(createSemanticCliIdentity(repositoryRoot)) &&
-      !hasCompatibleIdentity) ||
+    JSON.stringify(attempt.cli) !== JSON.stringify(createSemanticCliIdentity(repositoryRoot)) ||
     attempt.totalCaseCount !== caseDefinitions.length ||
     new Set(attemptCaseIds).size !== attemptCaseIds.length ||
     attemptCaseIds.some((id) => !caseIds.includes(id));
@@ -244,36 +239,9 @@ export const loadSemanticEvaluationWebsiteModel = (
   }
   const hasExactCurrentEvaluation =
     latest !== null &&
-    hasCurrentAttemptIdentity(latest.result, caseDefinitions, coverage, repositoryRoot, null);
-  const compatibleAttemptId = hasExactCurrentEvaluation
-    ? null
-    : resolveCompatibleSemanticAttemptId(repositoryRoot);
-  const compatible =
-    compatibleAttemptId === null
-      ? null
-      : (attemptModels.find(({ result }) => result.attemptId === compatibleAttemptId) ?? null);
-  if (compatibleAttemptId !== null && compatible === null) {
-    throw new Error('Compatible semantic evidence does not resolve to an immutable attempt.');
-  }
-  const hasCompatibleCurrentEvaluation =
-    compatible !== null &&
-    hasCurrentAttemptIdentity(
-      compatible.result,
-      caseDefinitions,
-      coverage,
-      repositoryRoot,
-      compatibleAttemptId,
-    );
-  const currentAssurance = hasExactCurrentEvaluation
-    ? latest
-    : hasCompatibleCurrentEvaluation
-      ? compatible
-      : null;
-  const evidenceMatch = hasExactCurrentEvaluation
-    ? 'exact'
-    : hasCompatibleCurrentEvaluation
-      ? 'compatible'
-      : null;
+    hasCurrentAttemptIdentity(latest.result, caseDefinitions, coverage, repositoryRoot);
+  const currentAssurance = hasExactCurrentEvaluation ? latest : null;
+  const evidenceMatch = hasExactCurrentEvaluation ? 'exact' : null;
 
   const lastPassing =
     latestPointer?.lastPassingAttemptId == null

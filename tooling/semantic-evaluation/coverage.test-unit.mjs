@@ -48,36 +48,35 @@ test('coverage binds every semantic case to an explicit portable-skill claim', (
     }
   }
 
-  const activationClaim = coverage.claims.find(({ id }) => id === 'activation-and-adoption');
+  const activationClaim = coverage.claims.find(({ id }) => id === 'activation-abstention');
   const activationCaseIds = new Set(
     activationClaim?.evidence.filter(({ kind }) => kind === 'semantic-case').map(({ id }) => id),
   );
 
   assert.match(
     activationClaim?.description ?? '',
-    /knowledge- and relevance-triggered maintenance/i,
+    /abstains silently from unrelated documentation, source, README, planning, review/i,
   );
   for (const caseId of [
-    'unadopted-direct-context-handoff',
-    'adopted-direct-context-handoff',
-    'adopted-explicit-context-correction',
-    'adopted-ambiguous-context-handoff',
+    'unrelated-documentation-review',
+    'unrelated-source-review',
+    'readme-outside-managed-block',
+    'generic-knowledge-handoff',
+    'host-plan-command-precedence',
+    'host-review-command-precedence',
   ]) {
     assert.equal(activationCaseIds.has(caseId), true);
   }
 
-  const compressionClaim = coverage.claims.find(
-    ({ id }) => id === 'context-quality-and-compression',
-  );
-  const compressionCaseIds = new Set(
-    compressionClaim?.evidence.filter(({ kind }) => kind === 'semantic-case').map(({ id }) => id),
+  const boundedClaim = coverage.claims.find(({ id }) => id === 'large-context-safety');
+  const boundedCaseIds = new Set(
+    boundedClaim?.evidence.filter(({ kind }) => kind === 'semantic-case').map(({ id }) => id),
   );
 
-  assert.match(compressionClaim?.description ?? '', /explicit context compression/i);
-  assert.deepEqual([...compressionCaseIds].sort(), [
-    'compress-conflicting-project-context',
-    'compress-project-context',
-    'maintain-context-without-duplication',
+  assert.match(boundedClaim?.description ?? '', /content-free by default, paginated, byte-bounded/i);
+  assert.deepEqual([...boundedCaseIds].sort(), [
+    'large-context-bounded-evaluation',
+    'zero-agent-project-validation',
   ]);
 });
 

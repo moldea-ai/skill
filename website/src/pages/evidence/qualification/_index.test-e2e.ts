@@ -184,9 +184,9 @@ test('presents the recorded Anthropic profile', async ({ page }) => {
   await expect(
     page.getByRole('heading', { level: 1, name: 'Anthropic Messages API qualification' }),
   ).toBeVisible();
-  await expect(page.getByRole('heading', { name: '10 realistic journeys' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '2 realistic journeys' })).toBeVisible();
   await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
-  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toHaveCount(0);
+  await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
     'href',
     /\/evidence\/qualification\/anthropic\/typescript-messages-api-0-117\/attempts\//u,
@@ -200,7 +200,7 @@ test('presents the recorded Custom and Vercel results', async ({ page }) => {
   ).toBeVisible();
   await expect(page.getByRole('heading', { name: '8 realistic journeys' })).toBeVisible();
   await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
-  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toHaveCount(0);
+  await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
     'href',
     /\/evidence\/qualification\/custom\/custom\/attempts\//u,
@@ -215,9 +215,9 @@ test('presents the recorded Custom and Vercel results', async ({ page }) => {
       name: 'Vercel AI SDK direct generation qualification',
     }),
   ).toBeVisible();
-  await expect(page.getByRole('heading', { name: '10 realistic journeys' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '2 realistic journeys' })).toBeVisible();
   await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
-  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toHaveCount(0);
+  await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
     'href',
     /\/evidence\/qualification\/vercel-ai-sdk\/typescript-generate-stream-text-7\/attempts\//u,
@@ -232,9 +232,9 @@ test('presents the recorded Custom and Vercel results', async ({ page }) => {
       name: 'Vercel AI SDK ToolLoopAgent qualification',
     }),
   ).toBeVisible();
-  await expect(page.getByRole('heading', { name: '10 realistic journeys' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '2 realistic journeys' })).toBeVisible();
   await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
-  await expect(page.getByText(/No protocol 6 Sol attempt has been committed/u)).toHaveCount(0);
+  await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toHaveCount(0);
   await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
     'href',
     /\/evidence\/qualification\/vercel-ai-sdk\/typescript-tool-loop-agent-7\/attempts\//u,
@@ -381,7 +381,7 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
 });
 
 test(
-  'renders recovered protocol 6 trial evidence',
+  'renders recovered protocol 7 trial evidence',
   { tag: '@qualification-current-fixture' },
   async ({ browser }) => {
     for (const colorScheme of ['light', 'dark'] as const) {

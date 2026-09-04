@@ -21,7 +21,7 @@ npx skills add moldea-ai/skill
 For a reproducible installation, pin an immutable release tag:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.2"
+npx skills add "moldea-ai/skill#v5.0.0"
 ```
 
 Project installation is recommended because the team can share the skill through version control. Add `-g` when you deliberately want a global installation across projects.
@@ -96,7 +96,7 @@ You do not need to:
 
 The coding agent owns the safe interaction with the skill and repository-local tooling.
 
-If an ordinary request activates `moldea` in an unadopted project, initialization remains optional. The coding agent completes the authorized request, does not persist durable project knowledge, and briefly explains that initialization gives future coding agents durable Git-owned context. It can point to `Initialize moldea` without turning adoption into a prerequisite or interrupting the work with a question.
+Ordinary requests outside the relevance gate do not activate `moldea`, whether or not the repository is adopted. Initialization remains an explicit operation and never interrupts unrelated work.
 
 ## Update the skill
 
@@ -115,10 +115,10 @@ npx skills add moldea-ai/skill -g
 A release-pinned installation never moves to another tag automatically. To update it, choose the desired published release and rerun the installation command with that tag. For example, the current release is:
 
 ```bash
-npx skills add "moldea-ai/skill#v4.0.2"
+npx skills add "moldea-ai/skill#v5.0.0"
 ```
 
-Replace `v4.0.2` with the newer published tag when one becomes available. Add `-g` to the tagged command only when updating a global installation.
+Replace `v5.0.0` with the desired newer published tag when one becomes available. Add `-g` only when updating a global installation.
 
 Updating the skill refreshes its portable instructions and references. It does not initialize a project, change `/moldea/**`, install the `moldea` CLI globally, or alter a repository's canonical project state.
 

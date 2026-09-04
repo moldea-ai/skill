@@ -379,38 +379,6 @@ test('keeps documentation samples and navigation readable at 320px', async ({ pa
   expect(await nextPageText.evaluate((element) => getComputedStyle(element).textAlign)).toBe('end');
 });
 
-test('presents Supported maturity as a consistent badge', async ({ page }) => {
-  await page.goto(toPublicPath('/docs/adapter-qualification/'));
-
-  const maturityBadges = page.locator('.prose-moldea [data-markdown-badge="supported"]');
-  await expect(maturityBadges).toHaveCount(2);
-
-  const eligibilityHeading = page.getByRole('heading', {
-    level: 2,
-    name: 'Supported maturity eligibility',
-  });
-  await expect(eligibilityHeading.locator('[data-markdown-badge="supported"]')).toHaveCount(0);
-
-  for (const maturityBadge of await maturityBadges.all()) {
-    await expect(maturityBadge).toHaveText('Supported');
-    await expect(maturityBadge).toBeVisible();
-  }
-
-  const styles = await maturityBadges.first().evaluate((element) => {
-    const computedStyles = getComputedStyle(element);
-
-    return {
-      borderRadius: computedStyles.borderRadius,
-      display: computedStyles.display,
-      textTransform: computedStyles.textTransform,
-    };
-  });
-
-  expect(Number.parseFloat(styles.borderRadius)).toBeGreaterThan(0);
-  expect(styles.display).toBe('inline-flex');
-  expect(styles.textTransform).toBe('uppercase');
-});
-
 test('keeps wrapped documentation tables flush with their scroll containers', async ({
   browser,
 }) => {

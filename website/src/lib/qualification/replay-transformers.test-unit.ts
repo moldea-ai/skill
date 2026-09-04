@@ -89,6 +89,7 @@ const DETERMINISTIC_VERIFICATION: IDeterministicVerification = {
 const createCommandEvent = (exitCode: number): IQualificationProjectedExecutionEvent => ({
   eventType: 'command.completed',
   exitCode,
+  moldeaCommandCount: 0,
   outputByteCount: exitCode === 0 ? 12 : 24,
   status: exitCode === 0 ? 'completed' : 'failed',
 });
@@ -132,6 +133,15 @@ const createTrial = (
     actorCommandPolicy: {
       completedCommandCount: actorExecutionEvents.length,
       credentialExposure: { status: 'not-observed', observedCount: 0 },
+      modelVisibleToolOutputByteCount: actorExecutionEvents.reduce(
+        (total, event) => total + event.outputByteCount,
+        0,
+      ),
+      moldeaCommandCount: actorExecutionEvents.reduce(
+        (total, event) => total + event.moldeaCommandCount,
+        0,
+      ),
+      moldeaOutputByteCount: 0,
       networkAccess: {
         status: 'not-observed',
         observedCount: 0,

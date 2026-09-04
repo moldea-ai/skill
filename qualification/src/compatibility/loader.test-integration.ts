@@ -17,19 +17,19 @@ const UNADOPTED_QUALIFICATION_CASE_IDS = new Set([
 
 test.each([
   ['custom', 'custom', 8],
-  ['anthropic', 'typescript-messages-api-0-117', 10],
-  ['claude-agent-sdk', 'typescript-query-subagents-0-3', 10],
-  ['vercel-ai-sdk', 'typescript-generate-stream-text-7', 10],
-  ['vercel-ai-sdk', 'typescript-tool-loop-agent-7', 10],
-  ['openai', 'typescript-responses-api-7', 10],
-  ['openai-agents-sdk', 'typescript-agent-handoffs-0-16', 10],
-  ['google-genai', 'typescript-models-generate-content-2', 10],
-  ['langchain', 'typescript-create-agent-1-5', 10],
-  ['langgraph', 'typescript-state-graph-1-4', 10],
-  ['langgraph', 'typescript-functional-api-1-4', 10],
-  ['cloudflare-agents', 'typescript-think-0-16-ai-sdk-7', 10],
-  ['cloudflare-agents', 'typescript-ai-chat-agent-0-10-ai-sdk-7', 10],
-  ['eve', 'typescript-filesystem-agent-0-39', 10],
+  ['anthropic', 'typescript-messages-api-0-117', 2],
+  ['claude-agent-sdk', 'typescript-query-subagents-0-3', 2],
+  ['vercel-ai-sdk', 'typescript-generate-stream-text-7', 2],
+  ['vercel-ai-sdk', 'typescript-tool-loop-agent-7', 2],
+  ['openai', 'typescript-responses-api-7', 2],
+  ['openai-agents-sdk', 'typescript-agent-handoffs-0-16', 2],
+  ['google-genai', 'typescript-models-generate-content-2', 2],
+  ['langchain', 'typescript-create-agent-1-5', 2],
+  ['langgraph', 'typescript-state-graph-1-4', 2],
+  ['langgraph', 'typescript-functional-api-1-4', 2],
+  ['cloudflare-agents', 'typescript-think-0-16-ai-sdk-7', 2],
+  ['cloudflare-agents', 'typescript-ai-chat-agent-0-10-ai-sdk-7', 2],
+  ['eve', 'typescript-filesystem-agent-0-39', 2],
 ] as const)(
   'preflights every %s/%s scenario with its intended adoption state',
   async (adapterId, implementationId, expectedCaseCount) => {
@@ -203,14 +203,6 @@ describe('Anthropic Messages API qualification profile', () => {
       { name: '@types/node', version: '22.20.1' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-anthropic-tool-registration',
       'preserve-anthropic-static-boundary',
     ]);
@@ -246,14 +238,6 @@ describe('Claude Agent SDK qualification profile', () => {
       { name: 'zod', version: '4.3.6' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-claude-agent-sdk-tool-registration',
       'preserve-claude-agent-sdk-static-boundary',
     ]);
@@ -288,14 +272,6 @@ describe('Vercel AI SDK direct-generation qualification profile', () => {
       { name: 'zod', version: '4.3.6' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-vercel-tool-registration',
       'preserve-vercel-static-boundary',
     ]);
@@ -369,14 +345,6 @@ describe('Vercel AI SDK ToolLoopAgent qualification profile', () => {
       { name: 'zod', version: '4.3.6' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-vercel-tool-registration',
       'preserve-vercel-static-boundary',
     ]);
@@ -409,14 +377,6 @@ describe('OpenAI Responses API qualification profile', () => {
       { name: '@types/node', version: '22.20.1' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-openai-tool-registration',
       'preserve-openai-static-boundary',
     ]);
@@ -451,14 +411,6 @@ describe('OpenAI Agents SDK qualification profile', () => {
       { name: 'zod', version: '4.3.6' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-openai-agents-sdk-tool-registration',
       'preserve-openai-agents-sdk-static-boundary',
     ]);
@@ -492,14 +444,6 @@ describe('LangGraph Functional API qualification profile', () => {
       { name: '@types/node', version: '22.20.1' },
     ]);
     expect(target.profile.cases.map(({ id }) => id)).toStrictEqual([
-      'evaluate-aligned-project',
-      'initialize-grounded-project',
-      'create-grounded-agent',
-      'maintain-dirty-project',
-      'reconcile-drift-and-boundaries',
-      'retire-agent-coherently',
-      'stop-on-material-ambiguity',
-      'resist-untrusted-repository-instructions',
       'repair-langgraph-functional-runtime-binding',
       'preserve-langgraph-functional-api-static-boundary',
     ]);

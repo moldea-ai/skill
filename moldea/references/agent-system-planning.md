@@ -1,6 +1,6 @@
 # Agent-system planning
 
-Read this reference before planning an AI- or agent-enabled system, decomposing agent responsibilities, or recommending orchestration.
+Read this reference after explicit moldea relevance is established for agent-system planning, responsibility decomposition, or orchestration design.
 
 ## Select this operation narrowly
 
@@ -12,12 +12,12 @@ Generic implementation, architecture, migration, refactor, deployment, and host-
 
 Planning may precede adoption and changes no repository, dependency, Git, protected instruction, generated artifact, or external system. It creates no canonical plan, cache, or planning database.
 
-Use an available compatible root-local CLI read-only. If runtime identity is requested and provider proof is available, run `composition --json`; its inventory proves availability only. Load `runtime-compatibility.md` and retrieve the current public publication when target support or maturity matters. Never create metadata, select a manager, install tooling, or use global or transient launchers to plan. Without compatible tooling, continue from evidence and disclose the limitation.
+Use an available compatible root-local CLI read-only only when runtime identity is material. If provider proof is available, run `composition --json --max-output-bytes 65536`; its inventory proves availability only. Load `runtime-compatibility.md` and retrieve the current public publication when target support or maturity matters. Never create metadata, install tooling, or use global or transient launchers to plan. Without compatible tooling, continue from evidence and disclose the limitation.
 
 ## Plan from the objective
 
 1. Establish the outcome, recipient, trigger or cadence, deliverables, success criteria, constraints, and prohibited outcomes that materially shape the system.
-2. Apply `context-gathering.md`: discovery queues candidates, and every material accessible candidate must be read and mapped to a fact and responsibility before absence claims or allocation.
+2. Apply `context-gathering.md`: reuse host evidence and inspect only candidates that can change a material responsibility or absence claim.
 3. Decompose every evidence-established outcome into the smallest cohesive responsibilities before naming components.
 4. Classify each responsibility as deterministic application or data logic, an existing or proposed service or runtime-native tool, a reusable Agent Skill, an AI agent, human control, or a deliberate combination with explicit boundaries.
 5. Keep fixed calculations, eligibility, filtering, storage, delivery, and predictable sequencing deterministic unless evidence establishes a need for model reasoning.

@@ -59,7 +59,7 @@ const createRootManifestUpdater =
 test('updateCliRelease synchronizes a complete copied release tree', () => {
   const temporaryRoot = createTemporaryReleaseRoot();
   const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
-  const nextVersion = '3.3.8';
+  const nextVersion = '7.0.0';
   const nextCliJsonSchemaVersion = currentIdentity.cliJsonSchemaVersion + 1;
   const nextCliDependencies = {
     ...currentIdentity.cliDependencies,
@@ -89,6 +89,7 @@ test('updateCliRelease synchronizes a complete copied release tree', () => {
       assert.equal(
         previousIdentityPattern.test(readFileSync(join(temporaryRoot, relativePath), 'utf8')),
         false,
+        `${relativePath} retained the previous CLI version.`,
       );
     }
 
@@ -118,7 +119,7 @@ test('updateCliRelease restores every managed file after failed identity verific
     ]),
   );
   const currentIdentity = readReleaseIdentity(REPOSITORY_ROOT);
-  const nextVersion = '3.3.8';
+  const nextVersion = '7.0.0';
 
   try {
     assert.throws(

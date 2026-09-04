@@ -1,13 +1,13 @@
 # Runtime compatibility
 
-Read this reference after the skill entrypoint when runtime or adapter selection, target maturity, provider limits, supported patterns, runtime guidance, or production-readiness claims matter.
+Read this reference after moldea relevance is established when runtime or adapter selection, target maturity, provider limits, supported patterns, runtime guidance, or production-readiness claims matter.
 
 ## Keep the evidence boundaries separate
 
 Use three independent sources for three different facts:
 
 1. Repository source, manifests, configuration, wiring, and tests establish the project's actual runtime behavior and intended target.
-2. Root-local `composition --json` establishes only the exact installed executable: CLI and package versions, active adapter IDs, repository-format versions, and Node.js and Git requirements.
+2. Root-local `composition --json --max-output-bytes 65536` establishes only the exact installed executable: CLI and package versions, active adapter IDs, repository-format versions, and Node.js and Git requirements.
 3. [`https://packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json) establishes the current published technical targets, implementation status, target maturity, package ranges, patterns, provider limits, runtime-guidance expectations, and verification dates.
 
 Neither installed adapter presence nor a package name proves a published target, behavioral fit, or maturity. The public publication does not prove that the repository uses a target or that the installed CLI can inspect it.

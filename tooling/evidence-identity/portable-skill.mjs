@@ -9,8 +9,7 @@ import { createPortableSkillDigest } from '../semantic-evaluation/index.mjs';
 
 const NORMALIZED_RELEASE_VERSION = '<release-version>';
 const SKILL_FRONTMATTER_PATTERN = /^---\n([\s\S]*?)\n---\n/u;
-const SKILL_RELEASE_PATTERN = /Skill release `([^`]+)` supports exactly:/gu;
-const LOCAL_TOOLING_RELEASE_PATTERN = /Release `([^`]+)` supports:/gu;
+const LOCAL_TOOLING_RELEASE_PATTERN = /Skill ([0-9]+\.[0-9]+\.[0-9]+) supports exactly/gu;
 
 const collectPortableSkillPaths = (portableSkillRoot) => {
   const paths = [];
@@ -78,15 +77,7 @@ const normalizeSkillSource = (source) => {
   const versionValueEnd = versionValueStart + releaseVersion.length;
   const normalizedMetadata = `${source.slice(0, versionValueStart)}${NORMALIZED_RELEASE_VERSION}${source.slice(versionValueEnd)}`;
 
-  return {
-    releaseVersion,
-    source: replaceSingleReleaseSentence(
-      normalizedMetadata,
-      SKILL_RELEASE_PATTERN,
-      releaseVersion,
-      'moldea/SKILL.md',
-    ),
-  };
+  return { releaseVersion, source: normalizedMetadata };
 };
 
 const normalizeLocalToolingSource = (source, expectedVersion) =>
@@ -103,7 +94,7 @@ export const createPortableSkillArtifactDigest = (repositoryRoot) => {
   return createPortableSkillDigest(repositoryRoot);
 };
 
-/** Hashes the distributed skill while normalizing only its three release-version occurrences. */
+/** Hashes the distributed skill while normalizing its two release-version occurrences. */
 export const createPortableSkillBehaviorDigest = (repositoryRoot) => {
   const portableSkillRoot = join(repositoryRoot, 'moldea');
   const paths = collectPortableSkillPaths(portableSkillRoot);

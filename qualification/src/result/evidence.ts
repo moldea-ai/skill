@@ -1009,7 +1009,7 @@ const validateCurrentTerminalAttempt = async (
   );
 
   if (JSON.stringify(actualArtifactPaths) !== JSON.stringify(expectedArtifactPaths)) {
-    throw new Error('Qualification evidence has an incomplete protocol 6 artifact inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 7 artifact inventory.');
   }
 
   const [baseline, coverage, probes, sourceState] = await Promise.all([
@@ -1072,7 +1072,7 @@ const validateCurrentTerminalAttempt = async (
   const actualStageIds = result.stages.map(({ id }) => id);
 
   if (JSON.stringify(actualStageIds) !== JSON.stringify(expectedStageIds)) {
-    throw new Error('Qualification evidence has an incomplete protocol 6 stage inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 7 stage inventory.');
   }
 
   const stages = new Map(result.stages.map((stage) => [stage.id, stage]));

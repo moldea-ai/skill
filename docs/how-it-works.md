@@ -11,20 +11,21 @@ order: 30
 The normal experience has three steps:
 
 1. You describe the outcome to your coding agent.
-2. The coding agent uses `moldea` when you share potentially durable knowledge, explicitly request it, or make a relevant change in an adopted project.
+2. The coding agent uses `moldea` when you explicitly request a `moldea` operation or when the task changes canonical state, the managed README block, or a path reached through a declared relationship.
 3. The coding agent returns the implementation, analysis, or plan with an evidence-based report.
 
 There is no separate `moldea` chat surface to operate.
 
 ## Activation
 
-The coding agent can activate the skill in three ways:
+The coding agent can activate the skill in four ways:
 
 - **Explicit activation:** you request initialization, agent-system planning, agent creation or refinement, evaluation, reconciliation, validation, or another `moldea` outcome.
-- **Knowledge-triggered activation:** in an adopted repository, you supply, confirm, or correct potentially durable project knowledge through terse prose, an answer, a table, YAML, JSON, or an accessible source. This is the first activation signal even without a persistence request.
-- **Relevance-triggered activation:** an ordinary authorized change may affect declared project or agent behavior in a repository that already uses or is adopting `moldea`.
+- **Canonical activation:** the task changes a path under `/moldea/**`.
+- **Managed README activation:** a changed README hunk intersects the content between the full-line `moldea` markers.
+- **Declared-relationship activation:** in an adopted repository, a known task path exactly matches a binding or `affectedBy` declaration.
 
-A knowledge handoff can load the skill before adoption is known so it can inspect that boundary. Loading never establishes adoption or authorizes persistence. A project is adopted only when direct probes establish the complete canonical foundation and owned README awareness block; otherwise it is unadopted. Partial or inconsistent artifacts remain unadopted and are reported precisely rather than becoming a third status. In an unadopted repository, the coding agent completes the authorized request, creates no canonical state, reports that durable knowledge was not persisted, and gives one non-blocking recommendation that explains the benefit of initialization and points to `Initialize moldea`, while leaving initialization optional. Once canonical adoption is established, the coding agent does not ask you to adopt again or choose a storage path. It determines whether the information is current, durable, material, sufficiently established, and authorized for persistence, then selects the appropriate canonical surface.
+Generic durable-knowledge language, an answer to a question, or a host planning, review, Git, commit, or publication command does not activate `moldea`. If no activation path matches, the skill abstains silently without loading references, running the CLI, recommending adoption, or adding a `moldea` status line. Loading never establishes adoption or authorizes persistence. A project is adopted only when the complete canonical foundation and owned README awareness block exist.
 
 ## Operation selection
 

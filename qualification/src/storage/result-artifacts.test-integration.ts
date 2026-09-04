@@ -24,7 +24,7 @@ import {
 
 const createResult = (attemptId: string, artifactDigest: string): IQualificationAttemptResult =>
   QualificationAttemptResultSchema.parse({
-    protocolVersion: 6,
+    protocolVersion: 7,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     mode: 'official',
     attemptId,

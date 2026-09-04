@@ -1,1 +1,0 @@
-Summarizes one support request.

@@ -29,12 +29,20 @@ describe('qualification command runner', () => {
       retryDelayMs: 5_000,
     };
     const result = {
+      protocolVersion: 7,
       attemptId: 'attempt-json',
       selection: { adapterId: 'custom', implementationId: 'custom' },
       status: 'passed',
       mode: 'dry-run',
       summary: 'Qualification passed with one recovered case.',
-      cases: [{ status: 'recovered', trials: [] }],
+      cases: [
+        {
+          caseId: 'evaluate-aligned-project',
+          status: 'recovered',
+          confirmationStatus: 'passed',
+          trials: [],
+        },
+      ],
       stages: [{ operationalRetries: [retry] }],
     } as unknown as IQualificationAttemptResult;
     executionMocks.runQualification.mockImplementation(
@@ -79,10 +87,28 @@ describe('qualification command runner', () => {
     const stdout = stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join('');
     const stderr = stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join('');
     expect(JSON.parse(stdout)).toStrictEqual({
+      protocolVersion: 7,
+      attemptId: 'attempt-json',
+      selection: { adapterId: 'custom', implementationId: 'custom' },
+      status: 'passed',
+      mode: 'dry-run',
+      summary: 'Qualification passed with one recovered case.',
       attemptDirectory: '/attempts/attempt-json',
+      caseResults: [
+        {
+          caseId: 'evaluate-aligned-project',
+          status: 'recovered',
+          confirmationStatus: 'passed',
+        },
+      ],
+      counts: {
+        cases: 1,
+        recoveredCases: 1,
+        operationalRetries: 1,
+        unevaluatedRequirements: 0,
+      },
       preflightPassed: true,
       unevaluatedRequirementIds: [],
-      result,
       wasRecorded: false,
     });
     expect(stderr).toBe(
@@ -93,6 +119,7 @@ describe('qualification command runner', () => {
 
   test('runs a selected diagnostic case with the two-call and four-call approval boundary', async () => {
     const result = {
+      protocolVersion: 7,
       attemptId: 'attempt-diagnostic',
       selection: { adapterId: 'custom', implementationId: 'custom' },
       status: 'passed',
@@ -100,7 +127,9 @@ describe('qualification command runner', () => {
       summary: 'Diagnostic case passed.',
       cases: [
         {
+          caseId: 'stop-on-material-ambiguity',
           status: 'passed',
+          confirmationStatus: 'not-required',
           trials: [{ requirementAssessments: [] }],
         },
       ],
@@ -145,8 +174,26 @@ describe('qualification command runner', () => {
     expect(
       JSON.parse(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join('')),
     ).toStrictEqual({
+      protocolVersion: 7,
+      attemptId: 'attempt-diagnostic',
+      selection: { adapterId: 'custom', implementationId: 'custom' },
+      status: 'passed',
+      mode: 'diagnostic',
+      summary: 'Diagnostic case passed.',
       attemptDirectory: '/attempts/attempt-diagnostic',
-      result,
+      caseResults: [
+        {
+          caseId: 'stop-on-material-ambiguity',
+          status: 'passed',
+          confirmationStatus: 'not-required',
+        },
+      ],
+      counts: {
+        cases: 1,
+        recoveredCases: 0,
+        operationalRetries: 0,
+        unevaluatedRequirements: 0,
+      },
       wasRecorded: false,
     });
   });

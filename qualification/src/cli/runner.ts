@@ -63,23 +63,50 @@ const presentRunOutcome = (
   outcome: Awaited<ReturnType<typeof runQualification>>,
   isJson: boolean,
 ): number => {
-  const unevaluatedRequirementIds = outcome.result.cases.flatMap((caseResult) =>
-    caseResult.trials.flatMap((trial) =>
-      trial.requirementAssessments
-        .filter(({ verdict }) => verdict === 'not-evaluated')
-        .map(({ id }) => id),
+  const unevaluatedRequirementIds = [
+    ...new Set(
+      outcome.result.cases.flatMap((caseResult) =>
+        caseResult.trials.flatMap((trial) =>
+          trial.requirementAssessments
+            .filter(({ verdict }) => verdict === 'not-evaluated')
+            .map(({ id }) => id),
+        ),
+      ),
     ),
+  ].sort();
+  const recoveredCaseCount = outcome.result.cases.filter(
+    ({ status }) => status === 'recovered',
+  ).length;
+  const operationalRetryCount = outcome.result.stages.reduce(
+    (total, stage) => total + stage.operationalRetries.length,
+    0,
   );
   presentQualificationOutput(
     {
+      protocolVersion: outcome.result.protocolVersion,
+      attemptId: outcome.result.attemptId,
+      selection: outcome.result.selection,
+      status: outcome.result.status,
+      mode: outcome.result.mode,
+      summary: outcome.result.summary,
       attemptDirectory: outcome.attemptDirectory,
+      caseResults: outcome.result.cases.map(({ caseId, confirmationStatus, status }) => ({
+        caseId,
+        status,
+        confirmationStatus,
+      })),
+      counts: {
+        cases: outcome.result.cases.length,
+        recoveredCases: recoveredCaseCount,
+        operationalRetries: operationalRetryCount,
+        unevaluatedRequirements: unevaluatedRequirementIds.length,
+      },
       ...(outcome.result.mode === 'dry-run'
         ? {
             preflightPassed: outcome.result.status === 'passed',
             unevaluatedRequirementIds,
           }
         : {}),
-      result: outcome.result,
       wasRecorded: outcome.wasRecorded,
     },
     isJson,

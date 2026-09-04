@@ -86,6 +86,9 @@ const scenario = {
 const emptyCommandPolicy = {
   completedCommandCount: 0,
   credentialExposure: { status: 'not-observed', observedCount: 0 },
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
   networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
   sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
 } as const;
@@ -208,7 +211,7 @@ describe('qualification model stages', () => {
     };
     const candidate: ICandidateClosure = {
       cliJsonSchemaVersion: 2,
-      cliVersion: '4.0.0',
+      cliVersion: '6.0.0',
       fingerprint: 'c'.repeat(64),
       packages: [],
       typeScriptPackage: {
@@ -296,7 +299,7 @@ describe('qualification model stages', () => {
     };
     const candidate: ICandidateClosure = {
       cliJsonSchemaVersion: 2,
-      cliVersion: '4.0.0',
+      cliVersion: '6.0.0',
       fingerprint: 'c'.repeat(64),
       packages: [],
       typeScriptPackage: {
@@ -440,7 +443,7 @@ describe('qualification model stages', () => {
     };
     const candidate: ICandidateClosure = {
       cliJsonSchemaVersion: 2,
-      cliVersion: '4.0.0',
+      cliVersion: '6.0.0',
       fingerprint: 'c'.repeat(64),
       packages: [],
       typeScriptPackage: {
@@ -608,7 +611,7 @@ describe('qualification model stages', () => {
       attemptId: 'attempt',
       candidate: {
         cliJsonSchemaVersion: 2,
-        cliVersion: '4.0.0',
+        cliVersion: '6.0.0',
         fingerprint: 'c'.repeat(64),
         packages: [],
         typeScriptPackage: {
@@ -791,7 +794,7 @@ describe('qualification model stages', () => {
       attemptId: 'attempt',
       candidate: {
         cliJsonSchemaVersion: 2,
-        cliVersion: '4.0.0',
+        cliVersion: '6.0.0',
         fingerprint: 'c'.repeat(64),
         packages: [],
         typeScriptPackage: {
@@ -908,7 +911,7 @@ describe('qualification model stages', () => {
     };
     const candidate: ICandidateClosure = {
       cliJsonSchemaVersion: 2,
-      cliVersion: '4.0.0',
+      cliVersion: '6.0.0',
       fingerprint: 'c'.repeat(64),
       packages: [],
       typeScriptPackage: {

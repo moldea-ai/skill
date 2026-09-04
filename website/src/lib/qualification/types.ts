@@ -4,7 +4,7 @@ import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-re
 import { z } from 'zod';
 
 const QUALIFICATION_PROTOCOL_VERSION = 2;
-const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 6;
+const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 7;
 const INITIAL_OPERATIONAL_RETRY_DELAY_MS = 5_000;
 const MAXIMUM_OPERATIONAL_RETRY_DELAY_MS = 60_000;
 const StableIdSchema = z
@@ -530,6 +530,9 @@ const QualificationCommandPolicyEvidenceSchema = z
       status: z.enum(['not-observed', 'observed']),
       observedCount: z.number().int().nonnegative(),
     }),
+    modelVisibleToolOutputByteCount: z.number().int().min(0).max(16_777_216),
+    moldeaCommandCount: z.number().int().min(0).max(32),
+    moldeaOutputByteCount: z.number().int().min(0).max(8_388_608),
     networkAccess: z.strictObject({
       status: z.enum(['indeterminate', 'not-observed', 'observed']),
       observedCount: z.number().int().nonnegative(),
@@ -570,6 +573,16 @@ const QualificationCommandPolicyEvidenceSchema = z
         path: ['credentialExposure'],
       });
     }
+    if (
+      (evidence.moldeaCommandCount === 0 && evidence.moldeaOutputByteCount !== 0) ||
+      evidence.moldeaOutputByteCount > evidence.modelVisibleToolOutputByteCount
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'moldea resource totals must remain consistent with completed command output.',
+        path: ['moldeaCommandCount'],
+      });
+    }
   });
 // current trial-scoped model provenance consumed independently by the website
 export const QualificationModelStageEvidenceSchema = z.strictObject({
@@ -586,6 +599,7 @@ export const QualificationModelStageEvidenceSchema = z.strictObject({
 export const QualificationProjectedExecutionEventSchema = z.strictObject({
   eventType: z.literal('command.completed'),
   exitCode: z.number().int(),
+  moldeaCommandCount: z.number().int().min(0).max(32),
   outputByteCount: z.number().int().nonnegative(),
   status: z.enum(['completed', 'failed']),
 });
@@ -623,17 +637,9 @@ export interface IQualificationArtifactModel {
 }
 
 // repository location from which one website attempt was resolved at build time
-export type IQualificationEvidenceSourceModel =
-  | {
-      commit: null;
-      kind: 'current';
-      release: null;
-    }
-  | {
-      commit: string;
-      kind: 'historical';
-      release: string;
-    };
+export interface IQualificationEvidenceSourceModel {
+  kind: 'current';
+}
 
 // one transparent case and project selected by a qualification profile
 export interface IQualificationProfileCaseModel {

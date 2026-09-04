@@ -6,7 +6,7 @@ import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:pat
 
 import { createCliClosureDigest } from './cli-closure.mjs';
 import { createPortableSkillBehaviorDigest } from './portable-skill.mjs';
-import { createSemanticCompatibilityDigest } from './semantic-compatibility.mjs';
+import { createSemanticInputDigest } from './semantic-inputs.mjs';
 
 const ATTEMPT_ID_PATTERN = /^\d{8}T\d{9}Z-semantic-[a-f0-9]{8}$/u;
 const EXCLUDED_CONTEXT_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
@@ -45,7 +45,7 @@ const REQUIRED_SOURCE_PATHS = new Set([
   'tooling/evidence-identity/portable-skill.mjs',
   'tooling/evidence-identity/semantic-evaluation-child.mjs',
   'tooling/evidence-identity/semantic-evaluation.mjs',
-  'tooling/evidence-identity/semantic-compatibility.mjs',
+  'tooling/evidence-identity/semantic-inputs.mjs',
   'tooling/evidence-identity/semantic-identity.mjs',
   'tooling/release-identity/constants.mjs',
   'tooling/release-identity/identity.mjs',
@@ -280,7 +280,7 @@ const validateAttemptIdentity = (identity, attemptEntry, receipt = null) => {
       'invocationId',
       'portableSkillBehaviorDigest',
       'schemaVersion',
-      'semanticCompatibilityDigest',
+      'semanticInputDigest',
       'sourceCommit',
       'sourceDigest',
     ]) ||
@@ -300,7 +300,7 @@ const validateAttemptIdentity = (identity, attemptEntry, receipt = null) => {
     identity.portableSkillBehaviorDigest,
     'Semantic identity portable-skill behavior digest',
   );
-  requireSha256(identity.semanticCompatibilityDigest, 'Semantic identity compatibility digest');
+  requireSha256(identity.semanticInputDigest, 'Semantic identity input digest');
   requireSha256(identity.sourceDigest, 'Semantic identity source digest');
 
   if (
@@ -309,7 +309,7 @@ const validateAttemptIdentity = (identity, attemptEntry, receipt = null) => {
       identity.cliClosureDigest !== receipt.cliClosureDigest ||
       identity.invocationId !== receipt.invocationId ||
       identity.portableSkillBehaviorDigest !== receipt.portableSkillBehaviorDigest ||
-      identity.semanticCompatibilityDigest !== receipt.semanticCompatibilityDigest ||
+      identity.semanticInputDigest !== receipt.semanticInputDigest ||
       identity.sourceCommit !== receipt.sourceCommit ||
       identity.sourceDigest !== receipt.sourceDigest)
   ) {
@@ -444,7 +444,7 @@ const validateReceipt = (receipt) => {
       'portableSkillBehaviorDigest',
       'recordingKind',
       'schemaVersion',
-      'semanticCompatibilityDigest',
+      'semanticInputDigest',
       'sourceCommit',
       'sourceDigest',
       'sourceEntries',
@@ -467,7 +467,7 @@ const validateReceipt = (receipt) => {
     receipt.portableSkillBehaviorDigest,
     'Semantic receipt portable-skill behavior digest',
   );
-  requireSha256(receipt.semanticCompatibilityDigest, 'Semantic receipt compatibility digest');
+  requireSha256(receipt.semanticInputDigest, 'Semantic receipt input digest');
   requireSha256(receipt.sourceDigest, 'Semantic receipt source digest');
   validateSourceEntries(receipt.sourceEntries);
   validateAttemptInventory(receipt.attemptInventory);
@@ -498,7 +498,7 @@ export const createSemanticIdentityReceipt = (repositoryRoot, arguments_) => {
     portableSkillBehaviorDigest: createPortableSkillBehaviorDigest(repositoryRoot),
     recordingKind: arguments_.includes('--record-checkpoint') ? 'record-checkpoint' : 'record',
     schemaVersion: SEMANTIC_IDENTITY_SCHEMA_VERSION,
-    semanticCompatibilityDigest: createSemanticCompatibilityDigest(repositoryRoot),
+    semanticInputDigest: createSemanticInputDigest(repositoryRoot),
     ...sourceIdentity,
   };
   const recapturedSource = captureSemanticSourceIdentity(repositoryRoot);
@@ -874,7 +874,7 @@ const createAttemptIdentity = (receipt, attemptEntry) => ({
   invocationId: receipt.invocationId,
   portableSkillBehaviorDigest: receipt.portableSkillBehaviorDigest,
   schemaVersion: SEMANTIC_IDENTITY_SCHEMA_VERSION,
-  semanticCompatibilityDigest: receipt.semanticCompatibilityDigest,
+  semanticInputDigest: receipt.semanticInputDigest,
   sourceCommit: receipt.sourceCommit,
   sourceDigest: receipt.sourceDigest,
 });

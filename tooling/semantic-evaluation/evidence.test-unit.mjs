@@ -23,6 +23,12 @@ const createCaseDefinition = (id) => ({
     ],
   },
   operation: 'perform-operation',
+  resourceBudget: {
+    activation: 'abstain',
+    minimumMoldeaCommands: 0,
+    maximumMoldeaCommands: 0,
+    maximumMoldeaOutputBytes: 0,
+  },
   scenario: 'An adopted repository needs one operation.',
 });
 
@@ -58,39 +64,6 @@ describe('semantic evaluation evidence', () => {
     );
   });
 
-  test('validates and binds applicable host instructions', () => {
-    const caseDefinition = {
-      ...createCaseDefinition('case-one'),
-      hostInstructions: '# Repository instructions\n\nKeep planning read-only.\n',
-      input: {
-        developerDirection: 'Perform the requested operation.',
-        repositoryEvidence: [
-          {
-            claim: 'The developer requested the operation.',
-            source: { kind: 'developer-direction' },
-          },
-          {
-            claim: 'Repository instructions require read-only planning.',
-            source: { kind: 'host-instructions' },
-          },
-        ],
-      },
-    };
-
-    assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
-    assert.notEqual(
-      createSemanticCaseDefinitionDigest(caseDefinition),
-      createSemanticCaseDefinitionDigest(createCaseDefinition('case-one')),
-    );
-
-    for (const hostInstructions of ['', 'invalid\0instructions', 'x'.repeat(16_385)]) {
-      assert.throws(
-        () => validateSemanticCaseDefinition({ ...caseDefinition, hostInstructions }),
-        /invalid host instructions/,
-      );
-    }
-  });
-
   test('rejects prompt-shaped cases and unsourced or unsafe evidence', () => {
     const caseDefinition = createCaseDefinition('case-one');
 
@@ -101,14 +74,6 @@ describe('semantic evaluation evidence', () => {
     assert.throws(
       () => validateSemanticCaseDefinition({ ...caseDefinition, unexpected: true }),
       /structured scenario/,
-    );
-    assert.throws(
-      () =>
-        validateSemanticCaseDefinition({
-          ...caseDefinition,
-          hostInstructions: '# Repository instructions',
-        }),
-      /source every applicable host instruction/,
     );
     assert.throws(
       () =>

@@ -1,13 +1,13 @@
 // @vitest-environment node
 // exercises the public loader against complete repository-shaped filesystem fixtures
 import { createHash } from 'node:crypto';
-import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { afterEach, describe, expect, test } from 'vitest';
+import { parse as parseYaml } from 'yaml';
 
 import { recordQualificationResult } from '../../../../qualification/src/result/index.ts';
 import { buildActorPrompt } from '../../../../qualification/src/prompts/index.ts';
@@ -21,7 +21,6 @@ import { seedPassingQualificationEvidenceFixture } from '../../../../qualificati
 import { assertPublishableQualificationEvidence, loadQualificationWebsiteModel } from './loader.ts';
 
 const SHA_A = 'a'.repeat(64);
-const HISTORICAL_SOURCE_COMMIT = 'fcbc34f60b12b1b66cd9ebb28b1865979a259429';
 const TARGET_KEY = 't1';
 const temporaryRoots: string[] = [];
 const canonicalRepositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../../..');
@@ -47,13 +46,6 @@ const writeText = (root: string, relativePath: string, content: string): void =>
 const writeJson = (root: string, relativePath: string, value: unknown): void => {
   writeText(root, relativePath, `${JSON.stringify(value, null, 2)}\n`);
 };
-
-const executeGit = (root: string, args: string[]): string =>
-  execFileSync('git', args, {
-    cwd: root,
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  }).trim();
 
 const seedProfile = (root: string): void => {
   writeText(
@@ -274,7 +266,7 @@ const seedCurrentQualificationAttempt = async (
   writeText(
     root,
     'qualification/profiles/t1/cases/c1/README.md',
-    '# Release case\n\nThis fixture exercises protocol 6 evidence.\n',
+    '# Release case\n\nThis fixture exercises protocol 7 evidence.\n',
   );
   writeText(
     root,
@@ -297,11 +289,11 @@ cases:
     packages: [
       {
         name: '@moldea.ai/cli',
-        version: '4.0.0',
+        version: '6.0.0',
         registryIntegrity: `sha512-${'c'.repeat(86)}`,
         registryShasum: 'd'.repeat(40),
-        registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-4.0.0.tgz',
-        tarballName: 'cli-4.0.0.tgz',
+        registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-6.0.0.tgz',
+        tarballName: 'cli-6.0.0.tgz',
         sha256: SHA_A,
       },
     ],
@@ -364,6 +356,7 @@ const convertCurrentAttemptToActorPolicyFailure = (root: string, attemptId: stri
     `${JSON.stringify({
       eventType: 'command.completed',
       exitCode: 0,
+      moldeaCommandCount: 0,
       outputByteCount: 1,
       status: 'completed',
     })}\n`,
@@ -457,7 +450,7 @@ const convertCurrentAttemptToFailed = (root: string, attemptId: string): void =>
   updatedAttempt.cases = attempt.cases;
   writeAttemptFixture(root, attemptId, updatedAttempt);
   writeJson(root, 'qualification/results/t1/latest.json', {
-    protocolVersion: 6,
+    protocolVersion: 7,
     adapterId: 'custom',
     implementationId: 'custom',
     latestAttemptId: attemptId,
@@ -517,7 +510,7 @@ const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: stri
   updatedAttempt.cases = attempt.cases;
   writeAttemptFixture(root, attemptId, updatedAttempt);
   writeJson(root, 'qualification/results/t1/latest.json', {
-    protocolVersion: 6,
+    protocolVersion: 7,
     adapterId: 'custom',
     implementationId: 'custom',
     latestAttemptId: attemptId,
@@ -532,24 +525,26 @@ afterEach(() => {
 });
 
 describe('loadQualificationWebsiteModel', () => {
-  test('combines all immutable v4 attempts with current short storage without duplicate routes', () => {
+  test('loads current profiles with universal cases owned only by Custom', () => {
     const model = loadQualificationWebsiteModel(canonicalRepositoryRoot);
     const attempts = model.profiles.flatMap(({ attempts }) => attempts);
     const customProfile = model.profiles.find(
       ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
     );
+    const caseCatalog = parseYaml(
+      readFileSync(join(canonicalRepositoryRoot, 'qualification/cases/cases.yaml'), 'utf8'),
+    ) as { cases: Array<{ id: string; layer: string }> };
+    const universalCaseIds = new Set(
+      caseCatalog.cases.filter(({ layer }) => layer === 'universal-baseline').map(({ id }) => id),
+    );
 
     expect(model.profiles).toHaveLength(14);
-    expect(attempts).toHaveLength(60);
-    expect(customProfile?.attempts).toHaveLength(10);
-    expect(new Set(attempts.map(({ route }) => route))).toHaveLength(60);
-    expect(attempts.every(({ evidenceSource }) => evidenceSource.kind === 'historical')).toBe(true);
+    expect(attempts).toHaveLength(0);
+    expect(customProfile?.cases.map(({ id }) => id)).toStrictEqual([...universalCaseIds]);
     expect(
-      attempts.every(
-        ({ artifacts, rawAttemptUrl }) =>
-          rawAttemptUrl.includes(`/${HISTORICAL_SOURCE_COMMIT}/`) &&
-          artifacts.every(({ rawUrl }) => rawUrl.includes(`/${HISTORICAL_SOURCE_COMMIT}/`)),
-      ),
+      model.profiles
+        .filter(({ adapterId }) => adapterId !== 'custom')
+        .every(({ cases }) => cases.every(({ id }) => !universalCaseIds.has(id))),
     ).toBe(true);
 
     const serializedModel = JSON.stringify(model);
@@ -593,7 +588,7 @@ describe('loadQualificationWebsiteModel', () => {
     writeText(
       root,
       'qualification/profiles/t1/cases/c1/README.md',
-      '# Release case\n\nThis fixture exercises recovered protocol 6 evidence.\n',
+      '# Release case\n\nThis fixture exercises recovered protocol 7 evidence.\n',
     );
     const result = await seedPassingQualificationEvidenceFixture({
       artifactDirectory,
@@ -603,11 +598,11 @@ describe('loadQualificationWebsiteModel', () => {
       packages: [
         {
           name: '@moldea.ai/cli',
-          version: '4.0.0',
+          version: '6.0.0',
           registryIntegrity: `sha512-${'c'.repeat(86)}`,
           registryShasum: 'd'.repeat(40),
-          registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-4.0.0.tgz',
-          tarballName: 'cli-4.0.0.tgz',
+          registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-6.0.0.tgz',
+          tarballName: 'cli-6.0.0.tgz',
           sha256: SHA_A,
         },
       ],
@@ -644,7 +639,7 @@ cases:
 
     expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
     expect(profile?.currentLatest?.result).toMatchObject({
-      protocolVersion: 6,
+      protocolVersion: 7,
       status: 'passed',
     });
     expect(recoveredCase?.result).toMatchObject({
@@ -742,108 +737,6 @@ cases:
     });
   });
 
-  test('validates historical evidence against its recorded qualification contract', async () => {
-    const root = createTemporaryRoot();
-    const attemptId = 'attempt-historical-contract';
-    await seedCurrentQualificationAttempt(root, attemptId);
-    executeGit(root, ['init', '--quiet']);
-    executeGit(root, ['config', 'user.email', 'qualification@example.com']);
-    executeGit(root, ['config', 'user.name', 'Qualification Fixture']);
-    executeGit(root, ['add', 'qualification/profiles']);
-    executeGit(root, ['commit', '--quiet', '-m', 'test: record qualification contract']);
-    const qualificationRepositoryCommit = executeGit(root, ['rev-parse', 'HEAD']);
-    const attempt = readAttemptFixture(root, attemptId);
-    const provenance = attempt['provenance'];
-
-    if (typeof provenance !== 'object' || provenance === null) {
-      throw new Error('Missing qualification provenance fixture.');
-    }
-
-    (provenance as Record<string, unknown>)['qualificationRepositoryCommit'] =
-      qualificationRepositoryCommit;
-    writeAttemptFixture(root, attemptId, attempt);
-    const scenarioPath = 'qualification/profiles/t1/cases/c1/scenario.yaml';
-    const currentScenario = readFileSync(join(root, scenarioPath), 'utf8').replace(
-      '  expectation: changed',
-      '  expectation: unchanged',
-    );
-    writeText(root, scenarioPath, currentScenario);
-
-    expect(() => loadQualificationWebsiteModel(root)).not.toThrow();
-  });
-
-  test('keeps recorded attempts readable after the current profile replaces their case', async () => {
-    const root = createTemporaryRoot();
-    const attemptId = 'attempt-replaced-profile-case';
-    await seedCurrentQualificationAttempt(root, attemptId);
-    executeGit(root, ['init', '--quiet']);
-    executeGit(root, ['config', 'user.email', 'qualification@example.com']);
-    executeGit(root, ['config', 'user.name', 'Qualification Fixture']);
-    executeGit(root, ['add', 'qualification/profiles']);
-    executeGit(root, ['commit', '--quiet', '-m', 'test: record original qualification case']);
-    const qualificationRepositoryCommit = executeGit(root, ['rev-parse', 'HEAD']);
-    const attempt = readAttemptFixture(root, attemptId);
-    const provenance = attempt['provenance'];
-
-    if (typeof provenance !== 'object' || provenance === null) {
-      throw new Error('Missing qualification provenance fixture.');
-    }
-
-    (provenance as Record<string, unknown>)['qualificationRepositoryCommit'] =
-      qualificationRepositoryCommit;
-    writeAttemptFixture(root, attemptId, attempt);
-
-    const originalCaseRoot = 'qualification/profiles/t1/cases/c1';
-    const replacementCaseRoot = 'qualification/profiles/t1/cases/c2';
-    writeText(
-      root,
-      'qualification/cases/cases.yaml',
-      readFileSync(join(root, 'qualification/cases/cases.yaml'), 'utf8')
-        .replaceAll('release-case', 'replacement-case')
-        .replaceAll('Release case', 'Replacement case'),
-    );
-    writeText(
-      root,
-      'qualification/profiles/t1/profile.yaml',
-      readFileSync(join(root, 'qualification/profiles/t1/profile.yaml'), 'utf8')
-        .replace('id: release-case', 'id: replacement-case')
-        .replace('projectDirectory: cases/c1', 'projectDirectory: cases/c2'),
-    );
-    writeText(
-      root,
-      'qualification/profiles/t1/probes/claims.yaml',
-      readFileSync(join(root, 'qualification/profiles/t1/probes/claims.yaml'), 'utf8').replaceAll(
-        'release-case',
-        'replacement-case',
-      ),
-    );
-    writeText(
-      root,
-      `${replacementCaseRoot}/scenario.yaml`,
-      readFileSync(join(root, originalCaseRoot, 'scenario.yaml'), 'utf8')
-        .replace('id: release-case', 'id: replacement-case')
-        .replace('title: Release case', 'title: Replacement case'),
-    );
-    writeText(
-      root,
-      `${replacementCaseRoot}/task.md`,
-      '# Replacement case\n\nInspect the replacement case.\n',
-    );
-    writeText(
-      root,
-      `${replacementCaseRoot}/README.md`,
-      '# Replacement case\n\nThis is the current replacement project.\n',
-    );
-    rmSync(join(root, originalCaseRoot), { recursive: true });
-
-    const profile = loadQualificationWebsiteModel(root).profiles[0];
-
-    expect(profile?.cases.map(({ id }) => id)).toStrictEqual(['replacement-case']);
-    expect(
-      profile?.attempts[0]?.cases.map(({ result: caseResult }) => caseResult.caseId),
-    ).toStrictEqual(['release-case']);
-  });
-
   test('loads a failed trial caused by judge command policy evidence', async () => {
     const root = createTemporaryRoot();
     const attemptId = 'attempt-judge-policy-failure';
@@ -924,7 +817,7 @@ cases:
     });
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
-      'Qualification evidence has an incomplete protocol 6 artifact inventory.',
+      'Qualification evidence has an incomplete protocol 7 artifact inventory.',
     );
   });
 
@@ -958,6 +851,7 @@ cases:
       `${JSON.stringify({
         eventType: 'command.completed',
         exitCode: 0,
+        moldeaCommandCount: 0,
         outputByteCount: 0,
         status: 'completed',
         command: 'moldea validate',
@@ -996,7 +890,7 @@ cases:
       string,
       unknown
     >;
-    writeJson(root, latestPath, { ...latest, protocolVersion: 7 });
+    writeJson(root, latestPath, { ...latest, protocolVersion: 8 });
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
   });

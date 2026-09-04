@@ -4,6 +4,7 @@ import {
   hasValidActorExecutionEvidence,
   type ISemanticActorExecutionEvidenceOptions,
 } from '../../../../tooling/semantic-evaluation/index.mjs';
+import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../../../../tooling/release-identity/constants.mjs';
 
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
 const StableIdSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
@@ -17,26 +18,28 @@ const SemanticHostSchema = z.object({
   version: z.string().trim().min(1),
 });
 const SemanticHostContractSchema = SemanticHostSchema.omit({ version: true });
-const SemanticActorCommandPolicyEvidenceSchema = z
-  .object({
-    completedCommandCount: z.number().int().nonnegative(),
-    indeterminateCommandCount: z.number().int().nonnegative(),
-    packageManagerExecution: z.enum(['indeterminate', 'not-observed', 'observed']),
-    packageManagerInvocationCount: z.number().int().nonnegative(),
+const SemanticActorCommandPolicyEvidenceSchema = z.strictObject({
+  completedCommandCount: z.number().int().min(0).max(128),
+});
+const SemanticActorResourceEvidenceSchema = z
+  .strictObject({
+    commandCount: z.number().int().min(0).max(16),
+    maximumInvocationByteCount: z.number().int().min(0).max(1_048_576),
+    modelVisibleToolOutputByteCount: z.number().int().min(0).max(1_048_576),
+    operations: z
+      .array(z.enum(['composition', 'content', 'inspect', 'scope', 'unrecognized', 'validate']))
+      .max(16),
+    stdoutByteCount: z.number().int().min(0).max(1_048_576),
   })
   .superRefine((evidence, context) => {
-    const expectedStatus =
-      evidence.packageManagerInvocationCount > 0
-        ? 'observed'
-        : evidence.indeterminateCommandCount > 0
-          ? 'indeterminate'
-          : 'not-observed';
     if (
-      evidence.indeterminateCommandCount + evidence.packageManagerInvocationCount >
-        evidence.completedCommandCount ||
-      evidence.packageManagerExecution !== expectedStatus
+      evidence.operations.length !== evidence.commandCount ||
+      evidence.maximumInvocationByteCount > evidence.stdoutByteCount ||
+      evidence.modelVisibleToolOutputByteCount !== evidence.stdoutByteCount ||
+      (evidence.commandCount === 0 &&
+        (evidence.maximumInvocationByteCount !== 0 || evidence.stdoutByteCount !== 0))
     ) {
-      context.addIssue({ code: 'custom', message: 'Invalid command-policy aggregate.' });
+      context.addIssue({ code: 'custom', message: 'Invalid moldea resource aggregate.' });
     }
   });
 
@@ -50,6 +53,7 @@ export const SemanticCliIdentitySchema = z.object({
 
 const SemanticAttemptTrialSchema = z.object({
   actorCommandPolicyEvidence: SemanticActorCommandPolicyEvidenceSchema,
+  actorResourceEvidence: SemanticActorResourceEvidenceSchema,
   actorHost: SemanticHostSchema,
   confirmationIndex: z.union([z.literal(1), z.literal(2)]).nullable(),
   evaluatedAt: z.iso.datetime(),
@@ -67,44 +71,27 @@ const SemanticAttemptEvidenceReferenceBaseSchema = z.object({
   sha256: Sha256Schema,
 });
 const SemanticAttemptEvidenceReferenceSchema = SemanticAttemptEvidenceReferenceBaseSchema.extend({
-  evaluationProtocolVersion: z.literal(21),
+  evaluationProtocolVersion: z.literal(SEMANTIC_EVALUATION_PROTOCOL_VERSION),
   schemaVersion: z.literal(6),
 });
 
-const SemanticReplayOutputFactSchema = z.discriminatedUnion('kind', [
-  z.object({
-    kind: z.literal('focused-runtime-test'),
-    path: z.literal('/src/support-agent.test-integration.js'),
-    status: z.enum(['failed', 'passed']),
-  }),
-  z.object({
-    cliVersion: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
-    command: z.enum(['composition', 'inspect', 'validate']),
-    errorPresent: z.boolean(),
-    kind: z.literal('moldea-cli-envelope'),
-    resultPresent: z.boolean(),
-    schemaVersion: z.number().int().positive(),
-    status: z.enum(['error', 'invalid', 'valid']),
-  }),
-  z.object({
-    kind: z.literal('workspace-paths'),
-    paths: z.array(z.string().trim().min(1)).min(1),
-  }),
-  z.object({
-    binaries: z.tuple([z.literal('moldea')]),
-    kind: z.literal('yarn-package-info'),
-    packageName: z.literal('@moldea.ai/cli'),
-    version: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
-  }),
-  z.object({
-    binaryName: z.literal('moldea'),
-    kind: z.literal('yarn-binary-provider'),
-    source: z.literal('conflicting-moldea-provider'),
-  }),
-]);
+const SemanticReplayOutputFactSchema = z.object({
+  cliVersion: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
+  command: z.enum(['composition', 'content', 'inspect', 'scope', 'validate']),
+  containsContent: z.boolean(),
+  errorPresent: z.boolean(),
+  hasNextPage: z.boolean(),
+  kind: z.literal('moldea-cli-envelope'),
+  pageRecordCount: z.number().int().nonnegative(),
+  relevant: z.boolean().nullable(),
+  resultPresent: z.boolean(),
+  schemaVersion: z.number().int().positive(),
+  status: z.enum(['error', 'invalid', 'valid']),
+});
 const SemanticReplayCommandSchema = z.object({
   eventType: z.literal('item.completed'),
   item: z.object({
+    commandKind: z.enum(['moldea', 'other']),
     exitCode: z.number().int(),
     outputEvidence: z.object({
       byteCount: z.number().int().nonnegative(),
@@ -184,6 +171,7 @@ const SemanticReplayWorkspaceChangesSchema = z.object({
 });
 const SemanticReplayTrialShape = {
   actorCommandPolicyEvidence: SemanticActorCommandPolicyEvidenceSchema,
+  actorResourceEvidence: SemanticActorResourceEvidenceSchema,
   actorExecutionEvidence: z.array(SemanticReplayCommandSchema).max(128),
   actorHost: SemanticHostSchema,
   actorResponse: z.string(),
@@ -218,10 +206,10 @@ const SemanticReplayConfirmationTrialSchema = z
     developerDirection,
   }));
 
-// public-safe projection selected from one digest-verified protocol-21 evidence artifact
+// public-safe projection selected from one digest-verified current evidence artifact
 export const SemanticReplayCandidateSchema = z.object({
   confirmations: z.array(SemanticReplayConfirmationTrialSchema),
-  evaluationProtocolVersion: z.literal(21),
+  evaluationProtocolVersion: z.literal(SEMANTIC_EVALUATION_PROTOCOL_VERSION),
   results: z.array(SemanticReplayInitialTrialSchema),
   schemaVersion: z.literal(6),
 });

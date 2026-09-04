@@ -2,6 +2,7 @@
 import { describe, expect, test } from 'vitest';
 
 import { createSemanticCaseDefinitionDigest } from '../../../../tooling/semantic-evaluation/index.mjs';
+import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../../../../tooling/release-identity/constants.mjs';
 
 import { createSemanticEvaluationReplay } from './replay-transformers.ts';
 import type { ISemanticCaseDefinition } from './types.ts';
@@ -20,9 +21,6 @@ const HOST = {
 } as const;
 const createCommandPolicyEvidence = (completedCommandCount: number) => ({
   completedCommandCount,
-  indeterminateCommandCount: 0,
-  packageManagerExecution: 'not-observed',
-  packageManagerInvocationCount: 0,
 });
 const CASE_DEFINITION = {
   expected: [{ criterion: 'The agent must finish.', label: 'finished' }],
@@ -38,6 +36,12 @@ const CASE_DEFINITION = {
     ],
   },
   operation: 'change-repository',
+  resourceBudget: {
+    activation: 'direct',
+    maximumMoldeaCommands: 4,
+    maximumMoldeaOutputBytes: 262_144,
+    minimumMoldeaCommands: 1,
+  },
   scenario: 'A developer requests a bounded change.',
 } satisfies ISemanticCaseDefinition;
 const CASE_DEFINITION_DIGEST = 'a'.repeat(64);
@@ -48,6 +52,7 @@ const createCommand = (
 ): Record<string, unknown> => ({
   eventType: 'item.completed',
   item: {
+    commandKind: fact === null ? 'other' : 'moldea',
     exitCode,
     outputEvidence: {
       byteCount: fact === null ? (exitCode === 0 ? 12 : 24) : 24,
@@ -64,10 +69,33 @@ const createRawTrial = (overrides: Record<string, unknown> = {}): Record<string,
   const completedCommandCount = Array.isArray(actorExecutionEvidence)
     ? actorExecutionEvidence.length
     : 0;
+  const moldeaCommands = Array.isArray(actorExecutionEvidence)
+    ? (
+        actorExecutionEvidence as Array<{
+          item?: {
+            commandKind?: string;
+            outputEvidence?: { byteCount?: number; facts?: Array<{ command?: string }> };
+          };
+        }>
+      ).filter(({ item }) => item?.commandKind === 'moldea')
+    : [];
+  const moldeaOutputByteCounts = moldeaCommands.map(
+    ({ item }) => item?.outputEvidence?.byteCount ?? 0,
+  );
+  const moldeaOutputByteCount = moldeaOutputByteCounts.reduce((total, count) => total + count, 0);
 
   return {
     actorCommandPolicyEvidence: createCommandPolicyEvidence(completedCommandCount),
     actorExecutionEvidence,
+    actorResourceEvidence: {
+      commandCount: moldeaCommands.length,
+      maximumInvocationByteCount: Math.max(0, ...moldeaOutputByteCounts),
+      modelVisibleToolOutputByteCount: moldeaOutputByteCount,
+      operations: moldeaCommands.map(
+        ({ item }) => item?.outputEvidence?.facts?.[0]?.command ?? 'unrecognized',
+      ),
+      stdoutByteCount: moldeaOutputByteCount,
+    },
     actorHost: HOST,
     actorResponse: 'I completed the requested change and verified the result.',
     caseDefinitionDigest: CASE_DEFINITION_DIGEST,
@@ -99,6 +127,7 @@ const createTrialSummary = (
   confirmationIndex: 1 | 2 | null = null,
 ): ISemanticAttemptRecord['cases'][number]['trials'][number] => ({
   actorCommandPolicyEvidence: trial.actorCommandPolicyEvidence,
+  actorResourceEvidence: trial.actorResourceEvidence,
   actorHost: trial.actorHost,
   confirmationIndex,
   evaluatedAt: trial.evaluatedAt,
@@ -135,7 +164,7 @@ const parseCandidate = (
 ): ISemanticReplayCandidate =>
   SemanticReplayCandidateSchema.parse({
     confirmations,
-    evaluationProtocolVersion: 21,
+    evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     results: [initial],
     schemaVersion: 6,
   });
@@ -148,12 +177,16 @@ describe('createSemanticEvaluationReplay', () => {
           createCommand(0, null),
           createCommand(0, null),
           createCommand(0, {
-            cliVersion: '5.0.0',
+            cliVersion: '6.0.0',
             command: 'validate',
+            containsContent: false,
             errorPresent: false,
+            hasNextPage: false,
             kind: 'moldea-cli-envelope',
+            pageRecordCount: 1,
+            relevant: null,
             resultPresent: true,
-            schemaVersion: 2,
+            schemaVersion: 3,
             status: 'valid',
           }),
           createCommand(7, null),
@@ -239,56 +272,6 @@ describe('createSemanticEvaluationReplay', () => {
     });
   });
 
-  test.each([
-    [
-      {
-        kind: 'focused-runtime-test',
-        path: '/src/support-agent.test-integration.js',
-        status: 'passed',
-      },
-      'Focused runtime test',
-      '/src/support-agent.test-integration.js: passed.',
-    ],
-    [
-      { kind: 'workspace-paths', paths: ['/.pnp/node_modules/@moldea.ai/cli'] },
-      'Resolve evaluator-owned workspace paths',
-      'Resolved /.pnp/node_modules/@moldea.ai/cli.',
-    ],
-    [
-      {
-        binaries: ['moldea'],
-        kind: 'yarn-package-info',
-        packageName: '@moldea.ai/cli',
-        version: '5.0.0',
-      },
-      'Inspect the Yarn package',
-      'Resolved @moldea.ai/cli 5.0.0 with moldea.',
-    ],
-    [
-      {
-        binaryName: 'moldea',
-        kind: 'yarn-binary-provider',
-        source: 'conflicting-moldea-provider',
-      },
-      'Inspect the Yarn binary provider',
-      'moldea resolves from conflicting-moldea-provider.',
-    ],
-  ])('renders projected fact %o as a concise command result', (fact, operation, result) => {
-    const candidate = parseCandidate(
-      createRawTrial({ actorExecutionEvidence: [createCommand(0, fact as never)] }),
-    );
-    const replay = createSemanticEvaluationReplay(
-      CASE_DEFINITION,
-      createAttemptCase(candidate),
-      candidate,
-    ).replay;
-
-    expect(replay.trials[0]?.steps.find(({ kind }) => kind === 'command')).toMatchObject({
-      operation,
-      results: [result],
-    });
-  });
-
   test('keeps the initial failure and confirmations in immutable order', () => {
     const candidate = parseCandidate(
       createRawTrial({
@@ -349,7 +332,7 @@ describe('createSemanticEvaluationReplay', () => {
     });
   });
 
-  test('discloses when historical evidence did not retain developer direction', () => {
+  test('discloses when recorded evidence did not retain developer direction', () => {
     const candidate = parseCandidate(createRawTrial({ scenarioEvidence: [] }));
 
     const projection = createSemanticEvaluationReplay(
@@ -360,7 +343,7 @@ describe('createSemanticEvaluationReplay', () => {
 
     expect(projection.developerDirection).toBeNull();
     expect(projection.replay.trials[0]?.steps[0]).toStrictEqual({
-      content: 'The exact developer direction was not retained in this historical artifact.',
+      content: 'The exact developer direction was not retained in this recorded artifact.',
       kind: 'message',
       role: 'developer',
       source: 'derived',

@@ -2,21 +2,16 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
 import {
-  cpSync,
   existsSync,
   mkdtempSync,
   mkdirSync,
   readFileSync,
-  readdirSync,
   rmSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { afterEach, test } from 'node:test';
-
-import { verifySemanticEvaluationAttempts } from '../semantic-evaluation/index.mjs';
 
 import {
   SEMANTIC_IDENTITY_RECEIPT_PATH,
@@ -27,7 +22,6 @@ import {
   writeSemanticIdentityReceipt,
 } from './semantic-identity.mjs';
 
-const CURRENT_DIRECTORY = dirname(fileURLToPath(import.meta.url));
 const temporaryRoots = [];
 
 const createOwnedSemanticIdentityReceipt = (repositoryRoot, arguments_) => ({
@@ -68,12 +62,12 @@ const createRepository = () => {
   writeFixtureFile(
     repositoryRoot,
     'moldea/SKILL.md',
-    "---\nname: moldea\nmetadata:\n  version: '4.0.0'\n---\n\nSkill release `4.0.0` supports exactly:\n",
+    "---\nname: moldea\nmetadata:\n  version: '5.0.0'\n---\n\n# moldea\n",
   );
   writeFixtureFile(
     repositoryRoot,
     'moldea/references/local-tooling.md',
-    '# Local tooling\n\nRelease `4.0.0` supports:\n',
+    '# Local tooling\n\nSkill 5.0.0 supports exactly the current CLI.\n',
   );
   writeFixtureFile(repositoryRoot, 'fixtures/conformance-cases.json', '{}\n');
   writeFixtureFile(repositoryRoot, 'fixtures/semantic-evaluation-coverage.json', '{}\n');
@@ -84,7 +78,7 @@ const createRepository = () => {
     'tooling/evidence-identity/portable-skill.mjs',
     'tooling/evidence-identity/semantic-evaluation-child.mjs',
     'tooling/evidence-identity/semantic-evaluation.mjs',
-    'tooling/evidence-identity/semantic-compatibility.mjs',
+    'tooling/evidence-identity/semantic-inputs.mjs',
     'tooling/evidence-identity/semantic-identity.mjs',
     'tooling/release-identity/constants.mjs',
     'tooling/release-identity/identity.mjs',
@@ -95,9 +89,9 @@ const createRepository = () => {
   }
   const packageManifest = {
     name: 'semantic-identity-fixture',
-    version: '4.0.0',
-    moldeaRelease: { cliJsonSchemaVersion: 2 },
-    devDependencies: { '@moldea.ai/cli': '5.0.0' },
+    version: '5.0.0',
+    moldeaRelease: { cliJsonSchemaVersion: 3 },
+    devDependencies: { '@moldea.ai/cli': '6.0.0' },
   };
   const packageLock = {
     name: packageManifest.name,
@@ -110,7 +104,7 @@ const createRepository = () => {
         devDependencies: packageManifest.devDependencies,
       },
       'node_modules/@moldea.ai/cli': {
-        version: '5.0.0',
+        version: '6.0.0',
         integrity: 'sha512-cli',
       },
     },
@@ -172,7 +166,7 @@ const createAttemptIdentityText = (receipt, attempt) => {
       invocationId: receipt.invocationId,
       portableSkillBehaviorDigest: receipt.portableSkillBehaviorDigest,
       schemaVersion: receipt.schemaVersion,
-      semanticCompatibilityDigest: receipt.semanticCompatibilityDigest,
+      semanticInputDigest: receipt.semanticInputDigest,
       sourceCommit: receipt.sourceCommit,
       sourceDigest: receipt.sourceDigest,
     },
@@ -220,7 +214,7 @@ test('finalizes one attributable new attempt and binds its exact bytes', async (
   assert.equal(identity.sourceDigest, receipt.sourceDigest);
   assert.equal(identity.portableSkillBehaviorDigest, receipt.portableSkillBehaviorDigest);
   assert.equal(identity.cliClosureDigest, receipt.cliClosureDigest);
-  assert.equal(identity.semanticCompatibilityDigest, receipt.semanticCompatibilityDigest);
+  assert.equal(identity.semanticInputDigest, receipt.semanticInputDigest);
   assert.deepEqual(readSemanticAttemptIdentity(repositoryRoot, attempt.attemptId), identity);
   assert.equal(existsSync(join(repositoryRoot, SEMANTIC_IDENTITY_RECEIPT_PATH)), false);
 });
@@ -463,21 +457,4 @@ test('recovers exact receipt-consumption claims and preserves mismatched claims'
   );
   assert.equal(existsSync(activeClaimReceiptPath), true);
   assert.equal(existsSync(activeClaimPath), true);
-});
-
-test('identity sidecars do not change existing semantic attempt verification', async () => {
-  const temporaryRoot = mkdtempSync(join(tmpdir(), 'moldea-semantic-verification-'));
-  temporaryRoots.push(temporaryRoot);
-  const resultsRoot = join(temporaryRoot, 'semantic-evaluation-results');
-  cpSync(resolve(CURRENT_DIRECTORY, '../../fixtures/semantic-evaluation-results'), resultsRoot, {
-    recursive: true,
-  });
-  const attemptId = readdirSync(join(resultsRoot, 'attempts')).sort()[0];
-  writeFileSync(join(resultsRoot, 'attempts', attemptId, 'identity.json'), '{"schemaVersion":1}\n');
-
-  assert.deepEqual(await verifySemanticEvaluationAttempts(resultsRoot), {
-    attempts: 3,
-    issues: [],
-    passed: true,
-  });
 });

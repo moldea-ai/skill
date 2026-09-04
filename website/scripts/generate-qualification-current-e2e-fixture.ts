@@ -20,7 +20,7 @@ try {
     ),
     writeTextFileAtomically(
       join(fixtureRoot, 'qualification', 'profiles', 't1', 'cases', 'c1', 'README.md'),
-      '# Release case\n\nThis fixture exercises recovered protocol 6 evidence.\n',
+      '# Release case\n\nThis fixture exercises recovered protocol 7 evidence.\n',
     ),
     writeTextFileAtomically(
       join(fixtureRoot, 'qualification', 'cases', 'cases.yaml'),
@@ -43,11 +43,11 @@ cases:
     packages: [
       {
         name: '@moldea.ai/cli',
-        version: '4.0.0',
+        version: '6.0.0',
         registryIntegrity: `sha512-${'c'.repeat(86)}`,
         registryShasum: 'd'.repeat(40),
-        registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-4.0.0.tgz',
-        tarballName: 'cli-4.0.0.tgz',
+        registryTarballUrl: 'https://registry.npmjs.org/@moldea.ai/cli/-/cli-6.0.0.tgz',
+        tarballName: 'cli-6.0.0.tgz',
         sha256: 'a'.repeat(64),
       },
     ],

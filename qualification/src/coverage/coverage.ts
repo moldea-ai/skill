@@ -1,5 +1,11 @@
 import type { IRuntimeAdapterEntry, IRuntimeTarget } from '../compatibility/index.ts';
-import { QualificationProbesSchema, type IQualificationProfile } from '../contracts/index.ts';
+import { QUALIFICATION_CASES_PATH } from '../constants/index.ts';
+import {
+  QualificationCaseCatalogSchema,
+  QualificationProbesSchema,
+  type IQualificationCaseCatalog,
+  type IQualificationProfile,
+} from '../contracts/index.ts';
 import { calculateSha256, readYamlFile, resolveContainedPath } from '../filesystem/index.ts';
 import type { IQualificationCoverageResult } from './types.ts';
 
@@ -60,6 +66,7 @@ export const inspectQualificationCoverage = async (
   profile: IQualificationProfile,
   adapter: IRuntimeAdapterEntry,
   target: IRuntimeTarget,
+  caseCatalog?: IQualificationCaseCatalog,
 ): Promise<IQualificationCoverageResult> => {
   const probesPath = resolveContainedPath(profileDirectory, profile.probesFile);
   const probes = await readYamlFile(probesPath, QualificationProbesSchema);
@@ -71,7 +78,14 @@ export const inspectQualificationCoverage = async (
     throw new Error('Qualification probe identity does not match its owning profile.');
   }
 
+  const resolvedCaseCatalog =
+    caseCatalog ?? (await readYamlFile(QUALIFICATION_CASES_PATH, QualificationCaseCatalogSchema));
   const profileCaseIds = new Set(profile.cases.map(({ id }) => id));
+  const sharedCaseIds = resolvedCaseCatalog.cases
+    .filter(({ layer }) => layer === 'universal-baseline')
+    .map(({ id }) => id);
+  const isCustom = profile.adapterId === 'custom' && profile.implementationId === 'custom';
+  const expectedCaseIds = new Set([...(isCustom ? [] : sharedCaseIds), ...profileCaseIds]);
   const coveredCaseIds = new Set<string>();
   const declaredClaims = probes.probes.map(({ matrixPath }) => matrixPath);
   const requiredClaims = deriveRequiredQualificationClaims(adapter, target);
@@ -80,7 +94,7 @@ export const inspectQualificationCoverage = async (
 
   for (const probe of probes.probes) {
     for (const caseId of probe.coveredBy) {
-      if (!profileCaseIds.has(caseId)) {
+      if (!expectedCaseIds.has(caseId)) {
         throw new Error(`Probe ${probe.id} references unknown profile case ${caseId}.`);
       }
 
@@ -92,7 +106,7 @@ export const inspectQualificationCoverage = async (
   const unknownClaims = [...declaredClaimSet]
     .filter((claim) => !requiredClaimSet.has(claim))
     .sort((left, right) => left.localeCompare(right, 'en'));
-  const uncoveredCaseIds = [...profileCaseIds]
+  const uncoveredCaseIds = [...expectedCaseIds]
     .filter((caseId) => !coveredCaseIds.has(caseId))
     .sort((left, right) => left.localeCompare(right, 'en'));
 

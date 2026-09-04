@@ -35,7 +35,7 @@ Project scope is recommended because the installed skill can travel with the rep
 
 Every compatible host consumes the same portable semantic core:
 
-- `SKILL.md` defines activation, authority, compatibility, operation selection, and reporting. Potentially durable knowledge is its first activation signal, regardless of whether it arrives as prose, an answer, a table, structured data, or an accessible source; loading then checks adoption and never establishes it.
+- `SKILL.md` defines activation, authority, compatibility, operation selection, and reporting. It activates only for an explicit `moldea` operation, a canonical path change, a managed README hunk, or a task path matched by a declared binding or `affectedBy` relationship. Generic knowledge and unrelated host workflows do not load it.
 - Focused references are loaded only for the workflows that require them.
 - Repository-local `@moldea.ai/cli` tooling owns deterministic inspection and validation.
 - Canonical project and agent state remains under `/moldea/**`.

@@ -20,7 +20,7 @@ vi.mock('../qualification/index.ts', () => {
             lastPassingAttemptId: 'attempt-pass',
             latestAttemptId: 'attempt-pass',
             latestStatus: 'passed',
-            protocolVersion: 6,
+            protocolVersion: 7,
             updatedAt: '2026-08-22T12:00:00.000Z',
           },
           probes: [],
@@ -40,14 +40,14 @@ vi.mock('../semantic-evaluation/index.ts', () => {
     loadSemanticEvaluationWebsiteModel: vi.fn(() => ({
       artifactDigest: 'a'.repeat(64),
       attempts: [],
-      caseCount: 49,
+      caseCount: 14,
       caseSuiteDigest: 'b'.repeat(64),
       cli: {
         integrity: 'sha512-test',
-        jsonSchemaVersion: 2,
+        jsonSchemaVersion: 3,
         name: '@moldea.ai/cli',
         packageLockSha256: 'c'.repeat(64),
-        version: '4.0.0',
+        version: '6.0.0',
       },
       coverageDigest: 'd'.repeat(64),
       coverageUrl: 'https://example.com/semantic-coverage.json',
@@ -58,12 +58,12 @@ vi.mock('../semantic-evaluation/index.ts', () => {
           artifactDigest: 'a'.repeat(64),
           attemptId: 'semantic-attempt',
           failedCaseCount: 0,
-          passedCaseCount: 49,
+          passedCaseCount: 14,
           pendingCaseCount: 0,
           recoveredCaseCount: 0,
           status: 'passed',
           stopReason: 'complete',
-          totalCaseCount: 49,
+          totalCaseCount: 14,
         },
         route: '/evidence/semantic/attempts/semantic-attempt/',
       },
@@ -97,9 +97,9 @@ vi.mock('../semantic-evaluation/index.ts', () => {
               title: 'Semantic case',
             },
           ],
-          description: 'Adoption behavior.',
-          id: 'adoption',
-          title: 'Adoption and initialization',
+          description: 'Abstention behavior.',
+          id: 'abstention',
+          title: 'Unrelated work and host precedence',
         },
       ],
       lastPassing: null,
@@ -110,12 +110,12 @@ vi.mock('../semantic-evaluation/index.ts', () => {
         result: {
           attemptId: 'semantic-attempt',
           failedCaseCount: 0,
-          passedCaseCount: 49,
+          passedCaseCount: 14,
           pendingCaseCount: 0,
           recoveredCaseCount: 0,
           status: 'passed',
           stopReason: 'complete',
-          totalCaseCount: 49,
+          totalCaseCount: 14,
         },
         route: '/evidence/semantic/attempts/semantic-attempt/',
       },
@@ -127,7 +127,7 @@ vi.mock('../semantic-evaluation/index.ts', () => {
         updatedAt: '2026-08-22T12:00:00.000Z',
       },
       methodologyUrl: '/docs/semantic-evaluation/',
-      passedCaseCount: 49,
+      passedCaseCount: 14,
       pendingCaseCount: 0,
       recoveredCaseCount: 0,
       route: '/evidence/semantic/',
@@ -148,7 +148,7 @@ describe('createWebsiteModel', () => {
     const model = createWebsiteModel();
 
     expect(model.skill.name).toBe('moldea');
-    expect(model.skill.version).toBe('4.0.2');
+    expect(model.skill.version).toBe('5.0.0');
     expect(model.skill.description.length).toBeGreaterThan(0);
     expect(new Set(model.routes).size).toBe(model.routes.length);
     expect(model.documents.length).toBeGreaterThanOrEqual(18);

@@ -13,7 +13,6 @@ import {
   QualificationAttemptStorageSchema,
   type IQualificationArtifactStorageEntry,
   type IQualificationAttemptStorage,
-  type IQualificationCarryForwardSource,
   type IQualificationCompatibilityIdentity,
 } from './types.ts';
 
@@ -66,7 +65,6 @@ export const createQualificationAttemptStorage = (options: {
   compatibility: IQualificationCompatibilityIdentity;
   portableSkillBehaviorDigest: string;
   result: IQualificationAttemptResult;
-  carryForward?: IQualificationCarryForwardSource;
 }): IQualificationAttemptStorage => {
   const attemptIdDigest = calculateSha256(options.result.attemptId);
 
@@ -81,7 +79,6 @@ export const createQualificationAttemptStorage = (options: {
     portableSkillBehaviorDigest: options.portableSkillBehaviorDigest,
     cliClosureDigest: options.cliClosureDigest,
     artifacts: createQualificationArtifactStorageEntries(options.result.artifactDigests),
-    ...(options.carryForward === undefined ? {} : { carryForward: options.carryForward }),
   });
 };
 

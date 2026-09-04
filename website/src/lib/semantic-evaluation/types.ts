@@ -12,7 +12,7 @@ import type { ISemanticAttemptRecord, ISemanticLatestResult } from './validation
 export type ISemanticEvaluationGroupId = keyof typeof SEMANTIC_EVALUATION_GROUPS;
 export type ISemanticEvaluationCaseId = keyof typeof SEMANTIC_CASE_PRESENTATION;
 export type ISemanticEvaluationCaseStatus = 'failed' | 'passed' | 'pending' | 'recovered';
-export type ISemanticEvidenceMatch = 'compatible' | 'exact';
+export type ISemanticEvidenceMatch = 'exact';
 
 // exact actor or judge host shown with one trial
 export interface ISemanticEvaluationHostModel {
@@ -26,9 +26,15 @@ export interface ISemanticEvaluationHostModel {
 export interface ISemanticAttemptTrialModel {
   actorCommandPolicyEvidence: {
     completedCommandCount: number;
-    indeterminateCommandCount: number;
-    packageManagerExecution: 'indeterminate' | 'not-observed' | 'observed';
-    packageManagerInvocationCount: number;
+  };
+  actorResourceEvidence: {
+    commandCount: number;
+    maximumInvocationByteCount: number;
+    modelVisibleToolOutputByteCount: number;
+    operations: Array<
+      'composition' | 'content' | 'inspect' | 'scope' | 'unrecognized' | 'validate'
+    >;
+    stdoutByteCount: number;
   };
   actorHost: ISemanticEvaluationHostModel;
   confirmationIndex: 1 | 2 | null;
@@ -80,7 +86,7 @@ export interface ISemanticAttemptModel {
   route: string;
 }
 
-// verified semantic attempt history embedded in the static website model
+// verified current semantic attempts embedded in the static website model
 export interface ISemanticEvaluationWebsiteModel {
   artifactDigest: string;
   attempts: ISemanticAttemptModel[];

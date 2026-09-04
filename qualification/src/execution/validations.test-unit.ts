@@ -158,6 +158,9 @@ const createCommandPolicyEvidence = (
 ): IQualificationCommandPolicyEvidence => ({
   completedCommandCount: status === 'not-observed' ? 0 : 1,
   credentialExposure: { status: 'not-observed', observedCount: 0 },
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
   networkAccess: {
     status,
     observedCount: status === 'observed' ? 1 : 0,
@@ -489,7 +492,7 @@ describe('qualification source-state validation', () => {
 describe('qualification resume identity validation', () => {
   const candidate: ICandidateClosure = {
     cliJsonSchemaVersion: 2,
-    cliVersion: '4.0.0',
+    cliVersion: '6.0.0',
     fingerprint: 'a'.repeat(64),
     packages: [
       {

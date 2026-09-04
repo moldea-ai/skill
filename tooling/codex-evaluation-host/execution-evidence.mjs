@@ -4,6 +4,9 @@ const COMMAND_POLICY_STATUSES = new Set(['indeterminate', 'not-observed', 'obser
 const COMMAND_RESULT_STATUSES = new Set(['completed', 'failed']);
 const MAX_COMPLETED_COMMAND_COUNT = 128;
 const MAX_COMMAND_BYTES = 32_768;
+const MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES = 16_777_216;
+const MAX_MOLDEA_COMMAND_COUNT = 32;
+const MAX_MOLDEA_OUTPUT_BYTES = 8_388_608;
 
 const NETWORK_EXECUTABLES = new Set([
   'corepack',
@@ -838,7 +841,11 @@ const classifyNetworkCommand = (words) => {
 /** Classifies one complete command without retaining its content. */
 const classifyCommand = (command) => {
   if (Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
-    return { networkAccess: 'indeterminate', sensitiveAccess: 'indeterminate' };
+    return {
+      moldeaCommandCount: 0,
+      networkAccess: 'indeterminate',
+      sensitiveAccess: 'indeterminate',
+    };
   }
   const rawSensitiveAccess = SENSITIVE_ACCESS_PATTERN.test(command) ? 'observed' : null;
   const directCommand = unwrapCodexShellCommand(command);
@@ -848,6 +855,7 @@ const classifyCommand = (command) => {
       : tokenizeStaticShellList(stripSafeShellRedirections(directCommand));
   if (commands === null) {
     return {
+      moldeaCommandCount: 0,
       networkAccess: 'indeterminate',
       sensitiveAccess: rawSensitiveAccess ?? 'indeterminate',
     };
@@ -859,7 +867,17 @@ const classifyCommand = (command) => {
     : networkClassifications.includes('indeterminate')
       ? 'indeterminate'
       : 'not-observed';
+  const moldeaCommandCount = commands.filter((words) => {
+    const commandWords = [...words];
+    while (/^[A-Za-z_][A-Za-z0-9_]*=.*/u.test(commandWords[0] ?? '')) commandWords.shift();
+    if (commandWords[0] === '!') commandWords.shift();
+    return (
+      getExecutableName(commandWords[0] ?? '') === 'moldea' &&
+      isTrustedLocalExecutable(commandWords[0], 'moldea')
+    );
+  }).length;
   return {
+    moldeaCommandCount,
     networkAccess,
     sensitiveAccess:
       sensitiveAccess ?? (networkAccess === 'indeterminate' ? 'indeterminate' : 'not-observed'),
@@ -910,6 +928,15 @@ const summarizePolicy = (classifications, policyName) => {
   };
 };
 
+/** Throws one actionable resource-limit error with the observed and permitted values. */
+const assertWithinResourceLimit = (label, unit, observedValue, maximumValue) => {
+  if (observedValue > maximumValue) {
+    throw new Error(
+      `Codex execution evidence ${label} is ${observedValue} ${unit}; the limit is ${maximumValue} ${unit}.`,
+    );
+  }
+};
+
 /**
  * Decides whether qualification command-policy evidence contains an observed violation.
  * @param evidence The validated privacy-safe command-policy aggregate.
@@ -934,6 +961,9 @@ export const projectCodexEvaluationExecutionEvidence = (source) => {
   const projectedEvents = [];
   const classifications = [];
   let credentialExposureCount = 0;
+  let modelVisibleToolOutputByteCount = 0;
+  let moldeaCommandCount = 0;
+  let moldeaOutputByteCount = 0;
   let usage = null;
 
   for (const eventLine of source.split('\n')) {
@@ -972,11 +1002,34 @@ export const projectCodexEvaluationExecutionEvidence = (source) => {
     }
 
     const classification = classifyCommand(event.item.command);
+    const outputByteCount = Buffer.byteLength(event.item.aggregated_output, 'utf8');
+    modelVisibleToolOutputByteCount += outputByteCount;
+    moldeaCommandCount += classification.moldeaCommandCount;
+    if (classification.moldeaCommandCount > 0) moldeaOutputByteCount += outputByteCount;
+    assertWithinResourceLimit(
+      'model-visible tool output',
+      'bytes',
+      modelVisibleToolOutputByteCount,
+      MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES,
+    );
+    assertWithinResourceLimit(
+      'moldea command count',
+      'commands',
+      moldeaCommandCount,
+      MAX_MOLDEA_COMMAND_COUNT,
+    );
+    assertWithinResourceLimit(
+      'moldea command output',
+      'bytes',
+      moldeaOutputByteCount,
+      MAX_MOLDEA_OUTPUT_BYTES,
+    );
     classifications.push(classification);
     projectedEvents.push({
       eventType: 'command.completed',
       exitCode: event.item.exit_code,
-      outputByteCount: Buffer.byteLength(event.item.aggregated_output, 'utf8'),
+      moldeaCommandCount: classification.moldeaCommandCount,
+      outputByteCount,
       status: event.item.status,
     });
   }
@@ -989,6 +1042,9 @@ export const projectCodexEvaluationExecutionEvidence = (source) => {
       credentialExposureCount > 0
         ? { status: 'observed', observedCount: credentialExposureCount }
         : { status: 'not-observed', observedCount: 0 },
+    modelVisibleToolOutputByteCount,
+    moldeaCommandCount,
+    moldeaOutputByteCount,
     networkAccess,
     sensitiveAccess,
   };

@@ -26,7 +26,6 @@ const model = loadWebsiteModel();
 const rendered = await renderMarkdownDocument(document.markdown, {
   basePath: import.meta.env.BASE_URL,
   productNameTreatment: 'code',
-  strongLabelBadges: [{ id: 'supported', label: 'Supported', tone: 'success' }],
 });
 const breadcrumbs = [
   { href: '/', label: 'Home' },

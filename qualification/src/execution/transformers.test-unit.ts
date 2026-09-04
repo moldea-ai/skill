@@ -6,6 +6,7 @@ import {
   QualificationAttemptResultDraftSchema,
   QualificationAttemptResultSchema,
 } from '../contracts/index.ts';
+import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import type { IQualificationExecutionProvenance } from './types.ts';
 import { createQualificationAttemptResult } from './transformers.ts';
 
@@ -23,7 +24,7 @@ const createCandidatePackage = (name: string, version: string, marker: string) =
 describe('qualification result transformation', () => {
   test('permits a dirty passing dry-run draft without making it publishable', () => {
     const checkpoint = QualificationAttemptCheckpointSchema.parse({
-      protocolVersion: 6,
+      protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
       attemptId: 'dry-run-attempt',
       parentAttemptId: null,
       selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -43,9 +44,9 @@ describe('qualification result transformation', () => {
       targetDigest: 'f'.repeat(64),
       candidate: {
         fingerprint: '0'.repeat(64),
-        cliVersion: '4.0.1',
-        cliJsonSchemaVersion: 2,
-        packages: [createCandidatePackage('@moldea.ai/cli', '4.0.1', '1')],
+        cliVersion: '6.0.0',
+        cliJsonSchemaVersion: 3,
+        packages: [createCandidatePackage('@moldea.ai/cli', '6.0.0', '1')],
         runtimePackages: [createCandidatePackage('ai', '7.0.77', '2')],
         typeScriptPackage: {
           ...createCandidatePackage('typescript', '6.0.3', '3'),

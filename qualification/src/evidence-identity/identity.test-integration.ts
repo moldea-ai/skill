@@ -4,17 +4,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
-import { QUALIFICATION_ROOT, SKILL_REPOSITORY_ROOT } from '../constants/index.ts';
+import { QUALIFICATION_ROOT } from '../constants/index.ts';
 import { copyDirectory, ensureDirectory, writeTextFileAtomically } from '../filesystem/index.ts';
 import { loadQualificationProfileIndex } from '../storage/index.ts';
 import {
   calculateQualificationEvaluatorDigest,
-  calculateQualificationEvaluatorDigestAtCommit,
   calculateQualificationLogicalInputDigest,
-  calculateQualificationLogicalInputDigestAtCommit,
 } from './identity.ts';
-
-const SOURCE_COMMIT = 'fcbc34f60b12b1b66cd9ebb28b1865979a259429';
 
 describe('qualification compatibility identity', () => {
   let temporaryRoot: string | null = null;
@@ -25,27 +21,27 @@ describe('qualification compatibility identity', () => {
     }
   });
 
-  test('preserves evaluator and all 14 logical profile identities across short storage', async () => {
+  test('derives stable, distinct current identities for all 14 profiles', async () => {
     const index = await loadQualificationProfileIndex();
+    const evaluatorDigest = await calculateQualificationEvaluatorDigest();
+    const logicalDigests = new Set<string>();
 
-    await expect(calculateQualificationEvaluatorDigest()).resolves.toBe(
-      await calculateQualificationEvaluatorDigestAtCommit(SOURCE_COMMIT),
-    );
+    await expect(calculateQualificationEvaluatorDigest()).resolves.toBe(evaluatorDigest);
 
     for (const target of index.targets) {
       const selection = {
         adapterId: target.adapterId,
         implementationId: target.implementationId,
       };
+      const logicalDigest = await calculateQualificationLogicalInputDigest({ selection });
 
       await expect(calculateQualificationLogicalInputDigest({ selection })).resolves.toBe(
-        await calculateQualificationLogicalInputDigestAtCommit({
-          commit: SOURCE_COMMIT,
-          repositoryRoot: SKILL_REPOSITORY_ROOT,
-          selection,
-        }),
+        logicalDigest,
       );
+      logicalDigests.add(logicalDigest);
     }
+
+    expect(logicalDigests.size).toBe(index.targets.length);
   });
 
   test('changes a logical digest when actor-visible profile bytes change', async () => {

@@ -21,7 +21,7 @@ const assertAllowedContractPath = (relativePath: string): void => {
  * Reads one qualification contract from the exact clean commit recorded by public evidence.
  * Synthetic result roots without a Git commit keep using their adjacent test fixture contracts.
  * @param options The recorded commit, result root, relative contract path, and boundary schema.
- * @returns A promise resolving to the validated historical contract.
+ * @returns A promise resolving to the validated recorded contract.
  * @throws If public evidence lacks a Git commit or its recorded contract cannot be read.
  */
 export const readQualificationContractYaml = async <TResult>(options: {

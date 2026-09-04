@@ -21,9 +21,13 @@ const HOST_CONTRACT = {
 };
 const COMMAND_POLICY_EVIDENCE = {
   completedCommandCount: 1,
-  indeterminateCommandCount: 0,
-  packageManagerExecution: 'not-observed',
-  packageManagerInvocationCount: 0,
+};
+const RESOURCE_EVIDENCE = {
+  commandCount: 0,
+  maximumInvocationByteCount: 0,
+  modelVisibleToolOutputByteCount: 0,
+  operations: [],
+  stdoutByteCount: 0,
 };
 
 const createTrial = (id, passed, evaluatedAt) => ({
@@ -46,6 +50,7 @@ const createEvidence = (results, confirmations = []) => ({
   generatedAt: '2026-08-25T00:00:00.000Z',
   confirmations: confirmations.map((confirmation) => ({
     actorCommandPolicyEvidence: COMMAND_POLICY_EVIDENCE,
+    actorResourceEvidence: RESOURCE_EVIDENCE,
     actorHost: UPDATED_HOST,
     judgeHost: UPDATED_HOST,
     ...confirmation,
@@ -53,6 +58,7 @@ const createEvidence = (results, confirmations = []) => ({
   hostContract: HOST_CONTRACT,
   results: results.map((result) => ({
     actorCommandPolicyEvidence: COMMAND_POLICY_EVIDENCE,
+    actorResourceEvidence: RESOURCE_EVIDENCE,
     actorHost: HOST,
     judgeHost: HOST,
     ...result,
@@ -283,7 +289,10 @@ test('semantic attempt summaries accept only the current schema and protocol con
     () =>
       createSemanticAttemptRecord({
         ...options,
-        evidence: { ...createEvidence([trial]), evaluationProtocolVersion: 22 },
+        evidence: {
+          ...createEvidence([trial]),
+          evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION - 1,
+        },
       }),
     /unsupported schema and protocol contract/,
   );

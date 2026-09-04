@@ -2,7 +2,6 @@
 export type {
   IQualificationArtifactStorageEntry,
   IQualificationAttemptStorage,
-  IQualificationCarryForwardSource,
   IQualificationProfileIndex,
   IQualificationProfileIndexTarget,
 } from './types.ts';

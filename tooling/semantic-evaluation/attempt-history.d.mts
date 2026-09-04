@@ -16,9 +16,15 @@ export interface ISemanticEvaluationHostIdentity extends ISemanticEvaluationHost
 // aggregate command-policy evidence retained without raw command text
 export interface ISemanticAttemptCommandPolicyEvidence {
   completedCommandCount: number;
-  indeterminateCommandCount: number;
-  packageManagerExecution: 'indeterminate' | 'not-observed' | 'observed';
-  packageManagerInvocationCount: number;
+}
+
+// bounded moldea CLI use retained without raw output bodies
+export interface ISemanticAttemptResourceEvidence {
+  commandCount: number;
+  maximumInvocationByteCount: number;
+  modelVisibleToolOutputByteCount: number;
+  operations: Array<'composition' | 'content' | 'inspect' | 'scope' | 'unrecognized' | 'validate'>;
+  stdoutByteCount: number;
 }
 
 // exact published CLI identity bound to the semantic attempt
@@ -32,7 +38,7 @@ export interface ISemanticAttemptCliIdentity {
 
 // immutable evidence reference for the current semantic contract
 export interface ISemanticAttemptEvidenceReference {
-  evaluationProtocolVersion: 21;
+  evaluationProtocolVersion: 22;
   kind: 'candidate';
   path: 'evidence.json';
   schemaVersion: 6;
@@ -42,6 +48,7 @@ export interface ISemanticAttemptEvidenceReference {
 // one initial or confirmation evaluation for a semantic case
 export interface ISemanticAttemptTrial {
   actorCommandPolicyEvidence: ISemanticAttemptCommandPolicyEvidence;
+  actorResourceEvidence: ISemanticAttemptResourceEvidence;
   actorHost: ISemanticEvaluationHostIdentity;
   confirmationIndex: 1 | 2 | null;
   evaluatedAt: string;

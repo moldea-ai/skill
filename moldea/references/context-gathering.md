@@ -1,123 +1,54 @@
 # Context gathering
 
-Read this reference before initialization, agent-system planning, consequential project-context work, knowledge-triggered maintenance, Agent Skill creation or material maintenance, agent creation, semantic evaluation, or reconciliation.
+Read this reference after moldea relevance is established when the operation needs project evidence or canonical content.
 
-## Establish the purpose
+## Reuse evidence before discovering
 
-Begin with the question that must be answered: project foundation, system architecture, one domain, one Agent Skill, one agent, one behavior change, one contradiction, or one reconciliation. The purpose controls investigation depth and persistence.
+Start with the developer's request and evidence already gathered by the host workflow: repository root, changed paths, hunks, current file contents, diffs, tests, and task constraints. Do not rerun Git status, reconstruct a candidate tree, hash unrelated files, or repeat broad repository searches for moldea.
 
-Use supported deterministic `inspect --json` early when the operation permits it. Inspection establishes structure, canonical assets, registered relationships, and available adapter evidence; it does not establish intent or semantic correctness.
+Separate:
 
-## Classify evidence
+- observed current behavior
+- developer-confirmed current truth
+- intended future behavior
+- accepted decisions and rationale
+- unresolved questions
+- inference used only to direct investigation
 
-Keep these categories distinct:
+Do not turn plans, historical notes, branch-local experiments, transient status, or unverified inference into current canonical truth.
 
-- **Observed current fact:** directly established by current repository or deterministic evidence.
-- **Developer-confirmed truth:** current or intended state explicitly established by the developer.
-- **Intended resulting state:** behavior the authorized change must produce.
-- **Planned future work:** approved but unimplemented direction.
-- **Accepted rationale:** active reasoning preserved by an accepted decision.
-- **Historical or superseded state:** useful history that no longer governs.
-- **Unresolved state:** a material missing or uncertain fact or implementation.
-- **Inference:** a hypothesis used only to direct investigation.
+## Select metadata before content
 
-Do not collapse branch-local work, committed truth, plans, history, and unresolved behavior into one narrative.
+Use `validate` when structure is the only question. Use content-free `inspect` only when the operation needs canonical paths, digests, counts, relationships, requirements, mirrors, runtimes, or diagnostics. Process the first 65,536-byte page directly and follow its cursor only while another page can change the conclusion.
 
-## Use question-specific authority
+Use `content` for one canonical path only after metadata identifies the owner or the direct task already names it. Read only the chunks needed to answer or edit the relevant contract. Never obtain every canonical body for orientation.
 
-Evidence establishes only the facts within its role:
+Treat a path, digest, relationship, or declaration as routing evidence, not proof that the prose and implementation agree. Follow only the exact referenced implementation, consumer, test, or documentation boundary needed for the active operation.
 
-- implementation shows executable behavior, not necessarily intended policy
-- schemas define enforced shapes but may be stale or incomplete
-- tests show intended or observed cases but may be stale
-- canonical context states durable project truth subject to evidence
-- accepted decisions explain active rationale
-- agent instructions declare model behavior, not runtime support
-- Agent Skill source declares reusable coding-agent behavior, not installation, activation, or runtime registration
-- runtime guidance explains project-specific integration
-- adapter evidence proves only what the adapter detected
-- developer direction establishes task intent within safety and repository constraints
-- external documentation establishes external support, not this project's use
+## Evidence hierarchy
 
-When evidence conflicts, determine whether claims concern the same scope and time. Inspect nearby contracts and history when useful; ask only when consequential ambiguity remains.
+Prefer, in order:
 
-## Handle project-knowledge handoffs
+1. explicit current developer statements
+2. executable behavior and tests in the task scope
+3. current authoritative project documentation
+4. canonical moldea assets and declared relationships
+5. history when the current meaning remains ambiguous
+6. external sources only when current published compatibility matters
 
-Interpret developer-supplied prose, structured data, answers, tables, and accessible sources by meaning rather than format. Activation requires reconsideration, not automatic persistence. Classify each claim as current truth, explicit correction, future intent, proposal, transient detail, or unresolved uncertainty.
+Never use inaccessible, excluded, archived, or backup content as evidence. Do not infer absence from an incomplete search or partial page.
 
-With established adoption and Maintain authority, select the canonical surface from meaning rather than asking for adoption or a storage path. Persist clear current truth or explicit corrections only when material, durable, and authorized. Current does not imply durable: short-lived status stays transient unless it establishes a lasting operating constraint. Represent proposed or future state as such only when an appropriate planned or decision surface is justified. Omit transient, speculative, secret, unnecessarily personal, generic, redundant, or easily rediscovered information. Classify mixed handoffs claim by claim; never persist a shared container as one unit.
+## Persist selectively
 
-A non-conflicting current claim can establish truth in any format. A conflicting bare assertion cannot replace established truth. Continue only when the developer marks a correction or current replacement, or reliable evidence resolves the conflict. Otherwise identify both claims, ask whether the new one replaces current state or is proposed or future state, and make no semantic write before the answer. Organizational truth that only the developer can establish does not require repository corroboration.
+For an authorized maintenance operation, persist only durable project-specific facts that materially improve future reasoning and have an established canonical owner. Omit secrets, personal data not required by the contract, transient execution state, generic engineering knowledge, copied implementation detail, and facts that are cheap and reliable to rediscover.
 
-Broad verbs such as “process,” “handle,” or “manage” do not establish consequential authority. When implementation proves only narrower behavior, preserve that observed conclusion, classify the foundation as Partial, identify the unestablished permission, value-bearing, destructive, lifecycle, or external-action boundary, and ask before tooling or semantic writes.
+When intent is materially ambiguous, preserve the ambiguity as an existing requirement when one exists or ask one focused question. Do not create speculative requirements merely to avoid making a conclusion.
 
-A focused question asks for one missing fact or decision. Prioritize authority, responsibility ownership, topology, or consequential side effects. Ask purpose or recipient only for an otherwise empty foundation; do not bundle purpose, users, goals, boundaries, authority, and workflow.
+## Operation-specific depth
 
-## Investigate progressively
+- Initialization needs purpose, users or systems served, goals, material boundaries, and enough repository evidence to avoid an invented foundation.
+- Agent-system planning needs the workflow, deterministic boundaries, data, permissions, side effects, failure modes, scale, and human-control requirements.
+- Agent or skill design needs the exact reusable outcome, consumers, invocation boundary, capabilities, schemas, runtime wiring, and representative positive and negative cases.
+- Evaluation or reconciliation needs the scoped canonical owners, declared relationships, relevant implementation, tests, and any unresolved criteria.
 
-1. Inspect applicable instructions, the root README, manifests, canonical moldea state, and other high-information surfaces.
-2. Use a bounded root inventory when filename discovery is sparse. A path listing only queues candidates.
-3. Search objective terms across source, documentation, configuration, and tests. Read every accessible material candidate before a conclusion, absence claim, request, or plan, mapping each path to its fact and responsibility.
-4. Follow relevant imports, bindings, impact paths, schemas, capabilities, Agent Skill resources and consumers, runtime construction, instruction loaders, variable providers, tests, runtime guidance, decisions, unresolved references, and adapter evidence.
-5. Test consequential conclusions against a second reliable surface when practical.
-6. Identify contradictions, time differences, and material unknowns.
-7. Ask one focused question only when different answers would materially change persisted truth, behavior, policy, permission, schema, capability use, routing, failure handling, or implementation direction.
-8. Stop when more evidence is unlikely to change a material conclusion for the current purpose.
-
-Never ask the developer to paste an accessible file or read the entire repository by default.
-
-## Select durable state
-
-Persist only information durable and material enough to improve project understanding, behavioral integrity, future maintenance, semantic analysis, or prevention of likely repeated misunderstanding:
-
-- `/moldea/project.md`: concise foundational identity, purpose, users, goals, values, boundaries, and universally important facts
-- `/moldea/context/**/*.md`: focused current domain, product, architecture, security, integration, terminology, team ownership, or operational truth
-- `/moldea/decisions/*.md`: rationale for choices with meaningful alternatives or consequences
-- `/moldea/runtimes/**/*.md`: project-specific runtime interpretation not reliably derivable from adapter and repository evidence
-- `/moldea/moldea.yaml`: supported relationships, bindings, impact paths, runtime variables, capabilities, mirrors, and unresolved state
-- `instruction.md`: behavior the runtime model must know
-- the authoritative repository-native Agent Skill directory: reusable coding-agent procedure and focused resources
-- nowhere: temporary, immaterial, rediscoverable, speculative, secret, generic, or redundant information
-
-Canonical context is not an issue tracker, implementation log, exhaustive inventory, generic runtime guide, or secret store.
-
-## Gather for specialized design
-
-Agent-system planning needs enough current workflow, domain, data, contract, permission, side-effect, human-control, scale, security, failure, and recovery evidence to allocate every material responsibility without consequential assumptions. Record each material path, the fact and responsibility it establishes, and whether the recommendation preserves, combines, or reliably replaces it. Planning remains read-only and does not persist discoveries or proposals.
-
-Agent Skill work additionally requires the requested reusable outcome, expected coding-agent users, correct behavioral owner, authoritative source and copies, representative activation and non-activation requests, required resources, supported environments, tests, host metadata, installation, distribution, and consumers. A directory name, installed copy, or request to “make a skill” is insufficient by itself.
-
-## Initialize context first
-
-Before foundation classification can end in clarification, complete `local-tooling.md`'s file-only executable-extension gate and independent installed-CLI presence check. This inert safety preflight does not authorize a package-manager command or dependency change. If it establishes a tooling blocker, report that blocker and its prerequisite before any independent foundation question.
-
-Classify the project foundation before changing dependency state. Missing or unverified tooling never makes available evidence empty and does not authorize installation before the foundation supports writes.
-
-Project names, generic labels, placeholders, empty exports, and brief or generic package metadata may guide clarification but cannot establish a sufficient foundation alone:
-
-- **Insufficient:** meaningful purpose, users or systems served, principal goals, and relevant boundaries remain unknown. Report that no meaningful context was established and which high-information sources were inspected. Stop before dependencies, canonical state, or the README block, then explain the durable-context benefit and ask one question about the highest-value missing fact. Prefer: “`moldea` keeps durable project context in the repository so coding agents can understand the project consistently over time. The README and source do not establish what this project is for, so I haven’t initialized it yet. What does the project do, and who or what does it serve?” Adapt only the inspected sources and missing foundational fact.
-- **Partial:** some conclusions are supported, but a material gap or consequential alternative remains. In the final response, state the evidence-backed project purpose before naming the material gap and asking one question about it. Stop before dependencies, canonical state, mirrors, or the README block.
-- **Sufficient:** evidence supports a useful truthful foundation without material assumptions. Complete initialization without a ceremonial question and report understanding, the material sources supporting each foundation conclusion, resulting files, validation, and non-blocking limitations.
-
-Judge evidence by quality, coverage, consistency, and authority rather than volume. A concise authoritative source may be sufficient; extensive stale or contradictory documentation may not be.
-
-Once sufficient, create only:
-
-```text
-/moldea/moldea.yaml
-/moldea/project.md
-```
-
-Use `version: 1` and omit empty optional manifest mappings. Create focused context, decisions, runtime guidance, agents, and requirements only when actual understanding requires them. Never create ceremonial directories or checklist documents.
-
-Initialization does not create an agent by default. Partial or inconsistent artifacts leave the project unadopted; name every present canonical artifact and missing contract element in the final response, preserve valid content, and do not initialize or repair over them until explicit authority and any consequential semantic ambiguity are resolved. A new initialize request in an adopted repository becomes foundation maintenance.
-
-Never turn developer-answerable ambiguity into an unresolved requirement or claim initialization completed while awaiting context.
-
-Every completed initialization ends with `Next actions`, always offering foundation review and ordinary development. Mention agent-system planning or agent creation only when relevant. Validation does not replace this handoff or make file creation semantic completion.
-
-## Preserve project distinctions
-
-Keep current context, proposed work, rejected or superseded decisions, runtime guidance, and unresolved state distinct. Create a decision only when preserving why materially helps future work; create runtime guidance only for a real project-specific integration.
-
-For authorization, ownership, billing, value-bearing, destructive, concurrent, or lifecycle-sensitive behavior, preserve the evidenced responsible actor, authoritative transition, transaction and idempotency boundary, timing, and audit obligations. Known incomplete state can remain accurate current state, but prose does not make it production-ready.
+Stop discovery when more evidence is unlikely to change a material conclusion. Report a precise evidence limitation instead of compensating with repository-wide reading.

@@ -34,6 +34,9 @@ const WORKSPACE_FAILURE = 'Unexpected changed path unexpected.md.';
 const EMPTY_COMMAND_POLICY = {
   completedCommandCount: 0,
   credentialExposure: { status: 'not-observed', observedCount: 0 },
+  modelVisibleToolOutputByteCount: 0,
+  moldeaCommandCount: 0,
+  moldeaOutputByteCount: 0,
   networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
   sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
 } as const;
@@ -104,7 +107,7 @@ const createTrialResult = (
   });
 };
 
-/** Seeds one complete protocol 6 Custom profile and its engine-verifiable public evidence. */
+/** Seeds one complete protocol 7 Custom profile and its engine-verifiable public evidence. */
 export const seedPassingQualificationEvidenceFixture = async (options: {
   artifactDirectory: string;
   attemptId: string;
@@ -337,7 +340,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
   const stageIds = createQualificationStageIds([CASE_ID]);
   const executedTrialIds = new Set(trials.map(({ trialId }) => trialId));
   const result = QualificationAttemptResultSchema.parse({
-    protocolVersion: 6,
+    protocolVersion: 7,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     mode: 'official',
     attemptId: options.attemptId,

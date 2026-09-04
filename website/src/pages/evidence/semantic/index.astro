@@ -94,37 +94,6 @@ const successfulCaseCount =
       </div>
     </header>
 
-    {
-      semanticEvaluation.evidenceMatch === 'compatible' &&
-        semanticEvaluation.currentAssurance !== null && (
-          <section
-            class="border-b border-border py-8"
-            aria-labelledby="compatible-semantic-evidence-title"
-          >
-            <div class="surface-card max-w-4xl p-5 sm:p-6">
-              <p class="eyebrow mb-3">Source-attested compatible evidence</p>
-              <h2
-                id="compatible-semantic-evidence-title"
-                class="text-xl font-semibold tracking-tight"
-              >
-                This release reuses a verified semantic attempt.
-              </h2>
-              <p class="mt-3 leading-7 text-muted-foreground">
-                The release gate verified that immutable attempt{' '}
-                <a
-                  class="font-mono text-sm font-semibold break-all text-link underline-offset-4 hover:underline"
-                  href={withBase(semanticEvaluation.currentAssurance.route, basePath)}
-                >
-                  {semanticEvaluation.currentAssurance.result.attemptId}
-                </a>{' '}
-                matches the current skill behavior, CLI closure, scenario suite, coverage, and
-                evaluation protocol. No new model run was performed for this release.
-              </p>
-            </div>
-          </section>
-        )
-    }
-
     <section
       class="grid gap-3 border-b border-border py-10 sm:grid-cols-2 lg:grid-cols-4"
       aria-label="Semantic evaluation summary"
@@ -263,11 +232,9 @@ const successfulCaseCount =
             <dt class="text-muted-foreground">Evidence match</dt>
             <dd class="mt-1 font-mono break-all">
               {
-                semanticEvaluation.evidenceMatch === 'compatible'
-                  ? 'Source-attested compatible inputs'
-                  : semanticEvaluation.evidenceMatch === 'exact'
-                    ? 'Exact release inputs'
-                    : 'No current evidence'
+                semanticEvaluation.evidenceMatch === 'exact'
+                  ? 'Exact release inputs'
+                  : 'No current evidence'
               }
             </dd>
           </div>

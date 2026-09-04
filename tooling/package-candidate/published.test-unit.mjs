@@ -39,8 +39,8 @@ const createRegistryFetch = (metadataByIdentity) => async (url) => {
 test('resolves the exact dependency-first published closure from the CLI', async () => {
   const metadata = new Map([
     [
-      '@moldea.ai/cli/4.0.0',
-      createMetadata('@moldea.ai/cli', '4.0.0', {
+      '@moldea.ai/cli/6.0.0',
+      createMetadata('@moldea.ai/cli', '6.0.0', {
         '@moldea.ai/adapter-example': '1.0.0',
         '@moldea.ai/core': '2.0.0',
       }),
@@ -55,22 +55,22 @@ test('resolves the exact dependency-first published closure from the CLI', async
   ]);
 
   const closure = await resolvePublishedPackageClosure({
-    cliVersion: '4.0.0',
+    cliVersion: '6.0.0',
     fetchResource: createRegistryFetch(metadata),
     selectedPackageName: '@moldea.ai/adapter-example',
   });
 
   assert.deepEqual(
     closure.map(({ name, version }) => `${name}@${version}`),
-    ['@moldea.ai/core@2.0.0', '@moldea.ai/adapter-example@1.0.0', '@moldea.ai/cli@4.0.0'],
+    ['@moldea.ai/core@2.0.0', '@moldea.ai/adapter-example@1.0.0', '@moldea.ai/cli@6.0.0'],
   );
 });
 
 test('selects shared CLI packages without retaining sibling adapters', async () => {
   const metadata = new Map([
     [
-      '@moldea.ai/cli/4.0.0',
-      createMetadata('@moldea.ai/cli', '4.0.0', {
+      '@moldea.ai/cli/6.0.0',
+      createMetadata('@moldea.ai/cli', '6.0.0', {
         '@moldea.ai/adapter-selected': '1.0.0',
         '@moldea.ai/adapter-sibling': '1.0.0',
         '@moldea.ai/core': '2.0.0',
@@ -105,7 +105,7 @@ test('selects shared CLI packages without retaining sibling adapters', async () 
     ],
   ]);
   const closure = await resolvePublishedPackageClosure({
-    cliVersion: '4.0.0',
+    cliVersion: '6.0.0',
     fetchResource: createRegistryFetch(metadata),
     selectedPackageName: '@moldea.ai/adapter-selected',
   });
@@ -123,7 +123,7 @@ test('selects shared CLI packages without retaining sibling adapters', async () 
 });
 
 test('rejects incomplete and duplicate selected package closures', () => {
-  const cliManifest = createMetadata('@moldea.ai/cli', '4.0.0', {
+  const cliManifest = createMetadata('@moldea.ai/cli', '6.0.0', {
     '@moldea.ai/adapter-selected': '1.0.0',
     '@moldea.ai/core': '2.0.0',
   });
@@ -286,15 +286,15 @@ test('rejects registry bodies that exceed the bounded archive capacity', async (
 test('rejects non-exact CLI pins and unreachable selected packages', async () => {
   const nonExactMetadata = new Map([
     [
-      '@moldea.ai/cli/4.0.0',
-      createMetadata('@moldea.ai/cli', '4.0.0', {
+      '@moldea.ai/cli/6.0.0',
+      createMetadata('@moldea.ai/cli', '6.0.0', {
         '@moldea.ai/core': '^2.0.0',
       }),
     ],
   ]);
   await assert.rejects(
     resolvePublishedPackageClosure({
-      cliVersion: '4.0.0',
+      cliVersion: '6.0.0',
       fetchResource: createRegistryFetch(nonExactMetadata),
       selectedPackageName: '@moldea.ai/core',
     }),
@@ -302,11 +302,11 @@ test('rejects non-exact CLI pins and unreachable selected packages', async () =>
   );
 
   const reachableMetadata = new Map([
-    ['@moldea.ai/cli/4.0.0', createMetadata('@moldea.ai/cli', '4.0.0')],
+    ['@moldea.ai/cli/6.0.0', createMetadata('@moldea.ai/cli', '6.0.0')],
   ]);
   await assert.rejects(
     resolvePublishedPackageClosure({
-      cliVersion: '4.0.0',
+      cliVersion: '6.0.0',
       fetchResource: createRegistryFetch(reachableMetadata),
       selectedPackageName: '@moldea.ai/adapter-example',
     }),
@@ -317,8 +317,8 @@ test('rejects non-exact CLI pins and unreachable selected packages', async () =>
 test('rejects conflicting versions for one package identity', async () => {
   const metadata = new Map([
     [
-      '@moldea.ai/cli/4.0.0',
-      createMetadata('@moldea.ai/cli', '4.0.0', {
+      '@moldea.ai/cli/6.0.0',
+      createMetadata('@moldea.ai/cli', '6.0.0', {
         '@moldea.ai/adapter-a': '1.0.0',
         '@moldea.ai/adapter-b': '1.0.0',
         '@moldea.ai/core': '2.0.0',
@@ -341,7 +341,7 @@ test('rejects conflicting versions for one package identity', async () => {
 
   await assert.rejects(
     resolvePublishedPackageClosure({
-      cliVersion: '4.0.0',
+      cliVersion: '6.0.0',
       fetchResource: createRegistryFetch(metadata),
       selectedPackageName: '@moldea.ai/adapter-a',
     }),

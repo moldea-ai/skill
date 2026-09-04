@@ -97,12 +97,12 @@ test('makes skills.sh the primary distribution path on desktop and mobile', asyn
   await expect(faviconLink).toHaveAttribute('href', `${toPublicPath('/favicon.ico')}?v=a8cfe06f`);
   await expect(faviconLink).toHaveAttribute('type', 'image/x-icon');
 
-  const primaryLink = page
-    .getByRole('link', { name: 'Get moldea on skills.sh', exact: true })
-    .first();
-  await expect(primaryLink).toBeVisible();
-  await expect(primaryLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
-  await expect(primaryLink.locator('code')).toHaveCount(0);
+  const desktopDistributionLink = page
+    .getByRole('banner')
+    .getByRole('link', { name: 'Get the skill', exact: true });
+  await expect(desktopDistributionLink).toBeVisible();
+  await expect(desktopDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
+  await expect(desktopDistributionLink.locator('code')).toHaveCount(0);
 
   const heroActionTopOffsets = await page
     .locator('[data-hero-actions] > a')

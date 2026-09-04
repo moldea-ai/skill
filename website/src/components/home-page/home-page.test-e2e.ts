@@ -8,6 +8,7 @@ const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
 test('leads with the durable system around coding-agent work', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(toPublicPath('/'));
 
   await expect(
@@ -50,12 +51,35 @@ test('leads with the durable system around coding-agent work', async ({ page }) 
   expect(productNameTextTransforms).not.toContain('uppercase');
   await expect(page.locator('.eyebrow code').filter({ hasText: /^moldea$/u })).toHaveCount(3);
 
-  const primaryDistributionLink = page
-    .getByRole('link', { name: 'Get moldea on skills.sh', exact: true })
-    .first();
-  await expect(primaryDistributionLink).toHaveAttribute('href', SKILLS_DIRECTORY_URL);
-  await expect(primaryDistributionLink).toHaveAttribute('target', '_blank');
-  await expect(primaryDistributionLink).toHaveAttribute('rel', 'noopener noreferrer');
+  const primaryInstallLink = page
+    .locator('[data-home-hero]')
+    .getByRole('link', { name: 'Install the skill', exact: true });
+  await expect(primaryInstallLink).toHaveAttribute('href', '#getting-started-title');
+  expect(await primaryInstallLink.getAttribute('target')).toBeNull();
+  expect(await primaryInstallLink.getAttribute('rel')).toBeNull();
+  await primaryInstallLink.focus();
+  await expect(primaryInstallLink).toBeFocused();
+  await primaryInstallLink.press('Enter');
+  await expect(page).toHaveURL(/#getting-started-title$/u);
+
+  const gettingStartedHeading = page.getByRole('heading', {
+    level: 2,
+    name: 'One install. One ordinary request.',
+  });
+  await expect(gettingStartedHeading).toBeVisible();
+
+  const [bannerBottom, headingPosition, viewportHeight] = await Promise.all([
+    page.getByRole('banner').evaluate((element) => element.getBoundingClientRect().bottom),
+    gettingStartedHeading.evaluate((element) => {
+      const { bottom, top } = element.getBoundingClientRect();
+
+      return { bottom, top };
+    }),
+    page.evaluate(() => window.innerHeight),
+  ]);
+  expect(headingPosition.top).toBeGreaterThanOrEqual(bannerBottom);
+  expect(headingPosition.top).toBeLessThan(viewportHeight);
+  expect(headingPosition.bottom).toBeGreaterThan(0);
 
   const alignmentLink = page.getByRole('link', { name: 'See the alignment model', exact: true });
   await expect(alignmentLink).toHaveAttribute('href', '#behavior-alignment');
@@ -75,8 +99,8 @@ test('presents value and proof before adoption reassurance', async ({ page }) =>
   await page.goto(toPublicPath('/'));
 
   const orderedHeadings = [
-    'Turn coding-agent work into durable project infrastructure.',
     'One install. One ordinary request.',
+    'Turn coding-agent work into durable project infrastructure.',
     'One change can affect more than one file.',
     'The alternative is building this infrastructure yourself.',
     'Start with two files. Add structure only when it earns a home.',
@@ -113,7 +137,7 @@ test('presents value and proof before adoption reassurance', async ({ page }) =>
 
   const openingSectionBackgrounds = await page
     .locator(
-      '[data-home-hero], [data-why-moldea], [data-getting-started], [data-behavior-alignment], [data-open-source-system]',
+      '[data-home-hero], [data-getting-started], [data-why-moldea], [data-behavior-alignment], [data-open-source-system]',
     )
     .evaluateAll((sections) =>
       sections.map((section) => getComputedStyle(section).backgroundColor),

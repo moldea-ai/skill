@@ -10,7 +10,7 @@ const basePath = import.meta.env.BASE_URL;
 ---
 
 <section
-  class="border-b border-border bg-background py-section-gap"
+  class="border-b border-border bg-sidebar py-section-gap"
   aria-labelledby="getting-started-title"
   data-getting-started
 >
@@ -20,15 +20,15 @@ const basePath = import.meta.env.BASE_URL;
         <p class="eyebrow mb-4">Start in minutes</p>
         <h2
           id="getting-started-title"
-          class="section-title max-w-4xl font-semibold"
+          class="section-title max-w-4xl scroll-mt-24 font-semibold"
         >
           One install. One ordinary request.
         </h2>
       </div>
       <div class="lg:justify-self-end">
         <p class="text-lg leading-8 text-muted-foreground">
-          Add the skill to your project, then tell your coding agent what you want. There is no
-          setup wizard or new command language.
+          Add the skill to your project and establish durable, Git-owned context. Initialization is
+          the recommended starting point, and you can still begin with the outcome you want.
         </p>
         <ActionLink
           class="mt-5 font-bold"
@@ -58,8 +58,7 @@ const basePath = import.meta.env.BASE_URL;
               01
             </span>
             <div class="min-w-0">
-              <p class="eyebrow mb-2">Add the skill</p>
-              <h3 class="text-xl font-semibold tracking-tight">Install it in this project.</h3>
+              <h3 class="text-xl font-semibold tracking-tight">Install the skill.</h3>
               <div
                 class="mt-4 flex min-w-0 items-center rounded-xl border bg-code p-1 ps-4 shadow-inset"
               >
@@ -94,13 +93,6 @@ const basePath = import.meta.env.BASE_URL;
                   >
                 </ActionButton>
               </div>
-              <p class="mt-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
-                <Check
-                  class="size-4"
-                  aria-hidden="true"
-                />
-                Available to the coding agent
-              </p>
             </div>
           </li>
 
@@ -112,8 +104,9 @@ const basePath = import.meta.env.BASE_URL;
               02
             </span>
             <div class="min-w-0">
-              <p class="eyebrow mb-2">Ask your agent</p>
-              <h3 class="text-xl font-semibold tracking-tight">Describe the outcome naturally.</h3>
+              <h3 class="text-xl font-semibold tracking-tight">
+                Establish the durable project foundation.
+              </h3>
               <div class="mt-4 flex gap-3 rounded-xl border bg-background p-4">
                 <span
                   class="dark-surface-selection inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
@@ -139,10 +132,50 @@ const basePath = import.meta.env.BASE_URL;
               </div>
             </div>
           </li>
+
+          <li
+            class="grid grid-cols-[2.5rem_minmax(0,1fr)] gap-4"
+            data-getting-started-ordinary-work
+          >
+            <span
+              class="dark-surface-selection inline-flex size-10 items-center justify-center rounded-xl bg-primary font-mono text-sm font-bold text-primary-foreground"
+              aria-hidden="true"
+            >
+              03
+            </span>
+            <div class="min-w-0">
+              <h3
+                id="getting-started-ordinary-work-title"
+                class="text-xl font-semibold tracking-tight"
+              >
+                Describe the outcome naturally.
+              </h3>
+              <div class="mt-4 flex gap-3 rounded-xl border bg-background p-4">
+                <span
+                  class="dark-surface-selection inline-flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+                >
+                  <span
+                    class="font-mono text-xs font-bold"
+                    aria-hidden="true"
+                    >D</span
+                  >
+                  <span class="sr-only">Developer</span>
+                </span>
+                <div>
+                  <p class="mb-1 text-xs font-bold tracking-wide text-muted-foreground uppercase">
+                    Developer
+                  </p>
+                  <p class="font-mono text-sm leading-6">
+                    Create a support agent grounded in our current refund policy.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </li>
         </ol>
 
         <div
-          class="dark-surface-selection border-t border-border bg-primary p-5 text-primary-foreground sm:p-8 lg:border-s lg:border-t-0 lg:p-10"
+          class="dark-surface-selection flex flex-col border-t border-border bg-primary p-5 text-primary-foreground sm:p-8 lg:border-s lg:border-t-0 lg:p-10"
           data-getting-started-agent-panel
         >
           <div class="flex items-center gap-3">
@@ -203,14 +236,16 @@ const basePath = import.meta.env.BASE_URL;
             </li>
           </ol>
 
-          <div
-            class="light-surface-selection mt-8 rounded-xl bg-primary-foreground p-4 text-primary"
-            data-getting-started-completion
-          >
-            <p class="text-xs font-bold tracking-wide uppercase">Done</p>
-            <p class="mt-1 font-semibold">
-              Project context initialized. Keep working with your coding agent as usual.
-            </p>
+          <div class="mt-8 lg:mt-auto lg:pt-8">
+            <div
+              class="light-surface-selection rounded-xl bg-primary-foreground p-4 text-primary"
+              data-getting-started-completion
+            >
+              <p class="text-xs font-bold tracking-wide uppercase">Done</p>
+              <p class="mt-1 font-semibold">
+                Project context initialized. Keep working with your coding agent as usual.
+              </p>
+            </div>
           </div>
         </div>
       </div>

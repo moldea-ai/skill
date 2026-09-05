@@ -37,7 +37,7 @@ This request explicitly authorizes adoption. The coding agent handles the initia
 1. Inspect the Git working tree, repository structure, code, configuration, documentation, and other high-information evidence.
 2. Select the `initialize` operation and confirm that the repository and developer authority permit the required writes.
 3. Determine whether the evidence establishes a sufficient project foundation, requires focused clarification, or provides no meaningful project context yet.
-4. Once the foundation is sufficient, establish this skill release's exact repository-local `@moldea.ai/cli` development dependency through the repository's package manager when needed. An already installed exact CLI may provide earlier read-only evidence after direct verification. It never relies on a global CLI fallback.
+4. Once the foundation is sufficient, establish this skill release's compatible repository-local `@moldea.ai/cli` development dependency through the repository's package manager when needed. A stable installed CLI 7 may provide earlier read-only evidence after its declaration, exact lockfile-selected version, composition, and containment are verified. It never relies on a global CLI fallback.
 5. Once the foundation is sufficient, create the minimum canonical state and the owned README awareness block.
 6. Run deterministic inspection and relevant project-native checks, then map the material sources to the foundation conclusions they established and report files, decisions, verification, and practical next actions.
 

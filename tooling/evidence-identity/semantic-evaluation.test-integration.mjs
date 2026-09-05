@@ -95,7 +95,7 @@ const createRepository = () => {
   writeFixtureFile(
     repositoryRoot,
     'moldea/references/local-tooling.md',
-    '# Local tooling\n\nSkill 5.0.0 supports exactly the current CLI.\n',
+    '# Local tooling\n\nSkill 5.0.0 supports Git >=2.30.0 and compatible repository-local tooling.\n',
   );
   writeFixtureFile(repositoryRoot, 'fixtures/conformance-cases.json', '{}\n');
   writeFixtureFile(repositoryRoot, 'fixtures/semantic-evaluation-coverage.json', '{}\n');

@@ -50,7 +50,7 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: target-runtime-package
     kind: compatibility
-    matrixPath: target.package.npm.@anthropic-ai/sdk.primary.>=0.117.1 <0.118.0
+    matrixPath: target.package.npm.@anthropic-ai/sdk.primary.>=0.117.1
     description: Every fixture pins and installs the verified Anthropic SDK before offline project preparation.
     coveredBy:
       [

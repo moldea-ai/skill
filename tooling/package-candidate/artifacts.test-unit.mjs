@@ -14,10 +14,10 @@ const createArtifacts = () => {
   const manifests = [
     {
       dependencies: {
-        '@moldea.ai/adapter-anthropic': '2.0.4',
-        '@moldea.ai/adapter-next': '1.0.0',
-        '@moldea.ai/core': '2.0.3',
-        '@moldea.ai/repository': '1.0.4',
+        '@moldea.ai/adapter-anthropic': '^2.0.0',
+        '@moldea.ai/adapter-next': '^1.0.0',
+        '@moldea.ai/core': '^2.0.0',
+        '@moldea.ai/repository': '^1.0.0',
       },
       name: '@moldea.ai/cli',
       preferUnplugged: true,
@@ -84,7 +84,7 @@ test('accepts an additional reachable selected package root', () => {
   );
 });
 
-test('rejects missing dependencies and incorrect CLI exact pins', () => {
+test('rejects missing dependencies and incompatible internal ranges', () => {
   const incompleteArtifacts = createArtifacts();
   incompleteArtifacts.delete('@moldea.ai/repository');
   assert.throws(
@@ -92,18 +92,18 @@ test('rejects missing dependencies and incorrect CLI exact pins', () => {
     /missing package @moldea\.ai\/repository/,
   );
 
-  const rangedArtifacts = createArtifacts();
-  rangedArtifacts.get('@moldea.ai/cli').manifest.dependencies['@moldea.ai/core'] = '^2.0.0';
+  const exactArtifacts = createArtifacts();
+  exactArtifacts.get('@moldea.ai/cli').manifest.dependencies['@moldea.ai/core'] = '2.0.3';
   assert.throws(
-    () => validateCandidateArtifacts(rangedArtifacts),
-    /@moldea\.ai\/cli must exact-pin @moldea\.ai\/core/,
+    () => validateCandidateArtifacts(exactArtifacts),
+    /must declare @moldea\.ai\/core with a compatible-major range/,
   );
 
   const mismatchedArtifacts = createArtifacts();
-  mismatchedArtifacts.get('@moldea.ai/cli').manifest.dependencies['@moldea.ai/core'] = '2.0.2';
+  mismatchedArtifacts.get('@moldea.ai/cli').manifest.dependencies['@moldea.ai/core'] = '^3.0.0';
   assert.throws(
     () => validateCandidateArtifacts(mismatchedArtifacts),
-    /@moldea\.ai\/core must be exact-pinned/,
+    /@moldea\.ai\/core@2\.0\.3 does not satisfy \^3\.0\.0/,
   );
 });
 

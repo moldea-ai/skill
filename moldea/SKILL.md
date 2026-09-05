@@ -3,8 +3,8 @@ name: moldea
 description: >-
   Use for every repository-dependent task, including reviews, plans, and implementation, when this skill is installed in the repository, solely to run the bundled two-byte relevance gate. A gate miss abstains silently while the host workflow continues; only after adoption and relevance are established may moldea inspect explicit moldea work, /moldea/** changes, managed README hunks, or paths matched by a declared binding or affectedBy relationship. Also answer concise informational questions and initialize moldea only when explicitly requested. Do not use for other uninitialized work.
 metadata:
-  version: "5.0.0"
-  cliVersion: "7.0.0"
+  version: '5.0.0'
+  cliVersionRange: '^7.0.0'
   cliJsonSchemaVersion: 4
 ---
 
@@ -57,7 +57,7 @@ After `1`, run one bounded relationship query with the exact repository-root-loc
 moldea scope --paths-stdin --json --max-output-bytes 65536
 ```
 
-Before `scope`, convert any Git-style path to its leading-slash repository-logical form, then pass the complete normalized path set. Interpret only a completed CLI 7.0.0/schema-4 envelope with `status: "valid"`, `result.valid: true`, and `result.relevant: true`. Do not follow a cursor merely to search for relevance; the first result establishes all matching owners for the bounded input. A missing exact local CLI, malformed input or envelope, operational error, invalid result, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
+Before `scope`, convert any Git-style path to its leading-slash repository-logical form, then pass the complete normalized path set. Interpret only a completed compatible CLI 7/schema-4 envelope with `status: "valid"`, `result.valid: true`, and `result.relevant: true`. The envelope version must equal the exact stable repository-local CLI version selected by the project declaration and lockfile. Do not follow a cursor merely to search for relevance; the first result establishes all matching owners for the bounded input. A missing compatible local CLI, malformed input or envelope, operational error, invalid result, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
 
 Treat this successful `scope` result as the complete relationship inventory for the task. Do not follow it with `inspect`. The scope call counts toward the ordinary four-command limit, leaving at most three CLI calls: normally one `validate` when structural status can affect the conclusion, plus `content` only for the explicitly selected canonical owners needed to review the relationship.
 
@@ -100,7 +100,7 @@ For initialization, load only `references/continuous-maintenance.md`. When no ex
 
 ## Use bounded canonical evidence
 
-Use only the repository-root-local CLI 7.0.0 and JSON schema 4. Metadata is content-free:
+Use only a stable repository-root-local CLI satisfying `^7.0.0` and JSON schema 4. Metadata is content-free:
 
 ```text
 moldea validate --json --max-output-bytes 65536

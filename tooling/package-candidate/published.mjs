@@ -13,6 +13,7 @@ const NPM_REGISTRY_ORIGIN = 'https://registry.npmjs.org';
 const NPM_REGISTRY_REQUEST_TIMEOUT_MS = 300_000;
 const MAXIMUM_NPM_REGISTRY_RESPONSE_BYTES = 16 * 1024 * 1024;
 const STABLE_VERSION_PATTERN = /^\d+\.\d+\.\d+$/u;
+const COMPATIBLE_MAJOR_RANGE_PATTERN = /^\^[1-9]\d*\.0\.0$/u;
 const SHA1_PATTERN = /^[a-f0-9]{40}$/u;
 
 const isMoldeaPackageName = (packageName) => packageName.startsWith(MOLDEA_PACKAGE_PREFIX);
@@ -151,7 +152,9 @@ const fetchRegistryResource = async (url, fetchResource, signal) => {
     if (signal?.aborted === true) {
       throw signal.reason instanceof Error
         ? signal.reason
-        : new Error('npm registry request was aborted.', { cause: signal.reason });
+        : new Error('npm registry request was aborted.', {
+            cause: signal.reason,
+          });
     }
     throw error;
   } finally {
@@ -184,6 +187,41 @@ export const resolvePublishedPackageManifest = async ({
   return parsePublishedPackage(JSON.parse(response.toString('utf8')), packageName, version);
 };
 
+/** Resolves the newest stable release satisfying one canonical compatible-major range. */
+const resolvePublishedPackageVersion = async ({
+  fetchResource,
+  packageName,
+  signal,
+  versionRange,
+}) => {
+  assert.match(
+    versionRange,
+    COMPATIBLE_MAJOR_RANGE_PATTERN,
+    `${packageName} must use a compatible-major dependency range.`,
+  );
+  const metadataUrl = `${NPM_REGISTRY_ORIGIN}/${encodeURIComponent(packageName)}`;
+  const response = await fetchRegistryResource(metadataUrl, fetchResource, signal);
+  const packument = JSON.parse(response.toString('utf8'));
+  assert.ok(packument !== null && typeof packument === 'object' && !Array.isArray(packument));
+  assert.equal(packument.name, packageName);
+  assert.ok(
+    packument.versions !== null &&
+      typeof packument.versions === 'object' &&
+      !Array.isArray(packument.versions),
+    `${packageName} registry metadata must contain versions.`,
+  );
+  const version = semver.maxSatisfying(
+    Object.keys(packument.versions).filter(
+      (candidateVersion) =>
+        STABLE_VERSION_PATTERN.test(candidateVersion) &&
+        semver.prerelease(candidateVersion) === null,
+    ),
+    versionRange,
+  );
+  assert.ok(version !== null, `${packageName} has no stable release satisfying ${versionRange}.`);
+  return version;
+};
+
 /** Resolves the exact published moldea runtime closure rooted at one CLI release. */
 export const resolvePublishedPackageClosure = async ({
   cliVersion,
@@ -194,39 +232,35 @@ export const resolvePublishedPackageClosure = async ({
   assert.match(cliVersion, STABLE_VERSION_PATTERN);
   assert.ok(isMoldeaPackageName(selectedPackageName));
   const manifests = new Map();
-  const rootVersions = new Map();
   const visiting = new Set();
   const ordered = [];
 
-  const resolveVersion = (packageName, versionRange) => {
-    if (packageName === CLI_PACKAGE_NAME) return versionRange;
-    const rootVersion = rootVersions.get(packageName);
-    assert.ok(
-      rootVersion !== undefined,
-      `${packageName} must be pinned exactly by ${CLI_PACKAGE_NAME}@${cliVersion}.`,
-    );
-    assert.ok(
-      semver.satisfies(rootVersion, versionRange),
-      `${packageName}@${rootVersion} does not satisfy published dependency range ${versionRange}.`,
-    );
-    return rootVersion;
-  };
-
   const visitPackage = async (packageName, versionRange) => {
-    const version = resolveVersion(packageName, versionRange);
-    assert.match(version, STABLE_VERSION_PATTERN, `${packageName} must use an exact version.`);
+    const existingManifest = manifests.get(packageName);
+    if (existingManifest !== undefined) {
+      const existingIdentity = `${packageName}@${existingManifest.version}`;
+      if (visiting.has(existingIdentity)) {
+        throw new Error(`Published package dependency cycle includes ${existingIdentity}.`);
+      }
+      assert.ok(
+        semver.satisfies(existingManifest.version, versionRange),
+        `${packageName}@${existingManifest.version} does not satisfy published dependency range ${versionRange}.`,
+      );
+      return;
+    }
+    const version =
+      packageName === CLI_PACKAGE_NAME
+        ? versionRange
+        : await resolvePublishedPackageVersion({
+            fetchResource,
+            packageName,
+            signal,
+            versionRange,
+          });
+    assert.match(version, STABLE_VERSION_PATTERN, `${packageName} must resolve exactly.`);
     const identity = `${packageName}@${version}`;
     if (visiting.has(identity)) {
       throw new Error(`Published package dependency cycle includes ${identity}.`);
-    }
-    const existingManifest = manifests.get(packageName);
-    if (existingManifest !== undefined) {
-      if (existingManifest.version !== version) {
-        throw new Error(
-          `${packageName} resolves to both ${existingManifest.version} and ${version}.`,
-        );
-      }
-      return;
     }
 
     visiting.add(identity);
@@ -237,17 +271,6 @@ export const resolvePublishedPackageClosure = async ({
       version,
     });
     manifests.set(packageName, manifest);
-
-    if (packageName === CLI_PACKAGE_NAME) {
-      for (const [dependencyName, dependencyVersion] of getInternalDependencies(manifest)) {
-        assert.match(
-          dependencyVersion,
-          STABLE_VERSION_PATTERN,
-          `${CLI_PACKAGE_NAME} must pin ${dependencyName} to an exact version.`,
-        );
-        rootVersions.set(dependencyName, dependencyVersion);
-      }
-    }
 
     for (const [dependencyName, dependencyVersionRange] of getInternalDependencies(manifest)) {
       await visitPackage(dependencyName, dependencyVersionRange);
@@ -356,7 +379,10 @@ export const downloadPublishedPackageArtifact = async ({
 }) => {
   mkdirSync(artifactDirectory, { recursive: true });
   const archive = await fetchRegistryResource(manifest.dist.tarball, fetchResource, signal);
-  const { sha256, tarballName } = verifyPublishedPackageArchive({ archive, manifest });
+  const { sha256, tarballName } = verifyPublishedPackageArchive({
+    archive,
+    manifest,
+  });
   const tarballPath = join(artifactDirectory, tarballName);
   writeFileSync(tarballPath, archive, { flag: 'wx' });
   return {

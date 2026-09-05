@@ -404,8 +404,8 @@ describe('Vercel AI SDK direct-generation qualification profile', () => {
     await ensureDirectory(compatibilityDirectory);
     const matrixSource = await readFile(sourceMatrixPath, 'utf8');
     const incompatibleMatrixSource = matrixSource.replace(
-      /(id: typescript-generate-stream-text-7[\s\S]*?name: ai[\s\S]*?versionRange:) '>=7\.0\.66 <8\.0\.0'/u,
-      "$1 '>=8.0.0 <9.0.0'",
+      /(id: typescript-generate-stream-text-7[\s\S]*?name: ai[\s\S]*?versionRange:) '>=7\.0\.66'/u,
+      "$1 '>=8.0.0'",
     );
     await writeFile(temporaryMatrixPath, incompatibleMatrixSource, 'utf8');
 
@@ -420,7 +420,7 @@ describe('Vercel AI SDK direct-generation qualification profile', () => {
           temporaryPackagesRepository,
         ),
       ).rejects.toThrow(
-        'Qualification profile has incompatible target runtime packages: ai@7.0.77 does not satisfy >=8.0.0 <9.0.0.',
+        'Qualification profile has incompatible target runtime packages: ai@7.0.77 does not satisfy >=8.0.0.',
       );
     } finally {
       await rm(temporaryPackagesRepository, { force: true, recursive: true });

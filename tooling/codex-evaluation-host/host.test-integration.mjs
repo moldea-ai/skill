@@ -6,6 +6,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readFileSync,
   realpathSync,
   rmSync,
   writeFileSync,
@@ -265,8 +266,14 @@ test('shared host permits the installed release CLI selected scope inventory', a
       sandboxHome,
     });
     const envelope = JSON.parse(output);
+    const installedCliManifest = JSON.parse(
+      readFileSync(
+        join(process.cwd(), 'node_modules', '@moldea.ai', 'cli', 'package.json'),
+        'utf8',
+      ),
+    );
 
-    assert.equal(envelope.cliVersion, '7.0.0');
+    assert.equal(envelope.cliVersion, installedCliManifest.version);
     assert.equal(envelope.command, 'scope');
     assert.equal(envelope.error, null);
     assert.equal(envelope.result.relevant, true);

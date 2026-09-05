@@ -3,8 +3,8 @@ export const CLI_PACKAGE_NAME = '@moldea.ai/cli';
 export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 23;
 export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 7;
 
-// release files that must carry the exact CLI version
-export const CLI_VERSION_TEXT_PATHS = [
+// portable release files that must carry the supported CLI major range
+export const CLI_VERSION_RANGE_TEXT_PATHS = [
   'README.md',
   'docs/compatibility-and-local-tooling.md',
   'moldea/SKILL.md',

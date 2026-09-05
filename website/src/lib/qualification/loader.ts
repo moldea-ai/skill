@@ -74,6 +74,7 @@ Execution rules:
 
 - Use applicable project-local tooling and follow Agent Skill guidance discovered in the workspace.
 - Do not call a provider, run an agent, invoke another model, use subagents, or use network access.
+- Dependencies are already installed. Do not invoke npm, npx, pnpm, pnpx, yarn, yarnpkg, corepack, or any package installer; run repository-local binaries directly.
 - Preserve all unrelated pre-existing changes and untracked files.
 - Treat runner-mounted Agent Skill and qualification inputs as read-only.
 - Treat ambiguous or unsupported runtime behavior conservatively. Record it explicitly instead of inventing evidence.

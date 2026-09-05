@@ -50,18 +50,18 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: think-package
     kind: compatibility
-    matrixPath: target.package.npm.@cloudflare/think.primary.>=0.16.0 <0.17.0
+    matrixPath: target.package.npm.@cloudflare/think.primary.>=0.16.0
     description: Every fixture pins the verified Think package.
     coveredBy:
       [evaluate-aligned-project, create-grounded-agent, preserve-cloudflare-think-static-boundary]
   - id: agents-package
     kind: compatibility
-    matrixPath: target.package.npm.agents.companion.>=0.21.0 <0.22.0
+    matrixPath: target.package.npm.agents.companion.>=0.21.0
     description: Every fixture pins the Agents companion used by agentTool handoffs.
     coveredBy: [evaluate-aligned-project, preserve-cloudflare-think-static-boundary]
   - id: ai-package
     kind: compatibility
-    matrixPath: target.package.npm.ai.companion.>=7.0.0 <8.0.0
+    matrixPath: target.package.npm.ai.companion.>=7.0.0
     description: Every fixture pins the AI SDK companion used by normal function tools.
     coveredBy: [evaluate-aligned-project, repair-cloudflare-think-tool-registration]
   - id: runtime-agent-binding

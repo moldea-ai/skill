@@ -50,7 +50,7 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: eve-package
     kind: compatibility
-    matrixPath: target.package.npm.eve.primary.>=0.39.1 <0.40.0
+    matrixPath: target.package.npm.eve.primary.>=0.39.1
     description: Every fixture pins the verified Eve package.
     coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-eve-static-boundary]
   - id: runtime-agent-binding

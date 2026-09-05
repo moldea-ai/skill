@@ -25,7 +25,7 @@ const createRepository = ({
   );
   writeFileSync(
     join(repositoryRoot, 'moldea', 'references', 'local-tooling.md'),
-    `# Local tooling\n\nSkill ${localToolingVersion} supports exactly Node.js and the current CLI.\n`,
+    `# Local tooling\n\nSkill ${localToolingVersion} supports Git >=2.30.0 and compatible repository-local tooling.\n`,
   );
   writeFileSync(join(repositoryRoot, 'moldea', 'references', 'behavior.md'), 'behavior\n');
   return repositoryRoot;
@@ -83,7 +83,7 @@ test('rejects missing, duplicate, malformed, and disagreeing release versions', 
   const duplicateSentenceRoot = createRepository();
   writeFileSync(
     join(duplicateSentenceRoot, 'moldea', 'references', 'local-tooling.md'),
-    '# Local tooling\n\nSkill 5.0.0 supports exactly Node.js.\nSkill 5.0.0 supports exactly Node.js.\n',
+    '# Local tooling\n\nSkill 5.0.0 supports Git >=2.30.0.\nSkill 5.0.0 supports Git >=2.30.0.\n',
   );
   assert.throws(
     () => createPortableSkillBehaviorDigest(duplicateSentenceRoot),

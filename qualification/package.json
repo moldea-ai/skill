@@ -6,7 +6,7 @@
   "type": "module",
   "engines": {
     "node": "^24.15.0",
-    "npm": ">=10.9.0 <12.0.0"
+    "npm": ">=10.9.0"
   },
   "scripts": {
     "format": "prettier --write --config .prettierrc . ../tooling/package-candidate/index.d.mts ../tooling/codex-evaluation-host/execution-evidence.mjs ../tooling/codex-evaluation-host/execution-evidence.test-unit.mjs ../tooling/codex-evaluation-host/git-command-policy-boundary.mjs ../tooling/codex-evaluation-host/git-command-policy-boundary.test-integration.mjs ../tooling/codex-evaluation-host/host.mjs ../tooling/codex-evaluation-host/host.test-unit.mjs ../tooling/codex-evaluation-host/host.test-integration.mjs ../tooling/codex-evaluation-host/index.d.mts ../tooling/codex-evaluation-host/index.mjs ../tooling/codex-evaluation-host/operational-retry.mjs ../tooling/codex-evaluation-host/operational-retry.test-unit.mjs ../README.md ../package.json",

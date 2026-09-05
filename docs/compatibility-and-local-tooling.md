@@ -12,29 +12,29 @@ Release `5.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- `@moldea.ai/core` 3.0.0
-- `@moldea.ai/cli` 7.0.0
+- stable `@moldea.ai/core` releases satisfying `^3.0.0`
+- stable `@moldea.ai/cli` releases satisfying `^7.0.0`
 - repository format version 1
 - CLI JSON schema 4
 
-The exact CLI is a repository-root-local development dependency. Another version belongs to another skill release and is not interchangeable. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
+The CLI is a repository-root-local development dependency. Its declaration and exact lockfile-selected stable version must satisfy `^7.0.0`; compatible CLI 7 patches and minors do not require another skill release. CLI 8, prereleases, malformed ranges, and incompatible installed versions fail closed. The skill never selects a global CLI, runs a transient download, or searches unrelated workspaces for a provider.
 
 ## Tooling ownership
 
 The local-tooling reference governs only establishment and invocation of the `moldea` CLI. It does not replace Git commands, package-manager commands, planning, review, commit, or publication procedures owned by the host workflow.
 
-A write-capable `moldea` operation may establish the exact dependency through the repository's existing package manager with lifecycle scripts disabled. Read-only work reports missing or mismatched tooling and does not alter dependencies, lockfiles, or configuration.
+A write-capable `moldea` operation may establish the compatible dependency through the repository's existing package manager with lifecycle scripts disabled. Read-only work reports missing or mismatched tooling and does not alter dependencies, lockfiles, or configuration.
 
-Before executing the CLI, the coding agent validates the installed package identity, version, binary declaration, and repository-local containment from inert package metadata. It then invokes the resolved binary directly. The skill's pre-activation script separately verifies the exact repository-local CLI/Core closure, invokes Core without the CLI, and emits only `0` or `1`.
+Before executing the CLI, the coding agent validates the installed package identity, exact stable version, supported declaration, binary declaration, and repository-local containment from inert package metadata. It then invokes the resolved binary directly. The skill's pre-activation script separately verifies the compatible repository-local CLI/Core major closure, invokes Core without the CLI, and emits only `0` or `1`.
 
 ## Machine output
 
-CLI 7.0.0 emits schema 4 JSON only. Every machine command uses `--json --max-output-bytes 65536`.
+Compatible stable CLI 7 releases emit schema 4 JSON only. Every machine command uses `--json --max-output-bytes 65536`.
 
 The envelope contains:
 
 - `schemaVersion: 4`
-- `cliVersion: "7.0.0"`
+- `cliVersion` equal to the exact installed stable CLI 7 version
 - the invoked `command`
 - `status`
 - `result`

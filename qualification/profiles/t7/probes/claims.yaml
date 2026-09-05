@@ -50,7 +50,7 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: target-runtime-package
     kind: compatibility
-    matrixPath: target.package.npm.@google/genai.primary.>=2.17.1 <3.0.0
+    matrixPath: target.package.npm.@google/genai.primary.>=2.17.1
     description: Every fixture pins and installs the verified Google Gen AI SDK before offline project preparation.
     coveredBy:
       [

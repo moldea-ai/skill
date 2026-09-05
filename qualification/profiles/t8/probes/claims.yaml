@@ -50,12 +50,12 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: target-primary-package
     kind: compatibility
-    matrixPath: target.package.npm.langchain.primary.>=1.5.9 <1.6.0
+    matrixPath: target.package.npm.langchain.primary.>=1.5.9
     description: Every fixture pins and installs the verified LangChain package before offline project preparation.
     coveredBy: [evaluate-aligned-project, create-grounded-agent, preserve-langchain-static-boundary]
   - id: target-companion-package
     kind: compatibility
-    matrixPath: target.package.npm.@langchain/core.companion.>=1.2.8 <1.3.0
+    matrixPath: target.package.npm.@langchain/core.companion.>=1.2.8
     description: Every fixture pins the compatible LangChain Core companion used by normal function tools.
     coveredBy: [evaluate-aligned-project, repair-langchain-tool-registration]
   - id: runtime-agent-binding

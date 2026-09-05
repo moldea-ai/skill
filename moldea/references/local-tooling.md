@@ -4,11 +4,11 @@ Read this reference only after direct relevance or a successful relationship gat
 
 ## Supported contract
 
-Skill 5.0.0 supports exactly Git `>=2.30.0`, Node.js `>=22.11.0`, `@moldea.ai/core` 3.0.0, `@moldea.ai/cli` 7.0.0, repository format 1, and CLI JSON schema 4. Never substitute a global, transient, older, newer, or prerelease CLI.
+Skill 5.0.0 supports Git `>=2.30.0`, Node.js `>=22.11.0`, stable `@moldea.ai/core` releases satisfying `^3.0.0`, stable `@moldea.ai/cli` releases satisfying `^7.0.0`, repository format 1, and CLI JSON schema 4. Never substitute a global, transient, out-of-range, or prerelease CLI.
 
-Resolve only the repository-root-local package and executable. Verify the package name, exact version, declared `moldea` binary, and resolved binary containment from inert package metadata before execution. Do not search parent workspaces, unrelated repositories, user installation paths, or `PATH` for another copy.
+Resolve only the repository-root-local package and executable. Verify the package name, exact installed stable version, supported repository declaration, declared `moldea` binary, and resolved binary containment from inert package metadata before execution. Require the exact envelope version to match that installed version. Do not search parent workspaces, unrelated repositories, user installation paths, or `PATH` for another copy.
 
-When explicit initialization or another authorized write-capable moldea operation requires a missing CLI, use the repository's established package manager and root development-dependency location. Install `@moldea.ai/cli@7.0.0` exactly with lifecycle scripts disabled and update the ordinary lockfile. Do not load or execute repository-supplied package-manager extensions. Read-only work never authorizes installation or dependency changes; after direct relevance, report that deterministic evidence is unavailable.
+When explicit initialization or another authorized write-capable moldea operation requires a missing CLI, use the repository's established package manager and root development-dependency location. Install `@moldea.ai/cli@^7.0.0` with lifecycle scripts disabled and update the ordinary lockfile. The manifest may retain a compatible caret range or the exact stable version selected by the lockfile. Do not load or execute repository-supplied package-manager extensions. Read-only work never authorizes installation or dependency changes; after direct relevance, report that deterministic evidence is unavailable.
 
 These rules govern only moldea CLI establishment. They never govern host-owned package-manager, planning, review, Git, commit, or publication commands.
 
@@ -29,7 +29,7 @@ Repository-logical paths begin with `/`. The stdin scope form accepts one comple
 Interpret JSON only after the child process completes. Require:
 
 - integer `schemaVersion: 4`
-- string `cliVersion: "7.0.0"`
+- string `cliVersion` equal to the exact installed stable CLI version satisfying `^7.0.0`
 - the exact invoked `command`
 - `status` equal to `valid`, `invalid`, or `error`
 - `error: null` and a non-null result only for `valid` or `invalid`

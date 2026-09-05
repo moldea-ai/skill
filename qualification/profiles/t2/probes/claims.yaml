@@ -50,7 +50,7 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: target-runtime-package
     kind: compatibility
-    matrixPath: target.package.npm.@anthropic-ai/claude-agent-sdk.primary.>=0.3.234 <0.4.0
+    matrixPath: target.package.npm.@anthropic-ai/claude-agent-sdk.primary.>=0.3.234
     description: Every fixture pins and installs the verified Claude Agent SDK package before offline project preparation.
     coveredBy:
       [

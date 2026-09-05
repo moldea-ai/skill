@@ -50,7 +50,7 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: target-runtime-package
     kind: compatibility
-    matrixPath: target.package.npm.@openai/agents.primary.>=0.16.1 <0.17.0
+    matrixPath: target.package.npm.@openai/agents.primary.>=0.16.1
     description: Every fixture pins and installs the verified OpenAI Agents SDK before offline project preparation.
     coveredBy:
       [

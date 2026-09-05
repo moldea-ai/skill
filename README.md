@@ -58,12 +58,12 @@ Release `5.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- `@moldea.ai/core` 3.0.0
-- `@moldea.ai/cli` 7.0.0
+- stable `@moldea.ai/core` releases satisfying `^3.0.0`
+- stable `@moldea.ai/cli` releases satisfying `^7.0.0`
 - repository format version 1
 - CLI JSON schema 4
 
-The CLI must be a repository-root-local development dependency at the exact version. The skill never falls back to a global installation, another workspace, or a transient download.
+The CLI must be a repository-root-local development dependency. Its manifest declaration and exact lockfile-selected stable version must satisfy the supported CLI 7 range. The skill never falls back to a global installation, another workspace, or a transient download.
 
 Tooling establishment belongs only to write-capable `moldea` work. Read-only evaluation, validation, planning, and host-owned review workflows do not install dependencies or alter package-manager state.
 
@@ -85,7 +85,7 @@ Broad ideas such as “potentially durable knowledge” do not activate the skil
 
 ## Bounded CLI evidence
 
-CLI 7.0.0 emits schema 4 JSON only.
+Compatible CLI 7 releases emit schema 4 JSON only.
 
 - `inspect` returns content-free metadata, counts, diagnostics, paths, digests, relationships, and a bounded page.
 - `scope` matches one path or one NUL-delimited path set against declared relationships.
@@ -212,7 +212,7 @@ The pin is explicit, local, reasoned, and visible on public evidence pages. It v
 The skill uses independent semantic versioning. Every release must:
 
 - record its exact version in `moldea/SKILL.md`
-- bind the exact CLI version and CLI JSON schema
+- declare the compatible CLI major and bind the exact evaluated CLI closure plus CLI JSON schema in release evidence
 - pass current conformance and select either verified fresh evidence or an explicit valid pin to an earlier passing release
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag

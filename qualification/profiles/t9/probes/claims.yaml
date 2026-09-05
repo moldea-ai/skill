@@ -50,7 +50,7 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: target-primary-package
     kind: compatibility
-    matrixPath: target.package.npm.@langchain/langgraph.primary.>=1.4.12 <1.5.0
+    matrixPath: target.package.npm.@langchain/langgraph.primary.>=1.4.12
     description: Every fixture pins and installs the verified LangGraph package before offline project preparation.
     coveredBy:
       [
@@ -60,7 +60,7 @@ probes:
       ]
   - id: target-companion-package
     kind: compatibility
-    matrixPath: target.package.npm.@langchain/core.companion.>=1.2.9 <1.3.0
+    matrixPath: target.package.npm.@langchain/core.companion.>=1.2.9
     description: Every fixture pins the compatible LangChain Core companion required by the selected runtime.
     coveredBy: [evaluate-aligned-project, repair-langgraph-functional-runtime-binding]
   - id: runtime-agent-binding

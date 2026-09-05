@@ -100,7 +100,7 @@ const installProjectToolingFixture = (root) => {
     `${JSON.stringify(
       {
         private: true,
-        devDependencies: { '@moldea.ai/cli': '7.0.0' },
+        devDependencies: { '@moldea.ai/cli': '^7.0.0' },
       },
       null,
       2,
@@ -127,7 +127,10 @@ const createProject = () => {
   );
   writeFileSync(join(root, 'moldea', 'project.md'), '# Project\n\nCurrent project truth.\n');
   writeFileSync(join(root, 'src', 'project-state.js'), 'export const state = true;\n');
-  const init = spawnSync('git', ['init', '--quiet'], { cwd: root, encoding: 'utf8' });
+  const init = spawnSync('git', ['init', '--quiet'], {
+    cwd: root,
+    encoding: 'utf8',
+  });
   assert.equal(init.status, 0);
   return root;
 };
@@ -137,7 +140,7 @@ describe('portable skill contract', () => {
     const frontmatter = parseFrontmatter();
     assert.deepEqual(frontmatter.metadata, {
       version: '5.0.0',
-      cliVersion: '7.0.0',
+      cliVersionRange: '^7.0.0',
       cliJsonSchemaVersion: 4,
     });
     assert.equal(frontmatter.name, 'moldea');
@@ -331,7 +334,7 @@ describe('activation and semantic protection', () => {
       assert.equal(runRelevanceGate(root, [], '/src/nested/module.js\0').stdout, '1\n');
 
       const packageManifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
-      packageManifest.devDependencies['@moldea.ai/cli'] = '6.0.0';
+      packageManifest.devDependencies['@moldea.ai/cli'] = '^6.0.0';
       writeFileSync(join(root, 'package.json'), `${JSON.stringify(packageManifest, null, 2)}\n`);
       assert.equal(runRelevanceGate(root, [], '/src/nested/module.js\0').stdout, '0\n');
     } finally {
@@ -346,10 +349,11 @@ describe('CLI 7 bounded machine protocol', () => {
     const packageLock = JSON.parse(
       readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'),
     );
+    const declaredCliVersion = packageManifest.devDependencies['@moldea.ai/cli'];
     assert.equal(packageManifest.version, '5.0.0');
-    assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], '7.0.0');
+    assert.match(declaredCliVersion, /^\d+\.\d+\.\d+$/u);
     assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 4);
-    assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, '7.0.0');
+    assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, declaredCliVersion);
   });
 
   test('returns content-free inspect metadata and bounded explicit content', () => {
@@ -359,8 +363,11 @@ describe('CLI 7 bounded machine protocol', () => {
       assert.equal(inspect.status, 0);
       assert.ok(Buffer.byteLength(inspect.stdout) <= 65_536);
       const inspectEnvelope = JSON.parse(inspect.stdout);
+      const packageManifest = JSON.parse(
+        readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf8'),
+      );
       assert.equal(inspectEnvelope.schemaVersion, 4);
-      assert.equal(inspectEnvelope.cliVersion, '7.0.0');
+      assert.equal(inspectEnvelope.cliVersion, packageManifest.devDependencies['@moldea.ai/cli']);
       assert.equal(inspectEnvelope.command, 'inspect');
       assert.equal(inspect.stdout.includes('Current project truth.'), false);
 

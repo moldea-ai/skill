@@ -6,10 +6,15 @@ import { basename, dirname, join } from 'node:path';
 import {
   CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
   CLI_PACKAGE_NAME,
-  CLI_VERSION_TEXT_PATHS,
+  CLI_VERSION_RANGE_TEXT_PATHS,
   RELEASE_PATHS,
 } from './constants.mjs';
-import { assertReleaseIdentity, parseStableVersion } from './identity.mjs';
+import {
+  assertReleaseIdentity,
+  createCompatibleMajorRange,
+  parseCompatibleMajorRange,
+  parseStableVersion,
+} from './identity.mjs';
 
 const NPM_EXECUTABLE = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const createDifferentStableVersion = (version) => {
@@ -17,24 +22,43 @@ const createDifferentStableVersion = (version) => {
   return `${major + 1}.0.0`;
 };
 
-/** Replaces only text references owned by the exact CLI release identity. */
-const replaceCliVersionReferences = ({ content, nextVersion, previousVersion }) => {
+/** Replaces only portable CLI/Core major-range references. */
+const replaceCompatibleRangeReferences = ({
+  content,
+  nextCliRange,
+  nextCoreRange,
+  previousCliRange,
+  previousCoreRange,
+}) => {
+  const previousCliMajor = previousCliRange.slice(1).split('.')[0];
+  const nextCliMajor = nextCliRange.slice(1).split('.')[0];
+
   return content
-    .replaceAll(`@moldea.ai/cli ${previousVersion}`, `@moldea.ai/cli ${nextVersion}`)
-    .replaceAll(`@moldea.ai/cli\` ${previousVersion}`, `@moldea.ai/cli\` ${nextVersion}`)
-    .replaceAll(`@moldea.ai/cli@${previousVersion}`, `@moldea.ai/cli@${nextVersion}`)
-    .replaceAll(`CLI ${previousVersion}`, `CLI ${nextVersion}`)
-    .replaceAll(`CLI version is ${previousVersion}`, `CLI version is ${nextVersion}`)
-    .replaceAll(`cliVersion: "${previousVersion}"`, `cliVersion: "${nextVersion}"`)
-    .replaceAll(`cliVersion: '${previousVersion}'`, `cliVersion: '${nextVersion}'`)
-    .replaceAll(
-      `EXPECTED_CLI_VERSION = '${previousVersion}'`,
-      `EXPECTED_CLI_VERSION = '${nextVersion}'`,
-    );
+    .split('\n')
+    .map((line) => {
+      let updatedLine = line;
+      if (
+        line.includes('@moldea.ai/cli') ||
+        line.includes('cliVersionRange') ||
+        line.includes('EXPECTED_CLI_RANGE') ||
+        line.includes('CLI ')
+      ) {
+        updatedLine = updatedLine
+          .replaceAll(previousCliRange, nextCliRange)
+          .replaceAll(`CLI ${previousCliMajor}`, `CLI ${nextCliMajor}`);
+      }
+      if (line.includes('@moldea.ai/core') || line.includes('EXPECTED_CORE_RANGE')) {
+        updatedLine = updatedLine.replaceAll(previousCoreRange, nextCoreRange);
+      }
+      return updatedLine;
+    })
+    .join('\n');
 };
 
 const updateConformanceCases = ({
+  nextCliRange,
   content,
+  previousCliRange,
   previousCliJsonSchemaVersion,
   previousCliVersion,
   publishedManifest,
@@ -51,9 +75,7 @@ const updateConformanceCases = ({
     packageManagerCase.scenario = replaceScenarioVersion(packageManagerCase.scenario);
     const cli = packageManagerCase.input?.cli;
     if (cli?.declaration === previousCliVersion) cli.declaration = nextCliVersion;
-    if (cli?.declaration === `^${previousCliVersion}`) {
-      cli.declaration = `^${nextCliVersion}`;
-    }
+    if (cli?.declaration === previousCliRange) cli.declaration = nextCliRange;
     if (cli?.installedVersion === previousCliVersion) cli.installedVersion = nextCliVersion;
   }
 
@@ -273,40 +295,33 @@ export const createCliReleaseUpdate = ({
     throw new Error('The published CLI manifest is missing its JSON schema version.');
   }
   const updatedFiles = new Map(currentFiles);
+  const currentPackageManifest = JSON.parse(currentFiles.get(RELEASE_PATHS.packageManifest));
+  const semanticCliManifest = JSON.parse(currentFiles.get(RELEASE_PATHS.semanticCliManifest));
+  const previousCliRange = createCompatibleMajorRange(previousCliVersion);
+  const nextCliRange = createCompatibleMajorRange(version);
+  const previousCoreRange = parseCompatibleMajorRange(
+    semanticCliManifest.dependencies?.['@moldea.ai/core'],
+  );
+  const nextCoreRange = parseCompatibleMajorRange(
+    publishedManifest.dependencies?.['@moldea.ai/core'],
+  );
 
-  for (const relativePath of CLI_VERSION_TEXT_PATHS) {
+  for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {
     const currentContent = currentFiles.get(relativePath);
     if (typeof currentContent !== 'string') {
       throw new Error(`Missing release identity source ${relativePath}.`);
     }
     updatedFiles.set(
       relativePath,
-      replaceCliVersionReferences({
+      replaceCompatibleRangeReferences({
         content: currentContent,
-        nextVersion: version,
-        previousVersion: previousCliVersion,
+        nextCliRange,
+        nextCoreRange,
+        previousCliRange,
+        previousCoreRange,
       }),
     );
   }
-
-  const nextCoreVersion = parseStableVersion(publishedManifest.dependencies?.['@moldea.ai/core']);
-  const gateSource = updatedFiles.get(RELEASE_PATHS.skillRelevanceGate);
-  if (typeof gateSource !== 'string') {
-    throw new Error(`Missing release identity source ${RELEASE_PATHS.skillRelevanceGate}.`);
-  }
-  const currentCoreMatch = gateSource.match(/EXPECTED_CORE_VERSION = '([^']+)'/u);
-  if (currentCoreMatch === null) {
-    throw new Error('The relevance gate is missing its exact Core version.');
-  }
-  updatedFiles.set(
-    RELEASE_PATHS.skillRelevanceGate,
-    gateSource.replace(
-      `EXPECTED_CORE_VERSION = '${currentCoreMatch[1]}'`,
-      `EXPECTED_CORE_VERSION = '${nextCoreVersion}'`,
-    ),
-  );
-
-  const currentPackageManifest = JSON.parse(currentFiles.get(RELEASE_PATHS.packageManifest));
   const previousCliJsonSchemaVersion = currentPackageManifest.moldeaRelease?.cliJsonSchemaVersion;
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
     const currentContent = currentFiles.get(relativePath);
@@ -356,13 +371,14 @@ export const createCliReleaseUpdate = ({
     RELEASE_PATHS.conformanceCases,
     updateConformanceCases({
       content: conformanceCases,
+      nextCliRange,
+      previousCliRange,
       previousCliJsonSchemaVersion,
       previousCliVersion,
       publishedManifest,
     }),
   );
 
-  const semanticCliManifest = JSON.parse(currentFiles.get(RELEASE_PATHS.semanticCliManifest));
   updatedFiles.set(RELEASE_PATHS.packageManifest, updatedRootManifests.packageManifest);
   updatedFiles.set(RELEASE_PATHS.packageLock, updatedRootManifests.packageLock);
   updatedFiles.set(
@@ -405,7 +421,7 @@ export const updateCliRelease = ({
   const publishedManifest = resolveManifest(version);
   const managedPaths = [
     ...new Set([
-      ...CLI_VERSION_TEXT_PATHS,
+      ...CLI_VERSION_RANGE_TEXT_PATHS,
       ...CLI_JSON_SCHEMA_VERSION_TEXT_PATHS,
       RELEASE_PATHS.conformanceCases,
       RELEASE_PATHS.packageManifest,

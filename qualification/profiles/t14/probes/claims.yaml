@@ -50,7 +50,7 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: target-runtime-package
     kind: compatibility
-    matrixPath: target.package.npm.ai.primary.>=7.0.66 <8.0.0
+    matrixPath: target.package.npm.ai.primary.>=7.0.66
     description: Every fixture pins and installs the verified ai package before offline project preparation.
     coveredBy:
       [

@@ -9,7 +9,7 @@ import { createPortableSkillDigest } from '../semantic-evaluation/index.mjs';
 
 const NORMALIZED_RELEASE_VERSION = '<release-version>';
 const SKILL_FRONTMATTER_PATTERN = /^---\n([\s\S]*?)\n---\n/u;
-const LOCAL_TOOLING_RELEASE_PATTERN = /Skill ([0-9]+\.[0-9]+\.[0-9]+) supports exactly/gu;
+const LOCAL_TOOLING_RELEASE_PATTERN = /^Skill ([0-9]+\.[0-9]+\.[0-9]+) supports Git /gmu;
 
 const collectPortableSkillPaths = (portableSkillRoot) => {
   const paths = [];

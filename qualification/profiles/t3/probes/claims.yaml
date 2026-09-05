@@ -50,18 +50,18 @@ probes:
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: ai-chat-package
     kind: compatibility
-    matrixPath: target.package.npm.@cloudflare/ai-chat.primary.>=0.10.2 <0.11.0
+    matrixPath: target.package.npm.@cloudflare/ai-chat.primary.>=0.10.2
     description: Every fixture pins the verified AIChatAgent package.
     coveredBy:
       [evaluate-aligned-project, create-grounded-agent, preserve-cloudflare-ai-chat-static-boundary]
   - id: agents-package
     kind: compatibility
-    matrixPath: target.package.npm.agents.companion.>=0.21.0 <0.22.0
+    matrixPath: target.package.npm.agents.companion.>=0.21.0
     description: Every fixture pins the Agents companion used by agentTool handoffs.
     coveredBy: [evaluate-aligned-project, preserve-cloudflare-ai-chat-static-boundary]
   - id: ai-package
     kind: compatibility
-    matrixPath: target.package.npm.ai.companion.>=7.0.0 <8.0.0
+    matrixPath: target.package.npm.ai.companion.>=7.0.0
     description: Every fixture pins the AI SDK companion used by direct generation and function tools.
     coveredBy: [evaluate-aligned-project, repair-cloudflare-ai-chat-output-schema]
   - id: runtime-agent-binding

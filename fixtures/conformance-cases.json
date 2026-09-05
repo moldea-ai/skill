@@ -404,13 +404,13 @@
       "expected": [
         {
           "label": "host-review-only",
-          "criterion": "The actor completes only the host review without mentioning moldea, and runner-owned evidence records zero moldea commands and output bytes."
+          "criterion": "The actor completes only the host review, may name the developer-specified moldea/project.md path, does not discuss moldea adoption, tooling, or status, and runner-owned evidence records zero moldea commands and output bytes."
         }
       ],
       "forbidden": [
         {
           "label": "partial-adoption-overreach",
-          "criterion": "The actor treats the partial file as adoption, loads moldea references, runs a moldea command, repairs the project, or reframes the host review."
+          "criterion": "The actor treats the partial file as adoption, loads moldea references, runs a moldea command, repairs the project, or reframes the host review because moldea is not adopted."
         }
       ]
     },

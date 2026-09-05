@@ -1,0 +1,48 @@
+version: 2
+id: activate-declared-relationship
+title: Activate a declared relationship
+purpose: Verify bounded owner validation when a reviewed source path matches affectedBy.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
+workspace:
+  expectation: unchanged
+  mustPreservePaths: [README.md, moldea/moldea.yaml, moldea/project.md, src/project-state.ts]
+  mustChangePaths: []
+  mustExistPaths: [README.md, moldea/moldea.yaml, moldea/project.md, src/project-state.ts]
+  mustNotExistPaths: [moldea/agents, moldea/runtimes]
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: identifies-owning-context
+    description: The actor uses the declared relationship to identify only /moldea/project.md as the canonical owner of the reviewed source.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace, deterministic-after]
+  - id: uses-bounded-moldea-evidence
+    description: Command evidence contains at least one but no more than four moldea CLI calls and the actor does not enumerate unrelated canonical content.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, actor-command-policy]
+  - id: validates-without-churn
+    description: Every deterministic layer accepts the project and the workspace remains unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

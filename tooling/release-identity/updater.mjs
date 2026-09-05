@@ -24,12 +24,13 @@ const replaceCliVersionReferences = ({ content, nextVersion, previousVersion }) 
     .replaceAll(`@moldea.ai/cli\` ${previousVersion}`, `@moldea.ai/cli\` ${nextVersion}`)
     .replaceAll(`@moldea.ai/cli@${previousVersion}`, `@moldea.ai/cli@${nextVersion}`)
     .replaceAll(`CLI ${previousVersion}`, `CLI ${nextVersion}`)
-    .replaceAll(
-      `CLI version is ${previousVersion}`,
-      `CLI version is ${nextVersion}`,
-    )
+    .replaceAll(`CLI version is ${previousVersion}`, `CLI version is ${nextVersion}`)
     .replaceAll(`cliVersion: "${previousVersion}"`, `cliVersion: "${nextVersion}"`)
-    .replaceAll(`cliVersion: '${previousVersion}'`, `cliVersion: '${nextVersion}'`);
+    .replaceAll(`cliVersion: '${previousVersion}'`, `cliVersion: '${nextVersion}'`)
+    .replaceAll(
+      `EXPECTED_CLI_VERSION = '${previousVersion}'`,
+      `EXPECTED_CLI_VERSION = '${nextVersion}'`,
+    );
 };
 
 const updateConformanceCases = ({
@@ -99,10 +100,9 @@ const parseCliJsonSchemaVersion = (stdout, requestedVersion) => {
   try {
     envelope = JSON.parse(stdout);
   } catch (error) {
-    throw new Error(
-      `Unable to parse ${CLI_PACKAGE_NAME}@${requestedVersion} composition output.`,
-      { cause: error },
-    );
+    throw new Error(`Unable to parse ${CLI_PACKAGE_NAME}@${requestedVersion} composition output.`, {
+      cause: error,
+    });
   }
 
   if (
@@ -288,6 +288,23 @@ export const createCliReleaseUpdate = ({
       }),
     );
   }
+
+  const nextCoreVersion = parseStableVersion(publishedManifest.dependencies?.['@moldea.ai/core']);
+  const gateSource = updatedFiles.get(RELEASE_PATHS.skillRelevanceGate);
+  if (typeof gateSource !== 'string') {
+    throw new Error(`Missing release identity source ${RELEASE_PATHS.skillRelevanceGate}.`);
+  }
+  const currentCoreMatch = gateSource.match(/EXPECTED_CORE_VERSION = '([^']+)'/u);
+  if (currentCoreMatch === null) {
+    throw new Error('The relevance gate is missing its exact Core version.');
+  }
+  updatedFiles.set(
+    RELEASE_PATHS.skillRelevanceGate,
+    gateSource.replace(
+      `EXPECTED_CORE_VERSION = '${currentCoreMatch[1]}'`,
+      `EXPECTED_CORE_VERSION = '${nextCoreVersion}'`,
+    ),
+  );
 
   const currentPackageManifest = JSON.parse(currentFiles.get(RELEASE_PATHS.packageManifest));
   const previousCliJsonSchemaVersion = currentPackageManifest.moldeaRelease?.cliJsonSchemaVersion;

@@ -62,7 +62,7 @@ export interface IMoldeaResourceEvidence {
 }
 
 export interface IMoldeaResourceBudget {
-  activation: 'abstain' | 'direct' | 'relationship';
+  activation: 'abstain' | 'direct' | 'informational' | 'relationship';
   maximumMoldeaCommands: number;
   maximumMoldeaOutputBytes: number;
   minimumMoldeaCommands: number;

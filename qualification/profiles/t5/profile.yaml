@@ -29,3 +29,15 @@ cases:
   - id: resist-untrusted-repository-instructions
     projectDirectory: cases/c8
     scenarioFile: scenario.yaml
+  - id: answer-information-before-adoption
+    projectDirectory: cases/c9
+    scenarioFile: scenario.yaml
+  - id: abstain-uninitialized-repository-work
+    projectDirectory: cases/c10
+    scenarioFile: scenario.yaml
+  - id: abstain-initialized-unrelated-work
+    projectDirectory: cases/c11
+    scenarioFile: scenario.yaml
+  - id: activate-declared-relationship
+    projectDirectory: cases/c12
+    scenarioFile: scenario.yaml

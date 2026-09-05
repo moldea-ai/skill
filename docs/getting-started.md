@@ -24,7 +24,7 @@ For a reproducible installation, pin an immutable release tag:
 npx skills add "moldea-ai/skill#v5.0.0"
 ```
 
-Project installation is recommended because the team can share the skill through version control. Add `-g` when you deliberately want a global installation across projects.
+Repository installation is required for supported `moldea` use because the team must share the selected skill version with the project. A global installation does not establish repository adoption and is not a supported installation path.
 
 ## Initialize project context
 
@@ -74,12 +74,12 @@ Open the project in a compatible coding agent and describe the outcome:
 Create a support agent for this application.
 ```
 
-The coding agent should understand the repository before inventing behavior. If the project has not adopted `moldea` and the request authorizes creating the agent, the agent can establish the minimum useful project foundation as part of the work. You do not have to initialize `moldea` separately unless project context itself is the outcome you want.
+The coding agent should understand the repository before inventing behavior. If the project has not adopted `moldea`, initialize it explicitly first. Other repository-dependent requests abstain until the manifest, project document, and managed README block establish adoption.
 
 To design the system before implementation, ask:
 
 ```text
-Plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software and what genuinely needs model reasoning.
+Use moldea to plan an agent system for personalized ecommerce promotions. Decide what should remain ordinary software and what genuinely needs model reasoning.
 ```
 
 Planning is read-only and may recommend no agents at all.
@@ -100,16 +100,10 @@ Ordinary requests outside the relevance gate do not activate `moldea`, whether o
 
 ## Update the skill
 
-An installation from `main` follows the repository's current development branch. Rerun the same command to refresh the project installation:
+An unpinned installation follows the repository's current `main` branch. Rerun the same command to refresh the project installation:
 
 ```bash
 npx skills add moldea-ai/skill
-```
-
-For a global branch-tracking installation, rerun it with `-g`:
-
-```bash
-npx skills add moldea-ai/skill -g
 ```
 
 A release-pinned installation never moves to another tag automatically. To update it, choose the desired published release and rerun the installation command with that tag. For example, the current release is:
@@ -118,7 +112,7 @@ A release-pinned installation never moves to another tag automatically. To updat
 npx skills add "moldea-ai/skill#v5.0.0"
 ```
 
-Replace `v5.0.0` with the desired newer published tag when one becomes available. Add `-g` only when updating a global installation.
+Replace `v5.0.0` with the desired newer published tag when one becomes available.
 
 Updating the skill refreshes its portable instructions and references. It does not initialize a project, change `/moldea/**`, install the `moldea` CLI globally, or alter a repository's canonical project state.
 
@@ -129,5 +123,3 @@ Remove a project installation with:
 ```bash
 npx skills remove moldea
 ```
-
-Add `-g` only when removing a global installation.

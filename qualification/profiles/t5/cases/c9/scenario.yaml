@@ -1,0 +1,48 @@
+version: 2
+id: answer-information-before-adoption
+title: Answer information before adoption
+purpose: Verify a concise informational answer without repository inspection, moldea tooling, or workspace changes.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: invalid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: [MOLDEA_MANIFEST_MISSING, MOLDEA_PROJECT_FILE_MISSING]
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: [MOLDEA_MANIFEST_MISSING, MOLDEA_PROJECT_FILE_MISSING]
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
+workspace:
+  expectation: unchanged
+  mustPreservePaths: [README.md, package.json, src/status.ts]
+  mustChangePaths: []
+  mustExistPaths: [README.md, package.json, src/status.ts]
+  mustNotExistPaths: [moldea]
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: answers-concisely
+    description: The actor answers the conceptual question accurately in no more than two short sentences without presenting repository-specific conclusions.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output]
+  - id: avoids-repository-activation
+    description: The actor command evidence contains zero moldea CLI calls and the workspace remains byte-for-byte unchanged.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-command-policy, workspace-patch]
+  - id: preserves-uninitialized-state
+    description: The repository remains uninitialized and every workspace assertion passes.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

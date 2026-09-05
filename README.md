@@ -34,21 +34,11 @@ Ordinary engineering work remains ordinary engineering work. The skill abstains 
 
 ## Installation
 
-### Project installation
-
 ```bash
 npx skills add moldea-ai/skill
 ```
 
-A project installation is recommended because the repository can share the same skill version with its contributors.
-
-### Global installation
-
-```bash
-npx skills add moldea-ai/skill -g
-```
-
-Use a global installation only when the latest branch version should be available across projects. Add `-g` to the tagged command for a reproducible global installation.
+Install the skill inside each repository that will use it so the selected version travels with the project. A global installation does not establish repository adoption and is not a supported `moldea` installation path.
 
 ### Update or remove
 
@@ -60,20 +50,18 @@ Remove a project installation with:
 npx skills remove moldea
 ```
 
-Add `-g` to remove the global installation.
-
 ## Compatibility
 
 Release `5.0.0` supports exactly:
 
 - Git `>=2.30.0`
 - Node.js `>=22.11.0`
-- `@moldea.ai/core` 2.1.0
-- `@moldea.ai/cli 6.0.0`
+- `@moldea.ai/core` 3.0.0
+- `@moldea.ai/cli` 7.0.0
 - repository format version 1
-- CLI JSON schema 3
+- CLI JSON schema 4
 
-The CLI must be a repository-root-local development dependency at the exact version. The skill never falls back to a global installation or a transient download.
+The CLI must be a repository-root-local development dependency at the exact version. The skill never falls back to a global installation, another workspace, or a transient download.
 
 Tooling establishment belongs only to write-capable `moldea` work. Read-only evaluation, validation, planning, and host-owned review workflows do not install dependencies or alter package-manager state.
 
@@ -81,10 +69,11 @@ Tooling establishment belongs only to write-capable `moldea` work. Read-only eva
 
 The entrypoint decides relevance before loading references or running the CLI:
 
-1. Activate directly for an explicit `moldea` request, a changed `/moldea/**` path, or a change inside the full-line managed README markers.
-2. Activate directly for a task path that exactly matches a canonical binding already identified by the host.
-3. When an `affectedBy` relationship might apply, send the complete known task-path set through one bounded `scope` invocation.
-4. Otherwise abstain silently.
+1. Answer a non-repository informational question concisely without inspection.
+2. Before initialization, continue only for an explicit initialization request and abstain silently from every other repository task.
+3. After initialization, activate directly for an explicit repository-dependent moldea request, a changed `/moldea/**` path, or a changed hunk inside the full-line managed README markers.
+4. For every other known task-path set, run the skill's deterministic two-byte relevance gate. It invokes repository-local Core directly and returns only `0` or `1`.
+5. Only after `1`, run one bounded CLI relationship query to identify the matching canonical owners. Otherwise abstain silently with no moldea CLI command, reference load, progress update, or final-report mention.
 
 Host commands such as planning, reviewing, committing, and publishing retain ownership of their workflows. Their names alone never activate `moldea`, and the skill's local tooling rules never replace host-owned Git or package-manager procedures.
 
@@ -92,7 +81,7 @@ Broad ideas such as “potentially durable knowledge” do not activate the skil
 
 ## Bounded CLI evidence
 
-CLI 6.0.0 emits schema 3 JSON only.
+CLI 7.0.0 emits schema 4 JSON only.
 
 - `inspect` returns content-free metadata, counts, diagnostics, paths, digests, relationships, and a bounded page.
 - `scope` matches one path or one NUL-delimited path set against declared relationships.
@@ -126,7 +115,7 @@ moldea/
 ├── SKILL.md
 ├── agents/
 │   └── openai.yaml
-└── references/
+├── references/
     ├── agent-design.md
     ├── agent-system-planning.md
     ├── context-compression.md
@@ -135,10 +124,12 @@ moldea/
     ├── evaluate-and-reconcile.md
     ├── local-tooling.md
     ├── runtime-compatibility.md
-    └── skill-design.md
+│   └── skill-design.md
+└── scripts/
+    └── relevance-gate.mjs
 ```
 
-`SKILL.md` owns activation, operation selection, evidence limits, boundaries, and reporting. References are loaded only after relevance is established and only when the selected operation needs them. `agents/openai.yaml` adds optional host metadata without redefining the portable contract.
+`SKILL.md` owns activation, operation selection, evidence limits, boundaries, and reporting. `scripts/relevance-gate.mjs` performs the bounded pre-activation decision without a CLI invocation or canonical content output. References are loaded only after relevance is established and only when the selected operation needs them. `agents/openai.yaml` adds optional host metadata without redefining the portable contract.
 
 ## Project blueprint
 

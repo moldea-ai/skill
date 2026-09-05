@@ -14,7 +14,7 @@ describe('deriveRequiredQualificationClaims', () => {
             package: '@moldea.ai/core',
           },
           implementationStatus: 'available',
-          compatibleCoreRange: '^2.0.0',
+          compatibleCoreRange: '^3.0.0',
           runtimeGuidance: { expectation: 'required' },
           supportedRepositoryFormatVersions: [1],
         },
@@ -34,7 +34,7 @@ describe('deriveRequiredQualificationClaims', () => {
         },
       ),
     ).toStrictEqual([
-      'adapter.compatible-core-range.^2.0.0',
+      'adapter.compatible-core-range.^3.0.0',
       'adapter.runtime-guidance',
       'adapter.supported-repository-format-version.1',
       'qualification.support-gate',

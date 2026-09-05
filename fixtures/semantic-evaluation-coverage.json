@@ -2,11 +2,33 @@
   "schemaVersion": 1,
   "claims": [
     {
+      "id": "pre-adoption-boundary",
+      "description": "Before initialization, moldea answers only concise informational questions or explicit initialization and otherwise abstains with zero moldea commands.",
+      "sourcePaths": ["moldea/SKILL.md#establish-the-entry-state-first"],
+      "evidence": [
+        {
+          "kind": "semantic-case",
+          "id": "preinit-information"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "preinit-explicit-validation"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "preinit-canonical-looking-review"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "explicit-initialization"
+        }
+      ],
+      "rationale": "These cases distinguish product information, explicit adoption, and silent failure-closed behavior before canonical project state exists."
+    },
+    {
       "id": "activation-abstention",
       "description": "moldea abstains silently from unrelated documentation, source, README, planning, review, and generic knowledge tasks.",
-      "sourcePaths": [
-        "moldea/SKILL.md#decide-relevance-before-loading-resources"
-      ],
+      "sourcePaths": ["moldea/SKILL.md#choose-one-repository-gate"],
       "evidence": [
         {
           "kind": "semantic-case",
@@ -39,7 +61,7 @@
       "id": "bounded-relevance",
       "description": "Direct and relationship-based activation use the smallest deterministic boundary and preserve host workflow ownership.",
       "sourcePaths": [
-        "moldea/SKILL.md#decide-relevance-before-loading-resources",
+        "moldea/SKILL.md#choose-one-repository-gate",
         "moldea/SKILL.md#use-bounded-canonical-evidence"
       ],
       "evidence": [
@@ -93,9 +115,7 @@
     {
       "id": "read-only-integrity",
       "description": "Validation and evaluation preserve repository files and Git control state.",
-      "sourcePaths": [
-        "moldea/SKILL.md#preserve-boundaries"
-      ],
+      "sourcePaths": ["moldea/SKILL.md#preserve-boundaries"],
       "evidence": [
         {
           "kind": "semantic-case",

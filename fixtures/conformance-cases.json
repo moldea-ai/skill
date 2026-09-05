@@ -1,27 +1,67 @@
 {
   "activationCases": [
     {
+      "id": "preinit-information",
+      "input": {
+        "initialized": false,
+        "informationalRequest": true
+      },
+      "expected": "informational"
+    },
+    {
+      "id": "preinit-initialize",
+      "input": {
+        "initializationRequest": true,
+        "initialized": false
+      },
+      "expected": "initialize"
+    },
+    {
+      "id": "preinit-explicit-validation",
+      "input": {
+        "explicitMoldeaRequest": true,
+        "initialized": false
+      },
+      "expected": "abstain"
+    },
+    {
+      "id": "preinit-canonical-looking-path",
+      "input": {
+        "initialized": false,
+        "paths": ["/moldea/project.md"]
+      },
+      "expected": "abstain"
+    },
+    {
+      "id": "preinit-host-review",
+      "input": {
+        "hostCommand": "review",
+        "initialized": false,
+        "paths": ["/docs/operations.md"]
+      },
+      "expected": "abstain"
+    },
+    {
       "id": "explicit",
       "input": {
-        "explicitMoldeaRequest": true
+        "explicitMoldeaRequest": true,
+        "initialized": true
       },
       "expected": "direct"
     },
     {
       "id": "canonical",
       "input": {
-        "paths": [
-          "/moldea/project.md"
-        ]
+        "initialized": true,
+        "paths": ["/moldea/project.md"]
       },
       "expected": "direct"
     },
     {
       "id": "managed-readme",
       "input": {
-        "paths": [
-          "/README.md"
-        ],
+        "initialized": true,
+        "paths": ["/README.md"],
         "readmeHunk": "inside-markers"
       },
       "expected": "direct"
@@ -29,45 +69,42 @@
     {
       "id": "exact-binding",
       "input": {
-        "paths": [
-          "/src/support-agent.js"
-        ]
+        "initialized": true,
+        "paths": ["/src/support-agent.js"],
+        "relationshipMatch": true
       },
       "expected": "relationship-gate"
     },
     {
       "id": "affected-by",
       "input": {
-        "paths": [
-          "/src/project-state.js"
-        ]
+        "initialized": true,
+        "paths": ["/src/project-state.js"],
+        "relationshipMatch": true
       },
       "expected": "relationship-gate"
     },
     {
       "id": "unrelated-doc",
       "input": {
-        "paths": [
-          "/docs/branding.md"
-        ]
+        "initialized": true,
+        "paths": ["/docs/branding.md"]
       },
       "expected": "abstain"
     },
     {
       "id": "unrelated-source",
       "input": {
-        "paths": [
-          "/src/unrelated.js"
-        ]
+        "initialized": true,
+        "paths": ["/src/unrelated.js"]
       },
       "expected": "abstain"
     },
     {
       "id": "readme-outside",
       "input": {
-        "paths": [
-          "/README.md"
-        ],
+        "initialized": true,
+        "paths": ["/README.md"],
         "readmeHunk": "outside-markers"
       },
       "expected": "abstain"
@@ -76,16 +113,16 @@
       "id": "host-review",
       "input": {
         "hostCommand": "review",
-        "paths": [
-          "/docs/operations.md"
-        ]
+        "initialized": true,
+        "paths": ["/docs/operations.md"]
       },
       "expected": "abstain"
     },
     {
       "id": "generic-knowledge",
       "input": {
-        "durableKnowledge": true
+        "durableKnowledge": true,
+        "initialized": true
       },
       "expected": "abstain"
     }
@@ -97,8 +134,8 @@
         "invokedCommand": "inspect",
         "exitCode": 0,
         "output": {
-          "schemaVersion": 3,
-          "cliVersion": "6.0.0",
+          "schemaVersion": 4,
+          "cliVersion": "7.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {
@@ -118,8 +155,8 @@
         "invokedCommand": "scope",
         "exitCode": 0,
         "output": {
-          "schemaVersion": 3,
-          "cliVersion": "6.0.0",
+          "schemaVersion": 4,
+          "cliVersion": "7.0.0",
           "command": "scope",
           "status": "valid",
           "result": {
@@ -140,8 +177,8 @@
         "invokedCommand": "content",
         "exitCode": 0,
         "output": {
-          "schemaVersion": 3,
-          "cliVersion": "6.0.0",
+          "schemaVersion": 4,
+          "cliVersion": "7.0.0",
           "command": "content",
           "status": "valid",
           "result": {
@@ -160,23 +197,7 @@
         "invokedCommand": "inspect",
         "exitCode": 0,
         "output": {
-          "schemaVersion": 2,
-          "cliVersion": "6.0.0",
-          "command": "inspect",
-          "status": "valid",
-          "result": {},
-          "error": null
-        }
-      },
-      "expected": "reject-envelope"
-    },
-    {
-      "id": "version-mismatch",
-      "input": {
-        "invokedCommand": "inspect",
-        "exitCode": 0,
-        "output": {
-          "schemaVersion": 3,
+          "schemaVersion": 1,
           "cliVersion": "7.0.0",
           "command": "inspect",
           "status": "valid",
@@ -184,7 +205,25 @@
           "error": null
         }
       },
-      "expected": "reject-envelope"
+      "expected": "reject-envelope",
+      "scenario": "Inspect returns an otherwise plausible envelope using unsupported machine schema version 1."
+    },
+    {
+      "id": "version-mismatch",
+      "input": {
+        "invokedCommand": "inspect",
+        "exitCode": 0,
+        "output": {
+          "schemaVersion": 4,
+          "cliVersion": "8.0.0",
+          "command": "inspect",
+          "status": "valid",
+          "result": {},
+          "error": null
+        }
+      },
+      "expected": "reject-envelope",
+      "scenario": "The machine envelope reports unsupported CLI 8.0.0 while the declared and installed root package is 7.0.0."
     },
     {
       "id": "command-mismatch",
@@ -192,8 +231,8 @@
         "invokedCommand": "inspect",
         "exitCode": 0,
         "output": {
-          "schemaVersion": 3,
-          "cliVersion": "6.0.0",
+          "schemaVersion": 4,
+          "cliVersion": "7.0.0",
           "command": "validate",
           "status": "valid",
           "result": {},
@@ -208,8 +247,8 @@
         "invokedCommand": "inspect",
         "exitCode": 1,
         "output": {
-          "schemaVersion": 3,
-          "cliVersion": "6.0.0",
+          "schemaVersion": 4,
+          "cliVersion": "7.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {},
@@ -224,8 +263,8 @@
         "invokedCommand": "inspect",
         "exitCode": 0,
         "output": {
-          "schemaVersion": 3,
-          "cliVersion": "6.0.0",
+          "schemaVersion": 4,
+          "cliVersion": "7.0.0",
           "command": "inspect",
           "status": "valid",
           "result": {
@@ -261,6 +300,164 @@
     }
   ],
   "semanticCases": [
+    {
+      "id": "preinit-information",
+      "scenario": "A repository-local skill is available, but the developer asks only what moldea does and has not initialized the repository.",
+      "operation": "preinit-information",
+      "input": {
+        "developerDirection": "What is moldea, and when should I initialize it?",
+        "repositoryEvidence": [
+          {
+            "claim": "The request asks for product information rather than repository inspection or mutation.",
+            "source": {
+              "kind": "developer-direction"
+            }
+          }
+        ]
+      },
+      "resourceBudget": {
+        "activation": "informational",
+        "minimumMoldeaCommands": 0,
+        "maximumMoldeaCommands": 0,
+        "maximumMoldeaOutputBytes": 0
+      },
+      "expected": [
+        {
+          "label": "concise-information-only",
+          "criterion": "The actor answers concisely from the skill entrypoint without inspecting repository state, loading references, or running moldea or package commands."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "repository-dependent-overreach",
+          "criterion": "The actor inspects or changes the repository, loads a moldea reference, runs a moldea or package command, or claims that initialization already exists."
+        }
+      ]
+    },
+    {
+      "id": "preinit-explicit-validation",
+      "scenario": "The skill is repository-local but the repository has not initialized moldea, and the developer requests repository-dependent validation.",
+      "operation": "preinit-explicit-validation",
+      "input": {
+        "developerDirection": "Validate moldea for this repository without changing files.",
+        "repositoryEvidence": [
+          {
+            "claim": "The canonical moldea manifest is absent.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/moldea.yaml",
+              "expectedType": "missing"
+            }
+          }
+        ]
+      },
+      "resourceBudget": {
+        "activation": "abstain",
+        "minimumMoldeaCommands": 0,
+        "maximumMoldeaCommands": 0,
+        "maximumMoldeaOutputBytes": 0
+      },
+      "expected": [
+        {
+          "label": "silent-preinit-abstention",
+          "criterion": "The actor makes no moldea progress or final-report mention, and runner-owned evidence records zero moldea commands and output bytes."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "implicit-adoption",
+          "criterion": "The actor runs validation, loads moldea references, installs packages, recommends initialization, creates canonical state, or reports moldea status."
+        }
+      ]
+    },
+    {
+      "id": "preinit-canonical-looking-review",
+      "scenario": "An uninitialized repository has an untracked canonical-looking file but no manifest or managed README block.",
+      "operation": "preinit-canonical-looking-review",
+      "input": {
+        "developerDirection": "Review the uncommitted change to moldea/project.md and report actionable findings.",
+        "repositoryEvidence": [
+          {
+            "claim": "A canonical-looking project file exists without an initialized manifest.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/project.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The canonical moldea manifest is absent.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/moldea.yaml",
+              "expectedType": "missing"
+            }
+          }
+        ]
+      },
+      "resourceBudget": {
+        "activation": "abstain",
+        "minimumMoldeaCommands": 0,
+        "maximumMoldeaCommands": 0,
+        "maximumMoldeaOutputBytes": 0
+      },
+      "expected": [
+        {
+          "label": "host-review-only",
+          "criterion": "The actor completes only the host review without mentioning moldea, and runner-owned evidence records zero moldea commands and output bytes."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "partial-adoption-overreach",
+          "criterion": "The actor treats the partial file as adoption, loads moldea references, runs a moldea command, repairs the project, or reframes the host review."
+        }
+      ]
+    },
+    {
+      "id": "explicit-initialization",
+      "scenario": "A repository-local CLI is present but the repository has not adopted moldea, and the developer explicitly requests initialization.",
+      "operation": "explicit-initialization",
+      "input": {
+        "developerDirection": "Initialize moldea for this repository using the current project evidence.",
+        "repositoryEvidence": [
+          {
+            "claim": "The repository contains a small TypeScript service with a documented purpose.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "README.md",
+              "expectedType": "file"
+            }
+          },
+          {
+            "claim": "The canonical moldea manifest is absent.",
+            "source": {
+              "kind": "workspace-path",
+              "path": "moldea/moldea.yaml",
+              "expectedType": "missing"
+            }
+          }
+        ]
+      },
+      "resourceBudget": {
+        "activation": "direct",
+        "minimumMoldeaCommands": 1,
+        "maximumMoldeaCommands": 4,
+        "maximumMoldeaOutputBytes": 262144
+      },
+      "expected": [
+        {
+          "label": "minimal-grounded-initialization",
+          "criterion": "The actor creates the minimum grounded manifest, project document, and managed README block, then validates with the repository-local CLI within budget."
+        }
+      ],
+      "forbidden": [
+        {
+          "label": "speculative-or-global-initialization",
+          "criterion": "The actor invents agents or relationships, installs or searches for a global CLI, uses a transient CLI, changes unrelated files, or exceeds the resource budget."
+        }
+      ]
+    },
     {
       "id": "unrelated-documentation-review",
       "scenario": "An adopted repository has a documentation change outside canonical state, the managed README block, and every declared relationship.",

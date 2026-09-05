@@ -35,7 +35,7 @@ const runCli = (repositoryPath, arguments_) => {
 };
 
 test('all clean-slate semantic cases materialize their declared repository evidence', async () => {
-  assert.equal(SEMANTIC_CASES.length, 14);
+  assert.equal(SEMANTIC_CASES.length, 18);
 
   for (const caseDefinition of SEMANTIC_CASES) {
     const evaluationRoot = mkdtempSync(join(tmpdir(), `moldea-${caseDefinition.id}-`));

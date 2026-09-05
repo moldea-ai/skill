@@ -8,9 +8,9 @@ import {
 } from './stages.ts';
 
 describe('qualification stage planning', () => {
-  test('derives the exact Custom maximum of forty-eight planned trial calls from eight cases', () => {
-    expect(getQualificationPlannedCallCount(8)).toBe(48);
-    expect(getQualificationMaximumCallCount(48)).toBe(96);
+  test('derives the exact Custom maximum of seventy-two planned trial calls from twelve cases', () => {
+    expect(getQualificationPlannedCallCount(12)).toBe(72);
+    expect(getQualificationMaximumCallCount(72)).toBe(144);
   });
 
   test('bounds one diagnostic initial trial at two planned and four maximum calls', () => {

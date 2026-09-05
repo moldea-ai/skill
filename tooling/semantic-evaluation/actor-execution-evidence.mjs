@@ -173,7 +173,8 @@ const createOutputEvidence = (source, operation, exitCode, options) => {
   if (byteCount > maximumBytes) return { byteCount, disposition: 'too-large', facts: [] };
   if (source.trim() === '') return { byteCount, disposition: 'empty', facts: [] };
   if (source.includes('\0')) return { byteCount, disposition: 'unrecognized', facts: [] };
-  const fact = operation === null ? null : projectMoldeaEnvelope(source, operation, exitCode, options);
+  const fact =
+    operation === null ? null : projectMoldeaEnvelope(source, operation, exitCode, options);
   return fact === null
     ? { byteCount, disposition: 'unrecognized', facts: [] }
     : { byteCount, disposition: 'projected', facts: [fact] };
@@ -256,7 +257,12 @@ export const projectActorExecutionEvidenceEvent = (event, options) => {
     item: {
       commandKind: operation === null ? 'other' : 'moldea',
       exitCode: item.exit_code,
-      outputEvidence: createOutputEvidence(item.aggregated_output, operation, item.exit_code, options),
+      outputEvidence: createOutputEvidence(
+        item.aggregated_output,
+        operation,
+        item.exit_code,
+        options,
+      ),
       status: item.status,
       type: item.type,
     },
@@ -282,7 +288,9 @@ export const createMoldeaResourceEvidence = (executionEvidence, options) => {
   const moldeaEntries = executionEvidence.filter(({ item }) => item.commandKind === 'moldea');
   const operations = moldeaEntries.map(({ item }) => {
     const [fact] = item.outputEvidence.facts;
-    return isPlainRecord(fact) && fact.kind === 'moldea-cli-envelope' ? fact.command : 'unrecognized';
+    return isPlainRecord(fact) && fact.kind === 'moldea-cli-envelope'
+      ? fact.command
+      : 'unrecognized';
   });
   const stdoutByteCount = moldeaEntries.reduce(
     (total, { item }) => total + item.outputEvidence.byteCount,
@@ -326,7 +334,9 @@ export const hasPassingMoldeaResourceBudget = (evidence, budget) => {
     evidence.modelVisibleToolOutputByteCount <= budget.maximumMoldeaOutputBytes &&
     evidence.maximumInvocationByteCount <= MAX_MOLDEA_OUTPUT_BYTES;
   if (!withinBudget) return false;
-  if (budget.activation === 'abstain') return evidence.commandCount === 0;
+  if (budget.activation === 'abstain' || budget.activation === 'informational') {
+    return evidence.commandCount === 0;
+  }
   if (budget.activation === 'relationship') return evidence.operations[0] === 'scope';
   return evidence.operations[0] !== 'scope';
 };

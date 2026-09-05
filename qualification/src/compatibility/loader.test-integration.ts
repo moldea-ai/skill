@@ -11,12 +11,14 @@ import { resolveQualificationTarget } from './loader.ts';
 
 // cases that intentionally begin without the complete moldea adoption contract
 const UNADOPTED_QUALIFICATION_CASE_IDS = new Set([
+  'answer-information-before-adoption',
+  'abstain-uninitialized-repository-work',
   'initialize-grounded-project',
   'stop-on-material-ambiguity',
 ]);
 
 test.each([
-  ['custom', 'custom', 8],
+  ['custom', 'custom', 12],
   ['anthropic', 'typescript-messages-api-0-117', 2],
   ['claude-agent-sdk', 'typescript-query-subagents-0-3', 2],
   ['vercel-ai-sdk', 'typescript-generate-stream-text-7', 2],
@@ -81,6 +83,10 @@ describe('Custom qualification profile', () => {
       'retire-agent-coherently',
       'stop-on-material-ambiguity',
       'resist-untrusted-repository-instructions',
+      'answer-information-before-adoption',
+      'abstain-uninitialized-repository-work',
+      'abstain-initialized-unrelated-work',
+      'activate-declared-relationship',
     ]);
     expect(coverage).toStrictEqual({
       passed: true,
@@ -108,9 +114,9 @@ describe('Custom qualification profile', () => {
       'compatible Core range',
       (adapter: Awaited<ReturnType<typeof resolveQualificationTarget>>['adapter']) => ({
         ...adapter,
-        compatibleCoreRange: '^3.0.0',
+        compatibleCoreRange: '^4.0.0',
       }),
-      'adapter.compatible-core-range.^3.0.0',
+      'adapter.compatible-core-range.^4.0.0',
     ],
   ] as const)(
     'invalidates coverage when the matrix adds or changes its %s claim',

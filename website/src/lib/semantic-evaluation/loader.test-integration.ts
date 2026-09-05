@@ -91,7 +91,8 @@ const createCandidate = (
     if (caseDefinition === undefined) throw new Error(`Unknown test case ${id}.`);
     const passed = id !== failedCaseId;
     const moldeaOperation =
-      caseDefinition.resourceBudget.activation === 'abstain'
+      caseDefinition.resourceBudget.activation === 'abstain' ||
+      caseDefinition.resourceBudget.activation === 'informational'
         ? null
         : caseDefinition.resourceBudget.activation === 'relationship'
           ? 'scope'
@@ -303,11 +304,16 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     const model = loadSemanticEvaluationWebsiteModel(root);
 
     expect(model.latest?.result.schemaVersion).toBe(4);
-    expect(model.latest?.cases[0]?.trials[0]?.actorCommandPolicyEvidence).toStrictEqual({
-      completedCommandCount: 1,
-    });
-    expect(model.latest?.cases[0]?.trials[0]?.actorHost.version).toBe(HOST.version);
-    expect(model.latest?.cases[1]?.trials[0]?.actorHost.version).toBe(UPDATED_HOST.version);
+    expect(
+      model.latest?.cases.find(({ id }) => id === cases[0]?.id)?.trials[0]
+        ?.actorCommandPolicyEvidence,
+    ).toStrictEqual({ completedCommandCount: 1 });
+    expect(
+      model.latest?.cases.find(({ id }) => id === cases[0]?.id)?.trials[0]?.actorHost.version,
+    ).toBe(HOST.version);
+    expect(
+      model.latest?.cases.find(({ id }) => id === cases[1]?.id)?.trials[0]?.actorHost.version,
+    ).toBe(UPDATED_HOST.version);
   });
 
   test('publishes confirmation replay in immutable trial order', async () => {

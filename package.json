@@ -8,7 +8,7 @@
     "node": ">=22.11.0"
   },
   "moldeaRelease": {
-    "cliJsonSchemaVersion": 3
+    "cliJsonSchemaVersion": 4
   },
   "scripts": {
     "docs:check": "npm --prefix website run docs:check",
@@ -39,7 +39,7 @@
     "website:dev": "npm --prefix website run dev"
   },
   "devDependencies": {
-    "@moldea.ai/cli": "6.0.0",
+    "@moldea.ai/cli": "7.0.0",
     "semver": "7.8.5",
     "yaml": "2.9.0"
   }

@@ -8,12 +8,12 @@ import {
   projectActorExecutionEvidenceEvent,
 } from './actor-execution-evidence.mjs';
 
-const OPTIONS = { cliVersion: '6.0.0', jsonSchemaVersion: 3 };
+const OPTIONS = { cliVersion: '7.0.0', jsonSchemaVersion: 4 };
 
 const createEnvelope = (command, result) =>
   JSON.stringify({
-    schemaVersion: 3,
-    cliVersion: '6.0.0',
+    schemaVersion: 4,
+    cliVersion: '7.0.0',
     command,
     status: 'valid',
     result,
@@ -41,7 +41,7 @@ test('projects content-free inspect metadata and exact output bytes', () => {
   );
   assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
   assert.deepEqual(evidence.item.outputEvidence.facts[0], {
-    cliVersion: '6.0.0',
+    cliVersion: '7.0.0',
     command: 'inspect',
     containsContent: false,
     errorPresent: false,
@@ -50,7 +50,7 @@ test('projects content-free inspect metadata and exact output bytes', () => {
     pageRecordCount: 1,
     relevant: null,
     resultPresent: true,
-    schemaVersion: 3,
+    schemaVersion: 4,
     status: 'valid',
   });
   assert.equal(evidence.item.outputEvidence.byteCount, Buffer.byteLength(output));
@@ -85,6 +85,22 @@ test('recognizes relationship scope and content only through bounded direct CLI 
     }),
     true,
   );
+});
+
+test('accepts zero CLI consumption for informational and abstention paths', () => {
+  const resource = createMoldeaResourceEvidence([], OPTIONS);
+
+  for (const activation of ['abstain', 'informational']) {
+    assert.equal(
+      hasPassingMoldeaResourceBudget(resource, {
+        activation,
+        minimumMoldeaCommands: 0,
+        maximumMoldeaCommands: 0,
+        maximumMoldeaOutputBytes: 0,
+      }),
+      true,
+    );
+  }
 });
 
 test('rejects inspect output that contains canonical document bodies', () => {

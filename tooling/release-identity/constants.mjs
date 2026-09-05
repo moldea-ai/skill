@@ -9,6 +9,8 @@ export const CLI_VERSION_TEXT_PATHS = [
   'docs/compatibility-and-local-tooling.md',
   'moldea/SKILL.md',
   'moldea/references/local-tooling.md',
+  'moldea/scripts/relevance-gate.mjs',
+  'qualification/README.md',
 ];
 
 // release files that must carry the exact CLI JSON schema version
@@ -34,4 +36,5 @@ export const RELEASE_PATHS = Object.freeze({
   semanticResult: 'fixtures/semantic-evaluation-result.json',
   skill: 'moldea/SKILL.md',
   skillLocalTooling: 'moldea/references/local-tooling.md',
+  skillRelevanceGate: 'moldea/scripts/relevance-gate.mjs',
 });

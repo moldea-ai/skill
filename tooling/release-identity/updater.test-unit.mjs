@@ -22,6 +22,10 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
       `${currentFiles.get(relativePath) ?? ''}CLI JSON schema \`3\`\n`,
     );
   }
+  currentFiles.set(
+    RELEASE_PATHS.skillRelevanceGate,
+    "const EXPECTED_CLI_VERSION = '6.0.0';\nconst EXPECTED_CORE_VERSION = '2.0.2';\n",
+  );
   currentFiles.set(RELEASE_PATHS.packageManifest, '{"moldeaRelease":{"cliJsonSchemaVersion":3}}\n');
   currentFiles.set(RELEASE_PATHS.packageLock, '{}\n');
   currentFiles.set(
@@ -79,7 +83,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
     currentFiles,
     previousCliVersion: '6.0.0',
     publishedManifest: {
-      dependencies: { '@moldea.ai/core': '2.0.2' },
+      dependencies: { '@moldea.ai/core': '3.0.0' },
       jsonSchemaVersion: 4,
       version: '7.0.0',
     },
@@ -90,6 +94,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   });
 
   for (const relativePath of CLI_VERSION_TEXT_PATHS) {
+    if (relativePath === RELEASE_PATHS.skillRelevanceGate) continue;
     assert.match(
       updatedFiles.get(relativePath),
       new RegExp(`${relativePath}: @moldea\\.ai/cli 7\\.0\\.0`),
@@ -105,6 +110,10 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   }
   assert.equal(updatedFiles.get(RELEASE_PATHS.packageLock), '{"lockfileVersion":3}\n');
   assert.equal(updatedFiles.get(RELEASE_PATHS.packageManifest), '{"version":"3.1.0"}\n');
+  assert.equal(
+    updatedFiles.get(RELEASE_PATHS.skillRelevanceGate),
+    "const EXPECTED_CLI_VERSION = '7.0.0';\nconst EXPECTED_CORE_VERSION = '3.0.0';\n",
+  );
   const conformanceCases = JSON.parse(updatedFiles.get(RELEASE_PATHS.conformanceCases));
   assert.deepEqual(conformanceCases.packageManagerCases[0].input.cli, {
     declaration: '7.0.0',
@@ -114,7 +123,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   assert.equal(conformanceCases.cliEnvelopeCases[1].input.output.cliVersion, '8.0.0');
   assert.deepEqual(JSON.parse(updatedFiles.get(RELEASE_PATHS.semanticCliManifest)), {
     bin: { moldea: 'bin/moldea.js' },
-    dependencies: { '@moldea.ai/core': '2.0.2' },
+    dependencies: { '@moldea.ai/core': '3.0.0' },
     moldeaRelease: { cliJsonSchemaVersion: 4 },
     name: '@moldea.ai/cli',
     private: true,

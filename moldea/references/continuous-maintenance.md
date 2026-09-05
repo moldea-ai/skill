@@ -1,10 +1,10 @@
 # Initialization and maintenance
 
-Read this reference after moldea relevance is established for explicit initialization or authorized canonical synchronization.
+Read this reference after explicit initialization intent or established post-adoption relevance for authorized canonical synchronization.
 
 ## Adoption
 
-Initialization requires explicit developer intent. An adopted repository has the complete current contract established by its supported canonical files and managed README block. Partial artifacts do not authorize automatic repair or initialization; preserve them, identify the missing element, and ask only when the active task requires resolving it.
+Initialization requires explicit developer intent. Establish the repository root, reuse current project evidence, and confirm that adoption is absent or intentionally being replaced before writing. A complete initialized repository has regular root files `/moldea/moldea.yaml` and `/moldea/project.md` plus exactly one ordered full-line marker pair in the root README. Partial artifacts do not authorize automatic repair; preserve them and resolve the conflict only as part of the explicit initialization task.
 
 Do not recommend initialization during unrelated work. Do not treat generic knowledge, ordinary documentation, or a repository name as adoption intent.
 
@@ -44,4 +44,4 @@ Never rewrite README outside the markers as part of moldea maintenance. If the b
 
 Classify an affected requirement criterion as satisfied, outstanding, or evidence-blocked. Remove it only when every criterion is established and the current operation authorizes the removal. Remove superseded declarations and stale relationships made unnecessary by the change; do not retain compatibility paths without an established supported consumer.
 
-After writes, validate schema-3 metadata and inspect only the changed canonical owners. Do not run full-project content inspection.
+After writes, validate schema-4 metadata and inspect only the changed canonical owners. Do not run full-project content inspection.

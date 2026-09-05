@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -18,6 +26,7 @@ const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILL_ROOT = join(REPOSITORY_ROOT, 'moldea');
 const SKILL_PATH = join(SKILL_ROOT, 'SKILL.md');
 const CLI_PATH = join(REPOSITORY_ROOT, 'node_modules', '.bin', 'moldea');
+const RELEVANCE_GATE_PATH = join(SKILL_ROOT, 'scripts', 'relevance-gate.mjs');
 const FIXTURE = JSON.parse(
   readFileSync(join(REPOSITORY_ROOT, 'fixtures', 'conformance-cases.json'), 'utf8'),
 );
@@ -46,6 +55,19 @@ const parseFrontmatter = () => {
   return document.toJS();
 };
 
+const resolveActivationCase = (input) => {
+  if (input.informationalRequest === true) return 'informational';
+  if (input.initializationRequest === true) return 'initialize';
+  if (input.initialized !== true) return 'abstain';
+  if (input.explicitMoldeaRequest === true) return 'direct';
+  if (input.paths?.some((path) => path === '/moldea' || path.startsWith('/moldea/'))) {
+    return 'direct';
+  }
+  if (input.readmeHunk === 'inside-markers') return 'direct';
+  if (input.relationshipMatch === true) return 'relationship-gate';
+  return 'abstain';
+};
+
 const runCli = (repository, arguments_, input) => {
   const result = spawnSync(CLI_PATH, arguments_, {
     cwd: repository,
@@ -55,6 +77,40 @@ const runCli = (repository, arguments_, input) => {
   });
   if (result.error) throw result.error;
   return result;
+};
+
+const runRelevanceGate = (repository, arguments_ = [], input) => {
+  const result = spawnSync(
+    process.execPath,
+    [RELEVANCE_GATE_PATH, '--repository', repository, ...arguments_],
+    {
+      cwd: repository,
+      encoding: 'utf8',
+      input,
+      maxBuffer: 16,
+    },
+  );
+  if (result.error) throw result.error;
+  return result;
+};
+
+const installProjectToolingFixture = (root) => {
+  writeFileSync(
+    join(root, 'package.json'),
+    `${JSON.stringify(
+      {
+        private: true,
+        devDependencies: { '@moldea.ai/cli': '7.0.0' },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  symlinkSync(
+    join(REPOSITORY_ROOT, 'node_modules'),
+    join(root, 'node_modules'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
 };
 
 const createProject = () => {
@@ -77,17 +133,18 @@ const createProject = () => {
 };
 
 describe('portable skill contract', () => {
-  test('uses the lowercase moldea identity and a narrow activation description', () => {
+  test('uses lowercase identity, repository-bound initialization, and a narrow description', () => {
     const frontmatter = parseFrontmatter();
     assert.deepEqual(frontmatter.metadata, {
       version: '5.0.0',
-      cliVersion: '6.0.0',
-      cliJsonSchemaVersion: 3,
+      cliVersion: '7.0.0',
+      cliJsonSchemaVersion: 4,
     });
     assert.equal(frontmatter.name, 'moldea');
-    assert.match(frontmatter.description, /explicitly invokes moldea/u);
-    assert.match(frontmatter.description, /declared moldea binding or affectedBy relationship/u);
-    assert.match(frontmatter.description, /Do not use for unrelated/u);
+    assert.match(frontmatter.description, /initialize moldea when explicitly requested/u);
+    assert.match(frontmatter.description, /only after adoption is established/u);
+    assert.match(frontmatter.description, /declared binding or affectedBy relationship/u);
+    assert.match(frontmatter.description, /Do not use for other uninitialized work/u);
     assert.doesNotMatch(frontmatter.description, /potentially durable knowledge|Use first/iu);
   });
 
@@ -95,51 +152,56 @@ describe('portable skill contract', () => {
     const skill = readSkill();
     for (const referenceName of REFERENCE_NAMES) {
       assert.match(skill, new RegExp(`references/${referenceName.replace('.', '\\.')}`, 'u'));
-      assert.doesNotThrow(() => readFileSync(join(SKILL_ROOT, 'references', referenceName), 'utf8'));
+      assert.doesNotThrow(() =>
+        readFileSync(join(SKILL_ROOT, 'references', referenceName), 'utf8'),
+      );
     }
     assert.match(skill, /Never read every reference by default/u);
     assert.match(skill, /read only what the selected operation needs/u);
   });
 
-  test('defines silent abstention, host ownership, and bounded schema-3 evidence', () => {
+  test('defines silent abstention, host ownership, and bounded schema-4 evidence', () => {
     const distributedText = [
       readSkill(),
-      ...REFERENCE_NAMES.map((name) =>
-        readFileSync(join(SKILL_ROOT, 'references', name), 'utf8'),
-      ),
+      ...REFERENCE_NAMES.map((name) => readFileSync(join(SKILL_ROOT, 'references', name), 'utf8')),
     ].join('\n');
-    assert.match(distributedText, /stop silently/u);
-    assert.match(distributedText, /Host planning, review, implementation, Git, commit, and publication workflows retain control/u);
-    assert.match(distributedText, /65,536-byte page/u);
+    assert.match(distributedText, /abstains silently/u);
+    assert.match(
+      distributedText,
+      /Host planning, review, implementation, package-manager, Git, commit, and publication workflows always retain ownership/u,
+    );
+    assert.match(distributedText, /65,536-byte output page/u);
     assert.match(distributedText, /262,144 bytes/u);
     assert.match(distributedText, /1 MiB/u);
-    assert.match(distributedText, /16 MiB host buffer/u);
     assert.match(distributedText, /content-free/u);
     assert.doesNotMatch(distributedText, /Moldea/u);
-    assert.doesNotMatch(distributedText, /4\.0\.[0-2]|CLI JSON schema (?:1|2)\b/u);
+    assert.doesNotMatch(distributedText, /4\.0\.[0-2]|CLI JSON schema (?:1|2|3)\b/u);
   });
 
   test('exposes concise lowercase host metadata', () => {
     const metadata = readFileSync(join(SKILL_ROOT, 'agents', 'openai.yaml'), 'utf8');
-    assert.match(metadata, /display_name: "moldea"/u);
+    assert.match(metadata, /display_name: ['"]moldea['"]/u);
     assert.match(metadata, /allow_implicit_invocation: true/u);
     assert.doesNotMatch(metadata, /durable knowledge|Use first/iu);
   });
 });
 
 describe('activation and semantic protection', () => {
-  test('covers every direct, relationship, and abstention gate', () => {
-    const outcomes = new Map(FIXTURE.activationCases.map(({ id, expected }) => [id, expected]));
-    assert.deepEqual([...outcomes.values()].filter((value) => value === 'direct').length, 3);
-    assert.deepEqual(
-      [...outcomes.values()].filter((value) => value === 'relationship-gate').length,
-      2,
-    );
-    assert.deepEqual([...outcomes.values()].filter((value) => value === 'abstain').length, 5);
+  test('covers and resolves the complete initialization and relevance state machine', () => {
+    assert.equal(FIXTURE.activationCases.length, 15);
+    for (const { expected, input } of FIXTURE.activationCases) {
+      assert.equal(resolveActivationCase(input), expected);
+    }
+    const outcomes = FIXTURE.activationCases.map(({ expected }) => expected);
+    assert.equal(outcomes.filter((value) => value === 'informational').length, 1);
+    assert.equal(outcomes.filter((value) => value === 'initialize').length, 1);
+    assert.equal(outcomes.filter((value) => value === 'direct').length, 3);
+    assert.equal(outcomes.filter((value) => value === 'relationship-gate').length, 2);
+    assert.equal(outcomes.filter((value) => value === 'abstain').length, 8);
   });
 
-  test('validates the complete 14-case resource-bounded semantic suite', () => {
-    assert.equal(FIXTURE.semanticCases.length, 14);
+  test('validates the complete 18-case resource-bounded semantic suite', () => {
+    assert.equal(FIXTURE.semanticCases.length, 18);
     for (const caseDefinition of FIXTURE.semanticCases) {
       assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
     }
@@ -152,7 +214,7 @@ describe('activation and semantic protection', () => {
     const abstentions = FIXTURE.semanticCases.filter(
       ({ resourceBudget }) => resourceBudget.activation === 'abstain',
     );
-    assert.equal(abstentions.length, 6);
+    assert.equal(abstentions.length, 8);
     for (const { resourceBudget } of abstentions) {
       assert.deepEqual(resourceBudget, {
         activation: 'abstain',
@@ -162,16 +224,89 @@ describe('activation and semantic protection', () => {
       });
     }
   });
+
+  test('gives the informational case a literal zero moldea budget', () => {
+    const informational = FIXTURE.semanticCases.find(
+      ({ resourceBudget }) => resourceBudget.activation === 'informational',
+    );
+    assert.deepEqual(informational?.resourceBudget, {
+      activation: 'informational',
+      minimumMoldeaCommands: 0,
+      maximumMoldeaCommands: 0,
+      maximumMoldeaOutputBytes: 0,
+    });
+  });
+
+  test('keeps the deterministic adoption gate fail-closed and two bytes', () => {
+    const initialized = createProject();
+    const uninitialized = mkdtempSync(join(tmpdir(), 'moldea-v5-uninitialized-'));
+    try {
+      writeFileSync(join(uninitialized, 'README.md'), '# Project\n');
+      for (const [repository, expected] of [
+        [initialized, '1\n'],
+        [uninitialized, '0\n'],
+      ]) {
+        const result = runRelevanceGate(repository, ['--adoption-only']);
+        assert.equal(result.status, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, expected);
+        assert.equal(Buffer.byteLength(result.stdout), 2);
+      }
+
+      writeFileSync(
+        join(initialized, 'README.md'),
+        '# Project\n\n<!-- moldea:end -->\n<!-- moldea:start -->\n',
+      );
+      assert.equal(runRelevanceGate(initialized, ['--adoption-only']).stdout, '0\n');
+    } finally {
+      rmSync(initialized, { force: true, recursive: true });
+      rmSync(uninitialized, { force: true, recursive: true });
+    }
+  });
+
+  test('matches exact and glob relationships without invoking the CLI', () => {
+    const root = createProject();
+    try {
+      installProjectToolingFixture(root);
+      for (const [input, expected] of [
+        ['/src/project-state.js\0', '1\n'],
+        ['/src/unrelated.js\0', '0\n'],
+        ['/src/project-state.js', '0\n'],
+        [Buffer.from([0xff, 0]), '0\n'],
+      ]) {
+        const result = runRelevanceGate(root, [], input);
+        assert.equal(result.status, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, expected);
+        assert.equal(Buffer.byteLength(result.stdout), 2);
+      }
+
+      writeFileSync(
+        join(root, 'moldea', 'moldea.yaml'),
+        'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n',
+      );
+      assert.equal(runRelevanceGate(root, [], '/src/nested/module.js\0').stdout, '1\n');
+
+      const packageManifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+      packageManifest.devDependencies['@moldea.ai/cli'] = '6.0.0';
+      writeFileSync(join(root, 'package.json'), `${JSON.stringify(packageManifest, null, 2)}\n`);
+      assert.equal(runRelevanceGate(root, [], '/src/nested/module.js\0').stdout, '0\n');
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
 });
 
-describe('CLI 6 bounded machine protocol', () => {
+describe('CLI 7 bounded machine protocol', () => {
   test('keeps release identity exact across the root manifests', () => {
     const packageManifest = JSON.parse(readFileSync(join(REPOSITORY_ROOT, 'package.json'), 'utf8'));
-    const packageLock = JSON.parse(readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'));
+    const packageLock = JSON.parse(
+      readFileSync(join(REPOSITORY_ROOT, 'package-lock.json'), 'utf8'),
+    );
     assert.equal(packageManifest.version, '5.0.0');
-    assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], '6.0.0');
-    assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 3);
-    assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, '6.0.0');
+    assert.equal(packageManifest.devDependencies['@moldea.ai/cli'], '7.0.0');
+    assert.equal(packageManifest.moldeaRelease.cliJsonSchemaVersion, 4);
+    assert.equal(packageLock.packages['node_modules/@moldea.ai/cli'].version, '7.0.0');
   });
 
   test('returns content-free inspect metadata and bounded explicit content', () => {
@@ -181,8 +316,8 @@ describe('CLI 6 bounded machine protocol', () => {
       assert.equal(inspect.status, 0);
       assert.ok(Buffer.byteLength(inspect.stdout) <= 65_536);
       const inspectEnvelope = JSON.parse(inspect.stdout);
-      assert.equal(inspectEnvelope.schemaVersion, 3);
-      assert.equal(inspectEnvelope.cliVersion, '6.0.0');
+      assert.equal(inspectEnvelope.schemaVersion, 4);
+      assert.equal(inspectEnvelope.cliVersion, '7.0.0');
       assert.equal(inspectEnvelope.command, 'inspect');
       assert.equal(inspect.stdout.includes('Current project truth.'), false);
 
@@ -219,6 +354,85 @@ describe('CLI 6 bounded machine protocol', () => {
       assert.equal(JSON.parse(unrelated.stdout).result.relevant, false);
       assert.ok(Buffer.byteLength(related.stdout) <= 65_536);
       assert.ok(Buffer.byteLength(unrelated.stdout) <= 65_536);
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  test('continues large Unicode content through bounded schema-4 chunks', () => {
+    const root = createProject();
+    try {
+      const largeContent = `# Large context\n\n${'bounded🙂content\n'.repeat(2048)}`;
+      writeFileSync(join(root, 'moldea', 'project.md'), largeContent);
+      const chunks = [];
+      let cursor;
+      let commandCount = 0;
+      let outputByteCount = 0;
+
+      do {
+        const arguments_ = [
+          'content',
+          '--path',
+          '/moldea/project.md',
+          '--json',
+          '--max-output-bytes',
+          '4096',
+        ];
+        if (cursor !== undefined) arguments_.push('--cursor', cursor);
+        const content = runCli(root, arguments_);
+        assert.equal(content.status, 0);
+        const pageByteCount = Buffer.byteLength(content.stdout);
+        assert.ok(pageByteCount <= 4_096);
+        outputByteCount += pageByteCount;
+        const envelope = JSON.parse(content.stdout);
+        assert.equal(envelope.schemaVersion, 4);
+        assert.equal(envelope.status, 'valid');
+        chunks.push(envelope.result.chunk.content);
+        cursor = envelope.result.cursor ?? undefined;
+        commandCount += 1;
+      } while (cursor !== undefined);
+
+      assert.equal(chunks.join(''), largeContent);
+      assert.ok(commandCount > 1);
+      assert.ok(commandCount <= 32);
+      assert.ok(outputByteCount <= 262_144);
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  test('keeps validate, inspect, scope, and content read-only at the Git boundary', () => {
+    const root = createProject();
+    try {
+      const beforeStatus = spawnSync('git', ['status', '--porcelain=v2', '-z'], {
+        cwd: root,
+        encoding: 'utf8',
+      }).stdout;
+      const beforeObjects = readdirSync(join(root, '.git', 'objects'), {
+        recursive: true,
+      }).sort();
+
+      for (const [arguments_, input] of [
+        [['validate', '--json', '--max-output-bytes', '65536']],
+        [['inspect', '--json', '--max-output-bytes', '65536']],
+        [
+          ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+          '/src/project-state.js\0',
+        ],
+        [['content', '--path', '/moldea/project.md', '--json', '--max-output-bytes', '65536']],
+      ]) {
+        assert.equal(runCli(root, arguments_, input).status, 0);
+      }
+
+      const afterStatus = spawnSync('git', ['status', '--porcelain=v2', '-z'], {
+        cwd: root,
+        encoding: 'utf8',
+      }).stdout;
+      const afterObjects = readdirSync(join(root, '.git', 'objects'), {
+        recursive: true,
+      }).sort();
+      assert.equal(afterStatus, beforeStatus);
+      assert.deepEqual(afterObjects, beforeObjects);
     } finally {
       rmSync(root, { force: true, recursive: true });
     }

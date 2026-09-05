@@ -310,11 +310,19 @@ test('execution evidence requires explicit paths for workspace-owned executables
       createCommandEvent('tsc --noEmit'),
       createCommandEvent('node_modules/.bin/moldea composition --json'),
       createCommandEvent('/mnt/node_modules/.bin/tsc --noEmit'),
+      createCommandEvent(
+        '/mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt --adoption-only',
+        '1\n',
+      ),
+      createCommandEvent(
+        'node /mnt/.agents/skills/moldea/scripts/relevance-gate.mjs --repository /mnt',
+        '0\n',
+      ),
     ].join('\n'),
   );
 
   assertCommandPolicy(result.commandPolicy, {
-    completedCommandCount: 4,
+    completedCommandCount: 6,
     credentialExposure: { status: 'not-observed', observedCount: 0 },
     networkAccess: {
       status: 'indeterminate',
@@ -327,6 +335,7 @@ test('execution evidence requires explicit paths for workspace-owned executables
       indeterminateCount: 2,
     },
   });
+  assert.equal(result.commandPolicy.moldeaCommandCount, 1);
 });
 
 test('execution evidence rejects computed filesystem inspection paths', () => {

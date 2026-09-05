@@ -71,6 +71,7 @@ const SAFE_LOCAL_EXECUTABLES = new Set([
   'pwd',
   'readlink',
   'realpath',
+  'relevance-gate.mjs',
   'rg',
   'sha256sum',
   'sort',
@@ -90,6 +91,14 @@ const SAFE_WORKSPACE_EXECUTABLE_PATHS = new Map([
       'node_modules/.bin/moldea',
       './node_modules/.bin/moldea',
       '/mnt/node_modules/.bin/moldea',
+    ]),
+  ],
+  [
+    'relevance-gate.mjs',
+    new Set([
+      '.agents/skills/moldea/scripts/relevance-gate.mjs',
+      './.agents/skills/moldea/scripts/relevance-gate.mjs',
+      '/mnt/.agents/skills/moldea/scripts/relevance-gate.mjs',
     ]),
   ],
   [
@@ -167,6 +176,11 @@ const SAFE_NODE_REALPATH_PATHS = new Set([
   './node_modules/@moldea.ai/cli',
   'node_modules/.bin/moldea',
   'node_modules/@moldea.ai/cli',
+]);
+const SAFE_RELEVANCE_GATE_PATHS = new Set([
+  '.agents/skills/moldea/scripts/relevance-gate.mjs',
+  './.agents/skills/moldea/scripts/relevance-gate.mjs',
+  '/mnt/.agents/skills/moldea/scripts/relevance-gate.mjs',
 ]);
 const SAFE_SED_PRINT_SCRIPT_PATTERN = /^\d+(?:,\d+)?p$/u;
 const EVALUATOR_HOME_PATH = '/home/evaluator';
@@ -455,6 +469,15 @@ const isTrustedLocalExecutable = (word, executable) => {
     )
   );
 };
+
+/** Checks the fixed cross-platform Node invocation for the repository relevance gate. */
+const isSafeRelevanceGateCommand = (words) =>
+  isTrustedLocalExecutable(words[0], 'node') &&
+  (words.length === 4 || words.length === 5) &&
+  SAFE_RELEVANCE_GATE_PATHS.has(words[1]) &&
+  words[2] === '--repository' &&
+  words[3] === '/mnt' &&
+  (words.length === 4 || words[4] === '--adoption-only');
 
 /** Returns a Git subcommand after validating the global options that precede it. */
 const identifyGitSubcommand = (words) => {
@@ -832,6 +855,7 @@ const classifyNetworkCommand = (words) => {
       ? 'not-observed'
       : 'indeterminate';
   }
+  if (executable === 'node' && isSafeRelevanceGateCommand(words)) return 'not-observed';
   if (OPAQUE_EXECUTABLES.has(executable)) return 'indeterminate';
   return SAFE_LOCAL_EXECUTABLES.has(executable) && isTrustedLocalExecutable(words[0], executable)
     ? 'not-observed'

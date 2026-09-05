@@ -1,6 +1,6 @@
 interface:
-  display_name: "moldea"
-  short_description: "Maintain moldea context only when directly relevant"
-  default_prompt: "Use $moldea for explicit moldea work or for paths matched by an adopted project's declared moldea relationships; abstain silently from unrelated work."
+  display_name: 'moldea'
+  short_description: 'Maintain initialized moldea repositories'
+  default_prompt: 'Use $moldea to initialize this repository or perform a directly relevant moldea operation.'
 policy:
   allow_implicit_invocation: true

@@ -119,7 +119,7 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
   const hasValidResourceBudget =
     isPlainRecord(resourceBudget) &&
     Object.keys(resourceBudget).length === 4 &&
-    ['abstain', 'direct', 'relationship'].includes(resourceBudget.activation) &&
+    ['abstain', 'direct', 'informational', 'relationship'].includes(resourceBudget.activation) &&
     Number.isSafeInteger(resourceBudget.minimumMoldeaCommands) &&
     resourceBudget.minimumMoldeaCommands >= 0 &&
     Number.isSafeInteger(resourceBudget.maximumMoldeaCommands) &&
@@ -128,11 +128,12 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
     Number.isSafeInteger(resourceBudget.maximumMoldeaOutputBytes) &&
     resourceBudget.maximumMoldeaOutputBytes >= 0 &&
     resourceBudget.maximumMoldeaOutputBytes <= 1_048_576 &&
-    (resourceBudget.activation !== 'abstain' ||
+    (!['abstain', 'informational'].includes(resourceBudget.activation) ||
       (resourceBudget.minimumMoldeaCommands === 0 &&
         resourceBudget.maximumMoldeaCommands === 0 &&
         resourceBudget.maximumMoldeaOutputBytes === 0)) &&
-    (resourceBudget.activation === 'abstain' || resourceBudget.minimumMoldeaCommands > 0);
+    (['abstain', 'informational'].includes(resourceBudget.activation) ||
+      resourceBudget.minimumMoldeaCommands > 0);
   if (
     !isPlainRecord(caseDefinition) ||
     'prompt' in caseDefinition ||

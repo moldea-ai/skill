@@ -1,0 +1,48 @@
+version: 2
+id: abstain-uninitialized-repository-work
+title: Abstain from uninitialized repository work
+purpose: Verify that ordinary host-owned review remains unrelated before repository adoption.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: invalid
+  after: invalid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: [MOLDEA_MANIFEST_MISSING, MOLDEA_PROJECT_FILE_MISSING]
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: [MOLDEA_MANIFEST_MISSING, MOLDEA_PROJECT_FILE_MISSING]
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
+workspace:
+  expectation: unchanged
+  mustPreservePaths: [README.md, package.json, src/retry-policy.ts]
+  mustChangePaths: []
+  mustExistPaths: [README.md, package.json, src/retry-policy.ts]
+  mustNotExistPaths: [moldea]
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: reviews-ordinary-source
+    description: The actor reviews the retry predicate as an ordinary engineering task and reports no false defect.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace]
+  - id: excludes-moldea
+    description: The actor output does not mention moldea and command evidence contains zero moldea CLI calls.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, actor-command-policy]
+  - id: preserves-workspace
+    description: The repository remains uninitialized and unchanged.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

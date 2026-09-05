@@ -1,0 +1,48 @@
+version: 2
+id: abstain-initialized-unrelated-work
+title: Abstain from initialized unrelated work
+purpose: Verify silent abstention for unrelated documentation in a valid initialized repository.
+taskFile: task.md
+seedDirectory: seed
+removePaths: []
+expectedRemovePaths: []
+inspection:
+  before: valid
+  after: valid
+deterministicEvidence:
+  before:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+  after:
+    requiredDiagnosticCodes: []
+    forbiddenDiagnosticCodes: []
+    requiredEvidenceKinds: []
+    forbiddenEvidenceKinds: []
+expectedActorOutcome: completed
+workspace:
+  expectation: unchanged
+  mustPreservePaths: [README.md, docs/operations.md, moldea/moldea.yaml, moldea/project.md]
+  mustChangePaths: []
+  mustExistPaths: [README.md, docs/operations.md, moldea/moldea.yaml, moldea/project.md]
+  mustNotExistPaths: [moldea/agents, moldea/runtimes]
+  allowedChangePaths: []
+  allowedChangePathPatterns: []
+  mustChangePathPatterns: []
+judgeRequirements:
+  - id: reviews-unrelated-document
+    description: The actor reviews the operations note as ordinary documentation and reports no false inconsistency.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, current-workspace]
+  - id: abstains-after-cheap-gate
+    description: The actor output does not mention moldea, command evidence contains zero moldea CLI calls, and no skill reference content appears in its reasoning or result.
+    evaluation:
+      kind: judge
+      evidenceSources: [actor-output, actor-command-policy]
+  - id: preserves-valid-project
+    description: Every deterministic layer accepts the unchanged zero-agent project.
+    evaluation:
+      kind: runner
+      checks: [deterministic-after, workspace-assertions]

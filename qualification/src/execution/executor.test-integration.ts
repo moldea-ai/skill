@@ -301,7 +301,7 @@ describe('qualification execution', () => {
 
     expect(resumedOutcome.result.status).toBe('passed');
     expect(resumedOutcome.wasRecorded).toBe(false);
-    expect(resumedActorCalls).toBe(7);
+    expect(resumedActorCalls).toBe(11);
     expect(resumedJudgeCalls).toBe(0);
 
     await rm(interruptedOutcome.attemptDirectory, { force: true, recursive: true });

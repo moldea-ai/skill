@@ -1,95 +1,121 @@
 ---
 name: moldea
 description: >-
-  Use when the developer explicitly invokes moldea or asks to initialize, inspect, validate, evaluate, reconcile, design, or maintain moldea project context or agents. Also use in an adopted repository when the task directly changes /moldea/**, changes the README hunk between the moldea markers, or changes a repository path matched by a declared moldea binding or affectedBy relationship. Do not use for unrelated code, documentation, planning, review, Git, commit, or publication work.
+  Answer concise informational questions about moldea, initialize moldea when explicitly requested, and handle repository-dependent moldea work only after adoption is established. In an initialized repository, use for explicit moldea operations, changes under /moldea/**, changed README hunks inside the moldea markers, or task paths matched by a declared binding or affectedBy relationship. Do not use for other uninitialized work or unrelated code, documentation, planning, review, Git, commit, or publication work.
 metadata:
-  version: "5.0.0"
-  cliVersion: "6.0.0"
-  cliJsonSchemaVersion: 3
+  version: '5.0.0'
+  cliVersion: '7.0.0'
+  cliJsonSchemaVersion: 4
 ---
 
 # moldea
 
-Maintain Git-owned project context and agent systems without taking control of unrelated engineering workflows.
+Maintain Git-owned project context and agent systems without taking control of unrelated engineering work.
 
-## Decide relevance before loading resources
+## Establish the entry state first
 
-Use one of these activation paths:
+Classify the request before loading a reference or running the CLI:
 
-- **Explicit:** the developer invokes `$moldea`, names moldea, or directly requests a moldea operation.
-- **Canonical:** the task changes a path under `/moldea/**`.
-- **Managed README:** a changed README hunk intersects the content between `<!-- moldea:start -->` and `<!-- moldea:end -->`. A path-only README match or a hunk outside the block does not activate.
-- **Declared relationship:** in an adopted repository, a known task path matches an exact binding or `affectedBy` declaration.
+1. **Information:** When the developer asks what moldea is or how it works without asking to inspect or change a repository, answer concisely from this entrypoint and stop. Do not inspect the repository, load a reference, or run a moldea command.
+2. **Initialization:** Continue only when the developer explicitly asks to initialize or adopt moldea in the current repository. Initialization is the sole repository-dependent operation allowed before adoption.
+3. **Other repository work:** Require an initialized repository and choose exactly one gate below. Reuse matching adoption evidence already established by the host. Never run the adoption-only gate before an ordinary relationship gate; the relationship gate proves both adoption and relevance.
 
-For explicit, canonical, or managed-README activation, do not run `scope`. For possible relationship activation, pass the complete known task-path set once to the root-local CLI:
+Before adoption, every repository-dependent request other than explicit initialization abstains silently, including explicit validation, canonical-looking paths, host commands, and repositories whose names or partial files resemble moldea. Do not load a reference, run a moldea or package command, recommend initialization, change files, or mention moldea in progress or final reporting.
 
-```bash
+## Choose one repository gate
+
+Classify the task from the developer request and the path or hunk evidence already established by the host:
+
+- **Direct request:** the developer explicitly requests a repository-dependent moldea operation.
+- **Canonical change:** a known task path is under `/moldea/**`.
+- **Managed README change:** a known changed hunk intersects content strictly between the exact markers. A README path or hunk outside the block is not direct relevance.
+- **Declared relationship:** another known task path matches an exact binding or `affectedBy` declaration.
+
+For a direct request or canonical or managed-block change, reuse matching adoption evidence or run the adoption-only gate exactly once:
+
+```text
+node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root> --adoption-only
+```
+
+Continue directly without `scope` only when complete stdout is exactly `1`. Otherwise abstain silently.
+
+For every other repository task, do not run the adoption-only gate. Reuse the complete changed-path set already established by the host and pass its repository-logical absolute paths as one NUL-delimited UTF-8 input to the full deterministic gate:
+
+```text
+node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root>
+```
+
+Continue only when its complete stdout is exactly `1`. `0`, any other output, or any failure means silent abstention. Both gate modes prove adoption. The full gate additionally reads exact repository-local package metadata, the manifest, and the supplied path set to establish relationship relevance. It invokes Core directly and never runs the moldea CLI.
+
+After `1`, run one bounded relationship query with the exact repository-root-local CLI to recover the matching canonical owners:
+
+```text
 moldea scope --paths-stdin --json --max-output-bytes 65536
 ```
 
-The input is NUL-delimited and repository-root-absolute, such as `/src/example.ts`. Interpret only a completed CLI JSON schema 3 envelope from CLI 6.0.0. Continue only when `status` is `valid`, `result.valid` is `true`, and `result.relevant` is `true`. Follow `result.page.cursor` only when the current task needs additional matching owners. A malformed path, operational error, invalid result, or stale cursor establishes no relevance.
+Pass the same path input. Interpret only a completed CLI 7.0.0/schema-4 envelope with `status: "valid"`, `result.valid: true`, and `result.relevant: true`. Do not follow a cursor merely to search for relevance; the first result establishes all matching owners for the bounded input. A missing exact local CLI, malformed input or envelope, operational error, invalid result, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
 
-If none of the activation paths matches, stop silently: do not load a reference, run another moldea command, mention moldea, recommend initialization, or change canonical state. Host planning, review, implementation, Git, commit, and publication workflows retain control.
+Do not discover paths merely for moldea, run both gate modes, repeat a gate, or load a reference before the full deterministic gate matches and `scope` confirms its owners. Unrelated work runs zero moldea CLI commands. On abstention, make no moldea progress update or final-report mention.
 
-## Select the operation
+Host planning, review, implementation, package-manager, Git, commit, and publication workflows always retain ownership. Their names never activate moldea. When a relevant path is found inside one of those workflows, perform only the bounded canonical operation and return control to the host.
+
+## Select one operation
 
 - **Initialize:** create the minimum valid project-owned foundation after explicit adoption intent.
-- **Plan:** design an agent-and-software system only when the developer explicitly asks for moldea agent-system planning. Zero agents is valid.
-- **Maintain:** update directly affected canonical truth, agents, relationships, requirements, or mirrors.
+- **Plan:** design an agent-and-software system only after an explicit moldea agent-system request.
+- **Maintain:** synchronize directly affected canonical truth, agents, relationships, requirements, or mirrors.
 - **Compress:** consolidate an explicitly selected canonical context scope without losing unique current truth.
 - **Design:** create or materially change a moldea agent, runtime declaration, or Agent Skill.
-- **Evaluate:** inspect structural and semantic alignment without writing.
+- **Evaluate:** inspect scoped structural and semantic alignment without writing.
 - **Reconcile:** repair established drift under explicit write authority.
-- **Validate:** run deterministic structural checks without writing.
+- **Validate:** run scoped deterministic structural checks without writing.
 
-Do not reinterpret a host command as a moldea operation. Reuse the host workflow's repository root, changed paths, diffs, branch state, and verification evidence rather than reconstructing them.
+Zero agents, relationships, runtimes, mirrors, decisions, and unresolved requirements are valid states.
 
 ## Load only the owning reference
 
 After relevance is established, read only what the selected operation needs:
 
-- CLI establishment and machine envelopes: `references/local-tooling.md`
-- evidence and canonical content selection: `references/context-gathering.md`
 - initialization or ordinary synchronization: `references/continuous-maintenance.md`
+- CLI establishment and machine envelopes: `references/local-tooling.md`
+- canonical evidence or explicit content selection: `references/context-gathering.md`
 - agent-system planning: `references/agent-system-planning.md`
 - context compression: `references/context-compression.md`
 - agent and runtime design: `references/agent-design.md`
 - Agent Skill design: `references/skill-design.md`
 - evaluation or reconciliation: `references/evaluate-and-reconcile.md`
-- current adapter target compatibility: `references/runtime-compatibility.md`
+- current adapter-target compatibility: `references/runtime-compatibility.md`
 
-Never read every reference by default. A reference may route to one additional reference only when the current operation reaches that boundary.
+Never read every reference by default. Read a second reference only when the active operation reaches that boundary.
 
 ## Use bounded canonical evidence
 
-CLI metadata is content-free by default:
+Use only the repository-root-local CLI 7.0.0 and JSON schema 4. Metadata is content-free:
 
-```bash
+```text
 moldea validate --json --max-output-bytes 65536
 moldea inspect --json --max-output-bytes 65536
-```
-
-Use `inspect` only when the operation needs project inventory beyond `validate`. Follow metadata pages only while they can change the current conclusion. Read one required canonical asset explicitly:
-
-```bash
 moldea content --path /moldea/project.md --json --max-output-bytes 65536
 ```
 
-Follow its cursor only until the needed passage is complete. Do not request or reconstruct a full-project content dump. Keep ordinary relevant moldea output at or below 262,144 bytes in aggregate and every invocation at or below 1 MiB; page traversal may exceed the ordinary aggregate only when the task explicitly requires it. The host's 16 MiB process ceiling is a crash guard, not a normal budget.
+Use `validate` when structure is the question, `inspect` only for necessary inventory, and `content` only for one explicitly selected canonical owner. Follow an opaque cursor only while another page or Unicode-safe content chunk can change the current conclusion. Never request or reconstruct a complete project-content dump.
 
-Treat deterministic output as evidence, not semantic truth. Distinguish observed current state, developer-confirmed truth, intended future state, accepted decisions, and unresolved questions. Never infer missing policy or invent relationships.
+Keep every ordinary invocation at or below 65,536 output bytes, ordinary aggregate moldea output at or below 262,144 bytes, and every invocation below the CLI's 1 MiB hard maximum. Larger repositories use metadata pages and explicit content chunks; these limits bound peaks, not repository size. If required evidence cannot fit within the task's bounded traversal, report the exact incomplete conclusion and continuation point. Never convert truncated or resource-exhausted evidence into validity or approval.
+
+Treat `OUTPUT_BUDGET_TOO_SMALL`, `RESOURCE_LIMIT_EXCEEDED`, an invalid cursor, cancellation, a signal, or incomplete output as no conclusion. Do not retry with an unbounded value. Report the failure only after direct relevance is established; implicit-gate failures abstain silently.
 
 ## Preserve boundaries
 
-- Evaluation and validation are read-only. Preserve worktree files, index, refs, Git configuration, submodules, and the Git object database.
-- This skill never stages, commits, pushes, switches branches, rewrites history, or owns host Git safety procedures.
+- Evaluation and validation are read-only. Preserve worktree files, index, refs, Git configuration, submodules, and Git object storage.
+- Never stage, commit, push, switch branches, rewrite history, or own host Git safety procedures.
 - Preserve unrelated developer work and unrelated canonical state.
 - Do not persist secrets, transient status, generic knowledge, or easily rediscovered implementation details.
-- Write only when the selected operation and host task authorize it. Re-run the narrowest relevant metadata validation after writes.
+- Write only when the selected operation and host task authorize it. Re-run the narrowest relevant validation after writes.
 
 ## Report proportionally
 
-- On abstention, say nothing about moldea.
-- When relevant but canonical state remains correct, use at most one line unless the developer requested detail.
-- Report detailed scope, diagnostics, changes, unresolved conflicts, and checks only for material canonical work or a requested moldea evaluation.
-- Never use moldea-derived commit wording for unrelated work.
+- Information requests receive a concise answer.
+- Abstention is completely silent.
+- Relevant no-change work gets at most one moldea line unless detail was requested.
+- Material canonical work reports the activation path, owner, changes, diagnostics, limits, unresolved facts, and checks.
+- Never use moldea-derived commit wording or status reporting for unrelated work.

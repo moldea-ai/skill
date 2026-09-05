@@ -6,8 +6,8 @@ export const SEMANTIC_EVALUATION_METHODOLOGY_ROUTE = '/docs/semantic-evaluation/
 export const SEMANTIC_EVALUATION_GROUPS = {
   abstention: {
     description:
-      'How moldea stays silent when changed paths and explicit intent establish no relevance.',
-    title: 'Unrelated work and host precedence',
+      'How moldea answers product questions concisely and stays silent when repository work has no established relevance.',
+    title: 'Information, unrelated work, and host precedence',
   },
   relevance: {
     description:
@@ -27,6 +27,22 @@ export const SEMANTIC_EVALUATION_GROUPS = {
 
 // presentation metadata must explicitly cover every semantic case before publication
 export const SEMANTIC_CASE_PRESENTATION = {
+  'preinit-information': {
+    groupId: 'abstention',
+    title: 'Answers product questions before adoption',
+  },
+  'preinit-explicit-validation': {
+    groupId: 'abstention',
+    title: 'Explains that validation requires adoption',
+  },
+  'preinit-canonical-looking-review': {
+    groupId: 'abstention',
+    title: 'Ignores incomplete canonical-looking files',
+  },
+  'explicit-initialization': {
+    groupId: 'relevance',
+    title: 'Honors explicit repository initialization',
+  },
   'unrelated-documentation-review': {
     groupId: 'abstention',
     title: 'Leaves unrelated documentation review alone',

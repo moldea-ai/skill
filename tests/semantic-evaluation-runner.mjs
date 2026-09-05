@@ -109,6 +109,12 @@ const RETRYABLE_HOST_FAILURE_KINDS = new Set([
 ]);
 // semantic cases that use scenario-specific setup instead of the adopted npm fixture
 const CUSTOM_SETUP_CASE_IDS = new Set(['host-plan-command-precedence']);
+const UNINITIALIZED_CASE_IDS = new Set([
+  'explicit-initialization',
+  'preinit-canonical-looking-review',
+  'preinit-explicit-validation',
+  'preinit-information',
+]);
 
 /** Identifies the CLI source owned by one semantic evaluation scenario. */
 export const getSemanticToolingSource = (caseId) => {
@@ -1303,7 +1309,7 @@ const seedAdoptedProject = async (repositoryPath, caseDefinition) => {
   await writeScenarioFile(
     repositoryPath,
     'README.md',
-    '# Evaluation repository\n\nOrdinary repository guidance lives here.\n\n<!-- moldea:start -->\nCanonical moldea state lives under `/moldea/**`. Use the moldea skill only for explicit moldea work, canonical changes, this managed block, or paths matched by declared relationships.\n<!-- moldea:end -->\n',
+    '# Evaluation repository\n\nOrdinary repository guidance lives here.\n\n<!-- moldea:start -->\nCanonical moldea project state lives under `/moldea/**`.\n<!-- moldea:end -->\n',
   );
   await writeScenarioFile(
     repositoryPath,
@@ -1334,6 +1340,23 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
       repositoryPath,
       'src/cache.js',
       'export const invalidateCacheEntry = (cache, key) => cache.delete(key);\n',
+    );
+    return;
+  }
+
+  if (UNINITIALIZED_CASE_IDS.has(caseDefinition.id)) {
+    if (caseDefinition.id === 'explicit-initialization') {
+      await seedSemanticTooling(repositoryPath, caseDefinition);
+    }
+    await writeScenarioFile(
+      repositoryPath,
+      'README.md',
+      '# Evaluation service\n\nThis small TypeScript service returns the current service status.\n',
+    );
+    await writeScenarioFile(
+      repositoryPath,
+      'src/service-status.js',
+      'export const getServiceStatus = () => "available";\n',
     );
     return;
   }
@@ -1411,6 +1434,13 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
 /** Applies the post-commit mutations required by current review and relevance cases. */
 const applyScenarioWorkingTree = async (repositoryPath, caseDefinition) => {
   switch (caseDefinition.id) {
+    case 'preinit-canonical-looking-review':
+      await writeScenarioFile(
+        repositoryPath,
+        'moldea/project.md',
+        '# Partial project\n\nThis file alone does not initialize moldea.\n',
+      );
+      return;
     case 'unrelated-documentation-review':
       await writeScenarioFile(
         repositoryPath,

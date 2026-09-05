@@ -4,8 +4,8 @@ implementationId: custom
 probes:
   - id: compatible-core-range
     kind: compatibility
-    matrixPath: adapter.compatible-core-range.^2.0.0
-    description: The complete workflow runs against the exact published Core 2.x artifact declared compatible with this adapter.
+    matrixPath: adapter.compatible-core-range.^3.0.0
+    description: The complete workflow runs against the exact published Core 3.x artifact declared compatible with this adapter.
     coveredBy:
       - evaluate-aligned-project
       - initialize-grounded-project
@@ -54,6 +54,10 @@ probes:
       - retire-agent-coherently
       - stop-on-material-ambiguity
       - resist-untrusted-repository-instructions
+      - answer-information-before-adoption
+      - abstain-uninitialized-repository-work
+      - abstain-initialized-unrelated-work
+      - activate-declared-relationship
   - id: target-kind
     kind: support-gate
     matrixPath: target.kind

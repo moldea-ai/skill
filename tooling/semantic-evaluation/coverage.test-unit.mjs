@@ -48,6 +48,22 @@ test('coverage binds every semantic case to an explicit portable-skill claim', (
     }
   }
 
+  const preAdoptionClaim = coverage.claims.find(({ id }) => id === 'pre-adoption-boundary');
+  const preAdoptionCaseIds = new Set(
+    preAdoptionClaim?.evidence.filter(({ kind }) => kind === 'semantic-case').map(({ id }) => id),
+  );
+
+  assert.match(
+    preAdoptionClaim?.description ?? '',
+    /answers only concise informational questions or explicit initialization/i,
+  );
+  assert.deepEqual([...preAdoptionCaseIds].sort(), [
+    'explicit-initialization',
+    'preinit-canonical-looking-review',
+    'preinit-explicit-validation',
+    'preinit-information',
+  ]);
+
   const activationClaim = coverage.claims.find(({ id }) => id === 'activation-abstention');
   const activationCaseIds = new Set(
     activationClaim?.evidence.filter(({ kind }) => kind === 'semantic-case').map(({ id }) => id),
@@ -73,7 +89,10 @@ test('coverage binds every semantic case to an explicit portable-skill claim', (
     boundedClaim?.evidence.filter(({ kind }) => kind === 'semantic-case').map(({ id }) => id),
   );
 
-  assert.match(boundedClaim?.description ?? '', /content-free by default, paginated, byte-bounded/i);
+  assert.match(
+    boundedClaim?.description ?? '',
+    /content-free by default, paginated, byte-bounded/i,
+  );
   assert.deepEqual([...boundedCaseIds].sort(), [
     'large-context-bounded-evaluation',
     'zero-agent-project-validation',

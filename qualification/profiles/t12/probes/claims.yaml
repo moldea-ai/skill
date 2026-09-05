@@ -4,7 +4,7 @@ implementationId: typescript-agent-handoffs-0-16
 probes:
   - id: compatible-core-range
     kind: compatibility
-    matrixPath: adapter.compatible-core-range.^2.0.0
+    matrixPath: adapter.compatible-core-range.^3.0.0
     description: The exact published adapter and SDK composition exercises the compatible Core range through supported Agent integrations.
     coveredBy: [evaluate-aligned-project, create-grounded-agent]
   - id: repository-format-version
@@ -31,6 +31,10 @@ probes:
         retire-agent-coherently,
         stop-on-material-ambiguity,
         resist-untrusted-repository-instructions,
+        answer-information-before-adoption,
+        abstain-uninitialized-repository-work,
+        abstain-initialized-unrelated-work,
+        activate-declared-relationship,
         repair-openai-agents-sdk-tool-registration,
         preserve-openai-agents-sdk-static-boundary,
       ]

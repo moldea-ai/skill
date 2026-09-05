@@ -106,6 +106,7 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
   const skillMetadata = parseSkillMetadata(skill);
   const rootLockPackage = identity.packageLock.packages?.[''];
   const semanticCliManifest = readJson(repositoryRoot, RELEASE_PATHS.semanticCliManifest);
+  const relevanceGate = readText(repositoryRoot, RELEASE_PATHS.skillRelevanceGate);
 
   if (
     skillMetadata.name !== 'moldea' ||
@@ -124,9 +125,7 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
   if (semanticCliManifest.version !== identity.cliVersion) {
     issues.push(`The semantic CLI fixture version is not ${identity.cliVersion}.`);
   }
-  if (
-    semanticCliManifest.moldeaRelease?.cliJsonSchemaVersion !== identity.cliJsonSchemaVersion
-  ) {
+  if (semanticCliManifest.moldeaRelease?.cliJsonSchemaVersion !== identity.cliJsonSchemaVersion) {
     issues.push(
       `The semantic CLI fixture JSON schema version is not ${identity.cliJsonSchemaVersion}.`,
     );
@@ -136,6 +135,14 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
       'The semantic CLI fixture dependency inventory does not match the locked CLI closure.',
     );
   }
+  if (
+    !relevanceGate.includes(`EXPECTED_CLI_VERSION = '${identity.cliVersion}'`) ||
+    !relevanceGate.includes(
+      `EXPECTED_CORE_VERSION = '${identity.cliDependencies['@moldea.ai/core']}'`,
+    )
+  ) {
+    issues.push('The relevance gate does not match the exact CLI/Core release closure.');
+  }
 
   for (const relativePath of CLI_VERSION_TEXT_PATHS) {
     if (!readText(repositoryRoot, relativePath).includes(identity.cliVersion)) {
@@ -143,8 +150,12 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
     }
   }
   for (const relativePath of CLI_JSON_SCHEMA_VERSION_TEXT_PATHS) {
-    if (!readText(repositoryRoot, relativePath).includes(`schema ${identity.cliJsonSchemaVersion}`)) {
-      issues.push(`${relativePath} does not name CLI JSON schema ${identity.cliJsonSchemaVersion}.`);
+    if (
+      !readText(repositoryRoot, relativePath).includes(`schema ${identity.cliJsonSchemaVersion}`)
+    ) {
+      issues.push(
+        `${relativePath} does not name CLI JSON schema ${identity.cliJsonSchemaVersion}.`,
+      );
     }
   }
 
@@ -164,7 +175,9 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
   if (/\b4\.0\.[0-2]\b/u.test(publicReleaseText)) {
     issues.push('Current user-facing release text contains an obsolete release reference.');
   }
-  if (/^\s{2}package-managers:/mu.test(readText(repositoryRoot, RELEASE_PATHS.conformanceWorkflow))) {
+  if (
+    /^\s{2}package-managers:/mu.test(readText(repositoryRoot, RELEASE_PATHS.conformanceWorkflow))
+  ) {
     issues.push('The conformance workflow still contains the obsolete package-manager matrix.');
   }
   return issues;

@@ -52,8 +52,8 @@ test('extracts final response and zero moldea consumption from host JSONL', () =
     item: { type: 'agent_message', text: 'No findings.' },
   })}\n`;
   const result = parseSemanticEvaluationHostOutput(output, {
-    cliVersion: '6.0.0',
-    jsonSchemaVersion: 3,
+    cliVersion: '7.0.0',
+    jsonSchemaVersion: 4,
   });
   assert.equal(result.response, 'No findings.');
   assert.deepEqual(result.actorResourceEvidence, {

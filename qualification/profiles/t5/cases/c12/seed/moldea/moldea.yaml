@@ -1,0 +1,6 @@
+version: 1
+
+context:
+  /moldea/project.md:
+    affectedBy:
+      - /src/project-state.ts

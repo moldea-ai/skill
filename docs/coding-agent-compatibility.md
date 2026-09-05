@@ -29,13 +29,13 @@ Run the normal project installation from the repository root:
 npx skills add moldea-ai/skill
 ```
 
-Project scope is recommended because the installed skill can travel with the repository through version control. The installer handles host detection; you do not need a different `moldea` package or instruction set for each coding agent.
+Repository scope is required for supported `moldea` use so the installed skill version can travel with the project through version control. The installer handles host detection; you do not need a different `moldea` package or instruction set for each coding agent.
 
 ## What remains consistent
 
 Every compatible host consumes the same portable semantic core:
 
-- `SKILL.md` defines activation, authority, compatibility, operation selection, and reporting. It activates only for an explicit `moldea` operation, a canonical path change, a managed README hunk, or a task path matched by a declared binding or `affectedBy` relationship. Generic knowledge and unrelated host workflows do not load it.
+- `SKILL.md` defines activation, authority, compatibility, operation selection, and reporting. Its deterministic gate invokes repository-local Core directly and returns only `0` or `1`; the CLI is not invoked unless a declared relationship matches. It activates only for an explicit `moldea` operation, a canonical path change, a managed README hunk, or a task path matched by a declared binding or `affectedBy` relationship. Generic knowledge and unrelated host workflows do not load it.
 - Focused references are loaded only for the workflows that require them.
 - Repository-local `@moldea.ai/cli` tooling owns deterministic inspection and validation.
 - Canonical project and agent state remains under `/moldea/**`.

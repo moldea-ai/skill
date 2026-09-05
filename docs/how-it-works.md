@@ -11,7 +11,7 @@ order: 30
 The normal experience has three steps:
 
 1. You describe the outcome to your coding agent.
-2. The coding agent uses `moldea` when you explicitly request a `moldea` operation or when the task changes canonical state, the managed README block, or a path reached through a declared relationship.
+2. In a repository-bound installation, the coding agent uses a two-byte local gate to decide whether the task explicitly requests a `moldea` operation or changes canonical state, the managed README block, or a path reached through a declared relationship.
 3. The coding agent returns the implementation, analysis, or plan with an evidence-based report.
 
 There is no separate `moldea` chat surface to operate.
@@ -25,7 +25,7 @@ The coding agent can activate the skill in four ways:
 - **Managed README activation:** a changed README hunk intersects the content between the full-line `moldea` markers.
 - **Declared-relationship activation:** in an adopted repository, a known task path exactly matches a binding or `affectedBy` declaration.
 
-Generic durable-knowledge language, an answer to a question, or a host planning, review, Git, commit, or publication command does not activate `moldea`. If no activation path matches, the skill abstains silently without loading references, running the CLI, recommending adoption, or adding a `moldea` status line. Loading never establishes adoption or authorizes persistence. A project is adopted only when the complete canonical foundation and owned README awareness block exist.
+Generic durable-knowledge language, an answer to a question, or a host planning, review, Git, commit, or publication command does not by itself activate `moldea` work. For a repository-dependent task, the repository-bound skill entrypoint may run the deterministic gate first. If no activation path matches, it abstains silently without loading references, running the CLI, recommending adoption, or adding a `moldea` status line. Loading never establishes adoption or authorizes persistence. A project is adopted only when the complete canonical foundation and owned README awareness block exist.
 
 ## Operation selection
 

@@ -58,7 +58,7 @@ The coding agent first decides whether the behavior belongs in a skill, protecte
 
 ## Maintain context as understanding evolves
 
-Once a repository adopts `moldea`, an ordinary behavior change activates continuous maintenance only when a known task path matches a declared binding or `affectedBy` relationship. Generic project knowledge and unrelated work remain outside the activation gate.
+Once a repository adopts `moldea`, its repository-bound skill entrypoint can test an ordinary behavior change with the two-byte relevance gate. Continuous maintenance activates only when a known task path matches a declared binding or `affectedBy` relationship. Generic project knowledge and unrelated work stop at the gate without loading references or running the CLI.
 
 The coding agent classifies supplied knowledge by meaning rather than format, traces affected context and behavior, and updates only representations whose truth actually changed. Clear current truth and explicit corrections can be maintained. Proposed, transient, speculative, secret, or materially ambiguous information is omitted or clarified first. Each affected fact stays with its established authoritative owner, so ordinary maintenance does not create parallel current truth. A correct outcome can be no `/moldea/**` edit.
 

@@ -141,10 +141,13 @@ describe('portable skill contract', () => {
       cliJsonSchemaVersion: 4,
     });
     assert.equal(frontmatter.name, 'moldea');
-    assert.match(frontmatter.description, /initialize moldea when explicitly requested/u);
-    assert.match(frontmatter.description, /only after adoption is established/u);
+    assert.match(frontmatter.description, /initialize moldea only when explicitly requested/u);
+    assert.match(frontmatter.description, /only after adoption and relevance are established/u);
     assert.match(frontmatter.description, /declared binding or affectedBy relationship/u);
     assert.match(frontmatter.description, /Do not use for other uninitialized work/u);
+    assert.match(frontmatter.description, /repository-bound installation/u);
+    assert.match(frontmatter.description, /two-byte relevance gate/u);
+    assert.match(frontmatter.description, /A gate miss abstains silently/u);
     assert.doesNotMatch(frontmatter.description, /potentially durable knowledge|Use first/iu);
   });
 
@@ -158,6 +161,8 @@ describe('portable skill contract', () => {
     }
     assert.match(skill, /Never read every reference by default/u);
     assert.match(skill, /read only what the selected operation needs/u);
+    assert.match(skill, /full deterministic gate is the mandatory first moldea action/u);
+    assert.match(skill, /Never replace the gate by inspecting canonical state directly/u);
     assert.match(skill, /For initialization, load only `references\/continuous-maintenance\.md`/u);
     assert.match(
       skill,

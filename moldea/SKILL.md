@@ -1,7 +1,7 @@
 ---
 name: moldea
 description: >-
-  Answer concise informational questions about moldea, initialize moldea when explicitly requested, and handle repository-dependent moldea work only after adoption is established. In an initialized repository, use for explicit moldea operations, changes under /moldea/**, changed README hunks inside the moldea markers, or task paths matched by a declared binding or affectedBy relationship. Do not use for other uninitialized work or unrelated code, documentation, planning, review, Git, commit, or publication work.
+  Answer concise informational questions about moldea and initialize moldea only when explicitly requested. In a repository-bound installation, use for every repository-dependent task to run the bundled two-byte relevance gate before moldea inspection; only after adoption and relevance are established may it continue for explicit moldea work, /moldea/** changes, managed README hunks, or paths matched by a declared binding or affectedBy relationship. A gate miss abstains silently while the host workflow continues. Do not use for other uninitialized work.
 metadata:
   version: '5.0.0'
   cliVersion: '7.0.0'
@@ -22,6 +22,8 @@ Classify the request before loading a reference or running the CLI:
 
 Every use of “abstain” below applies only to moldea work. Continue the developer's host-owned request normally without moldea. Never refuse, block, defer, or reframe that request because adoption or relevance is absent.
 
+For every repository-dependent request that is not information, initialization, a direct moldea request, a known canonical path, or a known managed-block hunk, the full deterministic gate is the mandatory first moldea action. Run it from the host-known task paths before reading the manifest or any canonical document for moldea purposes. Never replace the gate by inspecting canonical state directly, inferring a relationship yourself, or reporting canonical alignment from ungated evidence.
+
 Before adoption, every repository-dependent request other than explicit initialization abstains silently, including explicit validation, canonical-looking paths, host commands, and repositories whose names or partial files resemble moldea. Do not load a reference, run a moldea or package command, recommend initialization, change files, or mention moldea in progress or final reporting.
 
 ## Choose one repository gate
@@ -41,7 +43,7 @@ node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-re
 
 Continue directly without `scope` only when complete stdout is exactly `1`. Otherwise abstain silently.
 
-For every other repository task, do not run the adoption-only gate. Reuse the complete changed-path set already established by the host and pass its repository-logical absolute paths as one NUL-delimited UTF-8 input to the full deterministic gate:
+For every other repository task, including a request to verify canonical alignment for an ordinary source or documentation path, do not run the adoption-only gate. Reuse the complete changed-path set already established by the host and pass its repository-logical absolute paths as one NUL-delimited UTF-8 input to the full deterministic gate:
 
 ```text
 node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root>

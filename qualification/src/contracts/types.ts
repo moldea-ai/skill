@@ -3,6 +3,7 @@ import semver from 'semver';
 import { z } from 'zod';
 
 import { calculateCodexEvaluationOperationalRetryDelay } from '../../../tooling/codex-evaluation-host/index.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
 
 import {
   DEFAULT_PACKAGES_REPOSITORY,
@@ -347,11 +348,24 @@ export type ICandidatePackage = z.infer<typeof CandidatePackageSchema>;
 export type ICandidateClosure = z.infer<typeof CandidateClosureSchema>;
 
 // model token accounting emitted by Codex JSONL completion events when available
-export const ModelUsageSchema = z.strictObject({
-  inputTokens: z.number().int().nonnegative(),
-  cachedInputTokens: z.number().int().nonnegative(),
-  outputTokens: z.number().int().nonnegative(),
-});
+export const ModelUsageSchema = z
+  .strictObject({
+    inputTokens: z.number().int().nonnegative(),
+    cachedInputTokens: z.number().int().nonnegative(),
+    outputTokens: z.number().int().nonnegative(),
+  })
+  .superRefine((usage, context) => {
+    if (
+      usage.cachedInputTokens > usage.inputTokens ||
+      usage.inputTokens + usage.outputTokens >
+        MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Model usage exceeds the qualification token boundary.',
+      });
+    }
+  });
 
 export type IModelUsage = z.infer<typeof ModelUsageSchema>;
 

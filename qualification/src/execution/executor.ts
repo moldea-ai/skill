@@ -87,6 +87,7 @@ import {
   createQualificationStageIds,
   createQualificationTrialStageIds,
   getQualificationMaximumCallCount,
+  getQualificationMaximumTokenCount,
   getQualificationPlannedCallCount,
   isQualificationStageComplete,
   setQualificationStageCacheKey,
@@ -470,9 +471,12 @@ export const runQualification = async (
                   selectedProfileCases.length,
                   checkpoint.mode !== 'diagnostic',
                 );
+                const maximumCallCount = getQualificationMaximumCallCount(plannedCallCount);
                 return {
+                  maximumCallCount,
+                  maximumTokenCount: getQualificationMaximumTokenCount(maximumCallCount),
+                  maximumTokensPerCall: getQualificationMaximumTokenCount(1),
                   plannedCallCount,
-                  maximumCallCount: getQualificationMaximumCallCount(plannedCallCount),
                 };
               })(),
               reasoningEffort: executionEnvironment.reasoningEffort,

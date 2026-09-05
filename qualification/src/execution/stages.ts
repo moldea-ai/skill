@@ -1,3 +1,5 @@
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
+
 import { QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT } from '../constants/index.ts';
 import {
   QualificationStageCheckpointSchema,
@@ -34,6 +36,15 @@ export const getQualificationMaximumCallCount = (plannedCallCount: number): numb
   }
 
   return plannedCallCount * (QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT + 1);
+};
+
+/** Returns the aggregate token ceiling for one bounded paid-execution envelope. */
+export const getQualificationMaximumTokenCount = (maximumCallCount: number): number => {
+  if (!Number.isSafeInteger(maximumCallCount) || maximumCallCount < 0) {
+    throw new Error('Qualification maximum call count must be a non-negative integer.');
+  }
+
+  return maximumCallCount * MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
 };
 
 /** Returns the deterministic stage ids owned by one initial or confirmation trial. */

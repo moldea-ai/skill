@@ -30,6 +30,11 @@ const createPaidExecutionApprovalRequester =
     isJson: boolean;
   }): ((request: IQualificationPaidExecutionRequest) => Promise<boolean>) =>
   async (request) => {
+    process.stderr.write(
+      `Qualification paid boundary: ${request.plannedCallCount} planned calls, ` +
+        `${request.maximumCallCount} maximum calls, ${request.maximumTokensPerCall} ` +
+        `tokens per call, ${request.maximumTokenCount} maximum tokens.\n`,
+    );
     if (options.hasConfirmedPaidExecution) {
       return true;
     }
@@ -40,7 +45,11 @@ const createPaidExecutionApprovalRequester =
       );
     }
 
-    return confirmPaidQualificationExecution(request.plannedCallCount, request.maximumCallCount);
+    return confirmPaidQualificationExecution(
+      request.plannedCallCount,
+      request.maximumCallCount,
+      request.maximumTokenCount,
+    );
   };
 
 const createHost = (isDryRun: boolean): ICodexHost =>

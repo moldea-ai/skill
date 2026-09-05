@@ -5,6 +5,7 @@ import {
   type ISemanticActorExecutionEvidenceOptions,
 } from '../../../../tooling/semantic-evaluation/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../../../../tooling/release-identity/constants.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../tooling/resource-calibration/profiles.mjs';
 
 const Sha256Schema = z.string().regex(/^[a-f0-9]{64}$/u);
 const StableIdSchema = z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u);
@@ -18,6 +19,19 @@ const SemanticHostSchema = z.object({
   version: z.string().trim().min(1),
 });
 const SemanticHostContractSchema = SemanticHostSchema.omit({ version: true });
+const SemanticModelUsageSchema = z
+  .strictObject({
+    cachedInputTokens: z.number().int().nonnegative(),
+    inputTokens: z.number().int().nonnegative(),
+    outputTokens: z.number().int().nonnegative(),
+  })
+  .refine(
+    (usage) =>
+      usage.cachedInputTokens <= usage.inputTokens &&
+      usage.inputTokens + usage.outputTokens <=
+        MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
+    'Model usage exceeds the semantic token boundary.',
+  );
 const SemanticActorCommandPolicyEvidenceSchema = z.strictObject({
   completedCommandCount: z.number().int().min(0).max(128),
 });
@@ -72,7 +86,7 @@ const SemanticAttemptEvidenceReferenceBaseSchema = z.object({
 });
 const SemanticAttemptEvidenceReferenceSchema = SemanticAttemptEvidenceReferenceBaseSchema.extend({
   evaluationProtocolVersion: z.literal(SEMANTIC_EVALUATION_PROTOCOL_VERSION),
-  schemaVersion: z.literal(6),
+  schemaVersion: z.literal(7),
 });
 
 const SemanticReplayOutputFactSchema = z.object({
@@ -174,6 +188,7 @@ const SemanticReplayTrialShape = {
   actorResourceEvidence: SemanticActorResourceEvidenceSchema,
   actorExecutionEvidence: z.array(SemanticReplayCommandSchema).max(128),
   actorHost: SemanticHostSchema,
+  actorUsage: SemanticModelUsageSchema,
   actorResponse: z.string(),
   caseDefinitionDigest: Sha256Schema,
   caseId: StableIdSchema,
@@ -181,6 +196,7 @@ const SemanticReplayTrialShape = {
   forbidden: z.array(StableIdSchema),
   id: StableIdSchema,
   judgeHost: SemanticHostSchema,
+  judgeUsage: SemanticModelUsageSchema,
   observed: z.array(StableIdSchema),
   passed: z.boolean(),
   rationale: z.string().trim().min(1),
@@ -211,7 +227,7 @@ export const SemanticReplayCandidateSchema = z.object({
   confirmations: z.array(SemanticReplayConfirmationTrialSchema),
   evaluationProtocolVersion: z.literal(SEMANTIC_EVALUATION_PROTOCOL_VERSION),
   results: z.array(SemanticReplayInitialTrialSchema),
-  schemaVersion: z.literal(6),
+  schemaVersion: z.literal(7),
 });
 
 /**

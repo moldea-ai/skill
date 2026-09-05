@@ -38,10 +38,10 @@ export interface ISemanticAttemptCliIdentity {
 
 // immutable evidence reference for the current semantic contract
 export interface ISemanticAttemptEvidenceReference {
-  evaluationProtocolVersion: 22;
+  evaluationProtocolVersion: 23;
   kind: 'candidate';
   path: 'evidence.json';
-  schemaVersion: 6;
+  schemaVersion: 7;
   sha256: string;
 }
 

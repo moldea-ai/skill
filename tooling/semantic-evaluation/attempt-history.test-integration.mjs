@@ -45,6 +45,11 @@ const createEvidence = (id, passed, updatedAt) => ({
         reasoningEffort: 'medium',
         version: 'codex-cli test',
       },
+      actorUsage: {
+        cachedInputTokens: 4_000,
+        inputTokens: 8_000,
+        outputTokens: 1_000,
+      },
       evaluatedAt: updatedAt,
       forbidden: [],
       id,
@@ -54,6 +59,11 @@ const createEvidence = (id, passed, updatedAt) => ({
         reasoningEffort: 'medium',
         version: 'codex-cli test',
       },
+      judgeUsage: {
+        cachedInputTokens: 4_000,
+        inputTokens: 8_000,
+        outputTokens: 1_000,
+      },
       observed: passed ? ['required-behavior'] : [],
       passed,
       rationale: passed
@@ -61,7 +71,7 @@ const createEvidence = (id, passed, updatedAt) => ({
         : 'The required behavior was missing.',
     },
   ],
-  schemaVersion: 6,
+  schemaVersion: 7,
   updatedAt,
 });
 

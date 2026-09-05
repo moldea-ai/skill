@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest';
 import {
   createQualificationStageIds,
   getQualificationMaximumCallCount,
+  getQualificationMaximumTokenCount,
   getQualificationPlannedCallCount,
 } from './stages.ts';
 
@@ -29,6 +30,13 @@ describe('qualification stage planning', () => {
       'case:release-case:trial:initial:judge',
       'case:release-case:result',
     ]);
+  });
+
+  test('derives the aggregate token ceiling from the bounded call envelope', () => {
+    expect(getQualificationMaximumTokenCount(144)).toBe(37_748_736);
+    expect(() => getQualificationMaximumTokenCount(-1)).toThrow(
+      'Qualification maximum call count must be a non-negative integer.',
+    );
   });
 
   test('plans every trial stage before the terminal case result', () => {

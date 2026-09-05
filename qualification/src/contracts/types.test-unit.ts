@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest';
 import {
   QualificationCaseResultSchema,
   QualificationCaseScenarioSchema,
+  ModelUsageSchema,
   QualificationProfileSchema,
   QualificationStageCheckpointSchema,
   QualificationTrialResultSchema,
@@ -52,6 +53,30 @@ const createScenario = (pathPattern: string) => ({
       evaluation: { kind: 'runner', checks: ['workspace-assertions'] },
     },
   ],
+});
+
+test('accepts bounded model usage and rejects invalid cached or total token counts', () => {
+  expect(
+    ModelUsageSchema.safeParse({
+      cachedInputTokens: 131_072,
+      inputTokens: 131_072,
+      outputTokens: 131_072,
+    }).success,
+  ).toBe(true);
+  expect(
+    ModelUsageSchema.safeParse({
+      cachedInputTokens: 2,
+      inputTokens: 1,
+      outputTokens: 0,
+    }).success,
+  ).toBe(false);
+  expect(
+    ModelUsageSchema.safeParse({
+      cachedInputTokens: 0,
+      inputTokens: 262_144,
+      outputTokens: 1,
+    }).success,
+  ).toBe(false);
 });
 
 test.each(['moldea/runtimes/*.md', 'moldea/runtimes/**/*.md'])(

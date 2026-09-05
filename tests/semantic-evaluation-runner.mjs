@@ -29,6 +29,7 @@ import {
   identifyCodexEvaluationHost,
   parseCodexEvaluationHostCommand,
   prepareCodexEvaluationHome,
+  projectCodexEvaluationExecutionEvidence,
   runCodexEvaluationOperationalStage,
   runCodexEvaluationHost,
 } from '../tooling/codex-evaluation-host/index.mjs';
@@ -36,6 +37,7 @@ import {
   createSemanticCliIdentity,
   SEMANTIC_EVALUATION_PROTOCOL_VERSION,
 } from '../tooling/release-identity/index.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../tooling/resource-calibration/profiles.mjs';
 import {
   captureRepositoryControlState,
   classifyActorCommandPolicyEvent,
@@ -86,7 +88,10 @@ const PUBLISHED_CLI_MANIFEST = JSON.parse(
 );
 const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
 const MAX_WORKSPACE_EVIDENCE_FILE_BYTES = 32_768;
-const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 6;
+const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 7;
+const SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1;
+const SEMANTIC_MODEL_CALLS_PER_TRIAL = 2;
+const SEMANTIC_MAXIMUM_TRIALS_PER_CASE = 3;
 const SEMANTIC_CANDIDATE_KEYS = new Set([
   'activeTrial',
   'artifactDigest',
@@ -299,6 +304,19 @@ const hasValidMoldeaResourceEvidence = (caseDefinition, actorResourceEvidence) =
 /** Checks whether one timestamp is a complete ISO date. */
 const hasValidIsoDate = (value) => typeof value === 'string' && !Number.isNaN(Date.parse(value));
 
+/** Checks one mandatory model usage record against the shared host token ceiling. */
+const hasValidSemanticModelUsage = (usage) =>
+  isPlainRecord(usage) &&
+  Number.isSafeInteger(usage.inputTokens) &&
+  usage.inputTokens >= 0 &&
+  Number.isSafeInteger(usage.cachedInputTokens) &&
+  usage.cachedInputTokens >= 0 &&
+  usage.cachedInputTokens <= usage.inputTokens &&
+  Number.isSafeInteger(usage.outputTokens) &&
+  usage.outputTokens >= 0 &&
+  usage.inputTokens + usage.outputTokens <=
+    MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
+
 /** Checks the safe operational retry metadata retained with one semantic trial. */
 const hasValidSemanticOperationalRetries = (operationalRetries) => {
   const operationalRetryKeys = new Set(['actorFailureCount', 'judgeFailureCount', 'lastFailure']);
@@ -343,6 +361,7 @@ const hasValidSemanticActorStageEvidence = (actorEvidence, candidate, caseDefini
   return (
     isPlainRecord(actorEvidence) &&
     typeof actorEvidence.actorResponse === 'string' &&
+    hasValidSemanticModelUsage(actorEvidence.actorUsage) &&
     hasValidActorExecutionEvidence(
       actorEvidence.actorExecutionEvidence,
       actorExecutionEvidenceOptions,
@@ -589,6 +608,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       result.caseId !== result.id ||
       resultIds.has(result.id) ||
       typeof result.actorResponse !== 'string' ||
+      !hasValidSemanticModelUsage(result.actorUsage) ||
       !hasValidActorExecutionEvidence(
         result.actorExecutionEvidence,
         actorExecutionEvidenceOptions,
@@ -605,7 +625,8 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       typeof result.evaluatedAt !== 'string' ||
       result.caseDefinitionDigest !== createSemanticCaseDefinitionDigest(caseDefinition) ||
       !hasValidSemanticEvaluationHostIdentity(result.actorHost, hostContract) ||
-      !hasValidSemanticEvaluationHostIdentity(result.judgeHost, hostContract)
+      !hasValidSemanticEvaluationHostIdentity(result.judgeHost, hostContract) ||
+      !hasValidSemanticModelUsage(result.judgeUsage)
     ) {
       throw new Error('The semantic evaluation candidate contains invalid case evidence.');
     }
@@ -646,6 +667,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       ![1, 2].includes(confirmation.confirmationIndex) ||
       confirmationIds.has(confirmationIdentity) ||
       typeof confirmation.actorResponse !== 'string' ||
+      !hasValidSemanticModelUsage(confirmation.actorUsage) ||
       !hasValidActorExecutionEvidence(
         confirmation.actorExecutionEvidence,
         actorExecutionEvidenceOptions,
@@ -662,7 +684,8 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       typeof confirmation.evaluatedAt !== 'string' ||
       confirmation.caseDefinitionDigest !== createSemanticCaseDefinitionDigest(caseDefinition) ||
       !hasValidSemanticEvaluationHostIdentity(confirmation.actorHost, hostContract) ||
-      !hasValidSemanticEvaluationHostIdentity(confirmation.judgeHost, hostContract)
+      !hasValidSemanticEvaluationHostIdentity(confirmation.judgeHost, hostContract) ||
+      !hasValidSemanticModelUsage(confirmation.judgeUsage)
     ) {
       throw new Error('The semantic evaluation candidate contains invalid confirmation evidence.');
     }
@@ -947,6 +970,7 @@ export const buildSemanticEvaluationHostCommand = (baseCommand) => {
  * @returns The final response, bounded command facts, and command-policy aggregate.
  */
 export const parseSemanticEvaluationHostOutput = (output, options) => {
+  const { usage } = projectCodexEvaluationExecutionEvidence(output);
   const actorExecutionEvidence = [];
   const actorCommandPolicyClassifications = [];
   let hasOperationalFailureEvent = false;
@@ -1007,6 +1031,28 @@ export const parseSemanticEvaluationHostOutput = (output, options) => {
     actorExecutionEvidence,
     actorResourceEvidence: createMoldeaResourceEvidence(actorExecutionEvidence, options),
     response,
+    usage,
+  };
+};
+
+/** Returns the exact semantic paid-execution boundary for one complete case set. */
+export const createSemanticEvaluationCostEstimate = (caseCount) => {
+  if (!Number.isSafeInteger(caseCount) || caseCount < 1) {
+    throw new Error('Semantic evaluation case count must be a positive integer.');
+  }
+  const initialCallCount = caseCount * SEMANTIC_MODEL_CALLS_PER_TRIAL;
+  const plannedCallCount = initialCallCount * SEMANTIC_MAXIMUM_TRIALS_PER_CASE;
+  const maximumCallCount = plannedCallCount * (SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT + 1);
+
+  return {
+    caseCount,
+    initialCallCount,
+    maximumCallCount,
+    maximumTokenCount: maximumCallCount * MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
+    maximumTokensPerCall: MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
+    model: CODEX_EVALUATION_MODEL,
+    plannedCallCount,
+    reasoningEffort: CODEX_EVALUATION_REASONING_EFFORT,
   };
 };
 
@@ -1750,7 +1796,9 @@ const runSemanticEvaluationPreflight = async (caseDefinitions, coverage) => {
   }
 
   process.stderr.write(
-    `[semantic-evaluation] preflight passed for ${caseDefinitions.length} cases\n`,
+    `[semantic-evaluation] preflight passed ${JSON.stringify(
+      createSemanticEvaluationCostEstimate(caseDefinitions.length),
+    )}\n`,
   );
 };
 
@@ -1845,6 +1893,7 @@ const evaluateActorStage = async (caseDefinition, actorCommand, cli) => {
       actorExecutionEvidence,
       actorResourceEvidence,
       response: actorResponse,
+      usage: actorUsage,
     } = parseSemanticEvaluationHostOutput(actorHostOutput, actorExecutionEvidenceOptions);
     const after = await snapshotWorkspace(actorRepository);
     const workspaceChanges = diffSnapshots(before, after);
@@ -1857,6 +1906,7 @@ const evaluateActorStage = async (caseDefinition, actorCommand, cli) => {
       actorHost,
       actorCommandPolicyEvidence,
       actorResponse,
+      actorUsage,
       actorExecutionEvidence,
       actorResourceEvidence,
       repositoryControlEvidence,
@@ -1899,7 +1949,7 @@ const evaluateJudgeStage = async (caseDefinition, actorEvidence, judgeCommand, c
       cliVersion: cli.version,
       jsonSchemaVersion: cli.jsonSchemaVersion,
     };
-    const { response: judgeResponse } = parseSemanticEvaluationHostOutput(
+    const { response: judgeResponse, usage: judgeUsage } = parseSemanticEvaluationHostOutput(
       judgeHostOutput,
       actorExecutionEvidenceOptions,
     );
@@ -1911,6 +1961,7 @@ const evaluateJudgeStage = async (caseDefinition, actorEvidence, judgeCommand, c
       forbidden: assessment.forbidden,
       id: caseDefinition.id,
       judgeHost,
+      judgeUsage,
       observed: assessment.observed,
       passed:
         assessment.isPassed &&
@@ -1950,6 +2001,7 @@ export const runSemanticCaseTrial = async ({
   if (currentTrial.phase === 'actor-pending') {
     const actorEvidence = await runOperationalStage({
       initialFailureCount: currentTrial.operationalRetries.actorFailureCount,
+      maximumRetryCount: SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT,
       onRetry: async (retry) => {
         currentTrial = appendSemanticActiveTrialRetry(currentTrial, 'actor', retry);
         await persistActiveTrial(currentTrial);
@@ -1966,6 +2018,7 @@ export const runSemanticCaseTrial = async ({
   if (currentTrial.phase === 'judge-pending') {
     const result = await runOperationalStage({
       initialFailureCount: currentTrial.operationalRetries.judgeFailureCount,
+      maximumRetryCount: SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT,
       onRetry: async (retry) => {
         currentTrial = appendSemanticActiveTrialRetry(currentTrial, 'judge', retry);
         await persistActiveTrial(currentTrial);

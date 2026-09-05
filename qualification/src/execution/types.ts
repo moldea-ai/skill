@@ -33,6 +33,8 @@ export type IRunQualificationOptions = {
 // exact cost boundary presented immediately before the first uncached model call
 export type IQualificationPaidExecutionRequest = {
   maximumCallCount: number;
+  maximumTokenCount: number;
+  maximumTokensPerCall: number;
   plannedCallCount: number;
   model: IQualificationExecutionEnvironment['model'];
   reasoningEffort: IQualificationExecutionEnvironment['reasoningEffort'];

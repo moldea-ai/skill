@@ -75,8 +75,9 @@ export const promptQualificationAction = async (): Promise<IInteractiveQualifica
 export const confirmPaidQualificationExecution = async (
   plannedCallCount: number,
   maximumCallCount: number,
+  maximumTokenCount: number,
 ): Promise<boolean> =>
   confirm({
-    message: `This attempt plans up to ${plannedCallCount} paid frontier-model calls and can make at most ${maximumCallCount} calls including bounded operational retries (${QUALIFICATION_MODEL}, ${QUALIFICATION_REASONING_EFFORT} reasoning effort). Continue?`,
+    message: `This attempt plans up to ${plannedCallCount} paid frontier-model calls and can make at most ${maximumCallCount} calls including bounded operational retries, with at most ${maximumTokenCount} total tokens across that envelope (${QUALIFICATION_MODEL}, ${QUALIFICATION_REASONING_EFFORT} reasoning effort). Continue?`,
     default: false,
   });

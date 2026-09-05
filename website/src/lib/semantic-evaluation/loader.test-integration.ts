@@ -29,6 +29,11 @@ const HOST = {
   version: 'codex-cli test',
 } as const;
 const UPDATED_HOST = { ...HOST, version: 'codex-cli updated' } as const;
+const MODEL_USAGE = {
+  cachedInputTokens: 0,
+  inputTokens: 1,
+  outputTokens: 1,
+} as const;
 
 interface IMutableReplayCommand {
   item: {
@@ -143,6 +148,7 @@ const createCandidate = (
         stdoutByteCount: moldeaOutputByteCount,
       },
       actorHost: index === 0 ? HOST : UPDATED_HOST,
+      actorUsage: MODEL_USAGE,
       actorResponse: `Recorded actor replay for ${id}.`,
       caseDefinitionDigest: createSemanticCaseDefinitionDigest(caseDefinition),
       caseId: id,
@@ -150,6 +156,7 @@ const createCandidate = (
       forbidden: [],
       id,
       judgeHost: index === 0 ? HOST : UPDATED_HOST,
+      judgeUsage: MODEL_USAGE,
       observed: passed ? getSemanticCriterionLabels(caseDefinition.expected) : [],
       passed,
       rationale: passed
@@ -167,7 +174,7 @@ const createCandidate = (
       workspaceChanges: { created: [], deleted: [], modified: [] },
     };
   }),
-  schemaVersion: 6,
+  schemaVersion: 7,
   updatedAt,
 });
 

@@ -88,10 +88,10 @@ const createAttemptRecord = (
 
 describe('SemanticAttemptRecordSchema', () => {
   test.each([
-    [5, 22, false],
-    [6, 21, false],
-    [6, 22, true],
     [6, 23, false],
+    [7, 22, false],
+    [7, 23, true],
+    [7, 24, false],
   ])(
     'schema %d with protocol %d has validity %s',
     (schemaVersion, evaluationProtocolVersion, expectedValidity) => {

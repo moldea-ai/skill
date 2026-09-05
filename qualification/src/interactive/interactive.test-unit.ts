@@ -23,10 +23,14 @@ describe('paid qualification confirmation', () => {
     'warns about the %d-call paid execution boundary',
     async (plannedCallCount, maximumCallCount) => {
       await expect(
-        confirmPaidQualificationExecution(plannedCallCount, maximumCallCount),
+        confirmPaidQualificationExecution(
+          plannedCallCount,
+          maximumCallCount,
+          maximumCallCount * 262_144,
+        ),
       ).resolves.toBe(true);
       expect(promptMocks.confirm).toHaveBeenCalledWith({
-        message: `This attempt plans up to ${plannedCallCount} paid frontier-model calls and can make at most ${maximumCallCount} calls including bounded operational retries (gpt-5.6-sol, medium reasoning effort). Continue?`,
+        message: `This attempt plans up to ${plannedCallCount} paid frontier-model calls and can make at most ${maximumCallCount} calls including bounded operational retries, with at most ${maximumCallCount * 262_144} total tokens across that envelope (gpt-5.6-sol, medium reasoning effort). Continue?`,
         default: false,
       });
     },

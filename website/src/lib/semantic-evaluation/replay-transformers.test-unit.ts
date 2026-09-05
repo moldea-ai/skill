@@ -19,6 +19,11 @@ const HOST = {
   reasoningEffort: 'medium',
   version: 'codex-cli test',
 } as const;
+const MODEL_USAGE = {
+  cachedInputTokens: 0,
+  inputTokens: 1,
+  outputTokens: 1,
+} as const;
 const createCommandPolicyEvidence = (completedCommandCount: number) => ({
   completedCommandCount,
 });
@@ -97,6 +102,7 @@ const createRawTrial = (overrides: Record<string, unknown> = {}): Record<string,
       stdoutByteCount: moldeaOutputByteCount,
     },
     actorHost: HOST,
+    actorUsage: MODEL_USAGE,
     actorResponse: 'I completed the requested change and verified the result.',
     caseDefinitionDigest: CASE_DEFINITION_DIGEST,
     caseId: CASE_DEFINITION.id,
@@ -104,6 +110,7 @@ const createRawTrial = (overrides: Record<string, unknown> = {}): Record<string,
     forbidden: [],
     id: CASE_DEFINITION.id,
     judgeHost: HOST,
+    judgeUsage: MODEL_USAGE,
     observed: ['finished'],
     passed: true,
     rationale: 'The recorded result satisfies the required behavior.',
@@ -166,7 +173,7 @@ const parseCandidate = (
     confirmations,
     evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
     results: [initial],
-    schemaVersion: 6,
+    schemaVersion: 7,
   });
 
 describe('createSemanticEvaluationReplay', () => {

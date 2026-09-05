@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import {
   buildActorPrompt,
+  createSemanticEvaluationCostEstimate,
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
 } from './semantic-evaluation-runner.mjs';
@@ -44,6 +45,19 @@ test('parses a diagnostic case selection without authorizing recording', () => {
 
 test('keeps evaluator criteria out of the actor prompt', () => {
   assert.equal(buildActorPrompt(CASE), 'Review docs/example.md.');
+});
+
+test('reports the complete bounded semantic paid-execution envelope', () => {
+  assert.deepEqual(createSemanticEvaluationCostEstimate(18), {
+    caseCount: 18,
+    initialCallCount: 36,
+    maximumCallCount: 216,
+    maximumTokenCount: 56_623_104,
+    maximumTokensPerCall: 262_144,
+    model: 'gpt-5.6-sol',
+    plannedCallCount: 108,
+    reasoningEffort: 'medium',
+  });
 });
 
 test('extracts final response and zero moldea consumption from host JSONL', () => {

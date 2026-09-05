@@ -64,7 +64,7 @@ The read-only case fails if evaluation changes any protected or ordinary reposit
 
 ## Fresh evidence by default
 
-Semantic protocol 22 accepts only evidence produced by the current suite, current portable bytes, current CLI closure, current runner, current coverage map, and current host contract.
+Semantic protocol 23 accepts only evidence produced by the current suite, current portable bytes, current CLI closure, current runner, current coverage map, and current host contract.
 
 Evidence applies only to the exact current behavior-bearing inputs. Any change to those inputs requires a fresh run.
 
@@ -79,6 +79,8 @@ npm run eval:semantic:preflight
 ```
 
 Preflight validates all case definitions, source evidence, portable skill structure, CLI identity, resource budgets, and repository setup without making a model call.
+
+It also prints the initial, planned, and maximum paid-call counts plus the maximum token count. The maximum includes two confirmation trials after an initial failure and one bounded operational retry per actor or judge stage. Each completed stage may report at most 262,144 input-plus-output tokens. Crossing that ceiling is an explicit failure and cached input is reported separately without being counted twice.
 
 ## Record and verify
 

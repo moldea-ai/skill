@@ -29,6 +29,11 @@ const RESOURCE_EVIDENCE = {
   operations: [],
   stdoutByteCount: 0,
 };
+const MODEL_USAGE = {
+  cachedInputTokens: 4_000,
+  inputTokens: 8_000,
+  outputTokens: 1_000,
+};
 
 const createTrial = (id, passed, evaluatedAt) => ({
   evaluatedAt,
@@ -52,7 +57,9 @@ const createEvidence = (results, confirmations = []) => ({
     actorCommandPolicyEvidence: COMMAND_POLICY_EVIDENCE,
     actorResourceEvidence: RESOURCE_EVIDENCE,
     actorHost: UPDATED_HOST,
+    actorUsage: MODEL_USAGE,
     judgeHost: UPDATED_HOST,
+    judgeUsage: MODEL_USAGE,
     ...confirmation,
   })),
   hostContract: HOST_CONTRACT,
@@ -60,10 +67,12 @@ const createEvidence = (results, confirmations = []) => ({
     actorCommandPolicyEvidence: COMMAND_POLICY_EVIDENCE,
     actorResourceEvidence: RESOURCE_EVIDENCE,
     actorHost: HOST,
+    actorUsage: MODEL_USAGE,
     judgeHost: HOST,
+    judgeUsage: MODEL_USAGE,
     ...result,
   })),
-  schemaVersion: 6,
+  schemaVersion: 7,
   updatedAt: '2026-08-25T01:00:00.000Z',
 });
 
@@ -260,7 +269,15 @@ test('semantic attempt summaries reject missing or incompatible trial evidence',
         ...options,
         evidence: {
           ...createEvidence([trial]),
-          results: [{ ...trial, actorHost: HOST, judgeHost: HOST }],
+          results: [
+            {
+              ...trial,
+              actorHost: HOST,
+              actorUsage: MODEL_USAGE,
+              judgeHost: HOST,
+              judgeUsage: MODEL_USAGE,
+            },
+          ],
         },
       }),
     /invalid trial command-policy evidence/,
@@ -281,7 +298,7 @@ test('semantic attempt summaries accept only the current schema and protocol con
     () =>
       createSemanticAttemptRecord({
         ...options,
-        evidence: { ...createEvidence([trial]), schemaVersion: 7 },
+        evidence: { ...createEvidence([trial]), schemaVersion: 8 },
       }),
     /unsupported schema/,
   );

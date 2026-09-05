@@ -25,5 +25,6 @@ export {
   createQualificationStageIds,
   createQualificationTrialStageIds,
   getQualificationMaximumCallCount,
+  getQualificationMaximumTokenCount,
   getQualificationPlannedCallCount,
 } from './stages.ts';

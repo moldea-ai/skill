@@ -51,6 +51,8 @@ describe('qualification command runner', () => {
           options.requestPaidExecutionApproval?.({
             plannedCallCount: 60,
             maximumCallCount: 120,
+            maximumTokenCount: 31_457_280,
+            maximumTokensPerCall: 262_144,
             model: 'gpt-5.6-sol',
             reasoningEffort: 'medium',
           }),
@@ -112,7 +114,8 @@ describe('qualification command runner', () => {
       wasRecorded: false,
     });
     expect(stderr).toBe(
-      'Qualification evaluate-aligned-project initial judge retry 1: timed-out; waiting 5000 ms.\n',
+      'Qualification paid boundary: 60 planned calls, 120 maximum calls, 262144 tokens per call, 31457280 maximum tokens.\n' +
+        'Qualification evaluate-aligned-project initial judge retry 1: timed-out; waiting 5000 ms.\n',
     );
     expect(stdout).not.toContain('retry 1');
   });
@@ -147,6 +150,8 @@ describe('qualification command runner', () => {
           options.requestPaidExecutionApproval?.({
             plannedCallCount: 2,
             maximumCallCount: 4,
+            maximumTokenCount: 1_048_576,
+            maximumTokensPerCall: 262_144,
             model: 'gpt-5.6-sol',
             reasoningEffort: 'medium',
           }),

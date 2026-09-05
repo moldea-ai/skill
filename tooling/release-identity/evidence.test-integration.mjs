@@ -117,7 +117,7 @@ const seedFreshEvidence = (
     lastPassingAttemptId: semanticAttemptId,
   });
   writeJson(root, 'fixtures/semantic-evaluation-result.json', {
-    evaluationProtocolVersion: 22,
+    evaluationProtocolVersion: 23,
     semanticAttemptId,
     cases: [{ actorResourceEvidence: resourceEvidence, id: 'semantic-case', passed: !isFailed }],
   });

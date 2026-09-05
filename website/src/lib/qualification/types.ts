@@ -3,6 +3,8 @@ import { posix } from 'node:path';
 import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
 import { z } from 'zod';
 
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../tooling/resource-calibration/profiles.mjs';
+
 const QUALIFICATION_PROTOCOL_VERSION = 2;
 const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 7;
 const INITIAL_OPERATIONAL_RETRY_DELAY_MS = 5_000;
@@ -189,11 +191,19 @@ export const QualificationLatestResultSchema = z.object({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationLatestResultShape,
 });
-const ModelUsageSchema = z.object({
-  inputTokens: z.number().int().nonnegative(),
-  cachedInputTokens: z.number().int().nonnegative(),
-  outputTokens: z.number().int().nonnegative(),
-});
+const ModelUsageSchema = z
+  .object({
+    inputTokens: z.number().int().nonnegative(),
+    cachedInputTokens: z.number().int().nonnegative(),
+    outputTokens: z.number().int().nonnegative(),
+  })
+  .refine(
+    (usage) =>
+      usage.cachedInputTokens <= usage.inputTokens &&
+      usage.inputTokens + usage.outputTokens <=
+        MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
+    'Model usage exceeds the qualification token boundary.',
+  );
 const CandidatePackageSchema = z.object({
   name: z.string().trim().min(1),
   version: z.string().trim().min(1),

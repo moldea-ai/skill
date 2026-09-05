@@ -9,6 +9,7 @@ export interface IMoldeaSkillAbsoluteResourceProfile {
   maxActorExecutionEvidenceItems: number;
   maxCompletedCommandCount: number;
   maxHostOutputBytes: number;
+  maxHostTokenCount: number;
   maxModelVisibleToolOutputBytes: number;
   maxMoldeaCommandCount: number;
   maxMoldeaInvocationOutputBytes: number;

@@ -22,6 +22,7 @@
       "maxActorExecutionEvidenceItems": 128,
       "maxCompletedCommandCount": 128,
       "maxHostOutputBytes": 16777216,
+      "maxHostTokenCount": 262144,
       "maxModelVisibleToolOutputBytes": 16777216,
       "maxMoldeaCommandCount": 32,
       "maxMoldeaInvocationOutputBytes": 1048576,

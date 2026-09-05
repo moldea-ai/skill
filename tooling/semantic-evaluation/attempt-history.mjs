@@ -8,6 +8,7 @@ import {
   CODEX_EVALUATION_REASONING_EFFORT,
 } from '../codex-evaluation-host/index.mjs';
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
 
 import { hasValidActorCommandPolicyEvidence } from './actor-command-policy-evidence.mjs';
 import { hasPassingMoldeaResourceBudget } from './actor-execution-evidence.mjs';
@@ -15,7 +16,7 @@ import { hasPassingMoldeaResourceBudget } from './actor-execution-evidence.mjs';
 const ATTEMPT_EVIDENCE_FILENAME = 'evidence.json';
 const ATTEMPT_RECORD_FILENAME = 'attempt.json';
 const ATTEMPT_SCHEMA_VERSION = 4;
-const EVIDENCE_SCHEMA_VERSION = 6;
+const EVIDENCE_SCHEMA_VERSION = 7;
 const LATEST_SCHEMA_VERSION = 1;
 const SHA256_PATTERN = /^[a-f0-9]{64}$/u;
 const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
@@ -83,6 +84,18 @@ const hasValidHostIdentity = (host, hostContract) =>
   host.version.trim().length > 0 &&
   host.version !== 'unavailable';
 
+const hasValidModelUsage = (usage) =>
+  isPlainRecord(usage) &&
+  Number.isSafeInteger(usage.inputTokens) &&
+  usage.inputTokens >= 0 &&
+  Number.isSafeInteger(usage.cachedInputTokens) &&
+  usage.cachedInputTokens >= 0 &&
+  usage.cachedInputTokens <= usage.inputTokens &&
+  Number.isSafeInteger(usage.outputTokens) &&
+  usage.outputTokens >= 0 &&
+  usage.inputTokens + usage.outputTokens <=
+    MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
+
 const createTrialSummary = (result, kind, confirmationIndex, hostContract) => {
   if (
     !isPlainRecord(result) ||
@@ -106,7 +119,9 @@ const createTrialSummary = (result, kind, confirmationIndex, hostContract) => {
   };
   if (
     !hasValidHostIdentity(result.actorHost, hostContract) ||
-    !hasValidHostIdentity(result.judgeHost, hostContract)
+    !hasValidHostIdentity(result.judgeHost, hostContract) ||
+    !hasValidModelUsage(result.actorUsage) ||
+    !hasValidModelUsage(result.judgeUsage)
   ) {
     throw new Error('Semantic attempt evidence contains invalid trial host provenance.');
   }

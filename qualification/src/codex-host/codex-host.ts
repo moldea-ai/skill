@@ -86,6 +86,9 @@ export class CodexCliHost implements ICodexHost {
       });
       const output = input.schema.parse(JSON.parse(await readFile(outputPath, 'utf8')) as unknown);
       const executionEvidence = projectCodexEvaluationExecutionEvidence(rawEvents);
+      if (executionEvidence.usage === null) {
+        throw new Error('Codex qualification execution did not report model token usage.');
+      }
 
       return {
         output,

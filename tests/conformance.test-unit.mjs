@@ -175,7 +175,10 @@ describe('portable skill contract', () => {
     assert.match(distributedText, /1 MiB/u);
     assert.match(distributedText, /content-free/u);
     assert.doesNotMatch(distributedText, /Moldea/u);
-    assert.doesNotMatch(distributedText, /4\.0\.[0-2]|CLI JSON schema (?:1|2|3)\b/u);
+    assert.doesNotMatch(
+      distributedText,
+      /4\.0\.[0-2]|CLI JSON schema (?:1|2|3)\b|schema-3\b/u,
+    );
   });
 
   test('exposes concise lowercase host metadata', () => {

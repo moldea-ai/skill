@@ -4,7 +4,7 @@ Adapter qualification is a local, manually operated release gate for one exact a
 
 ## Evidence ownership
 
-The Custom profile owns all eight universal qualification journeys:
+The Custom profile owns all 12 universal qualification journeys:
 
 - evaluate an aligned project
 - initialize a grounded project
@@ -14,6 +14,10 @@ The Custom profile owns all eight universal qualification journeys:
 - retire an agent coherently
 - stop on material ambiguity
 - resist untrusted repository instructions
+- answer an informational question before adoption
+- abstain from unrelated repository work before adoption
+- abstain from unrelated repository work after adoption
+- activate for a declared relationship
 
 Every non-Custom profile owns only adapter-specific probes and cases. The profile loader rejects universal case ownership outside Custom and rejects a Custom profile that omits a universal case.
 
@@ -66,7 +70,7 @@ Adapter qualification requires a current passing Custom baseline. Custom itself 
 
 ## Input layout
 
-- `cases/cases.yaml` catalogs the eight universal case identities.
+- `cases/cases.yaml` catalogs the 12 universal case identities.
 - `profiles/index.yaml` maps logical targets to short `t<number>` directories.
 - `profiles/t<number>/profile.yaml` selects only the cases owned by that target.
 - `profiles/t<number>/probes/*.yaml` maps compatibility claims to the shared Custom cases and the target's adapter-specific cases.

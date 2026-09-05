@@ -12,7 +12,7 @@ Adapter qualification determines whether one exact published adapter implementat
 
 ## Evidence ownership
 
-Universal portable-skill behavior is qualified once through the Custom profile. Its eight cases cover evaluation, initialization, creation, maintenance, reconciliation, retirement, ambiguity handling, and resistance to untrusted repository instructions.
+Universal portable-skill behavior is qualified once through the Custom profile. Its 12 cases cover evaluation, initialization, creation, maintenance, reconciliation, retirement, ambiguity handling, resistance to untrusted repository instructions, informational use before adoption, abstention before and after adoption, and declared-relationship activation.
 
 Each published adapter profile owns only its adapter-specific probes and repair cases. This keeps provider and runtime boundaries visible without multiplying the universal suite across every target.
 

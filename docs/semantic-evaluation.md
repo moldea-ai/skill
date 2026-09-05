@@ -10,7 +10,7 @@ order: 172
 
 Deterministic tests can prove schemas, files, commands, and byte limits. Semantic evaluation tests whether a coding agent applies those contracts correctly inside realistic repository tasks.
 
-The current suite contains 14 cases. It is intentionally small enough to audit and broad enough to protect the behavior that caused the clean-slate redesign.
+The current suite contains 18 cases. It is intentionally small enough to audit and broad enough to protect the behavior that caused the clean-slate redesign.
 
 ## What the suite proves
 

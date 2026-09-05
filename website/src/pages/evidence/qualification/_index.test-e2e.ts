@@ -174,7 +174,7 @@ test('presents profile definitions and the exact current evidence state', async 
       profile.currentLatest?.result.status ?? 'not-recorded',
     );
     if (profile.currentLatest === null) {
-      await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toBeVisible();
+      await expect(page.getByText(/No protocol 8 Sol attempt has been committed/u)).toBeVisible();
       await expect(page.getByRole('link', { name: /Inspect the .* attempt/u })).toHaveCount(0);
     } else {
       await expect(page.getByRole('link', { name: /Inspect the .* attempt/u })).toHaveAttribute(
@@ -191,7 +191,7 @@ test('replays qualification evidence through human-readable and technical views'
   const customProfile = getProfile('custom', 'custom');
   await page.goto(toPublicPath(customProfile.route));
   if (customProfile.currentLatest === null) {
-    await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toBeVisible();
+    await expect(page.getByText(/No protocol 8 Sol attempt has been committed/u)).toBeVisible();
     return;
   }
   const attemptRoute = await page
@@ -330,7 +330,7 @@ test('keeps qualification evidence accessible at 320px in both themes', async ({
 });
 
 test(
-  'renders recovered protocol 7 trial evidence',
+  'renders recovered protocol 8 trial evidence',
   { tag: '@qualification-current-fixture' },
   async ({ browser }) => {
     for (const colorScheme of ['light', 'dark'] as const) {
@@ -382,6 +382,10 @@ test(
         'failed',
       );
       await initialTrial.locator('summary').first().click();
+      await expect(initialTrial.getByText('ordinary', { exact: true })).toBeVisible();
+      await expect(initialTrial.getByText('0 / 32', { exact: true })).toBeVisible();
+      await expect(initialTrial.getByText('144 / 524288', { exact: true })).toBeVisible();
+      await expect(initialTrial.getByText('not-observed', { exact: true })).toHaveCount(3);
       await expect(initialTrial.getByText('Unexpected changed path unexpected.md.')).toHaveCount(2);
       await expect(
         initialTrial.getByText(

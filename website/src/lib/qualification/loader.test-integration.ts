@@ -112,6 +112,7 @@ probes:
 id: evaluate-project
 title: Evaluate project
 purpose: Confirm the project remains aligned.
+resourceProfile: ordinary
 taskFile: task.md
 seedDirectory: seed
 inspection:
@@ -266,7 +267,7 @@ const seedCurrentQualificationAttempt = async (
   writeText(
     root,
     'qualification/profiles/t1/cases/c1/README.md',
-    '# Release case\n\nThis fixture exercises protocol 7 evidence.\n',
+    '# Release case\n\nThis fixture exercises protocol 8 evidence.\n',
   );
   writeText(
     root,
@@ -347,6 +348,7 @@ const convertCurrentAttemptToActorPolicyFailure = (root: string, attemptId: stri
     status: 'observed',
     observedCount: 1,
     indeterminateCount: 0,
+    reasons: [{ code: 'evaluator-home', count: 1 }],
   };
   replaceAttemptArtifact(root, attemptId, actorEvidencePath, actorEvidence);
   replaceAttemptTextArtifact(
@@ -450,7 +452,7 @@ const convertCurrentAttemptToFailed = (root: string, attemptId: string): void =>
   updatedAttempt.cases = attempt.cases;
   writeAttemptFixture(root, attemptId, updatedAttempt);
   writeJson(root, 'qualification/results/t1/latest.json', {
-    protocolVersion: 7,
+    protocolVersion: 8,
     adapterId: 'custom',
     implementationId: 'custom',
     latestAttemptId: attemptId,
@@ -496,6 +498,7 @@ const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: stri
     status: 'observed',
     observedCount: 1,
     indeterminateCount: 0,
+    reasons: [{ code: 'evaluator-home', count: 1 }],
   };
   replaceAttemptArtifact(root, attemptId, judgeEvidencePath, judgeEvidence);
   replaceAttemptArtifact(
@@ -510,7 +513,7 @@ const convertCurrentAttemptToJudgePolicyFailure = (root: string, attemptId: stri
   updatedAttempt.cases = attempt.cases;
   writeAttemptFixture(root, attemptId, updatedAttempt);
   writeJson(root, 'qualification/results/t1/latest.json', {
-    protocolVersion: 7,
+    protocolVersion: 8,
     adapterId: 'custom',
     implementationId: 'custom',
     latestAttemptId: attemptId,
@@ -588,7 +591,7 @@ describe('loadQualificationWebsiteModel', () => {
     writeText(
       root,
       'qualification/profiles/t1/cases/c1/README.md',
-      '# Release case\n\nThis fixture exercises recovered protocol 7 evidence.\n',
+      '# Release case\n\nThis fixture exercises recovered protocol 8 evidence.\n',
     );
     const result = await seedPassingQualificationEvidenceFixture({
       artifactDirectory,
@@ -639,7 +642,7 @@ cases:
 
     expect(() => assertPublishableQualificationEvidence(model)).not.toThrow();
     expect(profile?.currentLatest?.result).toMatchObject({
-      protocolVersion: 7,
+      protocolVersion: 8,
       status: 'passed',
     });
     expect(recoveredCase?.result).toMatchObject({
@@ -817,7 +820,7 @@ cases:
     });
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
-      'Qualification evidence has an incomplete protocol 7 artifact inventory.',
+      'Qualification evidence has an incomplete protocol 8 artifact inventory.',
     );
   });
 
@@ -890,7 +893,7 @@ cases:
       string,
       unknown
     >;
-    writeJson(root, latestPath, { ...latest, protocolVersion: 8 });
+    writeJson(root, latestPath, { ...latest, protocolVersion: 7 });
 
     expect(() => loadQualificationWebsiteModel(root)).toThrow('Invalid qualification JSON');
   });

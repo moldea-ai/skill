@@ -65,7 +65,7 @@ import {
 } from './validations.ts';
 
 const QUALIFICATION_ROUTE = '/evidence/qualification/';
-// immutable protocol 7 actor-prompt boundary retained by current evidence
+// immutable protocol 8 actor-prompt boundary retained by current evidence
 const QUALIFICATION_ACTOR_PROMPT_PREFIX =
   'Complete the project task below in the current Git working tree:\n\n';
 const QUALIFICATION_ACTOR_PROMPT_SUFFIX = `
@@ -151,7 +151,7 @@ const createExpectedCurrentArtifactPaths = (
   ].sort((left, right) => left.localeCompare(right, 'en'));
 
 const assertCurrentArtifactInventory = (
-  result: Extract<IQualificationAttemptResult, { protocolVersion: 7 }>,
+  result: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>,
 ): void => {
   const expectedPaths = createExpectedCurrentArtifactPaths(result.cases);
   const actualPaths = Object.keys(result.artifactDigests).sort((left, right) =>
@@ -159,7 +159,7 @@ const assertCurrentArtifactInventory = (
   );
 
   if (JSON.stringify(actualPaths) !== JSON.stringify(expectedPaths)) {
-    throw new Error('Qualification evidence has an incomplete protocol 7 artifact inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 8 artifact inventory.');
   }
 };
 
@@ -368,7 +368,7 @@ const readRecordedDeveloperTask = (
 
 const loadCurrentAttemptCase = (
   readArtifact: IReadAttemptArtifact,
-  attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 7 }>,
+  attemptResult: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>,
   result: IQualificationCurrentCaseResult,
   artifacts: IQualificationArtifactModel[],
   profileCase: Pick<IQualificationProfileCaseModel, 'id' | 'scenario'>,
@@ -501,6 +501,7 @@ const loadCurrentAttemptCase = (
         trial.judgeOutputPath === null
           ? null
           : readAttemptArtifact(readArtifact, trial.judgeOutputPath, JudgeOutputSchema),
+      judgeCommandPolicy: judgeEvidence?.commandPolicy ?? null,
       judgeSkipped:
         trial.judgeSkippedPath === null
           ? null

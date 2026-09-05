@@ -98,6 +98,7 @@ import { createQualificationAttemptResult } from './transformers.ts';
 import {
   createRunnerRequirementAssessments,
   deriveQualificationCommandPolicyFailures,
+  deriveQualificationResourceFailures,
   haveCandidateClosuresChanged,
   haveQualificationExecutionInputsChanged,
   haveQualificationInputsChanged,
@@ -1023,6 +1024,12 @@ export const runQualification = async (
         actorCommandPolicy: actorResult.evidence.commandPolicy,
         judgeCommandPolicy: null,
       });
+      const actorResourceFailures = deriveQualificationResourceFailures({
+        allowMissingUsage: checkpoint.isDryRun,
+        evidence: actorResult.evidence,
+        role: 'Actor',
+        scenario: project.scenario,
+      });
       const hasJudgeRequirements = project.scenario.judgeRequirements.some(
         (requirement) => requirement.evaluation.kind === 'judge',
       );
@@ -1032,6 +1039,7 @@ export const runQualification = async (
         !workspaceAssertions.passed ||
         hasFailedRunnerRequirement ||
         actorCommandPolicyFailures.length > 0 ||
+        actorResourceFailures.length > 0 ||
         !hasJudgeRequirements;
       const judgeSkippedPath = path.join(trialArtifactDirectory, 'judge-skipped.json');
       const judgeResult = shouldSkipJudge
@@ -1174,9 +1182,21 @@ export const runQualification = async (
         actorCommandPolicy: actorResult.evidence.commandPolicy,
         judgeCommandPolicy: judgeResult?.evidence.commandPolicy ?? null,
       });
+      const resourceFailures = [
+        ...actorResourceFailures,
+        ...(judgeResult === null
+          ? []
+          : deriveQualificationResourceFailures({
+              allowMissingUsage: checkpoint.isDryRun,
+              evidence: judgeResult.evidence,
+              role: 'Judge',
+              scenario: project.scenario,
+            })),
+      ];
       const failures = [
         ...actorOutcomeFailures,
         ...commandPolicyFailures,
+        ...resourceFailures,
         ...deterministicAfter.summary.failures,
         ...workspaceAssertions.failures,
         ...failedRequirements,

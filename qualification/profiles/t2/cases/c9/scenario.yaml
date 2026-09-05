@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: repair-claude-agent-sdk-tool-registration
 title: Repair Claude Agent SDK tool registration
 purpose: Verify precise diagnostic-driven repair of a query-mounted SDK MCP tool identity.

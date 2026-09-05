@@ -1,76 +1,15 @@
 #!/usr/bin/env node
 
-import { lstat, readFile, realpath } from 'node:fs/promises';
-import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { lstat, readFile } from 'node:fs/promises';
+import { isAbsolute, join, resolve } from 'node:path';
 
-const EXPECTED_CLI_RANGE = '^7.0.0';
-const EXPECTED_CORE_RANGE = '^3.0.0';
+import { loadRepositoryCore } from './repository-package.mjs';
 const MAX_MANIFEST_BYTES = 2_097_152;
 const MAX_PATH_INPUT_BYTES = 2_097_152;
 const MAX_README_BYTES = 2_097_152;
 const START_MARKER = '<!-- moldea:start -->';
 const END_MARKER = '<!-- moldea:end -->';
 const utf8Decoder = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
-const STABLE_VERSION_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u;
-const CARET_VERSION_PATTERN = /^\^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u;
-
-/** Parses one canonical stable version into numeric components. */
-const parseStableVersion = (version) => {
-  const match = typeof version === 'string' ? STABLE_VERSION_PATTERN.exec(version) : null;
-  return match === null ? null : match.slice(1).map(Number);
-};
-
-/** Returns whether a stable version belongs to one supported major from its minimum onward. */
-const isCompatibleStableVersion = (version, supportedRange) => {
-  const parsedVersion = parseStableVersion(version);
-  const rangeMatch = CARET_VERSION_PATTERN.exec(supportedRange);
-
-  if (parsedVersion === null || rangeMatch === null) {
-    return false;
-  }
-
-  const minimum = rangeMatch.slice(1).map(Number);
-  const [major, minor, patch] = parsedVersion;
-  const [minimumMajor, minimumMinor, minimumPatch] = minimum;
-
-  return (
-    major === minimumMajor &&
-    (minor > minimumMinor || (minor === minimumMinor && patch >= minimumPatch))
-  );
-};
-
-/** Validates an exact or caret declaration against the installed compatible CLI release. */
-const isSupportedCliDeclaration = (declaration, installedVersion) => {
-  if (
-    typeof declaration !== 'string' ||
-    !isCompatibleStableVersion(installedVersion, EXPECTED_CLI_RANGE)
-  ) {
-    return false;
-  }
-
-  if (STABLE_VERSION_PATTERN.test(declaration)) {
-    return declaration === installedVersion;
-  }
-
-  const match = CARET_VERSION_PATTERN.exec(declaration);
-
-  return (
-    match !== null &&
-    isCompatibleStableVersion(match.slice(1).join('.'), EXPECTED_CLI_RANGE) &&
-    isCompatibleStableVersion(installedVersion, declaration)
-  );
-};
-
-/** Returns whether a resolved path remains inside the trusted root. */
-const isPathWithin = (trustedRoot, candidatePath) => {
-  const relativePath = relative(trustedRoot, candidatePath);
-
-  return (
-    relativePath === '' ||
-    (!relativePath.startsWith(`..${sep}`) && relativePath !== '..' && !isAbsolute(relativePath))
-  );
-};
 
 /** Verifies one bounded regular file without reading its content. */
 const assertBoundedRegularFile = async (filePath, maximumBytes) => {
@@ -92,17 +31,6 @@ const readBoundedRegularFile = async (filePath, maximumBytes) => {
   }
 
   return bytes;
-};
-
-/** Reads and validates one JSON object from a bounded regular file. */
-const readJsonObject = async (filePath) => {
-  const parsed = JSON.parse(utf8Decoder.decode(await readBoundedRegularFile(filePath, 65_536)));
-
-  if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
-    throw new Error('invalid package metadata');
-  }
-
-  return parsed;
 };
 
 /** Checks the complete repository-adoption marker contract. */
@@ -156,50 +84,6 @@ const readPathInput = async () => {
 
     return path.startsWith('/') ? path : `/${path}`;
   });
-};
-
-/** Loads the repository-root Core implementation declared by a compatible CLI. */
-const loadRepositoryCore = async (repositoryRoot) => {
-  const projectManifest = await readJsonObject(join(repositoryRoot, 'package.json'));
-  const declaredCliRange = projectManifest.devDependencies?.['@moldea.ai/cli'];
-
-  const nodeModulesRoot = await realpath(join(repositoryRoot, 'node_modules'));
-  const cliRoot = await realpath(join(nodeModulesRoot, '@moldea.ai', 'cli'));
-  const coreEntry = await realpath(
-    fileURLToPath(
-      import.meta.resolve('@moldea.ai/core', pathToFileURL(join(cliRoot, 'package.json')).href),
-    ),
-  );
-  const coreRoot = dirname(dirname(coreEntry));
-
-  if (!isPathWithin(nodeModulesRoot, cliRoot) || !isPathWithin(nodeModulesRoot, coreRoot)) {
-    throw new Error('package escaped repository dependencies');
-  }
-
-  const cliManifest = await readJsonObject(join(cliRoot, 'package.json'));
-  const coreManifest = await readJsonObject(join(coreRoot, 'package.json'));
-
-  if (
-    cliManifest.name !== '@moldea.ai/cli' ||
-    !isSupportedCliDeclaration(declaredCliRange, cliManifest.version) ||
-    cliManifest.dependencies?.['@moldea.ai/core'] !== EXPECTED_CORE_RANGE ||
-    coreManifest.name !== '@moldea.ai/core' ||
-    !isCompatibleStableVersion(coreManifest.version, EXPECTED_CORE_RANGE)
-  ) {
-    throw new Error('unsupported package closure');
-  }
-
-  if (relative(coreRoot, coreEntry).split(sep).join('/') !== 'dist/index.js') {
-    throw new Error('Core entry escaped its package');
-  }
-
-  const coreModule = await import(pathToFileURL(coreEntry).href);
-
-  if (typeof coreModule.createCore !== 'function') {
-    throw new Error('invalid Core entry');
-  }
-
-  return coreModule.createCore();
 };
 
 /** Parses the closed command contract. */

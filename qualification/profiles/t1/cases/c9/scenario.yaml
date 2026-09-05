@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: repair-anthropic-tool-registration
 title: Repair Anthropic tool registration
 purpose: Verify precise diagnostic-driven repair of closed client-tool identity.

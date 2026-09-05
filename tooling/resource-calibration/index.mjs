@@ -410,7 +410,11 @@ const validateCalibration = (artifact) => {
     const minimumMultiplier = 1 + CALIBRATION_MINIMUM_HEADROOM_PERCENT / 100;
     const observedCommandCount = calibrationCase.observations.commandCount.maximum;
     const observedOutputBytes = calibrationCase.observations.modelVisibleOutputBytes.maximum;
+    const observedTokenCount = calibrationCase.observations.estimatedModelTokens.maximum;
     if (
+      profile.maxCompletedCommandCount < Math.ceil(observedCommandCount * minimumMultiplier) ||
+      profile.maxHostTokenCount < Math.ceil(observedTokenCount * minimumMultiplier) ||
+      profile.maxModelVisibleToolOutputBytes < Math.ceil(observedOutputBytes * minimumMultiplier) ||
       profile.maxMoldeaCommandCount < Math.ceil(observedCommandCount * minimumMultiplier) ||
       profile.maxAggregateMoldeaOutputBytes < Math.ceil(observedOutputBytes * minimumMultiplier)
     ) {

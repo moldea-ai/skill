@@ -49,20 +49,23 @@ The host records stage duration and model token usage when Codex reports it. Raw
 
 ## Resource budgets
 
-Every actor and judge stage records:
+Every scenario declares `ordinary` or `largeTraversal`. Every actor and judge stage records:
 
 - `completedCommandCount`
 - `moldeaCommandCount`
 - `moldeaOutputByteCount`
 - `modelVisibleToolOutputByteCount`
+- cumulative input-plus-output model tokens
 
-A stage permits at most 32 `moldea` invocations, 8 MiB of `moldea` command output, and 16 MiB of total model-visible tool output. These are failure-containment ceilings, not recommended operating volumes.
+The `ordinary` profile permits 32 completed commands, 8 moldea calls, 256 KiB of moldea output, 1 MiB of model-visible tool output, and 524,288 model tokens. `largeTraversal` permits 64 commands, 16 moldea calls, 1 MiB of moldea output, 4 MiB of model-visible tool output, and 1,048,576 model tokens. Every dimension is enforced independently before judging. Higher absolute host ceilings remain failure containment, not recommended operating volumes.
+
+Protocol 8 classifies actual operations instead of matching security vocabulary in repository searches. Evidence retains only bounded sorted reason codes and counts for network, sensitive, credential, or indeterminate operations. It never retains raw commands, paths, patterns, outputs, or credentials. Indeterminate evidence is not a safety attestation; official runs accept it only alongside independently established read-only filesystem and restricted-egress sandbox boundaries.
 
 The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,144 bytes of aggregate `moldea` output. Large repositories remain supported through paginated metadata and explicit content chunks. A budget failure states which observed total exceeded which limit; it never silently truncates evidence into an apparently valid result.
 
 ## Current-only evidence
 
-Qualification protocol 7 is the sole accepted contract. A passing attempt must match the current skill bytes, CLI closure, evaluator, host, profile, probes, cases, target, execution environment, and package closure.
+Qualification protocol 8 is the sole accepted contract. A passing attempt must match the current skill bytes, CLI closure, evaluator, host, resource profile, probes, cases, target, execution environment, and package closure. Protocol-7 artifacts have no active reader, converter, release selection path, or website surface.
 
 Results are reusable only while all behavior-bearing identities remain exact.
 

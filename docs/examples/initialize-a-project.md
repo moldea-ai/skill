@@ -59,7 +59,7 @@ The developer request establishes how the brief should inform the work; the file
 ```text
 Initialization completed. The repository documentation and implementation establish a service that extracts and validates invoice data for accounting systems without authorizing payments.
 
-I created the minimum canonical foundation and owned README awareness block, then verified the project with the repository-local CLI. No agent was created.
+I created the minimum canonical foundation and owned README awareness block, then verified the project through the repository-local CLI launcher. No agent was created.
 
 Next actions:
 

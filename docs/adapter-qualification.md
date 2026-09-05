@@ -32,7 +32,7 @@ Each case combines:
 
 The actor never receives grading criteria. The judge cannot replace deterministic package, schema, filesystem, or resource evidence with prose.
 
-Qualification workspaces contain their complete installed dependency set before an actor starts. Actors cannot invoke a package manager, transient executable, or installer and must call repository-local binaries directly. This keeps network isolation mechanically enforceable without preventing project-native validation.
+Qualification workspaces contain their complete installed dependency set before an actor starts. Actors cannot invoke a package manager, transient executable, or installer and must use the installed skill's closed repository-local CLI launcher. This keeps network isolation mechanically enforceable without preventing project-native validation.
 
 ## Resource limits
 
@@ -45,17 +45,19 @@ Each actor or judge stage records:
 - input, cached-input, and output token counts when the host reports them
 - stage duration
 
-The stage ceilings are 32 `moldea` invocations, 8 MiB of `moldea` output, and 16 MiB of total model-visible tool output. They are deliberately higher than the ordinary skill targets so large repositories can be handled through bounded pagination. Crossing a ceiling is an explicit stage failure with the measured value and limit.
+Every scenario declares `ordinary` or `largeTraversal`. `ordinary` permits 32 completed commands, 8 `moldea` calls, 256 KiB of `moldea` output, 1 MiB of model-visible tool output, and 524,288 input-plus-output tokens. `largeTraversal` permits 64 commands, 16 `moldea` calls, 1 MiB of `moldea` output, 4 MiB of model-visible tool output, and 1,048,576 tokens. Every dimension is enforced independently before judging. Crossing a limit is an explicit stage failure naming the profile, measured value, and limit.
 
-Each completed actor or judge stage also permits at most 2,097,152 cumulative input-plus-output tokens. This ceiling contains a complete tool-using Codex stage rather than one internal model turn, and it is not a consumption target. It was selected above an observed 1,264,666-token qualification stage so normal tool-using work retains more than 25 percent headroom. Before the first uncached model call, the CLI reports the planned stages, the maximum stages including one operational retry per stage, the per-stage token ceiling, and the corresponding aggregate maximum. Cached input remains visible in evidence but is not added to input a second time.
+The profile token limits contain a complete tool-using Codex stage rather than one internal model turn, and they are not consumption targets. Before the first uncached model call, the CLI reports the planned stages, the maximum stages including one operational retry per stage, the 2,097,152-token absolute ceiling per stage, and the corresponding aggregate maximum. The selected scenario profile is enforced against every completed actor and judge stage before semantic judgment. Cached input remains visible in evidence but is not added to input a second time.
 
-The ceilings are imported from the same source-controlled profile used by semantic evaluation and host execution. Deterministic boundary tests prove explicit failure above each containment ceiling, while the calibration corpus establishes normal and intentional large-traversal consumption without treating those host ceilings as targets.
+The operating limits and higher absolute ceilings are imported from the same source-controlled profile used by semantic evaluation and host execution. Deterministic boundary tests prove exact acceptance and over-limit failure for every dimension. The calibration corpus establishes normal and intentional large-traversal consumption without treating absolute ceilings as targets; duration and memory remain diagnostic observations.
 
 Qualification results retain these numeric aggregates but never raw command text, raw command output, credentials, hidden reasoning, or arbitrary workspace content.
 
+Protocol 8 classifies operations rather than vocabulary. Searching repository text for terms such as `secret`, `authorization`, or `.codex` is inert, while actual evaluator-home, authentication-file, credential, environment-value, process-environment, network, package-manager-network, dynamic-execution, or broad-filesystem operations receive stable reason codes and counts. Public evidence never contains the command, path, search pattern, output, or secret. An `indeterminate` classification remains visible diagnostic uncertainty and is acceptable only because official runs independently establish read-only filesystem and restricted-egress sandboxes; it is not presented as proof that access was safe.
+
 ## Fresh evidence by default
 
-Qualification protocol 7 accepts only evidence matching the current:
+Qualification protocol 8 accepts only evidence matching the current:
 
 - portable skill bytes
 - CLI and package closure
@@ -64,8 +66,9 @@ Qualification protocol 7 accepts only evidence matching the current:
 - target identity
 - execution environment
 - Custom baseline relationship
+- scenario resource profile and privacy-safe command-policy reason counts
 
-Every current target must have a fresh passing attempt for its exact current inputs.
+Every current target must have a fresh passing attempt for its exact current inputs. Protocol-7 attempts remain local diagnostics outside active loading and release selection; there is no compatibility reader or converter.
 
 This is the normal release path. An explicit release evidence pin may reuse the original passing qualification evidence from an earlier immutable release when a maintainer has established that the new release does not affect evaluated behavior. The pin is disclosed publicly and does not relabel the source attempt as current. See [Release evidence](/docs/release-evidence/).
 

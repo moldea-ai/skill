@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { afterEach, describe, expect, test } from 'vitest';
 
+import type { IQualificationCommandPolicyEvidence } from '../contracts/index.ts';
 import { ensureDirectory } from '../filesystem/index.ts';
 import {
   calculateModelCacheKey,
@@ -13,15 +14,20 @@ import {
   writeJudgeCache,
 } from './cache.ts';
 
-const emptyCommandPolicy = {
+const emptyCommandPolicy: IQualificationCommandPolicyEvidence = {
   completedCommandCount: 0,
-  credentialExposure: { status: 'not-observed', observedCount: 0 },
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
   moldeaOutputByteCount: 0,
-  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
-  sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
-} as const;
+  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0, reasons: [] },
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+};
 
 const pathExists = async (candidatePath: string): Promise<boolean> => {
   try {

@@ -1,6 +1,8 @@
 // @vitest-environment node
 import { describe, expect, test } from 'vitest';
 
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
+
 import type {
   IActorOutput,
   ICandidateClosure,
@@ -18,6 +20,7 @@ import {
   haveQualificationExecutionInputsChanged,
   createRunnerRequirementAssessments,
   deriveQualificationCommandPolicyFailures,
+  deriveQualificationResourceFailures,
   inspectQualificationSourceState,
   validateJudgeOutput,
 } from './validations.ts';
@@ -34,6 +37,7 @@ const scenario = {
   id: 'test-case',
   title: 'Test case',
   purpose: 'Exercise exact judge requirements.',
+  resourceProfile: 'ordinary',
   taskFile: 'task.md',
   seedDirectory: 'seed',
   removePaths: [],
@@ -157,7 +161,7 @@ const createCommandPolicyEvidence = (
   status: 'indeterminate' | 'not-observed' | 'observed',
 ): IQualificationCommandPolicyEvidence => ({
   completedCommandCount: status === 'not-observed' ? 0 : 1,
-  credentialExposure: { status: 'not-observed', observedCount: 0 },
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
   moldeaOutputByteCount: 0,
@@ -165,8 +169,19 @@ const createCommandPolicyEvidence = (
     status,
     observedCount: status === 'observed' ? 1 : 0,
     indeterminateCount: status === 'indeterminate' ? 1 : 0,
+    reasons:
+      status === 'observed'
+        ? [{ code: 'network-client', count: 1 }]
+        : status === 'indeterminate'
+          ? [{ code: 'unclassified-command', count: 1 }]
+          : [],
   },
-  sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
 });
 
 describe('runner-owned command-policy assessment', () => {
@@ -238,6 +253,98 @@ describe('mandatory command-policy failures', () => {
         judgeCommandPolicy,
       }),
     ).toStrictEqual(expectedFailures);
+  });
+});
+
+describe('scenario resource profiles', () => {
+  const ordinaryProfile = MOLDEA_SKILL_RESOURCE_PROFILES.ordinary;
+  const exactBoundaryEvidence = {
+    commandPolicy: {
+      ...createCommandPolicyEvidence('not-observed'),
+      completedCommandCount: ordinaryProfile.maxCompletedCommandCount,
+      moldeaCommandCount: ordinaryProfile.maxMoldeaCommandCount,
+      moldeaOutputByteCount: ordinaryProfile.maxAggregateMoldeaOutputBytes,
+      modelVisibleToolOutputByteCount: ordinaryProfile.maxModelVisibleToolOutputBytes,
+    },
+    usage: {
+      cachedInputTokens: 0,
+      inputTokens: ordinaryProfile.maxHostTokenCount - 1,
+      outputTokens: 1,
+    },
+  };
+
+  test('accepts every ordinary dimension at its exact boundary', () => {
+    expect(
+      deriveQualificationResourceFailures({
+        allowMissingUsage: false,
+        evidence: exactBoundaryEvidence,
+        role: 'Actor',
+        scenario,
+      }),
+    ).toStrictEqual([]);
+  });
+
+  test.each([
+    ['completedCommandCount', 'completed-host-commands', ordinaryProfile.maxCompletedCommandCount],
+    ['moldeaCommandCount', 'moldea-commands', ordinaryProfile.maxMoldeaCommandCount],
+    ['moldeaOutputByteCount', 'moldea-output-bytes', ordinaryProfile.maxAggregateMoldeaOutputBytes],
+    [
+      'modelVisibleToolOutputByteCount',
+      'model-visible-tool-output-bytes',
+      ordinaryProfile.maxModelVisibleToolOutputBytes,
+    ],
+  ] as const)('reports %s independently', (field, dimension, limit) => {
+    expect(
+      deriveQualificationResourceFailures({
+        allowMissingUsage: false,
+        evidence: {
+          ...exactBoundaryEvidence,
+          commandPolicy: { ...exactBoundaryEvidence.commandPolicy, [field]: limit + 1 },
+        },
+        role: 'Actor',
+        scenario,
+      }),
+    ).toStrictEqual([
+      `Actor resource profile ordinary exceeded ${dimension}: observed ${limit + 1}, limit ${limit}.`,
+    ]);
+  });
+
+  test('reports token excess and unavailable official usage without blocking dry runs', () => {
+    expect(
+      deriveQualificationResourceFailures({
+        allowMissingUsage: false,
+        evidence: {
+          ...exactBoundaryEvidence,
+          usage: {
+            cachedInputTokens: 0,
+            inputTokens: ordinaryProfile.maxHostTokenCount,
+            outputTokens: 1,
+          },
+        },
+        role: 'Judge',
+        scenario,
+      }),
+    ).toStrictEqual([
+      `Judge resource profile ordinary exceeded total-model-tokens: observed ${ordinaryProfile.maxHostTokenCount + 1}, limit ${ordinaryProfile.maxHostTokenCount}.`,
+    ]);
+    expect(
+      deriveQualificationResourceFailures({
+        allowMissingUsage: false,
+        evidence: { ...exactBoundaryEvidence, usage: null },
+        role: 'Actor',
+        scenario,
+      }),
+    ).toStrictEqual([
+      `Actor resource profile ordinary could not establish total-model-tokens: observed unavailable, limit ${ordinaryProfile.maxHostTokenCount}.`,
+    ]);
+    expect(
+      deriveQualificationResourceFailures({
+        allowMissingUsage: true,
+        evidence: { ...exactBoundaryEvidence, usage: null },
+        role: 'Actor',
+        scenario,
+      }),
+    ).toStrictEqual([]);
   });
 });
 

@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-anthropic-static-boundary
 title: Preserve the Anthropic static boundary
 purpose: Verify conservative treatment of provider tools and indirect Messages API request construction.

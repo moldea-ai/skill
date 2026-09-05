@@ -63,7 +63,7 @@ Release `5.0.0` supports exactly:
 - repository format version 1
 - CLI JSON schema 4
 
-The CLI must be a repository-root-local development dependency. Its manifest declaration and exact lockfile-selected stable version must satisfy the supported CLI 7 range. The skill never falls back to a global installation, another workspace, or a transient download.
+The CLI must be a repository-root-local development dependency. Its manifest declaration and exact lockfile-selected stable version must satisfy the supported CLI 7 range. Every invocation goes through the installed skill's closed repository-local launcher. The skill never falls back to a global installation, another workspace, a package-manager launcher, or a transient download.
 
 Tooling establishment belongs only to write-capable `moldea` work. Read-only evaluation, validation, planning, and host-owned review workflows do not install dependencies or alter package-manager state.
 
@@ -75,7 +75,7 @@ The entrypoint decides relevance before loading references or running the CLI:
 2. Before initialization, continue moldea only for an explicit initialization request. Every other host-owned repository task continues normally while moldea abstains silently.
 3. After initialization, activate directly for an explicit repository-dependent moldea request, a changed `/moldea/**` path, or a changed hunk inside the full-line managed README markers.
 4. The managed README block tells repository-aware hosts to select this entrypoint for every repository task. For every other known task-path set, run the skill's deterministic two-byte relevance gate. It invokes repository-local Core directly and returns only `0` or `1`.
-5. Only after `1`, run one bounded CLI relationship query to identify the matching canonical owners. Otherwise continue the host-owned task normally with no moldea CLI command, reference load, progress update, or final-report mention.
+5. Only after `1`, run one bounded launcher-backed CLI relationship query to identify the matching canonical owners. Otherwise continue the host-owned task normally with no moldea CLI command, reference load, progress update, or final-report mention.
 
 The gate accepts the ordinary repository-relative paths produced by Git as well as leading-slash repository-logical paths. It normalizes that host boundary before calling Core, so a harmless path-spelling difference cannot create a false abstention. The subsequent CLI query receives the normalized leading-slash form.
 
@@ -85,7 +85,7 @@ Broad ideas such as “potentially durable knowledge” do not activate the skil
 
 ## Bounded CLI evidence
 
-Compatible CLI 7 releases emit schema 4 JSON only.
+Compatible CLI 7 releases emit schema 4 JSON only. The portable `scripts/moldea-cli.mjs` launcher accepts an absolute repository root and a closed argument surface, verifies the installed CLI/Core closure and resolved-path containment, invokes Node without a shell, enforces the declared stdout boundary and a separate stderr boundary, relays cancellation, force-terminates a child that ignores termination for five seconds, and preserves completed child exit status. Agents do not repeat package, link, `PATH`, or parent-workspace discovery around it.
 
 - `inspect` returns content-free metadata, counts, diagnostics, paths, digests, relationships, and a bounded page.
 - `scope` matches one path or one NUL-delimited path set against declared relationships.
@@ -93,9 +93,9 @@ Compatible CLI 7 releases emit schema 4 JSON only.
 - `validate` reports structural validity without embedding canonical document bodies.
 - `composition` reports the installed package and adapter composition.
 
-Every machine invocation uses `--json --max-output-bytes 65536`. Ordinary work stops after the relevant record or diagnostic is found and keeps aggregate `moldea` output at or below 262,144 bytes. Explicit large-context traversal may use additional pages when the task genuinely requires them, but each invocation remains below the CLI's 1 MiB hard maximum and traversal remains purpose-bounded.
+Every paged machine invocation uses `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary. Ordinary work stops after the relevant record or diagnostic is found and keeps aggregate `moldea` output at or below 262,144 bytes. Explicit large-context traversal may use additional pages when the task genuinely requires them, but each invocation remains below the CLI's 1 MiB hard maximum and traversal remains purpose-bounded.
 
-The 64 KiB page and 256 KiB ordinary aggregate are operating targets, not repository-size limits. Large projects remain usable because metadata is paginated and content is requested separately. Evaluation hosts also impose generous failure-containment ceilings: 32 `moldea` invocations, 8 MiB of `moldea` command output, and 16 MiB of total model-visible tool output per model stage. Crossing a ceiling fails the stage with the observed value and limit instead of truncating silently or producing an ambiguous result.
+The 64 KiB page and 256 KiB ordinary aggregate are operating targets, not repository-size limits. Large projects remain usable because metadata is paginated and content is requested separately. Qualification scenarios explicitly select an operating profile. `ordinary` allows 32 completed host commands, 8 moldea calls, 256 KiB of moldea output, 1 MiB of model-visible tool output, and 524,288 model tokens. `largeTraversal` allows 64 commands, 16 moldea calls, 1 MiB of moldea output, 4 MiB of model-visible tool output, and 1,048,576 model tokens. Each dimension fails independently before judging with the profile, observed value, and limit. Higher absolute ceilings remain process containment, not normal targets.
 
 These targets are source-controlled in `tooling/resource-calibration/profiles.mjs` and checked against the reproducible three-sample corpus in `fixtures/resource-calibration.json`. Run `npm run resource:check` for deterministic verification or `npm run resource:calibrate` to regenerate the measured environment, fixture shapes, latency and memory distributions, temporary-disk peaks, output bytes, token estimates, command counts, and completion states.
 
@@ -134,10 +134,12 @@ moldea/
     ├── runtime-compatibility.md
 │   └── skill-design.md
 └── scripts/
-    └── relevance-gate.mjs
+    ├── moldea-cli.mjs
+    ├── relevance-gate.mjs
+    └── repository-package.mjs
 ```
 
-`SKILL.md` owns activation, operation selection, evidence limits, boundaries, and reporting. `scripts/relevance-gate.mjs` performs the bounded pre-activation decision without a CLI invocation or canonical content output. References are loaded only after relevance is established and only when the selected operation needs them. `agents/openai.yaml` adds optional host metadata without redefining the portable contract.
+`SKILL.md` owns activation, operation selection, evidence limits, boundaries, and reporting. `scripts/relevance-gate.mjs` performs the bounded pre-activation decision without a CLI invocation or canonical content output. `scripts/moldea-cli.mjs` owns the closed CLI launch boundary, and `scripts/repository-package.mjs` provides the shared package/version/containment checks used by both paths. References are loaded only after relevance is established and only when the selected operation needs them. `agents/openai.yaml` adds optional host metadata without redefining the portable contract.
 
 ## Project blueprint
 

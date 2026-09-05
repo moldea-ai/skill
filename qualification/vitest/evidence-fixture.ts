@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 import {
   QUALIFICATION_CONFIRMATION_POLICY,
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
   QUALIFICATION_TRIAL_IDS,
 } from '../src/constants/index.ts';
 import {
@@ -11,6 +12,7 @@ import {
   QualificationAttemptResultSchema,
   QualificationTrialResultSchema,
   type IQualificationAttemptResult,
+  type IQualificationCommandPolicyEvidence,
   type IQualificationProvenance,
   type IQualificationTrialResult,
 } from '../src/contracts/index.ts';
@@ -31,15 +33,21 @@ const JUDGE_CREATED_AT = '2026-08-20T10:00:20.000Z';
 const ACTOR_CREATED_AT = '2026-08-20T10:00:10.000Z';
 const CLAIM_ID = 'qualification.support-gate';
 const WORKSPACE_FAILURE = 'Unexpected changed path unexpected.md.';
-const EMPTY_COMMAND_POLICY = {
+const MODEL_USAGE = { cachedInputTokens: 0, inputTokens: 128, outputTokens: 16 } as const;
+const EMPTY_COMMAND_POLICY: IQualificationCommandPolicyEvidence = {
   completedCommandCount: 0,
-  credentialExposure: { status: 'not-observed', observedCount: 0 },
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
   moldeaOutputByteCount: 0,
-  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
-  sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
-} as const;
+  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0, reasons: [] },
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+};
 
 const createStage = (
   id: string,
@@ -81,8 +89,8 @@ const createTrialResult = (
     judgeSkippedPath: isJudgeSkipped ? `${trialRoot}/judge-skipped.json` : null,
     workspaceAssertionsPath: `${trialRoot}/workspace-assertions.json`,
     patchPath: `${trialRoot}/workspace.patch`,
-    actorUsage: null,
-    judgeUsage: null,
+    actorUsage: MODEL_USAGE,
+    judgeUsage: isJudgeSkipped ? null : MODEL_USAGE,
     actorEvidenceCreatedAt: ACTOR_CREATED_AT,
     judgeEvidenceCreatedAt: isJudgeSkipped ? null : JUDGE_CREATED_AT,
     actorCacheSourceAttemptId: null,
@@ -107,7 +115,7 @@ const createTrialResult = (
   });
 };
 
-/** Seeds one complete protocol 7 Custom profile and its engine-verifiable public evidence. */
+/** Seeds one complete protocol 8 Custom profile and its engine-verifiable public evidence. */
 export const seedPassingQualificationEvidenceFixture = async (options: {
   artifactDirectory: string;
   attemptId: string;
@@ -193,6 +201,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
         `id: ${CASE_ID}`,
         `title: ${CASE_TITLE}`,
         'purpose: Verify complete passing evidence.',
+        'resourceProfile: ordinary',
         'taskFile: task.md',
         'seedDirectory: seed',
         'removePaths: []',
@@ -340,7 +349,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
   const stageIds = createQualificationStageIds([CASE_ID]);
   const executedTrialIds = new Set(trials.map(({ trialId }) => trialId));
   const result = QualificationAttemptResultSchema.parse({
-    protocolVersion: 7,
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     mode: 'official',
     attemptId: options.attemptId,
@@ -444,7 +453,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
             trialId: trial.trialId,
             createdAt: JUDGE_CREATED_AT,
             durationMs: 1,
-            usage: null,
+            usage: MODEL_USAGE,
             cacheKey: judgeCacheKey,
             sourceAttemptId: options.attemptId,
             cacheSourceAttemptId: null,
@@ -465,7 +474,7 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
         trialId: trial.trialId,
         createdAt: ACTOR_CREATED_AT,
         durationMs: 1,
-        usage: null,
+        usage: MODEL_USAGE,
         cacheKey: actorCacheKey,
         sourceAttemptId: options.attemptId,
         cacheSourceAttemptId: null,

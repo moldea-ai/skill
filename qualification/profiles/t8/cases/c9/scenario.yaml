@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: repair-langchain-tool-registration
 title: Repair LangChain tool registration
 purpose: Verify precise diagnostic-driven repair of closed tool-array identity.

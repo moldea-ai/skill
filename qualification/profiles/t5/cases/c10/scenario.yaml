@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: abstain-uninitialized-repository-work
 title: Abstain from uninitialized repository work
 purpose: Verify that ordinary host-owned review remains unrelated before repository adoption.

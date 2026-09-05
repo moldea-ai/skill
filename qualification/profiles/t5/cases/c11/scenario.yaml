@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: abstain-initialized-unrelated-work
 title: Abstain from initialized unrelated work
 purpose: Verify silent abstention for unrelated documentation in a valid initialized repository.

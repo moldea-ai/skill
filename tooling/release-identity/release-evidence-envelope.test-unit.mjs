@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { test } from 'node:test';
 
+import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from './constants.mjs';
 import {
   MAX_RELEASE_EVIDENCE_REASON_BYTES,
   parseReleaseEvidenceEnvelope,
@@ -15,7 +16,7 @@ const SHA256 = 'a'.repeat(64);
 const createFreshEnvelope = () => ({
   mode: 'fresh',
   qualification: {
-    protocolVersion: 7,
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     resourceStatus: 'passed',
     targets: [
       {

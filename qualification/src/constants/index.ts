@@ -10,7 +10,7 @@ import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibr
 
 // immutable protocol and evaluator identity for committed qualification evidence
 export const QUALIFICATION_PROTOCOL_VERSION = 2 as const;
-export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 7 as const;
+export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 8 as const;
 export const QUALIFICATION_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1 as const;
 export const QUALIFICATION_CONFIRMATION_POLICY = {
   version: 1,

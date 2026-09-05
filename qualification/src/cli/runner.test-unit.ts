@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { afterEach, describe, expect, test, vi } from 'vitest';
 
+import { QUALIFICATION_EVIDENCE_PROTOCOL_VERSION } from '../constants/index.ts';
 import type { IQualificationAttemptResult } from '../contracts/index.ts';
 import type { IRunQualificationOptions } from '../execution/index.ts';
 
@@ -29,7 +30,7 @@ describe('qualification command runner', () => {
       retryDelayMs: 5_000,
     };
     const result = {
-      protocolVersion: 7,
+      protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
       attemptId: 'attempt-json',
       selection: { adapterId: 'custom', implementationId: 'custom' },
       status: 'passed',
@@ -89,7 +90,7 @@ describe('qualification command runner', () => {
     const stdout = stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join('');
     const stderr = stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join('');
     expect(JSON.parse(stdout)).toStrictEqual({
-      protocolVersion: 7,
+      protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
       attemptId: 'attempt-json',
       selection: { adapterId: 'custom', implementationId: 'custom' },
       status: 'passed',
@@ -122,7 +123,7 @@ describe('qualification command runner', () => {
 
   test('runs a selected diagnostic case with the two-call and four-call approval boundary', async () => {
     const result = {
-      protocolVersion: 7,
+      protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
       attemptId: 'attempt-diagnostic',
       selection: { adapterId: 'custom', implementationId: 'custom' },
       status: 'passed',
@@ -179,7 +180,7 @@ describe('qualification command runner', () => {
     expect(
       JSON.parse(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join('')),
     ).toStrictEqual({
-      protocolVersion: 7,
+      protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
       attemptId: 'attempt-diagnostic',
       selection: { adapterId: 'custom', implementationId: 'custom' },
       status: 'passed',

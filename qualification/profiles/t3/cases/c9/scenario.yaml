@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: repair-cloudflare-ai-chat-output-schema
 title: Repair Cloudflare AIChatAgent output schema
 purpose: Verify precise diagnostic-driven repair of direct Output.object schema identity.

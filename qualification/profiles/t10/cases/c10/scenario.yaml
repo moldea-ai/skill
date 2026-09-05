@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-langgraph-state-graph-static-boundary
 title: Preserve the LangGraph StateGraph static boundary
 purpose: Verify conservative handling of dynamic routing, opaque schemas, node-local behavior, and higher-level LangGraph surfaces.

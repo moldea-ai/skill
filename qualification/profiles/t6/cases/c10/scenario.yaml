@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-eve-static-boundary
 title: Preserve the Eve static boundary
 purpose: Verify conservative handling of dynamic capabilities and unsupported Eve filesystem surfaces.

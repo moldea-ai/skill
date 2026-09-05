@@ -8,11 +8,17 @@
   },
   "profiles": {
     "ordinary": {
+      "maxCompletedCommandCount": 32,
+      "maxHostTokenCount": 524288,
+      "maxModelVisibleToolOutputBytes": 1048576,
       "maxAggregateMoldeaOutputBytes": 262144,
-      "maxMoldeaCommandCount": 4,
+      "maxMoldeaCommandCount": 8,
       "maxOutputPageBytes": 65536
     },
     "largeTraversal": {
+      "maxCompletedCommandCount": 64,
+      "maxHostTokenCount": 1048576,
+      "maxModelVisibleToolOutputBytes": 4194304,
       "maxAggregateMoldeaOutputBytes": 1048576,
       "maxMoldeaCommandCount": 16,
       "maxOutputPageBytes": 65536
@@ -50,9 +56,7 @@
       "id": "binary-large-file",
       "resourceClass": "attack",
       "sampleCount": 3,
-      "completionStates": [
-        "explicit-error"
-      ],
+      "completionStates": ["explicit-error"],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 4,
@@ -118,9 +122,7 @@
       "id": "broadly-relevant",
       "resourceClass": "largeTraversal",
       "sampleCount": 3,
-      "completionStates": [
-        "complete"
-      ],
+      "completionStates": ["complete"],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 2,
@@ -186,9 +188,7 @@
       "id": "diagnostic-heavy",
       "resourceClass": "largeTraversal",
       "sampleCount": 3,
-      "completionStates": [
-        "complete"
-      ],
+      "completionStates": ["complete"],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 3,
@@ -254,9 +254,7 @@
       "id": "large-remote-shape",
       "resourceClass": "ordinary",
       "sampleCount": 3,
-      "completionStates": [
-        "complete"
-      ],
+      "completionStates": ["complete"],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 2,
@@ -322,9 +320,7 @@
       "id": "large-unicode",
       "resourceClass": "largeTraversal",
       "sampleCount": 3,
-      "completionStates": [
-        "complete"
-      ],
+      "completionStates": ["complete"],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 4,
@@ -390,9 +386,7 @@
       "id": "medium-mostly-irrelevant",
       "resourceClass": "ordinary",
       "sampleCount": 3,
-      "completionStates": [
-        "complete"
-      ],
+      "completionStates": ["complete"],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 2,
@@ -458,9 +452,7 @@
       "id": "small-ordinary",
       "resourceClass": "ordinary",
       "sampleCount": 3,
-      "completionStates": [
-        "complete"
-      ],
+      "completionStates": ["complete"],
       "observations": {
         "activeResourceCountPeak": {
           "maximum": 4,

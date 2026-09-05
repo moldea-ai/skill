@@ -1,11 +1,17 @@
 // calibrated operating targets and failure-containment ceilings for skill execution
 export const MOLDEA_SKILL_RESOURCE_PROFILES = Object.freeze({
   ordinary: Object.freeze({
+    maxCompletedCommandCount: 32,
+    maxHostTokenCount: 524_288,
+    maxModelVisibleToolOutputBytes: 1_048_576,
     maxAggregateMoldeaOutputBytes: 262_144,
-    maxMoldeaCommandCount: 4,
+    maxMoldeaCommandCount: 8,
     maxOutputPageBytes: 65_536,
   }),
   largeTraversal: Object.freeze({
+    maxCompletedCommandCount: 64,
+    maxHostTokenCount: 1_048_576,
+    maxModelVisibleToolOutputBytes: 4_194_304,
     maxAggregateMoldeaOutputBytes: 1_048_576,
     maxMoldeaCommandCount: 16,
     maxOutputPageBytes: 65_536,

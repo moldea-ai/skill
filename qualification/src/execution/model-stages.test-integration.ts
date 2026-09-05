@@ -15,6 +15,7 @@ import type {
   IDeterministicVerification,
   IJudgeOutput,
   IQualificationCaseScenario,
+  IQualificationCommandPolicyEvidence,
   IQualificationExecutionEnvironment,
   IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
@@ -44,6 +45,7 @@ const scenario = {
   id: 'test-case',
   title: 'Test case',
   purpose: 'Exercise model-stage judge validation.',
+  resourceProfile: 'ordinary',
   taskFile: 'task.md',
   seedDirectory: 'seed',
   removePaths: [],
@@ -83,15 +85,20 @@ const scenario = {
   ],
 } satisfies IQualificationCaseScenario;
 
-const emptyCommandPolicy = {
+const emptyCommandPolicy: IQualificationCommandPolicyEvidence = {
   completedCommandCount: 0,
-  credentialExposure: { status: 'not-observed', observedCount: 0 },
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
   moldeaOutputByteCount: 0,
-  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
-  sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
-} as const;
+  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0, reasons: [] },
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+};
 
 const incompleteJudgeOutput: IJudgeOutput = {
   verdict: 'pass',

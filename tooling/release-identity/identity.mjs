@@ -129,7 +129,7 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
   const skillMetadata = parseSkillMetadata(skill);
   const rootLockPackage = identity.packageLock.packages?.[''];
   const semanticCliManifest = readJson(repositoryRoot, RELEASE_PATHS.semanticCliManifest);
-  const relevanceGate = readText(repositoryRoot, RELEASE_PATHS.skillRelevanceGate);
+  const repositoryPackage = readText(repositoryRoot, RELEASE_PATHS.skillRepositoryPackage);
 
   if (
     skillMetadata.name !== 'moldea' ||
@@ -159,14 +159,14 @@ export const inspectReleaseIdentity = (repositoryRoot) => {
     );
   }
   if (
-    !includesStringConstant(relevanceGate, 'EXPECTED_CLI_RANGE', identity.cliVersionRange) ||
+    !includesStringConstant(repositoryPackage, 'EXPECTED_CLI_RANGE', identity.cliVersionRange) ||
     !includesStringConstant(
-      relevanceGate,
+      repositoryPackage,
       'EXPECTED_CORE_RANGE',
       identity.cliDependencies['@moldea.ai/core'],
     )
   ) {
-    issues.push('The relevance gate does not match the compatible CLI/Core major closure.');
+    issues.push('The repository package resolver does not match the compatible CLI/Core closure.');
   }
 
   for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {

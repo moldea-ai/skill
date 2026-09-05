@@ -26,11 +26,32 @@ export type ICodexEvaluationOperationalRetry = {
 
 export type ICodexEvaluationCommandPolicyStatus = 'indeterminate' | 'not-observed' | 'observed';
 
+export type ICodexEvaluationCommandPolicyReasonCode =
+  | 'broad-filesystem-read'
+  | 'credential-material'
+  | 'dynamic-execution'
+  | 'environment-dump'
+  | 'environment-value-read'
+  | 'evaluator-auth-file'
+  | 'evaluator-home'
+  | 'git-network'
+  | 'network-client'
+  | 'oversized-command'
+  | 'package-manager-network'
+  | 'process-environment'
+  | 'unclassified-command';
+
+export type ICodexEvaluationCommandPolicyReason = {
+  code: ICodexEvaluationCommandPolicyReasonCode;
+  count: number;
+};
+
 export type ICodexEvaluationCommandPolicyEvidence = {
   completedCommandCount: number;
   credentialExposure: {
     status: 'not-observed' | 'observed';
     observedCount: number;
+    reasons: ICodexEvaluationCommandPolicyReason[];
   };
   modelVisibleToolOutputByteCount: number;
   moldeaCommandCount: number;
@@ -39,11 +60,13 @@ export type ICodexEvaluationCommandPolicyEvidence = {
     status: ICodexEvaluationCommandPolicyStatus;
     observedCount: number;
     indeterminateCount: number;
+    reasons: ICodexEvaluationCommandPolicyReason[];
   };
   sensitiveAccess: {
     status: ICodexEvaluationCommandPolicyStatus;
     observedCount: number;
     indeterminateCount: number;
+    reasons: ICodexEvaluationCommandPolicyReason[];
   };
 };
 

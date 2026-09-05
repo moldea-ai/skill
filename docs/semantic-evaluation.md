@@ -41,15 +41,16 @@ The committed result records:
 - emitted `moldea` bytes
 - maximum bytes emitted by one recognized invocation
 - total model-visible tool-output bytes
+- completed host-command count and total input-plus-output model tokens
 - whether a non-content command attempted to return canonical content
 
-Abstention cases require zero recognized `moldea` commands and zero `moldea` bytes. Ordinary activation cases allow at most four recognized commands and 262,144 bytes. The dedicated large-context case allows at most 16 commands and 1 MiB while still requiring paginated, purpose-bounded traversal.
+Abstention cases require zero recognized `moldea` commands and zero `moldea` bytes. Each semantic case owns its exact activation and `moldea` budget. Ordinary direct and relationship cases permit at most four `moldea` calls and 262,144 `moldea`-output bytes. The dedicated large-context case permits at most 16 calls and 1,048,576 output bytes while still requiring paginated, purpose-bounded traversal. The evaluation host separately enforces its absolute command, output, and token containment ceilings.
 
 Initialization writes its complete foundation before the first CLI call, using the exact minimal `version: 1` manifest when no relationship is evidenced, then uses one final `validate`. It stops on success; one diagnostic-driven correction and validation retry is the only structural retry. It does not follow successful validation with `inspect`.
 
-The command and byte budgets are owned by `tooling/resource-calibration/profiles.mjs` and backed by `fixtures/resource-calibration.json`. The corpus records three-sample distributions for ordinary, 1,024-path, large-Unicode, diagnostic-heavy, and adversarial inputs, with at least 25 percent cumulative headroom for non-attack cases.
+Case budgets are declared in `fixtures/conformance-cases.json`; their maximum values and the evaluation host's absolute containment ceilings are owned by `tooling/resource-calibration/profiles.mjs` and backed by `fixtures/resource-calibration.json`. The corpus records three-sample distributions for ordinary, 1,024-path, large-Unicode, diagnostic-heavy, and adversarial inputs, with at least 25 percent cumulative headroom for non-attack cases.
 
-Recognized machine commands must invoke the repository-local CLI directly with `--json --max-output-bytes 65536`. Unbounded, indirect, or output-filtered forms do not count as valid proof.
+Recognized machine commands must use the installed skill's `scripts/moldea-cli.mjs` launcher with an absolute repository root, `--json`, and the required output boundary. Bare, package-manager, unbounded, escaped, or output-filtered forms do not count as valid proof.
 
 Relationship cases begin from structurally valid adopted repositories. Their first CLI operation is one bounded `scope` call, which serves as the complete relevant-owner inventory instead of being followed by `inspect`. That call is included in the four-command ordinary budget; any remaining calls are limited to necessary validation and explicitly selected owner content.
 
@@ -57,7 +58,7 @@ Every adopted semantic repository contains the current managed README discovery 
 
 Relationship cases begin from ordinary Git-style task paths. They cover both a host-provided changed path and an unchanged path explicitly named by the developer. The gate normalizes those repository-relative spellings before Core matching, and the actor must use the corresponding leading-slash repository-logical paths for the CLI query. This prevents false abstention without weakening canonical manifest path validation or adding `moldea`-owned Git discovery.
 
-The runner validates each declared `moldea` command budget and activation order before it invokes the semantic judge. A budget or activation miss makes the case fail but remains valid bounded evidence, so the attempt and any required confirmation trials are preserved instead of being treated as evaluator corruption. The judge evaluates only the remaining behavioral clauses and projected command-result facts. It must not reinterpret the total host command count or output from non-`moldea` commands as `moldea` resource consumption.
+The runner validates each declared resource dimension and activation order before it invokes the semantic judge. A budget or activation miss makes the case fail but remains valid bounded evidence, so the attempt and any required confirmation trials are preserved instead of being treated as evaluator corruption. The judge evaluates only the remaining behavioral clauses and projected command-result facts. It must not reinterpret the total host command count or output from non-`moldea` commands as `moldea` resource consumption.
 
 ## Repository controls
 

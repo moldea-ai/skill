@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { spawnSync } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import {
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -25,7 +26,7 @@ import {
 const REPOSITORY_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILL_ROOT = join(REPOSITORY_ROOT, 'moldea');
 const SKILL_PATH = join(SKILL_ROOT, 'SKILL.md');
-const CLI_PATH = join(REPOSITORY_ROOT, 'node_modules', '.bin', 'moldea');
+const CLI_LAUNCHER_PATH = join(SKILL_ROOT, 'scripts', 'moldea-cli.mjs');
 const RELEVANCE_GATE_PATH = join(SKILL_ROOT, 'scripts', 'relevance-gate.mjs');
 const FIXTURE = JSON.parse(
   readFileSync(join(REPOSITORY_ROOT, 'fixtures', 'conformance-cases.json'), 'utf8'),
@@ -69,12 +70,16 @@ const resolveActivationCase = (input) => {
 };
 
 const runCli = (repository, arguments_, input) => {
-  const result = spawnSync(CLI_PATH, arguments_, {
-    cwd: repository,
-    encoding: 'utf8',
-    input,
-    maxBuffer: 1_048_576,
-  });
+  const result = spawnSync(
+    process.execPath,
+    [CLI_LAUNCHER_PATH, '--repository', repository, '--', ...arguments_],
+    {
+      cwd: repository,
+      encoding: 'utf8',
+      input,
+      maxBuffer: 1_048_576,
+    },
+  );
   if (result.error) throw result.error;
   return result;
 };
@@ -132,7 +137,49 @@ const createProject = () => {
     encoding: 'utf8',
   });
   assert.equal(init.status, 0);
+  installProjectToolingFixture(root);
   return root;
+};
+
+const createLauncherProject = (cliSource, options = {}) => {
+  const root = mkdtempSync(join(tmpdir(), 'moldea-v5-launcher-'));
+  const cliRoot = join(root, 'node_modules', '@moldea.ai', 'cli');
+  mkdirSync(join(cliRoot, 'dist'), { recursive: true });
+  writeFileSync(
+    join(root, 'package.json'),
+    `${JSON.stringify(
+      {
+        private: true,
+        devDependencies: { '@moldea.ai/cli': options.declaration ?? '^7.0.0' },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(
+    join(cliRoot, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: '@moldea.ai/cli',
+        type: 'module',
+        version: options.version ?? '7.0.1',
+        bin: { moldea: options.binary ?? './dist/moldea.js' },
+        dependencies: { '@moldea.ai/core': options.coreRange ?? '^3.0.0' },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(join(cliRoot, 'dist', 'moldea.js'), cliSource);
+  return root;
+};
+
+const waitForPath = async (path) => {
+  const deadline = Date.now() + 2_000;
+  while (!existsSync(path)) {
+    if (Date.now() >= deadline) throw new Error('Timed out waiting for the launcher child.');
+    await new Promise((resolvePromise) => setTimeout(resolvePromise, 10));
+  }
 };
 
 describe('portable skill contract', () => {
@@ -193,11 +240,15 @@ describe('portable skill contract', () => {
     );
     assert.match(
       skill,
-      /Load `references\/local-tooling\.md` only when the direct repository-local invocation is unavailable/u,
+      /Load `references\/local-tooling\.md` only when the launcher reports that repository tooling is unavailable or invalid/u,
     );
     assert.match(skill, /Write the complete three-file foundation before the first CLI call/u);
-    assert.match(skill, /invoke exactly one repository-local `validate`/u);
+    assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
     assert.match(skill, /run `validate` at most once more/u);
+    assert.match(
+      skill,
+      /scripts\/moldea-cli\.mjs --repository <absolute-repository-root> -- scope/u,
+    );
     const maintenance = readFileSync(
       join(SKILL_ROOT, 'references', 'continuous-maintenance.md'),
       'utf8',
@@ -347,7 +398,6 @@ describe('activation and semantic protection', () => {
   test('matches exact and glob relationships without invoking the CLI', () => {
     const root = createProject();
     try {
-      installProjectToolingFixture(root);
       for (const [input, expected] of [
         ['/src/project-state.js\0', '1\n'],
         ['src/project-state.js\0', '1\n'],
@@ -423,6 +473,161 @@ describe('CLI 7 bounded machine protocol', () => {
       rmSync(root, { force: true, recursive: true });
     }
   });
+
+  test('rejects unsupported launcher commands, arguments, and package declarations', () => {
+    const root = createProject();
+    try {
+      const unsupportedCommand = runCli(root, ['unknown', '--json']);
+      assert.equal(unsupportedCommand.status, 3);
+      assert.match(unsupportedCommand.stderr, /not supported/u);
+      assert.equal(unsupportedCommand.stdout, '');
+
+      const unsupportedArgument = runCli(root, ['inspect', '--json', '--repository', root]);
+      assert.equal(unsupportedArgument.status, 3);
+      assert.match(unsupportedArgument.stderr, /unsupported or duplicate/iu);
+      assert.equal(unsupportedArgument.stdout, '');
+
+      const packageManifest = JSON.parse(readFileSync(join(root, 'package.json'), 'utf8'));
+      packageManifest.devDependencies['@moldea.ai/cli'] = '^8.0.0';
+      writeFileSync(join(root, 'package.json'), `${JSON.stringify(packageManifest, null, 2)}\n`);
+      const unsupportedPackage = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
+      assert.equal(unsupportedPackage.status, 3);
+      assert.match(unsupportedPackage.stderr, /unsupported CLI package closure/u);
+      assert.equal(unsupportedPackage.stdout, '');
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  test('rejects missing, malformed, prerelease, and escaped CLI closures', () => {
+    const missingRoot = mkdtempSync(join(tmpdir(), 'moldea-v5-launcher-missing-'));
+    const malformedRoot = createLauncherProject('process.exitCode = 0;\n');
+    const prereleaseRoot = createLauncherProject('process.exitCode = 0;\n', {
+      version: '7.0.1-beta.1',
+    });
+    const escapedRoot = createLauncherProject('process.exitCode = 0;\n');
+    try {
+      writeFileSync(
+        join(missingRoot, 'package.json'),
+        '{"private":true,"devDependencies":{"@moldea.ai/cli":"^7.0.0"}}\n',
+      );
+      writeFileSync(join(malformedRoot, 'node_modules', '@moldea.ai', 'cli', 'package.json'), '{');
+      const escapedCliRoot = join(escapedRoot, 'escaped-cli');
+      const installedCliRoot = join(escapedRoot, 'node_modules', '@moldea.ai', 'cli');
+      mkdirSync(join(escapedCliRoot, 'dist'), { recursive: true });
+      writeFileSync(
+        join(escapedCliRoot, 'package.json'),
+        '{"name":"@moldea.ai/cli","version":"7.0.1","bin":{"moldea":"./dist/moldea.js"},"dependencies":{"@moldea.ai/core":"^3.0.0"}}\n',
+      );
+      writeFileSync(join(escapedCliRoot, 'dist', 'moldea.js'), 'process.exitCode = 0;\n');
+      rmSync(installedCliRoot, { force: true, recursive: true });
+      symlinkSync(
+        escapedCliRoot,
+        installedCliRoot,
+        process.platform === 'win32' ? 'junction' : 'dir',
+      );
+
+      for (const root of [missingRoot, malformedRoot, prereleaseRoot, escapedRoot]) {
+        const result = runCli(root, ['inspect', '--json', '--max-output-bytes', '65536']);
+        assert.equal(result.status, 3);
+        assert.equal(result.stdout, '');
+        assert.notEqual(result.stderr, '');
+      }
+      assert.match(
+        runCli(escapedRoot, ['inspect', '--json', '--max-output-bytes', '65536']).stderr,
+        /escaped repository dependencies/u,
+      );
+    } finally {
+      for (const root of [missingRoot, malformedRoot, prereleaseRoot, escapedRoot]) {
+        rmSync(root, { force: true, recursive: true });
+      }
+    }
+  });
+
+  test('preserves completed child status and enforces stdout and stderr boundaries', () => {
+    const exitRoot = createLauncherProject(
+      "const command = process.argv[2]; process.stdout.write('{}\\n'); process.exitCode = command === 'inspect' ? 1 : 2;\n",
+    );
+    const stdoutRoot = createLauncherProject("process.stdout.write('x'.repeat(4097));\n");
+    const stderrRoot = createLauncherProject("process.stderr.write('x'.repeat(32769));\n");
+    try {
+      assert.equal(runCli(exitRoot, ['inspect', '--json', '--max-output-bytes', '4096']).status, 1);
+      assert.equal(
+        runCli(exitRoot, ['validate', '--json', '--max-output-bytes', '4096']).status,
+        2,
+      );
+      for (const root of [stdoutRoot, stderrRoot]) {
+        const result = runCli(root, ['inspect', '--json', '--max-output-bytes', '4096']);
+        assert.equal(result.status, 3);
+        assert.equal(result.stdout, '');
+        assert.match(result.stderr, /output exceeded the launcher boundary/u);
+      }
+    } finally {
+      for (const root of [exitRoot, stdoutRoot, stderrRoot]) {
+        rmSync(root, { force: true, recursive: true });
+      }
+    }
+  });
+
+  test(
+    'force-terminates a child that ignores the output-boundary signal',
+    { skip: process.platform === 'win32', timeout: 8_000 },
+    () => {
+      const root = createLauncherProject(
+        "process.on('SIGTERM', () => {}); process.stdout.write('x'.repeat(4097)); setInterval(() => {}, 1000);\n",
+      );
+      try {
+        const result = runCli(root, ['inspect', '--json', '--max-output-bytes', '4096']);
+        assert.equal(result.status, 3);
+        assert.equal(result.stdout, '');
+        assert.match(result.stderr, /output exceeded the launcher boundary/u);
+      } finally {
+        rmSync(root, { force: true, recursive: true });
+      }
+    },
+  );
+
+  test(
+    'relays cancellation and returns a launcher failure without partial output',
+    { skip: process.platform === 'win32' },
+    async () => {
+      const root = createLauncherProject(
+        "import { writeFileSync } from 'node:fs'; writeFileSync('.child-ready', ''); setInterval(() => {}, 1000);\n",
+      );
+      try {
+        const child = spawn(
+          process.execPath,
+          [
+            CLI_LAUNCHER_PATH,
+            '--repository',
+            root,
+            '--',
+            'inspect',
+            '--json',
+            '--max-output-bytes',
+            '4096',
+          ],
+          { cwd: root, stdio: ['ignore', 'pipe', 'pipe'] },
+        );
+        const stdout = [];
+        const stderr = [];
+        child.stdout.on('data', (chunk) => stdout.push(chunk));
+        child.stderr.on('data', (chunk) => stderr.push(chunk));
+        await waitForPath(join(root, '.child-ready'));
+        child.kill('SIGTERM');
+        const exitCode = await new Promise((resolvePromise, rejectPromise) => {
+          child.once('error', rejectPromise);
+          child.once('close', resolvePromise);
+        });
+
+        assert.equal(exitCode, 3);
+        assert.equal(Buffer.concat(stdout).toString('utf8'), '');
+        assert.match(Buffer.concat(stderr).toString('utf8'), /terminated by SIGTERM/u);
+      } finally {
+        rmSync(root, { force: true, recursive: true });
+      }
+    },
+  );
 
   test('gates exact relationships through one bounded scope result', () => {
     const root = createProject();

@@ -42,7 +42,7 @@ Use validation for deterministic structural evidence:
 
 > Validate the `moldea` project.
 
-Validation runs the root-local CLI's structural boundary. A structurally invalid result is a completed diagnostic result, not an operational failure. Validation does not prove that instructions or skills are useful, runtime behavior consumes them, or implementation semantics match them.
+Validation runs the root-local CLI's structural boundary through the installed skill's closed launcher. A structurally invalid result is a completed diagnostic result, not an operational failure. Validation does not prove that instructions or skills are useful, runtime behavior consumes them, or implementation semantics match them.
 
 ## Quick comparison
 

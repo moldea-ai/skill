@@ -166,6 +166,7 @@ export const QualificationCaseScenarioSchema = z
     id: StableIdSchema,
     title: z.string().trim().min(1),
     purpose: z.string().trim().min(1),
+    resourceProfile: z.enum(['largeTraversal', 'ordinary']),
     taskFile: RelativePathSchema,
     seedDirectory: RelativePathSchema,
     overlayDirectory: RelativePathSchema.optional(),
@@ -376,10 +377,57 @@ const QualificationCommandPolicyStatusSchema = z.enum([
   'observed',
 ]);
 
+const QualificationCommandPolicyReasonCodeSchema = z.enum([
+  'broad-filesystem-read',
+  'credential-material',
+  'dynamic-execution',
+  'environment-dump',
+  'environment-value-read',
+  'evaluator-auth-file',
+  'evaluator-home',
+  'git-network',
+  'network-client',
+  'oversized-command',
+  'package-manager-network',
+  'process-environment',
+  'unclassified-command',
+]);
+
+const QualificationCommandPolicyReasonSchema = z.strictObject({
+  code: QualificationCommandPolicyReasonCodeSchema,
+  count: z.number().int().positive(),
+});
+
+// reason-code status ownership encoded by the runner's deterministic classifier
+const NETWORK_OBSERVED_REASON_CODES = new Set([
+  'git-network',
+  'network-client',
+  'package-manager-network',
+]);
+const NETWORK_INDETERMINATE_REASON_CODES = new Set([
+  'dynamic-execution',
+  'oversized-command',
+  'unclassified-command',
+]);
+const SENSITIVE_OBSERVED_REASON_CODES = new Set([
+  'environment-dump',
+  'environment-value-read',
+  'evaluator-auth-file',
+  'evaluator-home',
+  'process-environment',
+]);
+const SENSITIVE_INDETERMINATE_REASON_CODES = new Set([
+  'broad-filesystem-read',
+  'dynamic-execution',
+  'oversized-command',
+  'unclassified-command',
+]);
+
 const QualificationCommandPolicyObservationSchema = z.strictObject({
   status: QualificationCommandPolicyStatusSchema,
   observedCount: z.number().int().nonnegative(),
   indeterminateCount: z.number().int().nonnegative(),
+  reasons: z.array(QualificationCommandPolicyReasonSchema),
 });
 
 export const QualificationCommandPolicyEvidenceSchema = z
@@ -388,6 +436,7 @@ export const QualificationCommandPolicyEvidenceSchema = z
     credentialExposure: z.strictObject({
       status: z.enum(['not-observed', 'observed']),
       observedCount: z.number().int().nonnegative(),
+      reasons: z.array(QualificationCommandPolicyReasonSchema),
     }),
     modelVisibleToolOutputByteCount: z.number().int().min(0).max(16_777_216),
     moldeaCommandCount: z.number().int().min(0).max(32),
@@ -398,15 +447,39 @@ export const QualificationCommandPolicyEvidenceSchema = z
   .superRefine((evidence, context) => {
     for (const field of ['networkAccess', 'sensitiveAccess'] as const) {
       const observation = evidence[field];
+      const observedReasonCodes =
+        field === 'networkAccess' ? NETWORK_OBSERVED_REASON_CODES : SENSITIVE_OBSERVED_REASON_CODES;
+      const indeterminateReasonCodes =
+        field === 'networkAccess'
+          ? NETWORK_INDETERMINATE_REASON_CODES
+          : SENSITIVE_INDETERMINATE_REASON_CODES;
       const expectedStatus =
         observation.observedCount > 0
           ? 'observed'
           : observation.indeterminateCount > 0
             ? 'indeterminate'
             : 'not-observed';
+      const observedReasonCount = observation.reasons.reduce(
+        (total, reason) => total + (observedReasonCodes.has(reason.code) ? reason.count : 0),
+        0,
+      );
+      const indeterminateReasonCount = observation.reasons.reduce(
+        (total, reason) => total + (indeterminateReasonCodes.has(reason.code) ? reason.count : 0),
+        0,
+      );
       if (
         observation.status !== expectedStatus ||
-        observation.observedCount + observation.indeterminateCount > evidence.completedCommandCount
+        observation.observedCount + observation.indeterminateCount >
+          evidence.completedCommandCount ||
+        observedReasonCount !== observation.observedCount ||
+        indeterminateReasonCount !== observation.indeterminateCount ||
+        observation.reasons.reduce((total, reason) => total + reason.count, 0) !==
+          observation.observedCount + observation.indeterminateCount ||
+        new Set(observation.reasons.map(({ code }) => code)).size !== observation.reasons.length ||
+        observation.reasons.some(
+          (reason, index) =>
+            index > 0 && (observation.reasons[index - 1]?.code ?? '') >= reason.code,
+        )
       ) {
         context.addIssue({
           code: 'custom',
@@ -422,6 +495,21 @@ export const QualificationCommandPolicyEvidenceSchema = z
         code: 'custom',
         message: 'Credential-exposure status must match its observed count.',
         path: ['credentialExposure'],
+      });
+    }
+    if (
+      evidence.credentialExposure.reasons.reduce((total, reason) => total + reason.count, 0) !==
+        evidence.credentialExposure.observedCount ||
+      (evidence.credentialExposure.observedCount > 0 &&
+        (evidence.credentialExposure.reasons.length !== 1 ||
+          evidence.credentialExposure.reasons[0]?.code !== 'credential-material')) ||
+      (evidence.credentialExposure.observedCount === 0 &&
+        evidence.credentialExposure.reasons.length !== 0)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Credential-exposure reasons must match the observed count.',
+        path: ['credentialExposure', 'reasons'],
       });
     }
     if (
@@ -803,7 +891,7 @@ export const QualificationAttemptCheckpointSchema = z
 
 export type IQualificationAttemptCheckpoint = z.infer<typeof QualificationAttemptCheckpointSchema>;
 
-// one protocol 7 initial or confirmation trial and its complete artifact references
+// one protocol 8 initial or confirmation trial and its complete artifact references
 export const QualificationTrialResultSchema = z
   .strictObject({
     trialId: z.enum(QUALIFICATION_TRIAL_IDS),
@@ -880,7 +968,7 @@ export const QualificationTrialResultSchema = z
 
 export type IQualificationTrialResult = z.infer<typeof QualificationTrialResultSchema>;
 
-// terminal protocol 7 case history preserving the original trial and every confirmation
+// terminal protocol 8 case history preserving the original trial and every confirmation
 export const QualificationCaseResultSchema = z
   .strictObject({
     caseId: StableIdSchema,
@@ -983,7 +1071,7 @@ const QualificationAttemptResultSharedShape = {
   artifactDigests: z.record(RelativePathSchema, z.string().regex(/^[a-f0-9]{64}$/u)),
 };
 
-// fixed protocol 7 confirmation policy committed with every current attempt
+// fixed protocol 8 confirmation policy committed with every current attempt
 export const QualificationConfirmationPolicySchema = z.strictObject({
   version: z.literal(QUALIFICATION_CONFIRMATION_POLICY.version),
   requiredPassingConfirmations: z.literal(
@@ -991,7 +1079,7 @@ export const QualificationConfirmationPolicySchema = z.strictObject({
   ),
 });
 
-// local protocol 7 result draft shared by dry runs and official result publication
+// local protocol 8 result draft shared by dry runs and official result publication
 export const QualificationAttemptResultDraftSchema = z.strictObject({
   protocolVersion: z.literal(QUALIFICATION_EVIDENCE_PROTOCOL_VERSION),
   ...QualificationAttemptResultSharedShape,

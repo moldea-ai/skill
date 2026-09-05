@@ -12,7 +12,7 @@ Generic implementation, architecture, migration, refactor, deployment, and host-
 
 Planning may precede adoption and changes no repository, dependency, Git, protected instruction, generated artifact, or external system. It creates no canonical plan, cache, or planning database.
 
-Use an available compatible root-local CLI read-only only when runtime identity is material. If provider proof is available, run `composition --json --max-output-bytes 65536`; its inventory proves availability only. Load `runtime-compatibility.md` and retrieve the current public publication when target support or maturity matters. Never create metadata, install tooling, or use global or transient launchers to plan. Without compatible tooling, continue from evidence and disclose the limitation.
+Use the installed skill's closed launcher read-only only when runtime identity is material. If provider proof is available, run its `composition --json` operation; the launcher applies a fixed 65,536-byte boundary, and the returned inventory proves availability only. Load `runtime-compatibility.md` and retrieve the current public publication when target support or maturity matters. Never create metadata, install tooling, reproduce package-resolution probes, or use global or transient launchers to plan. Without compatible tooling, continue from evidence and disclose the limitation.
 
 ## Plan from the objective
 

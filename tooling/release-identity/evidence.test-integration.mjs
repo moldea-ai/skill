@@ -130,12 +130,22 @@ const seedFreshEvidence = (
     cacheSourceAttemptId: null,
     commandPolicy: {
       completedCommandCount: 1,
-      credentialExposure: { observedCount: 0, status: 'not-observed' },
+      credentialExposure: { observedCount: 0, reasons: [], status: 'not-observed' },
       modelVisibleToolOutputByteCount: 1024,
       moldeaCommandCount: isInvalidResource ? 33 : 1,
       moldeaOutputByteCount: 512,
-      networkAccess: { indeterminateCount: 0, observedCount: 0, status: 'not-observed' },
-      sensitiveAccess: { indeterminateCount: 0, observedCount: 0, status: 'not-observed' },
+      networkAccess: {
+        indeterminateCount: 0,
+        observedCount: 0,
+        reasons: [],
+        status: 'not-observed',
+      },
+      sensitiveAccess: {
+        indeterminateCount: 0,
+        observedCount: 0,
+        reasons: [],
+        status: 'not-observed',
+      },
     },
     createdAt: '2026-09-05T00:00:00.000Z',
     durationMs: 1,
@@ -155,7 +165,7 @@ const seedFreshEvidence = (
     attemptId: qualificationAttemptId,
     cases: [{ caseId: 'case-1', status: 'passed' }],
     mode: 'official',
-    protocolVersion: 7,
+    protocolVersion: 8,
     provenance: {
       packagesRepositoryDirty: false,
       qualificationRepositoryDirty: false,
@@ -186,7 +196,7 @@ const seedFreshEvidence = (
     latestAttemptId: qualificationAttemptId,
     latestStatus: 'passed',
     lastPassingAttemptId: qualificationAttemptId,
-    protocolVersion: 7,
+    protocolVersion: 8,
   });
   writeText(
     root,

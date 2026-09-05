@@ -1,6 +1,7 @@
 import path from 'node:path';
 
 import { hasPassingCodexEvaluationCommandPolicy } from '../../../../tooling/codex-evaluation-host/index.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../tooling/resource-calibration/profiles.mjs';
 
 import type {
   IActorOutput,
@@ -22,6 +23,60 @@ const OFFICIAL_EGRESS_HOSTS = ['api.openai.com', 'auth.openai.com', 'chatgpt.com
 const TRIAL_IDS = ['initial', 'confirmation-1', 'confirmation-2'] as const;
 // minimal recorded case contract required to revalidate an immutable attempt
 type IQualificationRecordedCaseContract = Pick<IQualificationProfileCaseModel, 'id' | 'scenario'>;
+
+const deriveResourceFailures = (options: {
+  commandPolicy: IQualificationModelStageEvidence['commandPolicy'];
+  role: 'Actor' | 'Judge';
+  scenario: IQualificationRecordedCaseContract['scenario'];
+  usage: IQualificationModelStageEvidence['usage'];
+}): string[] => {
+  const profile = MOLDEA_SKILL_RESOURCE_PROFILES[options.scenario.resourceProfile];
+  const observations = [
+    {
+      dimension: 'completed-host-commands',
+      observed: options.commandPolicy.completedCommandCount,
+      limit: profile.maxCompletedCommandCount,
+    },
+    {
+      dimension: 'moldea-commands',
+      observed: options.commandPolicy.moldeaCommandCount,
+      limit: profile.maxMoldeaCommandCount,
+    },
+    {
+      dimension: 'moldea-output-bytes',
+      observed: options.commandPolicy.moldeaOutputByteCount,
+      limit: profile.maxAggregateMoldeaOutputBytes,
+    },
+    {
+      dimension: 'model-visible-tool-output-bytes',
+      observed: options.commandPolicy.modelVisibleToolOutputByteCount,
+      limit: profile.maxModelVisibleToolOutputBytes,
+    },
+  ];
+  const failures = observations.flatMap(({ dimension, observed, limit }) =>
+    observed > limit
+      ? [
+          `${options.role} resource profile ${options.scenario.resourceProfile} exceeded ${dimension}: observed ${observed}, limit ${limit}.`,
+        ]
+      : [],
+  );
+
+  if (options.usage === null) {
+    failures.push(
+      `${options.role} resource profile ${options.scenario.resourceProfile} could not establish total-model-tokens: observed unavailable, limit ${profile.maxHostTokenCount}.`,
+    );
+    return failures;
+  }
+
+  const totalModelTokens = options.usage.inputTokens + options.usage.outputTokens;
+  if (totalModelTokens > profile.maxHostTokenCount) {
+    failures.push(
+      `${options.role} resource profile ${options.scenario.resourceProfile} exceeded total-model-tokens: observed ${totalModelTokens}, limit ${profile.maxHostTokenCount}.`,
+    );
+  }
+
+  return failures;
+};
 
 const createExpectedCurrentStageIds = (caseIds: readonly string[]): string[] => [
   'source-state',
@@ -202,12 +257,14 @@ const deriveCurrentTrialFailures = (options: {
   deterministicAfter: IDeterministicVerification;
   judge: IJudgeOutput | null;
   judgeCommandPolicy: IQualificationModelStageEvidence['commandPolicy'] | null;
+  judgeUsage: IQualificationModelStageEvidence['usage'];
   profileCase: IQualificationRecordedCaseContract;
   requirementAssessments: Extract<
     IQualificationAttemptResult,
-    { protocolVersion: 7 }
+    { protocolVersion: 8 }
   >['cases'][number]['trials'][number]['requirementAssessments'];
   workspaceAssertions: IWorkspaceAssertionResult;
+  actorUsage: IQualificationModelStageEvidence['usage'];
 }): string[] => [
   ...(options.actor.outcome === options.profileCase.scenario.expectedActorOutcome
     ? []
@@ -226,6 +283,22 @@ const deriveCurrentTrialFailures = (options: {
     : [
         'Judge command policy observed prohibited credential, network, or sensitive evaluator access.',
       ]),
+  ...(options.actorCommandPolicy === null
+    ? []
+    : deriveResourceFailures({
+        commandPolicy: options.actorCommandPolicy,
+        role: 'Actor',
+        scenario: options.profileCase.scenario,
+        usage: options.actorUsage,
+      })),
+  ...(options.judgeCommandPolicy === null
+    ? []
+    : deriveResourceFailures({
+        commandPolicy: options.judgeCommandPolicy,
+        role: 'Judge',
+        scenario: options.profileCase.scenario,
+        usage: options.judgeUsage,
+      })),
   ...options.deterministicAfter.failures,
   ...options.workspaceAssertions.failures,
   ...options.requirementAssessments
@@ -304,11 +377,20 @@ export const assertQualificationCaseEvidence = (options: {
   const hasFailedActorCommandPolicy =
     options.actorCommandPolicy === null ||
     !hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy);
+  const hasFailedActorResourceProfile =
+    options.actorCommandPolicy !== null &&
+    deriveResourceFailures({
+      commandPolicy: options.actorCommandPolicy,
+      role: 'Actor',
+      scenario: profileCase.scenario,
+      usage: result.actorUsage,
+    }).length > 0;
   const shouldSkipCurrentJudge =
     !deterministicAfter.passed ||
     !options.workspaceAssertions.passed ||
     hasFailedRunnerRequirement ||
     hasFailedActorCommandPolicy ||
+    hasFailedActorResourceProfile ||
     !hasJudgeRequirements;
 
   if (
@@ -371,9 +453,11 @@ export const assertQualificationCaseEvidence = (options: {
   const derivedFailures = deriveCurrentTrialFailures({
     actor,
     actorCommandPolicy: options.actorCommandPolicy,
+    actorUsage: result.actorUsage,
     deterministicAfter,
     judge,
     judgeCommandPolicy: options.judgeCommandPolicy,
+    judgeUsage: result.judgeUsage,
     profileCase,
     requirementAssessments: derivedAssessments,
     workspaceAssertions: options.workspaceAssertions,
@@ -410,10 +494,10 @@ export const assertQualificationTrialModelEvidence = (options: {
   attemptId: string;
   evidence: IQualificationModelStageEvidence;
   role: 'actor' | 'judge';
-  stage: Extract<IQualificationAttemptResult, { protocolVersion: 7 }>['stages'][number];
+  stage: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>['stages'][number];
   trial: Extract<
     IQualificationAttemptResult,
-    { protocolVersion: 7 }
+    { protocolVersion: 8 }
   >['cases'][number]['trials'][number];
 }): void => {
   const expectedCreatedAt =
@@ -447,7 +531,7 @@ export const assertQualificationTrialModelEvidence = (options: {
 };
 
 const hasValidCurrentCaseHistory = (
-  caseResult: Extract<IQualificationAttemptResult, { protocolVersion: 7 }>['cases'][number],
+  caseResult: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>['cases'][number],
 ): boolean => {
   const [initial, confirmation1, confirmation2] = caseResult.trials;
 
@@ -479,10 +563,10 @@ const hasValidCurrentCaseHistory = (
 };
 
 const hasCompletedStageState = (
-  stage: Extract<IQualificationAttemptResult, { protocolVersion: 7 }>['stages'][number] | undefined,
+  stage: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>['stages'][number] | undefined,
   allowedStatuses: readonly Extract<
     IQualificationAttemptResult,
-    { protocolVersion: 7 }
+    { protocolVersion: 8 }
   >['stages'][number]['status'][],
 ): boolean =>
   stage !== undefined &&
@@ -493,10 +577,10 @@ const hasCompletedStageState = (
   stage.error === null;
 
 const hasValidNonModelStage = (
-  stage: Extract<IQualificationAttemptResult, { protocolVersion: 7 }>['stages'][number] | undefined,
+  stage: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>['stages'][number] | undefined,
   allowedStatuses: readonly Extract<
     IQualificationAttemptResult,
-    { protocolVersion: 7 }
+    { protocolVersion: 8 }
   >['stages'][number]['status'][],
 ): boolean =>
   hasCompletedStageState(stage, allowedStatuses) &&
@@ -505,7 +589,7 @@ const hasValidNonModelStage = (
   stage.operationalRetries.length === 0;
 
 const hasValidModelStage = (
-  stage: Extract<IQualificationAttemptResult, { protocolVersion: 7 }>['stages'][number] | undefined,
+  stage: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>['stages'][number] | undefined,
   isConfirmation: boolean,
 ): boolean => {
   if (
@@ -524,7 +608,7 @@ const hasValidModelStage = (
 };
 
 const hasValidUnusedCurrentStage = (
-  stage: Extract<IQualificationAttemptResult, { protocolVersion: 7 }>['stages'][number] | undefined,
+  stage: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>['stages'][number] | undefined,
   expectedStatus: 'pending' | 'skipped',
 ): boolean => {
   const hasExpectedTiming =
@@ -545,7 +629,7 @@ const hasValidUnusedCurrentStage = (
 };
 
 const hasValidCurrentStages = (
-  result: Extract<IQualificationAttemptResult, { protocolVersion: 7 }>,
+  result: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>,
   profileCaseIds: readonly string[],
 ): boolean => {
   const expectedStageIds = createExpectedCurrentStageIds(profileCaseIds);
@@ -618,7 +702,7 @@ const hasValidCurrentStages = (
 };
 
 const hasValidCurrentCaseSequence = (
-  result: Extract<IQualificationAttemptResult, { protocolVersion: 7 }>,
+  result: Extract<IQualificationAttemptResult, { protocolVersion: 8 }>,
   profileCaseIds: readonly string[],
 ): boolean => {
   const resultCaseIds = result.cases.map(({ caseId }) => caseId);

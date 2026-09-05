@@ -25,11 +25,11 @@ The local-tooling reference governs only establishment and invocation of the `mo
 
 A write-capable `moldea` operation may establish the compatible dependency through the repository's existing package manager with lifecycle scripts disabled. Read-only work reports missing or mismatched tooling and does not alter dependencies, lockfiles, or configuration.
 
-Before executing the CLI, the coding agent validates the installed package identity, exact stable version, supported declaration, binary declaration, and repository-local containment from inert package metadata. It then invokes the resolved binary directly. The skill's pre-activation script separately verifies the compatible repository-local CLI/Core major closure, invokes Core without the CLI, and emits only `0` or `1`.
+Every CLI operation uses the portable skill's `scripts/moldea-cli.mjs` launcher. The launcher validates the installed package identity, exact stable version, supported declaration, CLI/Core dependency closure, binary declaration, and repository-local containment from inert package metadata. It then invokes Node with an argument array and no shell. The skill's pre-activation script reuses the same resolver, invokes Core without the CLI, and emits only `0` or `1`. Agents do not reproduce package, executable-link, `PATH`, or parent-workspace probes around either script.
 
 ## Machine output
 
-Compatible stable CLI 7 releases emit schema 4 JSON only. Every machine command uses `--json --max-output-bytes 65536`.
+Compatible stable CLI 7 releases emit schema 4 JSON only. Every paged machine command uses `--json --max-output-bytes 65536`; `composition` uses the launcher's fixed 65,536-byte boundary.
 
 The envelope contains:
 
@@ -40,7 +40,7 @@ The envelope contains:
 - `result`
 - `error`
 
-Exit code 0 represents `valid`, exit code 1 represents `invalid`, and exit code 2 or 3 represents `error`. A launcher failure, signal, malformed envelope, version mismatch, unsupported schema, stale cursor, or contradictory status provides no deterministic conclusion.
+Exit code 0 represents `valid`, exit code 1 represents `invalid`, and exit code 2 or 3 represents `error`. The launcher preserves a completed child's status and uses 3 for its own validation, containment, signal, or output-boundary failures. It sends the requested termination signal first and force-terminates a child that remains active after five seconds. A launcher failure, signal, malformed envelope, version mismatch, unsupported schema, stale cursor, or contradictory status provides no deterministic conclusion.
 
 `inspect` and `validate` do not include canonical document bodies. `scope` accepts one logical path or one NUL-delimited path set and returns relationship matches after the two-byte gate establishes relevance. `content` returns chunks only for one explicit canonical `/moldea/**` path.
 
@@ -48,15 +48,14 @@ Exit code 0 represents `valid`, exit code 1 represents `invalid`, and exit code 
 
 Ordinary work uses a 65,536-byte page and stops once the relevant record or diagnostic is available. Aggregate `moldea` output should remain at or below 262,144 bytes. This is an operating target, not a project-size ceiling.
 
-Large repositories remain supported through deterministic metadata pagination. An explicitly required large-context operation may traverse more pages, but each CLI invocation remains at or below 1 MiB and the traversal remains scoped to the task.
+Large repositories remain supported through deterministic metadata pagination. An explicitly required large-context operation may traverse more pages, but each CLI invocation remains at or below 1 MiB and the traversal remains scoped to the task. The page limit bounds one encoded response, not repository capacity.
 
-Semantic and qualification hosts retain only counts and byte totals after raw tool output is discarded. Each model stage allows up to:
+Qualification scenarios declare one of two operating profiles. Each stage is checked independently before judging:
 
-- 32 `moldea` invocations
-- 8 MiB of `moldea` command output
-- 16 MiB of total model-visible tool output
+- `ordinary`: 32 completed commands, 8 `moldea` calls, 256 KiB of `moldea` output, 1 MiB of model-visible tool output, and 524,288 input-plus-output tokens
+- `largeTraversal`: 64 completed commands, 16 `moldea` calls, 1 MiB of `moldea` output, 4 MiB of model-visible tool output, and 1,048,576 input-plus-output tokens
 
-These host limits are generous failure containment for unusual cases. They are not the ordinary operating target. When a stage crosses a limit, the runner reports the measured value and the applicable limit so the user can distinguish excessive behavior from missing evidence.
+The host retains higher absolute ceilings of 128 completed commands, 32 `moldea` calls, 8 MiB of `moldea` output, 16 MiB of model-visible tool output, and 2,097,152 tokens. These are failure containment for unusual cases, not operating targets. Crossing any operating dimension fails with the profile, dimension, observed value, and limit so users can distinguish excessive behavior from missing evidence. Duration and peak memory remain recorded diagnostics rather than brittle pass/fail thresholds.
 
 `tooling/resource-calibration/profiles.mjs` is the numeric authority for these values. `fixtures/resource-calibration.json` records the reproducible corpus, fixture shapes, environment, sample distributions, output and token estimates, memory and temporary-disk peaks, and explicit completion states. Use `npm run resource:check` to verify that current code and committed evidence agree.
 

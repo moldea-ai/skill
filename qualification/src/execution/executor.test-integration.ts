@@ -18,6 +18,7 @@ import {
   QualificationSourceStateResultSchema,
   QualificationTrialResultSchema,
 } from '../contracts/index.ts';
+import type { IQualificationCommandPolicyEvidence } from '../contracts/index.ts';
 import {
   copyDirectory,
   ensureDirectory,
@@ -30,15 +31,20 @@ import { verifyQualificationResults } from '../result/index.ts';
 import { createQualificationAttemptKey } from '../storage/index.ts';
 import { runQualification } from './executor.ts';
 
-const emptyCommandPolicy = {
+const emptyCommandPolicy: IQualificationCommandPolicyEvidence = {
   completedCommandCount: 0,
-  credentialExposure: { status: 'not-observed', observedCount: 0 },
+  credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
   moldeaOutputByteCount: 0,
-  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
-  sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
-} as const;
+  networkAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0, reasons: [] },
+  sensitiveAccess: {
+    status: 'not-observed',
+    observedCount: 0,
+    indeterminateCount: 0,
+    reasons: [],
+  },
+};
 
 describe('qualification execution', () => {
   let temporaryAttemptDirectory: string | null = null;
@@ -766,6 +772,7 @@ describe('qualification execution', () => {
               status: 'observed',
               observedCount: 1,
               indeterminateCount: 0,
+              reasons: [{ code: 'evaluator-home', count: 1 }],
             },
           },
           events: '',

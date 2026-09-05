@@ -40,6 +40,7 @@ import {
   createQualificationStageIds,
   createQualificationTrialStageIds,
 } from '../execution/stages.ts';
+import { deriveQualificationResourceFailures } from '../execution/validations.ts';
 import {
   readQualificationAttemptStorage,
   resolveQualificationArtifactPath,
@@ -498,6 +499,7 @@ const deriveTrialFailures = (options: {
   actor: IActorOutput;
   actorEvidence: IQualificationModelStageEvidence;
   deterministicAfter: IDeterministicVerificationArtifact;
+  isDryRun: boolean;
   judge: IJudgeOutput | null;
   judgeEvidence: IQualificationModelStageEvidence | null;
   scenario: IQualificationCaseScenario;
@@ -520,6 +522,20 @@ const deriveTrialFailures = (options: {
     : [
         'Judge command policy observed prohibited credential, network, or sensitive evaluator access.',
       ]),
+  ...deriveQualificationResourceFailures({
+    allowMissingUsage: options.isDryRun,
+    evidence: options.actorEvidence,
+    role: 'Actor',
+    scenario: options.scenario,
+  }),
+  ...(options.judgeEvidence === null
+    ? []
+    : deriveQualificationResourceFailures({
+        allowMissingUsage: options.isDryRun,
+        evidence: options.judgeEvidence,
+        role: 'Judge',
+        scenario: options.scenario,
+      })),
   ...options.deterministicAfter.summary.failures,
   ...options.workspaceAssertions.failures,
   ...options.requirementAssessments
@@ -696,11 +712,19 @@ const assertCurrentTrialEvidence = async (options: {
   const hasFailedActorCommandPolicy = !hasPassingCodexEvaluationCommandPolicy(
     actorEvidence.commandPolicy,
   );
+  const hasFailedActorResourceProfile =
+    deriveQualificationResourceFailures({
+      allowMissingUsage: options.result.mode === 'dry-run',
+      evidence: actorEvidence,
+      role: 'Actor',
+      scenario: options.scenario,
+    }).length > 0;
   const shouldSkipJudge =
     !deterministicAfter.summary.passed ||
     !assertions.passed ||
     hasFailedRunnerRequirement ||
     hasFailedActorCommandPolicy ||
+    hasFailedActorResourceProfile ||
     !hasJudgeRequirements;
   let judge: IJudgeOutput | null = null;
   let judgeEvidence: IQualificationModelStageEvidence | null = null;
@@ -771,6 +795,7 @@ const assertCurrentTrialEvidence = async (options: {
     actor,
     actorEvidence,
     deterministicAfter,
+    isDryRun: options.result.mode === 'dry-run',
     judge,
     judgeEvidence,
     requirementAssessments: derivedRequirementAssessments,
@@ -1009,7 +1034,7 @@ const validateCurrentTerminalAttempt = async (
   );
 
   if (JSON.stringify(actualArtifactPaths) !== JSON.stringify(expectedArtifactPaths)) {
-    throw new Error('Qualification evidence has an incomplete protocol 7 artifact inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 8 artifact inventory.');
   }
 
   const [baseline, coverage, probes, sourceState] = await Promise.all([
@@ -1072,7 +1097,7 @@ const validateCurrentTerminalAttempt = async (
   const actualStageIds = result.stages.map(({ id }) => id);
 
   if (JSON.stringify(actualStageIds) !== JSON.stringify(expectedStageIds)) {
-    throw new Error('Qualification evidence has an incomplete protocol 7 stage inventory.');
+    throw new Error('Qualification evidence has an incomplete protocol 8 stage inventory.');
   }
 
   const stages = new Map(result.stages.map((stage) => [stage.id, stage]));

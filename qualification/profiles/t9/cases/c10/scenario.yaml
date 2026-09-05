@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-langgraph-functional-api-static-boundary
 title: Preserve the LangGraph Functional API static boundary
 purpose: Verify conservative handling of lexical task limits, ordinary control flow, TypeScript-only schemas, and runtime-owned semantics.

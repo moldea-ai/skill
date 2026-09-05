@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: activate-declared-relationship
 title: Activate a declared relationship
 purpose: Verify bounded owner validation when a reviewed source path matches affectedBy.

@@ -13,9 +13,8 @@ Establish the breaking Repository 2, repository-fs 2, Core 3, CLI 7/schema 4, an
 ### Scope and implementation
 
 1. Replace whole-file and eager recursive reader contracts with immutable snapshots, pages, ranges, comparisons, cancellation, continuation, completeness, and typed resource failures.
-2. Make Core metadata operations content-free and isolate bounded canonical content and adapter composition operations.
-3. Publish the schema-4-only CLI with bounded UTF-8 output and explicit content paging.
-4. Move every official adapter to the new Core/Repository contracts, remove superseded package paths, and synchronize package tests, artifacts, compatibility data, docs, and platform specifications.
+2. Make Core metadata operations content-free, isolate bounded canonical content and adapter composition, publish schema-4-only CLI output, and move every official adapter to the clean contracts.
+3. Remove superseded paths and synchronize package tests, artifacts, compatibility data, documentation, and platform specifications.
 
 ### Tests and verification
 
@@ -23,12 +22,12 @@ Establish the breaking Repository 2, repository-fs 2, Core 3, CLI 7/schema 4, an
 
 ### Acceptance criteria
 
-- The breaking package generation is published and registry-verified without an active old-contract bridge.
+- The breaking generation is published and registry-verified without an active old-contract bridge.
 - Reader, Core, CLI, and adapter behavior is bounded and cannot map incomplete work to success.
 
 ### Review checkpoint
 
-Inspect package boundaries, complete traversal, content allocation, output limits, schema closure, adapter composition, public artifacts, and removal of superseded contracts.
+Inspect package boundaries, complete traversal, content allocation, output limits, schema closure, adapter composition, public artifacts, and superseded-contract removal.
 
 ## Milestone 2: Paired public and private GitHub fixtures (completed)
 
@@ -43,8 +42,7 @@ Provide identical immutable public/private scenario repositories for realistic l
 ### Scope and implementation
 
 1. Add deterministic uninitialized, initialized-unbound, relevant, irrelevant, deleted-binding, and bounded large-tree branches with realistic TypeScript behavior and repository-owned fixture metadata.
-2. Publish identical commit objects and branch tips to public and private fixtures.
-3. Create matching closed, unmerged pull requests where host capability permits, and record repository-specific PR identities outside the shared fixture tree.
+2. Publish identical commit objects and branch tips to public and private fixtures and create matching closed, unmerged pull requests where host capability permits.
 
 ### Tests and verification
 
@@ -52,12 +50,11 @@ Provide identical immutable public/private scenario repositories for realistic l
 
 ### Acceptance criteria
 
-- Public and private fixtures expose the same scenario objects and bounded large-repository corpus.
-- Fixture scale is useful for live integration without becoming a permanent disk, API, or CI hazard.
+- Both fixtures expose the same scenario objects and bounded large-repository corpus without becoming a disk, API, or CI hazard.
 
 ### Review checkpoint
 
-Inspect parity, immutability, realism, scenario coverage, credential safety, remote request cost, and the separation between live fixtures and synthetic provider-limit tests.
+Inspect parity, immutability, realism, scenario coverage, credential safety, remote request cost, and the live/synthetic test split.
 
 ## Milestone 3: Lazy GitHub repository reader (completed)
 
@@ -71,28 +68,27 @@ Replace eager GitHub inventory with lazy immutable snapshots, deterministic page
 
 ### Scope and implementation
 
-1. Resolve paths through tree segments, synthesize directories deterministically, range-read blobs only on demand, and compare trees by pruning equal SHAs and descending only changed subtrees.
-2. Bind cursors to immutable source state and request parameters; enforce cancellation, bounded concurrency, bounded caches, retry policy, authorization handling, and explicit incomplete-provider failures.
-3. Add live public/private fixture parity coverage and deterministic synthetic provider-limit coverage; synchronize the platform package specification and documentation.
+1. Resolve paths through tree segments, range-read blobs only on demand, and compare trees by pruning equal SHAs and descending only changed subtrees.
+2. Bind cursors to immutable source state and request parameters; enforce cancellation, concurrency, cache, retry, authorization, and provider-completeness boundaries.
+3. Add public/private live parity and synthetic provider-limit coverage and synchronize the package specification and documentation.
 
 ### Tests and verification
 
-- Provider-session unit/integration/e2e tests for ordering, paging, ranges, comparisons, truncation, rate limits, retries, authorization loss, caches, cancellation, path validation, large blobs, and no-irrelevant-content reads; platform package checks and documentation validation.
+- Provider-session unit/integration/e2e tests for ordering, paging, ranges, comparisons, truncation, rate limits, retries, authorization loss, caches, cancellation, paths, large blobs, and irrelevant-read avoidance; package and documentation checks.
 
 ### Acceptance criteria
 
-- Large repositories are traversed with bounded peaks and deterministic continuation.
-- An unpageable provider truncation is non-success, and blob content is fetched only after explicit read or established relevance.
+- Large repositories traverse with bounded peaks and deterministic continuation; unpageable truncation is non-success and irrelevant blobs remain unread.
 
 ### Review checkpoint
 
-Inspect completeness, request amplification, cursor binding, cache accounting, cancellation, typed failures, public/private parity, and proof that irrelevant blobs remain unread.
+Inspect completeness, request amplification, cursor binding, cache accounting, cancellation, typed failures, parity, and on-demand content proof.
 
 ## Milestone 4: Resumable PR Assurance kernel (completed)
 
 ### Objective
 
-Build and compose a reusable, resource-ledgered PR Assurance analysis foundation without claiming or inventing the future customer workflow.
+Build and compose a reusable resource-ledgered PR Assurance foundation without claiming the future customer workflow.
 
 ### Dependencies
 
@@ -100,23 +96,21 @@ Build and compose a reusable, resource-ledgered PR Assurance analysis foundation
 
 ### Scope and implementation
 
-1. Add immutable base/candidate snapshot orchestration, dual-manifest scope union, deterministic validation, bounded relevant-content partitions, redaction before semantic work, typed outcomes, and resumable checkpoints.
-2. Bind checkpoints to repository, comparison SHAs, contract version, selection, partition identities, and resource ledger; make retries idempotent without duplicate provider or semantic accounting.
-3. Compose the kernel into the PR Assurance worker through an internal callable boundary and fake-evaluator integration, without adding database, billing, webhook, check, public API, or launch behavior.
-4. Synchronize canonical and public foundation status.
+1. Add immutable base/candidate orchestration, dual-manifest scope union, deterministic validation, bounded relevant-content partitions, redaction, typed outcomes, and resumable checkpoints.
+2. Bind checkpoints to exact revisions and work identities, make retries idempotent, and compose the kernel into the worker without database, billing, webhook, check, public API, or launch behavior.
+3. Synchronize canonical and public foundation status.
 
 ### Tests and verification
 
-- Unit/integration tests for scope union, manifest deletion/relocation, paging, ranges, redaction, limits, cancellation, resume/drift, idempotency, partial failure, outcome mapping, worker composition, and false-success prevention; affected platform tests, types, lint, format, build, and docs.
+- Unit/integration tests for scope union, deletion/relocation, paging, ranges, redaction, limits, cancellation, resume/drift, idempotency, partial failure, outcome mapping, worker composition, false-success prevention, and affected platform checks.
 
 ### Acceptance criteria
 
-- Only `completed` maps to success; resource, provider, cancellation, validation, and stale-state outcomes remain explicit.
-- The composed foundation is dormant until later authorized customer-facing infrastructure exists.
+- Only `completed` maps to success and the composed foundation remains dormant until later authorized infrastructure exists.
 
 ### Review checkpoint
 
-Inspect base/candidate scope, lazy evidence reads, privacy boundary, checkpoint identity, duplicate accounting, completeness mapping, and public availability claims.
+Inspect base/candidate scope, lazy reads, privacy, checkpoint identity, duplicate accounting, completeness mapping, and availability claims.
 
 ## Milestone 5: Repository-bound skill activation and bounded use (completed)
 
@@ -130,23 +124,21 @@ Make initialization, adoption, path relevance, host-workflow ownership, progress
 
 ### Scope and implementation
 
-1. Replace broad implicit activation with an initialization state machine and a deterministic pre-activation gate whose visible result is only `0` or `1` plus a newline.
-2. Require repository-local adoption, recognize only direct moldea work, canonical paths, managed README hunks, and exact binding or `affectedBy` matches, and perform zero further moldea work on a miss.
-3. Preserve host plan, review, implementation, Git, commit, and publication ownership; load only the owning reference after relevance; use bounded content-free CLI operations and selected content ranges.
-4. Prove evaluation/validation leaves worktree files, index, refs, configuration, submodules, temporary repository state, and Git object storage unchanged.
+1. Replace broad activation with the repository initialization state machine and two-byte deterministic gate.
+2. Recognize only direct moldea work, canonical paths, managed README hunks, and declared relationships; preserve host workflow ownership and load only the relevant reference and bounded canonical evidence.
+3. Prove read-only operations preserve worktree, index, refs, configuration, submodules, temporary state, and Git objects.
 
 ### Tests and verification
 
-- Deterministic conformance and semantic cases for all original over-activation, command-capture, large-output, empty-project, managed-hunk, relationship, progressive-disclosure, reporting, and read-only mutation failures; skill tests, path checks, docs, and site checks.
+- Deterministic and semantic coverage for over-activation, command capture, large output, empty projects, managed hunks, relationships, progressive disclosure, reporting, and read-only mutation; skill, path, docs, and site checks.
 
 ### Acceptance criteria
 
-- Uninitialized and irrelevant work performs zero moldea commands, reads, output, mutations, and reporting mentions.
-- Relevant work loads only bounded owners and never emits complete canonical bodies through metadata commands.
+- Uninitialized and irrelevant work performs zero moldea work; relevant work loads only bounded owners and metadata never emits complete bodies.
 
 ### Review checkpoint
 
-Inspect trigger language, adoption proof, gate cost, hunk logic, relationship completeness, host precedence, command limits, output budgets, mutation evidence, and regression fidelity to the observed failures.
+Inspect triggers, adoption, gate cost, hunk logic, relationship completeness, host precedence, limits, mutation evidence, and original-failure fidelity.
 
 ## Milestone 6: Public documentation and knowledge-base synchronization (completed)
 
@@ -160,28 +152,26 @@ Make every public and canonical surface agree on repository-bound installation, 
 
 ### Scope and implementation
 
-1. Update packages, platform, skill, and knowledge-base documentation, websites, generated content, indexes, and links for the implemented architecture and actual availability.
-2. Document that installation must be repository-bound even though an external installer cannot be technically prevented from choosing a global location.
-3. Use `moldea` in human-facing prose while preserving exact technical identifiers.
+1. Update packages, platform, skill, knowledge-base, websites, generated content, indexes, and links for actual architecture and availability.
+2. Document repository-bound installation and its enforcement limitation, use `moldea` in human prose, and preserve required technical identifiers.
 
 ### Tests and verification
 
-- Documentation schemas, links, generated-output checks, site tests/builds, formatting, lowercase-brand searches, version/contract searches, and availability/contradiction audits.
+- Documentation schemas, links, generated output, site tests/builds, formatting, lowercase-brand, version/contract, availability, and contradiction checks.
 
 ### Acceptance criteria
 
-- Public instructions contain no supported global-install path or stale old-version behavior.
-- No site or knowledge-base page claims that the dormant PR Assurance foundation is customer-available.
+- Public instructions contain no supported global-install path or stale version and do not claim the dormant PR Assurance foundation is customer-available.
 
 ### Review checkpoint
 
-Inspect installation, versions, scale/resource language, privacy, limitations, launch claims, generated output, naming, links, accessibility, responsiveness, and theme behavior.
+Inspect installation, versions, resource language, privacy, limitations, launch claims, generated output, naming, links, accessibility, responsiveness, and themes.
 
 ## Milestone 7: Realistic resource calibration (completed)
 
 ### Objective
 
-Calibrate standard, extended, and absolute resource profiles from deterministic representative corpora while protecting users from token, memory, disk, output, request, handle, concurrency, and latency failures.
+Calibrate standard, extended, and absolute profiles from deterministic representative corpora while protecting token, memory, disk, output, request, handle, concurrency, and latency resources.
 
 ### Dependencies
 
@@ -189,28 +179,26 @@ Calibrate standard, extended, and absolute resource profiles from deterministic 
 
 ### Scope and implementation
 
-1. Measure fixture shape, samples, distributions, peak memory/disk/handles/concurrency, provider requests/bytes, CLI stdout, model-visible bytes, token estimates, latency, resumptions, and completion state.
-2. Set realistic cumulative budgets with operational headroom and invariant peak ceilings; keep large-codebase support based on bounded peaks and resumability rather than low repository-size caps.
-3. Synchronize code, tests, specifications, docs, and public explanations with measured limits.
+1. Measure fixture shapes, distributions, memory/disk/handle/concurrency peaks, provider requests/bytes, CLI and model-visible output, token estimates, latency, resumptions, and completion.
+2. Set cumulative budgets with headroom and invariant peak ceilings, synchronize code/tests/specifications/docs, and keep large-codebase support resumable rather than size-capped.
 
 ### Tests and verification
 
-- Deterministic calibration reruns, pathological cases, profile-boundary tests, dimension-specific failure tests, generated records, docs, platform, skill, and knowledge-base checks.
+- Calibration reruns, pathological and boundary cases, dimension-specific failures, generated records, and affected documentation checks.
 
 ### Acceptance criteria
 
-- Limits are high enough for representative repositories and low enough to prevent machine or model-resource exhaustion.
-- Every exhausted dimension reports a clear non-success and continuation or next action where possible.
+- Representative repositories finish reliably; every exhausted dimension produces an explicit non-success rather than machine failure or false completion.
 
 ### Review checkpoint
 
-Inspect corpus realism, reproducibility, percentiles/headroom, peak versus cumulative limits, resume behavior, output/token separation, failure specificity, and public claims.
+Inspect realism, reproducibility, headroom, peak/cumulative separation, resume behavior, output/token accounting, and failure specificity.
 
 ## Milestone 8: Native fresh/pinned release evidence (completed)
 
 ### Objective
 
-Add one simple, transparent local escape hatch that can bind a new skill release to valid passing evidence from an immutable earlier clean-envelope release.
+Add one simple local escape hatch that binds a release to valid passing evidence from an immutable earlier clean-envelope release.
 
 ### Dependencies
 
@@ -218,29 +206,26 @@ Add one simple, transparent local escape hatch that can bind a new skill release
 
 ### Scope and implementation
 
-1. Add one strict stable fresh/pinned evidence envelope, explicit fresh recording, `release:evidence:pin -- --from v<version> --reason "..."`, and pin clearing.
-2. Resolve source tags, validate source envelope/artifacts/digests/passing state, flatten chains to the original fresh evidence, and store only compact provenance.
-3. Make release checking mode-aware and read-only. A pin bypasses only current evidence identity/freshness matching, never source integrity, passing status, signing, credentials, or publication controls.
-4. Disclose pinned provenance accurately on the website and in release output.
+1. Add the strict fresh/pinned envelope, explicit fresh recording, one pin command and clearing, exact source-tag validation, artifact/digest/passing checks, and original-source flattening.
+2. Make checking read-only and mode-aware and disclose pinned provenance without creating administrator workflow or compatibility machinery.
 
 ### Tests and verification
 
-- Unit/integration tests for fresh record, pin, clear, tag resolution, chain flattening, corruption, pre-envelope sources, failed/incomplete sources, target identity, bypass limits, no-model-work pin behavior, release checks, and website rendering.
+- Unit/integration tests for fresh record, pin, clear, tag resolution, flattening, corruption, pre-envelope and failed sources, target identity, bypass limits, no-model pin behavior, release checks, and website rendering.
 
 ### Acceptance criteria
 
-- One local command and reason creates a deterministic, compact, transparent pin without an administrator workflow or hidden compatibility machinery.
-- Fresh evidence remains the default and pinned evidence is never presented as freshly run.
+- One local command and reason creates compact transparent provenance; fresh remains default and pinned evidence is never represented as fresh.
 
 ### Review checkpoint
 
-Inspect simplicity, provenance, source validation, self-reference avoidance, bypass scope, envelope size, website truth, and separation from removed carry-forward code.
+Inspect simplicity, provenance, validation, self-reference, bypass scope, envelope size, website truth, and separation from carry-forward code.
 
 ## Milestone 9: Flexible compatibility and forward package patches (completed)
 
 ### Objective
 
-Fix the packages PR version failure and remove avoidable provider, first-party package, toolchain, supply-chain-policy, and skill release cascades before any further paid evaluation.
+Fix the package-release version failure and remove avoidable provider, first-party, toolchain, supply-chain-policy, and skill release cascades.
 
 ### Dependencies
 
@@ -248,133 +233,158 @@ Fix the packages PR version failure and remove avoidable provider, first-party p
 
 ### Scope and implementation
 
-1. Publish repository-fs 2.0.1, Core 3.0.1, Anthropic/OpenAI adapters 3.0.1, every 2.x official adapter 2.0.1, and CLI 7.0.1 while leaving unchanged Repository at 2.0.0.
-2. Replace exact first-party package pins with compatible-major ranges while preserving exact resolved lockfile and evidence closure; prove patch/minor acceptance and breaking-major rejection.
-3. Replace every upper-bounded provider-library target with its inclusive minimum only while keeping exact tested reference versions and verification dates auditable.
-4. Make portable skill metadata accept compatible CLI 7 releases and schema 4 while keeping the exact qualified CLI identity in development and release evidence.
-5. Remove the website and qualification npm future-major ceiling, replace exact first-party release-age exclusions with package-name exclusions, retain external supply-chain quarantine, and synchronize packages, platform specifications, skill docs/site, generated compatibility artifacts, and knowledge-base content.
-6. Review, sign, publish, merge, monitor, and registry-verify the complete forward package generation before publishing downstream synchronization.
+1. Publish the forward package patches while leaving unchanged Repository 2.0.0.
+2. Use compatible-major first-party ranges, lower-bound-only provider targets, compatible CLI 7 skill metadata, minimum-only npm engines, and package-name first-party release-age exclusions while retaining exact lockfile and evidence identities.
+3. Synchronize and publish packages, platform specifications, skill docs/site, generated compatibility artifacts, and knowledge-base content.
 
 ### Tests and verification
 
-- Package compatibility, discovery, composition, manifest, packed-candidate, release-plan, registry, lockfile, unit, integration, e2e, typecheck, lint, format, build, public API, and documentation checks.
-- Skill conformance, relevance, release identity, closure, website, and qualification deterministic checks without model calls.
-- Platform and knowledge-base tests, builds, documentation checks, and contradiction searches for upper bounds, exact portable patch pins, future-major engine ceilings, release-age version lists, stale versions, and conflicting policy.
+- Package graph, compatibility, discovery, packed candidate, release-plan, registry, lockfile, test/type/lint/format/build/API/docs, skill deterministic, platform, knowledge-base, and contradiction checks.
 
 ### Acceptance criteria
 
-- Every release-relevant changed public package declares and publishes a greater stable version.
-- Provider targets accept their tested minimum and later stable versions; compatible first-party patch/minor releases do not force downstream publication, while breaking majors fail closed.
-- Skill 5 accepts compatible CLI 7 releases; npm tooling has no artificial future-major ceiling; external quarantine remains active; all exact resolved evidence remains auditable.
+- Changed public packages have greater stable published versions; later compatible releases do not force pointless downstream publication; breaking majors still fail closed.
 
 ### Review checkpoint
 
-Inspect range taxonomy, over-acceptance tradeoffs, first-party major boundaries, CLI closure validation, portable versus exact identities, package version graph, registry manifests, downstream locks, and absence of unrelated changes.
+Inspect range taxonomy, tested-version evidence, major boundaries, release graph, registry manifests, downstream locks, and unrelated-change exclusion.
 
-## Milestone 10: Explicit task-path relationship activation
+## Milestone 10: Explicit task-path relationship activation (completed)
 
 ### Objective
 
-Correct the qualification-discovered false negative so an unchanged ordinary repository path explicitly named or targeted by the developer activates its exact declared relationship without moldea-owned Git discovery.
+Correct the qualification false negative so an unchanged explicitly named path activates its declared relationship without moldea-owned Git discovery.
 
 ### Dependencies
 
-- Milestone 9 complete, published, registry-propagated, and synchronized.
-- Preserve semantic attempt `20260905T160351371Z-semantic-16cb2147` and failed Custom attempt `20260905T160415122Z-custom-custom-43ffbb42` as immutable diagnostics, not release evidence.
+- Milestone 9.
 
 ### Scope and implementation
 
-1. Update `moldea/SKILL.md` so the mandatory full gate receives the complete bounded host-known task-path set: every repository-logical path explicitly named or targeted in the current request plus the complete changed-path set already established by the host when applicable.
-2. State explicitly that an unchanged named review target is task-path evidence and that moldea must not invoke Git solely to discover either source of gate input.
-3. Synchronize directly affected skill documentation, including `docs/safety-and-privacy.md`, `docs/capabilities.md`, `docs/coding-agent-compatibility.md`, `docs/how-it-works.md`, and `docs/semantic-evaluation.md`, only where their current changed-path wording would preserve the ambiguity.
-4. Add deterministic conformance coverage for an initialized zero-agent project in which an unchanged source path named by the task matches `/moldea/project.md` through `affectedBy`. Require gate activation, only that canonical owner, bounded CLI validation, and no moldea-owned Git commands. Preserve abstention cases for unrelated named paths and host commands.
-5. Run focused and full deterministic skill/website checks, perform a read-only review, correct findings until ready, and publish the cohesive correction on `new_skill` before any model-backed rerun.
+1. Define the gate input as the union of exact developer-named or targeted paths and any complete host-provided changed-path set.
+2. Synchronize affected skill/public documentation and add deterministic and semantic coverage for unchanged named `affectedBy` paths, exact owners, bounded CLI use, silent unrelated paths, and no Git discovery.
+3. Review and publish the signed correction before new evidence.
 
 ### Tests and verification
 
-- Focused conformance, relevance-gate, documentation artifact, semantic-fixture, and qualification-case structural tests.
-- Full skill unit and integration suites, website unit/artifact integration/docs/typecheck/lint/format/build checks, qualification deterministic unit/integration/typecheck/lint/format checks, path checks, and body-free bounded CLI smoke checks.
-- Diff searches proving that “complete changed-path set” is not presented as the only task-path source and that no new Git-discovery instruction exists.
+- Focused and complete conformance, semantic-runner, skill, qualification, website, docs, path, type, lint, format, build, skill-validator, and body-free CLI checks.
 
 ### Acceptance criteria
 
-- The unchanged explicitly named `src/project-state.ts` scenario reaches the full gate, identifies only `/moldea/project.md`, invokes the bounded moldea CLI within the case's 1–4 call allowance, and leaves the workspace unchanged.
-- A host-provided changed-path set remains accepted in full; unrelated named paths still abstain silently; moldea does not run Git merely to construct either input.
-- All directly affected public and internal documentation uses the same task-path contract, and the reviewed signed correction is published before fresh evidence is regenerated.
+- The unchanged named `src/project-state.ts` case identifies only `/moldea/project.md`, stays within its CLI budget, and preserves the workspace; unrelated tasks still abstain.
 
 ### Review checkpoint
 
-Inspect the exact entrypoint wording, path-set completeness, unchanged-target behavior, owner selection, CLI count, zero-Git discovery, silent misses, documentation consistency, preserved budgets, and retained failed evidence.
+Inspect task-path completeness, unchanged-target behavior, owner selection, CLI count, zero-Git discovery, silent misses, documentation, and failed-attempt retention.
 
-## Milestone 11: Fresh semantic and adapter qualification evidence
+## Milestone 11: Diagnosable and resource-bounded qualification execution (completed)
 
 ### Objective
 
-Generate complete fresh model evidence once against the corrected portable skill digest and exact registry-published package closure.
+Eliminate the paid Custom qualification's ambiguous CLI invocation, opaque/context-insensitive command-policy failure, and excessive ordinary-work resource consumption before another model-backed run.
 
 ### Dependencies
 
-- Milestone 10 complete, reviewed, and published.
+- Milestone 10 complete and published at `f27e5c79488f39700e08aae14b9f5526c58f5b96`.
+- Preserve semantic attempt `20260905T173526948Z-semantic-6f085d03` and failed Custom attempt `20260905T175520706Z-custom-custom-0891c867` as inactive diagnostics, not release evidence.
+
+### Scope and implementation
+
+1. Add `moldea/scripts/repository-package.mjs` as the shared package/version/containment owner and `moldea/scripts/moldea-cli.mjs` as the closed cross-platform launcher. Refactor `relevance-gate.mjs` to reuse the trust primitives without changing its two-byte result.
+2. Update `moldea/SKILL.md`, `references/local-tooling.md`, `references/continuous-maintenance.md`, conformance fixtures, and public skill documentation to use only the launcher. Remove bare `moldea`, package-manager, `PATH`, link, realpath, parent-workspace, and ad hoc output-wrapper paths from normal execution.
+3. Contextually classify command operations in `tooling/codex-evaluation-host/execution-evidence.mjs`. Preserve actual evaluator-home, auth, credential, environment, `/proc/*/environ`, network, dynamic, and obfuscated detection while ensuring inert repository-search literals are not observed sensitive access.
+4. Advance qualification to protocol 8 only. Update host declarations, qualification contracts, execution/checkpoint/cache/result/storage/evidence identity, public artifacts, website loaders/rendering, release identity, fixtures, and tests with bounded sorted privacy-safe reason codes and counts. Add no protocol-7 reader or converter; keep old attempts outside active loading and release selection.
+5. Assign every qualification scenario an `ordinary` or `largeTraversal` resource profile. Enforce completed host commands, moldea calls/output, model-visible output, and total model tokens independently before judging, with profile/dimension/observed/limit failures. Keep absolute ceilings as higher process containment.
+6. Select ordinary operating limits from existing diagnostics plus deterministic fixtures and reserve final confirmation for the single required Custom run. Provide at least 25 percent headroom over accepted ordinary observations, use no calibration-only model call, and keep large traversal governed by a separate declared profile.
+7. Synchronize `README.md`, `qualification/README.md`, `docs/adapter-qualification.md`, `docs/compatibility-and-local-tooling.md`, `docs/semantic-evaluation.md`, website evidence documentation/rendering, resource fixtures/profiles, and generated/contract artifacts. Preserve `moldea` casing and do not overstate indeterminate evidence as verified safety.
+
+### Tests and verification
+
+- Launcher unit/integration tests for supported invocation, package metadata/ranges, missing and escaped closure, invalid arguments, bounded output, child exits/signals/cancellation, cross-platform path semantics, and one-command accounting.
+- Table-driven execution-evidence tests for inert searches and every real/indeterminate policy class, stable reason counts, privacy, resource boundaries, and absent raw commands.
+- Qualification protocol/contracts/loaders/cache/checkpoint/storage/result/evidence/website/release tests, profile-coverage validation, exact boundary failures, dry-run/preflight, and proof that source-state sandbox enforcement precedes model execution.
+- Full skill unit/integration, qualification unit/integration/typecheck/lint/format, website unit/integration/docs/typecheck/lint/format/build, conformance, resource, path, release-identity, candidate-package, and skill-creator checks. No paid model command belongs to this milestone.
+
+### Acceptance criteria
+
+- Normal direct maintenance uses the adoption gate plus the minimum necessary launcher-backed CLI operation without a bare-command or provenance-probe loop.
+- Inert repository searches for security vocabulary do not become observed access; actual violations still fail, indeterminate states remain explicit, and no public evidence exposes commands, paths, patterns, output, or secrets.
+- Protocol 8 is the only active qualification contract and every scenario owns a realistic operating profile below the absolute ceiling with dimension-specific failure evidence.
+- All deterministic checks pass and the cohesive signed correction is reviewed and published before any paid rerun.
+
+### Review checkpoint
+
+Inspect launcher trust and portability, duplicate resolver removal, exact output/exit behavior, policy false negatives and false positives, sandbox dependence, privacy-safe diagnostics, protocol closure, operating-limit calibration, test adversariality, documentation truth, and absence of model calls.
+
+## Milestone 12: Fresh semantic and adapter qualification evidence
+
+### Objective
+
+Generate complete fresh model evidence once against the final launcher-backed skill, protocol-8 qualification identity, and registry-published package closure.
+
+### Dependencies
+
+- Milestone 11 complete, reviewed, and published.
 - Authenticated model evaluation and qualification hosts.
 
 ### Scope and implementation
 
-1. Run semantic preflight and record its maximum call/token budget, then execute the complete semantic suite against the corrected skill identity.
-2. Run universal Custom behavior once. Require the previously failing unchanged named `affectedBy` scenario to identify the canonical owner and use bounded CLI validation.
-3. Run each of the thirteen adapter-specific qualification profiles once after Custom passes; do not repeat universal cases in adapter profiles.
-4. Preserve every failed/incomplete attempt, fix genuine product defects through the authorized re-planning loop, and rerun only evidence invalidated by a correction. Never weaken budgets or assertions merely to pass.
-5. After exact-current semantic and qualification verification passes, record the deterministic fresh release-evidence envelope. Use a pin only if the developer explicitly names a qualifying earlier release.
+1. Run semantic preflight, record the call/token envelope, execute the complete suite, and verify all immutable attempts against the final portable skill digest.
+2. Run universal Custom qualification once. Use its initial and naturally required confirmation trials as the only new model-backed calibration evidence; if accepted observations exceed an operating profile, correct the profile only through the authorized re-planning cycle with evidence and never merely to pass.
+3. Require the unchanged named relationship, dirty-project preservation, launcher command accounting, policy reason evidence, and operating budgets to pass before running any adapter-specific profile.
+4. Run each of the thirteen adapter-specific profiles once, with universal cases absent and ownership coverage exact.
+5. Preserve failed/incomplete attempts as inactive diagnostics, fix genuine product defects through re-planning, and rerun only evidence invalidated by a correction.
+6. After exact-current semantic and qualification verification passes, record the deterministic fresh release-evidence envelope. Use a pin only if the developer explicitly names a qualifying source release.
 
 ### Tests and verification
 
-- Semantic evaluation and verification with commands, stdout bytes, model-visible bytes, token categories, duration, confirmation state, and per-scenario budgets.
-- Qualification preflight, Custom, thirteen adapter profiles, ownership coverage, deterministic verification, resource state, artifact digests, exact committed-source identity, and release-evidence recording.
+- Semantic evaluation/verification with activation, command/output/token/duration budgets and confirmation state.
+- Qualification preflight, Custom, thirteen adapter profiles, protocol-8 artifact validation, profile accounting, ownership coverage, source identity, package closure, privacy-safe reasons, website loading, and release-evidence recording.
 
 ### Acceptance criteria
 
-- All semantic cases pass against the corrected portable skill digest, including unchanged named relationship activation and existing abstention/resource cases.
-- Universal behavior runs only in Custom; all thirteen adapter profiles pass their real adapter-specific contracts within calibrated independent budgets.
-- Fresh evidence is complete, deterministic, immutable, and references only committed skill input and registry-published package closure.
+- All semantic and Custom universal cases pass within calibrated profiles, including unchanged relationship activation and dirty-project maintenance without ambiguous policy failure or excessive execution.
+- All thirteen adapters pass only their adapter-specific contracts and no calibration-only paid call occurs.
+- Fresh evidence is complete, immutable, protocol 8, exact-current, resource-valid, and bound to committed skill input and registry packages.
 
 ### Review checkpoint
 
-Inspect model cost and quality, recovered versus clean passes, unchanged-target regression behavior, universal/adapter ownership, immutable input identity, exact tested closure, failures/reruns, resource accounting, and fresh evidence provenance.
+Inspect cost, quality, clean/recovered outcomes, launcher use, policy reasons, ordinary headroom, universal/adapter ownership, exact input identity, failures/reruns, and fresh provenance.
 
-## Milestone 12: Clean skill release and final cross-repository audit
+## Milestone 13: Clean skill release and final cross-repository audit
 
 ### Objective
 
-Publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prove the complete redesign and public state are coherent.
+Publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prove the redesign and public state are coherent.
 
 ### Dependencies
 
-- Milestone 11 passing fresh evidence or an explicitly selected valid pin.
+- Milestone 12 passing fresh evidence or an explicitly selected valid pin.
 - Authenticated skill main/release/site publication and hosted release deletion capabilities where required.
 
 ### Scope and implementation
 
-1. Remove remaining active 4.0.x compatibility, carry-forward, schema-3, global-install, old fixture/loader/script/CI, and unsupported-version paths while keeping the new evidence pin independent.
-2. Run release identity, release checks, website evidence rendering, full skill verification, and every package/platform/knowledge-base check invalidated by final evidence.
-3. Review and push final skill `new_skill`; refresh and review against current `main`; integrate with signed metadata; push `main`; monitor release and site workflows; create and verify immutable `v5.0.0`; and verify the installed skill/package closure.
-4. Record and delete exact local/remote `v4.0.0`, `v4.0.1`, and `v4.0.2` tags and matching hosted releases/assets when authenticated capability exists, without rewriting shared branches.
-5. Audit every active repository and fixture contract against all recorded original problems and plan acceptance criteria. Publish any cohesive correction through its owning review workflow before completion.
+1. Remove remaining active 4.0.x, protocol-7, carry-forward, schema-3, global-install, old fixture/loader/script/CI, and unsupported-version paths while keeping the new evidence pin independent and historical diagnostics inactive.
+2. Run release identity, evidence, website rendering, complete skill verification, and every package/platform/knowledge-base check invalidated by final evidence.
+3. Review and push final `new_skill`; refresh and review current `main`; integrate with signed metadata; push `main`; monitor release/site workflows; create and verify `v5.0.0`; and verify the installed skill/package closure.
+4. Record and delete exact local/remote `v4.0.0`, `v4.0.1`, and `v4.0.2` tags and hosted releases/assets where authenticated capability exists, without rewriting shared branches.
+5. Audit every active repository and fixture contract against the original problem ledger and acceptance criteria. Publish any cohesive correction through its owning review workflow before completion.
 
 ### Tests and verification
 
-- Full skill tests, docs, site, path, release, evidence, and skill-creator checks; invalidated packages/platform/knowledge-base checks; removed-contract, old-version, global-install, body-output, eager-read, false-success, generic-error, exact-pin, casing, and launch-claim searches.
-- Exact branch tips, commit signatures, merge parents/trees, tags, hosted releases, workflows, npm registry closure, website output, and installed-artifact verification.
+- Full skill tests, docs, site, path, release, evidence, skill-creator, invalidated cross-repository checks, and searches for removed contracts, old versions, global installs, body output, eager reads, false success, generic errors, exact pins, protocol 7, casing, and launch overclaims.
+- Exact branch tips, signatures, merge parents/trees, tags, releases, workflows, registry closure, website output, and installed-artifact verification.
 
 ### Acceptance criteria
 
-- Skill 5.0.0 contains one clean CLI 7/schema 4 contract with compatible patch/minor support, only the new package generations, and valid fresh or explicitly pinned evidence.
-- Skill `main`, tag, website, and installed artifact are verified; authorized obsolete 4.0.x tags/releases are absent when authenticated cleanup is available.
-- Every original failure and every plan acceptance criterion is proven across active code, tests, specifications, sites, knowledge base, fixtures, and published artifacts.
-- The active goal completes only when no required repository, workflow, registry, site, evidence, or hosted-release work remains; unavailable external capability is reported precisely.
+- Skill 5.0.0 contains one clean CLI 7/schema 4 and qualification protocol-8 contract, compatible patch/minor support, only new package generations, and valid fresh or explicitly pinned evidence.
+- Skill `main`, tag, website, installed artifact, and authorized old-release cleanup are verified; all original failures and plan criteria are proven across active repositories.
+- The goal completes only when no required repository, workflow, registry, site, evidence, or hosted-release work remains; unavailable external capability is reported precisely.
 
 ### Review checkpoint
 
-Inspect release identity, portable-versus-exact CLI contracts, evidence provenance, active-tree legacy removal, signed main integration, immutable artifacts, old-release cleanup, public truth, and the complete original-problem regression ledger.
+Inspect release identity, portable/exact CLI boundaries, evidence provenance, active legacy removal, signed main integration, immutable artifacts, old-release cleanup, public truth, and the complete regression ledger.
 
 ## Execution scope
 
-Preserve completed and published Milestones 1 through 9. Execute Milestone 10 first to correct and publish the task-path relationship contract with deterministic protection for unchanged explicitly named review targets and no moldea-owned Git discovery. Only then execute Milestone 11's fresh semantic suite, universal Custom qualification, thirteen adapter-specific profiles, and fresh release-evidence recording against the corrected committed skill digest and registry-published package closure. Finish with Milestone 12's clean skill 5.0.0 release, authorized 4.0.x release-surface cleanup, and complete cross-repository audit. Every incomplete milestone includes its implementation, tests, directly affected documentation, review/correction loop, signed publication, required main integration, and workflow verification without modifying protected instructions, bundling unrelated work, retaining compatibility code, weakening resource protections, or allowing incomplete evidence to appear successful.
+Preserve completed and published Milestones 1 through 10. Execute Milestone 11 first with no paid model calls: add the verified bundled CLI launcher, contextual protocol-8 command-policy diagnostics, scenario-owned operating budgets, deterministic adversarial coverage, directly affected documentation, read-only review/correction, and signed publication. Only after that checkpoint may Milestone 12 regenerate the semantic suite, universal Custom qualification, thirteen adapter-specific profiles, and fresh release evidence, with no calibration-only paid calls and no adapter run before Custom passes. Finish with Milestone 13's clean skill 5.0.0 release, protocol-7 and active legacy removal, authorized 4.0.x release-surface cleanup, and cross-repository audit. Every incomplete milestone includes its implementation, tests, documentation, review loop, signed publication, required main integration, and workflow verification without modifying protected instructions, bundling unrelated work, weakening protections, retaining compatibility code, or allowing incomplete evidence to appear successful.

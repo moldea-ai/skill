@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-vercel-static-boundary
 title: Preserve the Vercel static boundary
 purpose: Verify conservative canonical state for unsupported request indirection and prepareStep behavior.

@@ -6,7 +6,7 @@ import { z } from 'zod';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../tooling/resource-calibration/profiles.mjs';
 
 const QUALIFICATION_PROTOCOL_VERSION = 2;
-const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 7;
+const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 8;
 const INITIAL_OPERATIONAL_RETRY_DELAY_MS = 5_000;
 const MAXIMUM_OPERATIONAL_RETRY_DELAY_MS = 60_000;
 const StableIdSchema = z
@@ -103,6 +103,7 @@ export const QualificationScenarioSchema = z.object({
   id: StableIdSchema,
   title: z.string().trim().min(1),
   purpose: z.string().trim().min(1),
+  resourceProfile: z.enum(['largeTraversal', 'ordinary']),
   taskFile: RelativePathSchema,
   seedDirectory: RelativePathSchema,
   overlayDirectory: RelativePathSchema.optional(),
@@ -533,39 +534,106 @@ export const QualificationJudgeSkippedSchema = z.object({
   deterministicAfterPassed: z.boolean(),
   workspaceAssertionsPassed: z.boolean(),
 });
+const QualificationCommandPolicyReasonSchema = z.strictObject({
+  code: z.enum([
+    'broad-filesystem-read',
+    'credential-material',
+    'dynamic-execution',
+    'environment-dump',
+    'environment-value-read',
+    'evaluator-auth-file',
+    'evaluator-home',
+    'git-network',
+    'network-client',
+    'oversized-command',
+    'package-manager-network',
+    'process-environment',
+    'unclassified-command',
+  ]),
+  count: z.number().int().positive(),
+});
+
+// reason-code status ownership encoded by the runner's deterministic classifier
+const NETWORK_OBSERVED_REASON_CODES = new Set([
+  'git-network',
+  'network-client',
+  'package-manager-network',
+]);
+const NETWORK_INDETERMINATE_REASON_CODES = new Set([
+  'dynamic-execution',
+  'oversized-command',
+  'unclassified-command',
+]);
+const SENSITIVE_OBSERVED_REASON_CODES = new Set([
+  'environment-dump',
+  'environment-value-read',
+  'evaluator-auth-file',
+  'evaluator-home',
+  'process-environment',
+]);
+const SENSITIVE_INDETERMINATE_REASON_CODES = new Set([
+  'broad-filesystem-read',
+  'dynamic-execution',
+  'oversized-command',
+  'unclassified-command',
+]);
+
+const QualificationCommandPolicyObservationSchema = z.strictObject({
+  status: z.enum(['indeterminate', 'not-observed', 'observed']),
+  observedCount: z.number().int().nonnegative(),
+  indeterminateCount: z.number().int().nonnegative(),
+  reasons: z.array(QualificationCommandPolicyReasonSchema),
+});
 const QualificationCommandPolicyEvidenceSchema = z
   .strictObject({
     completedCommandCount: z.number().int().min(0).max(128),
     credentialExposure: z.strictObject({
       status: z.enum(['not-observed', 'observed']),
       observedCount: z.number().int().nonnegative(),
+      reasons: z.array(QualificationCommandPolicyReasonSchema),
     }),
     modelVisibleToolOutputByteCount: z.number().int().min(0).max(16_777_216),
     moldeaCommandCount: z.number().int().min(0).max(32),
     moldeaOutputByteCount: z.number().int().min(0).max(8_388_608),
-    networkAccess: z.strictObject({
-      status: z.enum(['indeterminate', 'not-observed', 'observed']),
-      observedCount: z.number().int().nonnegative(),
-      indeterminateCount: z.number().int().nonnegative(),
-    }),
-    sensitiveAccess: z.strictObject({
-      status: z.enum(['indeterminate', 'not-observed', 'observed']),
-      observedCount: z.number().int().nonnegative(),
-      indeterminateCount: z.number().int().nonnegative(),
-    }),
+    networkAccess: QualificationCommandPolicyObservationSchema,
+    sensitiveAccess: QualificationCommandPolicyObservationSchema,
   })
   .superRefine((evidence, context) => {
     for (const field of ['networkAccess', 'sensitiveAccess'] as const) {
       const observation = evidence[field];
+      const observedReasonCodes =
+        field === 'networkAccess' ? NETWORK_OBSERVED_REASON_CODES : SENSITIVE_OBSERVED_REASON_CODES;
+      const indeterminateReasonCodes =
+        field === 'networkAccess'
+          ? NETWORK_INDETERMINATE_REASON_CODES
+          : SENSITIVE_INDETERMINATE_REASON_CODES;
       const expectedStatus =
         observation.observedCount > 0
           ? 'observed'
           : observation.indeterminateCount > 0
             ? 'indeterminate'
             : 'not-observed';
+      const observedReasonCount = observation.reasons.reduce(
+        (total, reason) => total + (observedReasonCodes.has(reason.code) ? reason.count : 0),
+        0,
+      );
+      const indeterminateReasonCount = observation.reasons.reduce(
+        (total, reason) => total + (indeterminateReasonCodes.has(reason.code) ? reason.count : 0),
+        0,
+      );
       if (
         observation.status !== expectedStatus ||
-        observation.observedCount + observation.indeterminateCount > evidence.completedCommandCount
+        observation.observedCount + observation.indeterminateCount >
+          evidence.completedCommandCount ||
+        observedReasonCount !== observation.observedCount ||
+        indeterminateReasonCount !== observation.indeterminateCount ||
+        observation.reasons.reduce((total, reason) => total + reason.count, 0) !==
+          observation.observedCount + observation.indeterminateCount ||
+        new Set(observation.reasons.map(({ code }) => code)).size !== observation.reasons.length ||
+        observation.reasons.some(
+          (reason, index) =>
+            index > 0 && (observation.reasons[index - 1]?.code ?? '') >= reason.code,
+        )
       ) {
         context.addIssue({
           code: 'custom',
@@ -581,6 +649,21 @@ const QualificationCommandPolicyEvidenceSchema = z
         code: 'custom',
         message: 'Credential-exposure status must match its observed count.',
         path: ['credentialExposure'],
+      });
+    }
+    if (
+      evidence.credentialExposure.reasons.reduce((total, reason) => total + reason.count, 0) !==
+        evidence.credentialExposure.observedCount ||
+      (evidence.credentialExposure.observedCount > 0 &&
+        (evidence.credentialExposure.reasons.length !== 1 ||
+          evidence.credentialExposure.reasons[0]?.code !== 'credential-material')) ||
+      (evidence.credentialExposure.observedCount === 0 &&
+        evidence.credentialExposure.reasons.length !== 0)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Credential-exposure reasons must match the observed count.',
+        path: ['credentialExposure', 'reasons'],
       });
     }
     if (
@@ -676,6 +759,7 @@ export interface IQualificationAttemptTrialModel {
   deterministicBefore: IDeterministicVerification;
   developerTask: string;
   judge: IJudgeOutput | null;
+  judgeCommandPolicy: IQualificationCommandPolicyEvidence | null;
   judgeSkipped: IQualificationJudgeSkipped | null;
   result: IQualificationTrialResult;
   retries: {

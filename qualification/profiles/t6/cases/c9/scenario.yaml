@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: repair-eve-tool-registration
 title: Repair Eve tool registration
 purpose: Verify precise diagnostic-driven repair of recursive filesystem tool identity.

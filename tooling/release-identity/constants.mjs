@@ -1,7 +1,7 @@
 // package and protocol identities owned by the current release workflow
 export const CLI_PACKAGE_NAME = '@moldea.ai/cli';
 export const SEMANTIC_EVALUATION_PROTOCOL_VERSION = 23;
-export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 7;
+export const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 8;
 
 // portable release files that must carry the supported CLI major range
 export const CLI_VERSION_RANGE_TEXT_PATHS = [
@@ -9,7 +9,7 @@ export const CLI_VERSION_RANGE_TEXT_PATHS = [
   'docs/compatibility-and-local-tooling.md',
   'moldea/SKILL.md',
   'moldea/references/local-tooling.md',
-  'moldea/scripts/relevance-gate.mjs',
+  'moldea/scripts/repository-package.mjs',
   'qualification/README.md',
 ];
 
@@ -37,5 +37,7 @@ export const RELEASE_PATHS = Object.freeze({
   semanticResult: 'fixtures/semantic-evaluation-result.json',
   skill: 'moldea/SKILL.md',
   skillLocalTooling: 'moldea/references/local-tooling.md',
+  skillCliLauncher: 'moldea/scripts/moldea-cli.mjs',
   skillRelevanceGate: 'moldea/scripts/relevance-gate.mjs',
+  skillRepositoryPackage: 'moldea/scripts/repository-package.mjs',
 });

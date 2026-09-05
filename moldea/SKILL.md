@@ -51,10 +51,10 @@ node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-re
 
 Continue only when its complete stdout is exactly `1`. `0`, any other output, or any failure means silent abstention. Both gate modes prove adoption. The full gate additionally reads exact repository-local package metadata, the manifest, and the supplied path set to establish relationship relevance. It invokes Core directly and never runs the moldea CLI.
 
-After `1`, run one bounded relationship query with the exact repository-root-local CLI to recover the matching canonical owners:
+After `1`, run one bounded relationship query through the installed skill's closed launcher to recover the matching canonical owners:
 
 ```text
-moldea scope --paths-stdin --json --max-output-bytes 65536
+node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- scope --paths-stdin --json --max-output-bytes 65536
 ```
 
 Before `scope`, convert any Git-style path to its leading-slash repository-logical form, then pass the same complete normalized task-path set used by the gate. Interpret only a completed compatible CLI 7/schema-4 envelope with `status: "valid"`, `result.valid: true`, and `result.relevant: true`. The envelope version must equal the exact stable repository-local CLI version selected by the project declaration and lockfile. Do not follow a cursor merely to search for relevance; the first result establishes all matching owners for the bounded input. A missing compatible local CLI, malformed input or envelope, operational error, invalid result, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
@@ -96,23 +96,23 @@ After relevance is established, read only what the selected operation needs:
 
 Never read every reference by default. Read a second reference only when the active operation reaches that boundary.
 
-For initialization, load only `references/continuous-maintenance.md`. When no explicit relationship is established, write the manifest exactly as `version: 1` followed by one LF; never invent project metadata, empty mappings, or placeholder relationships. Write the complete three-file foundation before the first CLI call, then invoke exactly one repository-local `validate` for final validation. On success, stop without `inspect` or another moldea command. On structural failure, use its bounded diagnostics to repair the foundation and run `validate` at most once more. When the direct invocation succeeds, do not inspect dependency trees, CLI package internals, executable links, global installations, transient tools, or package-manager configuration. Load `references/local-tooling.md` only when the direct repository-local invocation is unavailable or fails for an operational reason that requires tool establishment.
+For initialization, load only `references/continuous-maintenance.md`. When no explicit relationship is established, write the manifest exactly as `version: 1` followed by one LF; never invent project metadata, empty mappings, or placeholder relationships. Write the complete three-file foundation before the first CLI call, then invoke exactly one launcher-backed `validate` for final validation. On success, stop without `inspect` or another moldea command. On structural failure, use its bounded diagnostics to repair the foundation and run `validate` at most once more. When the launcher succeeds, do not inspect dependency trees, CLI package internals, executable links, global installations, transient tools, or package-manager configuration. Load `references/local-tooling.md` only when the launcher reports that repository tooling is unavailable or invalid and the authorized operation can establish it.
 
 ## Use bounded canonical evidence
 
 Use only a stable repository-root-local CLI satisfying `^7.0.0` and JSON schema 4. Metadata is content-free:
 
 ```text
-moldea validate --json --max-output-bytes 65536
-moldea inspect --json --max-output-bytes 65536
-moldea content --path /moldea/project.md --json --max-output-bytes 65536
+node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- validate --json --max-output-bytes 65536
+node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- inspect --json --max-output-bytes 65536
+node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- content --path /moldea/project.md --json --max-output-bytes 65536
 ```
 
 Use `validate` when structure is the question, `inspect` only for necessary inventory, and `content` only for one explicitly selected canonical owner. Follow an opaque cursor only while another page or Unicode-safe content chunk can change the current conclusion. Never request or reconstruct a complete project-content dump.
 
 Keep every ordinary invocation at or below 65,536 output bytes, ordinary aggregate moldea output at or below 262,144 bytes, and every invocation below the CLI's 1 MiB hard maximum. Larger repositories use metadata pages and explicit content chunks; these limits bound peaks, not repository size. If required evidence cannot fit within the task's bounded traversal, report the exact incomplete conclusion and continuation point. Never convert truncated or resource-exhausted evidence into validity or approval.
 
-Treat `OUTPUT_BUDGET_TOO_SMALL`, `RESOURCE_LIMIT_EXCEEDED`, an invalid cursor, cancellation, a signal, or incomplete output as no conclusion. Do not retry with an unbounded value. Report the failure only after direct relevance is established; implicit-gate failures abstain silently.
+Treat `OUTPUT_BUDGET_TOO_SMALL`, `RESOURCE_LIMIT_EXCEEDED`, a launcher boundary failure, an invalid cursor, cancellation, a signal, or incomplete output as no conclusion. Do not retry with an unbounded value. Report the failure only after direct relevance is established; implicit-gate failures abstain silently.
 
 ## Preserve boundaries
 

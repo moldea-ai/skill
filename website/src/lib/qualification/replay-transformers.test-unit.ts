@@ -24,6 +24,7 @@ const PROFILE_CASE: IQualificationProfileCaseModel = {
     id: 'release-case',
     title: 'Release case',
     purpose: 'Verify the complete public replay.',
+    resourceProfile: 'ordinary',
     taskFile: 'task.md',
     seedDirectory: 'seed',
     removePaths: [],
@@ -121,6 +122,31 @@ const createTrial = (
   const passed = options.passed ?? true;
   const trialId: IQualificationTrialResult['trialId'] =
     confirmationIndex === null ? 'initial' : `confirmation-${confirmationIndex}`;
+  const commandPolicy = {
+    completedCommandCount: actorExecutionEvents.length,
+    credentialExposure: { status: 'not-observed' as const, observedCount: 0, reasons: [] },
+    modelVisibleToolOutputByteCount: actorExecutionEvents.reduce(
+      (total, event) => total + event.outputByteCount,
+      0,
+    ),
+    moldeaCommandCount: actorExecutionEvents.reduce(
+      (total, event) => total + event.moldeaCommandCount,
+      0,
+    ),
+    moldeaOutputByteCount: 0,
+    networkAccess: {
+      status: 'not-observed' as const,
+      observedCount: 0,
+      indeterminateCount: 0,
+      reasons: [],
+    },
+    sensitiveAccess: {
+      status: 'not-observed' as const,
+      observedCount: 0,
+      indeterminateCount: 0,
+      reasons: [],
+    },
+  };
 
   return {
     actor: {
@@ -130,29 +156,7 @@ const createTrial = (
       observations: ['The runtime binding is grounded in the project implementation.'],
       unresolved: ['The external runtime remains outside this repository.'],
     },
-    actorCommandPolicy: {
-      completedCommandCount: actorExecutionEvents.length,
-      credentialExposure: { status: 'not-observed', observedCount: 0 },
-      modelVisibleToolOutputByteCount: actorExecutionEvents.reduce(
-        (total, event) => total + event.outputByteCount,
-        0,
-      ),
-      moldeaCommandCount: actorExecutionEvents.reduce(
-        (total, event) => total + event.moldeaCommandCount,
-        0,
-      ),
-      moldeaOutputByteCount: 0,
-      networkAccess: {
-        status: 'not-observed',
-        observedCount: 0,
-        indeterminateCount: 0,
-      },
-      sensitiveAccess: {
-        status: 'not-observed',
-        observedCount: 0,
-        indeterminateCount: 0,
-      },
-    },
+    actorCommandPolicy: commandPolicy,
     actorExecutionEvents,
     artifacts: [],
     deterministicAfter: DETERMINISTIC_VERIFICATION,
@@ -172,6 +176,7 @@ const createTrial = (
       ],
       failures: passed ? [] : ['The complete evidence failed.'],
     },
+    judgeCommandPolicy: commandPolicy,
     judgeSkipped: null,
     result: {
       trialId,

@@ -1,4 +1,5 @@
 import { hasPassingCodexEvaluationCommandPolicy } from '../../../tooling/codex-evaluation-host/index.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
 
 import type {
   IActorOutput,
@@ -9,6 +10,7 @@ import type {
   IQualificationCaseScenario,
   IQualificationCommandPolicyEvidence,
   IQualificationExecutionEnvironment,
+  IQualificationModelStageEvidence,
   IQualificationRequirementAssessment,
   IQualificationSourceStateResult,
   IWorkspaceAssertionResult,
@@ -189,6 +191,63 @@ export const deriveQualificationCommandPolicyFailures = (options: {
         'Judge command policy observed prohibited credential, network, or sensitive evaluator access.',
       ]),
 ];
+
+/** Derives dimension-specific failures from one scenario-owned operating profile. */
+export const deriveQualificationResourceFailures = (options: {
+  allowMissingUsage: boolean;
+  evidence: Pick<IQualificationModelStageEvidence, 'commandPolicy' | 'usage'>;
+  role: 'Actor' | 'Judge';
+  scenario: IQualificationCaseScenario;
+}): string[] => {
+  const profile = MOLDEA_SKILL_RESOURCE_PROFILES[options.scenario.resourceProfile];
+  const observations = [
+    {
+      dimension: 'completed-host-commands',
+      observed: options.evidence.commandPolicy.completedCommandCount,
+      limit: profile.maxCompletedCommandCount,
+    },
+    {
+      dimension: 'moldea-commands',
+      observed: options.evidence.commandPolicy.moldeaCommandCount,
+      limit: profile.maxMoldeaCommandCount,
+    },
+    {
+      dimension: 'moldea-output-bytes',
+      observed: options.evidence.commandPolicy.moldeaOutputByteCount,
+      limit: profile.maxAggregateMoldeaOutputBytes,
+    },
+    {
+      dimension: 'model-visible-tool-output-bytes',
+      observed: options.evidence.commandPolicy.modelVisibleToolOutputByteCount,
+      limit: profile.maxModelVisibleToolOutputBytes,
+    },
+  ];
+  const failures = observations.flatMap(({ dimension, observed, limit }) =>
+    observed > limit
+      ? [
+          `${options.role} resource profile ${options.scenario.resourceProfile} exceeded ${dimension}: observed ${observed}, limit ${limit}.`,
+        ]
+      : [],
+  );
+
+  if (options.evidence.usage === null) {
+    if (!options.allowMissingUsage) {
+      failures.push(
+        `${options.role} resource profile ${options.scenario.resourceProfile} could not establish total-model-tokens: observed unavailable, limit ${profile.maxHostTokenCount}.`,
+      );
+    }
+    return failures;
+  }
+
+  const totalModelTokens = options.evidence.usage.inputTokens + options.evidence.usage.outputTokens;
+  if (totalModelTokens > profile.maxHostTokenCount) {
+    failures.push(
+      `${options.role} resource profile ${options.scenario.resourceProfile} exceeded total-model-tokens: observed ${totalModelTokens}, limit ${profile.maxHostTokenCount}.`,
+    );
+  }
+
+  return failures;
+};
 
 /** Creates deterministic assessments for every runner-owned scenario requirement. */
 export const createRunnerRequirementAssessments = (options: {

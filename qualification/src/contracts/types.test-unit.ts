@@ -4,6 +4,7 @@ import { describe, expect, test } from 'vitest';
 import {
   QualificationCaseResultSchema,
   QualificationCaseScenarioSchema,
+  QualificationCommandPolicyEvidenceSchema,
   ModelUsageSchema,
   QualificationProfileSchema,
   QualificationStageCheckpointSchema,
@@ -16,6 +17,7 @@ const createScenario = (pathPattern: string) => ({
   id: 'path-pattern',
   title: 'Path pattern',
   purpose: 'Validate a workspace path pattern.',
+  resourceProfile: 'ordinary',
   taskFile: 'task.md',
   seedDirectory: 'seed',
   removePaths: [],
@@ -75,6 +77,74 @@ test('accepts bounded model usage and rejects invalid cached or total token coun
       cachedInputTokens: 0,
       inputTokens: 2_097_152,
       outputTokens: 1,
+    }).success,
+  ).toBe(false);
+});
+
+test('requires privacy-safe command-policy reasons to be counted, unique, and sorted', () => {
+  const evidence = {
+    completedCommandCount: 2,
+    credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+    modelVisibleToolOutputByteCount: 0,
+    moldeaCommandCount: 0,
+    moldeaOutputByteCount: 0,
+    networkAccess: {
+      status: 'observed',
+      observedCount: 1,
+      indeterminateCount: 1,
+      reasons: [
+        { code: 'dynamic-execution', count: 1 },
+        { code: 'network-client', count: 1 },
+      ],
+    },
+    sensitiveAccess: {
+      status: 'not-observed',
+      observedCount: 0,
+      indeterminateCount: 0,
+      reasons: [],
+    },
+  };
+
+  expect(QualificationCommandPolicyEvidenceSchema.safeParse(evidence).success).toBe(true);
+  for (const reasons of [
+    [{ code: 'network-client', count: 1 }],
+    [
+      { code: 'network-client', count: 1 },
+      { code: 'dynamic-execution', count: 1 },
+    ],
+    [
+      { code: 'dynamic-execution', count: 1 },
+      { code: 'dynamic-execution', count: 1 },
+    ],
+  ]) {
+    expect(
+      QualificationCommandPolicyEvidenceSchema.safeParse({
+        ...evidence,
+        networkAccess: { ...evidence.networkAccess, reasons },
+      }).success,
+    ).toBe(false);
+  }
+
+  expect(
+    QualificationCommandPolicyEvidenceSchema.safeParse({
+      ...evidence,
+      networkAccess: {
+        status: 'observed',
+        observedCount: 1,
+        indeterminateCount: 0,
+        reasons: [{ code: 'broad-filesystem-read', count: 1 }],
+      },
+    }).success,
+  ).toBe(false);
+  expect(
+    QualificationCommandPolicyEvidenceSchema.safeParse({
+      ...evidence,
+      sensitiveAccess: {
+        status: 'observed',
+        observedCount: 1,
+        indeterminateCount: 0,
+        reasons: [{ code: 'network-client', count: 1 }],
+      },
     }).success,
   ).toBe(false);
 });
@@ -241,7 +311,7 @@ const createTrial = (
   });
 };
 
-describe('protocol 7 qualification contracts', () => {
+describe('protocol 8 qualification contracts', () => {
   test.each([
     ['passed', 'not-required', [createTrial('initial', true)], []],
     [

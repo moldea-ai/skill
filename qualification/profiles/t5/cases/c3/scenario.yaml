@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: create-grounded-agent
 title: Create a grounded agent
 purpose: Verify evidence-backed agent creation across canonical and executable boundaries.

@@ -20,7 +20,7 @@ try {
     ),
     writeTextFileAtomically(
       join(fixtureRoot, 'qualification', 'profiles', 't1', 'cases', 'c1', 'README.md'),
-      '# Release case\n\nThis fixture exercises recovered protocol 7 evidence.\n',
+      '# Release case\n\nThis fixture exercises recovered protocol 8 evidence.\n',
     ),
     writeTextFileAtomically(
       join(fixtureRoot, 'qualification', 'cases', 'cases.yaml'),

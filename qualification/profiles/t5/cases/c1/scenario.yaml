@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: evaluate-aligned-project
 title: Evaluate an aligned project
 purpose: Verify that the skill can inspect a correct Custom project and leave it untouched.

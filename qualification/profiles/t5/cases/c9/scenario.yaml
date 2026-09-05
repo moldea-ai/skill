@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: answer-information-before-adoption
 title: Answer information before adoption
 purpose: Verify a concise informational answer without repository inspection, moldea tooling, or workspace changes.

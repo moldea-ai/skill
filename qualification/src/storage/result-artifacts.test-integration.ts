@@ -8,7 +8,10 @@ import {
   QualificationAttemptResultSchema,
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
-import { QUALIFICATION_CONFIRMATION_POLICY } from '../constants/index.ts';
+import {
+  QUALIFICATION_CONFIRMATION_POLICY,
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+} from '../constants/index.ts';
 import {
   calculateSha256,
   ensureDirectory,
@@ -24,7 +27,7 @@ import {
 
 const createResult = (attemptId: string, artifactDigest: string): IQualificationAttemptResult =>
   QualificationAttemptResultSchema.parse({
-    protocolVersion: 7,
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     mode: 'official',
     attemptId,

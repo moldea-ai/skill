@@ -11,7 +11,10 @@ import {
   QualificationModelStageEvidenceSchema,
   type IQualificationAttemptResult,
 } from '../contracts/index.ts';
-import { QUALIFICATION_CONFIRMATION_POLICY } from '../constants/index.ts';
+import {
+  QUALIFICATION_CONFIRMATION_POLICY,
+  QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
+} from '../constants/index.ts';
 import {
   calculateFileSha256,
   ensureDirectory,
@@ -88,7 +91,7 @@ const createResult = (
   status: 'errored' | 'failed' | 'incomplete' | 'passed',
 ): IQualificationAttemptResult =>
   QualificationAttemptResultSchema.parse({
-    protocolVersion: 7,
+    protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
     confirmationPolicy: QUALIFICATION_CONFIRMATION_POLICY,
     mode: 'official',
     attemptId,
@@ -373,7 +376,7 @@ describe('qualification result recording', () => {
     const latest = await readJsonFile(latestPath, QualificationLatestResultSchema);
     await writeFile(
       latestPath,
-      `${JSON.stringify({ ...latest, protocolVersion: 8 }, null, 2)}\n`,
+      `${JSON.stringify({ ...latest, protocolVersion: 7 }, null, 2)}\n`,
       'utf8',
     );
 
@@ -383,7 +386,7 @@ describe('qualification result recording', () => {
     expect(verification.attempts).toBe(0);
     expect(verification.issues).toHaveLength(1);
     expect(verification.issues[0]?.path).toBe(TARGET_KEY);
-    expect(verification.issues[0]?.message).toContain('Invalid input: expected 7');
+    expect(verification.issues[0]?.message).toContain('Invalid input: expected 8');
   });
 
   test.each([
@@ -555,6 +558,7 @@ describe('qualification result recording', () => {
             status: 'observed',
             observedCount: 1,
             indeterminateCount: 0,
+            reasons: [{ code: 'network-client', count: 1 }],
           },
         },
       });
@@ -624,7 +628,7 @@ describe('qualification result recording', () => {
       path.join(targetRoot, 'latest.json'),
       `${JSON.stringify(
         {
-          protocolVersion: 7,
+          protocolVersion: QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
           adapterId: 'custom',
           implementationId: 'custom',
           latestAttemptId: 'missing-attempt',

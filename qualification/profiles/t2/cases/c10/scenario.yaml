@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-claude-agent-sdk-static-boundary
 title: Preserve the Claude Agent SDK static boundary
 purpose: Verify conservative treatment of dynamic query options, subagent availability, SDK-only fields, external MCP configuration, and filesystem features.

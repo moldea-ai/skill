@@ -23,7 +23,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
     );
   }
   currentFiles.set(
-    RELEASE_PATHS.skillRelevanceGate,
+    RELEASE_PATHS.skillRepositoryPackage,
     "const EXPECTED_CLI_RANGE = '^6.0.0';\nconst EXPECTED_CORE_RANGE = '^2.0.0';\n",
   );
   currentFiles.set(RELEASE_PATHS.packageManifest, '{"moldeaRelease":{"cliJsonSchemaVersion":3}}\n');
@@ -97,7 +97,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   });
 
   for (const relativePath of CLI_VERSION_RANGE_TEXT_PATHS) {
-    if (relativePath === RELEASE_PATHS.skillRelevanceGate) continue;
+    if (relativePath === RELEASE_PATHS.skillRepositoryPackage) continue;
     assert.match(updatedFiles.get(relativePath), /@moldea\.ai\/cli \^7\.0\.0/u);
     assert.match(updatedFiles.get(relativePath), /CLI 7/u);
     assert.match(updatedFiles.get(relativePath), /@moldea\.ai\/core \^3\.0\.0/u);
@@ -110,7 +110,7 @@ test('createCliReleaseUpdate synchronizes every CLI-owned release file', () => {
   assert.equal(updatedFiles.get(RELEASE_PATHS.packageLock), '{"lockfileVersion":3}\n');
   assert.equal(updatedFiles.get(RELEASE_PATHS.packageManifest), '{"version":"3.1.0"}\n');
   assert.equal(
-    updatedFiles.get(RELEASE_PATHS.skillRelevanceGate),
+    updatedFiles.get(RELEASE_PATHS.skillRepositoryPackage),
     "const EXPECTED_CLI_RANGE = '^7.0.0';\nconst EXPECTED_CORE_RANGE = '^3.0.0';\n",
   );
   const conformanceCases = JSON.parse(updatedFiles.get(RELEASE_PATHS.conformanceCases));

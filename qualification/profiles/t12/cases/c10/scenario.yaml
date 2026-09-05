@@ -1,4 +1,5 @@
 version: 2
+resourceProfile: ordinary
 id: preserve-openai-agents-sdk-static-boundary
 title: Preserve the OpenAI Agents SDK static boundary
 purpose: Verify conservative treatment of indirect Agent configuration and unsupported SDK routing, tool, and Realtime surfaces.

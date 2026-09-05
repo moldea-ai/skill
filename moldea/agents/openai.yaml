@@ -1,6 +1,6 @@
 interface:
   display_name: 'moldea'
-  short_description: 'Maintain initialized moldea repositories'
+  short_description: 'Run the repository gate, then maintain relevant moldea state'
   default_prompt: 'Use $moldea to initialize this repository or perform a directly relevant moldea operation.'
 policy:
   allow_implicit_invocation: true

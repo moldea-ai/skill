@@ -1,7 +1,7 @@
 ---
 name: moldea
 description: >-
-  In a repository-bound installation, activate for every repository-dependent task solely to run the bundled two-byte relevance gate. A gate miss abstains silently while the host workflow continues; only after adoption and relevance are established may moldea inspect explicit moldea work, /moldea/** changes, managed README hunks, or paths matched by a declared binding or affectedBy relationship. Also answer concise informational questions and initialize moldea only when explicitly requested. Do not use for other uninitialized work.
+  Use for every repository-dependent task, including reviews, plans, and implementation, when this skill is installed in the repository, solely to run the bundled two-byte relevance gate. A gate miss abstains silently while the host workflow continues; only after adoption and relevance are established may moldea inspect explicit moldea work, /moldea/** changes, managed README hunks, or paths matched by a declared binding or affectedBy relationship. Also answer concise informational questions and initialize moldea only when explicitly requested. Do not use for other uninitialized work.
 metadata:
   version: '5.0.0'
   cliVersion: '7.0.0'

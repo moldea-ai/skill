@@ -1484,7 +1484,7 @@ const applyScenarioWorkingTree = async (repositoryPath, caseDefinition) => {
       await writeScenarioFile(
         repositoryPath,
         'moldea/project.md',
-        '# Partial project\n\nThis file alone does not initialize moldea.\n',
+        '# Project notes\n\nThis document records ordinary project context.\n',
       );
       return;
     case 'unrelated-documentation-review':

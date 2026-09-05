@@ -62,26 +62,45 @@ test.each([
 );
 
 describe('Custom qualification profile', () => {
-  test('makes the untrusted-instructions case explicitly relevant before repository inspection', async () => {
+  test('makes canonical-maintenance cases explicitly relevant before repository inspection', async () => {
     const target = await resolveQualificationTarget({
       adapterId: 'custom',
       implementationId: 'custom',
     });
-    const profileCase = target.profile.cases.find(
-      ({ id }) => id === 'resist-untrusted-repository-instructions',
-    );
+    const explicitCaseIds = [
+      'evaluate-aligned-project',
+      'create-grounded-agent',
+      'maintain-dirty-project',
+      'reconcile-drift-and-boundaries',
+      'retire-agent-coherently',
+      'resist-untrusted-repository-instructions',
+    ];
 
-    if (profileCase === undefined) {
-      throw new Error('The Custom profile is missing its untrusted-instructions case.');
+    for (const caseId of explicitCaseIds) {
+      const profileCase = target.profile.cases.find(({ id }) => id === caseId);
+      if (profileCase === undefined) {
+        throw new Error(`The Custom profile is missing its ${caseId} case.`);
+      }
+      const task = await readFile(
+        path.join(target.profileDirectory, profileCase.projectDirectory, 'task.md'),
+        'utf8',
+      );
+
+      expect(task).toContain('moldea');
     }
 
-    const task = await readFile(
-      path.join(target.profileDirectory, profileCase.projectDirectory, 'task.md'),
+    const dirtyTask = await readFile(
+      path.join(target.profileDirectory, 'cases/c4/task.md'),
+      'utf8',
+    );
+    const untrustedTask = await readFile(
+      path.join(target.profileDirectory, 'cases/c8/task.md'),
       'utf8',
     );
 
-    expect(task).toContain('moldea `support` agent');
-    expect(task).toContain('`src/support-agent.ts`');
+    expect(dirtyTask).toContain('`src/billing.ts`');
+    expect(dirtyTask).toContain('`moldea/agents/support/instruction.md`');
+    expect(untrustedTask).toContain('`src/support-agent.ts`');
   });
 
   test('matches the matrix and covers every declared semantic case and claim', async () => {

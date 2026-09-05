@@ -1,5 +1,6 @@
 import path from 'node:path';
 import semver from 'semver';
+import { parse as parseYaml } from 'yaml';
 
 import {
   DEFAULT_PACKAGES_REPOSITORY,
@@ -13,7 +14,8 @@ import {
   QualificationSelectionSchema,
   type IQualificationSelection,
 } from '../contracts/index.ts';
-import { readYamlFile, resolveContainedPath } from '../filesystem/index.ts';
+import { calculateSha256, readYamlFile, resolveContainedPath } from '../filesystem/index.ts';
+import { executeProcess } from '../process/index.ts';
 import {
   calculateQualificationProfileDigest,
   calculateQualificationTargetDigest,
@@ -28,16 +30,74 @@ import {
   type IQualificationImplementation,
   type IResolvedQualificationTarget,
   type IRuntimeCompatibilityMatrix,
+  type IRuntimeCompatibilitySnapshot,
 } from './types.ts';
+
+const RUNTIME_COMPATIBILITY_RELATIVE_PATH = 'compatibility/runtimes.yaml';
 
 /** Reads the canonical strict runtime compatibility matrix. */
 export const loadRuntimeCompatibilityMatrix = async (
   packagesRepository: string = DEFAULT_PACKAGES_REPOSITORY,
 ): Promise<IRuntimeCompatibilityMatrix> =>
   readYamlFile(
-    path.join(packagesRepository, 'compatibility', 'runtimes.yaml'),
+    path.join(packagesRepository, RUNTIME_COMPATIBILITY_RELATIVE_PATH),
     RuntimeCompatibilityMatrixSchema,
   );
+
+/** Loads the exact compatibility matrix committed at one packages-repository revision. */
+export const loadRuntimeCompatibilitySnapshot = async (
+  packagesRepository: string = DEFAULT_PACKAGES_REPOSITORY,
+  revision = 'HEAD',
+): Promise<IRuntimeCompatibilitySnapshot> => {
+  const { stdout: commitOutput } = await executeProcess({
+    command: 'git',
+    args: ['rev-parse', '--verify', `${revision}^{commit}`],
+    cwd: packagesRepository,
+  });
+  const commit = commitOutput.trim();
+  const [{ stdout: matrixSource }, { stdout: treeEntry }] = await Promise.all([
+    executeProcess({
+      command: 'git',
+      args: ['show', `${commit}:${RUNTIME_COMPATIBILITY_RELATIVE_PATH}`],
+      cwd: packagesRepository,
+    }),
+    executeProcess({
+      command: 'git',
+      args: ['ls-tree', '-z', commit, '--', RUNTIME_COMPATIBILITY_RELATIVE_PATH],
+      cwd: packagesRepository,
+    }),
+  ]);
+  const entryMatch = /^(?<mode>[0-7]{6}) blob [0-9a-f]+\t(?<entryPath>[^\0]+)\0$/u.exec(treeEntry);
+
+  if (
+    entryMatch?.groups?.['entryPath'] !== RUNTIME_COMPATIBILITY_RELATIVE_PATH ||
+    entryMatch.groups['mode'] === undefined ||
+    !entryMatch.groups['mode'].startsWith('100')
+  ) {
+    throw new Error(
+      `Commit ${commit} does not contain a regular ${RUNTIME_COMPATIBILITY_RELATIVE_PATH} file.`,
+    );
+  }
+
+  const entries = [
+    {
+      path: RUNTIME_COMPATIBILITY_RELATIVE_PATH,
+      kind: 'file' as const,
+      mode: Number.parseInt(entryMatch.groups['mode'], 8),
+      sha256: calculateSha256(matrixSource),
+    },
+  ];
+
+  return {
+    matrix: RuntimeCompatibilityMatrixSchema.parse(parseYaml(matrixSource) as unknown),
+    repositoryState: {
+      commit,
+      fingerprint: calculateSha256(`${JSON.stringify(entries)}\n`),
+      isDirty: false,
+      entries,
+    },
+  };
+};
 
 /** Lists every matrix adapter and implementation with an explicit local availability reason. */
 export const listQualificationImplementations = async (): Promise<
@@ -91,9 +151,10 @@ export const listQualificationImplementations = async (): Promise<
 export const resolveQualificationTarget = async (
   candidateSelection: IQualificationSelection,
   packagesRepository: string = DEFAULT_PACKAGES_REPOSITORY,
+  compatibilityMatrix?: IRuntimeCompatibilityMatrix,
 ): Promise<IResolvedQualificationTarget> => {
   const selection = QualificationSelectionSchema.parse(candidateSelection);
-  const matrix = await loadRuntimeCompatibilityMatrix(packagesRepository);
+  const matrix = compatibilityMatrix ?? (await loadRuntimeCompatibilityMatrix(packagesRepository));
   const adapter = matrix.adapters[selection.adapterId];
 
   if (adapter === undefined) {

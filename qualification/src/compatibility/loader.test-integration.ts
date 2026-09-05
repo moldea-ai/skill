@@ -7,7 +7,8 @@ import { describe, expect, test } from 'vitest';
 import { DEFAULT_PACKAGES_REPOSITORY } from '../constants/index.ts';
 import { inspectQualificationCoverage } from '../coverage/index.ts';
 import { ensureDirectory } from '../filesystem/index.ts';
-import { resolveQualificationTarget } from './loader.ts';
+import { executeProcess } from '../process/index.ts';
+import { loadRuntimeCompatibilitySnapshot, resolveQualificationTarget } from './loader.ts';
 
 // cases that intentionally begin without the complete moldea adoption contract
 const UNADOPTED_QUALIFICATION_CASE_IDS = new Set([
@@ -60,6 +61,63 @@ test.each([
     }
   },
 );
+
+test('loads compatibility from an immutable packages commit instead of its worktree', async () => {
+  const temporaryPackagesRepository = await mkdtemp(
+    path.join(os.tmpdir(), 'moldea-qualification-packages-snapshot-'),
+  );
+  const compatibilityDirectory = path.join(temporaryPackagesRepository, 'compatibility');
+  const compatibilityPath = path.join(compatibilityDirectory, 'runtimes.yaml');
+  await ensureDirectory(compatibilityDirectory);
+  const matrixSource = await readFile(
+    path.join(DEFAULT_PACKAGES_REPOSITORY, 'compatibility', 'runtimes.yaml'),
+    'utf8',
+  );
+  await writeFile(compatibilityPath, matrixSource, 'utf8');
+  await executeProcess({
+    command: 'git',
+    args: ['init', '--initial-branch=main'],
+    cwd: temporaryPackagesRepository,
+  });
+  await executeProcess({
+    command: 'git',
+    args: ['add', '-A'],
+    cwd: temporaryPackagesRepository,
+  });
+  await executeProcess({
+    command: 'git',
+    args: [
+      '-c',
+      'user.name=moldea qualification',
+      '-c',
+      'user.email=qualification@moldea.local',
+      'commit',
+      '-m',
+      'test: establish compatibility snapshot',
+    ],
+    cwd: temporaryPackagesRepository,
+  });
+
+  try {
+    const initialSnapshot = await loadRuntimeCompatibilitySnapshot(temporaryPackagesRepository);
+    await writeFile(compatibilityPath, 'version: 99\n', 'utf8');
+    await writeFile(path.join(temporaryPackagesRepository, 'unrelated.md'), '# Work\n', 'utf8');
+    const unchangedSnapshot = await loadRuntimeCompatibilitySnapshot(temporaryPackagesRepository);
+    const target = await resolveQualificationTarget(
+      { adapterId: 'custom', implementationId: 'custom' },
+      temporaryPackagesRepository,
+      unchangedSnapshot.matrix,
+    );
+
+    expect(unchangedSnapshot).toStrictEqual(initialSnapshot);
+    expect(target.selection).toStrictEqual({
+      adapterId: 'custom',
+      implementationId: 'custom',
+    });
+  } finally {
+    await rm(temporaryPackagesRepository, { force: true, recursive: true });
+  }
+});
 
 describe('Custom qualification profile', () => {
   test('makes canonical-maintenance cases explicitly relevant before repository inspection', async () => {

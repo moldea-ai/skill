@@ -17,6 +17,7 @@ import {
   writeAttemptCheckpoint,
 } from '../checkpoint/index.ts';
 import {
+  loadRuntimeCompatibilitySnapshot,
   resolveQualificationTarget,
   type IResolvedQualificationTarget,
 } from '../compatibility/index.ts';
@@ -127,26 +128,22 @@ const pathExists = async (candidatePath: string): Promise<boolean> => {
  * @returns The package, qualification-suite, and portable-skill repository states.
  */
 const inspectQualificationInputState = async (
-  packagesRepository: string,
+  packagesState: IQualificationInputState['packagesState'],
   skillRepository: string,
   target: IResolvedQualificationTarget,
 ): Promise<IQualificationInputState> => {
-  const [modelHostDigest, packagesState, qualificationDigest, qualificationState, skillState] =
-    await Promise.all([
-      calculateQualificationModelHostDigest(),
-      inspectGitRepositoryState(packagesRepository, {
-        excludedRelativePathPrefixes: ['qualification'],
-      }),
-      calculateQualificationExecutionDigest({
-        caseIds: target.profile.cases.map(({ id }) => id),
-        profileDirectory: target.profileDirectory,
-      }),
-      inspectGitRepositoryState(SKILL_REPOSITORY_ROOT, {
-        includedRelativePathPrefixes: QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
-        excludedRelativePathPrefixes: ['qualification/results'],
-      }),
-      inspectGitRepositoryState(skillRepository),
-    ]);
+  const [modelHostDigest, qualificationDigest, qualificationState, skillState] = await Promise.all([
+    calculateQualificationModelHostDigest(),
+    calculateQualificationExecutionDigest({
+      caseIds: target.profile.cases.map(({ id }) => id),
+      profileDirectory: target.profileDirectory,
+    }),
+    inspectGitRepositoryState(SKILL_REPOSITORY_ROOT, {
+      includedRelativePathPrefixes: QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES,
+      excludedRelativePathPrefixes: ['qualification/results'],
+    }),
+    inspectGitRepositoryState(skillRepository),
+  ]);
   const packagesDigest = calculatePackagesQualificationDigest({
     adapter: target.adapter,
     matrixVersion: target.matrix.version,
@@ -236,7 +233,12 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
   const packagesRepository = path.resolve(
     options.packagesRepository ?? DEFAULT_PACKAGES_REPOSITORY,
   );
-  const target = await resolveQualificationTarget(options.selection, packagesRepository);
+  const compatibilitySnapshot = await loadRuntimeCompatibilitySnapshot(packagesRepository);
+  const target = await resolveQualificationTarget(
+    options.selection,
+    packagesRepository,
+    compatibilitySnapshot.matrix,
+  );
   const mode = options.mode ?? (options.isDryRun === true ? 'dry-run' : 'official');
   const selectedCaseId = mode === 'diagnostic' ? options.caseId : undefined;
 
@@ -263,7 +265,7 @@ const prepareAttempt = async (options: IRunQualificationOptions) => {
   }
 
   const inputState = await inspectQualificationInputState(
-    packagesRepository,
+    compatibilitySnapshot.repositoryState,
     skillRepository,
     target,
   );
@@ -307,9 +309,13 @@ export const runQualification = async (
   const preparedAttempt = await prepareAttempt(options);
   const { attemptDirectory } = preparedAttempt;
   let checkpoint = preparedAttempt.checkpoint;
+  const compatibilitySnapshot = await loadRuntimeCompatibilitySnapshot(
+    checkpoint.packagesRepository,
+  );
   const target = await resolveQualificationTarget(
     checkpoint.selection,
     checkpoint.packagesRepository,
+    compatibilitySnapshot.matrix,
   );
   const customTarget =
     checkpoint.selection.adapterId === 'custom' &&
@@ -318,6 +324,7 @@ export const runQualification = async (
       : await resolveQualificationTarget(
           { adapterId: 'custom', implementationId: 'custom' },
           checkpoint.packagesRepository,
+          compatibilitySnapshot.matrix,
         );
   const selectedProfileCases =
     checkpoint.selectedCaseId === null
@@ -347,7 +354,7 @@ export const runQualification = async (
   }
 
   const inputState = await inspectQualificationInputState(
-    checkpoint.packagesRepository,
+    compatibilitySnapshot.repositoryState,
     checkpoint.skillRepository,
     target,
   );
@@ -402,13 +409,17 @@ export const runQualification = async (
       return;
     }
 
+    const currentCompatibilitySnapshot = await loadRuntimeCompatibilitySnapshot(
+      checkpoint.packagesRepository,
+    );
     const currentTarget = await resolveQualificationTarget(
       checkpoint.selection,
       checkpoint.packagesRepository,
+      currentCompatibilitySnapshot.matrix,
     );
     const [currentInputState, currentExecutionEnvironment] = await Promise.all([
       inspectQualificationInputState(
-        checkpoint.packagesRepository,
+        currentCompatibilitySnapshot.repositoryState,
         checkpoint.skillRepository,
         currentTarget,
       ),

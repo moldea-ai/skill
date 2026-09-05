@@ -71,13 +71,12 @@ Next actions:
 ## Coding agent and `moldea` under the hood
 
 1. The exact `Initialize moldea` request establishes adoption intent.
-2. The coding agent verifies local tooling and runs initial `inspect --json`; a missing-project diagnostic is expected evidence.
-3. It begins with the root README and other high-information project surfaces.
-4. It distinguishes durable foundational truth from temporary, speculative, or easily rediscovered details and determines whether the foundation is insufficient, partial, or sufficient.
-5. It asks a focused question when missing context or a material gap prevents a useful and truthful foundation.
-6. Once the foundation is sufficient, it writes `version: 1` in `/moldea/moldea.yaml`, omits empty optional mappings, and creates concise `/moldea/project.md` content.
-7. It adds exactly one correctly marked README awareness block while preserving unrelated README content.
-8. It reruns inspection and reports the established understanding, tooling, files, evidence, limitations, and practical next actions.
+2. The coding agent begins with the root README and other high-information project surfaces.
+3. It distinguishes durable foundational truth from temporary, speculative, or easily rediscovered details and determines whether the foundation is insufficient, partial, or sufficient.
+4. It asks a focused question when missing context or a material gap prevents a useful and truthful foundation.
+5. Once the foundation is sufficient, it writes the complete three-file foundation. With no evidenced relationship, `/moldea/moldea.yaml` is exactly `version: 1` plus its final LF; `/moldea/project.md` contains concise grounded context; and README receives exactly one managed awareness block.
+6. It runs one repository-local `validate`. Success ends initialization without `inspect`; a structural failure permits one diagnostic-driven repair and one validation retry.
+7. It reports the established understanding, files, evidence, limitations, and practical next actions.
 
 ## Result
 

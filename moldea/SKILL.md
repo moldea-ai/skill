@@ -3,8 +3,8 @@ name: moldea
 description: >-
   Use for every repository-dependent task, including reviews, plans, and implementation, when this skill is installed in the repository, solely to run the bundled two-byte relevance gate. A gate miss abstains silently while the host workflow continues; only after adoption and relevance are established may moldea inspect explicit moldea work, /moldea/** changes, managed README hunks, or paths matched by a declared binding or affectedBy relationship. Also answer concise informational questions and initialize moldea only when explicitly requested. Do not use for other uninitialized work.
 metadata:
-  version: '5.0.0'
-  cliVersion: '7.0.0'
+  version: "5.0.0"
+  cliVersion: "7.0.0"
   cliJsonSchemaVersion: 4
 ---
 
@@ -96,7 +96,7 @@ After relevance is established, read only what the selected operation needs:
 
 Never read every reference by default. Read a second reference only when the active operation reaches that boundary.
 
-For initialization, load only `references/continuous-maintenance.md`. Invoke the available repository-local CLI directly for final validation. When that invocation succeeds, do not inspect dependency trees, CLI package internals, executable links, global installations, transient tools, or package-manager configuration. Load `references/local-tooling.md` only when the direct repository-local invocation is unavailable or fails for an operational reason that requires tool establishment.
+For initialization, load only `references/continuous-maintenance.md`. When no explicit relationship is established, write the manifest exactly as `version: 1` followed by one LF; never invent project metadata, empty mappings, or placeholder relationships. Write the complete three-file foundation before the first CLI call, then invoke exactly one repository-local `validate` for final validation. On success, stop without `inspect` or another moldea command. On structural failure, use its bounded diagnostics to repair the foundation and run `validate` at most once more. When the direct invocation succeeds, do not inspect dependency trees, CLI package internals, executable links, global installations, transient tools, or package-manager configuration. Load `references/local-tooling.md` only when the direct repository-local invocation is unavailable or fails for an operational reason that requires tool establishment.
 
 ## Use bounded canonical evidence
 

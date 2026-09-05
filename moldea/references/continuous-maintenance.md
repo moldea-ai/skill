@@ -10,7 +10,15 @@ Do not recommend initialization during unrelated work. Do not treat generic know
 
 Create the smallest foundation that accurately represents established current truth. Zero agents, relationships, runtimes, and requirements are valid. Never create placeholder agents or speculative bindings to make a project appear complete.
 
-Use the available repository-local CLI directly for final validation. When that invocation succeeds, do not enumerate dependencies, inspect CLI internals, resolve executable links, search global installations, use transient tooling, or probe package-manager configuration. Load `local-tooling.md` only after the direct invocation is unavailable or fails for an operational reason that requires tool establishment.
+When repository evidence establishes no manifest relationship, the complete manifest is exactly:
+
+```yaml
+version: 1
+```
+
+The file ends with one LF. Do not add a project name, schema field, metadata, empty optional mappings, a `/moldea/project.md` registration, source globs, or any other relationship merely to describe the project or make the manifest look complete.
+
+Do not validate a partial foundation. Write `/moldea/moldea.yaml`, `/moldea/project.md`, and the complete managed README block before the first CLI call. Then use the available repository-local CLI directly for exactly one final `validate`. On success, stop without `inspect` or another moldea command. On structural failure, use only its bounded diagnostics to repair the foundation and run `validate` at most once more. When the direct invocation succeeds, do not enumerate dependencies, inspect CLI internals, resolve executable links, search global installations, use transient tooling, or probe package-manager configuration. Load `local-tooling.md` only after the direct invocation is unavailable or fails for an operational reason that requires tool establishment.
 
 ## Maintain owned truth
 

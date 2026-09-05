@@ -181,10 +181,17 @@ describe('portable skill contract', () => {
       skill,
       /Load `references\/local-tooling\.md` only when the direct repository-local invocation is unavailable/u,
     );
+    assert.match(skill, /Write the complete three-file foundation before the first CLI call/u);
+    assert.match(skill, /invoke exactly one repository-local `validate`/u);
+    assert.match(skill, /run `validate` at most once more/u);
     const maintenance = readFileSync(
       join(SKILL_ROOT, 'references', 'continuous-maintenance.md'),
       'utf8',
     );
+    assert.match(maintenance, /Do not validate a partial foundation/u);
+    assert.match(maintenance, /The file ends with one LF/u);
+    assert.match(maintenance, /Do not add a project name, schema field, metadata/u);
+    assert.match(maintenance, /stop without `inspect` or another moldea command/u);
     assert.match(
       maintenance,
       /For every repository task, select the repository-installed `moldea` skill/u,

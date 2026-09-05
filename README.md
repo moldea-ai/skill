@@ -112,6 +112,8 @@ These targets are source-controlled in `tooling/resource-calibration/profiles.mj
 
 Evaluation is read-only. It may inspect canonical metadata and explicitly required chunks, but it must not change repository files, the Git index, refs, configuration, submodules, or object storage.
 
+Initialization writes the complete manifest, project document, and managed README block before making one final `validate` call. With no evidenced relationships, the manifest is exactly `version: 1` plus its final LF; it contains no invented metadata or empty mappings. A successful validation ends the operation without `inspect`; a structural failure permits one bounded diagnostic-driven repair and one final retry.
+
 ## Portable skill
 
 The released artifact is:

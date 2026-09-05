@@ -96,6 +96,8 @@ You do not need to:
 
 The coding agent owns the safe interaction with the skill and repository-local tooling.
 
+During initialization, it writes the complete three-file foundation before making one final validation call. With no evidenced relationships, `/moldea/moldea.yaml` contains only `version: 1` and its final LF. A successful validation ends the operation without a follow-up inspection. If bounded structural diagnostics identify a repairable foundation error, the agent may correct it and validate once more.
+
 Ordinary requests that do not pass the relevance gate activate no `moldea` work, whether or not the repository is adopted. Initialization adds a managed README block that tells a supported repository-aware host to select the repository-bound skill for each repository task. The selected entrypoint runs the two-byte gate, but a miss loads no workflow reference, runs no CLI command, and produces no `moldea` report. Initialization remains an explicit operation and never interrupts unrelated work.
 
 ## Update the skill

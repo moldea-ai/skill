@@ -45,6 +45,8 @@ The committed result records:
 
 Abstention cases require zero recognized `moldea` commands and zero `moldea` bytes. Ordinary activation cases allow at most four recognized commands and 262,144 bytes. The dedicated large-context case allows at most 16 commands and 1 MiB while still requiring paginated, purpose-bounded traversal.
 
+Initialization writes its complete foundation before the first CLI call, using the exact minimal `version: 1` manifest when no relationship is evidenced, then uses one final `validate`. It stops on success; one diagnostic-driven correction and validation retry is the only structural retry. It does not follow successful validation with `inspect`.
+
 The command and byte budgets are owned by `tooling/resource-calibration/profiles.mjs` and backed by `fixtures/resource-calibration.json`. The corpus records three-sample distributions for ordinary, 1,024-path, large-Unicode, diagnostic-heavy, and adversarial inputs, with at least 25 percent cumulative headroom for non-attack cases.
 
 Recognized machine commands must invoke the repository-local CLI directly with `--json --max-output-bytes 65536`. Unbounded, indirect, or output-filtered forms do not count as valid proof.

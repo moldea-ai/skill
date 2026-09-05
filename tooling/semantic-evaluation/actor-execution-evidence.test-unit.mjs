@@ -10,6 +10,11 @@ import {
 } from './actor-execution-evidence.mjs';
 
 const OPTIONS = { cliVersion: '7.0.0', jsonSchemaVersion: 4 };
+const LAUNCHER_PREFIX =
+  'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt --';
+
+const createLauncherCommand = (operation, ...arguments_) =>
+  [LAUNCHER_PREFIX, operation, ...arguments_].join(' ');
 
 const createEnvelope = (command, result) =>
   JSON.stringify({
@@ -49,12 +54,12 @@ const createEvent = (command, output, { exitCode = 0, status = 'completed' } = {
   },
 });
 
-test('projects content-free inspect metadata and exact output bytes', () => {
+test('projects launcher-backed content-free inspect metadata and exact output bytes', () => {
   const output = createEnvelope('inspect', {
     page: { cursor: null, records: [{ kind: 'context', asset: { path: '/moldea/project.md' } }] },
   });
   const evidence = projectActorExecutionEvidenceEvent(
-    createEvent('./node_modules/.bin/moldea inspect --json --max-output-bytes 65536', output),
+    createEvent(createLauncherCommand('inspect', '--json', '--max-output-bytes', '65536'), output),
     OPTIONS,
   );
   assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
@@ -74,10 +79,16 @@ test('projects content-free inspect metadata and exact output bytes', () => {
   assert.equal(evidence.item.outputEvidence.byteCount, Buffer.byteLength(output));
 });
 
-test('recognizes relationship scope and content only through bounded direct CLI commands', () => {
+test('recognizes relationship scope and content only through bounded launcher commands', () => {
   const scope = projectActorExecutionEvidenceEvent(
     createEvent(
-      './node_modules/.bin/moldea scope --path /src/example.ts --json --max-output-bytes 65536',
+      `printf '/src/example.ts\\0' | ${createLauncherCommand(
+        'scope',
+        '--paths-stdin',
+        '--json',
+        '--max-output-bytes',
+        '65536',
+      )}`,
       createEnvelope('scope', {
         relevant: true,
         page: { cursor: null, records: [{ kind: 'match' }] },
@@ -87,7 +98,14 @@ test('recognizes relationship scope and content only through bounded direct CLI 
   );
   const content = projectActorExecutionEvidenceEvent(
     createEvent(
-      './node_modules/.bin/moldea content --path /moldea/project.md --json --max-output-bytes 65536',
+      createLauncherCommand(
+        'content',
+        '--path',
+        '/moldea/project.md',
+        '--json',
+        '--max-output-bytes',
+        '65536',
+      ),
       createEnvelope('content', { chunk: { content: 'bounded' } }),
     ),
     OPTIONS,
@@ -108,7 +126,14 @@ test('recognizes relationship scope and content only through bounded direct CLI 
 test('projects failed content commands without requiring a canonical body', () => {
   const evidence = projectActorExecutionEvidenceEvent(
     createEvent(
-      './node_modules/.bin/moldea content --path /moldea/missing.md --json --max-output-bytes 65536',
+      createLauncherCommand(
+        'content',
+        '--path',
+        '/moldea/missing.md',
+        '--json',
+        '--max-output-bytes',
+        '65536',
+      ),
       createErrorEnvelope('content'),
       { exitCode: 2 },
     ),
@@ -171,7 +196,7 @@ test('rejects inspect output that contains canonical document bodies', () => {
   assert.throws(() =>
     projectActorExecutionEvidenceEvent(
       createEvent(
-        './node_modules/.bin/moldea inspect --json --max-output-bytes 65536',
+        createLauncherCommand('inspect', '--json', '--max-output-bytes', '65536'),
         createEnvelope('inspect', {
           page: { cursor: null, records: [{ asset: { content: 'leak' } }] },
         }),
@@ -181,13 +206,88 @@ test('rejects inspect output that contains canonical document bodies', () => {
   );
 });
 
-test('does not recognize invocations that omit the ordinary page budget', () => {
-  const evidence = projectActorExecutionEvidenceEvent(
-    createEvent('./node_modules/.bin/moldea inspect --json', createEnvelope('inspect', {})),
+test('recognizes validate and fixed-boundary composition launcher operations', () => {
+  const validate = projectActorExecutionEvidenceEvent(
+    createEvent(
+      createLauncherCommand('validate', '--json', '--max-output-bytes', '65536'),
+      createEnvelope('validate', { valid: true }),
+    ),
     OPTIONS,
   );
-  assert.equal(evidence.item.commandKind, 'other');
+  const composition = projectActorExecutionEvidenceEvent(
+    createEvent(
+      createLauncherCommand('composition', '--json'),
+      createEnvelope('composition', { adapters: [] }),
+    ),
+    OPTIONS,
+  );
+
+  assert.deepEqual(createMoldeaResourceEvidence([validate, composition], OPTIONS).operations, [
+    'validate',
+    'composition',
+  ]);
+});
+
+test('counts a valid launcher with malformed output as an unrecognized moldea operation', () => {
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent(
+      createLauncherCommand('validate', '--json', '--max-output-bytes', '65536'),
+      '{not-json}',
+    ),
+    OPTIONS,
+  );
+
+  assert.equal(evidence.item.commandKind, 'moldea');
   assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
+  assert.deepEqual(createMoldeaResourceEvidence([evidence], OPTIONS), {
+    commandCount: 1,
+    maximumInvocationByteCount: 10,
+    modelVisibleToolOutputByteCount: 10,
+    operations: ['unrecognized'],
+    stdoutByteCount: 10,
+  });
+});
+
+test('rejects obsolete and malformed launcher command forms', () => {
+  for (const command of [
+    './node_modules/.bin/moldea validate --json --max-output-bytes 65536',
+    'node /mnt/node_modules/@moldea.ai/cli/dist/moldea.js validate --json --max-output-bytes 65536',
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt validate --json --max-output-bytes 65536',
+    createLauncherCommand('validate', '--', '--json', '--max-output-bytes', '65536'),
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs validate --repository /mnt -- --json --max-output-bytes 65536',
+    createLauncherCommand(
+      'scope',
+      '--path',
+      '/src/example.ts',
+      '--json',
+      '--max-output-bytes',
+      '65536',
+    ),
+    createLauncherCommand(
+      'content',
+      '--path',
+      '/moldea/../secret.md',
+      '--json',
+      '--max-output-bytes',
+      '65536',
+    ),
+    createLauncherCommand('inspect', '--json'),
+    createLauncherCommand('inspect', '--json', '--max-output-bytes', '65535'),
+    createLauncherCommand('composition', '--json', '--max-output-bytes', '65536'),
+    `${createLauncherCommand(
+      'validate',
+      '--json',
+      '--max-output-bytes',
+      '65536',
+    )} && ${createLauncherCommand('inspect', '--json', '--max-output-bytes', '65536')}`,
+  ]) {
+    const evidence = projectActorExecutionEvidenceEvent(
+      createEvent(command, createEnvelope('validate', { valid: true })),
+      OPTIONS,
+    );
+    assert.equal(evidence.item.commandKind, 'other', command);
+    assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized', command);
+  }
 });
 
 test('enforces abstention and relationship ordering', () => {

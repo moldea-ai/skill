@@ -35,6 +35,22 @@ const runCli = (repositoryPath, arguments_, input) => {
   return result.stdout;
 };
 
+const runLauncher = (repositoryPath, arguments_, input) => {
+  const result = spawnSync(
+    process.execPath,
+    [
+      join(repositoryPath, '.agents', 'skills', 'moldea', 'scripts', 'moldea-cli.mjs'),
+      '--repository',
+      repositoryPath,
+      '--',
+      ...arguments_,
+    ],
+    { cwd: repositoryPath, encoding: 'utf8', input },
+  );
+  assert.equal(result.status, 0, result.stderr);
+  return result.stdout;
+};
+
 test('all clean-slate semantic cases materialize their declared repository evidence', async () => {
   assert.equal(SEMANTIC_CASES.length, 18);
 
@@ -133,19 +149,24 @@ test('an unchanged explicitly named affectedBy path resolves only its bounded ow
   }
 });
 
-test('bounded direct CLI executions project safe facts without retaining commands or content', async () => {
+test('bounded launcher executions with stdin project safe facts without retaining commands or content', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-cli-evidence-'));
   const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'zero-agent-project-validation');
   assert.ok(caseDefinition);
 
   try {
     const { repositoryPath } = await createActorRepository(evaluationRoot, caseDefinition);
-    const commandText = 'node_modules/.bin/moldea inspect --json --max-output-bytes 65536';
-    const stdout = runCli(repositoryPath, ['inspect', '--json', '--max-output-bytes', '65536']);
+    const commandText =
+      "printf '/src/project-state.js\\0' | node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- scope --paths-stdin --json --max-output-bytes 65536";
+    const stdout = runLauncher(
+      repositoryPath,
+      ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+      '/src/project-state.js\0',
+    );
     const envelope = JSON.parse(stdout);
     assert.equal(envelope.schemaVersion, RELEASE_CLI_JSON_SCHEMA_VERSION);
     assert.equal(envelope.cliVersion, RELEASE_CLI_VERSION);
-    assert.equal(envelope.command, 'inspect');
+    assert.equal(envelope.command, 'scope');
     assert.equal(JSON.stringify(envelope).includes('"content"'), false);
 
     const hostOutput = [
@@ -154,7 +175,7 @@ test('bounded direct CLI executions project safe facts without retaining command
           aggregated_output: stdout,
           command: commandText,
           exit_code: 0,
-          id: 'bounded-inspect',
+          id: 'bounded-scope',
           status: 'completed',
           type: 'command_execution',
         },
@@ -178,7 +199,7 @@ test('bounded direct CLI executions project safe facts without retaining command
       Buffer.byteLength(stdout),
     );
     assert.equal(parsed.actorResourceEvidence.stdoutByteCount, Buffer.byteLength(stdout));
-    assert.equal(parsed.actorExecutionEvidence[0].item.outputEvidence.facts[0].command, 'inspect');
+    assert.equal(parsed.actorExecutionEvidence[0].item.outputEvidence.facts[0].command, 'scope');
     assert.equal(
       parsed.actorExecutionEvidence[0].item.outputEvidence.facts[0].containsContent,
       false,

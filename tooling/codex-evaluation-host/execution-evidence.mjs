@@ -133,6 +133,9 @@ const SAFE_MOLDEA_CLI_LAUNCHER_PATHS = new Set([
   './.agents/skills/moldea/scripts/moldea-cli.mjs',
   '/mnt/.agents/skills/moldea/scripts/moldea-cli.mjs',
 ]);
+const MOLDEA_CLI_OPERATIONS = new Set(['composition', 'content', 'inspect', 'scope', 'validate']);
+const MOLDEA_CLI_VALUE_OPTIONS = new Set(['--cursor', '--max-output-bytes', '--path']);
+const MOLDEA_CLI_PAGE_OUTPUT_BYTES = '65536';
 const SAFE_SED_PRINT_SCRIPT_PATTERN = /^\d+(?:,\d+)?p$/u;
 const EVALUATOR_HOME_PATH = '/home/evaluator';
 const SAFE_EVALUATOR_EXECUTABLE_PATHS = new Set([
@@ -571,15 +574,99 @@ const isSafeRelevanceGateCommand = (words) =>
   words[3] === '/mnt' &&
   (words.length === 4 || words[4] === '--adoption-only');
 
+/** Parses the strict option surface for one launcher-backed CLI operation. */
+const parseMoldeaCliOperationArguments = (operation, commandArguments) => {
+  const flags = new Set();
+  const values = new Map();
+
+  for (let index = 0; index < commandArguments.length; index += 1) {
+    const argument = commandArguments[index];
+    if (MOLDEA_CLI_VALUE_OPTIONS.has(argument)) {
+      if (values.has(argument)) return null;
+      const optionValue = commandArguments[index + 1];
+      if (optionValue === undefined || optionValue === '' || optionValue.startsWith('--')) {
+        return null;
+      }
+      values.set(argument, optionValue);
+      index += 1;
+      continue;
+    }
+    if (!['--json', '--paths-stdin'].includes(argument) || flags.has(argument)) return null;
+    flags.add(argument);
+  }
+
+  if (!flags.has('--json')) return null;
+  if (operation === 'composition') {
+    return flags.size === 1 && values.size === 0 ? operation : null;
+  }
+  if (values.get('--max-output-bytes') !== MOLDEA_CLI_PAGE_OUTPUT_BYTES) return null;
+
+  const cursor = values.get('--cursor');
+  if (cursor !== undefined && Buffer.byteLength(cursor, 'utf8') > 8_192) return null;
+  const logicalPath = values.get('--path');
+  if (operation === 'content') {
+    if (
+      flags.size !== 1 ||
+      logicalPath === undefined ||
+      !logicalPath.startsWith('/moldea/') ||
+      logicalPath.includes('\\') ||
+      logicalPath.includes('\0') ||
+      posix.normalize(logicalPath) !== logicalPath
+    ) {
+      return null;
+    }
+  } else if (operation === 'scope') {
+    if (flags.size !== 2 || !flags.has('--paths-stdin') || logicalPath !== undefined) return null;
+  } else if (flags.size !== 1 || logicalPath !== undefined) return null;
+
+  const allowedValues =
+    operation === 'content'
+      ? new Set(['--cursor', '--max-output-bytes', '--path'])
+      : new Set(['--cursor', '--max-output-bytes']);
+  return [...values.keys()].every((option) => allowedValues.has(option)) ? operation : null;
+};
+
+/** Returns the supported operation for one exact launcher command word sequence. */
+const identifyMoldeaCliLauncherOperationFromWords = (words) => {
+  if (
+    !isTrustedLocalExecutable(words[0], 'node') ||
+    !SAFE_MOLDEA_CLI_LAUNCHER_PATHS.has(words[1]) ||
+    words[2] !== '--repository' ||
+    words[3] !== '/mnt' ||
+    words[4] !== '--' ||
+    words.slice(5).includes('--') ||
+    !MOLDEA_CLI_OPERATIONS.has(words[5])
+  ) {
+    return null;
+  }
+
+  return parseMoldeaCliOperationArguments(words[5], words.slice(6));
+};
+
+/**
+ * Identifies exactly one launcher-backed moldea operation without retaining the command.
+ * @param command The completed Codex command text.
+ * @returns The supported operation, or `null` when zero or multiple launchers are recognizable.
+ */
+export const identifyMoldeaCliLauncherOperation = (command) => {
+  if (typeof command !== 'string' || Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
+    return null;
+  }
+  const directCommand = unwrapCodexShellCommand(command);
+  const commands =
+    directCommand === null
+      ? null
+      : tokenizeStaticShellList(stripSafeShellRedirections(directCommand));
+  if (commands === null) return null;
+  const operations = commands
+    .map(identifyMoldeaCliLauncherOperationFromWords)
+    .filter((operation) => operation !== null);
+  return operations.length === 1 ? operations[0] : null;
+};
+
 /** Checks the fixed Node invocation for the bundled repository-local CLI launcher. */
 const isSafeMoldeaCliLauncherCommand = (words) =>
-  isTrustedLocalExecutable(words[0], 'node') &&
-  words.length >= 7 &&
-  SAFE_MOLDEA_CLI_LAUNCHER_PATHS.has(words[1]) &&
-  words[2] === '--repository' &&
-  words[3] === '/mnt' &&
-  words[4] === '--' &&
-  ['composition', 'content', 'inspect', 'scope', 'validate'].includes(words[5]);
+  identifyMoldeaCliLauncherOperationFromWords(words) !== null;
 
 /** Returns a Git subcommand after validating the global options that precede it. */
 const identifyGitSubcommand = (words) => {

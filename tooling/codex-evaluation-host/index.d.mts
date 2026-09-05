@@ -80,6 +80,10 @@ export type ICodexEvaluationExecutionEvidence = {
   } | null;
 };
 
+export type IMoldeaCliOperation = 'composition' | 'content' | 'inspect' | 'scope' | 'validate';
+
+export const identifyMoldeaCliLauncherOperation: (command: string) => IMoldeaCliOperation | null;
+
 export class CodexEvaluationOperationalRetryExhaustedError extends Error {
   public readonly category: 'execution-failed' | 'proxy-unavailable' | 'timed-out';
   public readonly failureCount: number;

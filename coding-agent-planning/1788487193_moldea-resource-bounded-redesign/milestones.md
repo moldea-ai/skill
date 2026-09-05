@@ -316,7 +316,41 @@ Eliminate the paid Custom qualification's ambiguous CLI invocation, opaque/conte
 
 Inspect launcher trust and portability, duplicate resolver removal, exact output/exit behavior, policy false negatives and false positives, sandbox dependence, privacy-safe diagnostics, protocol closure, operating-limit calibration, test adversariality, documentation truth, and absence of model calls.
 
-## Milestone 12: Fresh semantic and adapter qualification evidence
+## Milestone 12: Semantic launcher accounting correction (completed)
+
+### Objective
+
+Eliminate the protocol-23 semantic evaluator's false zero-command result by aligning actor resource projection with the already published launcher-only skill contract before another paid model call.
+
+### Dependencies
+
+- Milestone 11 complete, reviewed, and published at `2a3c494139f7878b88bf5e3b933d72562300248c`.
+- Preserve failed semantic attempt `20260905T200701120Z-semantic-6f9736b9` byte-for-byte as inactive diagnostic evidence; do not promote it into release evidence.
+
+### Scope and implementation
+
+1. Replace the semantic projector's direct `node_modules/.bin/moldea` recognizer with one strict parser for the installed skill launcher's `scripts/moldea-cli.mjs --repository <absolute-root> -- <operation>` command form.
+2. Identify exactly one supported operation after the launcher's separator, require JSON plus `--max-output-bytes 65536` for every non-composition operation, accept current `scope --paths-stdin`, retain canonical-path validation for `content --path /moldea/...`, and require composition's fixed-boundary JSON form without a page override.
+3. Count every syntactically valid launcher attempt against command and output budgets. Expose its named operation and semantic facts only when completed child output is a matching CLI 7/schema-4 envelope; represent malformed output as a counted `unrecognized` moldea operation.
+4. Keep direct CLI binaries, missing or duplicate separators, operations before the separator, obsolete `scope --path`, malformed canonical paths, and invalid output-bound combinations unrecognized. Replace obsolete direct-CLI unit fixtures with launcher-backed cases and add adversarial rejection coverage without storing raw commands or output bodies.
+5. Run the focused and broader deterministic semantic/evaluation-host suites, review the exact correction, and publish its signed and signed-off commit before restarting semantic evidence.
+
+### Tests and verification
+
+- Focused actor-execution-evidence unit coverage for all five launcher operations, current scope/content arguments, exact one-command accounting, valid and malformed envelopes, and every rejected obsolete or malformed command form.
+- Semantic runner unit/integration, evaluation-host unit/integration, root unit/integration, docs/path/resource/release checks, formatting, and diff checks affected by the evaluator source identity.
+
+### Acceptance criteria
+
+- The exact launcher command used by initialization projects one `validate` operation with its bounded CLI envelope and non-zero moldea resource evidence.
+- A syntactically valid launcher with malformed output remains a counted `unrecognized` operation; no direct CLI or obsolete scope syntax is accepted, and no raw command/output body enters immutable evidence.
+- No skill, CLI, budget, package, or public runtime contract changes, and the deterministic correction is reviewed and published before another paid model call.
+
+### Review checkpoint
+
+Inspect parser strictness, operation position, argument validation, composition's fixed boundary, envelope identity, one-command accounting including malformed output, privacy, obsolete-path rejection, failed-attempt preservation, test adversariality, and source-identity invalidation.
+
+## Milestone 13: Fresh semantic and adapter qualification evidence
 
 ### Objective
 
@@ -324,7 +358,7 @@ Generate complete fresh model evidence once against the final launcher-backed sk
 
 ### Dependencies
 
-- Milestone 11 complete, reviewed, and published.
+- Milestone 12 complete, reviewed, and published.
 - Authenticated model evaluation and qualification hosts.
 
 ### Scope and implementation
@@ -351,7 +385,7 @@ Generate complete fresh model evidence once against the final launcher-backed sk
 
 Inspect cost, quality, clean/recovered outcomes, launcher use, policy reasons, ordinary headroom, universal/adapter ownership, exact input identity, failures/reruns, and fresh provenance.
 
-## Milestone 13: Clean skill release and final cross-repository audit
+## Milestone 14: Clean skill release and final cross-repository audit
 
 ### Objective
 
@@ -359,7 +393,7 @@ Publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prov
 
 ### Dependencies
 
-- Milestone 12 passing fresh evidence or an explicitly selected valid pin.
+- Milestone 13 passing fresh evidence or an explicitly selected valid pin.
 - Authenticated skill main/release/site publication and hosted release deletion capabilities where required.
 
 ### Scope and implementation
@@ -387,4 +421,4 @@ Inspect release identity, portable/exact CLI boundaries, evidence provenance, ac
 
 ## Execution scope
 
-Preserve completed and published Milestones 1 through 10. Execute Milestone 11 first with no paid model calls: add the verified bundled CLI launcher, contextual protocol-8 command-policy diagnostics, scenario-owned operating budgets, deterministic adversarial coverage, directly affected documentation, read-only review/correction, and signed publication. Only after that checkpoint may Milestone 12 regenerate the semantic suite, universal Custom qualification, thirteen adapter-specific profiles, and fresh release evidence, with no calibration-only paid calls and no adapter run before Custom passes. Finish with Milestone 13's clean skill 5.0.0 release, protocol-7 and active legacy removal, authorized 4.0.x release-surface cleanup, and cross-repository audit. Every incomplete milestone includes its implementation, tests, documentation, review loop, signed publication, required main integration, and workflow verification without modifying protected instructions, bundling unrelated work, weakening protections, retaining compatibility code, or allowing incomplete evidence to appear successful.
+Preserve completed and published Milestones 1 through 11. Execute Milestone 12 without another paid call: replace stale direct-CLI semantic projection with strict launcher-only parsing, current operation arguments, exact composition/non-composition output-bound validation, counted malformed launcher attempts, and adversarial deterministic tests; retain the failed protocol-23 attempt as inactive diagnostics; review and publish the correction. Milestone 13 then regenerates only invalidated semantic evidence, runs universal Custom qualification and thirteen adapter-specific profiles, and records fresh release evidence, with no calibration-only paid calls and no adapter run before Custom passes. Finish with Milestone 14's clean skill 5.0.0 release, protocol-7 and active legacy removal, authorized 4.0.x release-surface cleanup, and cross-repository audit. Every incomplete milestone includes its implementation, tests, documentation, review loop, signed publication, required main integration, and workflow verification without modifying protected instructions, bundling unrelated work, weakening protections, retaining compatibility code, or allowing incomplete evidence to appear successful.

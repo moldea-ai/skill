@@ -4,6 +4,7 @@ import test from 'node:test';
 
 import {
   hasPassingCodexEvaluationCommandPolicy,
+  identifyMoldeaCliLauncherOperation,
   projectCodexEvaluationExecutionEvidence,
 } from './execution-evidence.mjs';
 
@@ -495,6 +496,17 @@ test('execution evidence accepts a fixed Bash wrapper without exposing it', () =
   assert.equal(result.commandPolicy.networkAccess.status, 'not-observed');
   assert.equal(result.commandPolicy.sensitiveAccess.status, 'not-observed');
   assert.doesNotMatch(result.projectedEvents, /\/mnt\/node_modules|inspect/u);
+});
+
+test('launcher identification permits one static stdin producer and rejects multiple launchers', () => {
+  const launcher =
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- scope --paths-stdin --json --max-output-bytes 65536';
+
+  assert.equal(
+    identifyMoldeaCliLauncherOperation(`printf '/src/project-state.js\\0' | ${launcher}`),
+    'scope',
+  );
+  assert.equal(identifyMoldeaCliLauncherOperation(`${launcher} && ${launcher}`), null);
 });
 
 test('execution evidence rejects more than 32 moldea commands with actionable counts', () => {

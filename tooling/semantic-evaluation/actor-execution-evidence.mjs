@@ -1,26 +1,10 @@
-import { posix } from 'node:path';
-
+import { identifyMoldeaCliLauncherOperation } from '../codex-evaluation-host/index.mjs';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
 
 const COMMAND_COMPLETED_STATUSES = new Set(['completed', 'failed']);
 const MOLDEA_COMMANDS = new Set(['composition', 'content', 'inspect', 'scope', 'validate']);
 const MOLDEA_STATUSES = new Set(['error', 'invalid', 'valid']);
 const OUTPUT_DISPOSITIONS = new Set(['empty', 'projected', 'too-large', 'unrecognized']);
-const RECOGNIZED_MOLDEA_EXECUTABLE_PATHS = [
-  'node_modules/.bin/moldea',
-  './node_modules/.bin/moldea',
-  '/mnt/node_modules/.bin/moldea',
-  'node_modules/@moldea.ai/cli/dist/moldea.js',
-  './node_modules/@moldea.ai/cli/dist/moldea.js',
-  '/mnt/node_modules/@moldea.ai/cli/dist/moldea.js',
-];
-const RECOGNIZED_MOLDEA_INVOCATION_PREFIXES = [
-  ...RECOGNIZED_MOLDEA_EXECUTABLE_PATHS,
-  ...RECOGNIZED_MOLDEA_EXECUTABLE_PATHS.flatMap((executablePath) => [
-    `node ${executablePath}`,
-    `/opt/node ${executablePath}`,
-  ]),
-];
 const MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxActorExecutionEvidenceItems;
 const MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES =
@@ -51,28 +35,6 @@ const hasValidProjectionOptions = (options) =>
   /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u.test(options.cliVersion) &&
   Number.isSafeInteger(options.jsonSchemaVersion) &&
   options.jsonSchemaVersion > 0;
-
-/** Returns a recognized operation only for a direct repository-local CLI invocation. */
-const recognizeMoldeaOperation = (command) => {
-  for (const prefix of RECOGNIZED_MOLDEA_INVOCATION_PREFIXES) {
-    const prefixIndex = command.indexOf(prefix);
-    if (prefixIndex === -1) continue;
-    const suffix = command.slice(prefixIndex + prefix.length).trimStart();
-    const operation = [...MOLDEA_COMMANDS].find(
-      (candidate) => suffix === candidate || suffix.startsWith(`${candidate} `),
-    );
-    if (operation === undefined) continue;
-    if (!command.includes('--json') || !command.includes('--max-output-bytes 65536')) continue;
-    if (operation === 'scope' && !command.includes('--path')) continue;
-    if (operation === 'content') {
-      const pathMatch = command.match(/--path\s+([^\s'";|&]+)/u);
-      if (pathMatch === null || !pathMatch[1].startsWith('/moldea/')) continue;
-      if (posix.normalize(pathMatch[1]) !== pathMatch[1]) continue;
-    }
-    return operation;
-  }
-  return null;
-};
 
 const containsContentField = (value) => {
   if (Array.isArray(value)) return value.some(containsContentField);
@@ -261,7 +223,7 @@ export const projectActorExecutionEvidenceEvent = (event, options) => {
   ) {
     throw new Error('A completed Codex command event did not include its result evidence.');
   }
-  const operation = recognizeMoldeaOperation(item.command);
+  const operation = identifyMoldeaCliLauncherOperation(item.command);
   const entry = {
     eventType: event.type,
     item: {

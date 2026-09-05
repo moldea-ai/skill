@@ -35,6 +35,7 @@ export {
 // execution evidence
 export {
   hasPassingCodexEvaluationCommandPolicy,
+  identifyMoldeaCliLauncherOperation,
   projectCodexEvaluationExecutionEvidence,
 } from './execution-evidence.mjs';
 

@@ -108,9 +108,10 @@ Use only a stable repository-root-local CLI satisfying `^7.0.0` and JSON schema 
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- validate --json --max-output-bytes 65536
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- inspect --json --max-output-bytes 65536
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- content --path /moldea/project.md --json --max-output-bytes 65536
+node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- validate --json --max-output-bytes 65536 --cursor "<opaque-cursor>"
 ```
 
-Use `validate` when structure is the question, `inspect` only for necessary inventory, and `content` only for one explicitly selected canonical owner. Follow an opaque cursor only while another page or Unicode-safe content chunk can change the current conclusion. Never request or reconstruct a complete project-content dump.
+Use `validate` when structure is the question, `inspect` only for necessary inventory, and `content` only for one explicitly selected canonical owner. Follow an opaque cursor only while another page or Unicode-safe content chunk can change the current conclusion. Repeat the same standalone launcher operation, append the exact cursor from the immediately preceding envelope as `--cursor "<opaque-cursor>"`, and retain `--json --max-output-bytes 65536`. Process each raw envelope directly. Do not hide pagination inside a pipeline, command substitution, scripted loop, parser, output filter, or aggregate wrapper. Claim complete traversal only after the final raw envelope returns a null cursor. Never request or reconstruct a complete project-content dump.
 
 Keep every ordinary invocation at or below 65,536 output bytes, ordinary aggregate moldea output at or below 262,144 bytes, and every invocation below the CLI's 1 MiB hard maximum. Larger repositories use metadata pages and explicit content chunks; these limits bound peaks, not repository size. If required evidence cannot fit within the task's bounded traversal, report the exact incomplete conclusion and continuation point. Never convert truncated or resource-exhausted evidence into validity or approval.
 

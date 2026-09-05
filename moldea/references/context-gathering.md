@@ -27,7 +27,7 @@ Read the package manifest and only the relevant lockfile entry instead of dumpin
 
 For relationship-gated work, reuse the successful `scope` result as the complete relevant-owner inventory. Do not run `inspect` after `scope`. The scope call is the first of at most four ordinary CLI calls, leaving no more than three calls for necessary structural validation and explicitly selected owner content.
 
-Use `validate` when structure is the only question. Use content-free `inspect` only when the operation needs canonical paths, digests, counts, relationships, requirements, mirrors, runtimes, or diagnostics. Process the first 65,536-byte page directly and follow its cursor only while another page can change the conclusion.
+Use `validate` when structure is the only question. Use content-free `inspect` only when the operation needs canonical paths, digests, counts, relationships, requirements, mirrors, runtimes, or diagnostics. Process the first 65,536-byte raw envelope directly. When another page can change the conclusion, repeat the same standalone launcher operation with the exact cursor from that envelope as `--cursor "<opaque-cursor>"` and retain `--json --max-output-bytes 65536`. Do not pipeline, wrap, parse, filter, aggregate, or script the page sequence. Treat the traversal as complete only after a raw envelope returns a null cursor.
 
 Use `content` for one canonical path only after metadata identifies the owner or the direct task already names it. Read only the chunks needed to answer or edit the relevant contract. Never obtain every canonical body for orientation.
 

@@ -290,7 +290,7 @@ export const loadSemanticEvaluationWebsiteModel = (
     evaluationModel: 'gpt-5.6-sol',
     failedCaseCount: currentAssurance?.result.failedCaseCount ?? 0,
     groups,
-    hasAttempt: currentAssurance !== null,
+    hasAttempt: attemptModels.length > 0,
     lastPassing,
     latest,
     latestPointer,

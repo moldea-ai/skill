@@ -625,4 +625,39 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.evaluatedAt).toBeNull();
     expect(model.pendingCaseCount).toBe(model.caseCount);
   });
+
+  test('retains immutable attempt history when the current skill no longer matches it', async () => {
+    const root = createTemporaryRoot();
+    const { cases, coverage } = loadInputs(root);
+    await recordCandidate(
+      root,
+      createCandidate(
+        root,
+        cases,
+        coverage,
+        cases.map(({ id }) => id),
+        null,
+        '2026-08-25T12:00:00.000Z',
+      ),
+      cases.length,
+      'complete',
+    );
+    const skillPath = join(root, 'moldea/SKILL.md');
+    writeFileSync(
+      skillPath,
+      `${readFileSync(skillPath, 'utf8')}\nCurrent release change.\n`,
+      'utf8',
+    );
+
+    const model = loadSemanticEvaluationWebsiteModel(root);
+
+    expect(model.status).toBe('not-recorded');
+    expect(model.hasAttempt).toBe(true);
+    expect(model.currentAssurance).toBeNull();
+    expect(model.evidenceMatch).toBeNull();
+    expect(model.attempts).toHaveLength(1);
+    expect(model.latest?.result.status).toBe('passed');
+    expect(model.passedCaseCount).toBe(0);
+    expect(model.pendingCaseCount).toBe(model.caseCount);
+  });
 });

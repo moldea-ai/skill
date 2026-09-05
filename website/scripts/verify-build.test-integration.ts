@@ -58,6 +58,7 @@ describe('verifyProductionBuild', () => {
       ({ url }) => url === withBase(model.semanticEvaluation.route, basePath),
     );
     const currentAssurance = model.semanticEvaluation.currentAssurance;
+    const hasAttemptHistory = model.semanticEvaluation.attempts.length > 0;
     const successfulCaseCount =
       model.semanticEvaluation.passedCaseCount + model.semanticEvaluation.recoveredCaseCount;
 
@@ -74,15 +75,15 @@ describe('verifyProductionBuild', () => {
       currentAssurance === null ? 'No current evidence' : 'Exact release inputs',
     );
     expect(semanticHtml).toContain(
-      currentAssurance === null
+      !hasAttemptHistory
         ? 'No semantic attempt has been recorded for this release candidate yet.'
-        : currentAssurance.result.attemptId,
+        : model.semanticEvaluation.latest?.result.attemptId,
     );
     expect(llmsText).toContain(
-      currentAssurance === null ? 'before the first attempt is recorded' : 'Review the latest',
+      hasAttemptHistory ? 'Review the latest' : 'before the first attempt is recorded',
     );
     expect(semanticSearchRecord?.description).toContain(
-      currentAssurance === null ? 'before the first attempt is recorded' : 'latest',
+      hasAttemptHistory ? 'latest' : 'before the first attempt is recorded',
     );
 
     for (const route of [

@@ -41,9 +41,16 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
     /semantic-evaluation-coverage\.json$/u,
   );
   if (semanticEvaluation.currentAssurance === null) {
-    await expect(
-      page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
-    ).toBeVisible();
+    if (semanticEvaluation.attempts.length === 0) {
+      await expect(
+        page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
+      ).toBeVisible();
+    } else {
+      await expect(
+        page.getByText('No semantic attempt has been recorded for this release candidate yet.'),
+      ).toHaveCount(0);
+      await expect(attemptLinks.filter({ hasText: 'Latest' })).toBeVisible();
+    }
     return;
   }
 

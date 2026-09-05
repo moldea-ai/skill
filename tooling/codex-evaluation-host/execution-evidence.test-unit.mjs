@@ -512,6 +512,17 @@ test('launcher identification permits one static stdin producer and rejects mult
   assert.equal(identifyMoldeaCliLauncherOperation(`${launcher} && ${launcher}`), null);
 });
 
+test('launcher identification counts one opaque-cursor continuation even when wrapped', () => {
+  const continuation =
+    'node /mnt/.agents/skills/moldea/scripts/moldea-cli.mjs --repository /mnt -- validate --json --max-output-bytes 65536 --cursor "opaque.snapshot.cursor"';
+
+  assert.equal(identifyMoldeaCliLauncherOperation(continuation), 'validate');
+  assert.equal(
+    identifyMoldeaCliLauncherOperation(`${continuation} | node -e "process.stdin.resume()"`),
+    'validate',
+  );
+});
+
 test('execution evidence rejects more than 32 moldea commands with actionable counts', () => {
   const source = Array.from({ length: 33 }, () =>
     createCommandEvent(

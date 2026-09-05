@@ -228,6 +228,51 @@ test('recognizes validate and fixed-boundary composition launcher operations', (
   ]);
 });
 
+test('projects standalone validation continuation pages independently', () => {
+  const createInvalidValidationEnvelope = (cursor) =>
+    JSON.stringify({
+      schemaVersion: 4,
+      cliVersion: '7.0.0',
+      command: 'validate',
+      status: 'invalid',
+      result: { page: { cursor, records: [{ kind: 'diagnostic' }] } },
+      error: null,
+    });
+  const firstPage = projectActorExecutionEvidenceEvent(
+    createEvent(
+      createLauncherCommand('validate', '--json', '--max-output-bytes', '65536'),
+      createInvalidValidationEnvelope('opaque.snapshot.cursor'),
+      { exitCode: 1, status: 'failed' },
+    ),
+    OPTIONS,
+  );
+  const finalPage = projectActorExecutionEvidenceEvent(
+    createEvent(
+      createLauncherCommand(
+        'validate',
+        '--json',
+        '--max-output-bytes',
+        '65536',
+        '--cursor',
+        'opaque.snapshot.cursor',
+      ),
+      createInvalidValidationEnvelope(null),
+      { exitCode: 1, status: 'failed' },
+    ),
+    OPTIONS,
+  );
+
+  assert.deepEqual(
+    [firstPage, finalPage].map(({ item }) => item.outputEvidence.facts[0].hasNextPage),
+    [true, false],
+  );
+  assert.deepEqual(createMoldeaResourceEvidence([firstPage, finalPage], OPTIONS).operations, [
+    'validate',
+    'validate',
+  ]);
+  assert.equal(JSON.stringify([firstPage, finalPage]).includes('opaque.snapshot.cursor'), false);
+});
+
 test('counts a valid launcher with malformed output as an unrecognized moldea operation', () => {
   const evidence = projectActorExecutionEvidenceEvent(
     createEvent(

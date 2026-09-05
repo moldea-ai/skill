@@ -52,6 +52,8 @@ Case budgets are declared in `fixtures/conformance-cases.json`; their maximum va
 
 Recognized machine commands must use the installed skill's `scripts/moldea-cli.mjs` launcher with an absolute repository root, `--json`, and the required output boundary. Bare, package-manager, unbounded, escaped, or output-filtered forms do not count as valid proof.
 
+Paged proof keeps every page independently attributable. The actor repeats the same standalone launcher operation with the exact cursor from the immediately preceding raw envelope, keeps the 65,536-byte boundary, and may report complete traversal only after the final raw envelope returns a null cursor. Pipelines, command substitutions, scripted loops, parsers, filters, and aggregate wrappers do not establish page-level proof.
+
 Relationship cases begin from structurally valid adopted repositories. Their first CLI operation is one bounded `scope` call, which serves as the complete relevant-owner inventory instead of being followed by `inspect`. That call is included in the four-command ordinary budget; any remaining calls are limited to necessary validation and explicitly selected owner content.
 
 Every adopted semantic repository contains the current managed README discovery bridge. This proves that repository-aware hosts can select the cheap gate even when a relationship is visible only inside the manifest, while unrelated cases must still stop before any CLI call or workflow-reference load.

@@ -249,6 +249,10 @@ describe('portable skill contract', () => {
     assert.match(skill, /Every recursive search or listing must exclude VCS internals/u);
     assert.match(skill, /Never dump a complete lockfile, dependency inventory, generated tree/u);
     assert.match(skill, /more than 65,536 model-visible bytes/u);
+    assert.match(skill, /--cursor "<opaque-cursor>"/u);
+    assert.match(skill, /exact cursor from the immediately preceding envelope/u);
+    assert.match(skill, /Do not hide pagination inside a pipeline, command substitution/u);
+    assert.match(skill, /final raw envelope returns a null cursor/u);
     assert.match(
       skill,
       /scripts\/moldea-cli\.mjs --repository <absolute-repository-root> -- scope/u,
@@ -275,6 +279,11 @@ describe('portable skill contract', () => {
     assert.match(contextGathering, /exclude VCS internals, dependency trees, generated output/u);
     assert.match(contextGathering, /only the relevant lockfile entry/u);
     assert.match(contextGathering, /one ordinary host command cannot emit more than 65,536/u);
+    assert.match(contextGathering, /same standalone launcher operation/u);
+    assert.match(contextGathering, /Do not pipeline, wrap, parse, filter, aggregate, or script/u);
+    const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
+    assert.match(localTooling, /append `--cursor "<opaque-cursor>"`/u);
+    assert.match(localTooling, /never claim completeness before the final raw envelope/u);
   });
 
   test('defines silent abstention, host ownership, and bounded schema-4 evidence', () => {
@@ -481,6 +490,48 @@ describe('CLI 7 bounded machine protocol', () => {
       assert.equal(content.status, 0);
       assert.ok(Buffer.byteLength(content.stdout) <= 65_536);
       assert.match(JSON.parse(content.stdout).result.chunk.content, /Current project truth/u);
+    } finally {
+      rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  test('continues validation through standalone bounded launcher pages', () => {
+    const root = createProject();
+    try {
+      const contextDeclarations = [];
+      for (let index = 1; index <= 256; index += 1) {
+        const id = String(index).padStart(3, '0');
+        const canonicalPath = `/moldea/context/section-${id}.md`;
+        contextDeclarations.push(`  ${canonicalPath}: {}`);
+        mkdirSync(join(root, 'moldea', 'context'), { recursive: true });
+        writeFileSync(join(root, canonicalPath.slice(1)), `# Context section ${id}\n`);
+      }
+      writeFileSync(
+        join(root, 'moldea', 'moldea.yaml'),
+        `version: 1\n\ncontext:\n${contextDeclarations.join('\n')}\n`,
+      );
+
+      const records = [];
+      let cursor;
+      let pageCount = 0;
+      do {
+        const arguments_ = ['validate', '--json', '--max-output-bytes', '65536'];
+        if (cursor !== undefined) arguments_.push('--cursor', cursor);
+        const page = runCli(root, arguments_);
+        assert.equal(page.status, 1);
+        assert.ok(Buffer.byteLength(page.stdout) <= 65_536);
+        const envelope = JSON.parse(page.stdout);
+        assert.equal(envelope.schemaVersion, 4);
+        assert.equal(envelope.command, 'validate');
+        assert.equal(envelope.status, 'invalid');
+        assert.equal(envelope.error, null);
+        records.push(...envelope.result.page.records);
+        cursor = envelope.result.page.cursor ?? undefined;
+        pageCount += 1;
+      } while (cursor !== undefined);
+
+      assert.ok(pageCount > 1);
+      assert.equal(records.length, 256);
     } finally {
       rmSync(root, { force: true, recursive: true });
     }

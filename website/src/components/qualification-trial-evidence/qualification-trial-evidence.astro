@@ -27,7 +27,7 @@ const trialLabel =
       : 'Confirmation 2';
 const hasPassed = result.passed;
 const getTokenTotal = (usage: typeof result.actorUsage): number | null =>
-  usage === null ? null : usage.inputTokens + usage.cachedInputTokens + usage.outputTokens;
+  usage === null ? null : usage.inputTokens + usage.outputTokens;
 const actorTokenTotal = getTokenTotal(result.actorUsage);
 const judgeTokenTotal = getTokenTotal(result.judgeUsage);
 const headingId = `${caseId}-${trialId}-title`;

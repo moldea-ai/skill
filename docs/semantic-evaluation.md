@@ -16,8 +16,8 @@ The current suite contains 18 cases. It is intentionally small enough to audit a
 
 The cases cover:
 
-- moldea-only silent abstention while unrelated documentation and source reviews continue normally
-- moldea-only silent abstention while README changes outside the managed block continue normally
+- `moldea`-only silent abstention while unrelated documentation and source reviews continue normally
+- `moldea`-only silent abstention while README changes outside the managed block continue normally
 - host planning and review command precedence
 - no activation from generic durable-knowledge language
 - direct activation for canonical files and the managed README block
@@ -80,7 +80,7 @@ npm run eval:semantic:preflight
 
 Preflight validates all case definitions, source evidence, portable skill structure, CLI identity, resource budgets, and repository setup without making a model call.
 
-It also prints the initial, planned, and maximum paid-call counts plus the maximum token count. The maximum includes two confirmation trials after an initial failure and one bounded operational retry per actor or judge stage. Each completed stage may report at most 262,144 input-plus-output tokens. Crossing that ceiling is an explicit failure and cached input is reported separately without being counted twice.
+It also prints the initial, planned, and maximum paid-stage counts plus the maximum token count. The maximum includes two confirmation trials after an initial failure and one bounded operational retry per actor or judge stage. Each completed tool-using Codex stage may report at most 1,048,576 cumulative input-plus-output tokens. This is a containment ceiling rather than a consumption target. Crossing it is an explicit failure, and cached input is reported separately without being added to input a second time.
 
 ## Record and verify
 

@@ -58,9 +58,9 @@ const createScenario = (pathPattern: string) => ({
 test('accepts bounded model usage and rejects invalid cached or total token counts', () => {
   expect(
     ModelUsageSchema.safeParse({
-      cachedInputTokens: 131_072,
-      inputTokens: 131_072,
-      outputTokens: 131_072,
+      cachedInputTokens: 524_288,
+      inputTokens: 524_288,
+      outputTokens: 524_288,
     }).success,
   ).toBe(true);
   expect(
@@ -73,7 +73,7 @@ test('accepts bounded model usage and rejects invalid cached or total token coun
   expect(
     ModelUsageSchema.safeParse({
       cachedInputTokens: 0,
-      inputTokens: 262_144,
+      inputTokens: 1_048_576,
       outputTokens: 1,
     }).success,
   ).toBe(false);

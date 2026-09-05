@@ -367,6 +367,7 @@ const collectCalibration = async (sampleCount) => {
         minimumHeadroomPercent: CALIBRATION_MINIMUM_HEADROOM_PERCENT,
         notes: [
           'Duration and process RSS are recorded distributions, not pass/fail thresholds.',
+          'The host token ceiling bounds cumulative input plus output for one completed Codex stage.',
           'Temporary fixture trees are deleted after every run.',
           'Output limits apply to one encoded CLI page and never to repository size.',
         ],

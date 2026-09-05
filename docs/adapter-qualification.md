@@ -45,7 +45,7 @@ Each actor or judge stage records:
 
 The stage ceilings are 32 `moldea` invocations, 8 MiB of `moldea` output, and 16 MiB of total model-visible tool output. They are deliberately higher than the ordinary skill targets so large repositories can be handled through bounded pagination. Crossing a ceiling is an explicit stage failure with the measured value and limit.
 
-Each completed actor or judge stage also permits at most 262,144 input-plus-output tokens. Before the first uncached model call, the CLI reports the planned calls, the maximum calls including one operational retry per stage, the per-stage token ceiling, and the corresponding aggregate maximum. Cached input remains visible in evidence but is not counted twice.
+Each completed actor or judge stage also permits at most 1,048,576 cumulative input-plus-output tokens. This ceiling contains a complete tool-using Codex stage rather than one internal model turn, and it is not a consumption target. Before the first uncached model call, the CLI reports the planned stages, the maximum stages including one operational retry per stage, the per-stage token ceiling, and the corresponding aggregate maximum. Cached input remains visible in evidence but is not added to input a second time.
 
 The ceilings are imported from the same source-controlled profile used by semantic evaluation and host execution. Deterministic boundary tests prove explicit failure above each containment ceiling, while the calibration corpus establishes normal and intentional large-traversal consumption without treating those host ceilings as targets.
 

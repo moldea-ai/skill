@@ -134,7 +134,7 @@ npm run qualification -- verify
 
 Use `--json` for machine-readable output. Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in attempt storage for explicit inspection. Paid `run`, `diagnose`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first uncached model call. Cache hits and the model-free dry run require no paid confirmation.
 
-Immediately before paid execution, the CLI reports planned calls, the maximum including one bounded operational retry per stage, the 262,144-token stage ceiling, and its aggregate maximum. Token totals count input plus output while reporting cached input separately.
+Immediately before paid execution, the CLI reports planned stages, the maximum including one bounded operational retry per stage, the 1,048,576-token stage ceiling, and its aggregate maximum. The ceiling contains a complete tool-using Codex stage and is not a consumption target. Token totals count input plus output while reporting cached input separately without adding it twice.
 
 ## Model-free dry run
 

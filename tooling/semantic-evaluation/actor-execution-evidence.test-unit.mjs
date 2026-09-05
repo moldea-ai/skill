@@ -21,13 +21,30 @@ const createEnvelope = (command, result) =>
     error: null,
   });
 
-const createEvent = (command, output) => ({
+const createErrorEnvelope = (command) =>
+  JSON.stringify({
+    schemaVersion: 4,
+    cliVersion: '7.0.0',
+    command,
+    status: 'error',
+    result: null,
+    error: {
+      code: 'CONTENT_PATH_INVALID',
+      details: {},
+      message: 'The requested canonical content path is invalid.',
+      path: null,
+      retryable: false,
+      source: 'input',
+    },
+  });
+
+const createEvent = (command, output, { exitCode = 0, status = 'completed' } = {}) => ({
   type: 'item.completed',
   item: {
     type: 'command_execution',
     command,
-    status: 'completed',
-    exit_code: 0,
+    status,
+    exit_code: exitCode,
     aggregated_output: output,
   },
 });
@@ -86,6 +103,32 @@ test('recognizes relationship scope and content only through bounded direct CLI 
     }),
     true,
   );
+});
+
+test('projects failed content commands without requiring a canonical body', () => {
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent(
+      './node_modules/.bin/moldea content --path /moldea/missing.md --json --max-output-bytes 65536',
+      createErrorEnvelope('content'),
+      { exitCode: 2 },
+    ),
+    OPTIONS,
+  );
+
+  assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
+  assert.deepEqual(evidence.item.outputEvidence.facts[0], {
+    cliVersion: '7.0.0',
+    command: 'content',
+    containsContent: false,
+    errorPresent: true,
+    hasNextPage: false,
+    kind: 'moldea-cli-envelope',
+    pageRecordCount: 0,
+    relevant: null,
+    resultPresent: false,
+    schemaVersion: 4,
+    status: 'error',
+  });
 });
 
 test('accepts zero CLI consumption for informational and abstention paths', () => {

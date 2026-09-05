@@ -167,7 +167,8 @@ const hasValidMoldeaFact = (fact, exitCode, options) =>
   Number.isSafeInteger(fact.pageRecordCount) &&
   fact.pageRecordCount >= 0 &&
   (fact.relevant === null || typeof fact.relevant === 'boolean') &&
-  ((fact.command === 'content' && fact.containsContent) ||
+  ((fact.command === 'content' &&
+    (fact.status === 'valid' ? fact.containsContent : !fact.containsContent)) ||
     (fact.command !== 'content' && !fact.containsContent)) &&
   ((fact.status === 'valid' && exitCode === 0 && fact.resultPresent && !fact.errorPresent) ||
     (fact.status === 'invalid' && exitCode === 1 && fact.resultPresent && !fact.errorPresent) ||

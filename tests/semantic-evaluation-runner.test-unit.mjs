@@ -68,10 +68,55 @@ test('keeps runner-enforced moldea budgets outside semantic judgment', () => {
 
   assert.match(
     prompt,
-    /runner independently proved\s+that the declared moldea activation order and resource budget passed/u,
+    /runner independently evaluated\s+the declared moldea activation order and resource budget/u,
   );
+  assert.match(prompt, /deterministic result is\s+passed/u);
   assert.match(prompt, /Do not compare the total\s+completed-command count/u);
   assert.match(prompt, /Judge only the remaining semantic\s+clauses/u);
+});
+
+test('passes case-budget misses to semantic judgment as a deterministic failure', () => {
+  const prompt = buildJudgePrompt(
+    CASE,
+    'No findings.',
+    { created: [], deleted: [], modified: [] },
+    [],
+    [],
+    null,
+    { completedCommandCount: 1 },
+    {
+      commandCount: 1,
+      maximumInvocationByteCount: 512,
+      modelVisibleToolOutputByteCount: 512,
+      operations: ['validate'],
+      stdoutByteCount: 512,
+    },
+  );
+
+  assert.match(prompt, /deterministic result is\s+did not pass/u);
+});
+
+test('reports safe resource aggregates when malformed judge input is rejected', () => {
+  assert.throws(
+    () =>
+      buildJudgePrompt(
+        CASE,
+        'No findings.',
+        { created: [], deleted: [], modified: [] },
+        [],
+        [],
+        null,
+        { completedCommandCount: 1 },
+        {
+          commandCount: 1,
+          maximumInvocationByteCount: 512,
+          modelVisibleToolOutputByteCount: 512,
+          operations: [],
+          stdoutByteCount: 512,
+        },
+      ),
+    /valid bounded moldea resource evidence: \{"commandCount":1,"maximumInvocationByteCount":512,"modelVisibleToolOutputByteCount":512,"operations":\[\],"stdoutByteCount":512\}/u,
+  );
 });
 
 test('reports the complete bounded semantic paid-execution envelope', () => {

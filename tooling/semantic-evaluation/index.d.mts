@@ -73,6 +73,8 @@ export const createMoldeaResourceEvidence: (
   options: ISemanticActorExecutionEvidenceOptions,
 ) => IMoldeaResourceEvidence;
 
+export const hasValidMoldeaResourceEvidence: (evidence: unknown) => boolean;
+
 export const hasPassingMoldeaResourceBudget: (
   evidence: unknown,
   budget: IMoldeaResourceBudget,

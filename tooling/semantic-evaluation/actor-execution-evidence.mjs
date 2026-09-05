@@ -28,6 +28,10 @@ const MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES =
 const MAX_MOLDEA_OUTPUT_BYTES =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaInvocationOutputBytes;
 const MAX_OTHER_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxOtherCommandOutputBytes;
+const MAX_AGGREGATE_MOLDEA_OUTPUT_BYTES =
+  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaOutputBytes;
+const MAX_MOLDEA_COMMAND_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaCommandCount;
+const MOLDEA_RESOURCE_OPERATIONS = new Set([...MOLDEA_COMMANDS, 'unrecognized']);
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
@@ -313,25 +317,39 @@ export const createMoldeaResourceEvidence = (executionEvidence, options) => {
   };
 };
 
+/** Checks one content-free moldea resource aggregate against absolute containment limits. */
+export const hasValidMoldeaResourceEvidence = (evidence) =>
+  isPlainRecord(evidence) &&
+  hasExactKeys(evidence, [
+    'commandCount',
+    'maximumInvocationByteCount',
+    'modelVisibleToolOutputByteCount',
+    'operations',
+    'stdoutByteCount',
+  ]) &&
+  Number.isSafeInteger(evidence.commandCount) &&
+  evidence.commandCount >= 0 &&
+  evidence.commandCount <= MAX_MOLDEA_COMMAND_COUNT &&
+  Number.isSafeInteger(evidence.maximumInvocationByteCount) &&
+  evidence.maximumInvocationByteCount >= 0 &&
+  evidence.maximumInvocationByteCount <= MAX_MOLDEA_OUTPUT_BYTES &&
+  Number.isSafeInteger(evidence.modelVisibleToolOutputByteCount) &&
+  evidence.modelVisibleToolOutputByteCount >= 0 &&
+  evidence.modelVisibleToolOutputByteCount <= MAX_AGGREGATE_MOLDEA_OUTPUT_BYTES &&
+  Number.isSafeInteger(evidence.stdoutByteCount) &&
+  evidence.stdoutByteCount >= 0 &&
+  evidence.stdoutByteCount <= MAX_AGGREGATE_MOLDEA_OUTPUT_BYTES &&
+  evidence.modelVisibleToolOutputByteCount === evidence.stdoutByteCount &&
+  Array.isArray(evidence.operations) &&
+  evidence.operations.length === evidence.commandCount &&
+  evidence.operations.every((operation) => MOLDEA_RESOURCE_OPERATIONS.has(operation)) &&
+  evidence.maximumInvocationByteCount <= evidence.stdoutByteCount &&
+  (evidence.commandCount > 0 ||
+    (evidence.maximumInvocationByteCount === 0 && evidence.stdoutByteCount === 0));
+
 /** Checks measured moldea consumption against one scenario's explicit resource budget. */
 export const hasPassingMoldeaResourceBudget = (evidence, budget) => {
-  if (
-    !isPlainRecord(evidence) ||
-    !hasExactKeys(evidence, [
-      'commandCount',
-      'maximumInvocationByteCount',
-      'modelVisibleToolOutputByteCount',
-      'operations',
-      'stdoutByteCount',
-    ]) ||
-    !Number.isSafeInteger(evidence.commandCount) ||
-    !Number.isSafeInteger(evidence.maximumInvocationByteCount) ||
-    !Number.isSafeInteger(evidence.modelVisibleToolOutputByteCount) ||
-    !Number.isSafeInteger(evidence.stdoutByteCount) ||
-    !Array.isArray(evidence.operations)
-  ) {
-    return false;
-  }
+  if (!hasValidMoldeaResourceEvidence(evidence)) return false;
   const withinBudget =
     evidence.commandCount >= budget.minimumMoldeaCommands &&
     evidence.commandCount <= budget.maximumMoldeaCommands &&

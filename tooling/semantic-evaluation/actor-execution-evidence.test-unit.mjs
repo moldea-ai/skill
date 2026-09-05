@@ -5,6 +5,7 @@ import {
   createMoldeaResourceEvidence,
   hasPassingMoldeaResourceBudget,
   hasValidActorExecutionEvidence,
+  hasValidMoldeaResourceEvidence,
   projectActorExecutionEvidenceEvent,
 } from './actor-execution-evidence.mjs';
 
@@ -89,6 +90,7 @@ test('recognizes relationship scope and content only through bounded direct CLI 
 
 test('accepts zero CLI consumption for informational and abstention paths', () => {
   const resource = createMoldeaResourceEvidence([], OPTIONS);
+  assert.equal(hasValidMoldeaResourceEvidence(resource), true);
 
   for (const activation of ['abstain', 'informational']) {
     assert.equal(
@@ -101,6 +103,25 @@ test('accepts zero CLI consumption for informational and abstention paths', () =
       true,
     );
   }
+});
+
+test('separates valid resource evidence from a case-budget miss', () => {
+  const resource = createMoldeaResourceEvidence([], OPTIONS);
+  assert.equal(hasValidMoldeaResourceEvidence(resource), true);
+  assert.equal(
+    hasPassingMoldeaResourceBudget(resource, {
+      activation: 'relationship',
+      minimumMoldeaCommands: 1,
+      maximumMoldeaCommands: 4,
+      maximumMoldeaOutputBytes: 262_144,
+    }),
+    false,
+  );
+  assert.equal(
+    hasValidMoldeaResourceEvidence({ ...resource, commandCount: 1, operations: [] }),
+    false,
+  );
+  assert.equal(hasValidMoldeaResourceEvidence({ ...resource, operations: ['unsupported'] }), false);
 });
 
 test('rejects inspect output that contains canonical document bodies', () => {

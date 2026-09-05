@@ -11,7 +11,7 @@ import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/consta
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
 
 import { hasValidActorCommandPolicyEvidence } from './actor-command-policy-evidence.mjs';
-import { hasPassingMoldeaResourceBudget } from './actor-execution-evidence.mjs';
+import { hasValidMoldeaResourceEvidence } from './actor-execution-evidence.mjs';
 
 const ATTEMPT_EVIDENCE_FILENAME = 'evidence.json';
 const ATTEMPT_RECORD_FILENAME = 'attempt.json';
@@ -128,21 +128,8 @@ const createTrialSummary = (result, kind, confirmationIndex, hostContract) => {
   if (!hasValidActorCommandPolicyEvidence(result.actorCommandPolicyEvidence)) {
     throw new Error('Semantic attempt evidence contains invalid trial command-policy evidence.');
   }
-  const resourceActivation =
-    result.actorResourceEvidence?.commandCount === 0
-      ? 'abstain'
-      : result.actorResourceEvidence?.operations?.[0] === 'scope'
-        ? 'relationship'
-        : 'direct';
-  if (
-    !hasPassingMoldeaResourceBudget(result.actorResourceEvidence, {
-      activation: resourceActivation,
-      maximumMoldeaCommands: 16,
-      maximumMoldeaOutputBytes: 1_048_576,
-      minimumMoldeaCommands: 0,
-    })
-  ) {
-    throw new Error('Semantic attempt evidence exceeds its moldea resource budget.');
+  if (!hasValidMoldeaResourceEvidence(result.actorResourceEvidence)) {
+    throw new Error('Semantic attempt evidence contains invalid moldea resource evidence.');
   }
 
   return {

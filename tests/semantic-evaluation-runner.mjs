@@ -53,6 +53,7 @@ import {
   hasPassingMoldeaResourceBudget,
   hasValidActorCommandPolicyEvidence,
   hasValidActorExecutionEvidence,
+  hasValidMoldeaResourceEvidence,
   hasValidRepositoryControlEvidence,
   hasValidScenarioEvidence,
   projectActorExecutionEvidenceEvent,
@@ -298,7 +299,7 @@ const hasValidWorkspaceChanges = (workspaceChanges) =>
   );
 
 /** Enforces one semantic case's explicit moldea command and output budget. */
-const hasValidMoldeaResourceEvidence = (caseDefinition, actorResourceEvidence) =>
+const hasPassingCaseMoldeaResourceBudget = (caseDefinition, actorResourceEvidence) =>
   hasPassingMoldeaResourceBudget(actorResourceEvidence, caseDefinition.resourceBudget);
 
 /** Checks whether one timestamp is a complete ISO date. */
@@ -367,7 +368,7 @@ const hasValidSemanticActorStageEvidence = (actorEvidence, candidate, caseDefini
       actorExecutionEvidenceOptions,
     ) &&
     hasValidActorCommandPolicyEvidence(actorEvidence.actorCommandPolicyEvidence) &&
-    hasValidMoldeaResourceEvidence(caseDefinition, actorEvidence.actorResourceEvidence) &&
+    hasValidMoldeaResourceEvidence(actorEvidence.actorResourceEvidence) &&
     hasValidWorkspaceChanges(actorEvidence.workspaceChanges) &&
     hasValidScenarioEvidence(actorEvidence.scenarioEvidence, caseDefinition) &&
     hasValidRepositoryControlEvidence(actorEvidence.repositoryControlEvidence) &&
@@ -599,7 +600,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       hasValidLabels &&
       expectedLabels.every((label) => result.observed.includes(label)) &&
       result.forbidden.length === 0 &&
-      hasValidMoldeaResourceEvidence(caseDefinition, result.actorResourceEvidence) &&
+      hasPassingCaseMoldeaResourceBudget(caseDefinition, result.actorResourceEvidence) &&
       hasValidRepositoryControlEvidence(result.repositoryControlEvidence) &&
       result.repositoryControlEvidence.violations.length === 0;
 
@@ -614,7 +615,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
         actorExecutionEvidenceOptions,
       ) ||
       !hasValidActorCommandPolicyEvidence(result.actorCommandPolicyEvidence) ||
-      !hasValidMoldeaResourceEvidence(caseDefinition, result.actorResourceEvidence) ||
+      !hasValidMoldeaResourceEvidence(result.actorResourceEvidence) ||
       !hasValidSemanticOperationalRetries(result.operationalRetries) ||
       typeof result.rationale !== 'string' ||
       typeof result.passed !== 'boolean' ||
@@ -655,7 +656,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
       hasValidLabels &&
       expectedLabels.every((label) => confirmation.observed.includes(label)) &&
       confirmation.forbidden.length === 0 &&
-      hasValidMoldeaResourceEvidence(caseDefinition, confirmation.actorResourceEvidence) &&
+      hasPassingCaseMoldeaResourceBudget(caseDefinition, confirmation.actorResourceEvidence) &&
       hasValidRepositoryControlEvidence(confirmation.repositoryControlEvidence) &&
       confirmation.repositoryControlEvidence.violations.length === 0;
     const confirmationIdentity = `${confirmation?.id}:${confirmation?.confirmationIndex}`;
@@ -673,7 +674,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
         actorExecutionEvidenceOptions,
       ) ||
       !hasValidActorCommandPolicyEvidence(confirmation.actorCommandPolicyEvidence) ||
-      !hasValidMoldeaResourceEvidence(caseDefinition, confirmation.actorResourceEvidence) ||
+      !hasValidMoldeaResourceEvidence(confirmation.actorResourceEvidence) ||
       !hasValidSemanticOperationalRetries(confirmation.operationalRetries) ||
       typeof confirmation.rationale !== 'string' ||
       typeof confirmation.passed !== 'boolean' ||
@@ -1070,9 +1071,17 @@ export const buildJudgePrompt = (
   if (!hasValidActorCommandPolicyEvidence(actorCommandPolicyEvidence)) {
     throw new Error('Judge input requires valid actor command-policy evidence.');
   }
-  if (!hasValidMoldeaResourceEvidence(caseDefinition, actorResourceEvidence)) {
-    throw new Error('Judge input requires moldea resource evidence within the case budget.');
+  if (!hasValidMoldeaResourceEvidence(actorResourceEvidence)) {
+    throw new Error(
+      `Judge input requires valid bounded moldea resource evidence: ${JSON.stringify(actorResourceEvidence)}`,
+    );
   }
+  const resourceBudgetStatus = hasPassingCaseMoldeaResourceBudget(
+    caseDefinition,
+    actorResourceEvidence,
+  )
+    ? 'passed'
+    : 'did not pass';
 
   return `
 Assess whether an Agent Skills host handled the scenario correctly.
@@ -1092,11 +1101,11 @@ runner-owned execution evidence cannot prove what the actor reported. When a cri
 clauses to named sources, each clause must be established by that source.
 Runner-owned command evidence records the completed-command count, while moldea resource evidence
 records recognized moldea operations and exact output byte counts without retaining raw command
-text or canonical document bodies. Before this prompt was built, the runner independently proved
-that the declared moldea activation order and resource budget passed. Do not compare the total
-completed-command count or output from non-moldea commands with the moldea budget, reinterpret that
-deterministic result, or infer extra work from the actor's prose. Judge only the remaining semantic
-clauses and projected command-result facts.
+text or canonical document bodies. Before this prompt was built, the runner independently evaluated
+the declared moldea activation order and resource budget; its deterministic result is
+${resourceBudgetStatus}. Do not compare the total completed-command count or output from non-moldea
+commands with the moldea budget, reinterpret that result, or infer extra work from the actor's
+prose. Judge only the remaining semantic clauses and projected command-result facts.
 Workspace changes are the complete after-minus-before delta for ordinary repository paths. When
 pre-actor scenario evidence establishes that a path was missing, its absence from the created-path
 delta establishes that it remained missing after actor execution. Empty created, modified, and
@@ -1968,7 +1977,7 @@ const evaluateJudgeStage = async (caseDefinition, actorEvidence, judgeCommand, c
       observed: assessment.observed,
       passed:
         assessment.isPassed &&
-        hasValidMoldeaResourceEvidence(caseDefinition, actorEvidence.actorResourceEvidence) &&
+        hasPassingCaseMoldeaResourceBudget(caseDefinition, actorEvidence.actorResourceEvidence) &&
         actorEvidence.repositoryControlEvidence.violations.length === 0,
       rationale: assessment.rationale,
     };

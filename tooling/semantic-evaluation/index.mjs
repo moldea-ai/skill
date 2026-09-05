@@ -11,6 +11,7 @@ export {
   createMoldeaResourceEvidence,
   hasPassingMoldeaResourceBudget,
   hasValidActorExecutionEvidence,
+  hasValidMoldeaResourceEvidence,
   projectActorExecutionEvidenceEvent,
 } from './actor-execution-evidence.mjs';
 

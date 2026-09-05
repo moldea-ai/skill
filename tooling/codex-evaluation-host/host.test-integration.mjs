@@ -211,6 +211,73 @@ test('shared host aligns the Git traversal budget with its read-only dependency 
   }
 });
 
+test('shared host permits the installed release CLI selected scope inventory', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-host-cli-scope-test-'));
+  const executableDirectory = join(evaluationRoot, 'bin');
+  const repositoryPath = join(evaluationRoot, 'repository');
+  const sandboxHome = join(evaluationRoot, 'home');
+  const codexPath = join(executableDirectory, 'codex');
+  const companionPath = join(executableDirectory, 'codex-code-mode-host');
+  mkdirSync(executableDirectory);
+  mkdirSync(join(repositoryPath, 'moldea'), { recursive: true });
+  mkdirSync(join(repositoryPath, 'src'));
+  writeFileSync(join(repositoryPath, 'README.md'), '# Evaluation repository\n');
+  writeFileSync(
+    join(repositoryPath, 'moldea', 'moldea.yaml'),
+    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
+  );
+  writeFileSync(join(repositoryPath, 'moldea', 'project.md'), '# Evaluation project\n');
+  writeFileSync(join(repositoryPath, 'src', 'project-state.js'), 'export const state = true;\n');
+  runSystemGit(repositoryPath, ['init', '--quiet']);
+  runSystemGit(repositoryPath, ['add', '--all']);
+  runSystemGit(repositoryPath, [
+    '-c',
+    'user.name=moldea evaluation',
+    '-c',
+    'user.email=evaluation@invalid.example',
+    'commit',
+    '--quiet',
+    '-m',
+    'test: initialize selected scope fixture',
+  ]);
+  writeFileSync(
+    codexPath,
+    '#!/bin/sh\nprintf "/src/project-state.js\\0" | /dependencies/node_modules/.bin/moldea scope --paths-stdin --json --max-output-bytes 65536\n',
+  );
+  writeFileSync(companionPath, '#!/bin/sh\nexit 0\n');
+  chmodSync(codexPath, 0o755);
+  chmodSync(companionPath, 0o755);
+  await prepareCodexEvaluationHome(sandboxHome);
+  const originalPath = process.env.PATH;
+  process.env.PATH = `${executableDirectory}:${originalPath ?? ''}`;
+
+  try {
+    const output = await runCodexEvaluationHost({
+      command: HOST_COMMAND,
+      cwd: repositoryPath,
+      prompt: 'test installed release CLI scope',
+      readOnlyMounts: [
+        {
+          source: join(process.cwd(), 'node_modules'),
+          target: '/dependencies/node_modules',
+        },
+      ],
+      sandboxHome,
+    });
+    const envelope = JSON.parse(output);
+
+    assert.equal(envelope.cliVersion, '7.0.0');
+    assert.equal(envelope.command, 'scope');
+    assert.equal(envelope.error, null);
+    assert.equal(envelope.result.relevant, true);
+    assert.equal(envelope.status, 'valid');
+  } finally {
+    if (originalPath === undefined) delete process.env.PATH;
+    else process.env.PATH = originalPath;
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
 test('evaluator and system commands precede immutable workspace binaries on sandbox PATH', () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-path-precedence-test-'));
   const repositoryPath = join(evaluationRoot, 'repository');

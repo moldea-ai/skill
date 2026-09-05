@@ -95,6 +95,49 @@ test('Git command-policy boundary suppresses helpers and refuses filter attribut
     assert.equal(releaseCliResult.status, 0, releaseCliResult.stderr);
     assert.equal(releaseCliResult.stdout.trim(), repositoryPath);
 
+    const selectedInventoryArguments = [
+      ...RELEASE_CLI_GIT_OPTIONS,
+      '-C',
+      repositoryPath,
+      'ls-files',
+      '--cached',
+      '--stage',
+      '--full-name',
+      '--no-abbrev',
+      '--no-recurse-submodules',
+      '-z',
+      '--',
+    ];
+    const selectedManifestResult = runWrappedGit(wrapperPath, repositoryPath, [
+      ...selectedInventoryArguments,
+      ':(top,literal)moldea/moldea.yaml',
+    ]);
+
+    assert.equal(selectedManifestResult.status, 0, selectedManifestResult.stderr);
+
+    for (const rejectedPathspec of [
+      ':(top,literal)README.md',
+      ':(top,literal)moldea/context/../project.md',
+      ':(top,literal)moldea/context/*.md',
+    ]) {
+      const rejectedSelectionResult = runWrappedGit(wrapperPath, repositoryPath, [
+        ...selectedInventoryArguments,
+        rejectedPathspec,
+      ]);
+
+      assert.equal(rejectedSelectionResult.status, 2);
+      assert.match(rejectedSelectionResult.stderr, /command shape is not evaluator-approved/u);
+    }
+
+    const multipleSelectionResult = runWrappedGit(wrapperPath, repositoryPath, [
+      ...selectedInventoryArguments,
+      ':(top,literal)moldea/project.md',
+      ':(top,literal)moldea/moldea.yaml',
+    ]);
+
+    assert.equal(multipleSelectionResult.status, 2);
+    assert.match(multipleSelectionResult.stderr, /command shape is not evaluator-approved/u);
+
     const unsupportedCommandSentinelPath = join(repositoryPath, 'unsupported-git-command-ran.txt');
     runSystemGit(repositoryPath, [
       'config',

@@ -1,7 +1,7 @@
 ---
 name: moldea
 description: >-
-  Answer concise informational questions about moldea and initialize moldea only when explicitly requested. In a repository-bound installation, use for every repository-dependent task to run the bundled two-byte relevance gate before moldea inspection; only after adoption and relevance are established may it continue for explicit moldea work, /moldea/** changes, managed README hunks, or paths matched by a declared binding or affectedBy relationship. A gate miss abstains silently while the host workflow continues. Do not use for other uninitialized work.
+  In a repository-bound installation, activate for every repository-dependent task solely to run the bundled two-byte relevance gate. A gate miss abstains silently while the host workflow continues; only after adoption and relevance are established may moldea inspect explicit moldea work, /moldea/** changes, managed README hunks, or paths matched by a declared binding or affectedBy relationship. Also answer concise informational questions and initialize moldea only when explicitly requested. Do not use for other uninitialized work.
 metadata:
   version: '5.0.0'
   cliVersion: '7.0.0'
@@ -60,6 +60,8 @@ moldea scope --paths-stdin --json --max-output-bytes 65536
 Pass the same path input. Interpret only a completed CLI 7.0.0/schema-4 envelope with `status: "valid"`, `result.valid: true`, and `result.relevant: true`. Do not follow a cursor merely to search for relevance; the first result establishes all matching owners for the bounded input. A missing exact local CLI, malformed input or envelope, operational error, invalid result, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
 
 Treat this successful `scope` result as the complete relationship inventory for the task. Do not follow it with `inspect`. The scope call counts toward the ordinary four-command limit, leaving at most three CLI calls: normally one `validate` when structural status can affect the conclusion, plus `content` only for the explicitly selected canonical owners needed to review the relationship.
+
+The complete relationship sequence is `scope`, optional `validate`, then only the necessary selected `content` calls. Omit unused steps, never add `inspect`, and stop after four total CLI calls including `scope`.
 
 Do not discover paths merely for moldea, run both gate modes, repeat a gate, or load a reference before the full deterministic gate matches and `scope` confirms its owners. Unrelated work runs zero moldea CLI commands. On abstention, make no moldea progress update or final-report mention.
 

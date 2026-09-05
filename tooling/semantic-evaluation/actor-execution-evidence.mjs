@@ -361,6 +361,8 @@ export const hasPassingMoldeaResourceBudget = (evidence, budget) => {
   if (budget.activation === 'abstain' || budget.activation === 'informational') {
     return evidence.commandCount === 0;
   }
-  if (budget.activation === 'relationship') return evidence.operations[0] === 'scope';
+  if (budget.activation === 'relationship') {
+    return evidence.operations[0] === 'scope' && !evidence.operations.includes('inspect');
+  }
   return evidence.operations[0] !== 'scope';
 };

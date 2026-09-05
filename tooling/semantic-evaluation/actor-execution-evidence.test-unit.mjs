@@ -213,4 +213,16 @@ test('enforces abstention and relationship ordering', () => {
     ),
     false,
   );
+  assert.equal(
+    hasPassingMoldeaResourceBudget(
+      { ...empty, commandCount: 2, operations: ['scope', 'inspect'] },
+      {
+        activation: 'relationship',
+        minimumMoldeaCommands: 1,
+        maximumMoldeaCommands: 4,
+        maximumMoldeaOutputBytes: 262_144,
+      },
+    ),
+    false,
+  );
 });

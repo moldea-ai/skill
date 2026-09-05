@@ -146,6 +146,7 @@ describe('portable skill contract', () => {
     assert.match(frontmatter.description, /declared binding or affectedBy relationship/u);
     assert.match(frontmatter.description, /Do not use for other uninitialized work/u);
     assert.match(frontmatter.description, /repository-bound installation/u);
+    assert.match(frontmatter.description, /activate for every repository-dependent task solely/u);
     assert.match(frontmatter.description, /two-byte relevance gate/u);
     assert.match(frontmatter.description, /A gate miss abstains silently/u);
     assert.doesNotMatch(frontmatter.description, /potentially durable knowledge|Use first/iu);

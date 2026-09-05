@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, renameSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
@@ -17,6 +17,21 @@ import {
   SEMANTIC_EVALUATION_PROTOCOL_VERSION,
 } from './constants.mjs';
 import { createSemanticCliIdentity } from './identity.mjs';
+import { readReleaseIdentity } from './identity.mjs';
+import {
+  createFreshEvidenceSectionSha256,
+  createFreshReleaseEvidenceEnvelope,
+} from './release-evidence-current.mjs';
+import {
+  parseReleaseEvidenceEnvelope,
+  readReleaseEvidenceEnvelope,
+  serializeReleaseEvidenceEnvelope,
+  validateReleaseEvidenceReason,
+} from './release-evidence-envelope.mjs';
+import {
+  assertPinnedReleaseEvidenceSource,
+  resolveFreshReleaseEvidenceSource,
+} from './release-evidence-source.mjs';
 
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 
@@ -44,10 +59,16 @@ export const inspectSemanticEvidence = async (repositoryRoot) => {
   if (result.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION) {
     issues.push('Semantic evidence does not use the current protocol.');
   }
-  if (result.artifactDigest !== expectedArtifactDigest || result.artifactSha256 !== expectedArtifactDigest) {
+  if (
+    result.artifactDigest !== expectedArtifactDigest ||
+    result.artifactSha256 !== expectedArtifactDigest
+  ) {
     issues.push('Semantic evidence does not match the current portable skill bytes.');
   }
-  if (result.caseSuiteDigest !== expectedCaseSuiteDigest || result.coverageDigest !== expectedCoverageDigest) {
+  if (
+    result.caseSuiteDigest !== expectedCaseSuiteDigest ||
+    result.coverageDigest !== expectedCoverageDigest
+  ) {
     issues.push('Semantic evidence does not match the current suite and coverage map.');
   }
   if (JSON.stringify(result.cli) !== JSON.stringify(expectedCli)) {
@@ -58,7 +79,10 @@ export const inspectSemanticEvidence = async (repositoryRoot) => {
     const caseResult = resultsById.get(caseDefinition.id);
     if (
       caseResult?.passed !== true ||
-      !hasPassingMoldeaResourceBudget(caseResult.actorResourceEvidence, caseDefinition.resourceBudget)
+      !hasPassingMoldeaResourceBudget(
+        caseResult.actorResourceEvidence,
+        caseDefinition.resourceBudget,
+      )
     ) {
       issues.push(`Semantic case ${caseDefinition.id} lacks passing current resource evidence.`);
     }
@@ -129,14 +153,135 @@ export const inspectQualificationEvidence = async (repositoryRoot) => {
   return issues;
 };
 
-/** Inspects all model-derived evidence required for the current release. */
-export const inspectReleaseEvidence = async (repositoryRoot) => [
+/** Inspects all exact-current model-derived evidence required for a fresh release. */
+export const inspectCurrentReleaseEvidence = async (repositoryRoot) => [
   ...(await inspectSemanticEvidence(repositoryRoot)),
   ...(await inspectQualificationEvidence(repositoryRoot)),
 ];
 
-/** Requires exact current semantic and qualification evidence. */
+/** Requires exact current semantic and qualification evidence for fresh recording. */
+export const assertCurrentReleaseEvidence = async (repositoryRoot) => {
+  const issues = await inspectCurrentReleaseEvidence(repositoryRoot);
+  if (issues.length > 0) throw new Error(issues.join('\n'));
+};
+
+const writeEnvelopeAtomically = (repositoryRoot, envelope) => {
+  const path = join(repositoryRoot, 'fixtures', 'release-evidence.json');
+  const temporaryPath = `${path}.${process.pid}.tmp`;
+  try {
+    writeFileSync(temporaryPath, serializeReleaseEvidenceEnvelope(envelope), {
+      encoding: 'utf8',
+      flag: 'wx',
+    });
+    renameSync(temporaryPath, path);
+  } catch (error) {
+    if (existsSync(temporaryPath)) unlinkSync(temporaryPath);
+    throw error;
+  }
+  return path;
+};
+
+const inspectTargetIdentity = (repositoryRoot, envelope) => {
+  const identity = readReleaseIdentity(repositoryRoot);
+  const portableSkillSha256 = createPortableSkillDigest(repositoryRoot);
+  const issues = [];
+  if (envelope.target.version !== identity.releaseVersion) {
+    issues.push('Release evidence target version does not match the current release.');
+  }
+  if (envelope.target.portableSkillSha256 !== portableSkillSha256) {
+    issues.push('Release evidence target does not match the current portable skill bytes.');
+  }
+  return issues;
+};
+
+/** Records one canonical fresh envelope after every current evidence verifier passes. */
+export const recordFreshReleaseEvidence = async (
+  repositoryRoot,
+  { assertEvidence = assertCurrentReleaseEvidence } = {},
+) => {
+  const selectedEnvelope = readReleaseEvidenceEnvelope(repositoryRoot);
+  if (selectedEnvelope?.mode === 'pinned') {
+    throw new Error('Clear pinned release evidence before recording fresh evidence.');
+  }
+  await assertEvidence(repositoryRoot);
+  const envelope = createFreshReleaseEvidenceEnvelope(repositoryRoot);
+  writeEnvelopeAtomically(repositoryRoot, envelope);
+  return envelope;
+};
+
+/** Records a compact pin to the original fresh evidence behind one exact source tag. */
+export const pinReleaseEvidence = (repositoryRoot, { from, reason }) => {
+  const identity = readReleaseIdentity(repositoryRoot);
+  const validatedReason = validateReleaseEvidenceReason(reason);
+  if (from === `v${identity.releaseVersion}`) {
+    throw new Error('Release evidence cannot pin the target release to itself.');
+  }
+  const resolved = resolveFreshReleaseEvidenceSource(repositoryRoot, from);
+  const envelope = {
+    mode: 'pinned',
+    reason: validatedReason,
+    schemaVersion: 1,
+    source: {
+      commit: resolved.commit,
+      evidenceSha256: resolved.envelopeSha256,
+      qualificationSha256: createFreshEvidenceSectionSha256(resolved.envelope.qualification),
+      semanticSha256: createFreshEvidenceSectionSha256(resolved.envelope.semantic),
+      tag: resolved.tag,
+    },
+    target: {
+      portableSkillSha256: createPortableSkillDigest(repositoryRoot),
+      version: identity.releaseVersion,
+    },
+  };
+  const validated = parseReleaseEvidenceEnvelope(serializeReleaseEvidenceEnvelope(envelope));
+  writeEnvelopeAtomically(repositoryRoot, validated);
+  return validated;
+};
+
+/** Removes only an explicitly prepared pinned envelope. */
+export const clearPinnedReleaseEvidence = (repositoryRoot) => {
+  const path = join(repositoryRoot, 'fixtures', 'release-evidence.json');
+  if (!existsSync(path)) return false;
+  const envelope = readReleaseEvidenceEnvelope(repositoryRoot);
+  if (envelope.mode !== 'pinned') {
+    throw new Error('Only pinned release evidence can be cleared with the pin command.');
+  }
+  unlinkSync(path);
+  return true;
+};
+
+/** Inspects the selected fresh or pinned release evidence without changing repository state. */
+export const inspectReleaseEvidence = async (repositoryRoot) => {
+  const envelope = readReleaseEvidenceEnvelope(repositoryRoot);
+  if (envelope === null) {
+    return ['Release evidence is not recorded. Record fresh evidence or select an explicit pin.'];
+  }
+  const identityIssues = inspectTargetIdentity(repositoryRoot, envelope);
+  if (identityIssues.length > 0) return identityIssues;
+  if (envelope.mode === 'pinned') {
+    try {
+      assertPinnedReleaseEvidenceSource(repositoryRoot, envelope);
+      return [];
+    } catch (error) {
+      return [error instanceof Error ? error.message : String(error)];
+    }
+  }
+  const currentIssues = await inspectCurrentReleaseEvidence(repositoryRoot);
+  if (currentIssues.length > 0) return currentIssues;
+  try {
+    const expected = createFreshReleaseEvidenceEnvelope(repositoryRoot);
+    if (serializeReleaseEvidenceEnvelope(expected) !== serializeReleaseEvidenceEnvelope(envelope)) {
+      return ['Fresh release evidence does not exactly match current verified evidence.'];
+    }
+  } catch (error) {
+    return [error instanceof Error ? error.message : String(error)];
+  }
+  return [];
+};
+
+/** Requires the selected fresh or pinned release evidence to be valid. */
 export const assertReleaseEvidence = async (repositoryRoot) => {
   const issues = await inspectReleaseEvidence(repositoryRoot);
   if (issues.length > 0) throw new Error(issues.join('\n'));
+  return readReleaseEvidenceEnvelope(repositoryRoot);
 };

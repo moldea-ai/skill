@@ -32,6 +32,7 @@ export const RELEASE_PATHS = Object.freeze({
   packageManifest: 'package.json',
   qualificationReadme: 'qualification/README.md',
   readme: 'README.md',
+  releaseEvidence: 'fixtures/release-evidence.json',
   semanticCliManifest: 'fixtures/tooling/semantic-cli/package.json',
   semanticResult: 'fixtures/semantic-evaluation-result.json',
   skill: 'moldea/SKILL.md',

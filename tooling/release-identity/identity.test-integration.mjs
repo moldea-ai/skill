@@ -11,7 +11,9 @@ import { inspectReleaseIdentity, readReleaseIdentity } from './identity.mjs';
 const REPOSITORY_ROOT = resolve(import.meta.dirname, '..', '..');
 const IDENTITY_PATHS = [
   ...Object.values(RELEASE_PATHS).filter(
-    (relativePath) => relativePath !== RELEASE_PATHS.semanticResult,
+    (relativePath) =>
+      relativePath !== RELEASE_PATHS.releaseEvidence &&
+      relativePath !== RELEASE_PATHS.semanticResult,
   ),
   'docs/compatibility-and-local-tooling.md',
 ];

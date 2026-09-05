@@ -7,6 +7,7 @@ import { renderMarkdownDocument } from '@moldea.ai/website-ui/markdown';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import EvidenceStatus from '../../../../../components/evidence-status/evidence-status.astro';
+import ReleaseEvidenceNotice from '../../../../../components/release-evidence-notice/release-evidence-notice.astro';
 import BaseLayout from '../../../../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../../../../lib/generation/generation.ts';
 import type { IQualificationProfileModel } from '../../../../../lib/qualification/index.ts';
@@ -26,6 +27,7 @@ export const getStaticPaths = () => {
 };
 
 const { profile } = Astro.props;
+const { releaseEvidence } = loadWebsiteModel();
 const basePath = import.meta.env.BASE_URL;
 const latestAttempt = profile.currentLatest;
 const latestAttemptLinkLabel =
@@ -67,6 +69,8 @@ const breadcrumbs = [
       basePath={basePath}
       items={breadcrumbs}
     />
+
+    <ReleaseEvidenceNotice evidence={releaseEvidence} />
 
     <header class="mt-7 border-b border-border pb-10">
       <div class="flex flex-wrap items-center gap-3">

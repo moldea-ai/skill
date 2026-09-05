@@ -31,6 +31,8 @@ jobs:
           - '26.8.1'
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
@@ -50,6 +52,11 @@ jobs:
         env:
           MOLDEA_RELEASE_TAG: ${{ github.ref_type == 'tag' && github.ref_name || '' }}
         run: npm test
+      - name: Check tagged release identity and selected evidence
+        if: github.ref_type == 'tag'
+        env:
+          MOLDEA_RELEASE_TAG: ${{ github.ref_name }}
+        run: node --experimental-strip-types tooling/release-identity/check-release.mjs
       - name: Install and compare the portable artifact
         env:
           SKILLS_TEST_HOME: ${{ runner.temp }}/skills-home
@@ -74,6 +81,8 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '24.11.0'

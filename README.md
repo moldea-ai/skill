@@ -140,7 +140,7 @@ moldea/
 - `tests/` and `fixtures/` contain deterministic conformance and semantic cases.
 - `tooling/codex-evaluation-host/` owns isolated model execution and privacy-safe resource accounting.
 - `tooling/semantic-evaluation/` owns the current semantic evidence contract.
-- `tooling/release-identity/` verifies only current release identity and current evidence.
+- `tooling/release-identity/` owns exact release identity plus the fresh or explicitly pinned evidence selection.
 - `qualification/` owns adapter-specific qualification. Universal skill behavior runs once in the Custom profile; published adapters retain only adapter-specific probes and cases.
 - `website/` validates and renders current documentation and current committed evidence.
 - `.github/workflows/conformance.yml` runs portable correctness checks.
@@ -185,7 +185,21 @@ npm run eval:semantic -- --record
 npm run eval:semantic:verify
 ```
 
-Run Custom qualification first, then each published adapter profile. Every official run records fresh evidence for the current protocol, exact skill bytes, CLI closure, evaluator, target, and environment. Release verification accepts only exact current evidence.
+Run Custom qualification first, then each published adapter profile. Every official run records fresh evidence for the current protocol, exact skill bytes, CLI closure, evaluator, target, and environment.
+
+After current semantic and qualification evidence passes, record the compact fresh release envelope:
+
+```bash
+npm run release:evidence:record
+```
+
+When a maintainer has established that a release does not affect evaluated behavior, pin it to an earlier passing release that carries the stable evidence envelope:
+
+```bash
+npm run release:evidence:pin -- --from v5.0.0 --reason "Release tooling only; portable behavior is unchanged."
+```
+
+The pin is explicit, local, reasoned, and visible on public evidence pages. It validates the exact source tag, source commit, compact envelope, referenced artifact digests, passing states, and resource limits. It bypasses only current evidence freshness and identity equality. It does not bypass release signing or publication credentials. Run the same command with `--clear` to remove a prepared pin.
 
 ## Releases
 
@@ -193,11 +207,13 @@ The skill uses independent semantic versioning. Every release must:
 
 - record its exact version in `moldea/SKILL.md`
 - bind the exact CLI version and CLI JSON schema
-- pass current conformance, semantic evaluation, Custom qualification, and every current adapter qualification
+- pass current conformance and select either verified fresh evidence or an explicit valid pin to an earlier passing release
 - preserve identical `moldea/` bytes across official distribution channels
 - use an immutable `v<version>` tag
 
 Release `5.0.0` uses tag `v5.0.0`.
+
+See [Release evidence](docs/release-evidence.md) for the exact fresh and pinned workflows. `npm run release:check` is read-only and selects the evidence mode before running any current-only verifier.
 
 ## License
 

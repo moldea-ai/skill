@@ -136,7 +136,16 @@ vi.mock('../semantic-evaluation/index.ts', () => {
   };
 });
 
+vi.mock('../release-evidence/index.ts', () => ({
+  loadReleaseEvidenceModel: vi.fn(() => ({
+    mode: 'not-recorded',
+    targetVersion: '5.0.0',
+  })),
+}));
+
 import { createWebsiteModel } from './generation.ts';
+import { assertPublishableQualificationEvidence } from '../qualification/index.ts';
+import { loadReleaseEvidenceModel } from '../release-evidence/index.ts';
 import {
   INSTALL_COMMAND,
   REQUIRED_DOCUMENT_ROUTES,
@@ -155,6 +164,7 @@ describe('createWebsiteModel', () => {
     expect(model.searchRecords.length).toBeGreaterThan(model.documents.length);
     expect(model.navigation.flatMap(({ documents }) => documents)).toStrictEqual(model.documents);
     expect(model.qualification.route).toBe('/evidence/qualification/');
+    expect(model.releaseEvidence).toStrictEqual({ mode: 'not-recorded', targetVersion: '5.0.0' });
     expect(model.semanticEvaluation.route).toBe('/evidence/semantic/');
     expect(model.qualification.profiles).toHaveLength(1);
     const qualificationProfile = model.qualification.profiles[0];
@@ -193,6 +203,25 @@ describe('createWebsiteModel', () => {
     expect(model.llmsText).toContain(SKILLS_DIRECTORY_URL);
     expect(model.llmsText).toContain(INSTALL_COMMAND);
     expect(model.llmsText).toContain('## Evidence');
+  });
+
+  test('selects a pin before current-only qualification publication checks', () => {
+    const publicationCheck = vi.mocked(assertPublishableQualificationEvidence);
+    publicationCheck.mockClear();
+    vi.mocked(loadReleaseEvidenceModel).mockReturnValueOnce({
+      mode: 'pinned',
+      reason: 'Release tooling only.',
+      sourceCommit: 'a'.repeat(40),
+      sourceTag: 'v5.0.0',
+      sourceUrl: 'https://github.com/moldea-ai/skill/tree/v5.0.0',
+      targetVersion: '6.0.0',
+    });
+
+    const model = createWebsiteModel();
+
+    expect(model.releaseEvidence.mode).toBe('pinned');
+    expect(publicationCheck).not.toHaveBeenCalled();
+    expect(model.llmsText).toContain('evidence pinned from [v5.0.0]');
   });
 
   test('requires reader-facing product mentions in Markdown to use inline code', () => {

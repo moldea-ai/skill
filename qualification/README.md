@@ -154,7 +154,7 @@ Operational provider, proxy, and timeout failures may retry within the configure
 
 `results/<target-key>/attempts/a-<digest>/` contains the current attempt and numbered artifacts. `storage.json` binds logical artifact paths to physical files and verifies every SHA-256 digest. `latest.json` points to the latest attempt and current passing attempt when one exists.
 
-Release verification reads only this current storage. Every indexed target must have one compatible passing attempt. Website generation consumes the same validated current results and has no Git-history reader.
+Fresh release verification reads only this current storage. Every indexed target must have one compatible passing attempt. An explicit release evidence pin instead validates the original immutable source tag and its compact artifact manifests without copying source attempts into the new release.
 
 ## Verification
 
@@ -168,4 +168,4 @@ npm run qualification:format:check
 npm run qualification:verify
 ```
 
-The generic test script runs both unit and integration categories. Qualification results are release evidence only after every current identity, resource budget, artifact digest, and target requirement passes.
+The generic test script runs both unit and integration categories. Qualification results become fresh release evidence only after every current identity, resource budget, artifact digest, and target requirement passes. A pinned release remains visibly attributed to the original passing source and does not claim a new qualification run.

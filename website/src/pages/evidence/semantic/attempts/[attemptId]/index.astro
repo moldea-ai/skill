@@ -4,6 +4,7 @@ import ActionLink from '@moldea.ai/website-ui/action-link';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 
 import EvidenceStatus from '../../../../../components/evidence-status/evidence-status.astro';
+import ReleaseEvidenceNotice from '../../../../../components/release-evidence-notice/release-evidence-notice.astro';
 import SemanticEvaluationCase from '../../../../../components/semantic-evaluation-case/semantic-evaluation-case.astro';
 import BaseLayout from '../../../../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../../../../lib/generation/generation.ts';
@@ -20,6 +21,7 @@ export const getStaticPaths = () =>
   }));
 
 const { attempt } = Astro.props;
+const { releaseEvidence } = loadWebsiteModel();
 const { result } = attempt;
 const evaluationModel = result.hostContract.model;
 const basePath = import.meta.env.BASE_URL;
@@ -42,6 +44,8 @@ const breadcrumbs = [
       basePath={basePath}
       items={breadcrumbs}
     />
+
+    <ReleaseEvidenceNotice evidence={releaseEvidence} />
 
     <header class="mt-7 border-b border-border pb-10">
       <div class="flex flex-wrap items-center gap-3">

@@ -16,7 +16,9 @@ const UPDATE_PATHS = [
   ...new Set([
     ...CLI_VERSION_TEXT_PATHS,
     ...Object.values(RELEASE_PATHS).filter(
-      (relativePath) => relativePath !== RELEASE_PATHS.semanticResult,
+      (relativePath) =>
+        relativePath !== RELEASE_PATHS.releaseEvidence &&
+        relativePath !== RELEASE_PATHS.semanticResult,
     ),
     'docs/compatibility-and-local-tooling.md',
     SEMANTIC_CLI_EXECUTABLE_PATH,

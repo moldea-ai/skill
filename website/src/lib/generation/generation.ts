@@ -31,6 +31,7 @@ import type {
   IWebsiteDocument,
   IWebsiteModel,
 } from '../model/types.ts';
+import { loadReleaseEvidenceModel } from '../release-evidence/index.ts';
 import { DEFAULT_SITE_URL } from '../site/constants.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
@@ -319,6 +320,7 @@ export const createLlmsText = (
   documents: IWebsiteDocument[],
   skill: ISkillMetadata,
   qualification: IQualificationWebsiteModel,
+  releaseEvidence: IWebsiteModel['releaseEvidence'],
   semanticEvaluation: ISemanticEvaluationWebsiteModel,
 ): string => {
   const lines = [
@@ -354,6 +356,12 @@ export const createLlmsText = (
 
   lines.push(
     '## Evidence',
+    '',
+    releaseEvidence.mode === 'pinned'
+      ? `Release ${releaseEvidence.targetVersion} uses evidence pinned from [${releaseEvidence.sourceTag}](${releaseEvidence.sourceUrl}). Reason: ${releaseEvidence.reason}`
+      : releaseEvidence.mode === 'fresh'
+        ? `Release ${releaseEvidence.targetVersion} uses fresh semantic and qualification evidence.`
+        : `Release evidence has not been recorded for ${releaseEvidence.targetVersion}.`,
     '',
     `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
     semanticEvaluation.hasAttempt
@@ -429,10 +437,11 @@ export const createWebsiteModel = (
 ): IWebsiteModel => {
   const repositoryRoot = getRepositoryRoot();
   const documents = discoverDocuments(repositoryRoot);
-  const qualification = loadQualificationWebsiteModel(qualificationRepositoryRoot);
-  assertPublishableQualificationEvidence(qualification);
-  const semanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
   const skill = readSkillMetadata(repositoryRoot);
+  const releaseEvidence = loadReleaseEvidenceModel(repositoryRoot, skill.version);
+  const qualification = loadQualificationWebsiteModel(qualificationRepositoryRoot);
+  if (releaseEvidence.mode !== 'pinned') assertPublishableQualificationEvidence(qualification);
+  const semanticEvaluation = loadSemanticEvaluationWebsiteModel(repositoryRoot);
   const readme = readFileSync(join(repositoryRoot, 'README.md'), 'utf8');
   const customDomain = readFileSync(join(repositoryRoot, 'CNAME'), 'utf8').trim();
   const productionHostname = new URL(DEFAULT_SITE_URL).hostname;
@@ -450,9 +459,10 @@ export const createWebsiteModel = (
   return {
     documents,
     generatedNotice: GENERATED_NOTICE,
-    llmsText: createLlmsText(documents, skill, qualification, semanticEvaluation),
+    llmsText: createLlmsText(documents, skill, qualification, releaseEvidence, semanticEvaluation),
     navigation: createNavigation(documents),
     qualification,
+    releaseEvidence,
     routes: createRouteManifest(documents, qualification, semanticEvaluation),
     searchRecords: [
       ...createSearchRecords(documents),

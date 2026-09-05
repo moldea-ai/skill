@@ -6,11 +6,13 @@ import InlineBrandText from '@moldea.ai/website-ui/inline-brand-text';
 import { withBase } from '@moldea.ai/website-ui/site';
 
 import EvidenceStatus from '../../../components/evidence-status/evidence-status.astro';
+import ReleaseEvidenceNotice from '../../../components/release-evidence-notice/release-evidence-notice.astro';
 import SemanticEvaluationCase from '../../../components/semantic-evaluation-case/semantic-evaluation-case.astro';
 import BaseLayout from '../../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
 
-const { semanticEvaluation } = loadWebsiteModel();
+const model = loadWebsiteModel();
+const { semanticEvaluation } = model;
 const basePath = import.meta.env.BASE_URL;
 const breadcrumbs = [
   { href: '/', label: 'Home' },
@@ -33,6 +35,8 @@ const successfulCaseCount =
       items={breadcrumbs}
     />
 
+    <ReleaseEvidenceNotice evidence={model.releaseEvidence} />
+
     <header class="mt-7 border-b border-border pb-10">
       <div class="flex flex-wrap items-center gap-3">
         <EvidenceStatus status={semanticEvaluation.status} />
@@ -45,9 +49,10 @@ const successfulCaseCount =
       <p class="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
         Every immutable attempt is shown as it happened, but only evidence verified against the
         current skill behavior, CLI closure, scenario suite, coverage, and Sol protocol counts as
-        release assurance. Each completed scenario uses a blind actor and an independent judge. Open
-        a scenario to replay the recorded interaction, safe command results, workspace changes, and
-        verdict before inspecting its evaluation criteria.
+        fresh release assurance. An explicitly pinned release identifies its original passing source
+        above. Each completed scenario uses a blind actor and an independent judge. Open a scenario
+        to replay the recorded interaction, safe command results, workspace changes, and verdict
+        before inspecting its evaluation criteria.
       </p>
       <div class="mt-7 flex flex-wrap gap-3">
         <ActionLink

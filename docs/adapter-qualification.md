@@ -49,7 +49,7 @@ The ceilings are imported from the same source-controlled profile used by semant
 
 Qualification results retain these numeric aggregates but never raw command text, raw command output, credentials, hidden reasoning, or arbitrary workspace content.
 
-## Current-only evidence
+## Fresh evidence by default
 
 Qualification protocol 7 accepts only evidence matching the current:
 
@@ -62,6 +62,8 @@ Qualification protocol 7 accepts only evidence matching the current:
 - Custom baseline relationship
 
 Every current target must have a fresh passing attempt for its exact current inputs.
+
+This is the normal release path. An explicit release evidence pin may reuse the original passing qualification evidence from an earlier immutable release when a maintainer has established that the new release does not affect evaluated behavior. The pin is disclosed publicly and does not relabel the source attempt as current. See [Release evidence](/docs/release-evidence/).
 
 An adapter attempt requires a passing current Custom baseline. A Custom attempt does not require another baseline.
 

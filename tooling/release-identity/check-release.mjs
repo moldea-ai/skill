@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 import { assertReleaseEvidence } from './evidence.mjs';
 import { assertReleaseIdentity } from './identity.mjs';
+import { assertTargetReleaseTagIdentity } from './release-evidence-source.mjs';
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const allowedArguments = new Set(['--identity-only']);
@@ -18,9 +19,18 @@ if (unsupportedArgument) {
 } else {
   try {
     const identity = assertReleaseIdentity(repositoryRoot);
-    if (!process.argv.includes('--identity-only')) await assertReleaseEvidence(repositoryRoot);
+    assertTargetReleaseTagIdentity(
+      repositoryRoot,
+      identity.releaseVersion,
+      process.env.MOLDEA_RELEASE_TAG,
+    );
+    const evidence = process.argv.includes('--identity-only')
+      ? null
+      : await assertReleaseEvidence(repositoryRoot);
     process.stdout.write(
-      `Release identity is synchronized for skill ${identity.releaseVersion} and ${identity.cliVersion}.\n`,
+      evidence?.mode === 'pinned'
+        ? `Release identity is synchronized for skill ${identity.releaseVersion}. Evidence pinned from ${evidence.source.tag}: ${evidence.reason}\n`
+        : `Release identity is synchronized for skill ${identity.releaseVersion} and ${identity.cliVersion}.\n`,
     );
   } catch (error) {
     process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);

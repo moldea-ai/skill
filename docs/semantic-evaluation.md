@@ -62,11 +62,13 @@ The actor works in an isolated writable repository. The installed skill, Git con
 
 The read-only case fails if evaluation changes any protected or ordinary repository state, even when the actor's final message claims otherwise.
 
-## Current-only evidence
+## Fresh evidence by default
 
 Semantic protocol 22 accepts only evidence produced by the current suite, current portable bytes, current CLI closure, current runner, current coverage map, and current host contract.
 
 Evidence applies only to the exact current behavior-bearing inputs. Any change to those inputs requires a fresh run.
+
+This is the normal release path. A maintainer may explicitly pin a release to valid passing evidence from an earlier immutable release when the current change cannot affect evaluated behavior. A pin is presented as pinned evidence, never as a fresh run, and must pass the source integrity and resource checks described in [Release evidence](/docs/release-evidence/).
 
 Attempt storage remains append-only during one current release cycle. Failed initial trials remain visible, and a failed case can recover only after two passing confirmations. Operational host retries do not consume semantic trials.
 

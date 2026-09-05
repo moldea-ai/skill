@@ -3,11 +3,15 @@ import { FlaskConical, PanelsTopLeft } from '@lucide/astro';
 import Breadcrumbs from '@moldea.ai/website-ui/breadcrumbs';
 
 import EvidenceOptionCard from '../../components/evidence-option-card/evidence-option-card.astro';
+import ReleaseEvidenceNotice from '../../components/release-evidence-notice/release-evidence-notice.astro';
 import BaseLayout from '../../layouts/base-layout.astro';
 import { loadWebsiteModel } from '../../lib/generation/generation.ts';
 
 const model = loadWebsiteModel();
 const { qualification, semanticEvaluation } = model;
+const pinnedSourceTag =
+  model.releaseEvidence.mode === 'pinned' ? model.releaseEvidence.sourceTag : null;
+const isPinned = pinnedSourceTag !== null;
 const basePath = import.meta.env.BASE_URL;
 const projectCount = qualification.profiles.reduce(
   (total, profile) => total + profile.cases.length,
@@ -20,13 +24,15 @@ const claimCount = qualification.profiles.reduce(
 const qualificationStatuses = qualification.profiles.map(
   (profile) => profile.currentLatest?.result.status ?? 'not-recorded',
 );
-const qualificationStatus = qualificationStatuses.includes('errored')
-  ? 'errored'
-  : qualificationStatuses.includes('failed')
-    ? 'failed'
-    : qualificationStatuses.includes('not-recorded')
-      ? 'not-recorded'
-      : 'passed';
+const qualificationStatus = isPinned
+  ? 'passed'
+  : qualificationStatuses.includes('errored')
+    ? 'errored'
+    : qualificationStatuses.includes('failed')
+      ? 'failed'
+      : qualificationStatuses.includes('not-recorded')
+        ? 'not-recorded'
+        : 'passed';
 const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
 ---
 
@@ -40,6 +46,8 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
       basePath={basePath}
       items={breadcrumbs}
     />
+
+    <ReleaseEvidenceNotice evidence={model.releaseEvidence} />
 
     <header class="mt-7 border-b border-border pb-10">
       <p class="eyebrow mb-4">Tested before release</p>
@@ -60,8 +68,10 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         title="Semantic evaluation"
         description="Review the behavioral scenarios, exact success and failure criteria, and evidence-based rationale for every recorded outcome."
         href={semanticEvaluation.route}
-        metric={`${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful for current assurance`}
-        status={semanticEvaluation.status}
+        metric={isPinned
+          ? `Evidence pinned from ${pinnedSourceTag}`
+          : `${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful for current assurance`}
+        status={isPinned ? 'passed' : semanticEvaluation.status}
         questions={[
           'Does the skill make the right decision when context is incomplete or conflicting?',
           'Does it respect repository truth, host constraints, and safety boundaries?',
@@ -78,7 +88,9 @@ const breadcrumbs = [{ href: '/', label: 'Home' }, { label: 'Evidence' }];
         title="Adapter qualification"
         description="Review realistic project journeys, compatibility claims, deterministic checks, independent judgment, and raw attempt artifacts."
         href={qualification.route}
-        metric={`${projectCount} ${projectCount === 1 ? 'project' : 'projects'} covering ${claimCount} ${claimCount === 1 ? 'claim' : 'claims'}`}
+        metric={isPinned
+          ? `Evidence pinned from ${pinnedSourceTag}`
+          : `${projectCount} ${projectCount === 1 ? 'project' : 'projects'} covering ${claimCount} ${claimCount === 1 ? 'claim' : 'claims'}`}
         status={qualificationStatus}
         questions={[
           'Does this adapter implementation work with the exact published package artifacts?',

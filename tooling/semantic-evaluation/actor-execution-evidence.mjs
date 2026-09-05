@@ -1,5 +1,7 @@
 import { posix } from 'node:path';
 
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
+
 const COMMAND_COMPLETED_STATUSES = new Set(['completed', 'failed']);
 const MOLDEA_COMMANDS = new Set(['composition', 'content', 'inspect', 'scope', 'validate']);
 const MOLDEA_STATUSES = new Set(['error', 'invalid', 'valid']);
@@ -19,10 +21,13 @@ const RECOGNIZED_MOLDEA_INVOCATION_PREFIXES = [
     `/opt/node ${executablePath}`,
   ]),
 ];
-const MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS = 128;
-const MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES = 32_768;
-const MAX_MOLDEA_OUTPUT_BYTES = 1_048_576;
-const MAX_OTHER_OUTPUT_BYTES = 32_768;
+const MAX_ACTOR_EXECUTION_EVIDENCE_ITEMS =
+  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxActorExecutionEvidenceItems;
+const MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES =
+  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxActorExecutionEvidenceItemBytes;
+const MAX_MOLDEA_OUTPUT_BYTES =
+  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaInvocationOutputBytes;
+const MAX_OTHER_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxOtherCommandOutputBytes;
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);

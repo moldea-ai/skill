@@ -47,3 +47,5 @@ Use a 65,536-byte output page for ordinary work and stop after obtaining the rel
 `OUTPUT_BUDGET_TOO_SMALL` means the next complete record cannot fit and increasing the page within the 1 MiB ceiling may be appropriate when the record is necessary. `RESOURCE_LIMIT_EXCEEDED` means repository reading exceeded a configured compute or storage guard; do not treat it as an output-page problem or retry unboundedly. Report the observed operation, safe error code, and missing conclusion after direct activation.
 
 Evaluation and qualification record command count and emitted bytes from the completed process evidence. Host failure-containment ceilings do not define normal skill consumption and must never be presented as repository-capacity limits.
+
+The operating targets come from the source-controlled resource profiles and reproducible calibration corpus. The ordinary cases retain at least 25 percent cumulative headroom over their largest recorded command-count and output observations; the large-traversal profile raises cumulative capacity without increasing the 65,536-byte page peak.

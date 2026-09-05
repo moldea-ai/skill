@@ -6,6 +6,7 @@ import {
   CODEX_EVALUATION_MODEL,
   CODEX_EVALUATION_REASONING_EFFORT,
 } from '../../../tooling/codex-evaluation-host/index.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
 
 // immutable protocol and evaluator identity for committed qualification evidence
 export const QUALIFICATION_PROTOCOL_VERSION = 2 as const;
@@ -36,6 +37,7 @@ export const QUALIFICATION_ENGINE_RELATIVE_PATH_PREFIXES = [
   'qualification',
   'tooling/codex-evaluation-host',
   'tooling/package-candidate',
+  'tooling/resource-calibration',
 ] as const;
 export const QUALIFICATION_CASES_PATH = path.join(QUALIFICATION_ROOT, 'cases', 'cases.yaml');
 export const QUALIFICATION_PROFILES_ROOT = path.join(QUALIFICATION_ROOT, 'profiles');
@@ -47,7 +49,8 @@ export const DEFAULT_SKILL_REPOSITORY = path.join(SKILL_REPOSITORY_ROOT, 'moldea
 export const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
 
 // bounded process output protects local runs from unbounded child-process memory use
-export const MAX_PROCESS_OUTPUT_BYTES = 16 * 1024 * 1024;
+export const MAX_PROCESS_OUTPUT_BYTES =
+  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxProcessOutputBytes;
 
 // local processes receive the same graceful-shutdown period as the evaluation relay
 export const PROCESS_TERMINATION_GRACE_PERIOD_MS = 5_000;

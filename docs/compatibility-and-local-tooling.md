@@ -58,6 +58,8 @@ Semantic and qualification hosts retain only counts and byte totals after raw to
 
 These host limits are generous failure containment for unusual cases. They are not the ordinary operating target. When a stage crosses a limit, the runner reports the measured value and the applicable limit so the user can distinguish excessive behavior from missing evidence.
 
+`tooling/resource-calibration/profiles.mjs` is the numeric authority for these values. `fixtures/resource-calibration.json` records the reproducible corpus, fixture shapes, environment, sample distributions, output and token estimates, memory and temporary-disk peaks, and explicit completion states. Use `npm run resource:check` to verify that current code and committed evidence agree.
+
 ## Published runtime compatibility
 
 Installed CLI composition reports available adapter packages and repository-format compatibility. Current target maturity remains owned by the packages website publication at [`packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json).

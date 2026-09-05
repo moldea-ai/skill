@@ -1,14 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync, spawn } from 'node:child_process';
-import {
-  existsSync,
-  mkdtempSync,
-  mkdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { afterEach, test } from 'node:test';
@@ -83,6 +76,7 @@ const createRepository = () => {
     'tooling/release-identity/constants.mjs',
     'tooling/release-identity/identity.mjs',
     'tooling/release-identity/index.mjs',
+    'tooling/resource-calibration/profiles.mjs',
     'tooling/semantic-evaluation/index.mjs',
   ]) {
     writeFixtureFile(repositoryRoot, relativePath);

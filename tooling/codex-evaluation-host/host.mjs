@@ -6,6 +6,8 @@ import { homedir } from 'node:os';
 import { basename, delimiter, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
+
 import { prepareGitCommandPolicyBoundary } from './git-command-policy-boundary.mjs';
 
 // fixed model contract shared by local evaluation workflows
@@ -36,7 +38,7 @@ const RETRYABLE_CODEX_EVALUATION_HOST_FAILURE_KINDS = new Set([
 const EGRESS_PROXY_PATH = fileURLToPath(new URL('./proxy.mjs', import.meta.url));
 const EGRESS_PROXY_PORT = 3128;
 const EGRESS_PROXY_SHUTDOWN_TIMEOUT_MS = 5_000;
-const MAX_HOST_OUTPUT_BYTES = 16 * 1024 * 1024;
+const MAX_HOST_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostOutputBytes;
 const NODE_EXECUTABLE_PATH = realpathSync(process.execPath);
 const REQUIRED_CODEX_FLAGS = [
   '--ephemeral',

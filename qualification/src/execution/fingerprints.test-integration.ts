@@ -119,6 +119,7 @@ describe('qualification input fingerprint', () => {
       packageCandidate: path.join(temporaryRoot, 'tooling/package-candidate/published.mjs'),
       packageLock: path.join(temporaryRoot, 'package-lock.json'),
       packageManifest: path.join(temporaryRoot, 'package.json'),
+      resourceProfile: path.join(temporaryRoot, 'tooling/resource-calibration/profiles.mjs'),
     };
     await Promise.all(
       Object.values(paths).map((filePath) => ensureDirectory(path.dirname(filePath))),
@@ -130,6 +131,7 @@ describe('qualification input fingerprint', () => {
       writeFile(paths.packageCandidate, 'export const packageCandidateVersion = 1;\n'),
       writeFile(paths.packageLock, createToolingPackageLock('5.0.0', '7.8.5')),
       writeFile(paths.packageManifest, createToolingPackageManifest('5.0.0', '7.8.5')),
+      writeFile(paths.resourceProfile, 'export const resourceProfileVersion = 1;\n'),
     ]);
     const initialDigest = await calculateQualificationModelHostDigest(roots);
 
@@ -144,7 +146,11 @@ describe('qualification input fingerprint', () => {
     expect(changedModelHostDigest).not.toBe(initialDigest);
 
     await writeFile(paths.evaluationHost, 'export const evaluationHostVersion = 2;\n');
-    expect(await calculateQualificationModelHostDigest(roots)).not.toBe(changedModelHostDigest);
+    const changedHostDigest = await calculateQualificationModelHostDigest(roots);
+    expect(changedHostDigest).not.toBe(changedModelHostDigest);
+
+    await writeFile(paths.resourceProfile, 'export const resourceProfileVersion = 2;\n');
+    expect(await calculateQualificationModelHostDigest(roots)).not.toBe(changedHostDigest);
   });
 
   test('isolates one adapter while retaining selected and shared execution behavior', async () => {
@@ -174,6 +180,7 @@ describe('qualification input fingerprint', () => {
       profileDocumentation: path.join(selectedProfileDirectory, 'README.md'),
       profileManifest: path.join(selectedProfileDirectory, 'profile.yaml'),
       projectReadme: path.join(selectedProfileDirectory, 'projects/selected-case/README.md'),
+      resourceProfile: path.join(temporaryRoot, 'tooling/resource-calibration/profiles.mjs'),
       scenario: path.join(selectedProfileDirectory, 'projects/selected-case/scenario.yaml'),
       task: path.join(selectedProfileDirectory, 'projects/selected-case/task.md'),
       toolingPackageLock: path.join(roots.repositoryRoot, 'package-lock.json'),
@@ -204,6 +211,7 @@ describe('qualification input fingerprint', () => {
       writeFile(paths.profileDocumentation, '# Selected profile documentation\n'),
       writeFile(paths.profileManifest, 'version: 2\nadapterId: selected\n'),
       writeFile(paths.projectReadme, '# Selected fixture\n'),
+      writeFile(paths.resourceProfile, 'export const resourceProfileVersion = 1;\n'),
       writeFile(paths.scenario, 'version: 2\nid: selected-case\n'),
       writeFile(paths.task, '# Repair the selected adapter\n'),
       writeFile(paths.toolingPackageLock, createToolingPackageLock('5.0.0', '7.8.5')),
@@ -251,12 +259,16 @@ describe('qualification input fingerprint', () => {
     const changedEvaluatorDigest = await calculateQualificationExecutionDigest(options);
     expect(changedEvaluatorDigest).not.toBe(changedProfileDigest);
 
+    await writeFile(paths.resourceProfile, 'export const resourceProfileVersion = 2;\n');
+    const changedResourceProfileDigest = await calculateQualificationExecutionDigest(options);
+    expect(changedResourceProfileDigest).not.toBe(changedEvaluatorDigest);
+
     await writeFile(
       paths.caseCatalog,
       createCaseCatalog('Revised selected behavior.', 'Revised other case.'),
     );
     const changedCaseDigest = await calculateQualificationExecutionDigest(options);
-    expect(changedCaseDigest).not.toBe(changedEvaluatorDigest);
+    expect(changedCaseDigest).not.toBe(changedResourceProfileDigest);
 
     await Promise.all([
       writeFile(paths.packageLock, createPackageLock('2.0.0', '2.10.0')),

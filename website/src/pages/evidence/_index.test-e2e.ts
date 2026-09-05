@@ -2,10 +2,13 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
+import { loadWebsiteModel } from '../../lib/generation/generation.ts';
+
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
 
 test('presents both evidence types with their current status', async ({ page }) => {
+  const { semanticEvaluation } = loadWebsiteModel();
   await page.goto(toPublicPath('/evidence/qualification/'));
   const qualificationStatuses = await page
     .getByRole('link', { name: /qualification/iu })
@@ -30,9 +33,11 @@ test('presents both evidence types with their current status', async ({ page }) 
   const qualificationLink = page.getByRole('link', { name: /Adapter qualification/ });
   await expect(semanticLink.locator('[data-evidence-status]')).toHaveAttribute(
     'data-evidence-status',
-    'passed',
+    semanticEvaluation.currentAssurance === null ? 'not-recorded' : 'passed',
   );
-  await expect(semanticLink).toContainText('57 of 57 scenarios successful for current assurance');
+  await expect(semanticLink).toContainText(
+    `${semanticEvaluation.passedCaseCount + semanticEvaluation.recoveredCaseCount} of ${semanticEvaluation.caseCount} scenarios successful for current assurance`,
+  );
   await expect(qualificationLink.locator('[data-evidence-status]')).toHaveAttribute(
     'data-evidence-status',
     qualificationStatus,

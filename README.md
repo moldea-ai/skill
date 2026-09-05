@@ -93,6 +93,8 @@ Every machine invocation uses `--json --max-output-bytes 65536`. Ordinary work s
 
 The 64 KiB page and 256 KiB ordinary aggregate are operating targets, not repository-size limits. Large projects remain usable because metadata is paginated and content is requested separately. Evaluation hosts also impose generous failure-containment ceilings: 32 `moldea` invocations, 8 MiB of `moldea` command output, and 16 MiB of total model-visible tool output per model stage. Crossing a ceiling fails the stage with the observed value and limit instead of truncating silently or producing an ambiguous result.
 
+These targets are source-controlled in `tooling/resource-calibration/profiles.mjs` and checked against the reproducible three-sample corpus in `fixtures/resource-calibration.json`. Run `npm run resource:check` for deterministic verification or `npm run resource:calibrate` to regenerate the measured environment, fixture shapes, latency and memory distributions, temporary-disk peaks, output bytes, token estimates, command counts, and completion states.
+
 ## Natural-language operations
 
 | Outcome          | Example request                                                  |

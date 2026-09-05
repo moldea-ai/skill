@@ -1,0 +1,506 @@
+{
+  "schemaVersion": 1,
+  "environment": {
+    "cliVersion": "7.0.0",
+    "gitVersion": "git version 2.53.0",
+    "nodeVersion": "v24.15.0",
+    "platform": "linux-x64"
+  },
+  "profiles": {
+    "ordinary": {
+      "maxAggregateMoldeaOutputBytes": 262144,
+      "maxMoldeaCommandCount": 4,
+      "maxOutputPageBytes": 65536
+    },
+    "largeTraversal": {
+      "maxAggregateMoldeaOutputBytes": 1048576,
+      "maxMoldeaCommandCount": 16,
+      "maxOutputPageBytes": 65536
+    },
+    "absolute": {
+      "maxActorExecutionEvidenceItemBytes": 32768,
+      "maxActorExecutionEvidenceItems": 128,
+      "maxCompletedCommandCount": 128,
+      "maxHostOutputBytes": 16777216,
+      "maxModelVisibleToolOutputBytes": 16777216,
+      "maxMoldeaCommandCount": 32,
+      "maxMoldeaInvocationOutputBytes": 1048576,
+      "maxMoldeaOutputBytes": 8388608,
+      "maxOtherCommandOutputBytes": 32768,
+      "maxProcessOutputBytes": 16777216
+    }
+  },
+  "method": {
+    "estimatedUtf8BytesPerToken": 4,
+    "minimumHeadroomPercent": 25,
+    "notes": [
+      "Duration and process RSS are recorded distributions, not pass/fail thresholds.",
+      "Temporary fixture trees are deleted after every run.",
+      "Output limits apply to one encoded CLI page and never to repository size."
+    ]
+  },
+  "cases": [
+    {
+      "fixture": {
+        "fileCount": 5,
+        "totalBytes": 1048740
+      },
+      "id": "binary-large-file",
+      "resourceClass": "attack",
+      "sampleCount": 3,
+      "completionStates": ["explicit-error"],
+      "observations": {
+        "activeResourceCountPeak": {
+          "maximum": 4,
+          "median": 4,
+          "minimum": 4,
+          "p95": 4
+        },
+        "commandCount": {
+          "maximum": 1,
+          "median": 1,
+          "minimum": 1,
+          "p95": 1
+        },
+        "durationMs": {
+          "maximum": 118.648333,
+          "median": 117.985935,
+          "minimum": 115.892497,
+          "p95": 118.648333
+        },
+        "estimatedModelTokens": {
+          "maximum": 71,
+          "median": 71,
+          "minimum": 71,
+          "p95": 71
+        },
+        "maximumInvocationOutputBytes": {
+          "maximum": 283,
+          "median": 283,
+          "minimum": 283,
+          "p95": 283
+        },
+        "modelVisibleOutputBytes": {
+          "maximum": 283,
+          "median": 283,
+          "minimum": 283,
+          "p95": 283
+        },
+        "processMaxRssBytes": {
+          "maximum": 74420224,
+          "median": 74326016,
+          "minimum": 74321920,
+          "p95": 74420224
+        },
+        "stdoutBytes": {
+          "maximum": 283,
+          "median": 283,
+          "minimum": 283,
+          "p95": 283
+        },
+        "temporaryDiskBytesPeak": {
+          "maximum": 1075058,
+          "median": 1075058,
+          "minimum": 1075058,
+          "p95": 1075058
+        }
+      }
+    },
+    {
+      "fixture": {
+        "fileCount": 1029,
+        "totalBytes": 26702
+      },
+      "id": "broadly-relevant",
+      "resourceClass": "largeTraversal",
+      "sampleCount": 3,
+      "completionStates": ["complete"],
+      "observations": {
+        "activeResourceCountPeak": {
+          "maximum": 2,
+          "median": 2,
+          "minimum": 2,
+          "p95": 2
+        },
+        "commandCount": {
+          "maximum": 8,
+          "median": 8,
+          "minimum": 8,
+          "p95": 8
+        },
+        "durationMs": {
+          "maximum": 1201.27769,
+          "median": 1194.847028,
+          "minimum": 1189.678422,
+          "p95": 1201.27769
+        },
+        "estimatedModelTokens": {
+          "maximum": 115730,
+          "median": 115730,
+          "minimum": 115730,
+          "p95": 115730
+        },
+        "maximumInvocationOutputBytes": {
+          "maximum": 65478,
+          "median": 65478,
+          "minimum": 65478,
+          "p95": 65478
+        },
+        "modelVisibleOutputBytes": {
+          "maximum": 462919,
+          "median": 462919,
+          "minimum": 462919,
+          "p95": 462919
+        },
+        "processMaxRssBytes": {
+          "maximum": 84422656,
+          "median": 84291584,
+          "minimum": 84103168,
+          "p95": 84422656
+        },
+        "stdoutBytes": {
+          "maximum": 462919,
+          "median": 462919,
+          "minimum": 462919,
+          "p95": 462919
+        },
+        "temporaryDiskBytesPeak": {
+          "maximum": 53020,
+          "median": 53020,
+          "minimum": 53020,
+          "p95": 53020
+        }
+      }
+    },
+    {
+      "fixture": {
+        "fileCount": 5,
+        "totalBytes": 39015
+      },
+      "id": "diagnostic-heavy",
+      "resourceClass": "largeTraversal",
+      "sampleCount": 3,
+      "completionStates": ["complete"],
+      "observations": {
+        "activeResourceCountPeak": {
+          "maximum": 3,
+          "median": 3,
+          "minimum": 3,
+          "p95": 3
+        },
+        "commandCount": {
+          "maximum": 8,
+          "median": 8,
+          "minimum": 8,
+          "p95": 8
+        },
+        "durationMs": {
+          "maximum": 3531.868378,
+          "median": 3476.7544439999997,
+          "minimum": 3452.7770720000003,
+          "p95": 3531.868378
+        },
+        "estimatedModelTokens": {
+          "maximum": 130309,
+          "median": 130309,
+          "minimum": 130309,
+          "p95": 130309
+        },
+        "maximumInvocationOutputBytes": {
+          "maximum": 65335,
+          "median": 65335,
+          "minimum": 65335,
+          "p95": 65335
+        },
+        "modelVisibleOutputBytes": {
+          "maximum": 521234,
+          "median": 521234,
+          "minimum": 521234,
+          "p95": 521234
+        },
+        "processMaxRssBytes": {
+          "maximum": 163848192,
+          "median": 163667968,
+          "minimum": 163319808,
+          "p95": 163848192
+        },
+        "stdoutBytes": {
+          "maximum": 521234,
+          "median": 521234,
+          "minimum": 521234,
+          "p95": 521234
+        },
+        "temporaryDiskBytesPeak": {
+          "maximum": 65333,
+          "median": 65333,
+          "minimum": 65333,
+          "p95": 65333
+        }
+      }
+    },
+    {
+      "fixture": {
+        "fileCount": 1029,
+        "totalBytes": 2124973
+      },
+      "id": "large-remote-shape",
+      "resourceClass": "ordinary",
+      "sampleCount": 3,
+      "completionStates": ["complete"],
+      "observations": {
+        "activeResourceCountPeak": {
+          "maximum": 2,
+          "median": 2,
+          "minimum": 2,
+          "p95": 2
+        },
+        "commandCount": {
+          "maximum": 1,
+          "median": 1,
+          "minimum": 1,
+          "p95": 1
+        },
+        "durationMs": {
+          "maximum": 121.93477,
+          "median": 120.672142,
+          "minimum": 119.487343,
+          "p95": 121.93477
+        },
+        "estimatedModelTokens": {
+          "maximum": 261,
+          "median": 261,
+          "minimum": 261,
+          "p95": 261
+        },
+        "maximumInvocationOutputBytes": {
+          "maximum": 1044,
+          "median": 1044,
+          "minimum": 1044,
+          "p95": 1044
+        },
+        "modelVisibleOutputBytes": {
+          "maximum": 1044,
+          "median": 1044,
+          "minimum": 1044,
+          "p95": 1044
+        },
+        "processMaxRssBytes": {
+          "maximum": 75341824,
+          "median": 75137024,
+          "minimum": 74883072,
+          "p95": 75341824
+        },
+        "stdoutBytes": {
+          "maximum": 1044,
+          "median": 1044,
+          "minimum": 1044,
+          "p95": 1044
+        },
+        "temporaryDiskBytesPeak": {
+          "maximum": 2151291,
+          "median": 2151291,
+          "minimum": 2151291,
+          "p95": 2151291
+        }
+      }
+    },
+    {
+      "fixture": {
+        "fileCount": 5,
+        "totalBytes": 295086
+      },
+      "id": "large-unicode",
+      "resourceClass": "largeTraversal",
+      "sampleCount": 3,
+      "completionStates": ["complete"],
+      "observations": {
+        "activeResourceCountPeak": {
+          "maximum": 4,
+          "median": 4,
+          "minimum": 4,
+          "p95": 4
+        },
+        "commandCount": {
+          "maximum": 1,
+          "median": 1,
+          "minimum": 1,
+          "p95": 1
+        },
+        "durationMs": {
+          "maximum": 126.033786,
+          "median": 123.199188,
+          "minimum": 122.941449,
+          "p95": 126.033786
+        },
+        "estimatedModelTokens": {
+          "maximum": 8850,
+          "median": 8850,
+          "minimum": 8850,
+          "p95": 8850
+        },
+        "maximumInvocationOutputBytes": {
+          "maximum": 35399,
+          "median": 35399,
+          "minimum": 35399,
+          "p95": 35399
+        },
+        "modelVisibleOutputBytes": {
+          "maximum": 35399,
+          "median": 35399,
+          "minimum": 35399,
+          "p95": 35399
+        },
+        "processMaxRssBytes": {
+          "maximum": 79355904,
+          "median": 79224832,
+          "minimum": 79159296,
+          "p95": 79355904
+        },
+        "stdoutBytes": {
+          "maximum": 35399,
+          "median": 35399,
+          "minimum": 35399,
+          "p95": 35399
+        },
+        "temporaryDiskBytesPeak": {
+          "maximum": 321404,
+          "median": 321404,
+          "minimum": 321404,
+          "p95": 321404
+        }
+      }
+    },
+    {
+      "fixture": {
+        "fileCount": 517,
+        "totalBytes": 13375
+      },
+      "id": "medium-mostly-irrelevant",
+      "resourceClass": "ordinary",
+      "sampleCount": 3,
+      "completionStates": ["complete"],
+      "observations": {
+        "activeResourceCountPeak": {
+          "maximum": 2,
+          "median": 2,
+          "minimum": 2,
+          "p95": 2
+        },
+        "commandCount": {
+          "maximum": 1,
+          "median": 1,
+          "minimum": 1,
+          "p95": 1
+        },
+        "durationMs": {
+          "maximum": 123.256919,
+          "median": 122.844069,
+          "minimum": 117.008626,
+          "p95": 123.256919
+        },
+        "estimatedModelTokens": {
+          "maximum": 261,
+          "median": 261,
+          "minimum": 261,
+          "p95": 261
+        },
+        "maximumInvocationOutputBytes": {
+          "maximum": 1044,
+          "median": 1044,
+          "minimum": 1044,
+          "p95": 1044
+        },
+        "modelVisibleOutputBytes": {
+          "maximum": 1044,
+          "median": 1044,
+          "minimum": 1044,
+          "p95": 1044
+        },
+        "processMaxRssBytes": {
+          "maximum": 75378688,
+          "median": 75075584,
+          "minimum": 74792960,
+          "p95": 75378688
+        },
+        "stdoutBytes": {
+          "maximum": 1044,
+          "median": 1044,
+          "minimum": 1044,
+          "p95": 1044
+        },
+        "temporaryDiskBytesPeak": {
+          "maximum": 39693,
+          "median": 39693,
+          "minimum": 39693,
+          "p95": 39693
+        }
+      }
+    },
+    {
+      "fixture": {
+        "fileCount": 13,
+        "totalBytes": 365
+      },
+      "id": "small-ordinary",
+      "resourceClass": "ordinary",
+      "sampleCount": 3,
+      "completionStates": ["complete"],
+      "observations": {
+        "activeResourceCountPeak": {
+          "maximum": 4,
+          "median": 4,
+          "minimum": 4,
+          "p95": 4
+        },
+        "commandCount": {
+          "maximum": 1,
+          "median": 1,
+          "minimum": 1,
+          "p95": 1
+        },
+        "durationMs": {
+          "maximum": 359.862976,
+          "median": 357.988629,
+          "minimum": 351.645526,
+          "p95": 359.862976
+        },
+        "estimatedModelTokens": {
+          "maximum": 419,
+          "median": 419,
+          "minimum": 419,
+          "p95": 419
+        },
+        "maximumInvocationOutputBytes": {
+          "maximum": 1675,
+          "median": 1675,
+          "minimum": 1675,
+          "p95": 1675
+        },
+        "modelVisibleOutputBytes": {
+          "maximum": 1675,
+          "median": 1675,
+          "minimum": 1675,
+          "p95": 1675
+        },
+        "processMaxRssBytes": {
+          "maximum": 133476352,
+          "median": 132763648,
+          "minimum": 132231168,
+          "p95": 133476352
+        },
+        "stdoutBytes": {
+          "maximum": 1675,
+          "median": 1675,
+          "minimum": 1675,
+          "p95": 1675
+        },
+        "temporaryDiskBytesPeak": {
+          "maximum": 26683,
+          "median": 26683,
+          "minimum": 26683,
+          "p95": 26683
+        }
+      }
+    }
+  ]
+}

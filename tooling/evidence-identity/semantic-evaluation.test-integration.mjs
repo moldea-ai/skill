@@ -111,6 +111,7 @@ const createRepository = () => {
     'tooling/release-identity/constants.mjs',
     'tooling/release-identity/identity.mjs',
     'tooling/release-identity/index.mjs',
+    'tooling/resource-calibration/profiles.mjs',
     'tooling/semantic-evaluation/index.mjs',
   ]) {
     writeFixtureFile(repositoryRoot, relativePath);

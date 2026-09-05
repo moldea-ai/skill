@@ -261,29 +261,38 @@ const createCurrentEvaluatorEntries = async (
       }));
   };
 
-  const [qualificationEntries, hostEntries, candidateEntries] = await Promise.all([
-    collectSourceEntries(
-      path.join(roots.qualificationRoot, 'src'),
-      'qualification/src',
-      isQualificationEvaluatorSourcePath,
-    ),
-    collectSourceEntries(
-      path.join(roots.repositoryRoot, 'tooling/codex-evaluation-host'),
-      'tooling/codex-evaluation-host',
-      (relativePath) =>
-        isQualificationBehaviorBearingSourcePath(
-          relativePath.slice('tooling/codex-evaluation-host/'.length),
-        ),
-    ),
-    collectSourceEntries(
-      path.join(roots.repositoryRoot, 'tooling/package-candidate'),
-      'tooling/package-candidate',
-      (relativePath) =>
-        isQualificationBehaviorBearingSourcePath(
-          relativePath.slice('tooling/package-candidate/'.length),
-        ),
-    ),
-  ]);
+  const [qualificationEntries, hostEntries, candidateEntries, resourceProfileEntries] =
+    await Promise.all([
+      collectSourceEntries(
+        path.join(roots.qualificationRoot, 'src'),
+        'qualification/src',
+        isQualificationEvaluatorSourcePath,
+      ),
+      collectSourceEntries(
+        path.join(roots.repositoryRoot, 'tooling/codex-evaluation-host'),
+        'tooling/codex-evaluation-host',
+        (relativePath) =>
+          isQualificationBehaviorBearingSourcePath(
+            relativePath.slice('tooling/codex-evaluation-host/'.length),
+          ),
+      ),
+      collectSourceEntries(
+        path.join(roots.repositoryRoot, 'tooling/package-candidate'),
+        'tooling/package-candidate',
+        (relativePath) =>
+          isQualificationBehaviorBearingSourcePath(
+            relativePath.slice('tooling/package-candidate/'.length),
+          ),
+      ),
+      collectSourceEntries(
+        path.join(roots.repositoryRoot, 'tooling/resource-calibration'),
+        'tooling/resource-calibration',
+        (relativePath) => relativePath === 'tooling/resource-calibration/profiles.mjs',
+      ),
+    ]);
+  if (resourceProfileEntries.length !== 1) {
+    throw new Error('Qualification evaluator identity requires the shared resource profile.');
+  }
   const qualificationManifestPath = path.join(
     roots.repositoryRoot,
     QUALIFICATION_PACKAGE_MANIFEST_PATH,
@@ -335,9 +344,13 @@ const createCurrentEvaluatorEntries = async (
     ),
   ]);
 
-  return [...qualificationEntries, ...hostEntries, ...candidateEntries, ...normalizedEntries].sort(
-    (left, right) => left.path.localeCompare(right.path, 'en'),
-  );
+  return [
+    ...qualificationEntries,
+    ...hostEntries,
+    ...candidateEntries,
+    ...resourceProfileEntries,
+    ...normalizedEntries,
+  ].sort((left, right) => left.path.localeCompare(right.path, 'en'));
 };
 
 const createGitEvaluatorEntries = async (
@@ -348,6 +361,7 @@ const createGitEvaluatorEntries = async (
     'qualification/src',
     'tooling/codex-evaluation-host',
     'tooling/package-candidate',
+    'tooling/resource-calibration/profiles.mjs',
     QUALIFICATION_PACKAGE_MANIFEST_PATH,
     QUALIFICATION_PACKAGE_LOCK_PATH,
     TOOLING_PACKAGE_MANIFEST_PATH,
@@ -366,6 +380,9 @@ const createGitEvaluatorEntries = async (
       return isQualificationBehaviorBearingSourcePath(
         relativePath.slice('tooling/package-candidate/'.length),
       );
+    }
+    if (relativePath === 'tooling/resource-calibration/profiles.mjs') {
+      return true;
     }
     return false;
   });

@@ -26,6 +26,7 @@ const SOURCE_PATHS = [
   'tooling/codex-evaluation-host',
   'tooling/evidence-identity',
   'tooling/release-identity',
+  'tooling/resource-calibration/profiles.mjs',
   'tooling/semantic-evaluation',
 ];
 const SOURCE_PATH_EXCLUSIONS = [
@@ -50,6 +51,7 @@ const REQUIRED_SOURCE_PATHS = new Set([
   'tooling/release-identity/constants.mjs',
   'tooling/release-identity/identity.mjs',
   'tooling/release-identity/index.mjs',
+  'tooling/resource-calibration/profiles.mjs',
   'tooling/semantic-evaluation/index.mjs',
 ]);
 

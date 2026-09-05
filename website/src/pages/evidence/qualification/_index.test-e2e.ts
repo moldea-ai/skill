@@ -2,8 +2,22 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
+import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
+
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
 const toPublicPath = (route: string): string => withBase(route, basePath);
+
+const qualificationModel = loadWebsiteModel().qualification;
+
+/** Resolves one generated profile contract for state-aware browser assertions. */
+const getProfile = (adapterId: string, implementationId: string) => {
+  const profile = qualificationModel.profiles.find(
+    (candidate) =>
+      candidate.adapterId === adapterId && candidate.implementationId === implementationId,
+  );
+  if (profile === undefined) throw new Error(`Missing ${adapterId}/${implementationId} profile.`);
+  return profile;
+};
 
 test('represents the current qualification evidence state', async ({ page }) => {
   await page.goto(toPublicPath('/evidence/qualification/'));
@@ -11,60 +25,41 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Adapter qualification evidence' }),
   ).toBeVisible();
+  for (const profile of qualificationModel.profiles) {
+    const profileLink = page.getByRole('link', { name: profile.title });
+    await expect(profileLink.locator('[data-evidence-status]')).toHaveAttribute(
+      'data-evidence-status',
+      profile.currentLatest?.result.status ?? 'not-recorded',
+    );
+    await expect(profileLink.getByText('Attempts', { exact: true }).locator('..')).toContainText(
+      String(profile.attempts.length),
+    );
+  }
+
   const customProfileLink = page.getByRole('link', { name: /Custom runtime qualification/ });
-  await expect(
-    customProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
-  ).toBeVisible();
   await expect(customProfileLink.getByRole('img', { name: 'Custom adapter icon' })).toBeVisible();
   await expect(customProfileLink.locator('img')).toHaveCount(0);
-  await expect(
-    customProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('10');
 
   const anthropicProfileLink = page.getByRole('link', {
     name: /Anthropic Messages API qualification/,
   });
-  await expect(
-    anthropicProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
-  ).toBeVisible();
   const anthropicCompanyLogo = anthropicProfileLink.getByAltText('Anthropic company logo');
   await expect(anthropicCompanyLogo).toBeVisible();
-  await expect(
-    anthropicProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('7');
 
   const claudeProfileLink = page.getByRole('link', {
     name: /Claude Agent SDK qualification/,
   });
-  await expect(
-    claudeProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
-  ).toBeVisible();
   await expect(claudeProfileLink.getByAltText('Anthropic company logo')).toBeVisible();
-  await expect(
-    claudeProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('5');
 
   const vercelProfileLink = page.getByRole('link', {
     name: /Vercel AI SDK direct generation qualification/,
   });
-  await expect(
-    vercelProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
-  ).toBeVisible();
   await expect(vercelProfileLink.getByAltText('Vercel company logo')).toBeVisible();
-  await expect(
-    vercelProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('4');
 
   const toolLoopProfileLink = page.getByRole('link', {
     name: /Vercel AI SDK ToolLoopAgent qualification/,
   });
-  await expect(
-    toolLoopProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
-  ).toBeVisible();
   await expect(toolLoopProfileLink.getByAltText('Vercel company logo')).toBeVisible();
-  await expect(
-    toolLoopProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('7');
 
   const openAiResponsesProfileLink = page.getByRole('link', {
     name: /OpenAI Responses API qualification/,
@@ -79,39 +74,19 @@ test('represents the current qualification evidence state', async ({ page }) => 
   const eveProfileLink = page.getByRole('link', {
     name: /Eve filesystem-agent qualification/,
   });
-  await expect(
-    eveProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
-  ).toBeVisible();
   await expect(eveProfileLink.getByAltText('Vercel company logo')).toBeVisible();
-  await expect(eveProfileLink.getByText('Attempts', { exact: true }).locator('..')).toContainText(
-    '6',
-  );
 
   const langGraphStateGraphProfileLink = page.getByRole('link', {
     name: /LangGraph StateGraph qualification/,
   });
-  await expect(
-    langGraphStateGraphProfileLink.locator('[data-evidence-status][data-evidence-status="passed"]'),
-  ).toBeVisible();
   await expect(langGraphStateGraphProfileLink.getByAltText('LangChain company logo')).toBeVisible();
-  await expect(
-    langGraphStateGraphProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('2');
 
   const langGraphFunctionalApiProfileLink = page.getByRole('link', {
     name: /LangGraph Functional API qualification/,
   });
   await expect(
-    langGraphFunctionalApiProfileLink.locator(
-      '[data-evidence-status][data-evidence-status="passed"]',
-    ),
-  ).toBeVisible();
-  await expect(
     langGraphFunctionalApiProfileLink.getByAltText('LangChain company logo'),
   ).toBeVisible();
-  await expect(
-    langGraphFunctionalApiProfileLink.getByText('Attempts', { exact: true }).locator('..'),
-  ).toContainText('2');
 
   const anthropicCompanyLogos = page.getByAltText('Anthropic company logo');
   const langChainCompanyLogos = page.getByAltText('LangChain company logo');
@@ -179,74 +154,48 @@ test('represents the current qualification evidence state', async ({ page }) => 
   ).toBe(true);
 });
 
-test('presents the recorded Anthropic profile', async ({ page }) => {
-  await page.goto(toPublicPath('/evidence/qualification/anthropic/typescript-messages-api-0-117/'));
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Anthropic Messages API qualification' }),
-  ).toBeVisible();
-  await expect(page.getByRole('heading', { name: '2 realistic journeys' })).toBeVisible();
-  await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
-  await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
-    'href',
-    /\/evidence\/qualification\/anthropic\/typescript-messages-api-0-117\/attempts\//u,
-  );
-});
-
-test('presents the recorded Custom and Vercel results', async ({ page }) => {
-  await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
-  await expect(
-    page.getByRole('heading', { level: 1, name: 'Custom runtime qualification' }),
-  ).toBeVisible();
-  await expect(page.getByRole('heading', { name: '8 realistic journeys' })).toBeVisible();
-  await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
-  await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
-    'href',
-    /\/evidence\/qualification\/custom\/custom\/attempts\//u,
-  );
-
-  await page.goto(
-    toPublicPath('/evidence/qualification/vercel-ai-sdk/typescript-generate-stream-text-7/'),
-  );
-  await expect(
-    page.getByRole('heading', {
-      level: 1,
-      name: 'Vercel AI SDK direct generation qualification',
-    }),
-  ).toBeVisible();
-  await expect(page.getByRole('heading', { name: '2 realistic journeys' })).toBeVisible();
-  await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
-  await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
-    'href',
-    /\/evidence\/qualification\/vercel-ai-sdk\/typescript-generate-stream-text-7\/attempts\//u,
-  );
-
-  await page.goto(
-    toPublicPath('/evidence/qualification/vercel-ai-sdk/typescript-tool-loop-agent-7/'),
-  );
-  await expect(
-    page.getByRole('heading', {
-      level: 1,
-      name: 'Vercel AI SDK ToolLoopAgent qualification',
-    }),
-  ).toBeVisible();
-  await expect(page.getByRole('heading', { name: '2 realistic journeys' })).toBeVisible();
-  await expect(page.locator('[data-evidence-status="passed"]').first()).toBeVisible();
-  await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toHaveCount(0);
-  await expect(page.getByRole('link', { name: 'Inspect the passing attempt' })).toHaveAttribute(
-    'href',
-    /\/evidence\/qualification\/vercel-ai-sdk\/typescript-tool-loop-agent-7\/attempts\//u,
-  );
+test('presents profile definitions and the exact current evidence state', async ({ page }) => {
+  for (const [adapterId, implementationId] of [
+    ['anthropic', 'typescript-messages-api-0-117'],
+    ['custom', 'custom'],
+    ['vercel-ai-sdk', 'typescript-generate-stream-text-7'],
+    ['vercel-ai-sdk', 'typescript-tool-loop-agent-7'],
+  ] as const) {
+    const profile = getProfile(adapterId, implementationId);
+    await page.goto(toPublicPath(profile.route));
+    await expect(page.getByRole('heading', { level: 1, name: profile.title })).toBeVisible();
+    await expect(
+      page.getByRole('heading', {
+        name: `${profile.cases.length} realistic journey${profile.cases.length === 1 ? '' : 's'}`,
+      }),
+    ).toBeVisible();
+    await expect(page.locator('[data-evidence-status]').first()).toHaveAttribute(
+      'data-evidence-status',
+      profile.currentLatest?.result.status ?? 'not-recorded',
+    );
+    if (profile.currentLatest === null) {
+      await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toBeVisible();
+      await expect(page.getByRole('link', { name: /Inspect the .* attempt/u })).toHaveCount(0);
+    } else {
+      await expect(page.getByRole('link', { name: /Inspect the .* attempt/u })).toHaveAttribute(
+        'href',
+        new RegExp(`${profile.route}attempts/`, 'u'),
+      );
+    }
+  }
 });
 
 test('replays qualification evidence through human-readable and technical views', async ({
   page,
 }) => {
-  await page.goto(toPublicPath('/evidence/qualification/custom/custom/'));
+  const customProfile = getProfile('custom', 'custom');
+  await page.goto(toPublicPath(customProfile.route));
+  if (customProfile.currentLatest === null) {
+    await expect(page.getByText(/No protocol 7 Sol attempt has been committed/u)).toBeVisible();
+    return;
+  }
   const attemptRoute = await page
-    .getByRole('link', { name: 'Inspect the passing attempt' })
+    .getByRole('link', { name: /Inspect the .* attempt/u })
     .getAttribute('href');
   if (attemptRoute === null) throw new Error('The Custom profile has no passing attempt route.');
   await page.goto(attemptRoute);

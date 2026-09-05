@@ -18,6 +18,7 @@ const createRepository = () => {
     'tooling/codex-evaluation-host/index.mjs',
     'tooling/release-identity/constants.mjs',
     'tooling/release-identity/identity.mjs',
+    'tooling/resource-calibration/profiles.mjs',
     'tooling/semantic-evaluation/index.mjs',
   ]) {
     const absolutePath = join(repositoryRoot, ...relativePath.split('/'));
@@ -41,6 +42,7 @@ test('every semantic behavior input invalidates the semantic input digest', () =
     'tooling/codex-evaluation-host/index.mjs',
     'tooling/release-identity/constants.mjs',
     'tooling/release-identity/identity.mjs',
+    'tooling/resource-calibration/profiles.mjs',
     'tooling/semantic-evaluation/index.mjs',
   ]) {
     const repositoryRoot = createRepository();

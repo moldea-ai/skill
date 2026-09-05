@@ -10,6 +10,7 @@ const SEMANTIC_INPUT_PATHS = [
   'tooling/codex-evaluation-host',
   'tooling/release-identity/constants.mjs',
   'tooling/release-identity/identity.mjs',
+  'tooling/resource-calibration/profiles.mjs',
   'tooling/semantic-evaluation',
 ];
 const MAX_SEMANTIC_INPUT_FILE_BYTES = 64 * 1024 * 1024;

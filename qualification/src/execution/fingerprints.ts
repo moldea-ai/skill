@@ -95,6 +95,26 @@ const collectQualificationProfileEntries = async (
       entry.path !== PROFILE_DOCUMENTATION_PATH && !isQualificationTestFilePath(entry.path),
   );
 
+/** Collects the single behavior-bearing resource profile shared by model execution. */
+const collectResourceProfileEntries = async (
+  repositoryRoot: string,
+): Promise<IDirectoryFingerprintEntry[]> => {
+  const entries = (
+    await collectDirectoryFingerprintEntries(
+      path.join(repositoryRoot, 'tooling/resource-calibration'),
+    )
+  )
+    .filter(({ path: relativePath }) => relativePath === 'profiles.mjs')
+    .map((entry) => ({
+      ...entry,
+      path: path.posix.join('tooling/resource-calibration', entry.path),
+    }));
+  if (entries.length !== 1) {
+    throw new Error('Qualification resource profile identity requires profiles.mjs.');
+  }
+  return entries;
+};
+
 /** Creates one stable fingerprint entry for normalized boundary content. */
 const createNormalizedFileEntry = async (
   absolutePath: string,
@@ -162,13 +182,19 @@ export const calculateQualificationModelHostDigest = async (
   const qualificationModelHostRoot = path.join(roots.qualificationRoot, 'src', 'codex-host');
   const toolingPackageManifestPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_MANIFEST_PATH);
   const toolingPackageLockPath = path.join(roots.repositoryRoot, TOOLING_PACKAGE_LOCK_PATH);
-  const [qualificationModelHostEntries, evaluationHostEntries, packageManifest, packageLock] =
-    await Promise.all([
-      collectPrefixedSourceEntries(qualificationModelHostRoot, 'qualification/src/codex-host'),
-      collectPrefixedSourceEntries(roots.evaluationHostRoot, 'tooling/codex-evaluation-host'),
-      readFile(toolingPackageManifestPath, 'utf8'),
-      readFile(toolingPackageLockPath, 'utf8'),
-    ]);
+  const [
+    qualificationModelHostEntries,
+    evaluationHostEntries,
+    resourceProfileEntries,
+    packageManifest,
+    packageLock,
+  ] = await Promise.all([
+    collectPrefixedSourceEntries(qualificationModelHostRoot, 'qualification/src/codex-host'),
+    collectPrefixedSourceEntries(roots.evaluationHostRoot, 'tooling/codex-evaluation-host'),
+    collectResourceProfileEntries(roots.repositoryRoot),
+    readFile(toolingPackageManifestPath, 'utf8'),
+    readFile(toolingPackageLockPath, 'utf8'),
+  ]);
   const normalizedEntries = await Promise.all([
     createNormalizedFileEntry(
       toolingPackageManifestPath,
@@ -190,6 +216,7 @@ export const calculateQualificationModelHostDigest = async (
   const entries = [
     ...qualificationModelHostEntries,
     ...evaluationHostEntries,
+    ...resourceProfileEntries,
     ...normalizedEntries,
   ].sort((left, right) => left.path.localeCompare(right.path, 'en'));
 
@@ -220,6 +247,7 @@ export const calculateQualificationExecutionDigest = async (
     qualificationSourceEntries,
     evaluationHostEntries,
     packageCandidateEntries,
+    resourceProfileEntries,
     packageManifestSource,
     packageLockSource,
     caseCatalogSource,
@@ -229,6 +257,7 @@ export const calculateQualificationExecutionDigest = async (
     collectPrefixedSourceEntries(qualificationSourceRoot, 'qualification/src'),
     collectPrefixedSourceEntries(roots.evaluationHostRoot, 'tooling/codex-evaluation-host'),
     collectPrefixedSourceEntries(roots.packageCandidateRoot, 'tooling/package-candidate'),
+    collectResourceProfileEntries(roots.repositoryRoot),
     readFile(packageManifestPath, 'utf8'),
     readFile(packageLockPath, 'utf8'),
     readFile(caseCatalogPath, 'utf8'),
@@ -272,6 +301,7 @@ export const calculateQualificationExecutionDigest = async (
     ...qualificationSourceEntries,
     ...evaluationHostEntries,
     ...packageCandidateEntries,
+    ...resourceProfileEntries,
     ...profileEntries,
     ...normalizedEntries,
   ].sort((left, right) => left.path.localeCompare(right.path, 'en'));

@@ -1,12 +1,16 @@
 import { posix } from 'node:path';
 
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
+
 const COMMAND_POLICY_STATUSES = new Set(['indeterminate', 'not-observed', 'observed']);
 const COMMAND_RESULT_STATUSES = new Set(['completed', 'failed']);
-const MAX_COMPLETED_COMMAND_COUNT = 128;
-const MAX_COMMAND_BYTES = 32_768;
-const MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES = 16_777_216;
-const MAX_MOLDEA_COMMAND_COUNT = 32;
-const MAX_MOLDEA_OUTPUT_BYTES = 8_388_608;
+const MAX_COMPLETED_COMMAND_COUNT =
+  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCompletedCommandCount;
+const MAX_COMMAND_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxOtherCommandOutputBytes;
+const MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES =
+  MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxModelVisibleToolOutputBytes;
+const MAX_MOLDEA_COMMAND_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaCommandCount;
+const MAX_MOLDEA_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaOutputBytes;
 
 const NETWORK_EXECUTABLES = new Set([
   'corepack',
@@ -997,7 +1001,9 @@ export const projectCodexEvaluationExecutionEvidence = (source) => {
     try {
       event = JSON.parse(eventLine);
     } catch (error) {
-      throw new Error('Codex execution evidence contains malformed JSONL.', { cause: error });
+      throw new Error('Codex execution evidence contains malformed JSONL.', {
+        cause: error,
+      });
     }
     if (!isPlainRecord(event) || typeof event.type !== 'string') {
       throw new Error('Codex execution evidence contains an unsupported event.');

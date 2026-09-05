@@ -162,6 +162,7 @@ const createCommandPolicyEvidence = (
 ): IQualificationCommandPolicyEvidence => ({
   completedCommandCount: status === 'not-observed' ? 0 : 1,
   credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
   moldeaOutputByteCount: 0,
@@ -262,6 +263,7 @@ describe('scenario resource profiles', () => {
     commandPolicy: {
       ...createCommandPolicyEvidence('not-observed'),
       completedCommandCount: ordinaryProfile.maxCompletedCommandCount,
+      maximumCommandOutputByteCount: ordinaryProfile.maxCommandOutputBytes,
       moldeaCommandCount: ordinaryProfile.maxMoldeaCommandCount,
       moldeaOutputByteCount: ordinaryProfile.maxAggregateMoldeaOutputBytes,
       modelVisibleToolOutputByteCount: ordinaryProfile.maxModelVisibleToolOutputBytes,
@@ -288,6 +290,11 @@ describe('scenario resource profiles', () => {
     ['completedCommandCount', 'completed-host-commands', ordinaryProfile.maxCompletedCommandCount],
     ['moldeaCommandCount', 'moldea-commands', ordinaryProfile.maxMoldeaCommandCount],
     ['moldeaOutputByteCount', 'moldea-output-bytes', ordinaryProfile.maxAggregateMoldeaOutputBytes],
+    [
+      'maximumCommandOutputByteCount',
+      'maximum-command-output-bytes',
+      ordinaryProfile.maxCommandOutputBytes,
+    ],
     [
       'modelVisibleToolOutputByteCount',
       'model-visible-tool-output-bytes',

@@ -248,6 +248,28 @@ test('counts a valid launcher with malformed output as an unrecognized moldea op
   });
 });
 
+test('bounds ordinary non-moldea command output at the operating peak', () => {
+  const exact = projectActorExecutionEvidenceEvent(
+    createEvent('git status --short', 'x'.repeat(65_536)),
+    OPTIONS,
+  );
+  const excessive = projectActorExecutionEvidenceEvent(
+    createEvent('git status --short', 'x'.repeat(65_537)),
+    OPTIONS,
+  );
+
+  assert.deepEqual(exact.item.outputEvidence, {
+    byteCount: 65_536,
+    disposition: 'unrecognized',
+    facts: [],
+  });
+  assert.deepEqual(excessive.item.outputEvidence, {
+    byteCount: 65_537,
+    disposition: 'too-large',
+    facts: [],
+  });
+});
+
 test('rejects obsolete and malformed launcher command forms', () => {
   for (const command of [
     './node_modules/.bin/moldea validate --json --max-output-bytes 65536',

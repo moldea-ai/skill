@@ -53,6 +53,7 @@ export type ICodexEvaluationCommandPolicyEvidence = {
     observedCount: number;
     reasons: ICodexEvaluationCommandPolicyReason[];
   };
+  maximumCommandOutputByteCount: number;
   modelVisibleToolOutputByteCount: number;
   moldeaCommandCount: number;
   moldeaOutputByteCount: number;

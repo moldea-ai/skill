@@ -9,6 +9,7 @@
   "profiles": {
     "ordinary": {
       "maxCompletedCommandCount": 32,
+      "maxCommandOutputBytes": 65536,
       "maxHostTokenCount": 524288,
       "maxModelVisibleToolOutputBytes": 1048576,
       "maxAggregateMoldeaOutputBytes": 262144,
@@ -17,6 +18,7 @@
     },
     "largeTraversal": {
       "maxCompletedCommandCount": 64,
+      "maxCommandOutputBytes": 65536,
       "maxHostTokenCount": 1048576,
       "maxModelVisibleToolOutputBytes": 4194304,
       "maxAggregateMoldeaOutputBytes": 1048576,
@@ -33,7 +35,7 @@
       "maxMoldeaCommandCount": 32,
       "maxMoldeaInvocationOutputBytes": 1048576,
       "maxMoldeaOutputBytes": 8388608,
-      "maxOtherCommandOutputBytes": 32768,
+      "maxCommandTextBytes": 32768,
       "maxProcessOutputBytes": 16777216
     }
   },
@@ -44,7 +46,8 @@
       "Duration and process RSS are recorded distributions, not pass/fail thresholds.",
       "The host token ceiling bounds cumulative input plus output for one completed Codex stage.",
       "Temporary fixture trees are deleted after every run.",
-      "Output limits apply to one encoded CLI page and never to repository size."
+      "CLI page limits apply to one encoded response and never to repository size.",
+      "Deterministic calibration does not substitute for complete model-stage evidence."
     ]
   },
   "cases": [

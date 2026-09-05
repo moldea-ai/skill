@@ -37,6 +37,7 @@ const MODEL_USAGE = { cachedInputTokens: 0, inputTokens: 128, outputTokens: 16 }
 const EMPTY_COMMAND_POLICY: IQualificationCommandPolicyEvidence = {
   completedCommandCount: 0,
   credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
   moldeaOutputByteCount: 0,

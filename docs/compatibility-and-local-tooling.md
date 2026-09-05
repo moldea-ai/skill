@@ -52,12 +52,12 @@ Large repositories remain supported through deterministic metadata pagination. A
 
 Qualification scenarios declare one of two operating profiles. Each stage is checked independently before judging:
 
-- `ordinary`: 32 completed commands, 8 `moldea` calls, 256 KiB of `moldea` output, 1 MiB of model-visible tool output, and 524,288 input-plus-output tokens
-- `largeTraversal`: 64 completed commands, 16 `moldea` calls, 1 MiB of `moldea` output, 4 MiB of model-visible tool output, and 1,048,576 input-plus-output tokens
+- `ordinary`: 64 KiB from one completed command, 32 completed commands, 8 `moldea` calls, 256 KiB of `moldea` output, 1 MiB of aggregate model-visible tool output, and 524,288 input-plus-output tokens
+- `largeTraversal`: 64 KiB from one completed command, 64 commands, 16 `moldea` calls, 1 MiB of `moldea` output, 4 MiB of aggregate model-visible tool output, and 1,048,576 input-plus-output tokens
 
-The host retains higher absolute ceilings of 128 completed commands, 32 `moldea` calls, 8 MiB of `moldea` output, 16 MiB of model-visible tool output, and 2,097,152 tokens. These are failure containment for unusual cases, not operating targets. Crossing any operating dimension fails with the profile, dimension, observed value, and limit so users can distinguish excessive behavior from missing evidence. Duration and peak memory remain recorded diagnostics rather than brittle pass/fail thresholds.
+The host retains higher absolute ceilings of 128 completed commands, 32 `moldea` calls, 8 MiB of `moldea` output, 16 MiB of complete-stage model-visible tool output, 32 KiB of raw command text, and 2,097,152 tokens. These are failure containment for unusual cases, not operating targets. The 64 KiB operating peak applies to one completed command's output and is distinct from the 32 KiB raw-command-text ceiling. Crossing any operating dimension fails with the profile, dimension, observed value, and limit so users can distinguish excessive behavior from missing evidence. Duration and peak memory remain recorded diagnostics rather than brittle pass/fail thresholds.
 
-`tooling/resource-calibration/profiles.mjs` is the numeric authority for these values. `fixtures/resource-calibration.json` records the reproducible corpus, fixture shapes, environment, sample distributions, output and token estimates, memory and temporary-disk peaks, and explicit completion states. Use `npm run resource:check` to verify that current code and committed evidence agree.
+`tooling/resource-calibration/profiles.mjs` is the numeric authority for these values. `fixtures/resource-calibration.json` records reproducible deterministic CLI and repository-operation measurements; it is not model-stage evidence. Current qualification attempts record real actor and judge command counts, one-command output peaks, aggregate output, tokens, and duration. Use `npm run resource:check` to verify that current code and committed deterministic evidence agree.
 
 ## Published runtime compatibility
 

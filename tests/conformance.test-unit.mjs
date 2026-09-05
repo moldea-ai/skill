@@ -245,6 +245,10 @@ describe('portable skill contract', () => {
     assert.match(skill, /Write the complete three-file foundation before the first CLI call/u);
     assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
     assert.match(skill, /run `validate` at most once more/u);
+    assert.match(skill, /Read exact task-owned files first/u);
+    assert.match(skill, /Every recursive search or listing must exclude VCS internals/u);
+    assert.match(skill, /Never dump a complete lockfile, dependency inventory, generated tree/u);
+    assert.match(skill, /more than 65,536 model-visible bytes/u);
     assert.match(
       skill,
       /scripts\/moldea-cli\.mjs --repository <absolute-repository-root> -- scope/u,
@@ -263,6 +267,14 @@ describe('portable skill contract', () => {
     );
     assert.match(maintenance, /If the gate does not match, continue without `moldea`/u);
     assert.match(maintenance, /start at `\/moldea\/project\.md`/u);
+    const contextGathering = readFileSync(
+      join(SKILL_ROOT, 'references', 'context-gathering.md'),
+      'utf8',
+    );
+    assert.match(contextGathering, /Prefer exact paths and targeted searches/u);
+    assert.match(contextGathering, /exclude VCS internals, dependency trees, generated output/u);
+    assert.match(contextGathering, /only the relevant lockfile entry/u);
+    assert.match(contextGathering, /one ordinary host command cannot emit more than 65,536/u);
   });
 
   test('defines silent abstention, host ownership, and bounded schema-4 evidence', () => {

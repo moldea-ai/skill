@@ -1,5 +1,6 @@
 export interface IMoldeaSkillResourceProfile {
   maxCompletedCommandCount: number;
+  maxCommandOutputBytes: number;
   maxHostTokenCount: number;
   maxModelVisibleToolOutputBytes: number;
   maxAggregateMoldeaOutputBytes: number;
@@ -17,7 +18,7 @@ export interface IMoldeaSkillAbsoluteResourceProfile {
   maxMoldeaCommandCount: number;
   maxMoldeaInvocationOutputBytes: number;
   maxMoldeaOutputBytes: number;
-  maxOtherCommandOutputBytes: number;
+  maxCommandTextBytes: number;
   maxProcessOutputBytes: number;
 }
 

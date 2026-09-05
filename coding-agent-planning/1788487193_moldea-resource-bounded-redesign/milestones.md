@@ -125,7 +125,7 @@ Make initialization, adoption, path relevance, host-workflow ownership, progress
 ### Scope and implementation
 
 1. Replace broad activation with the repository initialization state machine and two-byte deterministic gate.
-2. Recognize only direct moldea work, canonical paths, managed README hunks, and declared relationships; preserve host workflow ownership and load only the relevant reference and bounded canonical evidence.
+2. Recognize only direct moldea work, canonical paths, managed README hunks, and declared relationships; preserve host workflow ownership and load only relevant references and bounded canonical evidence.
 3. Prove read-only operations preserve worktree, index, refs, configuration, submodules, temporary state, and Git objects.
 
 ### Tests and verification
@@ -152,7 +152,7 @@ Make every public and canonical surface agree on repository-bound installation, 
 
 ### Scope and implementation
 
-1. Update packages, platform, skill, knowledge-base, websites, generated content, indexes, and links for actual architecture and availability.
+1. Update packages, platform, skill, knowledge base, websites, generated content, indexes, and links for the actual architecture and availability.
 2. Document repository-bound installation and its enforcement limitation, use `moldea` in human prose, and preserve required technical identifiers.
 
 ### Tests and verification
@@ -167,11 +167,11 @@ Make every public and canonical surface agree on repository-bound installation, 
 
 Inspect installation, versions, resource language, privacy, limitations, launch claims, generated output, naming, links, accessibility, responsiveness, and themes.
 
-## Milestone 7: Realistic resource calibration (completed)
+## Milestone 7: Deterministic resource calibration (completed)
 
 ### Objective
 
-Calibrate standard, extended, and absolute profiles from deterministic representative corpora while protecting token, memory, disk, output, request, handle, concurrency, and latency resources.
+Calibrate repository, CLI, provider, memory, disk, handle, output, and latency behavior from deterministic representative corpora without treating those measurements as complete Codex-stage evidence.
 
 ### Dependencies
 
@@ -179,8 +179,8 @@ Calibrate standard, extended, and absolute profiles from deterministic represent
 
 ### Scope and implementation
 
-1. Measure fixture shapes, distributions, memory/disk/handle/concurrency peaks, provider requests/bytes, CLI and model-visible output, token estimates, latency, resumptions, and completion.
-2. Set cumulative budgets with headroom and invariant peak ceilings, synchronize code/tests/specifications/docs, and keep large-codebase support resumable rather than size-capped.
+1. Measure fixture shapes, distributions, memory/disk/handle/concurrency peaks, provider requests/bytes, CLI/model-visible output estimates, latency, resumptions, and completion.
+2. Set bounded repository and transport profiles with headroom, synchronize code/tests/specifications/docs, and keep large-codebase support resumable rather than size-capped.
 
 ### Tests and verification
 
@@ -188,11 +188,11 @@ Calibrate standard, extended, and absolute profiles from deterministic represent
 
 ### Acceptance criteria
 
-- Representative repositories finish reliably; every exhausted dimension produces an explicit non-success rather than machine failure or false completion.
+- Representative repositories finish reliably; every exhausted dimension produces explicit non-success rather than machine failure or false completion.
 
 ### Review checkpoint
 
-Inspect realism, reproducibility, headroom, peak/cumulative separation, resume behavior, output/token accounting, and failure specificity.
+Inspect realism, reproducibility, headroom, peak/cumulative separation, resume behavior, output accounting, and the explicit separation from model-stage calibration.
 
 ## Milestone 8: Native fresh/pinned release evidence (completed)
 
@@ -281,111 +281,134 @@ Inspect task-path completeness, unchanged-target behavior, owner selection, CLI 
 
 ### Objective
 
-Eliminate the paid Custom qualification's ambiguous CLI invocation, opaque/context-insensitive command-policy failure, and excessive ordinary-work resource consumption before another model-backed run.
+Provide the closed repository-local launcher, contextual privacy-safe command-policy evidence, protocol-8-only qualification, and scenario-owned operating profiles before another paid run.
 
 ### Dependencies
 
-- Milestone 10 complete and published at `f27e5c79488f39700e08aae14b9f5526c58f5b96`.
-- Preserve semantic attempt `20260905T173526948Z-semantic-6f085d03` and failed Custom attempt `20260905T175520706Z-custom-custom-0891c867` as inactive diagnostics, not release evidence.
+- Milestone 10.
 
 ### Scope and implementation
 
-1. Add `moldea/scripts/repository-package.mjs` as the shared package/version/containment owner and `moldea/scripts/moldea-cli.mjs` as the closed cross-platform launcher. Refactor `relevance-gate.mjs` to reuse the trust primitives without changing its two-byte result.
-2. Update `moldea/SKILL.md`, `references/local-tooling.md`, `references/continuous-maintenance.md`, conformance fixtures, and public skill documentation to use only the launcher. Remove bare `moldea`, package-manager, `PATH`, link, realpath, parent-workspace, and ad hoc output-wrapper paths from normal execution.
-3. Contextually classify command operations in `tooling/codex-evaluation-host/execution-evidence.mjs`. Preserve actual evaluator-home, auth, credential, environment, `/proc/*/environ`, network, dynamic, and obfuscated detection while ensuring inert repository-search literals are not observed sensitive access.
-4. Advance qualification to protocol 8 only. Update host declarations, qualification contracts, execution/checkpoint/cache/result/storage/evidence identity, public artifacts, website loaders/rendering, release identity, fixtures, and tests with bounded sorted privacy-safe reason codes and counts. Add no protocol-7 reader or converter; keep old attempts outside active loading and release selection.
-5. Assign every qualification scenario an `ordinary` or `largeTraversal` resource profile. Enforce completed host commands, moldea calls/output, model-visible output, and total model tokens independently before judging, with profile/dimension/observed/limit failures. Keep absolute ceilings as higher process containment.
-6. Select ordinary operating limits from existing diagnostics plus deterministic fixtures and reserve final confirmation for the single required Custom run. Provide at least 25 percent headroom over accepted ordinary observations, use no calibration-only model call, and keep large traversal governed by a separate declared profile.
-7. Synchronize `README.md`, `qualification/README.md`, `docs/adapter-qualification.md`, `docs/compatibility-and-local-tooling.md`, `docs/semantic-evaluation.md`, website evidence documentation/rendering, resource fixtures/profiles, and generated/contract artifacts. Preserve `moldea` casing and do not overstate indeterminate evidence as verified safety.
+1. Add the shared package resolver and launcher, remove bare/package-manager/provenance-probe loops, and make the relevance gate reuse its trust primitives.
+2. Classify actual access operations rather than search vocabulary and publish only bounded reason codes/counts.
+3. Replace protocol 7 with protocol 8 across qualification contracts, checkpoints, cache, results, website, release identity, fixtures, and tests.
+4. Assign every scenario an operating profile and enforce commands, moldea output, aggregate model-visible output, and total model tokens independently.
 
 ### Tests and verification
 
-- Launcher unit/integration tests for supported invocation, package metadata/ranges, missing and escaped closure, invalid arguments, bounded output, child exits/signals/cancellation, cross-platform path semantics, and one-command accounting.
-- Table-driven execution-evidence tests for inert searches and every real/indeterminate policy class, stable reason counts, privacy, resource boundaries, and absent raw commands.
-- Qualification protocol/contracts/loaders/cache/checkpoint/storage/result/evidence/website/release tests, profile-coverage validation, exact boundary failures, dry-run/preflight, and proof that source-state sandbox enforcement precedes model execution.
-- Full skill unit/integration, qualification unit/integration/typecheck/lint/format, website unit/integration/docs/typecheck/lint/format/build, conformance, resource, path, release-identity, candidate-package, and skill-creator checks. No paid model command belongs to this milestone.
+- Launcher, command-policy, protocol, cache/checkpoint, result/storage, profile-boundary, qualification, website, skill, docs, path, release, candidate, format, typecheck, lint, and build checks.
 
 ### Acceptance criteria
 
-- Normal direct maintenance uses the adoption gate plus the minimum necessary launcher-backed CLI operation without a bare-command or provenance-probe loop.
-- Inert repository searches for security vocabulary do not become observed access; actual violations still fail, indeterminate states remain explicit, and no public evidence exposes commands, paths, patterns, output, or secrets.
-- Protocol 8 is the only active qualification contract and every scenario owns a realistic operating profile below the absolute ceiling with dimension-specific failure evidence.
-- All deterministic checks pass and the cohesive signed correction is reviewed and published before any paid rerun.
+- The launcher is the only normal CLI path, inert searches do not become observed sensitive access, protocol 8 is the only active contract, and deterministic checks pass without a paid call.
 
 ### Review checkpoint
 
-Inspect launcher trust and portability, duplicate resolver removal, exact output/exit behavior, policy false negatives and false positives, sandbox dependence, privacy-safe diagnostics, protocol closure, operating-limit calibration, test adversariality, documentation truth, and absence of model calls.
+Inspect launcher trust/portability, resolver deduplication, policy classification/privacy, protocol closure, profile enforcement, and absence of model execution.
 
 ## Milestone 12: Semantic launcher accounting correction (completed)
 
 ### Objective
 
-Eliminate the protocol-23 semantic evaluator's false zero-command result by aligning actor resource projection with the already published launcher-only skill contract before another paid model call.
+Align semantic actor projection with the published launcher-only command contract so supported moldea work cannot be reported as zero work.
 
 ### Dependencies
 
-- Milestone 11 complete, reviewed, and published at `2a3c494139f7878b88bf5e3b933d72562300248c`.
-- Preserve failed semantic attempt `20260905T200701120Z-semantic-6f9736b9` byte-for-byte as inactive diagnostic evidence; do not promote it into release evidence.
+- Milestone 11.
 
 ### Scope and implementation
 
-1. Replace the semantic projector's direct `node_modules/.bin/moldea` recognizer with one strict parser for the installed skill launcher's `scripts/moldea-cli.mjs --repository <absolute-root> -- <operation>` command form.
-2. Identify exactly one supported operation after the launcher's separator, require JSON plus `--max-output-bytes 65536` for every non-composition operation, accept current `scope --paths-stdin`, retain canonical-path validation for `content --path /moldea/...`, and require composition's fixed-boundary JSON form without a page override.
-3. Count every syntactically valid launcher attempt against command and output budgets. Expose its named operation and semantic facts only when completed child output is a matching CLI 7/schema-4 envelope; represent malformed output as a counted `unrecognized` moldea operation.
-4. Keep direct CLI binaries, missing or duplicate separators, operations before the separator, obsolete `scope --path`, malformed canonical paths, and invalid output-bound combinations unrecognized. Replace obsolete direct-CLI unit fixtures with launcher-backed cases and add adversarial rejection coverage without storing raw commands or output bodies.
-5. Run the focused and broader deterministic semantic/evaluation-host suites, review the exact correction, and publish its signed and signed-off commit before restarting semantic evidence.
+1. Parse the exact installed launcher command and its operation-specific arguments, including piped `scope --paths-stdin` forms.
+2. Count every syntactically valid launcher attempt and project named operations only from matching bounded CLI 7/schema-4 envelopes.
+3. Reject direct CLI binaries and obsolete or malformed forms without retaining raw commands or output bodies.
 
 ### Tests and verification
 
-- Focused actor-execution-evidence unit coverage for all five launcher operations, current scope/content arguments, exact one-command accounting, valid and malformed envelopes, and every rejected obsolete or malformed command form.
-- Semantic runner unit/integration, evaluation-host unit/integration, root unit/integration, docs/path/resource/release checks, formatting, and diff checks affected by the evaluator source identity.
+- Focused actor/evaluation-host unit and integration tests plus complete skill, qualification, docs, resource, path, release-identity, candidate, formatting, and diff checks.
 
 ### Acceptance criteria
 
-- The exact launcher command used by initialization projects one `validate` operation with its bounded CLI envelope and non-zero moldea resource evidence.
-- A syntactically valid launcher with malformed output remains a counted `unrecognized` operation; no direct CLI or obsolete scope syntax is accepted, and no raw command/output body enters immutable evidence.
-- No skill, CLI, budget, package, or public runtime contract changes, and the deterministic correction is reviewed and published before another paid model call.
+- Initialization records one launcher-backed `validate`; malformed launcher output remains counted `unrecognized`; direct CLI remains unsupported.
 
 ### Review checkpoint
 
-Inspect parser strictness, operation position, argument validation, composition's fixed boundary, envelope identity, one-command accounting including malformed output, privacy, obsolete-path rejection, failed-attempt preservation, test adversariality, and source-identity invalidation.
+Inspect parser strictness, pipelines, envelope identity, one-command accounting, privacy, rejected forms, and source-identity invalidation.
 
-## Milestone 13: Fresh semantic and adapter qualification evidence
+## Milestone 13: Model-stage resource calibration and bounded ordinary output
 
 ### Objective
 
-Generate complete fresh model evidence once against the final launcher-backed skill, protocol-8 qualification identity, and registry-published package closure.
+Prevent a single ordinary command from flooding model context and calibrate qualification stages from real model-stage evidence instead of synthetic CLI estimates.
 
 ### Dependencies
 
-- Milestone 12 complete, reviewed, and published.
+- Milestone 12 complete and published at `b6771da60c4be18be86f1108f91151ddcd111630`.
+- Preserve passing semantic attempt `20260905T205846870Z-semantic-34cce0aa` and failed Custom attempt `20260905T205956422Z-custom-custom-62bd2013` byte-for-byte while their active validity is determined by exact input identity.
+
+### Scope and implementation
+
+1. Rename absolute `maxOtherCommandOutputBytes` to `maxCommandTextBytes` across `tooling/resource-calibration/profiles.mjs`, its declaration/tests, generated calibration evidence, and host consumers, leaving no alias or dual contract.
+2. Add `maxCommandOutputBytes: 65_536` to both operating profiles and derive `maximumCommandOutputByteCount` from completed Codex command events in `tooling/codex-evaluation-host/execution-evidence.mjs` and `index.d.mts` without retaining command text or output content.
+3. Carry the new aggregate through `QualificationCommandPolicyEvidenceSchema`, model-stage evidence, fake host, cache, checkpoints/fingerprints, result recording/reading/sanitization, public artifacts, prompts, qualification tests, and website qualification types/validation/rendering. Enforce exact-boundary acceptance and one-byte-over failure before semantic judging.
+4. Update `moldea/SKILL.md` and only its owning resource/context reference when necessary so every recursive search/listing excludes dependency trees, VCS internals, generated output, caches, and package stores; ordinary discovery uses exact paths and bounded output and does not dump complete lockfiles or dependency inventories when package metadata and the trusted launcher suffice.
+5. Update deterministic conformance assertions, `README.md`, `qualification/README.md`, `docs/adapter-qualification.md`, `docs/semantic-evaluation.md`, `docs/compatibility-and-local-tooling.md`, and website evidence documentation so CLI/repository calibration and complete model-stage calibration have distinct authorities and every limit has an unambiguous name.
+6. Keep ordinary command/token values and the absolute 2,097,152-token, 16 MiB host-output containment ceilings unchanged for this deterministic correction. If the next otherwise accepted output-bounded Custom trial exceeds only commands or tokens, return through the authorized plan/challenge loop and derive only that dimension with at least 25 percent headroom.
+
+### Tests and verification
+
+- Focused resource-profile and execution-evidence unit tests for the renamed raw-command-text limit, maximum command-output derivation, 65,536-byte acceptance, 65,537-byte failure, multiple-command maximum selection, aggregate independence, and privacy.
+- Qualification contract, validation, cache, fingerprint, checkpoint, result, storage, sanitizer, prompt, fake-host, website loader/validation/rendering, and protocol-8 artifact tests.
+- Conformance tests proving bounded/excluded ordinary discovery plus root and qualification unit/integration suites, typecheck, lint, formatting, docs, path, resource, release-identity, candidate-package, website tests/build, skill-creator validation, and diff checks.
+- No model-backed semantic or qualification command in this milestone.
+
+### Acceptance criteria
+
+- Raw command text and completed-command output have separate accurately named limits with no legacy alias.
+- Both operating profiles reject one command above 65,536 model-visible bytes even when aggregate and moldea totals remain below their limits.
+- Public evidence retains only the maximum byte count, never raw command/output content, and all current loaders reject a missing or malformed protocol-8 aggregate.
+- Ordinary skill guidance prevents the dependency/generated-tree discovery pattern that produced the 334,330-byte and 473,692-byte diagnostic dumps.
+- All deterministic checks pass and the correction is reviewed and published before another paid run.
+
+### Review checkpoint
+
+Inspect naming clarity, peak versus aggregate enforcement, privacy, schema/identity propagation, output-flood prevention, skill economy, unchanged absolute containment, exact tests, documentation truth, and absence of model calls.
+
+## Milestone 14: Fresh semantic and adapter qualification evidence
+
+### Objective
+
+Generate complete fresh model evidence once against the final bounded skill, protocol-8 qualification identity, and registry-published package closure.
+
+### Dependencies
+
+- Milestone 13 complete, reviewed, and published.
 - Authenticated model evaluation and qualification hosts.
 
 ### Scope and implementation
 
-1. Run semantic preflight, record the call/token envelope, execute the complete suite, and verify all immutable attempts against the final portable skill digest.
-2. Run universal Custom qualification once. Use its initial and naturally required confirmation trials as the only new model-backed calibration evidence; if accepted observations exceed an operating profile, correct the profile only through the authorized re-planning cycle with evidence and never merely to pass.
-3. Require the unchanged named relationship, dirty-project preservation, launcher command accounting, policy reason evidence, and operating budgets to pass before running any adapter-specific profile.
-4. Run each of the thirteen adapter-specific profiles once, with universal cases absent and ownership coverage exact.
-5. Preserve failed/incomplete attempts as inactive diagnostics, fix genuine product defects through re-planning, and rerun only evidence invalidated by a correction.
-6. After exact-current semantic and qualification verification passes, record the deterministic fresh release-evidence envelope. Use a pin only if the developer explicitly names a qualifying source release.
+1. Determine exact semantic invalidation from the Milestone 13 input digest. Preserve still-valid evidence or rerun semantic preflight and the complete suite only when its behavior identity changed; verify all immutable attempts.
+2. Run universal Custom qualification once. Use its initial and naturally required confirmations as the only new model-stage calibration evidence; run no calibration-only paid trial.
+3. Require silent abstention, unchanged named relationship activation, dirty-project preservation, launcher accounting, policy reason evidence, 65,536-byte command-output peaks, aggregate limits, and ordinary command/token budgets to pass before adapter work.
+4. If a semantically and deterministically accepted, output-bounded trial exceeds only its command or token profile, revise that dimension through the authorized plan/challenge loop with at least 25 percent headroom and rerun only invalidated evidence.
+5. Run each of the thirteen adapter-specific profiles once after Custom passes, with universal cases absent and ownership coverage exact.
+6. Preserve failed/incomplete attempts as immutable diagnostics. After exact-current semantic and qualification verification passes, record the deterministic fresh release-evidence envelope unless an explicit qualifying pin is selected.
 
 ### Tests and verification
 
-- Semantic evaluation/verification with activation, command/output/token/duration budgets and confirmation state.
-- Qualification preflight, Custom, thirteen adapter profiles, protocol-8 artifact validation, profile accounting, ownership coverage, source identity, package closure, privacy-safe reasons, website loading, and release-evidence recording.
+- Semantic preflight/evaluation/verification when invalidated, including activation, command/output/token/duration budgets, confirmation state, and immutable attempt integrity.
+- Qualification preflight, Custom, thirteen adapter profiles, protocol-8 artifact validation, per-command and aggregate resource accounting, ownership coverage, source identity, package closure, privacy-safe reasons, website loading, and release-evidence recording.
 
 ### Acceptance criteria
 
-- All semantic and Custom universal cases pass within calibrated profiles, including unchanged relationship activation and dirty-project maintenance without ambiguous policy failure or excessive execution.
+- All semantic and Custom universal cases pass within calibrated profiles without oversized command output or unnecessary moldea work.
 - All thirteen adapters pass only their adapter-specific contracts and no calibration-only paid call occurs.
-- Fresh evidence is complete, immutable, protocol 8, exact-current, resource-valid, and bound to committed skill input and registry packages.
+- Fresh evidence is complete, immutable, protocol 8, exact-current, resource-valid, and bound to committed skill inputs and registry packages.
 
 ### Review checkpoint
 
-Inspect cost, quality, clean/recovered outcomes, launcher use, policy reasons, ordinary headroom, universal/adapter ownership, exact input identity, failures/reruns, and fresh provenance.
+Inspect cost, clean/recovered outcomes, maximum and aggregate output, command/token headroom, launcher use, policy reasons, universal/adapter ownership, exact input identity, reruns, and fresh provenance.
 
-## Milestone 14: Clean skill release and final cross-repository audit
+## Milestone 15: Clean skill release and final cross-repository audit
 
 ### Objective
 
@@ -393,8 +416,8 @@ Publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prov
 
 ### Dependencies
 
-- Milestone 13 passing fresh evidence or an explicitly selected valid pin.
-- Authenticated skill main/release/site publication and hosted release deletion capabilities where required.
+- Milestone 14 passing fresh evidence or an explicitly selected valid pin.
+- Authenticated skill main/release/site publication and hosted release-deletion capabilities where required.
 
 ### Scope and implementation
 
@@ -402,7 +425,7 @@ Publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prov
 2. Run release identity, evidence, website rendering, complete skill verification, and every package/platform/knowledge-base check invalidated by final evidence.
 3. Review and push final `new_skill`; refresh and review current `main`; integrate with signed metadata; push `main`; monitor release/site workflows; create and verify `v5.0.0`; and verify the installed skill/package closure.
 4. Record and delete exact local/remote `v4.0.0`, `v4.0.1`, and `v4.0.2` tags and hosted releases/assets where authenticated capability exists, without rewriting shared branches.
-5. Audit every active repository and fixture contract against the original problem ledger and acceptance criteria. Publish any cohesive correction through its owning review workflow before completion.
+5. Audit every active repository and fixture contract against all 39 observed problems and the complete acceptance criteria. Publish any cohesive correction through its owning review workflow before completion.
 
 ### Tests and verification
 
@@ -412,7 +435,7 @@ Publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prov
 ### Acceptance criteria
 
 - Skill 5.0.0 contains one clean CLI 7/schema 4 and qualification protocol-8 contract, compatible patch/minor support, only new package generations, and valid fresh or explicitly pinned evidence.
-- Skill `main`, tag, website, installed artifact, and authorized old-release cleanup are verified; all original failures and plan criteria are proven across active repositories.
+- Skill `main`, tag, website, installed artifact, and authorized old-release cleanup are verified; all observed failures and plan criteria are proven across active repositories.
 - The goal completes only when no required repository, workflow, registry, site, evidence, or hosted-release work remains; unavailable external capability is reported precisely.
 
 ### Review checkpoint
@@ -421,4 +444,4 @@ Inspect release identity, portable/exact CLI boundaries, evidence provenance, ac
 
 ## Execution scope
 
-Preserve completed and published Milestones 1 through 11. Execute Milestone 12 without another paid call: replace stale direct-CLI semantic projection with strict launcher-only parsing, current operation arguments, exact composition/non-composition output-bound validation, counted malformed launcher attempts, and adversarial deterministic tests; retain the failed protocol-23 attempt as inactive diagnostics; review and publish the correction. Milestone 13 then regenerates only invalidated semantic evidence, runs universal Custom qualification and thirteen adapter-specific profiles, and records fresh release evidence, with no calibration-only paid calls and no adapter run before Custom passes. Finish with Milestone 14's clean skill 5.0.0 release, protocol-7 and active legacy removal, authorized 4.0.x release-surface cleanup, and cross-repository audit. Every incomplete milestone includes its implementation, tests, documentation, review loop, signed publication, required main integration, and workflow verification without modifying protected instructions, bundling unrelated work, weakening protections, retaining compatibility code, or allowing incomplete evidence to appear successful.
+Milestones 1 through 12 remain complete and published. Implement Milestone 13 as the next isolated deterministic correction: separate raw command-text and command-output limits, enforce a 65,536-byte per-command model-visible peak, propagate its privacy-safe aggregate across protocol-8 qualification and website contracts, prevent recursive dependency/generated-tree inspection in ordinary skill work, and synchronize tests and documentation without running a model. Review and publish that milestone before Milestone 14 generates only invalidated semantic evidence, one Custom universal qualification, and thirteen adapter-specific qualifications. If an otherwise accepted bounded trial proves a command/token operating limit too low, revise only that dimension through the authorized plan/challenge loop with evidence-derived headroom. Milestone 15 then completes release identity, clean 5.0.0 integration/publication, authorized 4.0.x release-surface cleanup, and the final cross-repository audit. Preserve unrelated work, protected instructions, immutable attempts, clean-slate contracts, explicit non-success states, and repository-bound `moldea` naming throughout.

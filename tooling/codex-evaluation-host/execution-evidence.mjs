@@ -6,7 +6,7 @@ const COMMAND_POLICY_STATUSES = new Set(['indeterminate', 'not-observed', 'obser
 const COMMAND_RESULT_STATUSES = new Set(['completed', 'failed']);
 const MAX_COMPLETED_COMMAND_COUNT =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCompletedCommandCount;
-const MAX_COMMAND_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxOtherCommandOutputBytes;
+const MAX_COMMAND_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxCommandTextBytes;
 const MAX_HOST_TOKEN_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
 const MAX_MODEL_VISIBLE_TOOL_OUTPUT_BYTES =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxModelVisibleToolOutputBytes;
@@ -978,6 +978,7 @@ export const projectCodexEvaluationExecutionEvidence = (source) => {
   const projectedEvents = [];
   const classifications = [];
   let credentialExposureCount = 0;
+  let maximumCommandOutputByteCount = 0;
   let modelVisibleToolOutputByteCount = 0;
   let moldeaCommandCount = 0;
   let moldeaOutputByteCount = 0;
@@ -1022,6 +1023,7 @@ export const projectCodexEvaluationExecutionEvidence = (source) => {
 
     const classification = classifyCommand(event.item.command);
     const outputByteCount = Buffer.byteLength(event.item.aggregated_output, 'utf8');
+    maximumCommandOutputByteCount = Math.max(maximumCommandOutputByteCount, outputByteCount);
     modelVisibleToolOutputByteCount += outputByteCount;
     moldeaCommandCount += classification.moldeaCommandCount;
     if (classification.moldeaCommandCount > 0) moldeaOutputByteCount += outputByteCount;
@@ -1065,6 +1067,7 @@ export const projectCodexEvaluationExecutionEvidence = (source) => {
             reasons: [{ code: 'credential-material', count: credentialExposureCount }],
           }
         : { status: 'not-observed', observedCount: 0, reasons: [] },
+    maximumCommandOutputByteCount,
     modelVisibleToolOutputByteCount,
     moldeaCommandCount,
     moldeaOutputByteCount,

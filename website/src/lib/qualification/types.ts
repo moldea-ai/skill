@@ -592,6 +592,7 @@ const QualificationCommandPolicyEvidenceSchema = z
       observedCount: z.number().int().nonnegative(),
       reasons: z.array(QualificationCommandPolicyReasonSchema),
     }),
+    maximumCommandOutputByteCount: z.number().int().min(0).max(16_777_216),
     modelVisibleToolOutputByteCount: z.number().int().min(0).max(16_777_216),
     moldeaCommandCount: z.number().int().min(0).max(32),
     moldeaOutputByteCount: z.number().int().min(0).max(8_388_608),
@@ -674,6 +675,16 @@ const QualificationCommandPolicyEvidenceSchema = z
         code: 'custom',
         message: 'moldea resource totals must remain consistent with completed command output.',
         path: ['moldeaCommandCount'],
+      });
+    }
+    if (
+      evidence.maximumCommandOutputByteCount > evidence.modelVisibleToolOutputByteCount ||
+      (evidence.completedCommandCount === 0 && evidence.maximumCommandOutputByteCount !== 0)
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Command-output totals must remain consistent with completed commands.',
+        path: ['maximumCommandOutputByteCount'],
       });
     }
   });

@@ -125,6 +125,10 @@ const createTrial = (
   const commandPolicy = {
     completedCommandCount: actorExecutionEvents.length,
     credentialExposure: { status: 'not-observed' as const, observedCount: 0, reasons: [] },
+    maximumCommandOutputByteCount: Math.max(
+      0,
+      ...actorExecutionEvents.map(({ outputByteCount }) => outputByteCount),
+    ),
     modelVisibleToolOutputByteCount: actorExecutionEvents.reduce(
       (total, event) => total + event.outputByteCount,
       0,

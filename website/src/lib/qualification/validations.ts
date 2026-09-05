@@ -48,6 +48,11 @@ const deriveResourceFailures = (options: {
       limit: profile.maxAggregateMoldeaOutputBytes,
     },
     {
+      dimension: 'maximum-command-output-bytes',
+      observed: options.commandPolicy.maximumCommandOutputByteCount,
+      limit: profile.maxCommandOutputBytes,
+    },
+    {
       dimension: 'model-visible-tool-output-bytes',
       observed: options.commandPolicy.modelVisibleToolOutputByteCount,
       limit: profile.maxModelVisibleToolOutputBytes,

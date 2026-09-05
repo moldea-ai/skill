@@ -85,6 +85,7 @@ test('requires privacy-safe command-policy reasons to be counted, unique, and so
   const evidence = {
     completedCommandCount: 2,
     credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+    maximumCommandOutputByteCount: 0,
     modelVisibleToolOutputByteCount: 0,
     moldeaCommandCount: 0,
     moldeaOutputByteCount: 0,
@@ -145,6 +146,21 @@ test('requires privacy-safe command-policy reasons to be counted, unique, and so
         indeterminateCount: 0,
         reasons: [{ code: 'network-client', count: 1 }],
       },
+    }).success,
+  ).toBe(false);
+  expect(
+    QualificationCommandPolicyEvidenceSchema.safeParse({
+      ...evidence,
+      maximumCommandOutputByteCount: 1,
+      modelVisibleToolOutputByteCount: 0,
+    }).success,
+  ).toBe(false);
+  expect(
+    QualificationCommandPolicyEvidenceSchema.safeParse({
+      ...evidence,
+      completedCommandCount: 0,
+      maximumCommandOutputByteCount: 1,
+      modelVisibleToolOutputByteCount: 1,
     }).success,
   ).toBe(false);
 });

@@ -34,6 +34,7 @@ const assertCommandPolicy = (actual, expected) => {
     },
     {
       ...expected,
+      maximumCommandOutputByteCount: actual.maximumCommandOutputByteCount,
       modelVisibleToolOutputByteCount: actual.modelVisibleToolOutputByteCount,
       moldeaCommandCount: actual.moldeaCommandCount,
       moldeaOutputByteCount: actual.moldeaOutputByteCount,
@@ -50,6 +51,7 @@ const assertCommandPolicy = (actual, expected) => {
       true,
     );
   }
+  assert.ok(actual.maximumCommandOutputByteCount <= actual.modelVisibleToolOutputByteCount);
   assert.ok(actual.modelVisibleToolOutputByteCount <= 16_777_216);
   assert.ok(actual.moldeaCommandCount <= 32);
   assert.ok(actual.moldeaOutputByteCount <= 8_388_608);
@@ -117,6 +119,7 @@ test('execution evidence projects local command facts without retaining commands
     sensitiveAccess: { status: 'not-observed', observedCount: 0, indeterminateCount: 0 },
   });
   assert.deepEqual(result.usage, { inputTokens: 5, cachedInputTokens: 0, outputTokens: 3 });
+  assert.equal(result.commandPolicy.maximumCommandOutputByteCount, 13);
   assert.deepEqual(JSON.parse(result.projectedEvents.trim()), {
     eventType: 'command.completed',
     exitCode: 0,
@@ -541,6 +544,19 @@ test('execution evidence rejects more than 16 MiB of aggregate tool output', () 
     () => projectCodexEvaluationExecutionEvidence(source),
     /model-visible tool output is 16777217 bytes; the limit is 16777216 bytes/u,
   );
+});
+
+test('execution evidence records the largest completed-command output without retaining it', () => {
+  const result = projectCodexEvaluationExecutionEvidence(
+    [
+      createCommandEvent('git status --short', 'x'.repeat(65_536)),
+      createCommandEvent('git diff --stat', 'y'.repeat(7)),
+    ].join('\n'),
+  );
+
+  assert.equal(result.commandPolicy.maximumCommandOutputByteCount, 65_536);
+  assert.equal(result.commandPolicy.modelVisibleToolOutputByteCount, 65_543);
+  assert.doesNotMatch(JSON.stringify(result), /x{32}|y{7}/u);
 });
 
 test('execution evidence rejects model token usage above the host ceiling', () => {

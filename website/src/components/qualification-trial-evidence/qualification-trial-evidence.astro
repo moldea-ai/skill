@@ -315,6 +315,14 @@ const getArtifactLabel = (artifactPath: string): string =>
                 </span>
               </dd>
               <dd class="mt-1 text-xs text-muted-foreground">
+                Largest command output / limit:{' '}
+                <span class="font-mono text-foreground">
+                  {evidence.actorCommandPolicy.maximumCommandOutputByteCount} / {
+                    resourceProfile.maxCommandOutputBytes
+                  } bytes
+                </span>
+              </dd>
+              <dd class="mt-1 text-xs text-muted-foreground">
                 Model-visible output / limit:{' '}
                 <span class="font-mono text-foreground">
                   {evidence.actorCommandPolicy.modelVisibleToolOutputByteCount} / {
@@ -421,6 +429,13 @@ const getArtifactLabel = (artifactPath: string): string =>
                       <span class="font-mono text-foreground">
                         {evidence.judgeCommandPolicy.moldeaCommandCount} /{' '}
                         {resourceProfile.maxMoldeaCommandCount}
+                      </span>
+                    </dd>
+                    <dd class="mt-1 text-xs text-muted-foreground">
+                      Largest command output / limit:{' '}
+                      <span class="font-mono text-foreground">
+                        {evidence.judgeCommandPolicy.maximumCommandOutputByteCount} /{' '}
+                        {resourceProfile.maxCommandOutputBytes} bytes
                       </span>
                     </dd>
                     <dd class="mt-1 text-xs text-muted-foreground">

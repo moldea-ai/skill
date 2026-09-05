@@ -217,6 +217,11 @@ export const deriveQualificationResourceFailures = (options: {
       limit: profile.maxAggregateMoldeaOutputBytes,
     },
     {
+      dimension: 'maximum-command-output-bytes',
+      observed: options.evidence.commandPolicy.maximumCommandOutputByteCount,
+      limit: profile.maxCommandOutputBytes,
+    },
+    {
       dimension: 'model-visible-tool-output-bytes',
       observed: options.evidence.commandPolicy.modelVisibleToolOutputByteCount,
       limit: profile.maxModelVisibleToolOutputBytes,

@@ -41,15 +41,16 @@ Each actor or judge stage records:
 - completed tool-command count
 - recognized `moldea` invocation count
 - `moldea` command-output bytes
+- maximum output bytes from one completed command
 - total model-visible tool-output bytes
 - input, cached-input, and output token counts when the host reports them
 - stage duration
 
-Every scenario declares `ordinary` or `largeTraversal`. `ordinary` permits 32 completed commands, 8 `moldea` calls, 256 KiB of `moldea` output, 1 MiB of model-visible tool output, and 524,288 input-plus-output tokens. `largeTraversal` permits 64 commands, 16 `moldea` calls, 1 MiB of `moldea` output, 4 MiB of model-visible tool output, and 1,048,576 tokens. Every dimension is enforced independently before judging. Crossing a limit is an explicit stage failure naming the profile, measured value, and limit.
+Every scenario declares `ordinary` or `largeTraversal`. Both profiles permit at most 64 KiB from one completed command. `ordinary` also permits 32 completed commands, 8 `moldea` calls, 256 KiB of `moldea` output, 1 MiB of aggregate model-visible tool output, and 524,288 input-plus-output tokens. `largeTraversal` also permits 64 commands, 16 `moldea` calls, 1 MiB of `moldea` output, 4 MiB of aggregate model-visible tool output, and 1,048,576 tokens. Every dimension is enforced independently before judging. Crossing a limit is an explicit stage failure naming the profile, measured value, and limit.
 
 The profile token limits contain a complete tool-using Codex stage rather than one internal model turn, and they are not consumption targets. Before the first uncached model call, the CLI reports the planned stages, the maximum stages including one operational retry per stage, the 2,097,152-token absolute ceiling per stage, and the corresponding aggregate maximum. The selected scenario profile is enforced against every completed actor and judge stage before semantic judgment. Cached input remains visible in evidence but is not added to input a second time.
 
-The operating limits and higher absolute ceilings are imported from the same source-controlled profile used by semantic evaluation and host execution. Deterministic boundary tests prove exact acceptance and over-limit failure for every dimension. The calibration corpus establishes normal and intentional large-traversal consumption without treating absolute ceilings as targets; duration and memory remain diagnostic observations.
+The operating limits and higher absolute ceilings are imported from the same source-controlled profile used by semantic evaluation and host execution. Deterministic boundary tests prove exact acceptance and over-limit failure for every dimension. The deterministic calibration corpus measures CLI and repository-operation behavior. Accepted qualification trials are the authority for complete model-stage consumption; duration and memory remain diagnostic observations.
 
 Qualification results retain these numeric aggregates but never raw command text, raw command output, credentials, hidden reasoning, or arbitrary workspace content.
 

@@ -16,7 +16,7 @@ Generation is fail-closed. Every semantic and qualification artifact must match 
 
 The website reads only exact current evidence. Missing, stale, malformed, or over-budget evidence fails generation.
 
-Public replay is bounded and privacy-safe. It may contain developer direction, actor response, deterministic facts, byte counts, token usage, durations, judge rationale, and verdicts. It never includes raw command text, raw command output, hidden reasoning, credentials, or arbitrary workspace contents.
+Public replay is bounded and privacy-safe. It may contain developer direction, actor response, deterministic facts, the maximum output byte count from one completed command, aggregate byte counts, token usage, durations, judge rationale, and verdicts. It never includes raw command text, raw command output, hidden reasoning, credentials, or arbitrary workspace contents.
 
 ## Commands
 

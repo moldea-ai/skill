@@ -100,6 +100,8 @@ For initialization, load only `references/continuous-maintenance.md`. When no ex
 
 ## Use bounded canonical evidence
 
+Keep host evidence bounded before invoking moldea. Read exact task-owned files first. Every recursive search or listing must exclude VCS internals, dependency trees, generated output, caches, and package stores, including `.git`, `node_modules`, `.pnpm-store`, `.yarn`, `dist`, `build`, `.next`, `.turbo`, and `coverage`. Never dump a complete lockfile, dependency inventory, generated tree, or package-store listing when repository metadata, a targeted lockfile entry, and the trusted launcher are sufficient. Narrow or page any host command that could emit more than 65,536 model-visible bytes.
+
 Use only a stable repository-root-local CLI satisfying `^7.0.0` and JSON schema 4. Metadata is content-free:
 
 ```text

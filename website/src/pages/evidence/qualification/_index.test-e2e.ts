@@ -384,6 +384,10 @@ test(
       await initialTrial.locator('summary').first().click();
       await expect(initialTrial.getByText('ordinary', { exact: true })).toBeVisible();
       await expect(initialTrial.getByText('0 / 32', { exact: true })).toBeVisible();
+      await expect(
+        initialTrial.getByText('Largest command output / limit:', { exact: false }),
+      ).toBeVisible();
+      await expect(initialTrial.getByText('0 / 65536 bytes', { exact: true })).toBeVisible();
       await expect(initialTrial.getByText('144 / 524288', { exact: true })).toBeVisible();
       await expect(initialTrial.getByText('not-observed', { exact: true })).toHaveCount(3);
       await expect(initialTrial.getByText('Unexpected changed path unexpected.md.')).toHaveCount(2);

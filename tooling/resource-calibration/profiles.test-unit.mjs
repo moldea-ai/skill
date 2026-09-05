@@ -12,6 +12,7 @@ test('keeps ordinary, large, and absolute profiles ordered without raising page 
   assert.equal(CALIBRATION_MINIMUM_HEADROOM_PERCENT, 25);
   assert.deepEqual(ordinary, {
     maxCompletedCommandCount: 32,
+    maxCommandOutputBytes: 65_536,
     maxHostTokenCount: 524_288,
     maxModelVisibleToolOutputBytes: 1_048_576,
     maxAggregateMoldeaOutputBytes: 262_144,
@@ -20,6 +21,7 @@ test('keeps ordinary, large, and absolute profiles ordered without raising page 
   });
   assert.deepEqual(largeTraversal, {
     maxCompletedCommandCount: 64,
+    maxCommandOutputBytes: 65_536,
     maxHostTokenCount: 1_048_576,
     maxModelVisibleToolOutputBytes: 4_194_304,
     maxAggregateMoldeaOutputBytes: 1_048_576,
@@ -27,6 +29,7 @@ test('keeps ordinary, large, and absolute profiles ordered without raising page 
     maxOutputPageBytes: 65_536,
   });
   assert.equal(largeTraversal.maxOutputPageBytes, ordinary.maxOutputPageBytes);
+  assert.equal(largeTraversal.maxCommandOutputBytes, ordinary.maxCommandOutputBytes);
   assert.ok(largeTraversal.maxCompletedCommandCount > ordinary.maxCompletedCommandCount);
   assert.ok(largeTraversal.maxHostTokenCount > ordinary.maxHostTokenCount);
   assert.ok(

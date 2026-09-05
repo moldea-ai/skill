@@ -17,6 +17,7 @@ import {
 const emptyCommandPolicy: IQualificationCommandPolicyEvidence = {
   completedCommandCount: 0,
   credentialExposure: { status: 'not-observed', observedCount: 0, reasons: [] },
+  maximumCommandOutputByteCount: 0,
   modelVisibleToolOutputByteCount: 0,
   moldeaCommandCount: 0,
   moldeaOutputByteCount: 0,

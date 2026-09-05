@@ -131,6 +131,7 @@ const seedFreshEvidence = (
     commandPolicy: {
       completedCommandCount: 1,
       credentialExposure: { observedCount: 0, reasons: [], status: 'not-observed' },
+      maximumCommandOutputByteCount: 1024,
       modelVisibleToolOutputByteCount: 1024,
       moldeaCommandCount: isInvalidResource ? 33 : 1,
       moldeaOutputByteCount: 512,

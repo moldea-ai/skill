@@ -38,7 +38,17 @@ moldea owns only the content strictly between these exact markers:
 
 The markers themselves establish the boundary. A README edit activates maintenance only when a changed hunk intersects the owned content. Changes elsewhere in README, including nearby design routing or a path-only match, are unrelated and must not load moldea resources or run the CLI.
 
-When initialization is authorized, add one concise managed block that routes readers to `/moldea/project.md` and states that `/moldea/**` is canonical. Do not put broad activation instructions, duplicated project context, tool versions, or workflow rules in the block.
+When initialization is authorized, add this concise managed block. Its first sentence is the repository-owned discovery bridge that makes the cheap gate reliable across compatible hosts without activating further `moldea` work on a miss. Its second sentence routes readers to canonical state.
+
+```markdown
+<!-- moldea:start -->
+
+For every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.
+Canonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.
+<!-- moldea:end -->
+```
+
+Do not add duplicated project context, tool versions, CLI commands, or other workflow rules to the block.
 
 Never rewrite README outside the markers as part of moldea maintenance. If the block is malformed, duplicated, or ambiguous, stop before editing it and report the exact structural issue.
 

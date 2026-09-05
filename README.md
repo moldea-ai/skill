@@ -32,6 +32,8 @@ The skill helps a coding agent:
 
 Ordinary engineering work remains ordinary engineering work. The skill abstains silently when a task does not concern `/moldea/**`, the managed README block, an exact declared binding, an `affectedBy` relationship, or an explicit `moldea` request.
 
+Initialization writes a concise managed README block that tells repository-aware hosts to select the installed skill for its two-byte gate before ordinary repository work. This is a discovery bridge, not broad activation: a gate miss continues the host task without a CLI call, workflow-reference load, progress update, or final-report mention.
+
 ## Installation
 
 ```bash
@@ -72,7 +74,7 @@ The entrypoint decides relevance before loading references or running the CLI:
 1. Answer a non-repository informational question concisely without inspection.
 2. Before initialization, continue moldea only for an explicit initialization request. Every other host-owned repository task continues normally while moldea abstains silently.
 3. After initialization, activate directly for an explicit repository-dependent moldea request, a changed `/moldea/**` path, or a changed hunk inside the full-line managed README markers.
-4. For every other known task-path set, run the skill's deterministic two-byte relevance gate. It invokes repository-local Core directly and returns only `0` or `1`.
+4. The managed README block tells repository-aware hosts to select this entrypoint for every repository task. For every other known task-path set, run the skill's deterministic two-byte relevance gate. It invokes repository-local Core directly and returns only `0` or `1`.
 5. Only after `1`, run one bounded CLI relationship query to identify the matching canonical owners. Otherwise continue the host-owned task normally with no moldea CLI command, reference load, progress update, or final-report mention.
 
 Host commands such as planning, reviewing, committing, and publishing retain ownership of their workflows. Their names alone never activate `moldea`, and the skill's local tooling rules never replace host-owned Git or package-manager procedures.

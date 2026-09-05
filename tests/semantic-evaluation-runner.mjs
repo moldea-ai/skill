@@ -1367,7 +1367,7 @@ const seedAdoptedProject = async (repositoryPath, caseDefinition) => {
   await writeScenarioFile(
     repositoryPath,
     'README.md',
-    '# Evaluation repository\n\nOrdinary repository guidance lives here.\n\n<!-- moldea:start -->\nCanonical moldea project state lives under `/moldea/**`.\n<!-- moldea:end -->\n',
+    '# Evaluation repository\n\nOrdinary repository guidance lives here.\n\n<!-- moldea:start -->\nFor every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.\nCanonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.\n<!-- moldea:end -->\n',
   );
   await writeScenarioFile(
     repositoryPath,
@@ -1554,8 +1554,8 @@ const applyScenarioWorkingTree = async (repositoryPath, caseDefinition) => {
         repositoryPath,
         'README.md',
         readme.replace(
-          'Canonical moldea state lives under `/moldea/**`.',
-          'Canonical moldea project state lives under `/moldea/**`.',
+          'Canonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.',
+          'Canonical moldea project state lives under `/moldea/**`; begin at `/moldea/project.md`.',
         ),
       );
       return;

@@ -96,7 +96,7 @@ You do not need to:
 
 The coding agent owns the safe interaction with the skill and repository-local tooling.
 
-Ordinary requests that do not pass the relevance gate activate no `moldea` work, whether or not the repository is adopted. A supported repository-bound host runs the two-byte gate for each repository-dependent task, but a miss loads no reference, runs no CLI command, and produces no `moldea` report. Initialization remains an explicit operation and never interrupts unrelated work.
+Ordinary requests that do not pass the relevance gate activate no `moldea` work, whether or not the repository is adopted. Initialization adds a managed README block that tells a supported repository-aware host to select the repository-bound skill for each repository task. The selected entrypoint runs the two-byte gate, but a miss loads no workflow reference, runs no CLI command, and produces no `moldea` report. Initialization remains an explicit operation and never interrupts unrelated work.
 
 ## Update the skill
 

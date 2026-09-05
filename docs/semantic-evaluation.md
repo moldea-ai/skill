@@ -51,6 +51,8 @@ Recognized machine commands must invoke the repository-local CLI directly with `
 
 Relationship cases begin from structurally valid adopted repositories. Their first CLI operation is one bounded `scope` call, which serves as the complete relevant-owner inventory instead of being followed by `inspect`. That call is included in the four-command ordinary budget; any remaining calls are limited to necessary validation and explicitly selected owner content.
 
+Every adopted semantic repository contains the current managed README discovery bridge. This proves that repository-aware hosts can select the cheap gate even when a relationship is visible only inside the manifest, while unrelated cases must still stop before any CLI call or workflow-reference load.
+
 The runner validates each declared `moldea` command budget and activation order before it invokes the semantic judge. A budget or activation miss makes the case fail but remains valid bounded evidence, so the attempt and any required confirmation trials are preserved instead of being treated as evaluator corruption. The judge evaluates only the remaining behavioral clauses and projected command-result facts. It must not reinterpret the total host command count or output from non-`moldea` commands as `moldea` resource consumption.
 
 ## Repository controls

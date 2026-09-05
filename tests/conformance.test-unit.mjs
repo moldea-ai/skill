@@ -119,7 +119,7 @@ const createProject = () => {
   mkdirSync(join(root, 'src'), { recursive: true });
   writeFileSync(
     join(root, 'README.md'),
-    '# Project\n\n<!-- moldea:start -->\nCanonical state lives in `/moldea/**`.\n<!-- moldea:end -->\n',
+    '# Project\n\n<!-- moldea:start -->\nFor every repository task, select the repository-installed `moldea` skill so its two-byte relevance gate can test the host-known paths. If the gate does not match, continue without `moldea`.\nCanonical moldea project state lives under `/moldea/**`; start at `/moldea/project.md`.\n<!-- moldea:end -->\n',
   );
   writeFileSync(
     join(root, 'moldea', 'moldea.yaml'),
@@ -181,6 +181,16 @@ describe('portable skill contract', () => {
       skill,
       /Load `references\/local-tooling\.md` only when the direct repository-local invocation is unavailable/u,
     );
+    const maintenance = readFileSync(
+      join(SKILL_ROOT, 'references', 'continuous-maintenance.md'),
+      'utf8',
+    );
+    assert.match(
+      maintenance,
+      /For every repository task, select the repository-installed `moldea` skill/u,
+    );
+    assert.match(maintenance, /If the gate does not match, continue without `moldea`/u);
+    assert.match(maintenance, /start at `\/moldea\/project\.md`/u);
   });
 
   test('defines silent abstention, host ownership, and bounded schema-4 evidence', () => {

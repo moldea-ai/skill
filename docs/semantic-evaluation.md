@@ -49,6 +49,8 @@ The command and byte budgets are owned by `tooling/resource-calibration/profiles
 
 Recognized machine commands must invoke the repository-local CLI directly with `--json --max-output-bytes 65536`. Unbounded, indirect, or output-filtered forms do not count as valid proof.
 
+The runner validates each declared `moldea` command budget and activation order before it invokes the semantic judge. The judge evaluates only the remaining behavioral clauses and projected command-result facts. It must not reinterpret the total host command count or output from non-`moldea` commands as `moldea` resource consumption.
+
 ## Repository controls
 
 The actor works in an isolated writable repository. The installed skill, Git control state, and evaluator-owned boundaries are read-only. The runner captures pre- and post-execution evidence for:

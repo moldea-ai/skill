@@ -3,6 +3,7 @@ import { test } from 'node:test';
 
 import {
   buildActorPrompt,
+  buildJudgePrompt,
   createSemanticEvaluationCostEstimate,
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
@@ -45,6 +46,32 @@ test('parses a diagnostic case selection without authorizing recording', () => {
 
 test('keeps evaluator criteria out of the actor prompt', () => {
   assert.equal(buildActorPrompt(CASE), 'Review docs/example.md.');
+});
+
+test('keeps runner-enforced moldea budgets outside semantic judgment', () => {
+  const prompt = buildJudgePrompt(
+    CASE,
+    'No findings.',
+    { created: [], deleted: [], modified: [] },
+    [],
+    [],
+    null,
+    { completedCommandCount: 128 },
+    {
+      commandCount: 0,
+      maximumInvocationByteCount: 0,
+      modelVisibleToolOutputByteCount: 0,
+      operations: [],
+      stdoutByteCount: 0,
+    },
+  );
+
+  assert.match(
+    prompt,
+    /runner independently proved\s+that the declared moldea activation order and resource budget passed/u,
+  );
+  assert.match(prompt, /Do not compare the total\s+completed-command count/u);
+  assert.match(prompt, /Judge only the remaining semantic\s+clauses/u);
 });
 
 test('reports the complete bounded semantic paid-execution envelope', () => {

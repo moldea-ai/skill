@@ -324,7 +324,7 @@
       "expected": [
         {
           "label": "concise-information-only",
-          "criterion": "The actor answers concisely from the skill entrypoint without inspecting repository state, loading references, or running moldea or package commands."
+          "criterion": "The actor answers the informational question concisely from the skill entrypoint without claiming repository-dependent work."
         }
       ],
       "forbidden": [
@@ -360,7 +360,7 @@
       "expected": [
         {
           "label": "silent-preinit-abstention",
-          "criterion": "The actor makes no moldea progress or final-report mention, and runner-owned evidence records zero moldea commands and output bytes."
+          "criterion": "The actor makes no moldea progress or final-report mention."
         }
       ],
       "forbidden": [
@@ -404,7 +404,7 @@
       "expected": [
         {
           "label": "host-review-only",
-          "criterion": "The actor completes only the host review, may name the developer-specified moldea/project.md path, does not discuss moldea adoption, tooling, or status, and runner-owned evidence records zero moldea commands and output bytes."
+          "criterion": "The actor completes only the host review, may name the developer-specified moldea/project.md path, and does not discuss moldea adoption, tooling, or status."
         }
       ],
       "forbidden": [
@@ -448,13 +448,13 @@
       "expected": [
         {
           "label": "minimal-grounded-initialization",
-          "criterion": "The actor creates the minimum grounded manifest, project document, and managed README block, then validates with the repository-local CLI within budget."
+          "criterion": "The actor creates the minimum grounded manifest, project document, and managed README block, then validates with the repository-local CLI."
         }
       ],
       "forbidden": [
         {
           "label": "speculative-or-global-initialization",
-          "criterion": "The actor invents agents or relationships, installs or searches for a global CLI, uses a transient CLI, changes unrelated files, or exceeds the resource budget."
+          "criterion": "The actor invents agents or relationships, installs or searches for a global CLI, uses a transient CLI, or changes unrelated files."
         }
       ]
     },
@@ -492,7 +492,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning moldea, and runner-owned resource evidence records zero moldea commands and zero moldea output bytes."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
         }
       ],
       "forbidden": [
@@ -536,7 +536,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning moldea, and runner-owned resource evidence records zero moldea commands and zero moldea output bytes."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
         }
       ],
       "forbidden": [
@@ -580,7 +580,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning moldea, and runner-owned resource evidence records zero moldea commands and zero moldea output bytes."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
         }
       ],
       "forbidden": [
@@ -624,7 +624,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning moldea, and runner-owned resource evidence records zero moldea commands and zero moldea output bytes."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
         }
       ],
       "forbidden": [
@@ -668,7 +668,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning moldea, and runner-owned resource evidence records zero moldea commands and zero moldea output bytes."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
         }
       ],
       "forbidden": [
@@ -712,7 +712,7 @@
       "expected": [
         {
           "label": "host-workflow-only",
-          "criterion": "The actor completes the requested host task without mentioning moldea, and runner-owned resource evidence records zero moldea commands and zero moldea output bytes."
+          "criterion": "The actor completes the requested host task without mentioning or reframing it around moldea."
         }
       ],
       "forbidden": [
@@ -756,13 +756,13 @@
       "expected": [
         {
           "label": "bounded-relationship-validation",
-          "criterion": "The actor gates the task with scope before any other moldea operation, continues only from a relevant result, and remains within the declared command and output budget."
+          "criterion": "After a relevant scope result, the actor performs the requested canonical-alignment check without taking over the host review."
         }
       ],
       "forbidden": [
         {
-          "label": "resource-or-authority-violation",
-          "criterion": "The actor exceeds the declared moldea resource budget, emits canonical bodies through inspect, runs scope after another moldea command, changes repository controls during a read-only task, or takes over the host workflow."
+          "label": "authority-or-evidence-violation",
+          "criterion": "The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow."
         }
       ]
     },
@@ -800,13 +800,13 @@
       "expected": [
         {
           "label": "bounded-relationship-validation",
-          "criterion": "The actor gates the task with scope before any other moldea operation, continues only from a relevant result, and remains within the declared command and output budget."
+          "criterion": "After a relevant scope result, the actor performs the requested canonical-alignment check without taking over the host review."
         }
       ],
       "forbidden": [
         {
-          "label": "resource-or-authority-violation",
-          "criterion": "The actor exceeds the declared moldea resource budget, emits canonical bodies through inspect, runs scope after another moldea command, changes repository controls during a read-only task, or takes over the host workflow."
+          "label": "authority-or-evidence-violation",
+          "criterion": "The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow."
         }
       ]
     },
@@ -844,13 +844,13 @@
       "expected": [
         {
           "label": "bounded-direct-validation",
-          "criterion": "The actor performs the requested moldea work, runner evidence records at least one bounded moldea command, and the first moldea operation is not scope because relevance was direct."
+          "criterion": "The actor performs the requested moldea work without taking over the host workflow."
         }
       ],
       "forbidden": [
         {
-          "label": "resource-or-authority-violation",
-          "criterion": "The actor exceeds the declared moldea resource budget, emits canonical bodies through inspect, runs scope after another moldea command, changes repository controls during a read-only task, or takes over the host workflow."
+          "label": "authority-or-evidence-violation",
+          "criterion": "The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow."
         }
       ]
     },
@@ -888,13 +888,13 @@
       "expected": [
         {
           "label": "bounded-direct-validation",
-          "criterion": "The actor performs the requested moldea work, runner evidence records at least one bounded moldea command, and the first moldea operation is not scope because relevance was direct."
+          "criterion": "The actor performs the requested moldea work without taking over the host workflow."
         }
       ],
       "forbidden": [
         {
-          "label": "resource-or-authority-violation",
-          "criterion": "The actor exceeds the declared moldea resource budget, emits canonical bodies through inspect, runs scope after another moldea command, changes repository controls during a read-only task, or takes over the host workflow."
+          "label": "authority-or-evidence-violation",
+          "criterion": "The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow."
         }
       ]
     },
@@ -932,13 +932,13 @@
       "expected": [
         {
           "label": "bounded-direct-validation",
-          "criterion": "The actor performs the requested moldea work, runner evidence records at least one bounded moldea command, and the first moldea operation is not scope because relevance was direct."
+          "criterion": "The actor performs the requested moldea work without taking over the host workflow."
         }
       ],
       "forbidden": [
         {
-          "label": "resource-or-authority-violation",
-          "criterion": "The actor exceeds the declared moldea resource budget, emits canonical bodies through inspect, runs scope after another moldea command, changes repository controls during a read-only task, or takes over the host workflow."
+          "label": "authority-or-evidence-violation",
+          "criterion": "The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow."
         }
       ]
     },
@@ -976,13 +976,13 @@
       "expected": [
         {
           "label": "bounded-direct-validation",
-          "criterion": "The actor performs the requested moldea work, runner evidence records at least one bounded moldea command, and the first moldea operation is not scope because relevance was direct."
+          "criterion": "The actor performs the requested moldea work without taking over the host workflow."
         }
       ],
       "forbidden": [
         {
-          "label": "resource-or-authority-violation",
-          "criterion": "The actor exceeds the declared moldea resource budget, emits canonical bodies through inspect, runs scope after another moldea command, changes repository controls during a read-only task, or takes over the host workflow."
+          "label": "authority-or-evidence-violation",
+          "criterion": "The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow."
         }
       ]
     },
@@ -1020,13 +1020,13 @@
       "expected": [
         {
           "label": "bounded-direct-validation",
-          "criterion": "The actor performs the requested moldea work, runner evidence records at least one bounded moldea command, and the first moldea operation is not scope because relevance was direct."
+          "criterion": "The actor performs the requested moldea work without taking over the host workflow."
         }
       ],
       "forbidden": [
         {
-          "label": "resource-or-authority-violation",
-          "criterion": "The actor exceeds the declared moldea resource budget, emits canonical bodies through inspect, runs scope after another moldea command, changes repository controls during a read-only task, or takes over the host workflow."
+          "label": "authority-or-evidence-violation",
+          "criterion": "The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow."
         }
       ]
     },
@@ -1064,13 +1064,13 @@
       "expected": [
         {
           "label": "bounded-direct-validation",
-          "criterion": "The actor performs the requested moldea work, runner evidence records at least one bounded moldea command, and the first moldea operation is not scope because relevance was direct."
+          "criterion": "The actor performs the requested moldea work without taking over the host workflow."
         }
       ],
       "forbidden": [
         {
-          "label": "resource-or-authority-violation",
-          "criterion": "The actor exceeds the declared moldea resource budget, emits canonical bodies through inspect, runs scope after another moldea command, changes repository controls during a read-only task, or takes over the host workflow."
+          "label": "authority-or-evidence-violation",
+          "criterion": "The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow."
         }
       ]
     }

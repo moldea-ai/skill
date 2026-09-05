@@ -10,6 +10,8 @@ Do not recommend initialization during unrelated work. Do not treat generic know
 
 Create the smallest foundation that accurately represents established current truth. Zero agents, relationships, runtimes, and requirements are valid. Never create placeholder agents or speculative bindings to make a project appear complete.
 
+Use the available repository-local CLI directly for final validation. When that invocation succeeds, do not enumerate dependencies, inspect CLI internals, resolve executable links, search global installations, use transient tooling, or probe package-manager configuration. Load `local-tooling.md` only after the direct invocation is unavailable or fails for an operational reason that requires tool establishment.
+
 ## Maintain owned truth
 
 For an authorized relevant change:

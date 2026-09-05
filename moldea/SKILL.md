@@ -90,6 +90,8 @@ After relevance is established, read only what the selected operation needs:
 
 Never read every reference by default. Read a second reference only when the active operation reaches that boundary.
 
+For initialization, load only `references/continuous-maintenance.md`. Invoke the available repository-local CLI directly for final validation. When that invocation succeeds, do not inspect dependency trees, CLI package internals, executable links, global installations, transient tools, or package-manager configuration. Load `references/local-tooling.md` only when the direct repository-local invocation is unavailable or fails for an operational reason that requires tool establishment.
+
 ## Use bounded canonical evidence
 
 Use only the repository-root-local CLI 7.0.0 and JSON schema 4. Metadata is content-free:

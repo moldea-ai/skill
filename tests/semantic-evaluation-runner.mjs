@@ -1092,8 +1092,11 @@ runner-owned execution evidence cannot prove what the actor reported. When a cri
 clauses to named sources, each clause must be established by that source.
 Runner-owned command evidence records the completed-command count, while moldea resource evidence
 records recognized moldea operations and exact output byte counts without retaining raw command
-text or canonical document bodies. The case's declared activation and resource budget is a
-deterministic requirement. Do not infer extra work from the actor's prose.
+text or canonical document bodies. Before this prompt was built, the runner independently proved
+that the declared moldea activation order and resource budget passed. Do not compare the total
+completed-command count or output from non-moldea commands with the moldea budget, reinterpret that
+deterministic result, or infer extra work from the actor's prose. Judge only the remaining semantic
+clauses and projected command-result facts.
 Workspace changes are the complete after-minus-before delta for ordinary repository paths. When
 pre-actor scenario evidence establishes that a path was missing, its absence from the created-path
 delta establishes that it remained missing after actor execution. Empty created, modified, and

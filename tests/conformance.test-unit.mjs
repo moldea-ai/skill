@@ -158,6 +158,15 @@ describe('portable skill contract', () => {
     }
     assert.match(skill, /Never read every reference by default/u);
     assert.match(skill, /read only what the selected operation needs/u);
+    assert.match(skill, /For initialization, load only `references\/continuous-maintenance\.md`/u);
+    assert.match(
+      skill,
+      /do not inspect dependency trees, CLI package internals, executable links/u,
+    );
+    assert.match(
+      skill,
+      /Load `references\/local-tooling\.md` only when the direct repository-local invocation is unavailable/u,
+    );
   });
 
   test('defines silent abstention, host ownership, and bounded schema-4 evidence', () => {
@@ -175,10 +184,7 @@ describe('portable skill contract', () => {
     assert.match(distributedText, /1 MiB/u);
     assert.match(distributedText, /content-free/u);
     assert.doesNotMatch(distributedText, /Moldea/u);
-    assert.doesNotMatch(
-      distributedText,
-      /4\.0\.[0-2]|CLI JSON schema (?:1|2|3)\b|schema-3\b/u,
-    );
+    assert.doesNotMatch(distributedText, /4\.0\.[0-2]|CLI JSON schema (?:1|2|3)\b|schema-3\b/u);
   });
 
   test('exposes concise lowercase host metadata', () => {

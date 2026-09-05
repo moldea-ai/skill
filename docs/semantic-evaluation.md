@@ -90,7 +90,7 @@ npm run eval:semantic:preflight
 
 Preflight validates all case definitions, source evidence, portable skill structure, CLI identity, resource budgets, and repository setup without making a model call.
 
-It also prints the initial, planned, and maximum paid-stage counts plus the maximum token count. The maximum includes two confirmation trials after an initial failure and one bounded operational retry per actor or judge stage. Each completed tool-using Codex stage may report at most 1,048,576 cumulative input-plus-output tokens. This is a containment ceiling rather than a consumption target. Crossing it is an explicit failure, and cached input is reported separately without being added to input a second time.
+It also prints the initial, planned, and maximum paid-stage counts plus the maximum token count. The maximum includes two confirmation trials after an initial failure and one bounded operational retry per actor or judge stage. Each completed tool-using Codex stage may report at most 2,097,152 cumulative input-plus-output tokens. This is a containment ceiling rather than a consumption target. It was selected above an observed 1,264,666-token qualification stage so normal tool-using work retains more than 25 percent headroom. Crossing it is an explicit failure, and cached input is reported separately without being added to input a second time.
 
 ## Record and verify
 

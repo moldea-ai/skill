@@ -33,7 +33,7 @@ describe('qualification stage planning', () => {
   });
 
   test('derives the aggregate token ceiling from the bounded call envelope', () => {
-    expect(getQualificationMaximumTokenCount(144)).toBe(150_994_944);
+    expect(getQualificationMaximumTokenCount(144)).toBe(301_989_888);
     expect(() => getQualificationMaximumTokenCount(-1)).toThrow(
       'Qualification maximum call count must be a non-negative integer.',
     );

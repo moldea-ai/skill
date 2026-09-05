@@ -480,11 +480,11 @@ test('execution evidence rejects more than 16 MiB of aggregate tool output', () 
 test('execution evidence rejects model token usage above the host ceiling', () => {
   const source = `${JSON.stringify({
     type: 'turn.completed',
-    usage: { input_tokens: 1_000_000, cached_input_tokens: 900_000, output_tokens: 48_577 },
+    usage: { input_tokens: 2_000_000, cached_input_tokens: 1_900_000, output_tokens: 97_153 },
   })}\n`;
 
   assert.throws(
     () => projectCodexEvaluationExecutionEvidence(source),
-    /total model token usage is 1048577 tokens; the limit is 1048576 tokens/u,
+    /total model token usage is 2097153 tokens; the limit is 2097152 tokens/u,
   );
 });

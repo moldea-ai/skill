@@ -16,6 +16,6 @@ test('keeps ordinary, large, and absolute output profiles ordered without raisin
   assert.ok(absolute.maxMoldeaCommandCount > largeTraversal.maxMoldeaCommandCount);
   assert.ok(absolute.maxMoldeaOutputBytes > largeTraversal.maxAggregateMoldeaOutputBytes);
   assert.ok(absolute.maxHostOutputBytes >= absolute.maxMoldeaOutputBytes);
-  assert.equal(absolute.maxHostTokenCount, 1_048_576);
+  assert.equal(absolute.maxHostTokenCount, 2_097_152);
   assert.ok(absolute.maxModelVisibleToolOutputBytes >= absolute.maxMoldeaOutputBytes);
 });

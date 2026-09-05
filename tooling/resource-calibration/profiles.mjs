@@ -15,7 +15,7 @@ export const MOLDEA_SKILL_RESOURCE_PROFILES = Object.freeze({
     maxActorExecutionEvidenceItems: 128,
     maxCompletedCommandCount: 128,
     maxHostOutputBytes: 16_777_216,
-    maxHostTokenCount: 1_048_576,
+    maxHostTokenCount: 2_097_152,
     maxModelVisibleToolOutputBytes: 16_777_216,
     maxMoldeaCommandCount: 32,
     maxMoldeaInvocationOutputBytes: 1_048_576,

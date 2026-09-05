@@ -73,7 +73,7 @@ test('accepts bounded model usage and rejects invalid cached or total token coun
   expect(
     ModelUsageSchema.safeParse({
       cachedInputTokens: 0,
-      inputTokens: 1_048_576,
+      inputTokens: 2_097_152,
       outputTokens: 1,
     }).success,
   ).toBe(false);

@@ -32,6 +32,8 @@ Each case combines:
 
 The actor never receives grading criteria. The judge cannot replace deterministic package, schema, filesystem, or resource evidence with prose.
 
+Qualification workspaces contain their complete installed dependency set before an actor starts. Actors cannot invoke a package manager, transient executable, or installer and must call repository-local binaries directly. This keeps network isolation mechanically enforceable without preventing project-native validation.
+
 ## Resource limits
 
 Each actor or judge stage records:

@@ -97,6 +97,9 @@ describe('qualification prompts', () => {
     expect(prompt).toContain('# Review the support agent');
     expect(prompt).toContain('Use applicable project-local tooling');
     expect(prompt).toContain('Agent Skill guidance discovered in the workspace');
+    expect(prompt).toContain('Dependencies are already installed.');
+    expect(prompt).toContain('Do not invoke npm, npx, pnpm, pnpx, yarn, yarnpkg, corepack');
+    expect(prompt).toContain('run repository-local binaries directly');
     expect(prompt).not.toContain('project-local moldea tooling');
     expect(prompt).not.toContain('.agents/skills/moldea/');
     expect(prompt).not.toContain('.moldea-qualification/');

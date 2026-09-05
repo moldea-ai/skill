@@ -59,10 +59,7 @@ const readJsonObject = async (filePath) => {
 /** Checks the complete repository-adoption marker contract. */
 const hasInitializedProject = async (repositoryRoot) => {
   await Promise.all([
-    assertBoundedRegularFile(
-      join(repositoryRoot, 'moldea', 'moldea.yaml'),
-      MAX_MANIFEST_BYTES,
-    ),
+    assertBoundedRegularFile(join(repositoryRoot, 'moldea', 'moldea.yaml'), MAX_MANIFEST_BYTES),
     assertBoundedRegularFile(join(repositoryRoot, 'moldea', 'project.md'), MAX_README_BYTES),
   ]);
 
@@ -103,7 +100,13 @@ const readPathInput = async () => {
     throw new Error('invalid path input');
   }
 
-  return paths;
+  return paths.map((path) => {
+    if (/^[A-Za-z]:/u.test(path) || path.startsWith('\\\\')) {
+      throw new Error('invalid path input');
+    }
+
+    return path.startsWith('/') ? path : `/${path}`;
+  });
 };
 
 /** Loads the exact repository-root Core implementation declared by the supported CLI. */

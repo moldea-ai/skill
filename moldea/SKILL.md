@@ -43,7 +43,7 @@ node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-re
 
 Continue directly without `scope` only when complete stdout is exactly `1`. Otherwise abstain silently.
 
-For every other repository task, including a request to verify canonical alignment for an ordinary source or documentation path, do not run the adoption-only gate. Reuse the complete changed-path set already established by the host and pass its repository-logical absolute paths as one NUL-delimited UTF-8 input to the full deterministic gate:
+For every other repository task, including a request to verify canonical alignment for an ordinary source or documentation path, do not run the adoption-only gate. Reuse the complete changed-path set already established by the host and pass it as one NUL-delimited UTF-8 input to the full deterministic gate. The gate accepts ordinary Git-style repository-relative paths such as `src/example.ts` and leading-slash repository-logical paths such as `/src/example.ts`; it normalizes only this changed-path boundary and rejects drive-relative paths, UNC paths, traversal, invalid logical paths, and malformed input.
 
 ```text
 node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root>
@@ -57,7 +57,7 @@ After `1`, run one bounded relationship query with the exact repository-root-loc
 moldea scope --paths-stdin --json --max-output-bytes 65536
 ```
 
-Pass the same path input. Interpret only a completed CLI 7.0.0/schema-4 envelope with `status: "valid"`, `result.valid: true`, and `result.relevant: true`. Do not follow a cursor merely to search for relevance; the first result establishes all matching owners for the bounded input. A missing exact local CLI, malformed input or envelope, operational error, invalid result, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
+Before `scope`, convert any Git-style path to its leading-slash repository-logical form, then pass the complete normalized path set. Interpret only a completed CLI 7.0.0/schema-4 envelope with `status: "valid"`, `result.valid: true`, and `result.relevant: true`. Do not follow a cursor merely to search for relevance; the first result establishes all matching owners for the bounded input. A missing exact local CLI, malformed input or envelope, operational error, invalid result, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
 
 Treat this successful `scope` result as the complete relationship inventory for the task. Do not follow it with `inspect`. The scope call counts toward the ordinary four-command limit, leaving at most three CLI calls: normally one `validate` when structural status can affect the conclusion, plus `content` only for the explicitly selected canonical owners needed to review the relationship.
 

@@ -36,6 +36,7 @@ Repository scope is required for supported `moldea` use so the installed skill v
 Every compatible host consumes the same portable semantic core:
 
 - `SKILL.md` defines activation, authority, compatibility, operation selection, and reporting. The managed README block tells repository-aware hosts to select its entrypoint for every repository task so the deterministic gate can test host-known paths. The gate invokes repository-local Core directly and returns only `0` or `1`; the CLI is not invoked unless a declared relationship matches. Only an explicit `moldea` operation, a canonical path change, a managed README hunk, or a task path matched by a declared binding or `affectedBy` relationship activates further `moldea` work. Generic knowledge and unrelated host workflows stop after the gate without loading workflow references or mentioning `moldea`.
+- The gate accepts Git-style repository-relative paths and leading-slash repository-logical paths, normalizes them to the repository-logical form, and rejects drive-relative paths, UNC paths, traversal, invalid logical paths, and malformed input. This keeps host path spelling from changing relevance while preserving the strict canonical path contract.
 - Focused references are loaded only for the workflows that require them.
 - Repository-local `@moldea.ai/cli` tooling owns deterministic inspection and validation.
 - Canonical project and agent state remains under `/moldea/**`.

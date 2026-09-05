@@ -303,7 +303,10 @@ describe('activation and semantic protection', () => {
       installProjectToolingFixture(root);
       for (const [input, expected] of [
         ['/src/project-state.js\0', '1\n'],
+        ['src/project-state.js\0', '1\n'],
         ['/src/unrelated.js\0', '0\n'],
+        ['./src/project-state.js\0', '0\n'],
+        ['C:src/project-state.js\0', '0\n'],
         ['/src/project-state.js', '0\n'],
         [Buffer.from([0xff, 0]), '0\n'],
       ]) {

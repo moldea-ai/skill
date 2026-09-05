@@ -4,7 +4,7 @@ Read this reference only after moldea relevance is established for a requested m
 
 ## Preserve host workflow ownership
 
-Evaluation is read-only. Reuse the host review or task workflow's root, HEAD, changed paths, hunks, branch state, diffs, and completed checks. Do not create temporary indexes, Git objects, candidate trees, fingerprints, repeated status probes, or publication checks for moldea. The host workflow decides readiness, commit identity, and publication.
+Evaluation is read-only. Reuse the host review or task workflow's root, HEAD, exact named or targeted task paths, changed paths, hunks, branch state, diffs, and completed checks. Do not create temporary indexes, Git objects, candidate trees, fingerprints, repeated status probes, or publication checks for moldea. The host workflow decides readiness, commit identity, and publication.
 
 For a relationship-triggered operation, use the one completed `scope` result as the canonical expansion boundary. For direct canonical work, start at the named owner without running `scope`. Do not turn a clean or unscoped host review into a whole-project moldea audit.
 

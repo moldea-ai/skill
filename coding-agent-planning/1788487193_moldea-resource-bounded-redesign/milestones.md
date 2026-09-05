@@ -130,8 +130,8 @@ Make initialization, adoption, path relevance, host-workflow ownership, progress
 
 ### Scope and implementation
 
-1. Replace broad implicit activation with an initialization state machine and a two-byte deterministic pre-activation gate.
-2. Require repository-local adoption, recognize only direct moldea work, canonical paths, managed README hunks, and exact binding or `affectedBy` matches, and perform zero moldea work on a miss.
+1. Replace broad implicit activation with an initialization state machine and a deterministic pre-activation gate whose visible result is only `0` or `1` plus a newline.
+2. Require repository-local adoption, recognize only direct moldea work, canonical paths, managed README hunks, and exact binding or `affectedBy` matches, and perform zero further moldea work on a miss.
 3. Preserve host plan, review, implementation, Git, commit, and publication ownership; load only the owning reference after relevance; use bounded content-free CLI operations and selected content ranges.
 4. Prove evaluation/validation leaves worktree files, index, refs, configuration, submodules, temporary repository state, and Git object storage unchanged.
 
@@ -240,79 +240,107 @@ Inspect simplicity, provenance, source validation, self-reference avoidance, byp
 
 ### Objective
 
-Fix the packages PR version failure and remove avoidable provider, first-party package, and skill release cascades before any further paid evaluation.
+Fix the packages PR version failure and remove avoidable provider, first-party package, toolchain, supply-chain-policy, and skill release cascades before any further paid evaluation.
 
 ### Dependencies
 
-- Milestones 1 through 8 complete.
-- The packages `new_skill` branch and its open pull request remain the publication path; concurrent unrelated work is preserved and excluded.
+- Milestones 1 through 8.
 
 ### Scope and implementation
 
-1. In `../packages`, publish a coherent forward patch generation: repository-fs 2.0.1, Core 3.0.1, Anthropic/OpenAI adapters 3.0.1, every 2.x official adapter 2.0.1, and CLI 7.0.1. Repository remains 2.0.0 because it has no release-relevant change.
-2. Replace exact first-party workspace pins in repository-fs, Core, every adapter, and CLI with compatible-major ranges. Rework CLI composition validation so declarations and actually resolved first-party versions must satisfy the intended major lines, while composition still reports the exact resolved closure and rejects missing, duplicate, extra, prerelease, or breaking-major packages.
-3. Replace every upper-bounded upstream provider-library target with its existing inclusive minimum only, including all primary and companion packages for Anthropic, Claude Agent SDK, Cloudflare, Eve, Google Gen AI, LangChain, LangGraph, OpenAI, OpenAI Agents SDK, and Vercel AI SDK. Keep exact reference versions and verification dates in compatibility evidence.
-4. Update adapter discovery constants, classification cases, manifests, package integration/e2e assertions, compatibility source and generated docs, packed-artifact expectations, release-planning coverage, root/package docs, and lockfile. Prove future provider versions are eligible, compatible first-party patches/minors are accepted, and first-party breaking majors fail closed.
-5. In the skill, replace exact portable CLI metadata with `metadata.cliVersionRange: "^7.0.0"`; validate the repository declaration and installed stable CLI against that range and schema 4; retain an exact development dependency, lockfile closure, and exact release-evidence identity for the CLI version actually qualified.
-6. Remove the skill website and qualification harness npm `<12.0.0` engine ceiling, retain their `>=10.9.0` minimum, and keep exact npm/toolchain versions only in lockfiles and CI evidence.
-7. Update platform application dependency ranges to the compatible package majors, replace exact first-party `minimumReleaseAgeExclude` entries with `@moldea.ai/*` package-name exclusions because pnpm does not accept ranges there, preserve quarantine for external packages, rely on compatible-major manifests and review to reject future breaking majors, update exact lockfile resolutions after registry publication, and synchronize every affected adapter/package/runtime/skill specification and website statement. Update the knowledge base and skill website/docs so no exact patch pin is described as a portability requirement.
-8. Review packages to readiness, publish the feature branch, integrate it through the reviewed `main` path, monitor npm publication, and verify every intended registry artifact and dependency range before final downstream lockfile updates. Review and publish the resulting platform, skill, and knowledge-base changes without bundling unrelated agent work.
+1. Publish repository-fs 2.0.1, Core 3.0.1, Anthropic/OpenAI adapters 3.0.1, every 2.x official adapter 2.0.1, and CLI 7.0.1 while leaving unchanged Repository at 2.0.0.
+2. Replace exact first-party package pins with compatible-major ranges while preserving exact resolved lockfile and evidence closure; prove patch/minor acceptance and breaking-major rejection.
+3. Replace every upper-bounded provider-library target with its inclusive minimum only while keeping exact tested reference versions and verification dates auditable.
+4. Make portable skill metadata accept compatible CLI 7 releases and schema 4 while keeping the exact qualified CLI identity in development and release evidence.
+5. Remove the website and qualification npm future-major ceiling, replace exact first-party release-age exclusions with package-name exclusions, retain external supply-chain quarantine, and synchronize packages, platform specifications, skill docs/site, generated compatibility artifacts, and knowledge-base content.
+6. Review, sign, publish, merge, monitor, and registry-verify the complete forward package generation before publishing downstream synchronization.
 
 ### Tests and verification
 
-- Packages focused adapter-discovery, runtime-compatibility, CLI composition, package manifest, packed-candidate, release-plan, registry, and lockfile tests; all package unit/integration/e2e tests, typecheck, lint, format, build, public API, docs, compatibility, and release checks.
-- Skill relevance-gate, conformance, release-identity, evidence-identity, candidate-closure, package-candidate, semantic-runner dry tests, full unit/integration tests, typecheck where configured, format, docs/site, and path checks without model calls.
-- Platform package/docs/site checks and knowledge-base validation/tests; cross-repository searches for upper-bounded provider targets, exact portable CLI patch requirements, exact first-party workspace pins or release-age exceptions, stale package versions, and contradictory range policy.
-- Exact signed commits, reviewed main integration, workflow status, npm manifests/tarballs, and registry-propagation checks.
+- Package compatibility, discovery, composition, manifest, packed-candidate, release-plan, registry, lockfile, unit, integration, e2e, typecheck, lint, format, build, public API, and documentation checks.
+- Skill conformance, relevance, release identity, closure, website, and qualification deterministic checks without model calls.
+- Platform and knowledge-base tests, builds, documentation checks, and contradiction searches for upper bounds, exact portable patch pins, future-major engine ceilings, release-age version lists, stale versions, and conflicting policy.
 
 ### Acceptance criteria
 
-- `release:check-changes` no longer reports an unchanged stable version for any release-relevant changed project.
-- Provider targets accept their tested minimum and every later stable version without an upper bound; exact tested versions remain auditable.
-- Compatible first-party patch/minor releases do not require downstream republishing solely because of exact pins; future breaking majors still fail closed.
-- Skill 5.0.0 works with compatible CLI 7 releases and schema 4 without requiring a new skill release for each CLI patch/minor, while final evidence records the exact resolved release closure.
-- Skill website and qualification tooling accept npm 10.9.0 and later stable majors without requiring a release solely to relax an engine ceiling; exact test toolchains remain auditable.
-- Platform accepts trusted `@moldea.ai/*` releases immediately without editing an exact release-age exception list; external packages remain quarantined, and compatible-major manifests plus review prevent automatic adoption of unreviewed future first-party majors.
-- All forward package artifacts are published and registry-verified before semantic or adapter qualification resumes.
+- Every release-relevant changed public package declares and publishes a greater stable version.
+- Provider targets accept their tested minimum and later stable versions; compatible first-party patch/minor releases do not force downstream publication, while breaking majors fail closed.
+- Skill 5 accepts compatible CLI 7 releases; npm tooling has no artificial future-major ceiling; external quarantine remains active; all exact resolved evidence remains auditable.
 
 ### Review checkpoint
 
-Inspect the range taxonomy, provider over-acceptance tradeoff, first-party major boundaries, CLI closure validation, skill portability versus evidence identity, package version graph, generated artifacts, release selection, registry manifests, downstream locks, and absence of unrelated changes.
+Inspect range taxonomy, over-acceptance tradeoffs, first-party major boundaries, CLI closure validation, portable versus exact identities, package version graph, registry manifests, downstream locks, and absence of unrelated changes.
 
-## Milestone 10: Fresh semantic and adapter qualification evidence
+## Milestone 10: Explicit task-path relationship activation
 
 ### Objective
 
-Run the expensive model evidence exactly once against the finalized, registry-published package generation and flexible compatibility contracts.
+Correct the qualification-discovered false negative so an unchanged ordinary repository path explicitly named or targeted by the developer activates its exact declared relationship without moldea-owned Git discovery.
 
 ### Dependencies
 
-- Milestone 9 complete, published, registry-propagated, and synchronized into every dependent repository.
+- Milestone 9 complete, published, registry-propagated, and synchronized.
+- Preserve semantic attempt `20260905T160351371Z-semantic-16cb2147` and failed Custom attempt `20260905T160415122Z-custom-custom-43ffbb42` as immutable diagnostics, not release evidence.
+
+### Scope and implementation
+
+1. Update `moldea/SKILL.md` so the mandatory full gate receives the complete bounded host-known task-path set: every repository-logical path explicitly named or targeted in the current request plus the complete changed-path set already established by the host when applicable.
+2. State explicitly that an unchanged named review target is task-path evidence and that moldea must not invoke Git solely to discover either source of gate input.
+3. Synchronize directly affected skill documentation, including `docs/safety-and-privacy.md`, `docs/capabilities.md`, `docs/coding-agent-compatibility.md`, `docs/how-it-works.md`, and `docs/semantic-evaluation.md`, only where their current changed-path wording would preserve the ambiguity.
+4. Add deterministic conformance coverage for an initialized zero-agent project in which an unchanged source path named by the task matches `/moldea/project.md` through `affectedBy`. Require gate activation, only that canonical owner, bounded CLI validation, and no moldea-owned Git commands. Preserve abstention cases for unrelated named paths and host commands.
+5. Run focused and full deterministic skill/website checks, perform a read-only review, correct findings until ready, and publish the cohesive correction on `new_skill` before any model-backed rerun.
+
+### Tests and verification
+
+- Focused conformance, relevance-gate, documentation artifact, semantic-fixture, and qualification-case structural tests.
+- Full skill unit and integration suites, website unit/artifact integration/docs/typecheck/lint/format/build checks, qualification deterministic unit/integration/typecheck/lint/format checks, path checks, and body-free bounded CLI smoke checks.
+- Diff searches proving that “complete changed-path set” is not presented as the only task-path source and that no new Git-discovery instruction exists.
+
+### Acceptance criteria
+
+- The unchanged explicitly named `src/project-state.ts` scenario reaches the full gate, identifies only `/moldea/project.md`, invokes the bounded moldea CLI within the case's 1–4 call allowance, and leaves the workspace unchanged.
+- A host-provided changed-path set remains accepted in full; unrelated named paths still abstain silently; moldea does not run Git merely to construct either input.
+- All directly affected public and internal documentation uses the same task-path contract, and the reviewed signed correction is published before fresh evidence is regenerated.
+
+### Review checkpoint
+
+Inspect the exact entrypoint wording, path-set completeness, unchanged-target behavior, owner selection, CLI count, zero-Git discovery, silent misses, documentation consistency, preserved budgets, and retained failed evidence.
+
+## Milestone 11: Fresh semantic and adapter qualification evidence
+
+### Objective
+
+Generate complete fresh model evidence once against the corrected portable skill digest and exact registry-published package closure.
+
+### Dependencies
+
+- Milestone 10 complete, reviewed, and published.
 - Authenticated model evaluation and qualification hosts.
 
 ### Scope and implementation
 
-1. Run semantic preflight and record its maximum call/token budget before model use.
-2. Execute universal Custom behavior once and each adapter-specific qualification profile once against the immutable committed packages compatibility snapshot.
-3. Preserve failed/incomplete attempts, fix genuine product defects through the authorized re-planning loop, and rerun only evidence invalidated by a correction. Never weaken budgets or assertions merely to pass.
-4. Record the deterministic fresh release-evidence envelope after exact-current semantic and qualification evidence passes. Use a pin only if the developer explicitly names a qualifying earlier release.
+1. Run semantic preflight and record its maximum call/token budget, then execute the complete semantic suite against the corrected skill identity.
+2. Run universal Custom behavior once. Require the previously failing unchanged named `affectedBy` scenario to identify the canonical owner and use bounded CLI validation.
+3. Run each of the thirteen adapter-specific qualification profiles once after Custom passes; do not repeat universal cases in adapter profiles.
+4. Preserve every failed/incomplete attempt, fix genuine product defects through the authorized re-planning loop, and rerun only evidence invalidated by a correction. Never weaken budgets or assertions merely to pass.
+5. After exact-current semantic and qualification verification passes, record the deterministic fresh release-evidence envelope. Use a pin only if the developer explicitly names a qualifying earlier release.
 
 ### Tests and verification
 
-- Semantic evaluation/verification with commands, stdout bytes, model-visible bytes, token categories, duration, and per-scenario budgets.
-- Qualification preflight, universal Custom, every adapter profile, ownership coverage, deterministic verification, resource state, artifact digests, and release-evidence recording.
+- Semantic evaluation and verification with commands, stdout bytes, model-visible bytes, token categories, duration, confirmation state, and per-scenario budgets.
+- Qualification preflight, Custom, thirteen adapter profiles, ownership coverage, deterministic verification, resource state, artifact digests, exact committed-source identity, and release-evidence recording.
 
 ### Acceptance criteria
 
-- Universal behavior is not duplicated across adapter profiles.
-- All semantic and adapter behavior passes calibrated independent budgets against the exact final package/skill identity.
-- Fresh evidence is complete, deterministic, and references only immutable committed and registry-published inputs.
+- All semantic cases pass against the corrected portable skill digest, including unchanged named relationship activation and existing abstention/resource cases.
+- Universal behavior runs only in Custom; all thirteen adapter profiles pass their real adapter-specific contracts within calibrated independent budgets.
+- Fresh evidence is complete, deterministic, immutable, and references only committed skill input and registry-published package closure.
 
 ### Review checkpoint
 
-Inspect model cost and quality, universal/adapter ownership, immutable input identity, exact tested closure, failures/reruns, resource accounting, and fresh evidence provenance.
+Inspect model cost and quality, recovered versus clean passes, unchanged-target regression behavior, universal/adapter ownership, immutable input identity, exact tested closure, failures/reruns, resource accounting, and fresh evidence provenance.
 
-## Milestone 11: Clean skill release and final cross-repository audit
+## Milestone 12: Clean skill release and final cross-repository audit
 
 ### Objective
 
@@ -320,7 +348,7 @@ Publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prov
 
 ### Dependencies
 
-- Milestone 10 passing fresh evidence or an explicitly selected valid pin.
+- Milestone 11 passing fresh evidence or an explicitly selected valid pin.
 - Authenticated skill main/release/site publication and hosted release deletion capabilities where required.
 
 ### Scope and implementation
@@ -349,4 +377,4 @@ Inspect release identity, portable-versus-exact CLI contracts, evidence provenan
 
 ## Execution scope
 
-Preserve completed Milestones 1 through 8. Execute Milestone 9 first to fix the repository-fs release-plan failure, publish the forward package patches, replace provider upper bounds with inclusive minimums, make first-party dependencies compatible-major, and let skill 5 accept compatible CLI 7 releases while retaining exact lockfile/evidence identity. Only after those artifacts are registry-verified and every specification, website, knowledge-base page, manifest, lockfile, and generated compatibility artifact agrees, execute Milestone 10's paid semantic and adapter qualifications. Finish with Milestone 11's clean skill 5.0.0 release, authorized 4.0.x release-surface cleanup, and complete cross-repository audit. Every incomplete milestone includes its implementation, tests, directly affected documentation, review/correction loop, signed publication, required main integration, and workflow verification without modifying protected instructions, bundling unrelated work, retaining compatibility code, or allowing incomplete evidence to appear successful.
+Preserve completed and published Milestones 1 through 9. Execute Milestone 10 first to correct and publish the task-path relationship contract with deterministic protection for unchanged explicitly named review targets and no moldea-owned Git discovery. Only then execute Milestone 11's fresh semantic suite, universal Custom qualification, thirteen adapter-specific profiles, and fresh release-evidence recording against the corrected committed skill digest and registry-published package closure. Finish with Milestone 12's clean skill 5.0.0 release, authorized 4.0.x release-surface cleanup, and complete cross-repository audit. Every incomplete milestone includes its implementation, tests, directly affected documentation, review/correction loop, signed publication, required main integration, and workflow verification without modifying protected instructions, bundling unrelated work, retaining compatibility code, weakening resource protections, or allowing incomplete evidence to appear successful.

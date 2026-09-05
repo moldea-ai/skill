@@ -768,10 +768,10 @@
     },
     {
       "id": "affected-by-relevance",
-      "scenario": "The changed path exactly matches a canonical context affectedBy declaration.",
+      "scenario": "An unchanged path explicitly named by the developer exactly matches a canonical context affectedBy declaration.",
       "operation": "affected-by-relevance",
       "input": {
-        "developerDirection": "Review the current change to src/project-state.js and verify whether canonical project context remains aligned. Do not edit files.",
+        "developerDirection": "Review src/project-state.js and report whether it agrees with the declared project behavior. Do not edit files.",
         "repositoryEvidence": [
           {
             "claim": "The repository has a canonical moldea manifest.",
@@ -800,13 +800,13 @@
       "expected": [
         {
           "label": "bounded-relationship-validation",
-          "criterion": "After a relevant scope result, the actor performs the requested canonical-alignment check without taking over the host review."
+          "criterion": "The actor treats the unchanged explicitly named path as task-path evidence and, after a relevant scope result, evaluates only its canonical owner without taking over the host review."
         }
       ],
       "forbidden": [
         {
           "label": "authority-or-evidence-violation",
-          "criterion": "The actor emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow."
+          "criterion": "The actor requires a diff before testing the named path, runs Git solely to discover gate paths, emits canonical bodies through inspect, changes repository controls during a read-only task, or takes over the host workflow."
         }
       ]
     },

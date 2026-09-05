@@ -58,7 +58,7 @@ The coding agent first decides whether the behavior belongs in a skill, protecte
 
 ## Maintain context as understanding evolves
 
-Once a repository adopts `moldea`, its managed README block routes repository-aware hosts to the repository-bound skill entrypoint for the two-byte relevance gate. Continuous maintenance activates only when a known task path matches a declared binding or `affectedBy` relationship. Generic project knowledge and unrelated work stop at the gate without loading workflow references or running the CLI.
+Once a repository adopts `moldea`, its managed README block routes repository-aware hosts to the repository-bound skill entrypoint for the two-byte relevance gate. Continuous maintenance activates only when a known task path matches a declared binding or `affectedBy` relationship. Known task paths include exact repository paths explicitly named or targeted by the developer, even when unchanged, plus any complete changed-path set already established by the host. Generic project knowledge and unrelated work stop at the gate without loading workflow references or running the CLI.
 
 The coding agent classifies supplied knowledge by meaning rather than format, traces affected context and behavior, and updates only representations whose truth actually changed. Clear current truth and explicit corrections can be maintained. Proposed, transient, speculative, secret, or materially ambiguous information is omitted or clarified first. Each affected fact stays with its established authoritative owner, so ordinary maintenance does not create parallel current truth. A correct outcome can be no `/moldea/**` edit.
 

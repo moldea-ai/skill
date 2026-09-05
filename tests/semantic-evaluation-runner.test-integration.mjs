@@ -25,10 +25,11 @@ const SEMANTIC_CASES = JSON.parse(
   readFileSync(join(process.cwd(), 'fixtures', 'conformance-cases.json'), 'utf8'),
 ).semanticCases;
 
-const runCli = (repositoryPath, arguments_) => {
+const runCli = (repositoryPath, arguments_, input) => {
   const result = spawnSync(join(repositoryPath, 'node_modules', '.bin', 'moldea'), arguments_, {
     cwd: repositoryPath,
     encoding: 'utf8',
+    input,
   });
   assert.equal(result.status, 0, result.stderr);
   return result.stdout;
@@ -67,6 +68,66 @@ test('the exact-binding semantic baseline is structurally valid before review', 
     assert.equal(envelope.result.valid, true);
     assert.equal(envelope.result.diagnosticCount, 0);
     assert.deepEqual(envelope.result.page.records, []);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
+test('an unchanged explicitly named affectedBy path resolves only its bounded owner', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-unchanged-relationship-'));
+  const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'affected-by-relevance');
+  assert.ok(caseDefinition);
+
+  try {
+    const { repositoryPath } = await createActorRepository(evaluationRoot, caseDefinition);
+    const readStatus = () =>
+      spawnSync('git', ['status', '--porcelain=v1'], {
+        cwd: repositoryPath,
+        encoding: 'utf8',
+      });
+    const beforeStatus = readStatus();
+    assert.equal(beforeStatus.status, 0, beforeStatus.stderr);
+    assert.equal(beforeStatus.stdout, '');
+
+    const taskPathInput = 'src/project-state.js\0';
+    const normalizedTaskPathInput = '/src/project-state.js\0';
+    const gate = spawnSync(
+      process.execPath,
+      [
+        join(repositoryPath, '.agents', 'skills', 'moldea', 'scripts', 'relevance-gate.mjs'),
+        '--repository',
+        repositoryPath,
+      ],
+      {
+        cwd: repositoryPath,
+        encoding: 'utf8',
+        input: taskPathInput,
+      },
+    );
+    assert.equal(gate.status, 0, gate.stderr);
+    assert.equal(gate.stdout, '1\n');
+
+    const scope = JSON.parse(
+      runCli(
+        repositoryPath,
+        ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+        normalizedTaskPathInput,
+      ),
+    );
+    assert.equal(scope.status, 'valid');
+    assert.equal(scope.result.relevant, true);
+    assert.equal(scope.result.counts.matchedOwners, 1);
+    assert.equal(scope.result.counts.matchedPaths, 1);
+    assert.equal(scope.result.page.records.length, 1);
+    assert.deepEqual(scope.result.page.records[0].match.owner, {
+      agentId: null,
+      id: '/moldea/project.md',
+      kind: 'context',
+    });
+
+    const afterStatus = readStatus();
+    assert.equal(afterStatus.status, 0, afterStatus.stderr);
+    assert.equal(afterStatus.stdout, '');
   } finally {
     rmSync(evaluationRoot, { force: true, recursive: true });
   }

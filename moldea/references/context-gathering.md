@@ -4,7 +4,7 @@ Read this reference after moldea relevance is established when the operation nee
 
 ## Reuse evidence before discovering
 
-Start with the developer's request and evidence already gathered by the host workflow: repository root, changed paths, hunks, current file contents, diffs, tests, and task constraints. Do not rerun Git status, reconstruct a candidate tree, hash unrelated files, or repeat broad repository searches for moldea.
+Start with the developer's request and evidence already gathered by the host workflow: repository root, exact named or targeted task paths, changed paths, hunks, current file contents, diffs, tests, and task constraints. Do not rerun Git status, reconstruct a candidate tree, hash unrelated files, or repeat broad repository searches for moldea.
 
 Separate:
 

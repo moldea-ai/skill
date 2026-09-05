@@ -1535,11 +1535,6 @@ const applyScenarioWorkingTree = async (repositoryPath, caseDefinition) => {
       );
       return;
     case 'affected-by-relevance':
-      await writeScenarioFile(
-        repositoryPath,
-        'src/project-state.js',
-        'export const projectState = "updated";\n',
-      );
       return;
     case 'direct-canonical-relevance':
       await writeScenarioFile(

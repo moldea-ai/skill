@@ -167,6 +167,17 @@ describe('portable skill contract', () => {
     assert.match(skill, /Never read every reference by default/u);
     assert.match(skill, /read only what the selected operation needs/u);
     assert.match(skill, /full deterministic gate is the mandatory first moldea action/u);
+    assert.match(skill, /exact repository paths explicitly named or targeted/u);
+    assert.match(skill, /whether changed or unchanged/u);
+    assert.match(skill, /complete changed-path set already established by the host/u);
+    assert.match(
+      skill,
+      /never run Git or broaden repository inspection solely to discover gate paths/u,
+    );
+    assert.doesNotMatch(
+      skill,
+      /Reuse the complete changed-path set already established by the host and pass it/u,
+    );
     assert.match(skill, /Never replace the gate by inspecting canonical state directly/u);
     assert.match(
       skill,
@@ -251,6 +262,32 @@ describe('activation and semantic protection', () => {
     assert.match(createSemanticCaseSuiteDigest(FIXTURE.semanticCases), /^[a-f0-9]{64}$/u);
     assert.equal(validateSemanticCoverage(COVERAGE, FIXTURE.semanticCases), COVERAGE);
     assert.match(createSemanticCoverageDigest(COVERAGE, FIXTURE.semanticCases), /^[a-f0-9]{64}$/u);
+  });
+
+  test('protects unchanged named relationship targets as bounded task-path evidence', () => {
+    const relationshipCase = FIXTURE.semanticCases.find(({ id }) => id === 'affected-by-relevance');
+    assert.ok(relationshipCase);
+    assert.match(relationshipCase.scenario, /unchanged path explicitly named by the developer/u);
+    assert.match(relationshipCase.input.developerDirection, /Review src\/project-state\.js/u);
+    assert.doesNotMatch(relationshipCase.input.developerDirection, /current change/u);
+    assert.deepEqual(relationshipCase.resourceBudget, {
+      activation: 'relationship',
+      minimumMoldeaCommands: 1,
+      maximumMoldeaCommands: 4,
+      maximumMoldeaOutputBytes: 262_144,
+    });
+    assert.match(
+      relationshipCase.expected[0].criterion,
+      /unchanged explicitly named path as task-path evidence/u,
+    );
+    assert.match(
+      relationshipCase.forbidden[0].criterion,
+      /requires a diff before testing the named path/u,
+    );
+    assert.match(
+      relationshipCase.forbidden[0].criterion,
+      /runs Git solely to discover gate paths/u,
+    );
   });
 
   test('gives every abstention case a literal zero moldea budget', () => {

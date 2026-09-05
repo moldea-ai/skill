@@ -163,6 +163,13 @@ describe('portable skill contract', () => {
     assert.match(skill, /read only what the selected operation needs/u);
     assert.match(skill, /full deterministic gate is the mandatory first moldea action/u);
     assert.match(skill, /Never replace the gate by inspecting canonical state directly/u);
+    assert.match(
+      skill,
+      /Generic requests to verify an agent contract, canonical alignment, durable context, or similar concerns for an ordinary source or documentation path remain relationship-gated/u,
+    );
+    assert.match(skill, /Do not follow it with `inspect`/u);
+    assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
+    assert.match(skill, /leaving at most three CLI calls/u);
     assert.match(skill, /For initialization, load only `references\/continuous-maintenance\.md`/u);
     assert.match(
       skill,

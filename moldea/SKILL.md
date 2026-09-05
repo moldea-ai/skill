@@ -30,7 +30,7 @@ Before adoption, every repository-dependent request other than explicit initiali
 
 Classify the task from the developer request and the path or hunk evidence already established by the host:
 
-- **Direct request:** the developer explicitly requests a repository-dependent moldea operation.
+- **Direct request:** the developer explicitly names `moldea` and requests one of its repository-dependent operations. Generic requests to verify an agent contract, canonical alignment, durable context, or similar concerns for an ordinary source or documentation path remain relationship-gated.
 - **Canonical change:** a known task path is under `/moldea/**`.
 - **Managed README change:** a known changed hunk intersects content strictly between the exact markers. A README path or hunk outside the block is not direct relevance.
 - **Declared relationship:** another known task path matches an exact binding or `affectedBy` declaration.
@@ -58,6 +58,8 @@ moldea scope --paths-stdin --json --max-output-bytes 65536
 ```
 
 Pass the same path input. Interpret only a completed CLI 7.0.0/schema-4 envelope with `status: "valid"`, `result.valid: true`, and `result.relevant: true`. Do not follow a cursor merely to search for relevance; the first result establishes all matching owners for the bounded input. A missing exact local CLI, malformed input or envelope, operational error, invalid result, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
+
+Treat this successful `scope` result as the complete relationship inventory for the task. Do not follow it with `inspect`. The scope call counts toward the ordinary four-command limit, leaving at most three CLI calls: normally one `validate` when structural status can affect the conclusion, plus `content` only for the explicitly selected canonical owners needed to review the relationship.
 
 Do not discover paths merely for moldea, run both gate modes, repeat a gate, or load a reference before the full deterministic gate matches and `scope` confirms its owners. Unrelated work runs zero moldea CLI commands. On abstention, make no moldea progress update or final-report mention.
 

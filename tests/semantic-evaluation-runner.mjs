@@ -1457,7 +1457,7 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
       await writeScenarioFile(
         repositoryPath,
         'moldea/agents/support-agent/instruction.md',
-        '# Support agent\n\nAnswer support requests using the current project policy.\n',
+        '# Support agent\n\nYou are the `support-agent` agent. Answer support requests using the current project policy.\n',
       );
       await writeScenarioFile(
         repositoryPath,

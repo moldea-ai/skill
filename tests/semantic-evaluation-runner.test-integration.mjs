@@ -52,6 +52,26 @@ test('all clean-slate semantic cases materialize their declared repository evide
   }
 });
 
+test('the exact-binding semantic baseline is structurally valid before review', async () => {
+  const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-exact-binding-'));
+  const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'exact-binding-relevance');
+  assert.ok(caseDefinition);
+
+  try {
+    const { repositoryPath } = await createActorRepository(evaluationRoot, caseDefinition);
+    const envelope = JSON.parse(
+      runCli(repositoryPath, ['validate', '--json', '--max-output-bytes', '65536']),
+    );
+
+    assert.equal(envelope.status, 'valid');
+    assert.equal(envelope.result.valid, true);
+    assert.equal(envelope.result.diagnosticCount, 0);
+    assert.deepEqual(envelope.result.page.records, []);
+  } finally {
+    rmSync(evaluationRoot, { force: true, recursive: true });
+  }
+});
+
 test('bounded direct CLI executions project safe facts without retaining commands or content', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-cli-evidence-'));
   const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'zero-agent-project-validation');

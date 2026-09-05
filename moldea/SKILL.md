@@ -20,6 +20,8 @@ Classify the request before loading a reference or running the CLI:
 2. **Initialization:** Continue only when the developer explicitly asks to initialize or adopt moldea in the current repository. Initialization is the sole repository-dependent operation allowed before adoption.
 3. **Other repository work:** Require an initialized repository and choose exactly one gate below. Reuse matching adoption evidence already established by the host. Never run the adoption-only gate before an ordinary relationship gate; the relationship gate proves both adoption and relevance.
 
+Every use of “abstain” below applies only to moldea work. Continue the developer's host-owned request normally without moldea. Never refuse, block, defer, or reframe that request because adoption or relevance is absent.
+
 Before adoption, every repository-dependent request other than explicit initialization abstains silently, including explicit validation, canonical-looking paths, host commands, and repositories whose names or partial files resemble moldea. Do not load a reference, run a moldea or package command, recommend initialization, change files, or mention moldea in progress or final reporting.
 
 ## Choose one repository gate

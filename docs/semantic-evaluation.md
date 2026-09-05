@@ -16,8 +16,8 @@ The current suite contains 18 cases. It is intentionally small enough to audit a
 
 The cases cover:
 
-- silent abstention for unrelated documentation and source reviews
-- silent abstention for README changes outside the managed block
+- moldea-only silent abstention while unrelated documentation and source reviews continue normally
+- moldea-only silent abstention while README changes outside the managed block continue normally
 - host planning and review command precedence
 - no activation from generic durable-knowledge language
 - direct activation for canonical files and the managed README block

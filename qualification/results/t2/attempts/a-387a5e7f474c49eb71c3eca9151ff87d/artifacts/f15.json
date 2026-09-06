@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 249830,
+  "deterministicBeforePath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 317088,
+    "cachedInputTokens": 291584,
+    "outputTokens": 3819
+  },
+  "judgeUsage": {
+    "inputTokens": 242169,
+    "cachedInputTokens": 222848,
+    "outputTokens": 3315
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T11:14:38.267Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T11:16:33.099Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-direct-evidence",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/agents.ts:13-14 directly loads moldea/agents/support/instruction.md, and lines 76-85 directly call query with that loader. moldea/moldea.yaml:3-14 records only the corresponding runtimeAgent and instructionLoader bindings. The slash-bearing MCP key at src/agents.ts:81 has no canonical MCP relationship in the manifest, consistent with the expected unsupported normalization diagnostic and deterministic invalid inspection/validation status."
+    },
+    {
+      "id": "preserves-dynamic-query-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/agents.ts:48-74 constructs restrictions, routing description, agent selection, dynamic definitions, external MCP configuration, a prompt array, aliases, and preset tools through factory-built options; lines 87-88 pass those options dynamically. moldea/moldea.yaml:26-42 records these as unresolved and asserts no instruction, delegation, routing, or tool relationship for dynamic-support."
+    },
+    {
+      "id": "preserves-sdk-feature-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "src/agents.ts:41-73 contains server instructions, observer fields, a critical reminder, per-agent and external MCP configuration, skills, aliases, and presets; CLAUDE.md, .claude/settings.json, and .claude/agents/filesystem-support.md provide settings, hooks, plugins, and filesystem-agent evidence. moldea/moldea.yaml:43-51 explicitly keeps these features outside canonical inference while retaining focused resolution guidance. Workspace assertions show identical before/after hashes and changedPaths is empty; deterministic evidence reports typecheckPassed and repositoryUnchanged."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

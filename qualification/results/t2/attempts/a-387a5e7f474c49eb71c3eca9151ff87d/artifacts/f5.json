@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "No changes were needed. The static boundary is recorded conservatively. Repository-local TypeScript validation passed, and the final Git diff and status were clean.",
+  "changedFiles": [],
+  "observations": [
+    "`supportAgent` directly calls the Claude Agent SDK `query` wrapper and directly loads `moldea/agents/support/instruction.md` through `loadSupportInstruction`; both bindings are recorded.",
+    "The `boundary/tools` SDK MCP key requires unsupported normalization. Validation reports `CLAUDE_AGENT_SDK_MCP_SERVER_KEY_UNSUPPORTED` at `src/agents.ts:81` instead of inventing an MCP relationship.",
+    "`dynamicSupportAgent` receives factory-built options, so prompt arrays, main-thread selection, dynamic subagents, routing descriptions, restrictions, aliases, preset tools, and external MCP configuration are not asserted as canonical relationships.",
+    "Observer fields, critical reminders, SDK MCP instructions, settings, skills, hooks, and filesystem agents remain explicitly outside static canonical inference.",
+    "`./node_modules/.bin/tsc --noEmit` passed. moldea validation produced only the expected unsupported MCP-key diagnostic."
+  ],
+  "unresolved": [
+    "The `boundary/tools` MCP key cannot establish a canonical runtime-name segment under the current Claude Agent SDK adapter; this remains an explicit static-analysis boundary."
+  ]
+}

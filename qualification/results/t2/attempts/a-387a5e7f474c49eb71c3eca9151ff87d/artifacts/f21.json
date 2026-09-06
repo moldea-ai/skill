@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support tool declaration with the mounted Claude Agent SDK MCP tool by changing the stale canonical name from `mcp__support__find_order` to `mcp__support__lookup_order`. Validation now succeeds with zero wiring diagnostics, and TypeScript compilation passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The direct query wrapper, `support` MCP server mount, `lookup_order` SDK tool declaration, implementation, and input schema remain unchanged.",
+    "Before repair, validation emitted one `CLAUDE_AGENT_SDK_TOOL_NAME_MISMATCH`; after repair, it reported `valid: true` with zero diagnostics.",
+    "`./node_modules/.bin/tsc --noEmit` completed successfully.",
+    "The final Git diff contains only the intended canonical tool-name correction."
+  ],
+  "unresolved": []
+}

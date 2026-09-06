@@ -126,6 +126,8 @@ Treat `OUTPUT_BUDGET_TOO_SMALL`, `RESOURCE_LIMIT_EXCEEDED`, a launcher boundary 
 - Preserve unrelated developer work and unrelated canonical state.
 - Do not persist secrets, transient status, generic knowledge, or easily rediscovered implementation details.
 - Write only when the selected operation and host task authorize it. Re-run the narrowest relevant validation after writes.
+- Before an authorized canonical write, enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path in the developer's request.
+- Before reporting completion, compare the final state and diff with that list. Satisfy every outcome, record each remaining unresolved fact under its exact canonical owner with resolution criteria and related paths, and confirm that every changed path is authorized. Continue correcting instead of claiming completion while an item is missing.
 
 ## Report proportionally
 

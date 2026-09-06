@@ -347,6 +347,16 @@ describe('portable skill contract', () => {
     assert.match(skill, /Every recursive search or listing must exclude VCS internals/u);
     assert.match(skill, /Never dump a complete lockfile, dependency inventory, generated tree/u);
     assert.match(skill, /more than 65,536 model-visible bytes/u);
+    assert.match(
+      skill,
+      /enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path/u,
+    );
+    assert.match(skill, /compare the final state and diff with that list/u);
+    assert.match(skill, /record each remaining unresolved fact under its exact canonical owner/u);
+    assert.match(
+      skill,
+      /Continue correcting instead of claiming completion while an item is missing/u,
+    );
     assert.match(skill, /--cursor "<opaque-cursor>"/u);
     assert.match(skill, /exact cursor from the immediately preceding envelope/u);
     assert.match(skill, /Do not hide pagination inside a pipeline, command substitution/u);

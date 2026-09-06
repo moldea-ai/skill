@@ -1,0 +1,1141 @@
+{
+  "protocolVersion": 8,
+  "attemptId": "20260906T085338320Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-54763934",
+  "parentAttemptId": null,
+  "selection": {
+    "adapterId": "cloudflare-agents",
+    "implementationId": "typescript-ai-chat-agent-0-10-ai-sdk-7"
+  },
+  "status": "failed",
+  "createdAt": "2026-09-06T08:53:38.321Z",
+  "completedAt": "2026-09-06T09:18:37.252Z",
+  "evidenceGeneratedAt": "2026-09-06T08:56:19.780Z",
+  "summary": "Qualification stopped after a confirmation established a failed case.",
+  "artifactDigests": {
+    "baseline.json": "832df8df24acf40b3b5fa0ca591f62c76b0e59ec4d10d9cbae118e4af0e9fecc",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/case-result.json": "8bc01443389fe6e9b27015788dd5773e85390e69751ca027b869c8a7f14c4d92",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-events.jsonl": "cd72323bd269f017754f2bba1b3bd865947f780b93eb845b8f04fd72b519c898",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-evidence.json": "d3f78fced28579bde8dd4662170423121f95782bf88a7966efd25f12473bf680",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-output.json": "1230f67536f5d228c920ebd20b106c34d4e6663bde9f8a5f7693d7465a1f4726",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-prompt.md": "8d7e91e2bc0986be34397bc75e7a5674dc9e6af849a37f846f83049a58c52990",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/deterministic-after.json": "eb5cdf4d515f6ac7d7f5388c84215e14ef4adbebc338a751d1026f21a3b200fa",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/deterministic-before.json": "a4b12267f9f481f124b095ceb6e29caaccde473019103cdb5ad1a96c8750c912",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-events.jsonl": "431b75281d4dc125c3b666a099444b0e2fa902f057e9ec171d3e3009bf6a954b",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-evidence.json": "c47d1e54b32f7af976dd781f60c3490c6833a607ecba7fd7de3000fcbe723a0c",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-output.json": "c2f38a8bc44c3f1c327766a61315ef166af805f9616041a185810aea4f23bd56",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-prompt.md": "00c9a3ce40e75f6e524ad9fbb8d32c78251ab241c8652fb22dfa7ffec9fb9730",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/trial-result.json": "f3c645f3398a3f7c0b1575d245ed683fb0bd1c3eefb4422868df843824f615e9",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/workspace-assertions.json": "514937ba36c272590ea79f159567a44c5625bb3bfa7f9f51f4eeaa29a7cd625e",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/workspace.patch": "b8d45ffe377c48806f3100217522defc861b500861633a3691b197b40663a49d",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-events.jsonl": "e4d2a1cf64b026124970006299df67709ddc8af6eb3080e4b43b2313b263aa19",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-evidence.json": "9ccdc4676e8b77658eaea929d09074222017027cd9e1c936c786c69d3b3ae762",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-output.json": "45f37b5549de6e4b083becbf6bced98ff412af92a46fb709a3a09bdb7535dd40",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-prompt.md": "8d7e91e2bc0986be34397bc75e7a5674dc9e6af849a37f846f83049a58c52990",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/deterministic-after.json": "6b67c8d4227fca60139a1b5a4751022c54fb1c5d12fd56a1dba910a60573d772",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/deterministic-before.json": "3dee1e51267f97ff2e41e255a4f3f30bea058f250a1a7bf1004212477ce54394",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/judge-skipped.json": "b813f6eb6988dfba46143c392cb7e956f56484fa7d52f12096c84bcabb60aab8",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/trial-result.json": "20ac2dd216ce39cd9d006cd4938677dcf233880e6314d8989e2e88dea5fbbb60",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/workspace-assertions.json": "8dd425c3faec507a1ad696a2560db947b3bb9ebc65438af988703f966196ff5e",
+    "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/workspace.patch": "362108c7d11be9db31485963031a6286d22c56caa967556adc6d69b0e58df53e",
+    "cases/repair-cloudflare-ai-chat-output-schema/case-result.json": "8a8783a2b44cb54284376863fc13baed6ff6ff72b9e717f2f864b2ebe342bd96",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/actor-events.jsonl": "676ad2e8e15d194257d3cd8adaef30aad8a9927b2bb8abc8ee31cf991e8cfc56",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/actor-evidence.json": "17496f081726e005daa87a2ff8e25eb028c615b5b96d4418c3a12393290a72e8",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/actor-output.json": "431015cd5b9bd260653d7dead445e216aa9d8abf3861b67e001092d77305a72b",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/actor-prompt.md": "581103fc2ca7c2b1f78e6e1b1171cb77482c4e60c62f6a1dc339edb0217914fd",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/deterministic-after.json": "5ea7e9005cc5eaf5adc04240c89ecbc619df744d0f3528a04e4e7375d1e3712c",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/deterministic-before.json": "d3d45b1491db0a72270bbe8873450abe8680c4a3f9295263321678c6bfbfb5e7",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/judge-events.jsonl": "906978cbbfe739336e811eee0ffe9af7965f302f0585c8ec69a262b886cb481f",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/judge-evidence.json": "7e0021732ea598544c8554a1874e51acd3acd66a812a73378383035dbc30e564",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/judge-output.json": "5f38809cf957e374ad1de972bc9270842f36c612ea5f8b7e0027e88d63d53106",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/judge-prompt.md": "8f768e4ee70291c7aa0f8f3d140e94f7193f7642066a96ed5ef9009a509a2950",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/trial-result.json": "768505d52f53d3364a5f132d6ce9d614c604e8e72936e77e38a3771de636209b",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/workspace-assertions.json": "43bdce888219d4dfcdd4b4ac14bc96cfbb776191bd15b5e0ff12df31f0a9268e",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/workspace.patch": "f39d252a858d76e6c2bf116b73556dd9be15576970a4c43011e97ac1eb9e4a19",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/actor-events.jsonl": "fb805d50e94df964843b1a7ed7a29e3c65abe0d32e1f31b4ce33cfdc98b66675",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/actor-evidence.json": "baa39ba6e22a22bae93a919033bc54a660820a281f81773351c74e54a24b5b5c",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/actor-output.json": "1eb3fbeec9552739d8f6ec301e8f9d0a70f8c41f24d6384e3d39a64609f879c3",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/actor-prompt.md": "581103fc2ca7c2b1f78e6e1b1171cb77482c4e60c62f6a1dc339edb0217914fd",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/deterministic-after.json": "ac48af9b99ffcde19c82af08b8c8f014eaab462bc9d2e2cee82af9594011656f",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/deterministic-before.json": "8ca85dd4d5f87be289dbc22850fbf5dcf97420f99dfd561f279abe779aeee22e",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/judge-events.jsonl": "fb21082063b47aa10556ba89778346189a5f0027bbddb19fa6343cbfcb16aa75",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/judge-evidence.json": "901935d5384b429caca982e6bf092808527cf9b33f1133dda2a178e0330ab5e4",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/judge-output.json": "e3d7fac411ed9b4e28ce04f216172b165245aa672ad64a2a6405c2336f080a50",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/judge-prompt.md": "0adce76a91a467cbfb33f94b1c6897c4b97839d0230c2c9186f093306e4e9736",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/trial-result.json": "7fca9db2277f872c41302fe890f573c3ee581a35f8c1ddf520e5a770396e9bf8",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/workspace-assertions.json": "43bdce888219d4dfcdd4b4ac14bc96cfbb776191bd15b5e0ff12df31f0a9268e",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/workspace.patch": "f39d252a858d76e6c2bf116b73556dd9be15576970a4c43011e97ac1eb9e4a19",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-events.jsonl": "8f1a03fa26b89cf70e9adfd5066563a9285d3d82a21ae68552393ae79e47580e",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-evidence.json": "3253f6e48c3db6f45111c12c4da28a0e2ae8a73e2b1c58320d56b58215ea5780",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-output.json": "ca8e6d48d442d5ee15937f90661c0997ab98846e532f0d5484d771aa2dffe01b",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-prompt.md": "581103fc2ca7c2b1f78e6e1b1171cb77482c4e60c62f6a1dc339edb0217914fd",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-after.json": "76d3b60e53a53527e576d6e4e109e4df411e746deb6cb418289f82cf8ae9886a",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-before.json": "c4cf0b8b01f8b9fa0f1e9ce96be9b9a8d421aff624d586cd7e108895c7c310e4",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/judge-skipped.json": "22adad7e9e7edbec8688c0481ece955013486ecc247d17cb6af70e93b702ebef",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/trial-result.json": "da0e31f08d2580ac9f266ea81bd7935275925ec24778413816480176943526f2",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace-assertions.json": "43bdce888219d4dfcdd4b4ac14bc96cfbb776191bd15b5e0ff12df31f0a9268e",
+    "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace.patch": "f39d252a858d76e6c2bf116b73556dd9be15576970a4c43011e97ac1eb9e4a19",
+    "coverage.json": "4bb8ef75c0b4ed712199d85e265cc972b00959314a3bd289293225b179909251",
+    "source-state.json": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+  },
+  "confirmationPolicy": {
+    "version": 1,
+    "requiredPassingConfirmations": 2
+  },
+  "mode": "official",
+  "provenance": {
+    "model": "gpt-5.6-sol",
+    "reasoningEffort": "medium",
+    "codexVersion": "codex-cli 0.153.4",
+    "nodeVersion": "v24.15.0",
+    "pnpmVersion": "11.9.0",
+    "gitVersion": "git version 2.53.0",
+    "allowedEgressHosts": [
+      "api.openai.com",
+      "auth.openai.com",
+      "chatgpt.com"
+    ],
+    "hostTimeoutMs": 300000,
+    "modelEndpoint": null,
+    "sslCertificateFileSha256": null,
+    "packagesRepositoryCommit": "67a063b90a4b9a8493956d1576e55f286925754c",
+    "packagesRepositoryFingerprint": "540e6d2c0c2745a1e7cd9ac3461d0c9e794bac221d7f07b5b945982921de593a",
+    "packagesRepositoryDirty": false,
+    "qualificationRepositoryCommit": "22792ede9262592c98f00e554b1b0be4ecffc338",
+    "qualificationRepositoryDirty": false,
+    "skillRepositoryCommit": "22792ede9262592c98f00e554b1b0be4ecffc338",
+    "skillRepositoryFingerprint": "05a19af5950373519d7d0d08f59c267a40c166f570fee8a3c3d277a5974a827a",
+    "skillRepositoryDirty": false,
+    "profileDigest": "57ce5cc8c489d91518b95edca31a3d8ffe2f12a8f2b7c7a22ba2b39a06adfec9",
+    "qualificationDigest": "fa2c84fedc69cca6dff7757fc9d36a84a9bbd3bb06a14e031b05438af1b22f4c",
+    "targetDigest": "75b60cb4d75696dfbf58dafa66adbbc8557d4c37592aa524593b124581c8d2a1",
+    "baselineAttemptId": "20260906T073738885Z-custom-custom-f39b6209",
+    "packages": [
+      {
+        "name": "@moldea.ai/repository",
+        "version": "2.0.0",
+        "registryIntegrity": "sha512-inhtMPmNtW/YnWZikBLMy+FsW3UyVsMaL0pKkV75ZX6VFP2yEFuc1puKyLu2kd8unvE5fAc+oO4lnuYKY77Rcw==",
+        "registryShasum": "d7797b382ae0116f8b6bfa4bfc2d1a51de306f7b",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository/-/repository-2.0.0.tgz",
+        "tarballName": "repository-2.0.0.tgz",
+        "sha256": "455a53c5b21de44f1b1173ff7bdacfe7c838f9eec46f4b3a8a651393deb80ea7"
+      },
+      {
+        "name": "@moldea.ai/core",
+        "version": "3.0.1",
+        "registryIntegrity": "sha512-dbiX2xoM750EyGbzrcE8Q+0YmsyEtzAUJ6rw5LRvz6pPKuZRsW0TXnzsmKejM76MfXK3I6/jgzGVW79JGLL/yw==",
+        "registryShasum": "4019fa1d1b4e3b02a0b8151378db7af20b35fa9d",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/core/-/core-3.0.1.tgz",
+        "tarballName": "core-3.0.1.tgz",
+        "sha256": "04c8f23f89d793036ee47f120bcddf456f5fc57ef7220bc05250f28370321e1a"
+      },
+      {
+        "name": "@moldea.ai/adapter-anthropic",
+        "version": "3.0.1",
+        "registryIntegrity": "sha512-Xs0plmRueRXzCb75zxddyWoGSj+5QkjIJ73tcClEpR6o0gXC1/p50toiuLU/OaWwnsE65XFZ8bW0lKzwa2sUug==",
+        "registryShasum": "315319c60a84e1873f8bd342df96b47acc43ca7e",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-anthropic/-/adapter-anthropic-3.0.1.tgz",
+        "tarballName": "adapter-anthropic-3.0.1.tgz",
+        "sha256": "8dd3c2bef54cd68d43ca67ff6765b9d17b78c23a11adf6087bedf34db28831da"
+      },
+      {
+        "name": "@moldea.ai/adapter-claude-agent-sdk",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-LSz1Mb4bfcQy87eghuUXK8xgSgLoxiFtxvbrga71K7D+mDiDuevjLerkBWhoFhNSRHnQWnMNw9hHKpIdAJ5e9A==",
+        "registryShasum": "83657c8374d626bea16c50e0cde114524a7d6e57",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-claude-agent-sdk/-/adapter-claude-agent-sdk-2.0.1.tgz",
+        "tarballName": "adapter-claude-agent-sdk-2.0.1.tgz",
+        "sha256": "58475750a8583e1596e75ed3dd9c178ed783546d987c49fbf2f1ef1909f99f25"
+      },
+      {
+        "name": "@moldea.ai/adapter-cloudflare-agents",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-RCdYovNqvZDRyr+fau2ljCsICRolurfjx7V5YVdvxpeUDfdHt6FmiGSNm/J8UAZbppAtTqPcDbgEmnojXI650w==",
+        "registryShasum": "cabfd23a92cf4d7bb5c2fe0c58d94298590dbd51",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-cloudflare-agents/-/adapter-cloudflare-agents-2.0.1.tgz",
+        "tarballName": "adapter-cloudflare-agents-2.0.1.tgz",
+        "sha256": "9ed6ab2f08dbbfc0c1ad836fbc690698b7c72fae687e9ff94046dd2e792309ed"
+      },
+      {
+        "name": "@moldea.ai/adapter-eve",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-r5iHZJsD5gDCPgYEAETeFjdsZRW3ssEW/dm3yvRCbLGGr8uxAriu7usHOx3SUg1WztbHfBWiJzIs1ZhJ44BUgA==",
+        "registryShasum": "eda75b668a37e06c11c79410ede6f224742ee7db",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-eve/-/adapter-eve-2.0.1.tgz",
+        "tarballName": "adapter-eve-2.0.1.tgz",
+        "sha256": "da01a2d7693ad8f23a99eab494b3d340683a1fb04e4cd43434790d2c00ddeff9"
+      },
+      {
+        "name": "@moldea.ai/adapter-google-genai",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-7lnnuRy4JwLZmQzhOEw7DLWhbqSYw+VrRKxpMgHp7rXcvuGd42aIz1sM4vS2PpwHys0xGdBl78jv/enxW7ykgg==",
+        "registryShasum": "aa6c959aaee0dffb5398505eb59c7a34fa441bc0",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-google-genai/-/adapter-google-genai-2.0.1.tgz",
+        "tarballName": "adapter-google-genai-2.0.1.tgz",
+        "sha256": "ac3fcfc008e16b5e2de20085f2e5f0de97279c493b7640496bd4b197ec409e39"
+      },
+      {
+        "name": "@moldea.ai/adapter-langchain",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-NIZ7PGC02WS5LcQ9LAFBaRSXLM1RxNREd9//8OOWRMkcCAai1JcpjWA97hQr4pYuiuUAg/pP7ZmqX4Fa6ncb0g==",
+        "registryShasum": "e4b76eb52e9d77c1acdde9830830045dd191feec",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langchain/-/adapter-langchain-2.0.1.tgz",
+        "tarballName": "adapter-langchain-2.0.1.tgz",
+        "sha256": "00e2c314085d948631c4ac7f0c8b2491ad5c4dbefcd0a3d32b618819b10b1102"
+      },
+      {
+        "name": "@moldea.ai/adapter-langgraph",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-zybmwbqIUNSfyi4bOP0MlrQe15zinncSnqcNuGNIMcNDA/S9obdEFvvvK9pOh53h7QPl3RVyqsxh/QiKjFy4vQ==",
+        "registryShasum": "7febea45dfb81e9fe8ef6d03857548849c78a62b",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langgraph/-/adapter-langgraph-2.0.1.tgz",
+        "tarballName": "adapter-langgraph-2.0.1.tgz",
+        "sha256": "43e373ef9138e61e021bbb1bd6d6a25d08edfcde740c073313fbafc9e8df41a7"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai",
+        "version": "3.0.1",
+        "registryIntegrity": "sha512-sH3fE8nBeSvOTFgN6yPwdDNfi07bZ6XTyWoq7bD70W4VDvyLVoKZ1okdcV3C+sjjvg2odtjL50G2fjQFsHSLTg==",
+        "registryShasum": "f0aa29d7b45dd62d25ff54cdd9fe0f3c7e633798",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai/-/adapter-openai-3.0.1.tgz",
+        "tarballName": "adapter-openai-3.0.1.tgz",
+        "sha256": "2384b6137d5dd568f1232aab9e9ed80efa41d584c6058eadffc17c7bb7c01c8b"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai-agents-sdk",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-9PPdZgIIeZ25xzkRGJ4GVkP/2BkLk7IKyUYVjLB2pDsZmsqjIFSMcIoy0KmJyHFgiG47j4FNhewU8an7Kqb7Bw==",
+        "registryShasum": "23a7ccab2160ec1773079580cf92206069ba6e09",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai-agents-sdk/-/adapter-openai-agents-sdk-2.0.1.tgz",
+        "tarballName": "adapter-openai-agents-sdk-2.0.1.tgz",
+        "sha256": "cacfbece34334140c47ab3809efaa7c8ab513f5bbfb569fe3ca57ba597de4321"
+      },
+      {
+        "name": "@moldea.ai/adapter-vercel-ai-sdk",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-pib3GDV78YeHBTGjPQ3TLRlfjHC8inLg13Jr5MNry9vh3oGFvtC9Qnu5uzlZGqKJe2xlsvFXr21ZnmCliD58rw==",
+        "registryShasum": "24b5ddc33d94c189e37278a686fa4817957cc1bd",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-vercel-ai-sdk/-/adapter-vercel-ai-sdk-2.0.1.tgz",
+        "tarballName": "adapter-vercel-ai-sdk-2.0.1.tgz",
+        "sha256": "b005f0eee7cdbf60fdf6d99c56d69df52db51e77440e6c326b57f1d570bb4adb"
+      },
+      {
+        "name": "@moldea.ai/repository-fs",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-TCTHwIUc2asuA8JvNwIjpKtTkDweVU4Y0hSMlG87qf+qgkOjQOinmhM7F+oFaEhT9Ch3RdWNZYiLuVWaC1kyuw==",
+        "registryShasum": "c5ba310dd260a541a1a2334bafcb198444b8bac7",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository-fs/-/repository-fs-2.0.1.tgz",
+        "tarballName": "repository-fs-2.0.1.tgz",
+        "sha256": "8fd204625ecb5b7d1ec46fd3b970c9b11576ab75d810c5ee7a194bc6c3e07fe8"
+      },
+      {
+        "name": "@moldea.ai/cli",
+        "version": "7.0.1",
+        "registryIntegrity": "sha512-BMXqRGuOy8OKfoiJzn8qjr68xSUKPW71V8dgoNi+fioZm+fR9fnoKsjRLs89pUn2UkjAjMLCp3cCcyAThXUJ+Q==",
+        "registryShasum": "20fef57a144a95a6f6c63e83f77a0df1af5a553f",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/cli/-/cli-7.0.1.tgz",
+        "tarballName": "cli-7.0.1.tgz",
+        "sha256": "af315edbebe225aec1558e733686e1edf9c5d1ba4e2775c7cd47cb7c96f38354"
+      },
+      {
+        "name": "@cloudflare/ai-chat",
+        "version": "0.10.2",
+        "registryIntegrity": "sha512-z3IikXqnfgtRqSI3YGX+MlbMtbmi7wUfVJT6tb8xQvhly/Znvi50Azkjhz3jj51f4KFccJSdEiUnzFK63o7mEg==",
+        "registryShasum": "be0d937276ef020595b984dc2003810beb9412d5",
+        "registryTarballUrl": "https://registry.npmjs.org/@cloudflare/ai-chat/-/ai-chat-0.10.2.tgz",
+        "tarballName": "ai-chat-0.10.2.tgz",
+        "sha256": "44cee358065d762a0895c3493f72f46903e7f0bd835d6a8e560e939d104a8d5e"
+      },
+      {
+        "name": "@cloudflare/workers-types",
+        "version": "5.20260830.1",
+        "registryIntegrity": "sha512-LBn0wg8kmCbdriUYmz6BSm4ukjFinU4iYGYuBTPaSG6malMhbIFk7Az1gcsFuvBYva2yHxUZFirCwjQY7yBN9A==",
+        "registryShasum": "99dc2e0b16c201bf36743910eae1521f255e5f51",
+        "registryTarballUrl": "https://registry.npmjs.org/@cloudflare/workers-types/-/workers-types-5.20260830.1.tgz",
+        "tarballName": "workers-types-5.20260830.1.tgz",
+        "sha256": "d3d7a80d3b27e53116e34736ec1945eb359f53a1000df37b205c4cb59ce29a8e"
+      },
+      {
+        "name": "@types/node",
+        "version": "22.20.1",
+        "registryIntegrity": "sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==",
+        "registryShasum": "84e7cdf63cdaa20c134aa317ccc901aa21e16f0e",
+        "registryTarballUrl": "https://registry.npmjs.org/@types/node/-/node-22.20.1.tgz",
+        "tarballName": "node-22.20.1.tgz",
+        "sha256": "6f99aae8d4a2bdecdce5a41a922b10943316edd4e6e6d4350f442d6c1688485f"
+      },
+      {
+        "name": "agents",
+        "version": "0.21.0",
+        "registryIntegrity": "sha512-8A048JJFMog7t68NrIQOT9CGcQ9O+h8NpP/Udw2kd4fAHvDn2T/+3Do85XT+xGj2VpciGbW+58RwLpVM9AA9eA==",
+        "registryShasum": "4c375aa2ad81390c21680361fda03396293617ab",
+        "registryTarballUrl": "https://registry.npmjs.org/agents/-/agents-0.21.0.tgz",
+        "tarballName": "agents-0.21.0.tgz",
+        "sha256": "2040b4215c5991b32a592d5376718a9cbc6d21305960a2220b3733e895dd4d8a"
+      },
+      {
+        "name": "ai",
+        "version": "7.0.85",
+        "registryIntegrity": "sha512-HVtPz0qLbTUad+QBnWWReIUmwk+U4PcRENMx+9PsHGVoinoc5CLDiVjNR+VBXTKOSaNgce8kSU/Rtbb4kjZsSw==",
+        "registryShasum": "d830b6e391dbc663433a8b6e6d38689a0f457fe8",
+        "registryTarballUrl": "https://registry.npmjs.org/ai/-/ai-7.0.85.tgz",
+        "tarballName": "ai-7.0.85.tgz",
+        "sha256": "07146b41503598b820c82d791be05cabb984a60afa81d582d6b4791eacfdbe57"
+      },
+      {
+        "name": "zod",
+        "version": "4.3.6",
+        "registryIntegrity": "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==",
+        "registryShasum": "89c56e0aa7d2b05107d894412227087885ab112a",
+        "registryTarballUrl": "https://registry.npmjs.org/zod/-/zod-4.3.6.tgz",
+        "tarballName": "zod-4.3.6.tgz",
+        "sha256": "29ee4d2418c0fb6ddc545c28c03ec80b701e345a3f779e50ae23cda0700b1682"
+      },
+      {
+        "name": "typescript",
+        "version": "6.0.3",
+        "registryIntegrity": "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==",
+        "registryShasum": "90251dc007916e972786cb94d74d15b185577d21",
+        "registryTarballUrl": "https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz",
+        "tarballName": "typescript-6.0.3.tgz",
+        "sha256": "33cd0ee1beaa8c9e9d15a9da836c62ddea4c34a42d7c2d349dbc80d94165d22a"
+      }
+    ]
+  },
+  "stages": [
+    {
+      "id": "source-state",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:53:39.359Z",
+      "completedAt": "2026-09-06T08:53:39.361Z",
+      "durationMs": 2,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "coverage",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:53:39.362Z",
+      "completedAt": "2026-09-06T08:53:39.366Z",
+      "durationMs": 4,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "candidate",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:53:39.367Z",
+      "completedAt": "2026-09-06T08:54:01.170Z",
+      "durationMs": 21803,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "baseline",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:54:01.173Z",
+      "completedAt": "2026-09-06T08:54:02.225Z",
+      "durationMs": 1052,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:54:02.228Z",
+      "completedAt": "2026-09-06T08:54:04.646Z",
+      "durationMs": 2418,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:54:04.647Z",
+      "completedAt": "2026-09-06T08:54:06.078Z",
+      "durationMs": 1431,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:54:06.081Z",
+      "completedAt": "2026-09-06T08:56:20.531Z",
+      "durationMs": 134450,
+      "cacheKey": "4f5889234b3e3cbabba54a1a47bb08323812fdc7c94df325c3745f46600a3405",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:56:20.532Z",
+      "completedAt": "2026-09-06T08:56:21.945Z",
+      "durationMs": 1413,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:56:21.946Z",
+      "completedAt": "2026-09-06T08:56:22.711Z",
+      "durationMs": 765,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:initial:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-06T08:56:22.744Z",
+      "completedAt": "2026-09-06T08:56:22.746Z",
+      "durationMs": 2,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-1:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:56:22.748Z",
+      "completedAt": "2026-09-06T08:56:25.000Z",
+      "durationMs": 2252,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-1:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:56:25.001Z",
+      "completedAt": "2026-09-06T08:56:26.437Z",
+      "durationMs": 1436,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-1:actor",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:56:26.441Z",
+      "completedAt": "2026-09-06T08:58:19.717Z",
+      "durationMs": 113276,
+      "cacheKey": "aa2517bb5957116a1e1e25a23b9959f5bcc82c70af2b5d82170e589dca788907",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-1:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:58:19.718Z",
+      "completedAt": "2026-09-06T08:58:21.146Z",
+      "durationMs": 1428,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-1:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:58:21.147Z",
+      "completedAt": "2026-09-06T08:58:21.900Z",
+      "durationMs": 753,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-1:judge",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:58:21.937Z",
+      "completedAt": "2026-09-06T08:59:43.076Z",
+      "durationMs": 81139,
+      "cacheKey": "81027ec5dac101dcf01279be70811d269cffceaee12f501aacd82a6946108752",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-2:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:59:43.078Z",
+      "completedAt": "2026-09-06T08:59:45.370Z",
+      "durationMs": 2292,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-2:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:59:45.371Z",
+      "completedAt": "2026-09-06T08:59:46.823Z",
+      "durationMs": 1452,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-2:actor",
+      "status": "passed",
+      "startedAt": "2026-09-06T08:59:46.826Z",
+      "completedAt": "2026-09-06T09:01:51.024Z",
+      "durationMs": 124198,
+      "cacheKey": "1bc2f0b0c4d42ebeeb296275149219a965cad2dab5c2960a608ff7a93c53bbdd",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-2:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:01:51.025Z",
+      "completedAt": "2026-09-06T09:01:52.436Z",
+      "durationMs": 1411,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-2:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:01:52.437Z",
+      "completedAt": "2026-09-06T09:01:53.208Z",
+      "durationMs": 771,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:trial:confirmation-2:judge",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:01:53.241Z",
+      "completedAt": "2026-09-06T09:03:11.073Z",
+      "durationMs": 77832,
+      "cacheKey": "f97ebcba412de067598066da87b6498558f1c5320c74761f3a4540a40cb06cab",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-cloudflare-ai-chat-output-schema:result",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:03:11.075Z",
+      "completedAt": "2026-09-06T09:03:11.076Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:03:11.077Z",
+      "completedAt": "2026-09-06T09:03:13.365Z",
+      "durationMs": 2288,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:03:13.366Z",
+      "completedAt": "2026-09-06T09:03:14.962Z",
+      "durationMs": 1596,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:03:14.967Z",
+      "completedAt": "2026-09-06T09:12:08.752Z",
+      "durationMs": 533785,
+      "cacheKey": "28f4cb39bdda6f04cb0338b9376b3d7ebb7a7adb09dee6a5b6553db8a4cfb4e9",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": [
+        {
+          "category": "timed-out",
+          "failedAt": "2026-09-06T09:08:21.453Z",
+          "failureCount": 1,
+          "retryDelayMs": 4408
+        }
+      ]
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:12:08.754Z",
+      "completedAt": "2026-09-06T09:12:10.332Z",
+      "durationMs": 1578,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:initial:assertions",
+      "status": "failed",
+      "startedAt": "2026-09-06T09:12:10.333Z",
+      "completedAt": "2026-09-06T09:12:11.106Z",
+      "durationMs": 773,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:initial:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-06T09:12:11.173Z",
+      "completedAt": "2026-09-06T09:12:11.174Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-1:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:12:11.176Z",
+      "completedAt": "2026-09-06T09:12:13.501Z",
+      "durationMs": 2325,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-1:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:12:13.502Z",
+      "completedAt": "2026-09-06T09:12:15.075Z",
+      "durationMs": 1573,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-1:actor",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:12:15.080Z",
+      "completedAt": "2026-09-06T09:16:47.154Z",
+      "durationMs": 272074,
+      "cacheKey": "65cb59940cfaf2610eefdfb0ee4a0e4a81b1f58d66cb15a0b5d9cd1a06e0d30f",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-1:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:16:47.155Z",
+      "completedAt": "2026-09-06T09:16:48.696Z",
+      "durationMs": 1541,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-1:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:16:48.697Z",
+      "completedAt": "2026-09-06T09:16:49.465Z",
+      "durationMs": 768,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-1:judge",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:16:49.512Z",
+      "completedAt": "2026-09-06T09:18:30.699Z",
+      "durationMs": 101187,
+      "cacheKey": "942a9dbb42aa803b6ddf9ce258787a25ab1a694f6016ee60b79b9d2f857e85a5",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-06T09:18:30.701Z",
+      "completedAt": "2026-09-06T09:18:30.701Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-06T09:18:30.701Z",
+      "completedAt": "2026-09-06T09:18:30.701Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-06T09:18:30.701Z",
+      "completedAt": "2026-09-06T09:18:30.701Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-06T09:18:30.701Z",
+      "completedAt": "2026-09-06T09:18:30.701Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-06T09:18:30.701Z",
+      "completedAt": "2026-09-06T09:18:30.701Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-06T09:18:30.701Z",
+      "completedAt": "2026-09-06T09:18:30.701Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-cloudflare-ai-chat-static-boundary:result",
+      "status": "passed",
+      "startedAt": "2026-09-06T09:18:30.702Z",
+      "completedAt": "2026-09-06T09:18:30.703Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    }
+  ],
+  "cases": [
+    {
+      "caseId": "repair-cloudflare-ai-chat-output-schema",
+      "title": "Repair Cloudflare AIChatAgent output schema",
+      "status": "recovered",
+      "confirmationStatus": "passed",
+      "durationMs": 548846,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": false,
+          "durationMs": 140520,
+          "deterministicBeforePath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-output.json",
+          "judgeStatus": "skipped",
+          "judgeOutputPath": null,
+          "judgeSkippedPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/judge-skipped.json",
+          "workspaceAssertionsPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 404194,
+            "cachedInputTokens": 353152,
+            "outputTokens": 4131
+          },
+          "judgeUsage": null,
+          "actorEvidenceCreatedAt": "2026-09-06T08:56:19.780Z",
+          "judgeEvidenceCreatedAt": null,
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-output-schema-mismatch",
+              "evaluator": "judge",
+              "verdict": "not-evaluated",
+              "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+            },
+            {
+              "id": "repairs-output-schema-binding",
+              "evaluator": "judge",
+              "verdict": "not-evaluated",
+              "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+            },
+            {
+              "id": "preserves-binding-closure",
+              "evaluator": "judge",
+              "verdict": "not-evaluated",
+              "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": [
+            "Actor command policy observed prohibited credential, network, or sensitive evaluator access."
+          ]
+        },
+        {
+          "trialId": "confirmation-1",
+          "kind": "confirmation",
+          "confirmationIndex": 1,
+          "passed": true,
+          "durationMs": 200329,
+          "deterministicBeforePath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/deterministic-before.json",
+          "deterministicAfterPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/deterministic-after.json",
+          "actorOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/workspace-assertions.json",
+          "patchPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-1/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 286338,
+            "cachedInputTokens": 244736,
+            "outputTokens": 3343
+          },
+          "judgeUsage": {
+            "inputTokens": 163064,
+            "cachedInputTokens": 149760,
+            "outputTokens": 2260
+          },
+          "actorEvidenceCreatedAt": "2026-09-06T08:58:18.958Z",
+          "judgeEvidenceCreatedAt": "2026-09-06T08:59:43.074Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-output-schema-mismatch",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor identifies the prior canonical LegacySupportOutputSchema binding and contrasts it with src/agent.ts's direct Output.object({ schema: SupportOutputSchema }) request. The current source confirms that request, while the workspace assertions isolate the repair to moldea/moldea.yaml and deterministic post-actor validation is valid."
+            },
+            {
+              "id": "repairs-output-schema-binding",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml now declares agents.support.bindings.outputSchema as /src/contracts.ts symbol SupportOutputSchema. Workspace assertions identify moldea/moldea.yaml as the sole changed path, preserve every source-file hash, and deterministic validation and type checking passed."
+            },
+            {
+              "id": "preserves-binding-closure",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The manifest exactly binds SupportAgent and loadSupportInstruction from /src/agent.ts, SupportOutputSchema from /src/contracts.ts, lookupOrder from /src/implementations.ts, lookupOrderTool from /src/tools.ts, and the tool's LookupOrderInputSchema and LookupOrderOutputSchema. The corresponding exports and wiring exist in those files. No agent inputSchema binding was added, and runner-owned hashes show all source files unchanged."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": []
+        },
+        {
+          "trialId": "confirmation-2",
+          "kind": "confirmation",
+          "confirmationIndex": 2,
+          "passed": true,
+          "durationMs": 207997,
+          "deterministicBeforePath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/deterministic-before.json",
+          "deterministicAfterPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/deterministic-after.json",
+          "actorOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/workspace-assertions.json",
+          "patchPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/confirmation-2/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 290447,
+            "cachedInputTokens": 243968,
+            "outputTokens": 3872
+          },
+          "judgeUsage": {
+            "inputTokens": 154491,
+            "cachedInputTokens": 132736,
+            "outputTokens": 2184
+          },
+          "actorEvidenceCreatedAt": "2026-09-06T09:01:50.279Z",
+          "judgeEvidenceCreatedAt": "2026-09-06T09:03:11.072Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-output-schema-mismatch",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor report identifies the original CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED diagnostic and explains that canonical state referenced LegacySupportOutputSchema while src/agent.ts directly requests Output.object({ schema: SupportOutputSchema }). The current source confirms the direct request, and the workspace evidence isolates the canonical manifest as the only changed file."
+            },
+            {
+              "id": "repairs-output-schema-binding",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml currently binds agents.support.bindings.outputSchema to /src/contracts.ts symbol SupportOutputSchema. Workspace assertions show only moldea/moldea.yaml changed, while src/agent.ts and all other source hashes remained identical. Deterministic post-actor validation reports valid with no failures."
+            },
+            {
+              "id": "preserves-binding-closure",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The current manifest exactly preserves runtimeAgent SupportAgent, instructionLoader loadSupportInstruction, agent outputSchema SupportOutputSchema, lookup-order implementation lookupOrder, registration lookupOrderTool, inputSchema LookupOrderInputSchema, and outputSchema LookupOrderOutputSchema. No agent inputSchema binding exists. Corresponding source definitions and registrations are present, and deterministic validation and type checking passed."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": []
+    },
+    {
+      "caseId": "preserve-cloudflare-ai-chat-static-boundary",
+      "title": "Preserve the Cloudflare AIChatAgent static boundary",
+      "status": "failed",
+      "confirmationStatus": "rejected",
+      "durationMs": 919622,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": false,
+          "durationMs": 540098,
+          "deterministicBeforePath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-output.json",
+          "judgeStatus": "skipped",
+          "judgeOutputPath": null,
+          "judgeSkippedPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/judge-skipped.json",
+          "workspaceAssertionsPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 550889,
+            "cachedInputTokens": 513280,
+            "outputTokens": 7471
+          },
+          "judgeUsage": null,
+          "actorEvidenceCreatedAt": "2026-09-06T09:12:08.018Z",
+          "judgeEvidenceCreatedAt": null,
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "preserves-open-tool-boundary",
+              "evaluator": "judge",
+              "verdict": "not-evaluated",
+              "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+            },
+            {
+              "id": "preserves-prepare-step-boundary",
+              "evaluator": "judge",
+              "verdict": "not-evaluated",
+              "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+            },
+            {
+              "id": "does-not-infer-subagent-handoff",
+              "evaluator": "judge",
+              "verdict": "not-evaluated",
+              "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+            },
+            {
+              "id": "preserves-unsupported-generation-boundaries",
+              "evaluator": "judge",
+              "verdict": "not-evaluated",
+              "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+            },
+            {
+              "id": "keeps-initialized-class-outside-target",
+              "evaluator": "judge",
+              "verdict": "not-evaluated",
+              "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+            },
+            {
+              "id": "records-focused-guidance",
+              "evaluator": "judge",
+              "verdict": "not-evaluated",
+              "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+            },
+            {
+              "id": "records-unresolved-boundaries",
+              "evaluator": "judge",
+              "verdict": "not-evaluated",
+              "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "fail",
+              "evidence": "Runner checks failed: workspace-assertions."
+            }
+          ],
+          "failures": [
+            "Changes escaped the declared allowlist: moldea/project.md.",
+            "Required mutation was not observed: moldea/moldea.yaml.",
+            "Requirement validates-project failed: Runner checks failed: workspace-assertions."
+          ]
+        },
+        {
+          "trialId": "confirmation-1",
+          "kind": "confirmation",
+          "confirmationIndex": 1,
+          "passed": false,
+          "durationMs": 379524,
+          "deterministicBeforePath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/deterministic-before.json",
+          "deterministicAfterPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/deterministic-after.json",
+          "actorOutputPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/workspace-assertions.json",
+          "patchPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/confirmation-1/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 1021987,
+            "cachedInputTokens": 938368,
+            "outputTokens": 10001
+          },
+          "judgeUsage": {
+            "inputTokens": 195376,
+            "cachedInputTokens": 168576,
+            "outputTokens": 3269
+          },
+          "actorEvidenceCreatedAt": "2026-09-06T09:16:46.389Z",
+          "judgeEvidenceCreatedAt": "2026-09-06T09:18:30.698Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "preserves-open-tool-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml registers SupportAgent and loadSupportInstruction, declares no support tools, and records open-request-tools as unresolved. src/support-agent.ts directly calls streamText while spreading createRuntimeTools() into tools."
+            },
+            {
+              "id": "preserves-prepare-step-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml registers only StepSupportAgent for step-support and has no instructionLoader binding. src/step-support-agent.ts directly calls streamText and permits prepareStep to replace instructions."
+            },
+            {
+              "id": "does-not-infer-subagent-handoff",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "Canonical state preserves delegate_support registration, implementation, and input/output schemas without any handoff or routing declaration. src/delegation.ts merely references StepSupportAgent through an ordinary function implementation. Workspace assertions show all relevant source files unchanged."
+            },
+            {
+              "id": "preserves-unsupported-generation-boundaries",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "IndirectSupportAgent and UnsupportedOutputAgent remain in their unchanged source files but are absent from moldea/moldea.yaml. Their source respectively places generation behind a helper and uses Output.array."
+            },
+            {
+              "id": "keeps-initialized-class-outside-target",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "src/workflow-agent.mts still defines RuntimeInitializedAgent with executable initializedAt = Date.now(), while moldea/moldea.yaml does not register it. Workspace assertions confirm the source file was unchanged."
+            },
+            {
+              "id": "records-focused-guidance",
+              "evaluator": "judge",
+              "verdict": "fail",
+              "evidence": "Support and step-support both reference /moldea/runtimes/cloudflare-agents.md, and workspace evidence establishes it as the sole new runtime guide. The guide addresses Durable Object bindings, SQLite migration, provider binding, Worker entrypoint/routes, and deployment verification, but contains no static alternatives for closing the open-tools or prepareStep boundaries."
+            },
+            {
+              "id": "records-unresolved-boundaries",
+              "evaluator": "judge",
+              "verdict": "fail",
+              "evidence": "moldea/moldea.yaml contains a focused open-request-tools warning with /src/support-agent.ts and a resolution, but step-support has no unresolved entry describing prepareStep instruction replacement, no related /src/step-support-agent.ts path, and no corresponding resolution."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+            }
+          ],
+          "failures": [
+            "Requirement records-focused-guidance failed: Support and step-support both reference /moldea/runtimes/cloudflare-agents.md, and workspace evidence establishes it as the sole new runtime guide. The guide addresses Durable Object bindings, SQLite migration, provider binding, Worker entrypoint/routes, and deployment verification, but contains no static alternatives for closing the open-tools or prepareStep boundaries.",
+            "Requirement records-unresolved-boundaries failed: moldea/moldea.yaml contains a focused open-request-tools warning with /src/support-agent.ts and a resolution, but step-support has no unresolved entry describing prepareStep instruction replacement, no related /src/step-support-agent.ts path, and no corresponding resolution.",
+            "Expand moldea/runtimes/cloudflare-agents.md with concise static alternatives for closed repository-owned tool wiring and prepareStep-controlled instruction replacement.",
+            "Add a focused step-support unresolved warning that identifies /src/step-support-agent.ts, distinguishes prepareStep instruction replacement from the open request-tool map, and provides a resolution."
+          ]
+        }
+      ],
+      "failures": [
+        "Requirement records-focused-guidance failed: Support and step-support both reference /moldea/runtimes/cloudflare-agents.md, and workspace evidence establishes it as the sole new runtime guide. The guide addresses Durable Object bindings, SQLite migration, provider binding, Worker entrypoint/routes, and deployment verification, but contains no static alternatives for closing the open-tools or prepareStep boundaries.",
+        "Requirement records-unresolved-boundaries failed: moldea/moldea.yaml contains a focused open-request-tools warning with /src/support-agent.ts and a resolution, but step-support has no unresolved entry describing prepareStep instruction replacement, no related /src/step-support-agent.ts path, and no corresponding resolution.",
+        "Expand moldea/runtimes/cloudflare-agents.md with concise static alternatives for closed repository-owned tool wiring and prepareStep-controlled instruction replacement.",
+        "Add a focused step-support unresolved warning that identifies /src/step-support-agent.ts, distinguishes prepareStep instruction replacement from the open request-tool map, and provides a resolution."
+      ]
+    }
+  ]
+}

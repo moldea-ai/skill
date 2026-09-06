@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent’s canonical output-schema binding to match the direct Cloudflare AIChatAgent structured-output request. Full local validation passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Changed only `agents.support.bindings.outputSchema.symbol` from `LegacySupportOutputSchema` to `SupportOutputSchema`.",
+    "`src/agent.ts` directly requests `Output.object({ schema: SupportOutputSchema })`; all requested runtime, loader, generation, tool, implementation, registration, and schema code remains unchanged.",
+    "Moldea CLI 7.0.1 validation returned status `valid`, `result.valid: true`, zero diagnostics, and no continuation cursor.",
+    "`./node_modules/.bin/tsc --noEmit` passed with no diagnostics.",
+    "Final Git diff contains exactly the one intended symbol replacement; `git diff --check` passed.",
+    "Final Git status reports only `moldea/moldea.yaml` modified."
+  ],
+  "unresolved": []
+}

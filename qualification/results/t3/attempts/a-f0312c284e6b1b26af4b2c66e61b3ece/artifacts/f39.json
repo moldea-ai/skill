@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository contains the intended one-file canonical repair. The manifest now binds the support agent output schema to SupportOutputSchema, matching the direct Cloudflare AIChatAgent Output.object request. Runner-owned assertions show only moldea/moldea.yaml changed, all implementation files remained unchanged, and deterministic validation and type checking passed.",
+  "requirements": [
+    {
+      "id": "explains-output-schema-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies the prior canonical LegacySupportOutputSchema binding and contrasts it with src/agent.ts's direct Output.object({ schema: SupportOutputSchema }) request. The current source confirms that request, while the workspace assertions isolate the repair to moldea/moldea.yaml and deterministic post-actor validation is valid."
+    },
+    {
+      "id": "repairs-output-schema-binding",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now declares agents.support.bindings.outputSchema as /src/contracts.ts symbol SupportOutputSchema. Workspace assertions identify moldea/moldea.yaml as the sole changed path, preserve every source-file hash, and deterministic validation and type checking passed."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest exactly binds SupportAgent and loadSupportInstruction from /src/agent.ts, SupportOutputSchema from /src/contracts.ts, lookupOrder from /src/implementations.ts, lookupOrderTool from /src/tools.ts, and the tool's LookupOrderInputSchema and LookupOrderOutputSchema. The corresponding exports and wiring exist in those files. No agent inputSchema binding was added, and runner-owned hashes show all source files unchanged."
+    }
+  ],
+  "failures": []
+}

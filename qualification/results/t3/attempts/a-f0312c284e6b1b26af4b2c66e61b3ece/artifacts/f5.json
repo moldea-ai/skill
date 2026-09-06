@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Updated canonical state conservatively while preserving all source. Added shared Cloudflare runtime guidance, recorded SupportAgent’s open runtime tool map as unresolved, retained all proved bindings and delegation relationships, and excluded unsupported agents. Validation passed with zero moldea diagnostics and TypeScript errors.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ],
+  "observations": [
+    "SupportAgent retains runtime-agent and instruction-loader bindings without registering request tools.",
+    "StepSupportAgent retains only its runtime-agent binding.",
+    "DelegatingSupportAgent retains its runtime, instruction loader, ordinary tool implementation, registration, and schemas without a handoff or routing target.",
+    "IndirectSupportAgent, UnsupportedOutputAgent, and RuntimeInitializedAgent remain unregistered.",
+    "The runtime guide covers Durable Object bindings, SQLite migration, provider binding, and Worker deployment responsibilities."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove SupportAgent’s complete request tool set because its direct generation request spreads a runtime-created map.",
+    "The repository does not contain Worker deployment configuration proving the documented Cloudflare bindings, migration, provider binding, or deployment setup."
+  ]
+}

@@ -1,0 +1,49 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 651685f..606a1fc 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -12,9 +13,18 @@ agents:
+         symbol: loadSupportInstruction
+     affectedBy:
+       - /src/**
++    unresolved:
++      open-request-tools:
++        category: capability
++        effect: warning
++        description: Static inspection cannot prove the complete request tool set because the direct generation request spreads a runtime-created tool map.
++        resolution: Provide closed repository-owned tool wiring, or executable evidence that identifies every runtime-selected tool and its contracts.
++        related:
++          - path: /src/support-agent.ts
+   step-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+@@ -24,6 +34,7 @@ agents:
+   delegating-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/cloudflare-agents.md b/moldea/runtimes/cloudflare-agents.md
+new file mode 100644
+index 0000000..842fbed
+--- /dev/null
++++ b/moldea/runtimes/cloudflare-agents.md
+@@ -0,0 +1,3 @@
++# Cloudflare Agents runtime
++
++Deployment owners must declare the registered agent classes as Cloudflare Durable Object bindings, add each class to a SQLite Durable Object migration, configure the provider binding used for model access, and deploy the Worker entrypoint and routes. Repository source does not establish that deployment configuration; verify it in the Worker configuration and deployed environment.

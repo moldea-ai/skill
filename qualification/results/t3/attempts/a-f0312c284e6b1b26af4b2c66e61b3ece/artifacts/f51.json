@@ -1,0 +1,511 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "invalid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "invalid",
+    "cliInspectStatus": "invalid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 1449
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 10,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED"
+        ],
+        "evidenceKinds": [
+          "agent-definition",
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-package",
+          "runtime-package",
+          "runtime-pattern",
+          "schema",
+          "schema",
+          "tool-registration"
+        ],
+        "evidenceCount": 10,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "7.0.1",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "3.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "3.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "3.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "7.0.1",
+      "command": "validate",
+      "status": "invalid",
+      "result": {
+        "diagnosticCount": 1,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "code": "CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED",
+              "entity": {
+                "adapterId": "cloudflare-agents",
+                "agentId": "support"
+              },
+              "key": "[\"diagnostic\",\"cloudflare-agents\",\"CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED\",\"/src/contracts.ts\",null,0]",
+              "kind": "diagnostic",
+              "message": "The declared agent output schema is not wired to the detected AIChatAgent structured output.",
+              "path": "/src/contracts.ts",
+              "pointer": null,
+              "range": null,
+              "source": "cloudflare-agents"
+            }
+          ]
+        },
+        "snapshotDigest": "sha256:cdc24647ef5b3b983f2844649b48a934a107e37c259c578c1d49e3e8c0f7bfdf",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "7.0.1",
+      "command": "inspect",
+      "status": "invalid",
+      "result": {
+        "counts": {
+          "agents": 1,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 1,
+          "evidence": 10,
+          "metadata": 4,
+          "mirrors": 0,
+          "runtimes": 0,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "support",
+              "byteLength": 53,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:0ff1bd9b3fd7e7ba0fa6485233478324b236fb61abbe20a7df730bf189c72a73",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/support/description.md\",\"agent-description\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/support/description.md",
+              "scalarLength": 53
+            },
+            {
+              "agentId": "support",
+              "byteLength": 116,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:68bb48816e0a8353dc8ddd106f266f434db625e518dbbbf3ae67b447fafc1a5e",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/support/instruction.md\",\"agent-instruction\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/support/instruction.md",
+              "scalarLength": 116
+            },
+            {
+              "agentId": null,
+              "byteLength": 867,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:75bd89c364e1c71e666c0c8dad86c77ca5e21beb377aefc84e61af14c5e312f0",
+              "key": "[\"000002\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 867
+            },
+            {
+              "agentId": null,
+              "byteLength": 106,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:176e77ee762345f7dddcf44b8b048ebdc270a421bbf5ce76c980500536ca390b",
+              "key": "[\"000003\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 106
+            },
+            {
+              "code": "CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED",
+              "entity": {
+                "adapterId": "cloudflare-agents",
+                "agentId": "support"
+              },
+              "key": "[\"000004\",\"diagnostic\",\"cloudflare-agents\",\"CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED\"]",
+              "kind": "diagnostic",
+              "message": "The declared agent output schema is not wired to the detected AIChatAgent structured output.",
+              "path": "/src/contracts.ts",
+              "pointer": null,
+              "range": null,
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "agent-definition",
+              "key": "[\"000005\",\"evidence\",\"cloudflare-agents\",\"agent-definition\",\"support\",null,null,\"SupportAgent\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "SupportAgent"
+                }
+              ],
+              "runtimeName": "SupportAgent",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "instruction-loader",
+              "key": "[\"000006\",\"evidence\",\"cloudflare-agents\",\"instruction-loader\",\"support\",null,null,\"loadSupportInstruction\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000007\",\"evidence\",\"cloudflare-agents\",\"language\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "SupportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000008\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"support\",null,null,\"agents\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "agents",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000009\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"support\",null,null,\"@cloudflare/ai-chat\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@cloudflare/ai-chat",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000010\",\"evidence\",\"cloudflare-agents\",\"runtime-package\",\"support\",null,null,\"ai\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "ai",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000011\",\"evidence\",\"cloudflare-agents\",\"runtime-pattern\",\"support\",null,null,\"SupportAgent\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "SupportAgent"
+                }
+              ],
+              "runtimeName": "SupportAgent",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool",
+              "evidenceKind": "schema",
+              "key": "[\"000012\",\"evidence\",\"cloudflare-agents\",\"schema\",\"support\",\"tool\",\"lookup-order\",\"LookupOrderInputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "LookupOrderInputSchema"
+                }
+              ],
+              "runtimeName": "LookupOrderInputSchema",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool",
+              "evidenceKind": "schema",
+              "key": "[\"000013\",\"evidence\",\"cloudflare-agents\",\"schema\",\"support\",\"tool\",\"lookup-order\",\"LookupOrderOutputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "LookupOrderOutputSchema"
+                }
+              ],
+              "runtimeName": "LookupOrderOutputSchema",
+              "source": "cloudflare-agents"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool",
+              "evidenceKind": "tool-registration",
+              "key": "[\"000014\",\"evidence\",\"cloudflare-agents\",\"tool-registration\",\"support\",\"tool\",\"lookup-order\",\"lookup_order\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/implementations.ts",
+                  "symbol": "lookupOrder"
+                },
+                {
+                  "path": "/src/tools.ts",
+                  "symbol": "lookupOrderTool"
+                }
+              ],
+              "runtimeName": "lookup_order",
+              "source": "cloudflare-agents"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:75bd89c364e1c71e666c0c8dad86c77ca5e21beb377aefc84e61af14c5e312f0",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:176e77ee762345f7dddcf44b8b048ebdc270a421bbf5ce76c980500536ca390b",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:4de863deeaea9e185c1f529cf934b44deadc4b72e0da9416a7ce981a3dbee639",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

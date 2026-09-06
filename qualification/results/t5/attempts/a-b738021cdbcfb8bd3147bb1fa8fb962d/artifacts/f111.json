@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 176115,
+  "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 299968,
+    "cachedInputTokens": 276608,
+    "outputTokens": 3886
+  },
+  "judgeUsage": {
+    "inputTokens": 139886,
+    "cachedInputTokens": 117120,
+    "outputTokens": 2207
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T07:43:16.869Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T07:44:21.280Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-project",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md describes invoice-line review for human finance operators, states that the project does not authorize or send payments, and grounds deterministic behavior in src/invoice-review.ts: duplicate references are returned uniquely and sorted. It also correctly distinguishes the README's unsupported arithmetic-mismatch claim from the current implementation."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Workspace assertions identify exactly three changed paths: README.md, moldea/moldea.yaml, and moldea/project.md. The manifest is exactly `version: 1`; project.md contains only grounded project context; and README.md preserves its project description while adding the standard awareness block. No agent, decision, runtime, guide, relationship, or requirement was created. Runner-owned validation reports schema 4, valid status, passing typecheck, and an unchanged post-validation repository."
+    },
+    {
+      "id": "preserves-existing-work",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

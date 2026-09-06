@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor report, current workspace, and deterministic post-actor evidence agree that the existing moldea support-agent setup is aligned and required no edits.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "The actor identifies the registered `support` agent, the custom runtime guidance, and the explicit binding to `/src/support-agent.ts` symbol `supportAgent`. The workspace confirms these claims: `moldea/moldea.yaml` registers `support` with runtime `custom`, guidance `/moldea/runtimes/custom.md`, and the stated binding; the guidance preserves the runtime-owned record's identifier and channel; and `src/support-agent.ts` exports `supportAgent` with `id: 'support'` and `channel: 'email'`. CLI 7.0.1/schema 4 validation returned zero diagnostics, inspection found one agent and one runtime, deterministic checks passed including typechecking, and before/after hashes plus `changedPaths: []` establish an unchanged repository."
+    }
+  ],
+  "failures": []
+}

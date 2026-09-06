@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The declared relationship resolves src/project-state.ts exclusively to /moldea/project.md, whose operational state agrees with the source. Runner evidence confirms valid inspection, successful typechecking, and an unchanged repository.",
+  "requirements": [
+    {
+      "id": "identifies-owning-context",
+      "verdict": "pass",
+      "evidence": "Current workspace relationship scope reports exactly one matched owner for /src/project-state.ts: /moldea/project.md via affectedBy. That canonical file declares `operational`, matching the source. The actor named only that owner, and deterministic-after reports valid inspection and repository equivalence."
+    },
+    {
+      "id": "uses-bounded-moldea-evidence",
+      "verdict": "pass",
+      "evidence": "Runner-owned actor-command-policy records exactly 3 moldea CLI calls, within the required 1–4 range. The actor report references only /moldea/project.md as canonical content and does not enumerate unrelated canonical material."
+    }
+  ],
+  "failures": []
+}

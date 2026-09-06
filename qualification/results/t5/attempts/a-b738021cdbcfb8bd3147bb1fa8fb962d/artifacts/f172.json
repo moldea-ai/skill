@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The repository, deterministic post-actor checks, and Git diff agree that the obsolete support-agent setup was coherently retired.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current `moldea/moldea.yaml` contains only version and project-context declarations; moldea inspect reports 0 agents and 0 runtimes. The support description, instruction, and custom runtime guidance files are absent. Git diff shows removal of the `support` agent declaration, `runtimeAgent` binding to `/src/support-agent.ts`, custom runtime guidance reference, and all three obsolete canonical files. Deterministic validation passed with zero failures, including valid CLI validate/inspect results and typechecking."
+    }
+  ],
+  "failures": []
+}

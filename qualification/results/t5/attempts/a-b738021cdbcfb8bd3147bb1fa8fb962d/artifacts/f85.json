@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The existing moldea `support` agent setup is valid and agrees with the source; no edits were needed. The manifest binds runtime `custom` to `/src/support-agent.ts` symbol `supportAgent`, whose exported record has the expected `id: 'support'` and `channel: 'email'`.",
+  "changedFiles": [],
+  "observations": [
+    "moldea CLI 7.0.1/schema 4 validation completed with zero diagnostics.",
+    "The agent description identifies customer support through email, matching the source channel.",
+    "The agent instruction requires evidence-based answers and escalation of uncertain requests; no source behavior contradicts it.",
+    "Custom runtime guidance identifies `supportAgent` as the runtime-owned definition and requires preserving its identifier and channel, matching the implementation.",
+    "`./node_modules/.bin/tsc --noEmit` passed.",
+    "Final Git status and diff were clean."
+  ],
+  "unresolved": [
+    "Static declarations establish the configured connection, but the repository contains no runtime adapter or test proving that the custom runtime loads and applies the agent instruction at execution time. Runtime execution was not attempted, as required."
+  ]
+}

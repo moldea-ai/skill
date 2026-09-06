@@ -1,0 +1,66 @@
+{
+  "caseId": "reconcile-drift-and-boundaries",
+  "title": "Reconcile drift and boundaries",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 221916,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 221916,
+      "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 581806,
+        "cachedInputTokens": 558720,
+        "outputTokens": 5396
+      },
+      "judgeUsage": {
+        "inputTokens": 215751,
+        "cachedInputTokens": 194688,
+        "outputTokens": 2024
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T07:55:51.240Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T07:56:58.200Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "repairs-binding",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current moldea/moldea.yaml binds runtimeAgent to path /src/support-assistant.ts with symbol supportAssistant. That file exports supportAssistant, while a targeted existence check confirms src/support-agent.ts is absent. Workspace assertions show only moldea/moldea.yaml changed and retain src/support-assistant.ts unchanged; deterministic validation and typecheck passed."
+        },
+        {
+          "id": "records-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current moldea/moldea.yaml contains agent-level unresolved entry dynamic-tool-registration with effect warning, explains that static inspection cannot prove the final tool relationship, gives the concrete resolution to add a deterministic integration test exercising createToolRegistry, and relates /src/dynamic-tools.ts. No tool binding was invented; workspace assertions show only the manifest changed, and deterministic validation passed."
+        },
+        {
+          "id": "preserves-source",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support runtime-agent binding and added the requested agent-level warning for dynamic tool registration. Moldea validation passed with zero diagnostics, TypeScript compilation passed, and the final Git diff passed `git diff --check` and was inspected.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "`runtimeAgent` now binds `/src/support-assistant.ts` to `supportAssistant`.",
+    "The warning identifies `/src/dynamic-tools.ts` and requires a deterministic integration test of `createToolRegistry` as its resolution.",
+    "Pre-existing deletion of `src/support-agent.ts` and untracked `src/support-assistant.ts` and `src/dynamic-tools.ts` were preserved without implementation edits."
+  ],
+  "unresolved": [
+    "Static inspection still cannot prove the final support-agent tool relationship; this is now explicitly recorded as a warning pending the specified integration test."
+  ]
+}

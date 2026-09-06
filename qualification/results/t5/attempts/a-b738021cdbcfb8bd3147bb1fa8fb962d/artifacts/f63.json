@@ -1,0 +1,50 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 72520,
+  "deterministicBeforePath": "cases/answer-information-before-adoption/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/answer-information-before-adoption/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/answer-information-before-adoption/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/answer-information-before-adoption/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/answer-information-before-adoption/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/answer-information-before-adoption/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 26254,
+    "cachedInputTokens": 19712,
+    "outputTokens": 473
+  },
+  "judgeUsage": {
+    "inputTokens": 61801,
+    "cachedInputTokens": 48512,
+    "outputTokens": 1130
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T08:11:50.973Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T08:12:37.491Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "answers-concisely",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Actor output consists of two short sentences accurately describing moldea as maintaining Git-owned project context and agent systems, with canonical state kept in an adopted project's `/moldea/` directory."
+    },
+    {
+      "id": "avoids-repository-activation",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Runner-owned command policy reports `moldeaCommandCount: 0`. Workspace assertions report no changed paths and identical before/after modes and SHA-256 hashes for every tracked project file; the deterministic summary also reports `repositoryUnchanged: true`."
+    },
+    {
+      "id": "preserves-uninitialized-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

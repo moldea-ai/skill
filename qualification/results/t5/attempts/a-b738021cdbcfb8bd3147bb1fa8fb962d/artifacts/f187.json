@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, deterministic post-actor results, and Git diff agree that the obsolete support agent setup was coherently retired. The manifest is valid and inventories zero agents and zero runtimes.",
+  "requirements": [
+    {
+      "id": "removes-obsolete-declaration",
+      "verdict": "pass",
+      "evidence": "Current workspace: moldea/moldea.yaml contains only version and project context; it has no support agent, runtime, guidance, or binding declarations. The canonical support description, instruction, and custom runtime guidance files are absent. Workspace patch: Git diff removes the complete agents.support block, including runtime id custom, guidance /moldea/runtimes/custom.md, and the /src/support-agent.ts supportAgent binding; it also deletes both support-agent definition files and moldea/runtimes/custom.md. Deterministic-after evidence reports valid CLI composition and validation, successful typecheck, and an unchanged repository during checking. Direct CLI verification against the working tree returned schema 4/status valid with zero diagnostics, zero agents, and zero runtimes."
+    }
+  ],
+  "failures": []
+}

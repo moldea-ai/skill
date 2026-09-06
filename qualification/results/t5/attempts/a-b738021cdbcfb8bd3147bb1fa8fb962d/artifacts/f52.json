@@ -1,0 +1,38 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-09-06T08:11:50.973Z",
+  "durationMs": 18503,
+  "usage": {
+    "inputTokens": 26254,
+    "cachedInputTokens": 19712,
+    "outputTokens": 473
+  },
+  "cacheKey": "4e7fa3587bd44aaf97c8065a76b346e3ba3c36258eadfe05656fa50de5aab232",
+  "sourceAttemptId": "20260906T073738885Z-custom-custom-f39b6209",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 1,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 14634,
+    "modelVisibleToolOutputByteCount": 14634,
+    "moldeaCommandCount": 0,
+    "moldeaOutputByteCount": 0,
+    "networkAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    },
+    "sensitiveAccess": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "indeterminateCount": 0,
+      "reasons": []
+    }
+  }
+}

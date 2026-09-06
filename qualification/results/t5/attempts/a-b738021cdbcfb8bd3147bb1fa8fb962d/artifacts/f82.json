@@ -1,0 +1,60 @@
+{
+  "caseId": "evaluate-aligned-project",
+  "title": "Evaluate an aligned project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 214200,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 214200,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 433441,
+        "cachedInputTokens": 387968,
+        "outputTokens": 3451
+      },
+      "judgeUsage": {
+        "inputTokens": 181997,
+        "cachedInputTokens": 140800,
+        "outputTokens": 2132
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T07:40:13.271Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T07:41:25.149Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-alignment",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor identifies the registered `support` agent, the custom runtime guidance, and the explicit binding to `/src/support-agent.ts` symbol `supportAgent`. The workspace confirms these claims: `moldea/moldea.yaml` registers `support` with runtime `custom`, guidance `/moldea/runtimes/custom.md`, and the stated binding; the guidance preserves the runtime-owned record's identifier and channel; and `src/support-agent.ts` exports `supportAgent` with `id: 'support'` and `channel: 'email'`. CLI 7.0.1/schema 4 validation returned zero diagnostics, inspection found one agent and one runtime, deterministic checks passed including typechecking, and before/after hashes plus `changedPaths: []` establish an unchanged repository."
+        },
+        {
+          "id": "avoids-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

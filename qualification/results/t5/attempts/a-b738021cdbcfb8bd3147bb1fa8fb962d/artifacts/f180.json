@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the obsolete moldea support-agent setup. Removed its manifest declaration, agent definition files, and custom runtime guidance. Validation passed: moldea CLI 7.0.1/schema 4 reported zero diagnostics, zero agents, and zero runtimes; TypeScript compilation and `git diff --check` also passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "`moldea/project.md` states that the former email support agent was removed from the runtime implementation.",
+    "The pre-existing deletion of `src/support-agent.ts` established that the manifest binding target no longer exists; that deletion was preserved unchanged.",
+    "The deleted runtime guidance referred exclusively to the absent `supportAgent` export.",
+    "Final repository search found only historical removal statements, with no remaining claim that the support agent or custom runtime integration exists."
+  ],
+  "unresolved": []
+}

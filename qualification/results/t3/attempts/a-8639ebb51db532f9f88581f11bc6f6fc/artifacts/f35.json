@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository and runner evidence agree: the only change replaces the stale LegacySupportOutputSchema manifest binding with SupportOutputSchema, matching the direct Output.object request. All source files remain unchanged, and deterministic validation and typechecking pass.",
+  "requirements": [
+    {
+      "id": "explains-output-schema-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor identifies the prior CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED diagnostic. The Git diff proves canonical state previously referenced LegacySupportOutputSchema, while src/agent.ts directly uses Output.object({ schema: SupportOutputSchema })."
+    },
+    {
+      "id": "repairs-output-schema-binding",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml now binds agents.support.bindings.outputSchema to /src/contracts.ts symbol SupportOutputSchema. The Git diff contains only the LegacySupportOutputSchema-to-SupportOutputSchema replacement, and workspace hashes show all source files unchanged."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "Current manifest and source agree exactly on SupportAgent, loadSupportInstruction, SupportOutputSchema, lookupOrder, lookupOrderTool, LookupOrderInputSchema, and LookupOrderOutputSchema. No agent inputSchema binding was added. Deterministic post-actor validation reports valid with zero failures, successful typechecking, and an unchanged repository during validation."
+    }
+  ],
+  "failures": []
+}

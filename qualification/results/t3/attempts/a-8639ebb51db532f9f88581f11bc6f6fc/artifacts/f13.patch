@@ -1,0 +1,52 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 651685f..d8f8a47 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -12,9 +13,19 @@ agents:
+         symbol: loadSupportInstruction
+     affectedBy:
+       - /src/**
++    unresolved:
++      open-request-tools:
++        category: static-inspection
++        effect: warning
++        description: The complete request tool map is unresolved because SupportAgent spreads runtime-selected tools into its direct generation request.
++        resolution: Replace the runtime spread with a closed tool map or provide authoritative runtime evidence that enumerates every selected tool.
++        related:
++          - path: /src/support-agent.ts
++            symbol: SupportAgent
+   step-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+@@ -24,6 +35,7 @@ agents:
+   delegating-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/cloudflare-agents.md b/moldea/runtimes/cloudflare-agents.md
+new file mode 100644
+index 0000000..5374312
+--- /dev/null
++++ b/moldea/runtimes/cloudflare-agents.md
+@@ -0,0 +1,5 @@
++# Cloudflare Agents runtime
++
++The Worker owner must export each deployed agent class and declare its matching Durable Object namespace binding. Each new `AIChatAgent` class also requires a uniquely tagged SQLite Durable Object migration using `new_sqlite_classes`.
++
++The deployment environment must supply the AI provider binding or credentials selected by the Worker; a Workers AI deployment declares its `AI` binding explicitly. The Worker owner is responsible for maintaining these bindings and secrets, applying migrations, routing requests to the agents, and validating the target environment before deployment.

@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor completed the unrelated documentation review without exposing any moldea activity or skill-derived content.",
+  "requirements": [
+    {
+      "id": "abstains-after-cheap-gate",
+      "verdict": "pass",
+      "evidence": "The actor output contains only findings about docs/operations.md and validation status; it does not mention moldea or reproduce skill reasoning. The runner-owned actor command policy reports moldeaCommandCount: 0 and moldeaOutputByteCount: 0."
+    }
+  ],
+  "failures": []
+}

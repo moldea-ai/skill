@@ -1,0 +1,176 @@
+{
+  "caseId": "create-grounded-agent",
+  "title": "Create a grounded agent",
+  "status": "recovered",
+  "confirmationStatus": "passed",
+  "durationMs": 815920,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": false,
+      "durationMs": 206860,
+      "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+      "judgeStatus": "skipped",
+      "judgeOutputPath": null,
+      "judgeSkippedPath": "cases/create-grounded-agent/trials/initial/judge-skipped.json",
+      "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 751024,
+        "cachedInputTokens": 709504,
+        "outputTokens": 6764
+      },
+      "judgeUsage": null,
+      "actorEvidenceCreatedAt": "2026-09-06T12:23:59.944Z",
+      "judgeEvidenceCreatedAt": null,
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-behavior",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "binds-implementation",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "defines-runtime-guidance",
+          "evaluator": "judge",
+          "verdict": "not-evaluated",
+          "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": [
+        "Actor resource profile ordinary exceeded maximum-command-output-bytes: observed 479614, limit 131072."
+      ]
+    },
+    {
+      "trialId": "confirmation-1",
+      "kind": "confirmation",
+      "confirmationIndex": 1,
+      "passed": true,
+      "durationMs": 291415,
+      "deterministicBeforePath": "cases/create-grounded-agent/trials/confirmation-1/deterministic-before.json",
+      "deterministicAfterPath": "cases/create-grounded-agent/trials/confirmation-1/deterministic-after.json",
+      "actorOutputPath": "cases/create-grounded-agent/trials/confirmation-1/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/create-grounded-agent/trials/confirmation-1/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/create-grounded-agent/trials/confirmation-1/workspace-assertions.json",
+      "patchPath": "cases/create-grounded-agent/trials/confirmation-1/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 689485,
+        "cachedInputTokens": 625408,
+        "outputTokens": 8173
+      },
+      "judgeUsage": {
+        "inputTokens": 166589,
+        "cachedInputTokens": 139904,
+        "outputTokens": 2801
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T12:27:34.758Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T12:28:52.580Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-behavior",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current `description.md` says “Classifies orders for human review without approving refunds.” The canonical instruction directs classification for human review and explicitly says not to approve refunds or claim that authority. Workspace patch evidence identifies both files as newly added."
+        },
+        {
+          "id": "binds-implementation",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/moldea.yaml` binds runtime agent `/src/order-triage-agent.ts` symbol `createOrderTriageAgent` and lists that source under `affectedBy`. The implementation exports that factory, loads the canonical instruction, sets `canApproveRefunds: false`, and uses action `classify-for-human-review`. Deterministic validation, inspection, and typechecking all passed."
+        },
+        {
+          "id": "defines-runtime-guidance",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest references `/moldea/runtimes/custom.md`. It is the sole file under `moldea/runtimes`, and workspace patch evidence identifies it as the sole new runtime-guidance file. Its guidance states that the runtime supplies the loader for the canonical instruction path; the factory source shows the runtime-owned loader resolving that path to instruction content. The guidance adds no provider behavior or authority."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    },
+    {
+      "trialId": "confirmation-2",
+      "kind": "confirmation",
+      "confirmationIndex": 2,
+      "passed": true,
+      "durationMs": 317645,
+      "deterministicBeforePath": "cases/create-grounded-agent/trials/confirmation-2/deterministic-before.json",
+      "deterministicAfterPath": "cases/create-grounded-agent/trials/confirmation-2/deterministic-after.json",
+      "actorOutputPath": "cases/create-grounded-agent/trials/confirmation-2/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/create-grounded-agent/trials/confirmation-2/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/create-grounded-agent/trials/confirmation-2/workspace-assertions.json",
+      "patchPath": "cases/create-grounded-agent/trials/confirmation-2/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 996246,
+        "cachedInputTokens": 952704,
+        "outputTokens": 8850
+      },
+      "judgeUsage": {
+        "inputTokens": 104746,
+        "cachedInputTokens": 93568,
+        "outputTokens": 1690
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T12:33:09.244Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T12:34:10.226Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-behavior",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/agents/order-triage/description.md` states that the agent classifies orders for human review and cannot approve refunds or perform financial mutations. `instruction.md` repeats those constraints and directs ambiguous cases to the human reviewer. These files are included in the workspace changed-path evidence."
+        },
+        {
+          "id": "binds-implementation",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/moldea.yaml` declares runtime `custom`, binds `/src/order-triage-agent.ts` symbol `createOrderTriageAgent`, and lists that exact file under `affectedBy`. The source exports that factory and returns action `classify-for-human-review` with `canApproveRefunds: false`. Deterministic validation, inspection, and typechecking all passed."
+        },
+        {
+          "id": "defines-runtime-guidance",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest references `/moldea/runtimes/order-triage-custom.md`, the only file found under `moldea/runtimes`. It accurately explains that the runtime-owned loader is passed to the factory, receives `/moldea/agents/order-triage/instruction.md`, supplies its content, and blocks creation on rejection; it explicitly records that no loader implementation or registration exists rather than inventing provider behavior."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

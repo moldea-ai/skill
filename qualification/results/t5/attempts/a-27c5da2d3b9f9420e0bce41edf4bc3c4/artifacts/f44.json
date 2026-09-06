@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository declaration maps only /src/project-state.ts to /moldea/project.md, whose stated behavior matches the source. Runner evidence records three moldea CLI calls, no unrelated canonical enumeration, successful deterministic validation, and an unchanged repository.",
+  "requirements": [
+    {
+      "id": "identifies-owning-context",
+      "verdict": "pass",
+      "evidence": "Actor output identifies only /moldea/project.md as the canonical owner. In the current workspace, moldea/moldea.yaml declares /src/project-state.ts solely under /moldea/project.md via affectedBy; moldea/project.md states `operational`, matching src/project-state.ts. Deterministic-after reports valid scope/inspection, successful validation, and repositoryUnchanged=true."
+    },
+    {
+      "id": "uses-bounded-moldea-evidence",
+      "verdict": "pass",
+      "evidence": "Runner-owned actor-command-policy records moldeaCommandCount=3, satisfying the required range of 1–4. The actor output mentions only the scoped canonical owner /moldea/project.md and does not enumerate unrelated canonical content."
+    }
+  ],
+  "failures": []
+}

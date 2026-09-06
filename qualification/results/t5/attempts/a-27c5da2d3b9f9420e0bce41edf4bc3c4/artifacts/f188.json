@@ -1,0 +1,66 @@
+{
+  "caseId": "retire-agent-coherently",
+  "title": "Retire an agent coherently",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 217676,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 217676,
+      "deterministicBeforePath": "cases/retire-agent-coherently/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/retire-agent-coherently/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/retire-agent-coherently/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/retire-agent-coherently/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/retire-agent-coherently/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/retire-agent-coherently/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 308380,
+        "cachedInputTokens": 265728,
+        "outputTokens": 3594
+      },
+      "judgeUsage": {
+        "inputTokens": 333103,
+        "cachedInputTokens": 300544,
+        "outputTokens": 2651
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T12:45:25.044Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T12:47:12.850Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "removes-obsolete-declaration",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current `/moldea/moldea.yaml` contains only `version: 1` and the existing `/moldea/project.md` affectedBy relationship; it has no agent, binding, or runtime declaration. Targeted filesystem checks establish that `moldea/agents/support/description.md`, `moldea/agents/support/instruction.md`, `moldea/runtimes/custom.md`, and `src/support-agent.ts` are absent. The workspace patch assertions identify the three canonical support/runtime documents as deleted and the manifest as changed, with the final manifest SHA-256 `e674c4c27c188d969e1e73bb8226ab58312dc7b8ce270fc94f9f796d1dd6c191`; this matches the current moldea inspection. The current CLI 7.0.1/schema-4 inspection reports `agents: 0`, `runtimes: 0`, and no diagnostics, while validation returns `status: valid`, `valid: true`, and zero diagnostics. The deterministic post-actor summary independently passed repository, CLI, typecheck, and unchanged-state checks."
+        },
+        {
+          "id": "removes-orphaned-assets",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "preserves-surviving-context",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

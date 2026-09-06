@@ -1,0 +1,16 @@
+{
+  "outcome": "completed",
+  "summary": "The moldea `support` agent setup is valid and agrees with the source. No files were edited.",
+  "changedFiles": [],
+  "observations": [
+    "The adoption gate returned `1`.",
+    "moldea validation succeeded with CLI 7.0.1/schema 4, zero diagnostics, and `result.valid: true`.",
+    "`moldea/moldea.yaml` declares agent `support`, custom runtime guidance at `/moldea/runtimes/custom.md`, and binds `/src/support-agent.ts` symbol `supportAgent`.",
+    "The runtime guidance identifies `supportAgent` as the runtime-owned definition and requires preserving its identifier and channel.",
+    "`src/support-agent.ts` exports `supportAgent` with identifier `support` and channel `email`, matching the manifest, description, and instruction.",
+    "The repository-local TypeScript check (`./node_modules/.bin/tsc --noEmit --pretty false`) passed."
+  ],
+  "unresolved": [
+    "The evaluator-provided Git wrapper rejected all attempted read-only status/diff commands as “command shape is not evaluator-approved,” so the final Git diff could not be independently inspected. No write command was issued."
+  ]
+}

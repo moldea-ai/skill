@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace and patch agree with the claimed minimal initialization: repository-supported invoice-review context, an explicit non-authorizing boundary, an exact minimal manifest, and only the README awareness block plus two canonical moldea files. Runner-owned validation also reports a valid, unchanged post-validation repository.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "`moldea/project.md` describes a TypeScript invoice-review service that returns findings to a human finance operator and never authorizes or sends payment. It records source-proven behavior: repeated-reference detection with unique duplicate references returned in sorted order. `src/invoice-review.ts` implements that behavior, while the project context correctly notes that arithmetic mismatch detection is not established by source."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "The workspace contains only `moldea/moldea.yaml` and `moldea/project.md` under `moldea/`; the manifest is exactly `version: 1`. Git status/diff evidence shows only the preserved README with an appended awareness block and those two new files, with no agents, runtimes, decisions, requirements, relationships, or other invented foundation artifacts."
+    }
+  ],
+  "failures": []
+}

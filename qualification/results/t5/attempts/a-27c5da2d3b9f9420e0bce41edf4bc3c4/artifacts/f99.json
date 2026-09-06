@@ -1,0 +1,20 @@
+{
+  "outcome": "completed",
+  "summary": "Added the order-triage moldea agent using the custom runtime, with grounded description/instructions, the createOrderTriageAgent binding, exact affected source path, and project-specific runtime guidance. Final moldea validation and TypeScript compilation pass.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The agent classifies orders for human review and explicitly cannot approve refunds.",
+    "No tools, provider capabilities, or additional decision authority were declared.",
+    "moldea CLI 7.0.1 validation completed with zero diagnostics.",
+    "./node_modules/.bin/tsc --noEmit completed successfully.",
+    "The final Git diff and untracked-file status were inspected; unrelated files were unchanged."
+  ],
+  "unresolved": [
+    "The canonical-instruction loader is injected by the custom runtime and has no separate repository-local implementation, so behavior beyond the factory contract could not be independently validated."
+  ]
+}

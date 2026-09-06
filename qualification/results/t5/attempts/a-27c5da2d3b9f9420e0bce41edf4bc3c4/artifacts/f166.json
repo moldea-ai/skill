@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, deterministic post-actor checks, and workspace patch agree: the support runtime binding targets the existing supportAssistant export, the obsolete source remains absent, and dynamic tool registration is represented as an agent-level unresolved warning rather than an invented binding.",
+  "requirements": [
+    {
+      "id": "repairs-binding",
+      "verdict": "pass",
+      "evidence": "Current moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts with symbol supportAssistant; that file exports supportAssistant. src/support-agent.ts is absent, and the Git diff shows it deleted rather than recreated. The workspace patch changes only moldea/moldea.yaml, while deterministic validation and typechecking pass."
+    },
+    {
+      "id": "records-boundary",
+      "verdict": "pass",
+      "evidence": "The manifest adds agents.support.unresolved.dynamic-tool-registration with effect: warning, explains that dynamic assembly prevents static proof, specifies resolution via a deterministic test or static registration boundary, and relates /src/dynamic-tools.ts. The bindings section contains only runtimeAgent, so no tool binding was invented. The Git patch adds exactly this unresolved record, and deterministic validation reports zero diagnostics."
+    }
+  ],
+  "failures": []
+}

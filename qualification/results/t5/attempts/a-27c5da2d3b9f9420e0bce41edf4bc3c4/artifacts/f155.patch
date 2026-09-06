@@ -1,0 +1,58 @@
+diff --git a/moldea/agents/support/instruction.md b/moldea/agents/support/instruction.md
+index 23eeb7e..3461d14 100644
+--- a/moldea/agents/support/instruction.md
++++ b/moldea/agents/support/instruction.md
+@@ -1,3 +1,5 @@
+ # Support agent
+ 
+ You are the `support` agent. Resolve customer questions with project evidence and escalate uncertain requests.
++
++For refund or invoice questions, use the billing context before answering. Apply only the policy it establishes, do not invent missing invoice or refund rules, and escalate when the context and project evidence do not resolve the request.
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 0537cec..6fb4299 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,6 +1,13 @@
+ version: 1
++context:
++  /moldea/context/billing.md:
++    bindings:
++      - path: /src/billing.ts
++        symbol: refundWindowDays
+ agents:
+   support:
++    context:
++      - /moldea/context/billing.md
+     runtime:
+       id: custom
+       guidance: /moldea/runtimes/custom.md
+diff --git a/src/operator-notes.ts b/src/operator-notes.ts
+index 362d041..da89485 100644
+--- a/src/operator-notes.ts
++++ b/src/operator-notes.ts
+@@ -1 +1 @@
+-export const operatorNote = 'Review account ownership before escalation.';
++export const operatorNote = 'Preserve the operator draft while policy review is pending.';
+
+diff --git a/moldea/context/billing.md b/moldea/context/billing.md
+new file mode 100644
+index 0000000..ddf7540
+--- /dev/null
++++ b/moldea/context/billing.md
+@@ -0,0 +1,6 @@
++# Billing disputes
++
++Use this context for customer refund and invoice questions.
++
++- Refund requests are governed by the 30-day refund window defined by `refundWindowDays` in `/src/billing.ts`.
++- `/src/billing.ts` establishes no invoice-specific policy. Do not invent invoice terms or outcomes; escalate invoice disputes that cannot be resolved from other project evidence.
+
+diff --git a/notes/local-observation.md b/notes/local-observation.md
+new file mode 100644
+index 0000000..f023f7b
+--- /dev/null
++++ b/notes/local-observation.md
+@@ -0,0 +1,3 @@
++# Local observation
++
++Invoice imports occasionally arrive after the nightly reconciliation window.

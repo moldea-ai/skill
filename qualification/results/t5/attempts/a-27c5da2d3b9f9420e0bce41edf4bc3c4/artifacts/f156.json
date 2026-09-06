@@ -1,0 +1,66 @@
+{
+  "caseId": "reconcile-drift-and-boundaries",
+  "title": "Reconcile drift and boundaries",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 266611,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 266611,
+      "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/reconcile-drift-and-boundaries/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 490008,
+        "cachedInputTokens": 460032,
+        "outputTokens": 5622
+      },
+      "judgeUsage": {
+        "inputTokens": 278772,
+        "cachedInputTokens": 235264,
+        "outputTokens": 2643
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T12:42:00.243Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T12:43:35.159Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "repairs-binding",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts with symbol supportAssistant; that file exports supportAssistant. src/support-agent.ts is absent, and the Git diff shows it deleted rather than recreated. The workspace patch changes only moldea/moldea.yaml, while deterministic validation and typechecking pass."
+        },
+        {
+          "id": "records-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The manifest adds agents.support.unresolved.dynamic-tool-registration with effect: warning, explains that dynamic assembly prevents static proof, specifies resolution via a deterministic test or static registration boundary, and relates /src/dynamic-tools.ts. The bindings section contains only runtimeAgent, so no tool binding was invented. The Git patch adds exactly this unresolved record, and deterministic validation reports zero diagnostics."
+        },
+        {
+          "id": "preserves-source",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

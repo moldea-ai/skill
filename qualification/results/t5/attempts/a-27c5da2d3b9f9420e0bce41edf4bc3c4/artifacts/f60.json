@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The actor gave an accurate two-sentence explanation and did not activate moldea or alter the workspace.",
+  "requirements": [
+    {
+      "id": "answers-concisely",
+      "verdict": "pass",
+      "evidence": "The actor output consists of two short sentences, accurately describing moldea as maintaining Git-owned project context and agent systems and identifying `/moldea` as the adopted project's canonical-state directory, without repository-specific conclusions."
+    },
+    {
+      "id": "avoids-repository-activation",
+      "verdict": "pass",
+      "evidence": "Runner-owned command policy records `moldeaCommandCount: 0`. The workspace patch records no changed paths, identical before/after hashes for every asserted file, and `repositoryUnchanged: true`; current file hashes also match those assertions."
+    }
+  ],
+  "failures": []
+}

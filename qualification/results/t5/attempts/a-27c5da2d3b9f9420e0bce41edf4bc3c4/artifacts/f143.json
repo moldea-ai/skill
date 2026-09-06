@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing guidance for refunds and invoices, bound it to `src/billing.ts#refundWindowDays`, and assigned it to the `support` agent. Preserved the support agent’s opening identity and existing Custom runtime integration. moldea validation, TypeScript checking, and Git diff checking all passed.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/context/billing.md",
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "moldea CLI 7.0.1/schema 4 validated with zero diagnostics.",
+    "`./node_modules/.bin/tsc --noEmit` passed.",
+    "`git diff --check` passed and the complete tracked diff plus the new billing context were inspected.",
+    "Pre-existing changes in `src/operator-notes.ts` and `notes/local-observation.md` were preserved.",
+    "No invoice-specific policy exists in `src/billing.ts`; the new context explicitly requires escalation instead of inventing policy."
+  ],
+  "unresolved": [
+    "Actual Custom runtime context consumption was not exercised because invoking an agent was prohibited; evidence is limited to the existing runtime guidance and valid manifest wiring."
+  ]
+}

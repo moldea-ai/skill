@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current workspace, declared changed-path evidence, and deterministic post-actor validation agree: the canonical billing context is validly wired to the support agent and billing source, while the updated instruction retains the required opening identity and explains billing-context usage.",
+  "requirements": [
+    {
+      "id": "adds-context",
+      "verdict": "pass",
+      "evidence": "`moldea/context/billing.md` contains durable refund and invoice guidance. `moldea/moldea.yaml` globally registers `/moldea/context/billing.md`, binds it explicitly to `/src/billing.ts` at `refundWindowDays`, and assigns it to `agents.support.context`. The current source defines `refundWindowDays = 30`. Workspace assertions identify only the three intended moldea changes, and deterministic validation reports CLI 7.0.1/schema 4, zero diagnostics, and a valid Git-working-tree snapshot."
+    },
+    {
+      "id": "updates-instruction",
+      "verdict": "pass",
+      "evidence": "`moldea/agents/support/instruction.md` still opens with `You are the support agent` and now directs the agent to use billing context before answering refund or invoice questions, avoid inventing missing rules, and escalate unresolved requests. Workspace assertions confirm this instruction is one of the intended changed files."
+    }
+  ],
+  "failures": []
+}

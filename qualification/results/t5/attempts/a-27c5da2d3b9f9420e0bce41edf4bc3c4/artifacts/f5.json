@@ -1,0 +1,13 @@
+{
+  "outcome": "completed",
+  "summary": "Reviewed docs/operations.md without changing files. The note has no internal contradiction, but key operational details are ambiguous. The repository-local TypeScript validation passed.",
+  "changedFiles": [],
+  "observations": [
+    "Line 3 does not define the timezone or time window meant by “each morning,” so the check schedule is not precise.",
+    "The note does not identify the service, check procedure, failure criteria, responsible operator, or where a follow-up should be recorded.",
+    "The two instructions are internally consistent: one check occurs each morning, and follow-ups are recorded only for failed checks."
+  ],
+  "unresolved": [
+    "The evaluator blocked all attempted Git status/diff commands, so the final Git diff could not be independently inspected. No file-editing commands were performed."
+  ]
+}

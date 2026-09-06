@@ -1,0 +1,48 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-09-06T11:05:06.140Z",
+  "durationMs": 210282,
+  "usage": {
+    "inputTokens": 299578,
+    "cachedInputTokens": 262016,
+    "outputTokens": 3958
+  },
+  "cacheKey": "85e47ed5ec10fb399691d4eec279144f1d6003d336fb8b693e9e71ec4a525cc5",
+  "sourceAttemptId": "20260906T105751957Z-anthropic-typescript-messages-api-0-117-5a195006",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 20,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 15153,
+    "modelVisibleToolOutputByteCount": 29251,
+    "moldeaCommandCount": 2,
+    "moldeaOutputByteCount": 3619,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3,
+      "reasons": [
+        {
+          "code": "unclassified-command",
+          "count": 3
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3,
+      "reasons": [
+        {
+          "code": "unclassified-command",
+          "count": 3
+        }
+      ]
+    }
+  }
+}

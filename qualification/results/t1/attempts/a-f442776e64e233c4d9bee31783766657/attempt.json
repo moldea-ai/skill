@@ -1,0 +1,837 @@
+{
+  "protocolVersion": 8,
+  "attemptId": "20260906T105751957Z-anthropic-typescript-messages-api-0-117-5a195006",
+  "parentAttemptId": null,
+  "selection": {
+    "adapterId": "anthropic",
+    "implementationId": "typescript-messages-api-0-117"
+  },
+  "status": "passed",
+  "createdAt": "2026-09-06T10:57:51.958Z",
+  "completedAt": "2026-09-06T11:06:37.336Z",
+  "evidenceGeneratedAt": "2026-09-06T10:59:54.083Z",
+  "summary": "Qualification passed every deterministic and semantic case.",
+  "artifactDigests": {
+    "baseline.json": "2bc4eae66b4bb49f55b0fffef0d4093a0d16bae7ec84b07732e402e79d7dc1f7",
+    "cases/preserve-anthropic-static-boundary/case-result.json": "6ce57b9dd51e92ce02a74f051dd533e026d61ebcb5bb4322ed7e23887581261a",
+    "cases/preserve-anthropic-static-boundary/trials/initial/actor-events.jsonl": "96f5e478860d184d39c61044a93334819c5ac5a05933954fcf178486a5f27ebb",
+    "cases/preserve-anthropic-static-boundary/trials/initial/actor-evidence.json": "69ca035e9c42fa434c63e79a7196fbd65c34dfe31f7ed95a80ee1ee2af0f6b2c",
+    "cases/preserve-anthropic-static-boundary/trials/initial/actor-output.json": "397d083ab1041ff8fcdf0ca3d37b74b7348c27b9a4cce724bfa0ce9ca0f851bf",
+    "cases/preserve-anthropic-static-boundary/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/preserve-anthropic-static-boundary/trials/initial/actor-prompt.md": "d463cdeb0710e9755a72400e5ef4c7a6c050bf77ef25de1b2ecf1b033069b1a3",
+    "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-after.json": "5f0bd2920053306b0a0038ebcbd9d74abf96ef622ee974940e0c2ca12de1bfac",
+    "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-before.json": "87194dba3608b01d0b4d1c89df89be2518e2a40b6b6bab6f46314b5ff7c5e824",
+    "cases/preserve-anthropic-static-boundary/trials/initial/judge-events.jsonl": "d23b3878a2d1fc5c89c024d728ba053023d9114d8506843cbd1b38282c73e512",
+    "cases/preserve-anthropic-static-boundary/trials/initial/judge-evidence.json": "232a8b4e3395d070eb3aea94d76a4df91677d81662412abd8ea772fc682d0761",
+    "cases/preserve-anthropic-static-boundary/trials/initial/judge-output.json": "18de55d70af3971a2135bc96a13c16d05147412fd9d382fa6fda4060bfec0775",
+    "cases/preserve-anthropic-static-boundary/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/preserve-anthropic-static-boundary/trials/initial/judge-prompt.md": "6f1e1ae412ecf8cbd5e8d64eb997fd09ed205ddd22abca1e175f217092560325",
+    "cases/preserve-anthropic-static-boundary/trials/initial/trial-result.json": "c30b3c3c8ca095dc08fa704f2de6086117f7d7295a22508c731a0658bd6e3f2d",
+    "cases/preserve-anthropic-static-boundary/trials/initial/workspace-assertions.json": "b870c3974fdda54759aa4d32d6ead86b8616a5c9d5c0786aa20aa3a7215f1662",
+    "cases/preserve-anthropic-static-boundary/trials/initial/workspace.patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cases/repair-anthropic-tool-registration/case-result.json": "531fbc254b2a6eff1911c3c53894b1b3320ad60a553705d7f2899b8ec85881f0",
+    "cases/repair-anthropic-tool-registration/trials/initial/actor-events.jsonl": "36b248331851765154973228ce820518f0c7e1b13bd57557f26de835777e80b4",
+    "cases/repair-anthropic-tool-registration/trials/initial/actor-evidence.json": "3a24fcce3e923d3d68b8bb4afe8bc45ef7e13433b6bd1b550c47c47f83d050f5",
+    "cases/repair-anthropic-tool-registration/trials/initial/actor-output.json": "35e1fa1d9770bd54f5db63a42fd9f299cfd6ce07fb9a09abf931be58d9d9d5c1",
+    "cases/repair-anthropic-tool-registration/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/repair-anthropic-tool-registration/trials/initial/actor-prompt.md": "5886f29fa86ad7eb743c50bc1659315c81d9433b07364b23d48555e00cefb72f",
+    "cases/repair-anthropic-tool-registration/trials/initial/deterministic-after.json": "972f9179859b8f9c222236a8c67f914c6308856d83f1b8a3e78a16b0bda4b61c",
+    "cases/repair-anthropic-tool-registration/trials/initial/deterministic-before.json": "b323dc8eed029db5277ab2cfa997c6353f76dd6f1ea13d899b31ab0294f571c4",
+    "cases/repair-anthropic-tool-registration/trials/initial/judge-events.jsonl": "8c4d263db6db80ca7a89a36cc08330895c92c03c5165c9c67a1d1f772e7eb53b",
+    "cases/repair-anthropic-tool-registration/trials/initial/judge-evidence.json": "fa5adba0058e419b7fd35a42e5eebed0dcfe72c01ad894ff094c4e8a6d914dbd",
+    "cases/repair-anthropic-tool-registration/trials/initial/judge-output.json": "22ec0b42f3b2b6fd424b46d2934177752948f525d9fc964e209ea9aafd9e86fd",
+    "cases/repair-anthropic-tool-registration/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/repair-anthropic-tool-registration/trials/initial/judge-prompt.md": "3afa094b8617f95a835b292ddf8a199b96efa9d00aa43e8e2218fc36213a60b7",
+    "cases/repair-anthropic-tool-registration/trials/initial/trial-result.json": "79998d00cda3891befa7210e7d10c2bf631b604403e132113db75a11fcd029f0",
+    "cases/repair-anthropic-tool-registration/trials/initial/workspace-assertions.json": "c0c42a6ee0cfd4e3e84d257efd845f933223dcfa28597398713d7cc63eea352b",
+    "cases/repair-anthropic-tool-registration/trials/initial/workspace.patch": "2e445c6be1463263378ef25439fbe24ce165973e44f4c4a0a37f26a975e6e83f",
+    "coverage.json": "9b1717787b3c0ad09bb67f0f8dc788a46fcea563242279fc81beb6322e5b3e2c",
+    "source-state.json": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+  },
+  "confirmationPolicy": {
+    "version": 1,
+    "requiredPassingConfirmations": 2
+  },
+  "mode": "official",
+  "provenance": {
+    "model": "gpt-5.6-sol",
+    "reasoningEffort": "medium",
+    "codexVersion": "codex-cli 0.153.4",
+    "nodeVersion": "v24.15.0",
+    "pnpmVersion": "11.9.0",
+    "gitVersion": "git version 2.53.0",
+    "allowedEgressHosts": [
+      "api.openai.com",
+      "auth.openai.com",
+      "chatgpt.com"
+    ],
+    "hostTimeoutMs": 300000,
+    "modelEndpoint": null,
+    "sslCertificateFileSha256": null,
+    "packagesRepositoryCommit": "67a063b90a4b9a8493956d1576e55f286925754c",
+    "packagesRepositoryFingerprint": "540e6d2c0c2745a1e7cd9ac3461d0c9e794bac221d7f07b5b945982921de593a",
+    "packagesRepositoryDirty": false,
+    "qualificationRepositoryCommit": "9ce9bf420c0ed5d02b42b69ae4a9a4df13750ccd",
+    "qualificationRepositoryDirty": false,
+    "skillRepositoryCommit": "9ce9bf420c0ed5d02b42b69ae4a9a4df13750ccd",
+    "skillRepositoryFingerprint": "71b77f2de6d72cf92c8306f512e6a8f7357e8835b24641111dbcaf7d10928e81",
+    "skillRepositoryDirty": false,
+    "profileDigest": "fa2a1529c352638484499fb8c011f19101d23aa22ed5e75c0f7f0552d04ec9b4",
+    "qualificationDigest": "febcbfea601c2638f418f2318b879ca6e01ed17c132f54a7fecf5f22f8435076",
+    "targetDigest": "d4f605720dec430057ded4fb33795a2eb66349af1dad74fbdcb0d822d02b97ea",
+    "baselineAttemptId": "20260906T100957753Z-custom-custom-ff6e24b5",
+    "packages": [
+      {
+        "name": "@moldea.ai/repository",
+        "version": "2.0.0",
+        "registryIntegrity": "sha512-inhtMPmNtW/YnWZikBLMy+FsW3UyVsMaL0pKkV75ZX6VFP2yEFuc1puKyLu2kd8unvE5fAc+oO4lnuYKY77Rcw==",
+        "registryShasum": "d7797b382ae0116f8b6bfa4bfc2d1a51de306f7b",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository/-/repository-2.0.0.tgz",
+        "tarballName": "repository-2.0.0.tgz",
+        "sha256": "455a53c5b21de44f1b1173ff7bdacfe7c838f9eec46f4b3a8a651393deb80ea7"
+      },
+      {
+        "name": "@moldea.ai/core",
+        "version": "3.0.1",
+        "registryIntegrity": "sha512-dbiX2xoM750EyGbzrcE8Q+0YmsyEtzAUJ6rw5LRvz6pPKuZRsW0TXnzsmKejM76MfXK3I6/jgzGVW79JGLL/yw==",
+        "registryShasum": "4019fa1d1b4e3b02a0b8151378db7af20b35fa9d",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/core/-/core-3.0.1.tgz",
+        "tarballName": "core-3.0.1.tgz",
+        "sha256": "04c8f23f89d793036ee47f120bcddf456f5fc57ef7220bc05250f28370321e1a"
+      },
+      {
+        "name": "@moldea.ai/adapter-anthropic",
+        "version": "3.0.1",
+        "registryIntegrity": "sha512-Xs0plmRueRXzCb75zxddyWoGSj+5QkjIJ73tcClEpR6o0gXC1/p50toiuLU/OaWwnsE65XFZ8bW0lKzwa2sUug==",
+        "registryShasum": "315319c60a84e1873f8bd342df96b47acc43ca7e",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-anthropic/-/adapter-anthropic-3.0.1.tgz",
+        "tarballName": "adapter-anthropic-3.0.1.tgz",
+        "sha256": "8dd3c2bef54cd68d43ca67ff6765b9d17b78c23a11adf6087bedf34db28831da"
+      },
+      {
+        "name": "@moldea.ai/adapter-claude-agent-sdk",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-LSz1Mb4bfcQy87eghuUXK8xgSgLoxiFtxvbrga71K7D+mDiDuevjLerkBWhoFhNSRHnQWnMNw9hHKpIdAJ5e9A==",
+        "registryShasum": "83657c8374d626bea16c50e0cde114524a7d6e57",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-claude-agent-sdk/-/adapter-claude-agent-sdk-2.0.1.tgz",
+        "tarballName": "adapter-claude-agent-sdk-2.0.1.tgz",
+        "sha256": "58475750a8583e1596e75ed3dd9c178ed783546d987c49fbf2f1ef1909f99f25"
+      },
+      {
+        "name": "@moldea.ai/adapter-cloudflare-agents",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-RCdYovNqvZDRyr+fau2ljCsICRolurfjx7V5YVdvxpeUDfdHt6FmiGSNm/J8UAZbppAtTqPcDbgEmnojXI650w==",
+        "registryShasum": "cabfd23a92cf4d7bb5c2fe0c58d94298590dbd51",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-cloudflare-agents/-/adapter-cloudflare-agents-2.0.1.tgz",
+        "tarballName": "adapter-cloudflare-agents-2.0.1.tgz",
+        "sha256": "9ed6ab2f08dbbfc0c1ad836fbc690698b7c72fae687e9ff94046dd2e792309ed"
+      },
+      {
+        "name": "@moldea.ai/adapter-eve",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-r5iHZJsD5gDCPgYEAETeFjdsZRW3ssEW/dm3yvRCbLGGr8uxAriu7usHOx3SUg1WztbHfBWiJzIs1ZhJ44BUgA==",
+        "registryShasum": "eda75b668a37e06c11c79410ede6f224742ee7db",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-eve/-/adapter-eve-2.0.1.tgz",
+        "tarballName": "adapter-eve-2.0.1.tgz",
+        "sha256": "da01a2d7693ad8f23a99eab494b3d340683a1fb04e4cd43434790d2c00ddeff9"
+      },
+      {
+        "name": "@moldea.ai/adapter-google-genai",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-7lnnuRy4JwLZmQzhOEw7DLWhbqSYw+VrRKxpMgHp7rXcvuGd42aIz1sM4vS2PpwHys0xGdBl78jv/enxW7ykgg==",
+        "registryShasum": "aa6c959aaee0dffb5398505eb59c7a34fa441bc0",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-google-genai/-/adapter-google-genai-2.0.1.tgz",
+        "tarballName": "adapter-google-genai-2.0.1.tgz",
+        "sha256": "ac3fcfc008e16b5e2de20085f2e5f0de97279c493b7640496bd4b197ec409e39"
+      },
+      {
+        "name": "@moldea.ai/adapter-langchain",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-NIZ7PGC02WS5LcQ9LAFBaRSXLM1RxNREd9//8OOWRMkcCAai1JcpjWA97hQr4pYuiuUAg/pP7ZmqX4Fa6ncb0g==",
+        "registryShasum": "e4b76eb52e9d77c1acdde9830830045dd191feec",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langchain/-/adapter-langchain-2.0.1.tgz",
+        "tarballName": "adapter-langchain-2.0.1.tgz",
+        "sha256": "00e2c314085d948631c4ac7f0c8b2491ad5c4dbefcd0a3d32b618819b10b1102"
+      },
+      {
+        "name": "@moldea.ai/adapter-langgraph",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-zybmwbqIUNSfyi4bOP0MlrQe15zinncSnqcNuGNIMcNDA/S9obdEFvvvK9pOh53h7QPl3RVyqsxh/QiKjFy4vQ==",
+        "registryShasum": "7febea45dfb81e9fe8ef6d03857548849c78a62b",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langgraph/-/adapter-langgraph-2.0.1.tgz",
+        "tarballName": "adapter-langgraph-2.0.1.tgz",
+        "sha256": "43e373ef9138e61e021bbb1bd6d6a25d08edfcde740c073313fbafc9e8df41a7"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai",
+        "version": "3.0.1",
+        "registryIntegrity": "sha512-sH3fE8nBeSvOTFgN6yPwdDNfi07bZ6XTyWoq7bD70W4VDvyLVoKZ1okdcV3C+sjjvg2odtjL50G2fjQFsHSLTg==",
+        "registryShasum": "f0aa29d7b45dd62d25ff54cdd9fe0f3c7e633798",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai/-/adapter-openai-3.0.1.tgz",
+        "tarballName": "adapter-openai-3.0.1.tgz",
+        "sha256": "2384b6137d5dd568f1232aab9e9ed80efa41d584c6058eadffc17c7bb7c01c8b"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai-agents-sdk",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-9PPdZgIIeZ25xzkRGJ4GVkP/2BkLk7IKyUYVjLB2pDsZmsqjIFSMcIoy0KmJyHFgiG47j4FNhewU8an7Kqb7Bw==",
+        "registryShasum": "23a7ccab2160ec1773079580cf92206069ba6e09",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai-agents-sdk/-/adapter-openai-agents-sdk-2.0.1.tgz",
+        "tarballName": "adapter-openai-agents-sdk-2.0.1.tgz",
+        "sha256": "cacfbece34334140c47ab3809efaa7c8ab513f5bbfb569fe3ca57ba597de4321"
+      },
+      {
+        "name": "@moldea.ai/adapter-vercel-ai-sdk",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-pib3GDV78YeHBTGjPQ3TLRlfjHC8inLg13Jr5MNry9vh3oGFvtC9Qnu5uzlZGqKJe2xlsvFXr21ZnmCliD58rw==",
+        "registryShasum": "24b5ddc33d94c189e37278a686fa4817957cc1bd",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-vercel-ai-sdk/-/adapter-vercel-ai-sdk-2.0.1.tgz",
+        "tarballName": "adapter-vercel-ai-sdk-2.0.1.tgz",
+        "sha256": "b005f0eee7cdbf60fdf6d99c56d69df52db51e77440e6c326b57f1d570bb4adb"
+      },
+      {
+        "name": "@moldea.ai/repository-fs",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-TCTHwIUc2asuA8JvNwIjpKtTkDweVU4Y0hSMlG87qf+qgkOjQOinmhM7F+oFaEhT9Ch3RdWNZYiLuVWaC1kyuw==",
+        "registryShasum": "c5ba310dd260a541a1a2334bafcb198444b8bac7",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository-fs/-/repository-fs-2.0.1.tgz",
+        "tarballName": "repository-fs-2.0.1.tgz",
+        "sha256": "8fd204625ecb5b7d1ec46fd3b970c9b11576ab75d810c5ee7a194bc6c3e07fe8"
+      },
+      {
+        "name": "@moldea.ai/cli",
+        "version": "7.0.1",
+        "registryIntegrity": "sha512-BMXqRGuOy8OKfoiJzn8qjr68xSUKPW71V8dgoNi+fioZm+fR9fnoKsjRLs89pUn2UkjAjMLCp3cCcyAThXUJ+Q==",
+        "registryShasum": "20fef57a144a95a6f6c63e83f77a0df1af5a553f",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/cli/-/cli-7.0.1.tgz",
+        "tarballName": "cli-7.0.1.tgz",
+        "sha256": "af315edbebe225aec1558e733686e1edf9c5d1ba4e2775c7cd47cb7c96f38354"
+      },
+      {
+        "name": "@anthropic-ai/sdk",
+        "version": "0.117.1",
+        "registryIntegrity": "sha512-Yn2QlXfyCiKJ5YGCOOay7ZE78ISvII2XY621WMCiflmG8IYgwx59IBwPExxki3Xk9jKUtnD/Sj6UvplWr0rZxg==",
+        "registryShasum": "9c4351d29f5ce9e3ed276e5d30f90694b1160356",
+        "registryTarballUrl": "https://registry.npmjs.org/@anthropic-ai/sdk/-/sdk-0.117.1.tgz",
+        "tarballName": "sdk-0.117.1.tgz",
+        "sha256": "35639ecef95f7b56f8959107550e2654cf01354ac6fc5c59df37968eaf428802"
+      },
+      {
+        "name": "@types/node",
+        "version": "22.20.1",
+        "registryIntegrity": "sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==",
+        "registryShasum": "84e7cdf63cdaa20c134aa317ccc901aa21e16f0e",
+        "registryTarballUrl": "https://registry.npmjs.org/@types/node/-/node-22.20.1.tgz",
+        "tarballName": "node-22.20.1.tgz",
+        "sha256": "6f99aae8d4a2bdecdce5a41a922b10943316edd4e6e6d4350f442d6c1688485f"
+      },
+      {
+        "name": "typescript",
+        "version": "6.0.3",
+        "registryIntegrity": "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==",
+        "registryShasum": "90251dc007916e972786cb94d74d15b185577d21",
+        "registryTarballUrl": "https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz",
+        "tarballName": "typescript-6.0.3.tgz",
+        "sha256": "33cd0ee1beaa8c9e9d15a9da836c62ddea4c34a42d7c2d349dbc80d94165d22a"
+      }
+    ]
+  },
+  "stages": [
+    {
+      "id": "source-state",
+      "status": "passed",
+      "startedAt": "2026-09-06T10:57:53.008Z",
+      "completedAt": "2026-09-06T10:57:53.010Z",
+      "durationMs": 2,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "coverage",
+      "status": "passed",
+      "startedAt": "2026-09-06T10:57:53.010Z",
+      "completedAt": "2026-09-06T10:57:53.014Z",
+      "durationMs": 4,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "candidate",
+      "status": "passed",
+      "startedAt": "2026-09-06T10:57:53.015Z",
+      "completedAt": "2026-09-06T10:58:01.572Z",
+      "durationMs": 8557,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "baseline",
+      "status": "passed",
+      "startedAt": "2026-09-06T10:58:01.573Z",
+      "completedAt": "2026-09-06T10:58:02.898Z",
+      "durationMs": 1325,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-06T10:58:02.900Z",
+      "completedAt": "2026-09-06T10:58:04.112Z",
+      "durationMs": 1212,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-06T10:58:04.113Z",
+      "completedAt": "2026-09-06T10:58:06.062Z",
+      "durationMs": 1949,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-09-06T10:58:06.065Z",
+      "completedAt": "2026-09-06T10:59:54.299Z",
+      "durationMs": 108234,
+      "cacheKey": "858e06deb86d1a54c0516f1dc20a0b3e81dad0aa75f72f7f7240ed971b3c5cc2",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-06T10:59:54.300Z",
+      "completedAt": "2026-09-06T10:59:56.238Z",
+      "durationMs": 1938,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-06T10:59:56.239Z",
+      "completedAt": "2026-09-06T10:59:56.436Z",
+      "durationMs": 197,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-09-06T10:59:56.456Z",
+      "completedAt": "2026-09-06T11:01:24.470Z",
+      "durationMs": 88014,
+      "cacheKey": "4e2d67708edac55a520505f6254d509c4f5dd90364571e37010d64780a3821e6",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-1:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-1:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-1:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-1:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-1:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-1:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:01:24.472Z",
+      "completedAt": "2026-09-06T11:01:24.472Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-anthropic-tool-registration:result",
+      "status": "passed",
+      "startedAt": "2026-09-06T11:01:24.473Z",
+      "completedAt": "2026-09-06T11:01:24.474Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-06T11:01:24.475Z",
+      "completedAt": "2026-09-06T11:01:25.561Z",
+      "durationMs": 1086,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-06T11:01:25.562Z",
+      "completedAt": "2026-09-06T11:01:27.524Z",
+      "durationMs": 1962,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-09-06T11:01:27.527Z",
+      "completedAt": "2026-09-06T11:05:06.333Z",
+      "durationMs": 218806,
+      "cacheKey": "85e47ed5ec10fb399691d4eec279144f1d6003d336fb8b693e9e71ec4a525cc5",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-06T11:05:06.334Z",
+      "completedAt": "2026-09-06T11:05:08.262Z",
+      "durationMs": 1928,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-06T11:05:08.263Z",
+      "completedAt": "2026-09-06T11:05:08.458Z",
+      "durationMs": 195,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-09-06T11:05:08.478Z",
+      "completedAt": "2026-09-06T11:06:33.063Z",
+      "durationMs": 84585,
+      "cacheKey": "c2244ccb71e32fbe3f50b7ff4229fa996746ffad1b4d08450e69cfc9f4235e2c",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-1:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-1:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-1:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-1:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-1:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-1:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-06T11:06:33.065Z",
+      "completedAt": "2026-09-06T11:06:33.065Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-anthropic-static-boundary:result",
+      "status": "passed",
+      "startedAt": "2026-09-06T11:06:33.066Z",
+      "completedAt": "2026-09-06T11:06:33.067Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    }
+  ],
+  "cases": [
+    {
+      "caseId": "repair-anthropic-tool-registration",
+      "title": "Repair Anthropic tool registration",
+      "status": "passed",
+      "confirmationStatus": "not-required",
+      "durationMs": 201572,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": true,
+          "durationMs": 201572,
+          "deterministicBeforePath": "cases/repair-anthropic-tool-registration/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/repair-anthropic-tool-registration/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/repair-anthropic-tool-registration/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/repair-anthropic-tool-registration/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/repair-anthropic-tool-registration/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/repair-anthropic-tool-registration/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 317236,
+            "cachedInputTokens": 270976,
+            "outputTokens": 3283
+          },
+          "judgeUsage": {
+            "inputTokens": 280613,
+            "cachedInputTokens": 235776,
+            "outputTokens": 2825
+          },
+          "actorEvidenceCreatedAt": "2026-09-06T10:59:54.083Z",
+          "judgeEvidenceCreatedAt": "2026-09-06T11:01:24.469Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-name-mismatch",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor identifies the mismatch as manifest `find_order` versus source `lookup_order`. Git diff confirms the prior manifest value was `find_order`, while `src/tools.ts` declares `lookupOrderTool.name` as `lookup_order` and `src/agent.ts` registers that tool in the closed `tools: [lookupOrderTool]` array."
+            },
+            {
+              "id": "repairs-canonical-name",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "Current `moldea/moldea.yaml` declares `name: lookup_order`. Git diff shows the sole edit was `find_order` to `lookup_order`; workspace assertions likewise identify only `moldea/moldea.yaml` as changed. Deterministic post-actor validation and inspection both report `valid`."
+            },
+            {
+              "id": "preserves-binding-closure",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The manifest still binds runtime agent `supportAgent` and instruction loader `loadSupportInstruction` in `/src/agent.ts`, registration `lookupOrderTool` in `/src/tools.ts`, implementation `lookupOrder` in `/src/implementations.ts`, and schema `LookupOrderInputSchema` in `/src/contracts.ts`. Source confirms the wrapper loads the instruction and passes `lookupOrderTool` to Anthropic Messages, while the tool uses the declared schema. Before/after hashes show all these source and instruction files unchanged; deterministic evidence reports six inspection records, no wiring diagnostic, and a passing typecheck."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": []
+    },
+    {
+      "caseId": "preserve-anthropic-static-boundary",
+      "title": "Preserve the Anthropic static boundary",
+      "status": "passed",
+      "confirmationStatus": "not-required",
+      "durationMs": 308589,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": true,
+          "durationMs": 308589,
+          "deterministicBeforePath": "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/preserve-anthropic-static-boundary/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/preserve-anthropic-static-boundary/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/preserve-anthropic-static-boundary/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/preserve-anthropic-static-boundary/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 299578,
+            "cachedInputTokens": 262016,
+            "outputTokens": 3958
+          },
+          "judgeUsage": {
+            "inputTokens": 147743,
+            "cachedInputTokens": 133760,
+            "outputTokens": 2726
+          },
+          "actorEvidenceCreatedAt": "2026-09-06T11:05:06.140Z",
+          "judgeEvidenceCreatedAt": "2026-09-06T11:06:33.062Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-direct-evidence",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor identifies the direct `supportAgent` Messages API call and `loadSupportInstruction` loader. In `src/agents.ts`, `supportAgent` directly invokes `client.messages.create`, with `system: await loadSupportInstruction()`, while the loader reads `/moldea/agents/support/instruction.md`. `moldea/moldea.yaml` binds `support.runtimeAgent` to `supportAgent` and `support.instructionLoader` to `loadSupportInstruction`. Deterministic validation and typecheck passed."
+            },
+            {
+              "id": "preserves-provider-tool-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "`src/agents.ts` includes the provider-hosted `web_search_20250305` declaration only as request data in `tools`. `moldea/moldea.yaml` contains no tool, schema, routing, or handoff relationship for it; the canonical file inventory contains only the project, manifest, and two agent document sets, and expected tool/schema/routing/handoff paths are absent. The actor explicitly reports this limitation, and unchanged-workspace evidence confirms no invented relationship was added."
+            },
+            {
+              "id": "preserves-indirect-request-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "`dynamicSupportAgent` builds `request` separately before passing it to `client.messages.create(request)`. The manifest retains only its runtime-agent binding and the unresolved `indirect-request-construction` warning with category `runtime-pattern`, explaining that runtime relationships cannot be proven and resolving it by passing a closed object directly or using a supported adapter pattern. The actor explains the limitation, and deterministic evidence confirms the repository remained valid and unchanged."
+            },
+            {
+              "id": "validates-without-churn",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": []
+    }
+  ]
+}

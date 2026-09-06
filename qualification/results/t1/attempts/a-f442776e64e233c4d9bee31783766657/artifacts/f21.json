@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s canonical Anthropic tool name from `find_order` to the source-authoritative `lookup_order`. Local validation is valid with zero diagnostics; inspection emits all six evidence records, including tool registration and schema evidence. TypeScript compilation passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "The direct wrapper, tool declaration, implementation, and input schema were unchanged.",
+    "Final Git diff contains only the intended one-line canonical name correction.",
+    "Repository-local Moldea CLI 7.0.1 validation returned `valid: true` and `diagnosticCount: 0`.",
+    "Moldea inspection returned `valid: true`, six evidence records, and no wiring diagnostic.",
+    "`./node_modules/.bin/tsc --noEmit` exited successfully."
+  ],
+  "unresolved": []
+}

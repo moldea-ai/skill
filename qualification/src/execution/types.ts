@@ -104,3 +104,27 @@ export type IQualificationExecutionState = {
   caseResults: IQualificationCaseResult[];
   provenance: IQualificationExecutionProvenance;
 };
+
+// stable dimensions used to classify one operating-profile violation
+export type IQualificationResourceDimension =
+  | 'completed-host-commands'
+  | 'maximum-command-output-bytes'
+  | 'model-visible-tool-output-bytes'
+  | 'moldea-commands'
+  | 'moldea-output-bytes'
+  | 'total-model-tokens';
+
+// typed resource violation retained independently from its display message
+export type IQualificationResourceViolation = {
+  dimension: IQualificationResourceDimension;
+  kind: 'exceeded' | 'unavailable';
+  limit: number;
+  observed: number | null;
+};
+
+// runner decision derived from one stage's scenario-owned operating profile
+export type IQualificationResourceAssessment = {
+  failures: string[];
+  hasJudgeBlocker: boolean;
+  violations: IQualificationResourceViolation[];
+};

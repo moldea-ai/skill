@@ -1,5 +1,9 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
+import type {
+  IEvaluationReplayCommandStep,
+  IEvaluationReplayWorkspaceStep,
+} from '@moldea.ai/website-ui/evaluation-replay-model';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
 import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
@@ -56,6 +60,16 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
 
   const firstCase = semanticEvaluation.groups.flatMap(({ cases }) => cases)[0];
   if (firstCase === undefined) throw new Error('Expected one current semantic case.');
+  const firstTrial = firstCase.replay?.trials[0];
+  if (firstTrial === undefined) throw new Error('Expected one current semantic trial.');
+  const commandSteps = firstTrial.steps.filter(
+    (step): step is IEvaluationReplayCommandStep => step.kind === 'command',
+  );
+  if (commandSteps.length === 0) throw new Error('Expected recorded command evidence.');
+  const workspaceStep = firstTrial.steps.find(
+    (step): step is IEvaluationReplayWorkspaceStep => step.kind === 'workspace',
+  );
+  if (workspaceStep === undefined) throw new Error('Expected recorded workspace evidence.');
   const replayScenario = page.locator('main details').filter({ hasText: firstCase.title });
   const summary = replayScenario.locator(':scope > summary');
   await summary.focus();
@@ -66,11 +80,25 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
   await expect(evidenceTab).toHaveAttribute('aria-selected', 'false');
   await expect(replayScenario.getByText('Developer', { exact: true })).toBeVisible();
   await expect(replayScenario.getByText('Coding agent', { exact: true })).toBeVisible();
-  await expect(replayScenario.getByText('Normalized recorded operation').first()).toBeVisible();
-  await expect(replayScenario.getByText(/^\d+ completed commands?$/u).first()).toBeVisible();
-  await expect(replayScenario.getByRole('heading', { name: 'Created' })).toBeVisible();
-  await expect(replayScenario.getByRole('heading', { name: 'Modified' })).toBeVisible();
-  await expect(replayScenario.getByRole('heading', { name: 'Deleted' })).toBeVisible();
+  for (const commandStep of commandSteps) {
+    await expect(
+      replayScenario.getByText(commandStep.operation, { exact: true }).first(),
+    ).toBeVisible();
+  }
+  await expect(replayScenario.getByRole('heading', { name: 'Workspace changes' })).toBeVisible();
+  const workspaceChangeCount = workspaceStep.groups.reduce(
+    (total, group) => total + group.changes.length,
+    0,
+  );
+  if (workspaceChangeCount === 0) {
+    await expect(
+      replayScenario.getByText('No project-visible files or folders changed.'),
+    ).toBeVisible();
+  } else {
+    await expect(replayScenario.getByRole('heading', { name: 'Created' })).toBeVisible();
+    await expect(replayScenario.getByRole('heading', { name: 'Modified' })).toBeVisible();
+    await expect(replayScenario.getByRole('heading', { name: 'Deleted' })).toBeVisible();
+  }
   const verdict = replayScenario.locator('[data-replay-verdict]').first();
   await expect(verdict.getByText('Trial verdict')).toBeVisible();
   await expect(verdict.getByRole('heading', { name: 'Why it passed' })).toBeHidden();

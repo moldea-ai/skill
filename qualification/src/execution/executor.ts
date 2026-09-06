@@ -98,10 +98,10 @@ import { createQualificationAttemptResult } from './transformers.ts';
 import {
   createRunnerRequirementAssessments,
   deriveQualificationCommandPolicyFailures,
-  deriveQualificationResourceFailures,
   haveCandidateClosuresChanged,
   haveQualificationExecutionInputsChanged,
   haveQualificationInputsChanged,
+  inspectQualificationResourceUsage,
   inspectQualificationSourceState,
   mergeQualificationRequirementAssessments,
 } from './validations.ts';
@@ -1024,7 +1024,7 @@ export const runQualification = async (
         actorCommandPolicy: actorResult.evidence.commandPolicy,
         judgeCommandPolicy: null,
       });
-      const actorResourceFailures = deriveQualificationResourceFailures({
+      const actorResourceAssessment = inspectQualificationResourceUsage({
         allowMissingUsage: checkpoint.isDryRun,
         evidence: actorResult.evidence,
         role: 'Actor',
@@ -1039,7 +1039,7 @@ export const runQualification = async (
         !workspaceAssertions.passed ||
         hasFailedRunnerRequirement ||
         actorCommandPolicyFailures.length > 0 ||
-        actorResourceFailures.length > 0 ||
+        actorResourceAssessment.hasJudgeBlocker ||
         !hasJudgeRequirements;
       const judgeSkippedPath = path.join(trialArtifactDirectory, 'judge-skipped.json');
       const judgeResult = shouldSkipJudge
@@ -1183,15 +1183,15 @@ export const runQualification = async (
         judgeCommandPolicy: judgeResult?.evidence.commandPolicy ?? null,
       });
       const resourceFailures = [
-        ...actorResourceFailures,
+        ...actorResourceAssessment.failures,
         ...(judgeResult === null
           ? []
-          : deriveQualificationResourceFailures({
+          : inspectQualificationResourceUsage({
               allowMissingUsage: checkpoint.isDryRun,
               evidence: judgeResult.evidence,
               role: 'Judge',
               scenario: project.scenario,
-            })),
+            }).failures),
       ];
       const failures = [
         ...actorOutcomeFailures,

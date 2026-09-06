@@ -20,7 +20,7 @@ import {
   haveQualificationExecutionInputsChanged,
   createRunnerRequirementAssessments,
   deriveQualificationCommandPolicyFailures,
-  deriveQualificationResourceFailures,
+  inspectQualificationResourceUsage,
   inspectQualificationSourceState,
   validateJudgeOutput,
 } from './validations.ts';
@@ -277,32 +277,44 @@ describe('scenario resource profiles', () => {
 
   test('accepts every ordinary dimension at its exact boundary', () => {
     expect(
-      deriveQualificationResourceFailures({
+      inspectQualificationResourceUsage({
         allowMissingUsage: false,
         evidence: exactBoundaryEvidence,
         role: 'Actor',
         scenario,
       }),
-    ).toStrictEqual([]);
+    ).toStrictEqual({ failures: [], hasJudgeBlocker: false, violations: [] });
   });
 
   test.each([
-    ['completedCommandCount', 'completed-host-commands', ordinaryProfile.maxCompletedCommandCount],
-    ['moldeaCommandCount', 'moldea-commands', ordinaryProfile.maxMoldeaCommandCount],
-    ['moldeaOutputByteCount', 'moldea-output-bytes', ordinaryProfile.maxAggregateMoldeaOutputBytes],
+    [
+      'completedCommandCount',
+      'completed-host-commands',
+      ordinaryProfile.maxCompletedCommandCount,
+      false,
+    ],
+    ['moldeaCommandCount', 'moldea-commands', ordinaryProfile.maxMoldeaCommandCount, false],
+    [
+      'moldeaOutputByteCount',
+      'moldea-output-bytes',
+      ordinaryProfile.maxAggregateMoldeaOutputBytes,
+      true,
+    ],
     [
       'maximumCommandOutputByteCount',
       'maximum-command-output-bytes',
       ordinaryProfile.maxCommandOutputBytes,
+      true,
     ],
     [
       'modelVisibleToolOutputByteCount',
       'model-visible-tool-output-bytes',
       ordinaryProfile.maxModelVisibleToolOutputBytes,
+      true,
     ],
-  ] as const)('reports %s independently', (field, dimension, limit) => {
+  ] as const)('reports %s independently', (field, dimension, limit, hasJudgeBlocker) => {
     expect(
-      deriveQualificationResourceFailures({
+      inspectQualificationResourceUsage({
         allowMissingUsage: false,
         evidence: {
           ...exactBoundaryEvidence,
@@ -311,14 +323,18 @@ describe('scenario resource profiles', () => {
         role: 'Actor',
         scenario,
       }),
-    ).toStrictEqual([
-      `Actor resource profile ordinary exceeded ${dimension}: observed ${limit + 1}, limit ${limit}.`,
-    ]);
+    ).toStrictEqual({
+      failures: [
+        `Actor resource profile ordinary exceeded ${dimension}: observed ${limit + 1}, limit ${limit}.`,
+      ],
+      hasJudgeBlocker,
+      violations: [{ dimension, kind: 'exceeded', limit, observed: limit + 1 }],
+    });
   });
 
   test('reports token excess and unavailable official usage without blocking dry runs', () => {
     expect(
-      deriveQualificationResourceFailures({
+      inspectQualificationResourceUsage({
         allowMissingUsage: false,
         evidence: {
           ...exactBoundaryEvidence,
@@ -331,27 +347,49 @@ describe('scenario resource profiles', () => {
         role: 'Judge',
         scenario,
       }),
-    ).toStrictEqual([
-      `Judge resource profile ordinary exceeded total-model-tokens: observed ${ordinaryProfile.maxHostTokenCount + 1}, limit ${ordinaryProfile.maxHostTokenCount}.`,
-    ]);
+    ).toStrictEqual({
+      failures: [
+        `Judge resource profile ordinary exceeded total-model-tokens: observed ${ordinaryProfile.maxHostTokenCount + 1}, limit ${ordinaryProfile.maxHostTokenCount}.`,
+      ],
+      hasJudgeBlocker: false,
+      violations: [
+        {
+          dimension: 'total-model-tokens',
+          kind: 'exceeded',
+          limit: ordinaryProfile.maxHostTokenCount,
+          observed: ordinaryProfile.maxHostTokenCount + 1,
+        },
+      ],
+    });
     expect(
-      deriveQualificationResourceFailures({
+      inspectQualificationResourceUsage({
         allowMissingUsage: false,
         evidence: { ...exactBoundaryEvidence, usage: null },
         role: 'Actor',
         scenario,
       }),
-    ).toStrictEqual([
-      `Actor resource profile ordinary could not establish total-model-tokens: observed unavailable, limit ${ordinaryProfile.maxHostTokenCount}.`,
-    ]);
+    ).toStrictEqual({
+      failures: [
+        `Actor resource profile ordinary could not establish total-model-tokens: observed unavailable, limit ${ordinaryProfile.maxHostTokenCount}.`,
+      ],
+      hasJudgeBlocker: true,
+      violations: [
+        {
+          dimension: 'total-model-tokens',
+          kind: 'unavailable',
+          limit: ordinaryProfile.maxHostTokenCount,
+          observed: null,
+        },
+      ],
+    });
     expect(
-      deriveQualificationResourceFailures({
+      inspectQualificationResourceUsage({
         allowMissingUsage: true,
         evidence: { ...exactBoundaryEvidence, usage: null },
         role: 'Actor',
         scenario,
       }),
-    ).toStrictEqual([]);
+    ).toStrictEqual({ failures: [], hasJudgeBlocker: false, violations: [] });
   });
 });
 

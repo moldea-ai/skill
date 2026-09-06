@@ -2,15 +2,16 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import {
   CODEX_EVALUATION_HOST_FAILURE_KINDS,
   CodexEvaluationHostError,
 } from '../../../tooling/codex-evaluation-host/index.mjs';
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
 
 import { FakeCodexHost } from '../codex-host/index.ts';
-import { DEFAULT_SKILL_REPOSITORY } from '../constants/index.ts';
+import { DEFAULT_SKILL_REPOSITORY, QUALIFICATION_ROOT } from '../constants/index.ts';
 import {
   QualificationAttemptResultSchema,
   QualificationJudgeSkippedSchema,
@@ -27,6 +28,7 @@ import {
 } from '../filesystem/index.ts';
 import { readAttemptCheckpoint, writeAttemptCheckpoint } from '../checkpoint/index.ts';
 import { executeProcess } from '../process/index.ts';
+import * as repositoryState from '../repository-state/index.ts';
 import { verifyQualificationResults } from '../result/index.ts';
 import { createQualificationAttemptKey } from '../storage/index.ts';
 import { runQualification } from './executor.ts';
@@ -49,11 +51,18 @@ const emptyCommandPolicy: IQualificationCommandPolicyEvidence = {
 
 describe('qualification execution', () => {
   let temporaryAttemptDirectory: string | null = null;
+  let temporaryResultsRoot: string | null = null;
   let temporaryRoot: string | null = null;
 
   afterEach(async () => {
+    vi.restoreAllMocks();
+
     if (temporaryAttemptDirectory !== null) {
       await rm(temporaryAttemptDirectory, { force: true, recursive: true });
+    }
+
+    if (temporaryResultsRoot !== null) {
+      await rm(temporaryResultsRoot, { force: true, recursive: true });
     }
 
     if (temporaryRoot !== null) {
@@ -721,6 +730,167 @@ describe('qualification execution', () => {
       outcome.result.stages
         .filter(({ id }) => id.includes('evaluate-aligned-project:trial:confirmation-'))
         .every(({ status }) => status === 'skipped'),
+    ).toBe(true);
+  }, 120_000);
+
+  test('judges cumulative overages but skips output-volume overages', async () => {
+    temporaryRoot = await mkdtemp(path.join(os.tmpdir(), 'moldea-qualification-judge-gate-'));
+    const skillRepository = path.join(temporaryRoot, 'skill-repository');
+    temporaryResultsRoot = await mkdtemp(path.join(QUALIFICATION_ROOT, '.qualification-results-'));
+    const resultsRoot = temporaryResultsRoot;
+    await copyDirectory(DEFAULT_SKILL_REPOSITORY, skillRepository);
+    await executeProcess({
+      command: 'git',
+      args: ['init', '--initial-branch=main'],
+      cwd: skillRepository,
+    });
+    await executeProcess({ command: 'git', args: ['add', '-A'], cwd: skillRepository });
+    await executeProcess({
+      command: 'git',
+      args: [
+        '-c',
+        'commit.gpgsign=false',
+        '-c',
+        'user.name=moldea qualification',
+        '-c',
+        'user.email=qualification@moldea.local',
+        'commit',
+        '-m',
+        'test: establish judge-gate skill fixture',
+      ],
+      cwd: skillRepository,
+    });
+
+    const inspectRepositoryState = repositoryState.inspectGitRepositoryState;
+    vi.spyOn(repositoryState, 'inspectGitRepositoryState').mockImplementation(
+      async (repositoryRoot, options) => ({
+        ...(await inspectRepositoryState(repositoryRoot, options)),
+        isDirty: false,
+      }),
+    );
+
+    const runCase = async (
+      commandPolicy: IQualificationCommandPolicyEvidence,
+      mode: 'diagnostic' | 'official' = 'diagnostic',
+    ): Promise<{
+      actorCalls: number;
+      judgeCalls: number;
+      outcome: Awaited<ReturnType<typeof runQualification>>;
+    }> => {
+      let actorCalls = 0;
+      let judgeCalls = 0;
+      const usage = { cachedInputTokens: 0, inputTokens: 1, outputTokens: 1 };
+      const host = new FakeCodexHost({
+        actor: (input) => {
+          actorCalls += 1;
+          return Promise.resolve({
+            output: {
+              outcome: input.scenario.expectedActorOutcome,
+              summary: `Completed ${input.caseId}.`,
+              changedFiles: [],
+              observations: [],
+              unresolved: [],
+            },
+            usage,
+            durationMs: 0,
+            commandPolicy,
+            events: '',
+          });
+        },
+        judge: (input) => {
+          judgeCalls += 1;
+          return Promise.resolve({
+            output: {
+              verdict: 'pass',
+              summary: `Accepted ${input.caseId}.`,
+              requirements: input.scenario.judgeRequirements
+                .filter((requirement) => requirement.evaluation.kind === 'judge')
+                .map(({ id }) => ({
+                  id,
+                  verdict: 'pass' as const,
+                  evidence: 'The deterministic fixture evidence passed.',
+                })),
+              failures: [],
+            },
+            usage,
+            durationMs: 0,
+            commandPolicy: emptyCommandPolicy,
+            events: '',
+          });
+        },
+      });
+      const outcome = await runQualification({
+        ...(mode === 'diagnostic' ? { caseId: 'evaluate-aligned-project' } : {}),
+        host,
+        mode,
+        requestPaidExecutionApproval: () => Promise.resolve(true),
+        resultsRoot,
+        selection: { adapterId: 'custom', implementationId: 'custom' },
+        skillRepository,
+        useCache: false,
+      });
+
+      return { actorCalls, judgeCalls, outcome };
+    };
+    const cumulativeCommandPolicy = {
+      ...emptyCommandPolicy,
+      completedCommandCount: MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCompletedCommandCount + 1,
+    };
+    const cumulative = await runCase(cumulativeCommandPolicy);
+    temporaryAttemptDirectory = cumulative.outcome.attemptDirectory;
+
+    expect(cumulative.outcome.result.status).toBe('failed');
+    expect(cumulative.actorCalls).toBe(1);
+    expect(cumulative.judgeCalls).toBe(1);
+    expect(
+      cumulative.outcome.result.cases[0]?.trials.every(
+        ({ failures, judgeStatus, passed }) =>
+          !passed &&
+          judgeStatus === 'completed' &&
+          failures.some((failure) => failure.includes('exceeded completed-host-commands')),
+      ),
+    ).toBe(true);
+
+    await rm(cumulative.outcome.attemptDirectory, { force: true, recursive: true });
+    temporaryAttemptDirectory = null;
+    const recordedCumulative = await runCase(cumulativeCommandPolicy, 'official');
+    temporaryAttemptDirectory = recordedCumulative.outcome.attemptDirectory;
+
+    expect(recordedCumulative.outcome.wasRecorded).toBe(true);
+    expect(
+      recordedCumulative.outcome.result.status,
+      recordedCumulative.outcome.result.summary,
+    ).toBe('failed');
+    expect(recordedCumulative.actorCalls).toBe(2);
+    expect(recordedCumulative.judgeCalls).toBe(2);
+    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
+      attempts: 1,
+      issues: [],
+      passed: true,
+    });
+
+    await rm(recordedCumulative.outcome.attemptDirectory, { force: true, recursive: true });
+    temporaryAttemptDirectory = null;
+    const outputVolume = await runCase({
+      ...emptyCommandPolicy,
+      completedCommandCount: 1,
+      maximumCommandOutputByteCount:
+        MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes + 1,
+      modelVisibleToolOutputByteCount:
+        MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes + 1,
+    });
+    temporaryAttemptDirectory = outputVolume.outcome.attemptDirectory;
+
+    expect(outputVolume.outcome.result.status, outputVolume.outcome.result.summary).toBe('failed');
+    expect(outputVolume.actorCalls).toBe(1);
+    expect(outputVolume.judgeCalls).toBe(0);
+    expect(
+      outputVolume.outcome.result.cases[0]?.trials.every(
+        ({ failures, judgeStatus, passed }) =>
+          !passed &&
+          judgeStatus === 'skipped' &&
+          failures.some((failure) => failure.includes('exceeded maximum-command-output-bytes')),
+      ),
     ).toBe(true);
   }, 120_000);
 

@@ -20,9 +20,21 @@ import {
   QUALIFICATION_MODEL_ENDPOINT_ORIGINS,
 } from '../constants/index.ts';
 
-import type { IQualificationInputState } from './types.ts';
+import type {
+  IQualificationInputState,
+  IQualificationResourceAssessment,
+  IQualificationResourceDimension,
+  IQualificationResourceViolation,
+} from './types.ts';
 
 const formatIds = (ids: readonly string[]): string => ids.join(', ');
+
+// output-volume violations stop before another model stage
+const QUALIFICATION_JUDGE_BLOCKING_RESOURCE_DIMENSIONS = new Set<IQualificationResourceDimension>([
+  'maximum-command-output-bytes',
+  'model-visible-tool-output-bytes',
+  'moldea-output-bytes',
+]);
 
 /**
  * Inspects whether repository inputs are publishable before an official qualification run.
@@ -192,15 +204,19 @@ export const deriveQualificationCommandPolicyFailures = (options: {
       ]),
 ];
 
-/** Derives dimension-specific failures from one scenario-owned operating profile. */
-export const deriveQualificationResourceFailures = (options: {
+/** Inspects one model stage against its scenario-owned operating profile. */
+export const inspectQualificationResourceUsage = (options: {
   allowMissingUsage: boolean;
   evidence: Pick<IQualificationModelStageEvidence, 'commandPolicy' | 'usage'>;
   role: 'Actor' | 'Judge';
   scenario: IQualificationCaseScenario;
-}): string[] => {
+}): IQualificationResourceAssessment => {
   const profile = MOLDEA_SKILL_RESOURCE_PROFILES[options.scenario.resourceProfile];
-  const observations = [
+  const observations: Array<{
+    dimension: IQualificationResourceDimension;
+    limit: number;
+    observed: number;
+  }> = [
     {
       dimension: 'completed-host-commands',
       observed: options.evidence.commandPolicy.completedCommandCount,
@@ -227,31 +243,45 @@ export const deriveQualificationResourceFailures = (options: {
       limit: profile.maxModelVisibleToolOutputBytes,
     },
   ];
-  const failures = observations.flatMap(({ dimension, observed, limit }) =>
-    observed > limit
-      ? [
-          `${options.role} resource profile ${options.scenario.resourceProfile} exceeded ${dimension}: observed ${observed}, limit ${limit}.`,
-        ]
-      : [],
+  const violations: IQualificationResourceViolation[] = observations.flatMap(
+    ({ dimension, observed, limit }) =>
+      observed > limit ? [{ dimension, kind: 'exceeded', limit, observed }] : [],
   );
 
   if (options.evidence.usage === null) {
     if (!options.allowMissingUsage) {
-      failures.push(
-        `${options.role} resource profile ${options.scenario.resourceProfile} could not establish total-model-tokens: observed unavailable, limit ${profile.maxHostTokenCount}.`,
-      );
+      violations.push({
+        dimension: 'total-model-tokens',
+        kind: 'unavailable',
+        limit: profile.maxHostTokenCount,
+        observed: null,
+      });
     }
-    return failures;
+  } else {
+    const totalModelTokens =
+      options.evidence.usage.inputTokens + options.evidence.usage.outputTokens;
+    if (totalModelTokens > profile.maxHostTokenCount) {
+      violations.push({
+        dimension: 'total-model-tokens',
+        kind: 'exceeded',
+        limit: profile.maxHostTokenCount,
+        observed: totalModelTokens,
+      });
+    }
   }
 
-  const totalModelTokens = options.evidence.usage.inputTokens + options.evidence.usage.outputTokens;
-  if (totalModelTokens > profile.maxHostTokenCount) {
-    failures.push(
-      `${options.role} resource profile ${options.scenario.resourceProfile} exceeded total-model-tokens: observed ${totalModelTokens}, limit ${profile.maxHostTokenCount}.`,
-    );
-  }
-
-  return failures;
+  return {
+    failures: violations.map(({ dimension, kind, limit, observed }) =>
+      kind === 'unavailable'
+        ? `${options.role} resource profile ${options.scenario.resourceProfile} could not establish ${dimension}: observed unavailable, limit ${limit}.`
+        : `${options.role} resource profile ${options.scenario.resourceProfile} exceeded ${dimension}: observed ${observed}, limit ${limit}.`,
+    ),
+    hasJudgeBlocker: violations.some(
+      ({ dimension, kind }) =>
+        kind === 'unavailable' || QUALIFICATION_JUDGE_BLOCKING_RESOURCE_DIMENSIONS.has(dimension),
+    ),
+    violations,
+  };
 };
 
 /** Creates deterministic assessments for every runner-owned scenario requirement. */

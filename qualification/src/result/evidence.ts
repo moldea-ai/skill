@@ -40,7 +40,7 @@ import {
   createQualificationStageIds,
   createQualificationTrialStageIds,
 } from '../execution/stages.ts';
-import { deriveQualificationResourceFailures } from '../execution/validations.ts';
+import { inspectQualificationResourceUsage } from '../execution/validations.ts';
 import {
   readQualificationAttemptStorage,
   resolveQualificationArtifactPath,
@@ -522,20 +522,20 @@ const deriveTrialFailures = (options: {
     : [
         'Judge command policy observed prohibited credential, network, or sensitive evaluator access.',
       ]),
-  ...deriveQualificationResourceFailures({
+  ...inspectQualificationResourceUsage({
     allowMissingUsage: options.isDryRun,
     evidence: options.actorEvidence,
     role: 'Actor',
     scenario: options.scenario,
-  }),
+  }).failures,
   ...(options.judgeEvidence === null
     ? []
-    : deriveQualificationResourceFailures({
+    : inspectQualificationResourceUsage({
         allowMissingUsage: options.isDryRun,
         evidence: options.judgeEvidence,
         role: 'Judge',
         scenario: options.scenario,
-      })),
+      }).failures),
   ...options.deterministicAfter.summary.failures,
   ...options.workspaceAssertions.failures,
   ...options.requirementAssessments
@@ -712,25 +712,26 @@ const assertCurrentTrialEvidence = async (options: {
   const hasFailedActorCommandPolicy = !hasPassingCodexEvaluationCommandPolicy(
     actorEvidence.commandPolicy,
   );
-  const hasFailedActorResourceProfile =
-    deriveQualificationResourceFailures({
-      allowMissingUsage: options.result.mode === 'dry-run',
-      evidence: actorEvidence,
-      role: 'Actor',
-      scenario: options.scenario,
-    }).length > 0;
-  const shouldSkipJudge =
+  const actorResourceAssessment = inspectQualificationResourceUsage({
+    allowMissingUsage: options.result.mode === 'dry-run',
+    evidence: actorEvidence,
+    role: 'Actor',
+    scenario: options.scenario,
+  });
+  const mustSkipJudge =
     !deterministicAfter.summary.passed ||
     !assertions.passed ||
     hasFailedRunnerRequirement ||
     hasFailedActorCommandPolicy ||
-    hasFailedActorResourceProfile ||
+    actorResourceAssessment.hasJudgeBlocker ||
     !hasJudgeRequirements;
+  // failed immutable attempts may retain the earlier conservative skip decision
+  const mayRetainSkippedJudge = mustSkipJudge || actorResourceAssessment.failures.length > 0;
   let judge: IJudgeOutput | null = null;
   let judgeEvidence: IQualificationModelStageEvidence | null = null;
 
   if (options.trial.judgeStatus === 'completed') {
-    if (shouldSkipJudge) {
+    if (mustSkipJudge) {
       throw new Error(
         `Case ${options.caseId} trial ${options.trial.trialId} ran a judge after runner-owned failure.`,
       );
@@ -771,7 +772,7 @@ const assertCurrentTrialEvidence = async (options: {
     );
 
     if (
-      !shouldSkipJudge ||
+      !mayRetainSkippedJudge ||
       judgeSkipped.kind !==
         (!hasJudgeRequirements ? 'no-judge-requirements' : 'deterministic-failure') ||
       judgeSkipped.deterministicAfterPassed !== deterministicAfter.summary.passed ||

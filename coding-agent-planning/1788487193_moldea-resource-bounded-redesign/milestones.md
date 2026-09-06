@@ -17,83 +17,122 @@ The following milestones are complete, reviewed, and published. Their final stat
 11. Diagnosable and resource-bounded qualification execution.
 12. Semantic launcher accounting correction.
 13. Model-stage resource calibration and bounded ordinary output, published on `skill/new_skill` at signed commit `15db29d3c68a1c29b7d54c21411c04046ba5eafb`.
+14. Standalone cursor-continuation contract, published on `skill/new_skill` at signed commit `b70507e447f2b734081e3c3a119c82b1b1bda277`.
 
-The passing semantic attempt `20260905T205846870Z-semantic-34cce0aa`, failed Custom attempt `20260905T205956422Z-custom-custom-62bd2013`, and failed semantic attempt `20260905T221330286Z-semantic-629981ba` remain immutable diagnostic evidence. None is rewritten or relabeled.
+The passing semantic attempts `20260905T205846870Z-semantic-34cce0aa` and `20260905T225150354Z-semantic-8e357622`, failed Custom attempts `20260905T205956422Z-custom-custom-62bd2013` and `20260905T225312033Z-custom-custom-681c7376`, and failed semantic attempt `20260905T221330286Z-semantic-629981ba` remain immutable evidence. None is rewritten or relabeled. The exact-current semantic attempt is `20260905T225150354Z-semantic-8e357622`.
 
-## Milestone 14: Standalone cursor-continuation contract
-
-### Objective
-
-Make large-inventory pagination reliably produce one independently recognizable, bounded raw moldea envelope per page before any further paid evaluation.
-
-### Dependencies
-
-- Milestone 13 complete, reviewed, and published.
-- Failed semantic attempt `20260905T221330286Z-semantic-629981ba` preserved unchanged as the regression source.
-
-### Scope and implementation
-
-1. Update `moldea/SKILL.md` and the smallest directly affected tooling/context reference to show the exact continuation form: repeat the same standalone bundled-launcher operation with the immediately preceding opaque cursor appended as `--cursor <opaque-cursor>` and retain `--json --max-output-bytes 65536`.
-2. Require each page to remain one launcher process and one raw envelope. Explicitly prohibit pipelines, command substitutions, scripted loops, parsers, output filters, and aggregate wrappers for model-visible moldea evidence.
-3. Require a null final cursor before an agent may claim that a paged traversal or validation is complete. A failed, unrecognized, stale, or missing continuation must produce an explicitly incomplete conclusion.
-4. Add deterministic conformance and launcher/evidence tests that traverse multiple `validate` pages, pass the immediately preceding cursor, retain the fixed output boundary, project each envelope independently, and terminate only at a null cursor.
-5. Keep CLI 7/schema 4, paging implementation, semantic projection, qualification protocol, and all resource ceilings unchanged unless the deterministic reproduction proves a separate implementation defect. Such a defect returns through the authorized plan/challenge loop before scope changes.
-
-### Tests and verification
-
-- Focused conformance, launcher integration, and semantic execution-evidence tests for first, continuation, and final pages.
-- Existing root unit and integration suites, portable-skill validation, documentation checks, path checks, resource checks, release-identity checks, formatting, and semantic preflight.
-- Exact preservation checks for every existing semantic and qualification attempt.
-
-### Acceptance criteria
-
-- The portable contract contains one unambiguous standalone continuation command shape and the no-wrapper/no-premature-completeness rules.
-- A deterministic multi-page `validate` traversal emits only individually bounded raw schema-4 envelopes, and every launcher invocation is recognized exactly once without retained command or output bodies.
-- The final page is proven by a null cursor; incomplete or invalid continuation cannot become a complete conclusion.
-- No CLI/schema/resource limit changes or compatibility paths are introduced.
-
-### Review checkpoint
-
-Inspect the exact command grammar, cursor provenance, one-process/one-envelope attribution, output peak, null-cursor completion rule, deterministic regression depth, unchanged public contracts, and preserved failed evidence.
-
-## Milestone 15: Fresh semantic and adapter qualification evidence
+## Milestone 15: Qualification cumulative-overage judge gate
 
 ### Objective
 
-Generate complete fresh model evidence once against the final bounded skill, protocol-8 qualification identity, and registry-published package closure.
+Remove the qualification calibration deadlock without weakening final resource acceptance or spending another model call on output-unsafe, policy-unsafe, or deterministically invalid work.
 
 ### Dependencies
 
 - Milestone 14 complete, reviewed, and published.
-- Authenticated model evaluation and qualification hosts.
+- Failed Custom attempt `20260905T225312033Z-custom-custom-681c7376` preserved unchanged as the regression source.
 
 ### Scope and implementation
 
-1. Run semantic preflight and the complete recorded semantic suite because the portable skill digest changed. Preserve all previous passing and failed attempts as immutable evidence, and verify every attempt.
-2. Run universal Custom qualification once. Use its initial and naturally required confirmations as the only new model-stage calibration evidence; make no calibration-only paid call.
-3. Require silent abstention, exact relationship activation, dirty-project preservation, launcher accounting, policy-reason evidence, 65,536-byte command-output peaks, aggregate limits, standalone cursor continuation, and ordinary command/token budgets to pass before adapter work.
-4. If a semantically and deterministically accepted, output-bounded trial exceeds only its command or token operating profile, revise only that dimension through the authorized plan/challenge loop with at least 25 percent evidence-derived headroom and rerun only invalidated evidence.
-5. After Custom passes, run each of the thirteen adapter-specific profiles once. Universal cases must remain absent and the ownership matrix must remain exact.
-6. Verify exact-current semantic and protocol-8 qualification artifacts, immutable attempt integrity, package closure, privacy-safe resource evidence, website loading, and release provenance. Record the deterministic fresh release-evidence envelope only after every current target passes.
+1. In `qualification/src/execution/validations.ts`, represent actor operating-profile violations by stable resource dimension and preserve the existing human-readable failure contract from that typed result.
+2. In `qualification/src/execution/executor.ts`, allow judging only when the actor is inside absolute containment and its sole operating-profile violations are completed-host-command count, moldea-command count, or total model tokens. Preserve all current skip reasons for dry-run execution, deterministic/workspace/runner failures, observed prohibited command policy, missing judge requirements, maximum single-command output, aggregate model-visible output, and aggregate moldea output.
+3. Keep cumulative operating violations in the final trial failure set even when the judge passes. This milestone changes evidence collection eligibility, not resource acceptance.
+4. Add focused validation and executor tests proving that safe cumulative overages invoke the judge and remain failed, while output-volume, command-policy, deterministic, workspace, runner-owned, dry-run, and no-requirement failures skip it.
+5. Synchronize only directly affected qualification documentation and generated public contracts. Do not change active profile values, output limits, absolute containment, protocol 8, the portable skill, or exact-current semantic identity in this milestone.
 
 ### Tests and verification
 
-- Semantic preflight, full evaluation, and attempt verification, including activation, cursor continuation, command/output/token/duration budgets, confirmation state, and immutable storage.
-- Qualification dry run, Custom, thirteen adapter profiles, protocol-8 artifact validation, per-command and aggregate resource accounting, ownership coverage, source identity, package closure, privacy-safe reasons, and complete verification.
-- Website evidence loading/rendering and release-evidence recording/checking against the exact current identities.
+- Focused qualification validation unit tests and executor integration tests for every judge-gate class.
+- Complete qualification unit, integration, type, lint, format, documentation, artifact-schema, and dry-run checks.
+- Root checks invalidated by qualification contract changes, website loader/rendering checks if public result wording or types change, and exact preservation verification for every immutable attempt.
 
 ### Acceptance criteria
 
-- All 18 semantic cases pass, including large-context bounded evaluation with independently recognized pages and a null final cursor.
-- All Custom universal cases pass within calibrated profiles without oversized command output or unnecessary moldea work.
-- All thirteen adapters pass only their adapter-specific contracts and no calibration-only paid call occurs.
-- Fresh evidence is complete, immutable, protocol 8, exact-current, resource-valid, and bound to committed skill inputs plus registry packages.
+- A deterministically correct, policy-safe, output-bounded actor with only a cumulative command/token overage receives a semantic verdict and still fails the active profile.
+- Any output-volume overage or existing safety/correctness blocker skips judging exactly as before.
+- Judge eligibility is derived from stable typed resource dimensions rather than matching human-readable messages.
+- No resource value, evidence protocol, skill digest, or immutable attempt changes.
 
 ### Review checkpoint
 
-Inspect cost, clean/recovered outcomes, maximum and aggregate output, command/token headroom, cursor-page evidence, launcher use, policy reasons, universal/adapter ownership, exact input identity, reruns, and fresh provenance.
+Inspect the pre-judge classification boundary, unchanged final failure semantics, absence of string-matched policy, paid-call containment, test coverage for every blocker, public-contract stability, and preserved evidence.
 
-## Milestone 16: Clean skill release and final cross-repository audit
+## Milestone 16: Judged Custom calibration and profile publication
+
+### Objective
+
+Collect one semantically judged Custom observation through the corrected gate, calibrate only proven cumulative operating dimensions, and publish the resulting profile before asking Custom to pass under it.
+
+### Dependencies
+
+- Milestone 15 complete, reviewed, and published.
+- Exact-current passing semantic attempt `20260905T225150354Z-semantic-8e357622` remains valid because Milestone 15 changes qualification evaluation only.
+- Authenticated qualification actor and judge hosts.
+
+### Scope and implementation
+
+1. Run qualification preflight and Custom against the published Milestone 15 state. Reuse valid runner caches only when their complete identity matches; preserve every new attempt immutably.
+2. Accept a trial for calibration only when its judge, deterministic checks, workspace assertions, command-policy evidence, maximum command output, aggregate model-visible output, and aggregate moldea output all pass. The active cumulative overage remains a failed trial.
+3. Set each proven ordinary cumulative value to at least 25 percent above the largest accepted observation. Use 64 completed commands, 16 moldea calls, and 1,250,000 total tokens when the accepted maxima remain 47, 12, and 969,914; if a larger accepted observation appears, recompute only the affected value. Keep `largeTraversal` no lower for those dimensions without adding speculative headroom.
+4. Add a compact source-controlled model-stage observation artifact containing only attempt/case/trial identity, accepted deterministic/semantic status, aggregate resource counts, and token categories. Retain no commands, paths, prompts, output bodies, repository content, source, credentials, or hidden reasoning.
+5. Update resource-profile source, generated declarations/evidence, validation, qualification and website documentation/rendering, and focused tests that own the calibrated values and observation integrity. Keep the 65,536-byte single-command peak, aggregate output limits, every absolute ceiling, protocol 8, and the portable skill unchanged.
+6. Run deterministic verification, review the cohesive calibration change, and publish it before rerunning Custom for a passing release result.
+
+### Tests and verification
+
+- Observation-artifact schema, privacy, identity, determinism, tamper, and profile-headroom tests.
+- Exact-boundary and one-over tests for every changed cumulative value; unchanged boundary tests for single-command, aggregate-output, and absolute ceilings.
+- Complete qualification unit/integration/type/lint/format/docs/dry-run checks, affected root resource/release checks, website unit/artifact/E2E/build checks, portable-skill validation, and immutable-attempt verification.
+
+### Acceptance criteria
+
+- The calibration source is a judged, semantically accepted, deterministic, policy-safe, output-bounded Custom trial.
+- Every changed cumulative value has at least 25 percent headroom above the largest accepted observation and remains below its absolute ceiling.
+- No rejected output dump, semantically failed trial, or unjudged trial influences the active profile.
+- The committed observation is sufficient to reproduce the selected values without exposing model-visible or repository content.
+
+### Review checkpoint
+
+Inspect semantic eligibility, observation provenance and privacy, headroom arithmetic, ordinary/large ordering, unchanged output and absolute ceilings, public explanation, full regression evidence, and immutable attempt preservation.
+
+## Milestone 17: Fresh Custom, adapter, and release evidence
+
+### Objective
+
+Generate the complete exact-current protocol-8 qualification set and deterministic fresh release evidence against the published calibrated profile.
+
+### Dependencies
+
+- Milestone 16 complete, reviewed, and published.
+- Authenticated qualification hosts for Custom and all thirteen official adapter targets.
+
+### Scope and implementation
+
+1. Run preflight and universal Custom once against the published calibrated profile. Require every universal case to pass within its declared profile before running an adapter target.
+2. Run each of the thirteen adapter-specific profiles once after Custom passes. Universal cases remain absent and the ownership matrix remains exact.
+3. Diagnose any failure from bounded evidence. Fix a product defect only through the authorized plan/challenge/breakdown loop, preserve failed attempts, and rerun only evidence invalidated by that correction. Do not widen budgets to hide oversized output or incorrect work.
+4. Verify all retained semantic and qualification attempts, exact-current source/package closure, protocol-8 schema, privacy-safe policy evidence, resource acceptance, website loading/rendering, and universal/adapter ownership.
+5. Record the deterministic fresh `fixtures/release-evidence.json` envelope only after exact-current semantic, Custom, and all adapter targets pass. Validate release identity without releasing or tagging 5.0.0 yet.
+6. Review and publish the fresh evidence state as one cohesive checkpoint before final branch integration and release cleanup.
+
+### Tests and verification
+
+- Qualification preflight, Custom, thirteen adapter profiles, complete attempt verification, source/package identity, protocol-8 schema, resource profiles, command policy, and ownership coverage.
+- Exact-current semantic verification without a redundant semantic rerun unless a behavior-bearing input changes.
+- Release-evidence record/check, website unit/artifact/E2E/docs/type/lint/format/build, root release/resource/path/docs/test/type/lint/format checks, and portable-skill validation.
+
+### Acceptance criteria
+
+- Custom passes every universal case within the published calibrated profiles.
+- All thirteen adapters pass only their adapter-specific contracts.
+- Fresh semantic and qualification evidence is complete, immutable, exact-current, resource-valid, privacy-safe, and bound to committed skill inputs plus registry packages.
+- The fresh release envelope validates deterministically and no calibration-only paid call occurs.
+
+### Review checkpoint
+
+Inspect paid-call count, clean/recovered outcomes, command/token headroom, maximum and aggregate output, policy reasons, universal/adapter ownership, exact identities, rerun necessity, immutable history, website provenance, and release-envelope correctness.
+
+## Milestone 18: Clean skill release and final cross-repository audit
 
 ### Objective
 
@@ -101,7 +140,7 @@ Publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prov
 
 ### Dependencies
 
-- Milestone 15 passing fresh evidence or an explicitly selected valid pin under the implemented release-evidence contract.
+- Milestone 17 passing fresh evidence or an explicitly selected valid pin under the implemented release-evidence contract.
 - Authenticated skill main/release/site publication and hosted release-deletion capabilities where required.
 
 ### Scope and implementation
@@ -110,7 +149,7 @@ Publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prov
 2. Run release identity, evidence, website rendering, complete skill verification, and every package/platform/knowledge-base check invalidated by final evidence.
 3. Review and push final `new_skill`; refresh and review current `main`; integrate with signed metadata; push `main`; monitor release and site workflows; create and verify `v5.0.0`; and verify the installed skill/package closure.
 4. Record and delete exact local and remote `v4.0.0`, `v4.0.1`, and `v4.0.2` tags and matching hosted releases/assets where authenticated capability exists, without rewriting shared branches.
-5. Audit every active in-scope repository, website, knowledge-base article, specification, fixture contract, package/version declaration, and generated reference against all 40 observed problems and all plan acceptance criteria. Publish any cohesive correction through its owning review workflow before completion.
+5. Audit every active in-scope repository, website, knowledge-base article, specification, fixture contract, package/version declaration, and generated reference against all 41 observed problems and all plan acceptance criteria. Publish any cohesive correction through its owning review workflow before completion.
 
 ### Tests and verification
 
@@ -128,8 +167,8 @@ Publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prov
 
 ### Review checkpoint
 
-Inspect the complete release diff and unpublished history, final evidence identities, signatures, registry and site propagation, exact active version surface, cross-repository contradictions, obsolete-release deletion evidence, concurrent-work isolation, and all 40 original regression causes.
+Inspect the complete release diff and unpublished history, final evidence identities, signatures, registry and site propagation, exact active version surface, cross-repository contradictions, obsolete-release deletion evidence, concurrent-work isolation, and all 41 original regression causes.
 
 ## Execution scope
 
-Preserve completed Milestones 1 through 13 and every immutable evidence attempt. Implement, verify, review, sign, and publish the standalone raw-envelope cursor-continuation correction without raising resource limits or changing CLI/schema contracts. Then generate and verify one fresh semantic suite, one Custom qualification, and thirteen adapter-specific qualifications, recording fresh release evidence only after all exact-current gates pass. Finally publish the clean skill 5.0.0 release, remove authorized obsolete 4.0.x release surfaces, and complete the cross-repository contradiction and deployment audit. Re-plan autonomously only when new evidence proves a material defect or invalidates the remaining sequence; never hide partial work, weaken completeness, absorb unrelated changes, or modify protected instructions.
+Preserve completed Milestones 1 through 14 and every immutable evidence attempt. Implement, verify, review, sign, and publish the cumulative-overage judge gate without changing resource values or weakening final acceptance. Then use one semantically accepted, deterministic, policy-safe, output-bounded Custom observation to calibrate only completed-command, moldea-call, and token totals with at least 25 percent headroom; commit only privacy-safe aggregate observations; keep all output and absolute ceilings unchanged; and publish the profile. Run and verify one passing Custom profile and thirteen adapter-specific profiles, then record and publish fresh exact-current release evidence. Finally publish the clean skill 5.0.0 release, remove authorized obsolete 4.0.x release surfaces, and complete the cross-repository contradiction and deployment audit. Re-plan autonomously only when new evidence proves a material defect or invalidates the remaining sequence; never hide partial work, weaken completeness, absorb unrelated changes, or modify protected instructions.

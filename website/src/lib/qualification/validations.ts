@@ -23,15 +23,37 @@ const OFFICIAL_EGRESS_HOSTS = ['api.openai.com', 'auth.openai.com', 'chatgpt.com
 const TRIAL_IDS = ['initial', 'confirmation-1', 'confirmation-2'] as const;
 // minimal recorded case contract required to revalidate an immutable attempt
 type IQualificationRecordedCaseContract = Pick<IQualificationProfileCaseModel, 'id' | 'scenario'>;
+type IQualificationResourceDimension =
+  | 'completed-host-commands'
+  | 'maximum-command-output-bytes'
+  | 'model-visible-tool-output-bytes'
+  | 'moldea-commands'
+  | 'moldea-output-bytes'
+  | 'total-model-tokens';
+type IQualificationResourceViolation = {
+  dimension: IQualificationResourceDimension;
+  kind: 'exceeded' | 'unavailable';
+  limit: number;
+  observed: number | null;
+};
+const JUDGE_BLOCKING_RESOURCE_DIMENSIONS = new Set<IQualificationResourceDimension>([
+  'maximum-command-output-bytes',
+  'model-visible-tool-output-bytes',
+  'moldea-output-bytes',
+]);
 
-const deriveResourceFailures = (options: {
+const inspectResourceUsage = (options: {
   commandPolicy: IQualificationModelStageEvidence['commandPolicy'];
   role: 'Actor' | 'Judge';
   scenario: IQualificationRecordedCaseContract['scenario'];
   usage: IQualificationModelStageEvidence['usage'];
-}): string[] => {
+}): { failures: string[]; hasJudgeBlocker: boolean } => {
   const profile = MOLDEA_SKILL_RESOURCE_PROFILES[options.scenario.resourceProfile];
-  const observations = [
+  const observations: Array<{
+    dimension: IQualificationResourceDimension;
+    limit: number;
+    observed: number;
+  }> = [
     {
       dimension: 'completed-host-commands',
       observed: options.commandPolicy.completedCommandCount,
@@ -58,29 +80,41 @@ const deriveResourceFailures = (options: {
       limit: profile.maxModelVisibleToolOutputBytes,
     },
   ];
-  const failures = observations.flatMap(({ dimension, observed, limit }) =>
-    observed > limit
-      ? [
-          `${options.role} resource profile ${options.scenario.resourceProfile} exceeded ${dimension}: observed ${observed}, limit ${limit}.`,
-        ]
-      : [],
+  const violations: IQualificationResourceViolation[] = observations.flatMap(
+    ({ dimension, observed, limit }) =>
+      observed > limit ? [{ dimension, kind: 'exceeded', limit, observed }] : [],
   );
 
   if (options.usage === null) {
-    failures.push(
-      `${options.role} resource profile ${options.scenario.resourceProfile} could not establish total-model-tokens: observed unavailable, limit ${profile.maxHostTokenCount}.`,
-    );
-    return failures;
+    violations.push({
+      dimension: 'total-model-tokens',
+      kind: 'unavailable',
+      limit: profile.maxHostTokenCount,
+      observed: null,
+    });
+  } else {
+    const totalModelTokens = options.usage.inputTokens + options.usage.outputTokens;
+    if (totalModelTokens > profile.maxHostTokenCount) {
+      violations.push({
+        dimension: 'total-model-tokens',
+        kind: 'exceeded',
+        limit: profile.maxHostTokenCount,
+        observed: totalModelTokens,
+      });
+    }
   }
 
-  const totalModelTokens = options.usage.inputTokens + options.usage.outputTokens;
-  if (totalModelTokens > profile.maxHostTokenCount) {
-    failures.push(
-      `${options.role} resource profile ${options.scenario.resourceProfile} exceeded total-model-tokens: observed ${totalModelTokens}, limit ${profile.maxHostTokenCount}.`,
-    );
-  }
-
-  return failures;
+  return {
+    failures: violations.map(({ dimension, kind, limit, observed }) =>
+      kind === 'unavailable'
+        ? `${options.role} resource profile ${options.scenario.resourceProfile} could not establish ${dimension}: observed unavailable, limit ${limit}.`
+        : `${options.role} resource profile ${options.scenario.resourceProfile} exceeded ${dimension}: observed ${observed}, limit ${limit}.`,
+    ),
+    hasJudgeBlocker: violations.some(
+      ({ dimension, kind }) =>
+        kind === 'unavailable' || JUDGE_BLOCKING_RESOURCE_DIMENSIONS.has(dimension),
+    ),
+  };
 };
 
 const createExpectedCurrentStageIds = (caseIds: readonly string[]): string[] => [
@@ -290,20 +324,20 @@ const deriveCurrentTrialFailures = (options: {
       ]),
   ...(options.actorCommandPolicy === null
     ? []
-    : deriveResourceFailures({
+    : inspectResourceUsage({
         commandPolicy: options.actorCommandPolicy,
         role: 'Actor',
         scenario: options.profileCase.scenario,
         usage: options.actorUsage,
-      })),
+      }).failures),
   ...(options.judgeCommandPolicy === null
     ? []
-    : deriveResourceFailures({
+    : inspectResourceUsage({
         commandPolicy: options.judgeCommandPolicy,
         role: 'Judge',
         scenario: options.profileCase.scenario,
         usage: options.judgeUsage,
-      })),
+      }).failures),
   ...options.deterministicAfter.failures,
   ...options.workspaceAssertions.failures,
   ...options.requirementAssessments
@@ -382,27 +416,35 @@ export const assertQualificationCaseEvidence = (options: {
   const hasFailedActorCommandPolicy =
     options.actorCommandPolicy === null ||
     !hasPassingCodexEvaluationCommandPolicy(options.actorCommandPolicy);
-  const hasFailedActorResourceProfile =
-    options.actorCommandPolicy !== null &&
-    deriveResourceFailures({
-      commandPolicy: options.actorCommandPolicy,
-      role: 'Actor',
-      scenario: profileCase.scenario,
-      usage: result.actorUsage,
-    }).length > 0;
-  const shouldSkipCurrentJudge =
+  const actorResourceAssessment =
+    options.actorCommandPolicy === null
+      ? null
+      : inspectResourceUsage({
+          commandPolicy: options.actorCommandPolicy,
+          role: 'Actor',
+          scenario: profileCase.scenario,
+          usage: result.actorUsage,
+        });
+  const mustSkipCurrentJudge =
     !deterministicAfter.passed ||
     !options.workspaceAssertions.passed ||
     hasFailedRunnerRequirement ||
     hasFailedActorCommandPolicy ||
-    hasFailedActorResourceProfile ||
+    (actorResourceAssessment?.hasJudgeBlocker ?? false) ||
     !hasJudgeRequirements;
+  // failed immutable attempts may retain the earlier conservative skip decision
+  const mayRetainSkippedCurrentJudge =
+    mustSkipCurrentJudge || (actorResourceAssessment?.failures.length ?? 0) > 0;
+
+  if (result.judgeStatus === 'completed' && mustSkipCurrentJudge) {
+    throw new Error(`Qualification case ${caseId} ran a judge after runner-owned failure.`);
+  }
 
   if (
     result.judgeStatus === 'skipped' &&
     (options.judgeSkipped?.deterministicAfterPassed !== deterministicAfter.passed ||
       options.judgeSkipped.workspaceAssertionsPassed !== options.workspaceAssertions.passed ||
-      !shouldSkipCurrentJudge ||
+      !mayRetainSkippedCurrentJudge ||
       options.judgeSkipped.kind !==
         (!hasJudgeRequirements ? 'no-judge-requirements' : 'deterministic-failure'))
   ) {

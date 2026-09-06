@@ -1,0 +1,83 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": false,
+  "durationMs": 614652,
+  "deterministicBeforePath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/preserve-cloudflare-ai-chat-static-boundary/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 711071,
+    "cachedInputTokens": 652672,
+    "outputTokens": 7345
+  },
+  "judgeUsage": {
+    "inputTokens": 167907,
+    "cachedInputTokens": 142336,
+    "outputTokens": 2757
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T09:34:54.431Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T09:36:26.065Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "preserves-open-tool-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml registers SupportAgent at /src/support-agent.ts and loadSupportInstruction at /src/instructions.ts, while open-request-tools records createRuntimeTools as unresolved. The source confirms runtime-spread tools in the direct streamText request. Deterministic validation passed."
+    },
+    {
+      "id": "preserves-prepare-step-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "step-support registers only the cloudflare-agents runtime and StepSupportAgent binding. No instructionLoader is declared. /src/step-support-agent.ts confirms prepareStep can supply replacement instructions. Deterministic validation passed."
+    },
+    {
+      "id": "does-not-infer-subagent-handoff",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "delegating-support preserves delegate_support's implementation, registration, input schema, and output schema bindings. No handoff or routing target is declared. The source shows an ordinary AI SDK function tool whose implementation merely references StepSupportAgent."
+    },
+    {
+      "id": "preserves-unsupported-generation-boundaries",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "/src/indirect-agent.ts and /src/unsupported-output-agent.ts remain present, while moldea/moldea.yaml registers neither class and declares no runtime or object-schema relationship for them. Workspace assertions show both source files unchanged."
+    },
+    {
+      "id": "keeps-initialized-class-outside-target",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "/src/workflow-agent.mts still defines RuntimeInitializedAgent with an executable initializedAt field, but the manifest does not register it. Workspace assertions show the source unchanged."
+    },
+    {
+      "id": "records-focused-guidance",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "support and step-support both reference runtime id cloudflare-agents, and moldea/runtimes/cloudflare-agents.md is the sole runtime Markdown file. It covers static-boundary alternatives, Durable Object bindings, append-only new_sqlite_classes migrations, provider configuration, and coordinated Worker deployment responsibilities."
+    },
+    {
+      "id": "records-unresolved-boundaries",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "moldea/moldea.yaml contains only support.unresolved.open-request-tools, with /src/support-agent.ts and a resolution. step-support has no unresolved entry for prepareStep instruction replacement. The runtime guide mentions prepareStep but does not name /src/step-support-agent.ts or provide a focused resolution. The workspace patch changed only the manifest and runtime guide, so no other changed canonical file supplies the missing warning."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": [
+    "Requirement records-unresolved-boundaries failed: moldea/moldea.yaml contains only support.unresolved.open-request-tools, with /src/support-agent.ts and a resolution. step-support has no unresolved entry for prepareStep instruction replacement. The runtime guide mentions prepareStep but does not name /src/step-support-agent.ts or provide a focused resolution. The workspace patch changed only the manifest and runtime guide, so no other changed canonical file supplies the missing warning.",
+    "Add a focused step-support unresolved warning that identifies prepareStep instruction replacement, names /src/step-support-agent.ts, and states what evidence or static alternative would resolve it, without declaring an instructionLoader binding."
+  ]
+}

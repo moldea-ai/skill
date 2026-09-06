@@ -1,0 +1,66 @@
+{
+  "caseId": "repair-cloudflare-ai-chat-output-schema",
+  "title": "Repair Cloudflare AIChatAgent output schema",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 192851,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 192851,
+      "deterministicBeforePath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 311266,
+        "cachedInputTokens": 283520,
+        "outputTokens": 3193
+      },
+      "judgeUsage": {
+        "inputTokens": 143765,
+        "cachedInputTokens": 120064,
+        "outputTokens": 2315
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T09:24:46.621Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T09:26:11.409Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-output-schema-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor report identifies the initial CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED diagnostic: canonical state referenced LegacySupportOutputSchema while src/agent.ts directly uses Output.object({ schema: SupportOutputSchema }). Current source confirms that direct request, and deterministic post-actor validation is valid."
+        },
+        {
+          "id": "repairs-output-schema-binding",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml now binds agents.support.bindings.outputSchema to /src/contracts.ts symbol SupportOutputSchema. src/contracts.ts defines that symbol, src/agent.ts consumes it directly, deterministic validation passed, and workspace assertions identify moldea/moldea.yaml as the sole changed path."
+        },
+        {
+          "id": "preserves-binding-closure",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current files preserve the exact closure: SupportAgent and loadSupportInstruction in src/agent.ts; SupportOutputSchema, LookupOrderInputSchema, and LookupOrderOutputSchema in src/contracts.ts; lookupOrderTool registration in src/tools.ts; and lookupOrder implementation in src/implementations.ts. The manifest declares no agent inputSchema, while retaining the tool input/output schemas. All non-manifest assertion hashes are unchanged, deterministic validation is valid, and typechecking passed."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Updated canonical state to preserve proven Cloudflare AIChatAgent relationships while recording SupportAgent's runtime-selected tools as unresolved. Added a concise runtime guide covering static boundaries and Cloudflare deployment responsibilities. Source files were unchanged. Final moldea validation, TypeScript checking, and Git diff checks passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ],
+  "observations": [
+    "SupportAgent retains its runtime-agent and instruction-loader bindings.",
+    "StepSupportAgent retains only its proven runtime-agent binding.",
+    "DelegatingSupportAgent retains all existing tool relationships without a handoff or routing target.",
+    "IndirectSupportAgent, UnsupportedOutputAgent, and RuntimeInitializedAgent remain unregistered.",
+    "The runtime guide records Durable Object bindings, SQLite new_sqlite_classes migrations, provider configuration, and coordinated Worker deployment responsibilities."
+  ],
+  "unresolved": [
+    "Static inspection cannot enumerate the tools returned by createRuntimeTools and spread into SupportAgent's direct generation request."
+  ]
+}

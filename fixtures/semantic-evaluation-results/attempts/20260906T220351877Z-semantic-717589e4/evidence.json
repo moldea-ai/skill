@@ -1,0 +1,592 @@
+{
+  "activeTrial": null,
+  "artifactDigest": "0b734b2ff28e33171cd796d26915886b354c1ccdf32faeb2806242d461cb7c9b",
+  "caseSuiteDigest": "30a51aeefa2c459a2c0ad4bc4d27f84cd5dcdddcda1dec42d1ff856d1618f677",
+  "cli": {
+    "integrity": "sha512-BMXqRGuOy8OKfoiJzn8qjr68xSUKPW71V8dgoNi+fioZm+fR9fnoKsjRLs89pUn2UkjAjMLCp3cCcyAThXUJ+Q==",
+    "jsonSchemaVersion": 4,
+    "name": "@moldea.ai/cli",
+    "packageLockSha256": "e9a3d3ee1a1db300453d9d8050084ec89c4195fd0a73624a5fc7e77a3bc2d858",
+    "version": "7.0.1"
+  },
+  "confirmations": [
+    {
+      "actorHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.153.4"
+      },
+      "actorCommandPolicyEvidence": {
+        "completedCommandCount": 3
+      },
+      "actorResponse": "No files were changed.",
+      "actorUsage": {
+        "inputTokens": 66174,
+        "cachedInputTokens": 55680,
+        "outputTokens": 567
+      },
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "commandKind": "other",
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 18070,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "commandKind": "other",
+            "exitCode": 2,
+            "outputEvidence": {
+              "byteCount": 62,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "failed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "commandKind": "other",
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 2,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "actorResourceEvidence": {
+        "commandCount": 0,
+        "maximumInvocationByteCount": 0,
+        "modelVisibleToolOutputByteCount": 0,
+        "operations": [],
+        "stdoutByteCount": 0
+      },
+      "readOnlyMountControlEvidence": [],
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "724dd8684d8c78d59fd75b3cf3379670948d08a64b579687274703e6fe5e12a5",
+          "head": {
+            "commit": "df11440189c36bf1170c15d8598a83161397efd9",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "a1ff63ec0226e9f7b9bae6f8672c53b598a3ad857fe374b2723f08a3f84d429b",
+          "installedSkillDigest": "65aa7cf22ef0dab7e6c1aa83d67c7099efb25dd3142c6e802f0b4046c0aba85f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "df11440189c36bf1170c15d8598a83161397efd9"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "724dd8684d8c78d59fd75b3cf3379670948d08a64b579687274703e6fe5e12a5",
+          "head": {
+            "commit": "df11440189c36bf1170c15d8598a83161397efd9",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "a1ff63ec0226e9f7b9bae6f8672c53b598a3ad857fe374b2723f08a3f84d429b",
+          "installedSkillDigest": "65aa7cf22ef0dab7e6c1aa83d67c7099efb25dd3142c6e802f0b4046c0aba85f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "df11440189c36bf1170c15d8598a83161397efd9"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The canonical moldea manifest is absent.",
+          "observation": {
+            "path": "moldea/moldea.yaml",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/moldea.yaml",
+            "expectedType": "missing"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseId": "preinit-explicit-validation",
+      "forbidden": [],
+      "id": "preinit-explicit-validation",
+      "judgeHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.153.4"
+      },
+      "judgeUsage": {
+        "inputTokens": 15287,
+        "cachedInputTokens": 10624,
+        "outputTokens": 150
+      },
+      "observed": [
+        "silent-preinit-abstention"
+      ],
+      "passed": true,
+      "rationale": "The actor made no moldea mention, performed no recognized moldea operations, and changed no files; the absent canonical manifest remained absent. The unrelated command evidence has no recognized result facts demonstrating implicit adoption.",
+      "caseDefinitionDigest": "1d6243e228716d2adb3e7d72d4bf9acfccaf98eebf682ffa01127808c73e4e1a",
+      "evaluatedAt": "2026-09-06T22:03:22.749Z",
+      "executionOrigin": "executed",
+      "operationalRetries": {
+        "actorFailureCount": 0,
+        "judgeFailureCount": 0,
+        "lastFailure": null
+      },
+      "stageReuse": null,
+      "confirmationIndex": 1
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.153.4"
+      },
+      "actorCommandPolicyEvidence": {
+        "completedCommandCount": 2
+      },
+      "actorResponse": "No validation result is available for this repository. No files were changed.",
+      "actorUsage": {
+        "inputTokens": 48550,
+        "cachedInputTokens": 33152,
+        "outputTokens": 403
+      },
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "commandKind": "other",
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 18070,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "commandKind": "other",
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 2,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "actorResourceEvidence": {
+        "commandCount": 0,
+        "maximumInvocationByteCount": 0,
+        "modelVisibleToolOutputByteCount": 0,
+        "operations": [],
+        "stdoutByteCount": 0
+      },
+      "readOnlyMountControlEvidence": [],
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "259842b2e459bb032c59bda904e38b5a7594fd063c61d3da4c8e1563425b9e56",
+          "head": {
+            "commit": "8298639b04a4836e5a25f7ceb2c684cbec9a99b4",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "a1ff63ec0226e9f7b9bae6f8672c53b598a3ad857fe374b2723f08a3f84d429b",
+          "installedSkillDigest": "65aa7cf22ef0dab7e6c1aa83d67c7099efb25dd3142c6e802f0b4046c0aba85f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "8298639b04a4836e5a25f7ceb2c684cbec9a99b4"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "259842b2e459bb032c59bda904e38b5a7594fd063c61d3da4c8e1563425b9e56",
+          "head": {
+            "commit": "8298639b04a4836e5a25f7ceb2c684cbec9a99b4",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "a1ff63ec0226e9f7b9bae6f8672c53b598a3ad857fe374b2723f08a3f84d429b",
+          "installedSkillDigest": "65aa7cf22ef0dab7e6c1aa83d67c7099efb25dd3142c6e802f0b4046c0aba85f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "8298639b04a4836e5a25f7ceb2c684cbec9a99b4"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The canonical moldea manifest is absent.",
+          "observation": {
+            "path": "moldea/moldea.yaml",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/moldea.yaml",
+            "expectedType": "missing"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseId": "preinit-explicit-validation",
+      "forbidden": [
+        "implicit-adoption"
+      ],
+      "id": "preinit-explicit-validation",
+      "judgeHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.153.4"
+      },
+      "judgeUsage": {
+        "inputTokens": 15239,
+        "cachedInputTokens": 10624,
+        "outputTokens": 179
+      },
+      "observed": [],
+      "passed": false,
+      "rationale": "The actor made no repository changes and executed no recognized moldea operation, but its final response reported moldea validation status (“No validation result is available”), violating the required silent abstention and satisfying the forbidden status-reporting clause.",
+      "caseDefinitionDigest": "1d6243e228716d2adb3e7d72d4bf9acfccaf98eebf682ffa01127808c73e4e1a",
+      "evaluatedAt": "2026-09-06T22:03:51.877Z",
+      "executionOrigin": "executed",
+      "operationalRetries": {
+        "actorFailureCount": 0,
+        "judgeFailureCount": 0,
+        "lastFailure": null
+      },
+      "stageReuse": null,
+      "confirmationIndex": 2
+    }
+  ],
+  "coverageDigest": "ae5cdec8eafccebf1de8488028050130ed0d4d2f768bfd0f6700dd0c7a370e4b",
+  "evaluationProtocolVersion": 23,
+  "generatedAt": "2026-09-06T22:00:40.176Z",
+  "hostContract": {
+    "model": "gpt-5.6-sol",
+    "name": "codex",
+    "reasoningEffort": "medium"
+  },
+  "results": [
+    {
+      "actorHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.153.4"
+      },
+      "actorCommandPolicyEvidence": {
+        "completedCommandCount": 1
+      },
+      "actorResponse": "`moldea` is a system for maintaining durable, Git-owned project context and agent definitions. It helps coding agents consistently understand a repository over time without taking control of ordinary engineering work.\n\nInitialize it when:\n\n- You explicitly want the repository to adopt `moldea`.\n- The project’s purpose and who/what it serves are clear enough to document accurately.\n- You want durable context or agent-system knowledge versioned alongside the code.\n\nInitialization creates the adoption foundation:\n\n- `/moldea/moldea.yaml`\n- `/moldea/project.md`\n- A managed awareness block in `README.md`\n\nDon’t initialize it merely because the skill is installed, or for routine coding tasks that do not need durable project context. Initialization should be an intentional, one-time repository adoption step.",
+      "actorUsage": {
+        "inputTokens": 31103,
+        "cachedInputTokens": 27136,
+        "outputTokens": 398
+      },
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "commandKind": "other",
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 18070,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "actorResourceEvidence": {
+        "commandCount": 0,
+        "maximumInvocationByteCount": 0,
+        "modelVisibleToolOutputByteCount": 0,
+        "operations": [],
+        "stdoutByteCount": 0
+      },
+      "readOnlyMountControlEvidence": [],
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "0ab726ce6067fb97ae6bc537201bf748fcd4777169593e36b3bf676d0b499267",
+          "head": {
+            "commit": "6c53fd7aa54abfc081d8afe9d40ddded156006da",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "a1ff63ec0226e9f7b9bae6f8672c53b598a3ad857fe374b2723f08a3f84d429b",
+          "installedSkillDigest": "65aa7cf22ef0dab7e6c1aa83d67c7099efb25dd3142c6e802f0b4046c0aba85f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "6c53fd7aa54abfc081d8afe9d40ddded156006da"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "0ab726ce6067fb97ae6bc537201bf748fcd4777169593e36b3bf676d0b499267",
+          "head": {
+            "commit": "6c53fd7aa54abfc081d8afe9d40ddded156006da",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "a1ff63ec0226e9f7b9bae6f8672c53b598a3ad857fe374b2723f08a3f84d429b",
+          "installedSkillDigest": "65aa7cf22ef0dab7e6c1aa83d67c7099efb25dd3142c6e802f0b4046c0aba85f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "6c53fd7aa54abfc081d8afe9d40ddded156006da"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The request asks for product information rather than repository inspection or mutation.",
+          "observation": {
+            "content": "What is moldea, and when should I initialize it?",
+            "type": "developer-direction"
+          },
+          "source": {
+            "kind": "developer-direction"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseId": "preinit-information",
+      "forbidden": [],
+      "id": "preinit-information",
+      "judgeHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.153.4"
+      },
+      "judgeUsage": {
+        "inputTokens": 15274,
+        "cachedInputTokens": 10624,
+        "outputTokens": 727
+      },
+      "observed": [
+        "concise-information-only"
+      ],
+      "passed": true,
+      "rationale": "The response concisely explains moldea and when initialization is appropriate without claiming repository-dependent work. No moldea operations or workspace changes occurred, and the unrecognized non-moldea command evidence does not establish repository inspection, reference loading, or package-command execution.",
+      "caseDefinitionDigest": "b634ba6609e5174fd6a0c83b75ca92c33b76b09a79e40af12183639cc87ccae4",
+      "evaluatedAt": "2026-09-06T22:01:52.052Z",
+      "executionOrigin": "executed",
+      "operationalRetries": {
+        "actorFailureCount": 0,
+        "judgeFailureCount": 0,
+        "lastFailure": null
+      },
+      "stageReuse": null
+    },
+    {
+      "actorHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.153.4"
+      },
+      "actorCommandPolicyEvidence": {
+        "completedCommandCount": 3
+      },
+      "actorResponse": "I couldn’t perform the requested validation. No files were changed.",
+      "actorUsage": {
+        "inputTokens": 66133,
+        "cachedInputTokens": 58624,
+        "outputTokens": 549
+      },
+      "actorExecutionEvidence": [
+        {
+          "eventType": "item.completed",
+          "item": {
+            "commandKind": "other",
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 18070,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "commandKind": "other",
+            "exitCode": 2,
+            "outputEvidence": {
+              "byteCount": 62,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "failed",
+            "type": "command_execution"
+          }
+        },
+        {
+          "eventType": "item.completed",
+          "item": {
+            "commandKind": "other",
+            "exitCode": 0,
+            "outputEvidence": {
+              "byteCount": 2,
+              "disposition": "unrecognized",
+              "facts": []
+            },
+            "status": "completed",
+            "type": "command_execution"
+          }
+        }
+      ],
+      "actorResourceEvidence": {
+        "commandCount": 0,
+        "maximumInvocationByteCount": 0,
+        "modelVisibleToolOutputByteCount": 0,
+        "operations": [],
+        "stdoutByteCount": 0
+      },
+      "readOnlyMountControlEvidence": [],
+      "repositoryControlEvidence": {
+        "after": {
+          "gitDigest": "a18330d141ebfbf658162574fb023d51b667b4919887e239522feebb74e8e99b",
+          "head": {
+            "commit": "d479d51c6afd1d9d80111fc93465716a099d0a78",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "a1ff63ec0226e9f7b9bae6f8672c53b598a3ad857fe374b2723f08a3f84d429b",
+          "installedSkillDigest": "65aa7cf22ef0dab7e6c1aa83d67c7099efb25dd3142c6e802f0b4046c0aba85f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "d479d51c6afd1d9d80111fc93465716a099d0a78"
+            }
+          ]
+        },
+        "before": {
+          "gitDigest": "a18330d141ebfbf658162574fb023d51b667b4919887e239522feebb74e8e99b",
+          "head": {
+            "commit": "d479d51c6afd1d9d80111fc93465716a099d0a78",
+            "symbolicRef": "refs/heads/main"
+          },
+          "indexDigest": "a1ff63ec0226e9f7b9bae6f8672c53b598a3ad857fe374b2723f08a3f84d429b",
+          "installedSkillDigest": "65aa7cf22ef0dab7e6c1aa83d67c7099efb25dd3142c6e802f0b4046c0aba85f",
+          "localConfigDigest": "cfe7ba1238c9a78be7535d7c63bcaf5a4d5011d46b07c9b45d3bbf7d6c312dfe",
+          "refs": [
+            {
+              "name": "refs/heads/main",
+              "oid": "d479d51c6afd1d9d80111fc93465716a099d0a78"
+            }
+          ]
+        },
+        "violations": []
+      },
+      "scenarioEvidence": [
+        {
+          "claim": "The canonical moldea manifest is absent.",
+          "observation": {
+            "path": "moldea/moldea.yaml",
+            "type": "missing"
+          },
+          "source": {
+            "kind": "workspace-path",
+            "path": "moldea/moldea.yaml",
+            "expectedType": "missing"
+          }
+        }
+      ],
+      "skillArtifactEvidence": [],
+      "workspaceChanges": {
+        "created": [],
+        "deleted": [],
+        "modified": []
+      },
+      "caseId": "preinit-explicit-validation",
+      "forbidden": [
+        "implicit-adoption"
+      ],
+      "id": "preinit-explicit-validation",
+      "judgeHost": {
+        "model": "gpt-5.6-sol",
+        "name": "codex",
+        "reasoningEffort": "medium",
+        "version": "codex-cli 0.153.4"
+      },
+      "judgeUsage": {
+        "inputTokens": 15299,
+        "cachedInputTokens": 10624,
+        "outputTokens": 190
+      },
+      "observed": [],
+      "passed": false,
+      "rationale": "The actor made no repository changes and executed no recognized moldea operations, but its final response reported that the requested moldea validation could not be performed. That final-report mention violates silent abstention and demonstrates the forbidden reporting of moldea status.",
+      "caseDefinitionDigest": "1d6243e228716d2adb3e7d72d4bf9acfccaf98eebf682ffa01127808c73e4e1a",
+      "evaluatedAt": "2026-09-06T22:02:45.661Z",
+      "executionOrigin": "executed",
+      "operationalRetries": {
+        "actorFailureCount": 0,
+        "judgeFailureCount": 0,
+        "lastFailure": null
+      },
+      "stageReuse": null
+    }
+  ],
+  "schemaVersion": 7,
+  "updatedAt": "2026-09-06T22:03:51.877Z"
+}

@@ -298,7 +298,18 @@ describe('portable skill contract', () => {
     assert.match(frontmatter.description, /two-byte relevance gate/u);
     assert.match(frontmatter.description, /A gate miss abstains silently/u);
     assert.doesNotMatch(frontmatter.description, /potentially durable knowledge|Use first/iu);
-    assert.match(readSkill(), /Always spell the human-facing product name `moldea`/u);
+    const skill = readSkill();
+    assert.match(skill, /Always spell the human-facing product name `moldea`/u);
+    assert.match(
+      skill,
+      /When that abstention consumes the complete request and no independent host-owned work remains/u,
+    );
+    assert.match(skill, /reply only with a neutral repository outcome/u);
+    assert.match(skill, /`No files were changed\.`/u);
+    assert.match(
+      skill,
+      /Do not name moldea, describe the unavailable operation or result, or recommend initialization/u,
+    );
   });
 
   test('keeps progressive disclosure bounded to one owning reference', () => {

@@ -28,6 +28,8 @@ For every repository-dependent request that is not information, initialization, 
 
 Before adoption, every repository-dependent request other than explicit initialization abstains silently, including explicit validation, canonical-looking paths, host commands, and repositories whose names or partial files resemble moldea. Do not load a reference, run a moldea or package command, recommend initialization, change files, or mention moldea in progress or final reporting.
 
+When that abstention consumes the complete request and no independent host-owned work remains, reply only with a neutral repository outcome such as `No files were changed.` Do not name moldea, describe the unavailable operation or result, or recommend initialization.
+
 ## Choose one repository gate
 
 Classify the task from the developer request and the path or hunk evidence already established by the host:

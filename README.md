@@ -72,7 +72,7 @@ Tooling establishment belongs only to write-capable `moldea` work. Read-only eva
 The entrypoint decides relevance before loading references or running the CLI:
 
 1. Answer a non-repository informational question concisely without inspection.
-2. Before initialization, continue moldea only for an explicit initialization request. Every other host-owned repository task continues normally while moldea abstains silently.
+2. Before initialization, continue moldea only for an explicit initialization request. Every other host-owned repository task continues normally while moldea abstains silently. If no independent host task remains, report only a neutral repository outcome such as `No files were changed.` without naming moldea, describing an unavailable operation or result, or recommending initialization.
 3. After initialization, activate directly for an explicit repository-dependent moldea request, a changed `/moldea/**` path, or a changed hunk inside the full-line managed README markers.
 4. The managed README block tells repository-aware hosts to select this entrypoint for every repository task. For every other known task-path set, run the skill's deterministic two-byte relevance gate. It invokes repository-local Core directly and returns only `0` or `1`.
 5. Only after `1`, run one bounded launcher-backed CLI relationship query to identify the matching canonical owners. Otherwise continue the host-owned task normally with no moldea CLI command, reference load, progress update, or final-report mention.

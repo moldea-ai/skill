@@ -22,6 +22,8 @@ Insufficient and partial foundations stop before every dependency, `/moldea/**`,
 
 Do not use successful structural validation to justify placeholder truth. Validation proves that files satisfy the repository format; it does not prove that their claims are meaningful or evidence-backed.
 
+After a sufficient foundation validates, report the project as adopted and map the project-owned evidence to the foundation it established. Identify the changed foundation files, validation status, and material diagnostics, including their absence. Offer only directly useful next actions, and do not suggest agent creation without a separate goal that requires one.
+
 When repository evidence establishes no manifest relationship, the complete manifest is exactly:
 
 ```yaml

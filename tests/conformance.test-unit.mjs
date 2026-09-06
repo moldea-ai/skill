@@ -359,6 +359,12 @@ describe('portable skill contract', () => {
     assert.match(skill, /Structural validation proves format, not the truth or sufficiency/u);
     assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
     assert.match(skill, /run `validate` at most once more/u);
+    assert.match(skill, /name the project-owned evidence that established the foundation/u);
+    assert.match(skill, /offer only directly useful next actions/u);
+    assert.match(
+      skill,
+      /Do not steer the developer toward agent creation without a separate goal/u,
+    );
     assert.match(skill, /Read exact task-owned files first/u);
     assert.match(skill, /Every recursive search or listing must exclude VCS internals/u);
     assert.match(skill, /Never dump a complete lockfile, dependency inventory, generated tree/u);
@@ -404,6 +410,9 @@ describe('portable skill contract', () => {
     );
     assert.match(maintenance, /Do not store developer-answerable ambiguity/u);
     assert.match(maintenance, /Validation proves that files satisfy the repository format/u);
+    assert.match(maintenance, /map the project-owned evidence to the foundation it established/u);
+    assert.match(maintenance, /Offer only directly useful next actions/u);
+    assert.match(maintenance, /do not suggest agent creation without a separate goal/u);
     assert.match(maintenance, /The file ends with one LF/u);
     assert.match(maintenance, /Do not add a project name, schema field, metadata/u);
     assert.match(maintenance, /stop without `inspect` or another moldea command/u);

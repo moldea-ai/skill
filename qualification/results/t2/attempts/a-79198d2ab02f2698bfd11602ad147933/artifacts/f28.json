@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The manifest now matches the closed query-mounted Claude Agent SDK tool, all required bindings remain intact, and runner-owned validation reports a valid project with complete evidence, no failures, and passing typecheck. Workspace assertions show only moldea/moldea.yaml changed.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the stale declaration mcp__support__find_order and explains that it was aligned with the existing query-mounted SDK tool. Repository source confirms the support mount in src/agent.ts and the lookup_order SDK declaration in src/tools.ts, yielding mcp__support__lookup_order."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml currently declares name: mcp__support__lookup_order. This exactly matches src/agent.ts tools configuration and the support-mounted lookup_order declaration. Workspace assertions identify only moldea/moldea.yaml as changed, while deterministic post-actor validation is valid with no failures."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The current manifest binds supportAgent and loadSupportInstruction in src/agent.ts, lookupOrderTool in src/tools.ts, lookupOrder in src/implementations.ts, and LookupOrderInputSchema in src/contracts.ts. Those sources retain the direct query wrapper, support MCP mount, SDK tool registration, implementation, and schema. Their before/after hashes are unchanged, and deterministic validation reports complete validity, no failures, and passing typecheck."
+    }
+  ],
+  "failures": []
+}

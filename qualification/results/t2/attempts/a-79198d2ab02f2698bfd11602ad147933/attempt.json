@@ -1,0 +1,864 @@
+{
+  "protocolVersion": 8,
+  "attemptId": "20260906T131111426Z-claude-agent-sdk-typescript-query-subagents-0-3-1c9877ca",
+  "parentAttemptId": null,
+  "selection": {
+    "adapterId": "claude-agent-sdk",
+    "implementationId": "typescript-query-subagents-0-3"
+  },
+  "status": "passed",
+  "createdAt": "2026-09-06T13:11:11.427Z",
+  "completedAt": "2026-09-06T13:20:32.732Z",
+  "evidenceGeneratedAt": "2026-09-06T13:13:45.863Z",
+  "summary": "Qualification passed every deterministic and semantic case.",
+  "artifactDigests": {
+    "baseline.json": "723a721afa1d0eeb7960a378c93b0f3993cf9c23d25a8a461e89dcbb4a0d4793",
+    "cases/preserve-claude-agent-sdk-static-boundary/case-result.json": "b5eacb05f8d5d04df0d62ea8c7f58bd0426929d20af58438b5b9aa6d1e4fbdd4",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-events.jsonl": "eec628d59a645b58be0109ff36c64c8d7316192e460f1fd21d758d8b06b166ec",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-evidence.json": "bd10d437a2ba3d624f6b092b4a827c72eb236d7a02530555a6812040724bcb1b",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-output.json": "26905bd80dd7ac0fdcb10a2dcacb9e1dfc5bf7d34318b19b1bd6e5350d1db36c",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-prompt.md": "4278e89699f5fffd66596ea59de0b498842466f6de5107c0c99360c87d7d4acf",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/deterministic-after.json": "ef2c2eaf3a0e34007a00f365e206481f651706ac83281279620b7293eb7062e5",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/deterministic-before.json": "9017e1f5d32f5211201eccf2c3a65c4d66f3479f007aeb7a1295391cbdaffc9b",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-events.jsonl": "1ffd8c30d40f3a0857a90d789fcce9714f32dd11ed6659d058425b70bbc46d37",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-evidence.json": "4b6a9f03c36230a9556655086f3023d937fa094023fee64d712dfd847872a85a",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-output.json": "1ae0fa22bb6f17690475aa6ff02114854067e07df06a2f326aaec682c2aac15d",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-prompt.md": "86cb6263bb0269f6126e97e032f3a0e3ba7313643b54aaf6602eefe109bb5b34",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/trial-result.json": "5241ba1fae0ee1108208c671bad1c3c486517fd6cb25d8b212846e6d5e6fe73e",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/workspace-assertions.json": "5d846ec8544561e20afccdac82f0524977a4693cf59fc4aa7efcc0dc7dadb565",
+    "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/workspace.patch": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "cases/repair-claude-agent-sdk-tool-registration/case-result.json": "5f363ae1512fb56b776faac8759dc1f59da3053e6508c7bf4648ddc33075b297",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-events.jsonl": "9b5d61b15431cce4ae333a9123197483c401a3819c0235fdaff01ce2cd50695a",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-evidence.json": "d064a345709bac98f6ddcd246f036c5b2070d71077b817cea0f6a0033839f0df",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-output.json": "35fa7c6f35a477b6f8c57b604983834a1938151203bb6fb3e02583f08eeab8ec",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-output.schema.json": "c05883947084d57b3c7883c83f890f5ecc1f17edfcba7253860ef6007e014a07",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-prompt.md": "abc3c9b5df5ec5a16e167cb7f2e7bc452f4fa19577144d4fed4357f23d296c1a",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-after.json": "fa49ece5ea7096c99fde77229a2146ff3b6a308ebb3b31ed37499d09c444e282",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-before.json": "58ac591cd0d74c04fe024a404b4d744027379082687e7a3d552d8291ff516bde",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-events.jsonl": "f18a1a6251c8137cf1ba4f3a23ded141dd5dbcb73c03c4f982547c6350acebf8",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-evidence.json": "076785dc8de8b3d4dec9e764d8d3f4a8bd7dba1d23c2c04dbb6b520f360d0b37",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-output.json": "5ac7e9b3364537f680b8dcae713b0b71af2acc1d1d57f99d5f220ef275e2db54",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-output.schema.json": "bc226ac269d7d6a247474e408b6a7f55671c6f452d16246d7c8e42d337e5f70d",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-prompt.md": "62d98dfb76de66a72bae2b35d6105c7c93f25b780c47f55ce8c57887e7ef4f49",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/trial-result.json": "cc56a4ddd988df2cae7903762d1b11a23b77e18c4d86d71e4c6025fe655e8623",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace-assertions.json": "1a40da5fae08833af0bfba9b3099e305409108d1f0506068875a06448e7e62ac",
+    "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace.patch": "55ed2b5b9f215ece44956ee20462ecbb6986076de96fea3631f99664dc9c1700",
+    "coverage.json": "8108c5c3070372112713e97a3599f8046858245c4c567519b8018b102c09e8f2",
+    "source-state.json": "098995f0cef3244563fe7e381fda63b508df58d1d872da3667d85737af976ac1"
+  },
+  "confirmationPolicy": {
+    "version": 1,
+    "requiredPassingConfirmations": 2
+  },
+  "mode": "official",
+  "provenance": {
+    "model": "gpt-5.6-sol",
+    "reasoningEffort": "medium",
+    "codexVersion": "codex-cli 0.153.4",
+    "nodeVersion": "v24.15.0",
+    "pnpmVersion": "11.9.0",
+    "gitVersion": "git version 2.53.0",
+    "allowedEgressHosts": [
+      "api.openai.com",
+      "auth.openai.com",
+      "chatgpt.com"
+    ],
+    "hostTimeoutMs": 300000,
+    "modelEndpoint": null,
+    "sslCertificateFileSha256": null,
+    "packagesRepositoryCommit": "67a063b90a4b9a8493956d1576e55f286925754c",
+    "packagesRepositoryFingerprint": "540e6d2c0c2745a1e7cd9ac3461d0c9e794bac221d7f07b5b945982921de593a",
+    "packagesRepositoryDirty": false,
+    "qualificationRepositoryCommit": "79af231d01d1ec61e4359bb807e0245d5592d164",
+    "qualificationRepositoryDirty": false,
+    "skillRepositoryCommit": "79af231d01d1ec61e4359bb807e0245d5592d164",
+    "skillRepositoryFingerprint": "66af3322fce01b107fed74639f44ba414fee0b9d2964d580069493d4f408f475",
+    "skillRepositoryDirty": false,
+    "profileDigest": "532d19b646bae7c26bfa3206e329ef606152ff10e31c54d59439462ef83126a0",
+    "qualificationDigest": "0611c30574986362e6602200b4d32546ec9c7638b49583f4d80958715ebfe271",
+    "targetDigest": "10062e4e3130a05ba9034235c16d642d21aae2e83093096c024e282fe8ac1a10",
+    "baselineAttemptId": "20260906T121351737Z-custom-custom-62bdd34c",
+    "packages": [
+      {
+        "name": "@moldea.ai/repository",
+        "version": "2.0.0",
+        "registryIntegrity": "sha512-inhtMPmNtW/YnWZikBLMy+FsW3UyVsMaL0pKkV75ZX6VFP2yEFuc1puKyLu2kd8unvE5fAc+oO4lnuYKY77Rcw==",
+        "registryShasum": "d7797b382ae0116f8b6bfa4bfc2d1a51de306f7b",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository/-/repository-2.0.0.tgz",
+        "tarballName": "repository-2.0.0.tgz",
+        "sha256": "455a53c5b21de44f1b1173ff7bdacfe7c838f9eec46f4b3a8a651393deb80ea7"
+      },
+      {
+        "name": "@moldea.ai/core",
+        "version": "3.0.1",
+        "registryIntegrity": "sha512-dbiX2xoM750EyGbzrcE8Q+0YmsyEtzAUJ6rw5LRvz6pPKuZRsW0TXnzsmKejM76MfXK3I6/jgzGVW79JGLL/yw==",
+        "registryShasum": "4019fa1d1b4e3b02a0b8151378db7af20b35fa9d",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/core/-/core-3.0.1.tgz",
+        "tarballName": "core-3.0.1.tgz",
+        "sha256": "04c8f23f89d793036ee47f120bcddf456f5fc57ef7220bc05250f28370321e1a"
+      },
+      {
+        "name": "@moldea.ai/adapter-anthropic",
+        "version": "3.0.1",
+        "registryIntegrity": "sha512-Xs0plmRueRXzCb75zxddyWoGSj+5QkjIJ73tcClEpR6o0gXC1/p50toiuLU/OaWwnsE65XFZ8bW0lKzwa2sUug==",
+        "registryShasum": "315319c60a84e1873f8bd342df96b47acc43ca7e",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-anthropic/-/adapter-anthropic-3.0.1.tgz",
+        "tarballName": "adapter-anthropic-3.0.1.tgz",
+        "sha256": "8dd3c2bef54cd68d43ca67ff6765b9d17b78c23a11adf6087bedf34db28831da"
+      },
+      {
+        "name": "@moldea.ai/adapter-claude-agent-sdk",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-LSz1Mb4bfcQy87eghuUXK8xgSgLoxiFtxvbrga71K7D+mDiDuevjLerkBWhoFhNSRHnQWnMNw9hHKpIdAJ5e9A==",
+        "registryShasum": "83657c8374d626bea16c50e0cde114524a7d6e57",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-claude-agent-sdk/-/adapter-claude-agent-sdk-2.0.1.tgz",
+        "tarballName": "adapter-claude-agent-sdk-2.0.1.tgz",
+        "sha256": "58475750a8583e1596e75ed3dd9c178ed783546d987c49fbf2f1ef1909f99f25"
+      },
+      {
+        "name": "@moldea.ai/adapter-cloudflare-agents",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-RCdYovNqvZDRyr+fau2ljCsICRolurfjx7V5YVdvxpeUDfdHt6FmiGSNm/J8UAZbppAtTqPcDbgEmnojXI650w==",
+        "registryShasum": "cabfd23a92cf4d7bb5c2fe0c58d94298590dbd51",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-cloudflare-agents/-/adapter-cloudflare-agents-2.0.1.tgz",
+        "tarballName": "adapter-cloudflare-agents-2.0.1.tgz",
+        "sha256": "9ed6ab2f08dbbfc0c1ad836fbc690698b7c72fae687e9ff94046dd2e792309ed"
+      },
+      {
+        "name": "@moldea.ai/adapter-eve",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-r5iHZJsD5gDCPgYEAETeFjdsZRW3ssEW/dm3yvRCbLGGr8uxAriu7usHOx3SUg1WztbHfBWiJzIs1ZhJ44BUgA==",
+        "registryShasum": "eda75b668a37e06c11c79410ede6f224742ee7db",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-eve/-/adapter-eve-2.0.1.tgz",
+        "tarballName": "adapter-eve-2.0.1.tgz",
+        "sha256": "da01a2d7693ad8f23a99eab494b3d340683a1fb04e4cd43434790d2c00ddeff9"
+      },
+      {
+        "name": "@moldea.ai/adapter-google-genai",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-7lnnuRy4JwLZmQzhOEw7DLWhbqSYw+VrRKxpMgHp7rXcvuGd42aIz1sM4vS2PpwHys0xGdBl78jv/enxW7ykgg==",
+        "registryShasum": "aa6c959aaee0dffb5398505eb59c7a34fa441bc0",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-google-genai/-/adapter-google-genai-2.0.1.tgz",
+        "tarballName": "adapter-google-genai-2.0.1.tgz",
+        "sha256": "ac3fcfc008e16b5e2de20085f2e5f0de97279c493b7640496bd4b197ec409e39"
+      },
+      {
+        "name": "@moldea.ai/adapter-langchain",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-NIZ7PGC02WS5LcQ9LAFBaRSXLM1RxNREd9//8OOWRMkcCAai1JcpjWA97hQr4pYuiuUAg/pP7ZmqX4Fa6ncb0g==",
+        "registryShasum": "e4b76eb52e9d77c1acdde9830830045dd191feec",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langchain/-/adapter-langchain-2.0.1.tgz",
+        "tarballName": "adapter-langchain-2.0.1.tgz",
+        "sha256": "00e2c314085d948631c4ac7f0c8b2491ad5c4dbefcd0a3d32b618819b10b1102"
+      },
+      {
+        "name": "@moldea.ai/adapter-langgraph",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-zybmwbqIUNSfyi4bOP0MlrQe15zinncSnqcNuGNIMcNDA/S9obdEFvvvK9pOh53h7QPl3RVyqsxh/QiKjFy4vQ==",
+        "registryShasum": "7febea45dfb81e9fe8ef6d03857548849c78a62b",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-langgraph/-/adapter-langgraph-2.0.1.tgz",
+        "tarballName": "adapter-langgraph-2.0.1.tgz",
+        "sha256": "43e373ef9138e61e021bbb1bd6d6a25d08edfcde740c073313fbafc9e8df41a7"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai",
+        "version": "3.0.1",
+        "registryIntegrity": "sha512-sH3fE8nBeSvOTFgN6yPwdDNfi07bZ6XTyWoq7bD70W4VDvyLVoKZ1okdcV3C+sjjvg2odtjL50G2fjQFsHSLTg==",
+        "registryShasum": "f0aa29d7b45dd62d25ff54cdd9fe0f3c7e633798",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai/-/adapter-openai-3.0.1.tgz",
+        "tarballName": "adapter-openai-3.0.1.tgz",
+        "sha256": "2384b6137d5dd568f1232aab9e9ed80efa41d584c6058eadffc17c7bb7c01c8b"
+      },
+      {
+        "name": "@moldea.ai/adapter-openai-agents-sdk",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-9PPdZgIIeZ25xzkRGJ4GVkP/2BkLk7IKyUYVjLB2pDsZmsqjIFSMcIoy0KmJyHFgiG47j4FNhewU8an7Kqb7Bw==",
+        "registryShasum": "23a7ccab2160ec1773079580cf92206069ba6e09",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-openai-agents-sdk/-/adapter-openai-agents-sdk-2.0.1.tgz",
+        "tarballName": "adapter-openai-agents-sdk-2.0.1.tgz",
+        "sha256": "cacfbece34334140c47ab3809efaa7c8ab513f5bbfb569fe3ca57ba597de4321"
+      },
+      {
+        "name": "@moldea.ai/adapter-vercel-ai-sdk",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-pib3GDV78YeHBTGjPQ3TLRlfjHC8inLg13Jr5MNry9vh3oGFvtC9Qnu5uzlZGqKJe2xlsvFXr21ZnmCliD58rw==",
+        "registryShasum": "24b5ddc33d94c189e37278a686fa4817957cc1bd",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/adapter-vercel-ai-sdk/-/adapter-vercel-ai-sdk-2.0.1.tgz",
+        "tarballName": "adapter-vercel-ai-sdk-2.0.1.tgz",
+        "sha256": "b005f0eee7cdbf60fdf6d99c56d69df52db51e77440e6c326b57f1d570bb4adb"
+      },
+      {
+        "name": "@moldea.ai/repository-fs",
+        "version": "2.0.1",
+        "registryIntegrity": "sha512-TCTHwIUc2asuA8JvNwIjpKtTkDweVU4Y0hSMlG87qf+qgkOjQOinmhM7F+oFaEhT9Ch3RdWNZYiLuVWaC1kyuw==",
+        "registryShasum": "c5ba310dd260a541a1a2334bafcb198444b8bac7",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/repository-fs/-/repository-fs-2.0.1.tgz",
+        "tarballName": "repository-fs-2.0.1.tgz",
+        "sha256": "8fd204625ecb5b7d1ec46fd3b970c9b11576ab75d810c5ee7a194bc6c3e07fe8"
+      },
+      {
+        "name": "@moldea.ai/cli",
+        "version": "7.0.1",
+        "registryIntegrity": "sha512-BMXqRGuOy8OKfoiJzn8qjr68xSUKPW71V8dgoNi+fioZm+fR9fnoKsjRLs89pUn2UkjAjMLCp3cCcyAThXUJ+Q==",
+        "registryShasum": "20fef57a144a95a6f6c63e83f77a0df1af5a553f",
+        "registryTarballUrl": "https://registry.npmjs.org/@moldea.ai/cli/-/cli-7.0.1.tgz",
+        "tarballName": "cli-7.0.1.tgz",
+        "sha256": "af315edbebe225aec1558e733686e1edf9c5d1ba4e2775c7cd47cb7c96f38354"
+      },
+      {
+        "name": "@anthropic-ai/claude-agent-sdk",
+        "version": "0.3.234",
+        "registryIntegrity": "sha512-988d+JfICQoIIDwcnQm9ivJ3CXfKUhDJ43XSQXiwa4PMnc/+NwAK71JUnOipXgGJNVu+znfzk42CV+wUeX25dg==",
+        "registryShasum": "b6cafa3370dbce319d08e662a8d2e05ee0e29f42",
+        "registryTarballUrl": "https://registry.npmjs.org/@anthropic-ai/claude-agent-sdk/-/claude-agent-sdk-0.3.234.tgz",
+        "tarballName": "claude-agent-sdk-0.3.234.tgz",
+        "sha256": "32adb99ad5ba521d66fb9db8cf5bb9451df1729433d355e65fc8195c77792856"
+      },
+      {
+        "name": "@anthropic-ai/sdk",
+        "version": "0.117.1",
+        "registryIntegrity": "sha512-Yn2QlXfyCiKJ5YGCOOay7ZE78ISvII2XY621WMCiflmG8IYgwx59IBwPExxki3Xk9jKUtnD/Sj6UvplWr0rZxg==",
+        "registryShasum": "9c4351d29f5ce9e3ed276e5d30f90694b1160356",
+        "registryTarballUrl": "https://registry.npmjs.org/@anthropic-ai/sdk/-/sdk-0.117.1.tgz",
+        "tarballName": "sdk-0.117.1.tgz",
+        "sha256": "35639ecef95f7b56f8959107550e2654cf01354ac6fc5c59df37968eaf428802"
+      },
+      {
+        "name": "@modelcontextprotocol/sdk",
+        "version": "1.29.0",
+        "registryIntegrity": "sha512-zo37mZA9hJWpULgkRpowewez1y6ML5GsXJPY8FI0tBBCd77HEvza4jDqRKOXgHNn867PVGCyTdzqpz0izu5ZjQ==",
+        "registryShasum": "79786d8b525e269de850ac82b1f1f757f3915f44",
+        "registryTarballUrl": "https://registry.npmjs.org/@modelcontextprotocol/sdk/-/sdk-1.29.0.tgz",
+        "tarballName": "sdk-1.29.0.tgz",
+        "sha256": "1c51470eca288ae744a5d8bb48e217d3eab5869eb2cbaf587fc29f336d6b096c"
+      },
+      {
+        "name": "@types/node",
+        "version": "22.20.1",
+        "registryIntegrity": "sha512-EANqOCF9QFyra+4pfxUcX9STKJpCLjMbObVzljIJomAWSnuSIEAvyzEU53GaajbXJEgdh0iEcPL+DGvpUd4k1Q==",
+        "registryShasum": "84e7cdf63cdaa20c134aa317ccc901aa21e16f0e",
+        "registryTarballUrl": "https://registry.npmjs.org/@types/node/-/node-22.20.1.tgz",
+        "tarballName": "node-22.20.1.tgz",
+        "sha256": "6f99aae8d4a2bdecdce5a41a922b10943316edd4e6e6d4350f442d6c1688485f"
+      },
+      {
+        "name": "zod",
+        "version": "4.3.6",
+        "registryIntegrity": "sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==",
+        "registryShasum": "89c56e0aa7d2b05107d894412227087885ab112a",
+        "registryTarballUrl": "https://registry.npmjs.org/zod/-/zod-4.3.6.tgz",
+        "tarballName": "zod-4.3.6.tgz",
+        "sha256": "29ee4d2418c0fb6ddc545c28c03ec80b701e345a3f779e50ae23cda0700b1682"
+      },
+      {
+        "name": "typescript",
+        "version": "6.0.3",
+        "registryIntegrity": "sha512-y2TvuxSZPDyQakkFRPZHKFm+KKVqIisdg9/CZwm9ftvKXLP8NRWj38/ODjNbr43SsoXqNuAisEf1GdCxqWcdBw==",
+        "registryShasum": "90251dc007916e972786cb94d74d15b185577d21",
+        "registryTarballUrl": "https://registry.npmjs.org/typescript/-/typescript-6.0.3.tgz",
+        "tarballName": "typescript-6.0.3.tgz",
+        "sha256": "33cd0ee1beaa8c9e9d15a9da836c62ddea4c34a42d7c2d349dbc80d94165d22a"
+      }
+    ]
+  },
+  "stages": [
+    {
+      "id": "source-state",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:11:12.444Z",
+      "completedAt": "2026-09-06T13:11:12.445Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "coverage",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:11:12.446Z",
+      "completedAt": "2026-09-06T13:11:12.454Z",
+      "durationMs": 8,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "candidate",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:11:12.455Z",
+      "completedAt": "2026-09-06T13:11:35.795Z",
+      "durationMs": 23340,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "baseline",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:11:35.797Z",
+      "completedAt": "2026-09-06T13:11:37.581Z",
+      "durationMs": 1784,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:11:37.583Z",
+      "completedAt": "2026-09-06T13:11:39.481Z",
+      "durationMs": 1898,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:11:39.482Z",
+      "completedAt": "2026-09-06T13:11:43.339Z",
+      "durationMs": 3857,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:11:43.342Z",
+      "completedAt": "2026-09-06T13:13:46.602Z",
+      "durationMs": 123260,
+      "cacheKey": "58e6774a0558a0f424d99bfd56cad7767a1002aa628031f232e131e771eb7b81",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:13:46.604Z",
+      "completedAt": "2026-09-06T13:13:50.483Z",
+      "durationMs": 3879,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:13:50.484Z",
+      "completedAt": "2026-09-06T13:13:51.258Z",
+      "durationMs": 774,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:13:51.306Z",
+      "completedAt": "2026-09-06T13:15:22.514Z",
+      "durationMs": 91208,
+      "cacheKey": "f13f5970121336f9b6e0a6604ef1fbbd3c0f3a206da687c27b7dbb2e786d454f",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-1:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-1:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-1:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-1:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-1:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-1:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:15:22.516Z",
+      "completedAt": "2026-09-06T13:15:22.516Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:repair-claude-agent-sdk-tool-registration:result",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:15:22.517Z",
+      "completedAt": "2026-09-06T13:15:22.519Z",
+      "durationMs": 2,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:initial:prepare",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:15:22.520Z",
+      "completedAt": "2026-09-06T13:15:24.374Z",
+      "durationMs": 1854,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:initial:deterministic-before",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:15:24.375Z",
+      "completedAt": "2026-09-06T13:15:28.239Z",
+      "durationMs": 3864,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:initial:actor",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:15:28.242Z",
+      "completedAt": "2026-09-06T13:18:42.902Z",
+      "durationMs": 194660,
+      "cacheKey": "23b64067bb8297d1bd3ee4bc03e290dd7187369adc5a4a9d2bf8c34b268565fa",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:initial:deterministic-after",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:18:42.903Z",
+      "completedAt": "2026-09-06T13:18:46.790Z",
+      "durationMs": 3887,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:initial:assertions",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:18:46.791Z",
+      "completedAt": "2026-09-06T13:18:47.539Z",
+      "durationMs": 748,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:initial:judge",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:18:47.589Z",
+      "completedAt": "2026-09-06T13:20:21.970Z",
+      "durationMs": 94381,
+      "cacheKey": "4207db43e1376394902b25223f0339b225fb642a3aca8503d48e16cfca7fd412",
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-1:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-1:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-1:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-1:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-1:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-1:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-2:prepare",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-2:deterministic-before",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-2:actor",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-2:deterministic-after",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-2:assertions",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:trial:confirmation-2:judge",
+      "status": "skipped",
+      "startedAt": "2026-09-06T13:20:21.972Z",
+      "completedAt": "2026-09-06T13:20:21.972Z",
+      "durationMs": 0,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    },
+    {
+      "id": "case:preserve-claude-agent-sdk-static-boundary:result",
+      "status": "passed",
+      "startedAt": "2026-09-06T13:20:21.973Z",
+      "completedAt": "2026-09-06T13:20:21.974Z",
+      "durationMs": 1,
+      "cacheKey": null,
+      "cacheSourceAttemptId": null,
+      "error": null,
+      "operationalRetries": []
+    }
+  ],
+  "cases": [
+    {
+      "caseId": "repair-claude-agent-sdk-tool-registration",
+      "title": "Repair Claude Agent SDK tool registration",
+      "status": "passed",
+      "confirmationStatus": "not-required",
+      "durationMs": 224932,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": true,
+          "durationMs": 224932,
+          "deterministicBeforePath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 225214,
+            "cachedInputTokens": 201088,
+            "outputTokens": 3823
+          },
+          "judgeUsage": {
+            "inputTokens": 176122,
+            "cachedInputTokens": 145152,
+            "outputTokens": 2240
+          },
+          "actorEvidenceCreatedAt": "2026-09-06T13:13:45.863Z",
+          "judgeEvidenceCreatedAt": "2026-09-06T13:15:22.513Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-name-mismatch",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The actor report identifies the stale declaration mcp__support__find_order and explains that it was aligned with the existing query-mounted SDK tool. Repository source confirms the support mount in src/agent.ts and the lookup_order SDK declaration in src/tools.ts, yielding mcp__support__lookup_order."
+            },
+            {
+              "id": "repairs-canonical-name",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "moldea/moldea.yaml currently declares name: mcp__support__lookup_order. This exactly matches src/agent.ts tools configuration and the support-mounted lookup_order declaration. Workspace assertions identify only moldea/moldea.yaml as changed, while deterministic post-actor validation is valid with no failures."
+            },
+            {
+              "id": "preserves-binding-closure",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The current manifest binds supportAgent and loadSupportInstruction in src/agent.ts, lookupOrderTool in src/tools.ts, lookupOrder in src/implementations.ts, and LookupOrderInputSchema in src/contracts.ts. Those sources retain the direct query wrapper, support MCP mount, SDK tool registration, implementation, and schema. Their before/after hashes are unchanged, and deterministic validation reports complete validity, no failures, and passing typecheck."
+            },
+            {
+              "id": "validates-project",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": []
+    },
+    {
+      "caseId": "preserve-claude-agent-sdk-static-boundary",
+      "title": "Preserve the Claude Agent SDK static boundary",
+      "status": "passed",
+      "confirmationStatus": "not-required",
+      "durationMs": 299452,
+      "trials": [
+        {
+          "trialId": "initial",
+          "kind": "initial",
+          "confirmationIndex": null,
+          "passed": true,
+          "durationMs": 299452,
+          "deterministicBeforePath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/deterministic-before.json",
+          "deterministicAfterPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/deterministic-after.json",
+          "actorOutputPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/actor-output.json",
+          "judgeStatus": "completed",
+          "judgeOutputPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/judge-output.json",
+          "judgeSkippedPath": null,
+          "workspaceAssertionsPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/workspace-assertions.json",
+          "patchPath": "cases/preserve-claude-agent-sdk-static-boundary/trials/initial/workspace.patch",
+          "actorUsage": {
+            "inputTokens": 249613,
+            "cachedInputTokens": 222208,
+            "outputTokens": 2864
+          },
+          "judgeUsage": {
+            "inputTokens": 157748,
+            "cachedInputTokens": 134016,
+            "outputTokens": 2586
+          },
+          "actorEvidenceCreatedAt": "2026-09-06T13:18:42.156Z",
+          "judgeEvidenceCreatedAt": "2026-09-06T13:20:21.969Z",
+          "actorCacheSourceAttemptId": null,
+          "judgeCacheSourceAttemptId": null,
+          "requirementAssessments": [
+            {
+              "id": "explains-direct-evidence",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "src/agents.ts shows supportAgent calling query with direct object-literal options and loadSupportInstruction reading /moldea/agents/support/instruction.md. moldea/moldea.yaml binds those exact symbols. The actor identifies the normalization-requiring \"boundary/tools\" key and CLAUDE_AGENT_SDK_MCP_SERVER_KEY_UNSUPPORTED, explaining that it yields no canonical runtime-name segment; deterministic-after confirms the expected invalid inspection status while core checks pass."
+            },
+            {
+              "id": "preserves-dynamic-query-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "src/agents.ts passes await buildDynamicOptions() into dynamicSupportAgent and contains runtime-selected agents, prompt arrays, aliases, preset tools, dynamic definitions, descriptions, and restrictions. moldea/moldea.yaml records focused dynamic-query-configuration and dynamic-routing-and-tools unresolved entries and declares no invented prompt, delegation, routing, tool, output, or schema relationships. The actor report explicitly preserves each listed dynamic feature as unresolved."
+            },
+            {
+              "id": "preserves-sdk-feature-boundary",
+              "evaluator": "judge",
+              "verdict": "pass",
+              "evidence": "The source and SDK configuration contain observer fields, critical reminders, SDK server instructions, external and per-agent MCP configuration, skills, hooks, settings, and a filesystem agent. moldea/moldea.yaml keeps these under the informational sdk-and-filesystem-features unresolved boundary rather than canonical relationship declarations, with focused resolution guidance and relevant paths. CLAUDE.md and .claude/agents/filesystem-support.md reinforce that boundary. Workspace assertions show identical before/after hashes and no changed paths."
+            },
+            {
+              "id": "validates-without-churn",
+              "evaluator": "runner",
+              "verdict": "pass",
+              "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+            }
+          ],
+          "failures": []
+        }
+      ],
+      "failures": []
+    }
+  ]
+}

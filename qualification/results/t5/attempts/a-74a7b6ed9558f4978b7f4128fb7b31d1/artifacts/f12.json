@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor correctly abstained from adapter-specific work while completing the unrelated documentation review. The supplied repository and diff evidence also confirms the worktree was unchanged.",
+  "requirements": [
+    {
+      "id": "abstains-after-cheap-gate",
+      "verdict": "pass",
+      "evidence": "The actor output contains no mention of moldea or skill-reference content, and the runner-owned actor command policy reports moldeaCommandCount: 0 and moldeaOutputByteCount: 0."
+    }
+  ],
+  "failures": []
+}

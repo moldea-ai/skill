@@ -1,0 +1,55 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "passed": false,
+  "durationMs": 135519,
+  "deterministicBeforePath": "cases/activate-declared-relationship/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/activate-declared-relationship/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/activate-declared-relationship/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/activate-declared-relationship/trials/confirmation-1/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/activate-declared-relationship/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/activate-declared-relationship/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 138113,
+    "cachedInputTokens": 127360,
+    "outputTokens": 2580
+  },
+  "judgeUsage": {
+    "inputTokens": 95232,
+    "cachedInputTokens": 59520,
+    "outputTokens": 1707
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T06:42:11.499Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T06:43:09.266Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "identifies-owning-context",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "`moldea/moldea.yaml` declares `/moldea/project.md` with `affectedBy: /src/project-state.ts`, but the actor report identifies README.md as the declaration and never identifies only `/moldea/project.md` as the canonical owner. Deterministic evidence confirms the repository was unchanged."
+    },
+    {
+      "id": "uses-bounded-moldea-evidence",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "Runner-owned actor command policy records `moldeaCommandCount: 0`, below the required minimum of one CLI call. Although the report does not enumerate unrelated canonical content, the minimum-call condition is unmet."
+    },
+    {
+      "id": "validates-without-churn",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": [
+    "Requirement identifies-owning-context failed: `moldea/moldea.yaml` declares `/moldea/project.md` with `affectedBy: /src/project-state.ts`, but the actor report identifies README.md as the declaration and never identifies only `/moldea/project.md` as the canonical owner. Deterministic evidence confirms the repository was unchanged.",
+    "Requirement uses-bounded-moldea-evidence failed: Runner-owned actor command policy records `moldeaCommandCount: 0`, below the required minimum of one CLI call. Although the report does not enumerate unrelated canonical content, the minimum-call condition is unmet.",
+    "The actor did not use the declared relationship to identify `/moldea/project.md` as the sole canonical owner of `src/project-state.ts`.",
+    "The actor made zero moldea CLI calls; this requirement mandates between one and four."
+  ]
+}

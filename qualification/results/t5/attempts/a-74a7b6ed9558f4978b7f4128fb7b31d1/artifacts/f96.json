@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Reviewed the moldea support-agent setup. It is valid and agrees with the implementation, so no files were edited.",
+  "changedFiles": [],
+  "observations": [
+    "moldea validation passed with CLI 7.0.1/schema 4 and zero diagnostics.",
+    "The `support` agent is described as handling customer requests through email; its instruction directs evidence-based answers and escalation of uncertainty.",
+    "The manifest selects the `custom` runtime, references `/moldea/runtimes/custom.md`, and binds `supportAgent` in `/src/support-agent.ts`.",
+    "The runtime guidance identifies the exported `supportAgent` record as authoritative and says to preserve its identifier and channel.",
+    "`src/support-agent.ts` exports `supportAgent` with ID `support` and channel `email`, matching the canonical setup.",
+    "The local TypeScript check passed. Final Git diff and status were clean."
+  ],
+  "unresolved": []
+}

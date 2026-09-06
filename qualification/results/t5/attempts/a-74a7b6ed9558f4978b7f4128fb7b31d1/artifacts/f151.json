@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The current manifest contains the repaired runtime binding and the required unresolved dynamic-registration boundary. Deterministic validation passed, and workspace-patch evidence shows only moldea/moldea.yaml changed while implementation files remained untouched.",
+  "requirements": [
+    {
+      "id": "repairs-binding",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds agents.support.runtimeAgent to /src/support-assistant.ts with symbol supportAssistant; that file exports supportAssistant. src/support-agent.ts is absent. Workspace assertions show only moldea/moldea.yaml changed, while src/support-assistant.ts and src/dynamic-tools.ts retained their original hashes. The current moldea validation returned valid with zero diagnostics."
+    },
+    {
+      "id": "records-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml records agents.support.unresolved.dynamic-tool-registration with effect warning, explains that static inspection cannot prove dynamically assembled registrations, gives a concrete integration-test resolution identifying createToolRegistry entries exposed to supportAssistant, and relates /src/dynamic-tools.ts. No tool binding was invented. Workspace assertions confirm the sole changed path was moldea/moldea.yaml."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,66 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 309115,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 309115,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 500867,
+        "cachedInputTokens": 468608,
+        "outputTokens": 8309
+      },
+      "judgeUsage": {
+        "inputTokens": 252823,
+        "cachedInputTokens": 215808,
+        "outputTokens": 2752
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T06:20:46.883Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T06:22:13.548Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/context/billing.md` exists at the canonical context path. `moldea/moldea.yaml` globally registers `/moldea/context/billing.md`, declares `affectedBy: /src/billing.ts`, and assigns it to the `support` agent. The current hashes match the workspace assertions, moldea validation reports zero diagnostics, and deterministic validation/typecheck passed."
+        },
+        {
+          "id": "updates-instruction",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/agents/support/instruction.md` retains the opening identity `You are the `support` agent.` and explicitly directs use of billing context for refund disputes and invoice questions, including escalation when evidence is insufficient. Its current hash matches the asserted post-change hash, and workspace assertions identify only the three intended moldea paths as changed."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

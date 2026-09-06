@@ -1,0 +1,50 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 60148,
+  "deterministicBeforePath": "cases/answer-information-before-adoption/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/answer-information-before-adoption/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/answer-information-before-adoption/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/answer-information-before-adoption/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/answer-information-before-adoption/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/answer-information-before-adoption/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 26177,
+    "cachedInputTokens": 19712,
+    "outputTokens": 273
+  },
+  "judgeUsage": {
+    "inputTokens": 77716,
+    "cachedInputTokens": 44288,
+    "outputTokens": 950
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T06:35:04.322Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T06:35:42.178Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "answers-concisely",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Actor output is exactly two short sentences: it describes moldea as maintaining Git-owned project context and agent systems, then identifies `/moldea/` as an adopted project's canonical-state directory. It makes no repository-specific claim."
+    },
+    {
+      "id": "avoids-repository-activation",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Runner-owned command policy records moldeaCommandCount: 0. Workspace assertions report changedPaths: [] with identical before/after modes and SHA-256 hashes for every asserted project file; the deterministic post-actor summary also reports repositoryUnchanged: true."
+    },
+    {
+      "id": "preserves-uninitialized-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

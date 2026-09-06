@@ -1,6 +1,7 @@
 import { lstat, readFile, realpath } from 'node:fs/promises';
-import { dirname, isAbsolute, join, relative, sep } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
+import { isAbsolute, join, relative, sep } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 // package identities accepted by this portable skill release
 export const EXPECTED_CLI_RANGE = '^7.0.0';
@@ -143,18 +144,46 @@ export const resolveRepositoryCli = async (repositoryRoot) => {
   };
 };
 
+/** Returns the first Core package visible to the CLI inside repository dependencies. */
+const resolveRepositoryCoreRoot = async (resolvedCli) => {
+  const cliRequire = createRequire(join(resolvedCli.cliRoot, 'package.json'));
+  const searchRoots = cliRequire.resolve.paths('@moldea.ai/core') ?? [];
+
+  for (const searchRoot of searchRoots) {
+    if (!isPathWithin(resolvedCli.nodeModulesRoot, searchRoot)) {
+      continue;
+    }
+
+    const candidateRoot = join(searchRoot, '@moldea.ai', 'core');
+
+    try {
+      await lstat(candidateRoot);
+    } catch (error) {
+      if (error?.code === 'ENOENT') {
+        continue;
+      }
+
+      throw error;
+    }
+
+    const coreRoot = await realpath(candidateRoot);
+    const coreStat = await lstat(coreRoot);
+
+    if (!coreStat.isDirectory() || !isPathWithin(resolvedCli.nodeModulesRoot, coreRoot)) {
+      throw new Error('The Core package escaped repository dependencies.');
+    }
+
+    return coreRoot;
+  }
+
+  throw new Error('The repository-local Core package could not be resolved.');
+};
+
 /** Loads the repository-root Core implementation declared by the validated CLI closure. */
 export const loadRepositoryCore = async (repositoryRoot) => {
   const resolvedCli = await resolveRepositoryCli(repositoryRoot);
-  const coreEntry = await realpath(
-    fileURLToPath(
-      import.meta.resolve(
-        '@moldea.ai/core',
-        pathToFileURL(join(resolvedCli.cliRoot, 'package.json')).href,
-      ),
-    ),
-  );
-  const coreRoot = dirname(dirname(coreEntry));
+  const coreRoot = await resolveRepositoryCoreRoot(resolvedCli);
+  const coreEntry = await realpath(join(coreRoot, 'dist', 'index.js'));
 
   if (
     !isPathWithin(resolvedCli.nodeModulesRoot, coreRoot) ||

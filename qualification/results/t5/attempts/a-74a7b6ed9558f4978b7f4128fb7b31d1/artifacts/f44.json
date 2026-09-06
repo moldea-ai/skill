@@ -1,0 +1,20 @@
+{
+  "verdict": "fail",
+  "summary": "The workspace declares `/moldea/project.md` as the canonical owner of `/src/project-state.ts`, and both files agree on `operational`; however, the actor relied on README.md instead of activating that relationship and made zero moldea CLI calls.",
+  "requirements": [
+    {
+      "id": "identifies-owning-context",
+      "verdict": "fail",
+      "evidence": "`moldea/moldea.yaml` declares `/moldea/project.md` with `affectedBy: /src/project-state.ts`, but the actor report identifies README.md as the declaration and never identifies only `/moldea/project.md` as the canonical owner. Deterministic evidence confirms the repository was unchanged."
+    },
+    {
+      "id": "uses-bounded-moldea-evidence",
+      "verdict": "fail",
+      "evidence": "Runner-owned actor command policy records `moldeaCommandCount: 0`, below the required minimum of one CLI call. Although the report does not enumerate unrelated canonical content, the minimum-call condition is unmet."
+    }
+  ],
+  "failures": [
+    "The actor did not use the declared relationship to identify `/moldea/project.md` as the sole canonical owner of `src/project-state.ts`.",
+    "The actor made zero moldea CLI calls; this requirement mandates between one and four."
+  ]
+}

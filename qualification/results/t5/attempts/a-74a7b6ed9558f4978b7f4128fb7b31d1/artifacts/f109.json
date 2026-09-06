@@ -1,0 +1,66 @@
+{
+  "caseId": "initialize-grounded-project",
+  "title": "Initialize a grounded project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 195886,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 195886,
+      "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 223606,
+        "cachedInputTokens": 201216,
+        "outputTokens": 3962
+      },
+      "judgeUsage": {
+        "inputTokens": 197515,
+        "cachedInputTokens": 159104,
+        "outputTokens": 2502
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T06:11:15.754Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T06:12:35.349Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-project",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "README.md and moldea/project.md state that the project reviews invoice line items for duplicate references and arithmetic mismatches, returns findings to a human finance operator, and never authorizes or sends payment. src/invoice-review.ts grounds the implemented deterministic behavior: duplicate references are deduplicated and sorted before return. Current file hashes match the supplied post-actor assertions."
+        },
+        {
+          "id": "keeps-foundation-minimal",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The only files under moldea are moldea/moldea.yaml and moldea/project.md. The manifest is exactly `version: 1` plus one LF, with no relationship references. README.md contains the exact standard awareness block; hashing its pre-block first three lines reproduces the supplied original README hash, proving existing content was preserved. Workspace-patch evidence lists only README.md and the two new moldea files as changed, while package.json, source, and tsconfig hashes remain unchanged. Runner-owned validation reports schema/CLI validation and typechecking passed with no failures."
+        },
+        {
+          "id": "preserves-existing-work",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

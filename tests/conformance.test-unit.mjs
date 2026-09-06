@@ -118,6 +118,103 @@ const installProjectToolingFixture = (root) => {
   );
 };
 
+const writeCliFixture = (cliRoot) => {
+  mkdirSync(join(cliRoot, 'dist'), { recursive: true });
+  writeFileSync(
+    join(cliRoot, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: '@moldea.ai/cli',
+        type: 'module',
+        version: '7.0.1',
+        bin: { moldea: './dist/moldea.js' },
+        dependencies: { '@moldea.ai/core': '^3.0.0' },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(join(cliRoot, 'dist', 'moldea.js'), 'process.exitCode = 0;\n');
+};
+
+const writeCoreFixture = (coreRoot, options = {}) => {
+  mkdirSync(join(coreRoot, 'dist'), { recursive: true });
+  writeFileSync(
+    join(coreRoot, 'package.json'),
+    `${JSON.stringify(
+      {
+        name: options.name ?? '@moldea.ai/core',
+        type: 'module',
+        version: options.version ?? '3.0.1',
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(
+    join(coreRoot, 'dist', 'index.js'),
+    'export const createCore = () => ({ matchManifestScope: async () => ({ valid: true, relevant: true }) });\n',
+  );
+};
+
+const createIsolatedToolingProject = (layout) => {
+  const root = mkdtempSync(join(tmpdir(), 'moldea-v5-isolated-'));
+  mkdirSync(join(root, 'moldea'), { recursive: true });
+  mkdirSync(join(root, 'src'), { recursive: true });
+  writeFileSync(
+    join(root, 'package.json'),
+    `${JSON.stringify(
+      {
+        private: true,
+        devDependencies: { '@moldea.ai/cli': '^7.0.0' },
+      },
+      null,
+      2,
+    )}\n`,
+  );
+  writeFileSync(
+    join(root, 'README.md'),
+    '# Project\n\n<!-- moldea:start -->\nCanonical moldea project state lives under `/moldea/**`.\n<!-- moldea:end -->\n',
+  );
+  writeFileSync(
+    join(root, 'moldea', 'moldea.yaml'),
+    'version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/project-state.js\n',
+  );
+  writeFileSync(join(root, 'moldea', 'project.md'), '# Project\n');
+  writeFileSync(join(root, 'src', 'project-state.js'), 'export const state = true;\n');
+
+  if (layout === 'npm') {
+    writeCliFixture(join(root, 'node_modules', '@moldea.ai', 'cli'));
+    writeCoreFixture(join(root, 'node_modules', '@moldea.ai', 'core'));
+    return root;
+  }
+
+  const storeRoot = join(root, 'node_modules', '.pnpm');
+  const cliStoreRoot = join(storeRoot, '@moldea.ai+cli@7.0.1', 'node_modules', '@moldea.ai', 'cli');
+  const coreStoreRoot = join(
+    storeRoot,
+    '@moldea.ai+core@3.0.1',
+    'node_modules',
+    '@moldea.ai',
+    'core',
+  );
+  const cliDependencyRoot = join(storeRoot, '@moldea.ai+cli@7.0.1', 'node_modules', '@moldea.ai');
+  writeCliFixture(cliStoreRoot);
+  writeCoreFixture(coreStoreRoot);
+  mkdirSync(join(root, 'node_modules', '@moldea.ai'), { recursive: true });
+  symlinkSync(
+    cliStoreRoot,
+    join(root, 'node_modules', '@moldea.ai', 'cli'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
+  symlinkSync(
+    coreStoreRoot,
+    join(cliDependencyRoot, 'core'),
+    process.platform === 'win32' ? 'junction' : 'dir',
+  );
+  return root;
+};
+
 const createProject = () => {
   const root = mkdtempSync(join(tmpdir(), 'moldea-v5-conformance-'));
   mkdirSync(join(root, 'moldea'), { recursive: true });
@@ -448,6 +545,81 @@ describe('activation and semantic protection', () => {
       assert.equal(runRelevanceGate(root, [], '/src/nested/module.js\0').stdout, '0\n');
     } finally {
       rmSync(root, { force: true, recursive: true });
+    }
+  });
+
+  test('resolves Core only through repository-local npm and pnpm dependency graphs', () => {
+    const npmRoot = createIsolatedToolingProject('npm');
+    const pnpmRoot = createIsolatedToolingProject('pnpm');
+
+    try {
+      for (const root of [npmRoot, pnpmRoot]) {
+        const result = runRelevanceGate(root, [], '/src/project-state.js\0');
+        assert.equal(result.status, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, '1\n');
+      }
+    } finally {
+      rmSync(npmRoot, { force: true, recursive: true });
+      rmSync(pnpmRoot, { force: true, recursive: true });
+    }
+  });
+
+  test('fails closed instead of using ambient, escaped, or later Core packages', () => {
+    const parentRoot = mkdtempSync(join(tmpdir(), 'moldea-v5-core-boundary-'));
+    const missingRoot = join(parentRoot, 'missing');
+    const invalidRoot = createIsolatedToolingProject('pnpm');
+    const escapedRoot = createIsolatedToolingProject('npm');
+
+    try {
+      mkdirSync(missingRoot, { recursive: true });
+      writeCliFixture(join(missingRoot, 'node_modules', '@moldea.ai', 'cli'));
+      writeCoreFixture(join(parentRoot, 'node_modules', '@moldea.ai', 'core'));
+      for (const path of ['README.md', 'package.json']) {
+        writeFileSync(join(missingRoot, path), readFileSync(join(invalidRoot, path)));
+      }
+      mkdirSync(join(missingRoot, 'moldea'), { recursive: true });
+      mkdirSync(join(missingRoot, 'src'), { recursive: true });
+      for (const path of [
+        join('moldea', 'moldea.yaml'),
+        join('moldea', 'project.md'),
+        join('src', 'project-state.js'),
+      ]) {
+        writeFileSync(join(missingRoot, path), readFileSync(join(invalidRoot, path)));
+      }
+
+      const resolvedCliRoot = join(
+        invalidRoot,
+        'node_modules',
+        '.pnpm',
+        '@moldea.ai+cli@7.0.1',
+        'node_modules',
+        '@moldea.ai',
+        'cli',
+      );
+      writeCoreFixture(join(resolvedCliRoot, 'node_modules', '@moldea.ai', 'core'), {
+        name: '@moldea.ai/not-core',
+      });
+      const escapedCoreRoot = join(parentRoot, 'escaped-core');
+      const installedCoreRoot = join(escapedRoot, 'node_modules', '@moldea.ai', 'core');
+      writeCoreFixture(escapedCoreRoot);
+      rmSync(installedCoreRoot, { force: true, recursive: true });
+      symlinkSync(
+        escapedCoreRoot,
+        installedCoreRoot,
+        process.platform === 'win32' ? 'junction' : 'dir',
+      );
+
+      for (const root of [missingRoot, invalidRoot, escapedRoot]) {
+        const result = runRelevanceGate(root, [], '/src/project-state.js\0');
+        assert.equal(result.status, 0);
+        assert.equal(result.stderr, '');
+        assert.equal(result.stdout, '0\n');
+      }
+    } finally {
+      rmSync(parentRoot, { force: true, recursive: true });
+      rmSync(invalidRoot, { force: true, recursive: true });
+      rmSync(escapedRoot, { force: true, recursive: true });
     }
   });
 });

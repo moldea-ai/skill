@@ -326,8 +326,15 @@ describe('portable skill contract', () => {
     assert.match(skill, /Never replace the gate by inspecting canonical state directly/u);
     assert.match(
       skill,
-      /Generic requests to verify an agent contract, canonical alignment, durable context, or similar concerns for an ordinary source or documentation path remain relationship-gated/u,
+      /Generic phrases such as project context, outdated context, durable knowledge, canonical alignment, documentation, or maintenance do not name `moldea`/u,
     );
+    assert.match(skill, /never create a direct request/u);
+    assert.match(skill, /calls existing project context outdated/u);
+    assert.match(skill, /do not search for a canonical destination/u);
+    assert.match(skill, /abstention is final for the current request/u);
+    assert.match(skill, /paths discovered later by the host cannot reactivate `moldea`/u);
+    assert.match(skill, /must not open, read, search for, or edit `\/moldea\/\*\*`/u);
+    assert.match(skill, /acknowledge it without inventing persistence/u);
     assert.match(skill, /Do not follow it with `inspect`/u);
     assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
     assert.match(skill, /leaving at most three CLI calls/u);

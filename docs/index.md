@@ -24,7 +24,7 @@ Update the refund flow and keep the support agent aligned.
 Evaluate the current project context without changing files.
 ```
 
-The coding agent decides when the skill is relevant, including when you share durable project knowledge without naming `moldea`. It reads the necessary guidance, inspects the repository, uses deterministic local tooling when required, and reports what changed or why no change was necessary.
+The coding agent uses `moldea` when you request it explicitly or when a known task path reaches canonical state through the repository's declared relationships. Generic references to project context, durable knowledge, documentation, or maintenance remain part of the ordinary coding-agent workflow and consume no `moldea` commands or output by themselves. They also do not make the coding agent search for or invent a canonical destination.
 
 ## Start here
 

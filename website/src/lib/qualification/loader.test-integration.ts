@@ -755,6 +755,17 @@ cases:
         judgeCacheSourceAttemptId: null,
       },
     ]);
+    expect(recoveredCase?.trials.map(({ workspacePatch }) => workspacePatch.content)).toStrictEqual(
+      [
+        'Added moldea/runtimes/release-case.md.\n',
+        'Added moldea/runtimes/release-case.md.\n',
+        'Added moldea/runtimes/release-case.md.\n',
+      ],
+    );
+    const initialWorkspacePatch = recoveredCase?.trials[0]?.workspacePatch;
+    expect(initialWorkspacePatch?.path).toBe('cases/release-case/trials/initial/workspace.patch');
+    expect(initialWorkspacePatch?.rawUrl).toContain('/artifacts/');
+    expect(initialWorkspacePatch?.sha256).toMatch(/^[a-f0-9]{64}$/u);
 
     const relativePath = 'cases/release-case/trials/initial/deterministic-after.json';
     const artifactPath = getArtifactPath(root, 'attempt-recovered', relativePath);

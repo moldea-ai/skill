@@ -18,6 +18,8 @@ The website reads only exact current evidence. Missing, stale, malformed, or ove
 
 Public replay is bounded and privacy-safe. It may contain developer direction, actor response, deterministic facts, the maximum output byte count from one completed command, aggregate byte counts, token usage, durations, judge rationale, and verdicts. It never includes raw command text, raw command output, hidden reasoning, credentials, or arbitrary workspace contents.
 
+Qualification journey pages also present a static Project view from the same validated evidence. It explains the starting fixture, recorded task, verified result, complete starting path tree, exact changed paths, and final-workspace patch in one non-technical sequence. The patch is labeled as a comparison with the fixture baseline because fixture setup can precede the coding agent. Complete project source and raw patch artifacts remain linked for deeper inspection.
+
 ## Commands
 
 Install dependencies without lifecycle scripts:

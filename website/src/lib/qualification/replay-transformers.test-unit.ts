@@ -214,6 +214,12 @@ const createTrial = (
     },
     retries: { actor: [], judge: [] },
     workspaceAssertions: options.workspaceAssertions ?? createWorkspace(),
+    workspacePatch: {
+      content: 'diff --git a/README.md b/README.md\n-old\n+new\n',
+      path: `cases/release-case/trials/${trialId}/workspace.patch`,
+      rawUrl: 'https://example.com/workspace.patch',
+      sha256: 'e'.repeat(64),
+    },
   };
 };
 

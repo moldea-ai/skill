@@ -222,10 +222,13 @@ test('replays qualification evidence through human-readable and technical views'
   const groundedAgentCase = customProfile.currentLatest.cases.find(
     ({ result }) => result.caseId === 'create-grounded-agent',
   );
+  const groundedAgentProfileCase = customProfile.cases.find(
+    ({ id }) => id === 'create-grounded-agent',
+  );
   const initialGroundedAgentTrial = groundedAgentCase?.trials.find(
     ({ result }) => result.trialId === 'initial',
   );
-  if (initialGroundedAgentTrial === undefined) {
+  if (groundedAgentProfileCase === undefined || initialGroundedAgentTrial === undefined) {
     throw new Error('The current Custom attempt has no initial grounded-agent trial.');
   }
   const initialRetryCount =
@@ -243,9 +246,11 @@ test('replays qualification evidence through human-readable and technical views'
   await journey.locator(':scope > summary').click();
 
   const replayTab = journey.getByRole('tab', { name: 'Replay' });
+  const projectTab = journey.getByRole('tab', { name: 'Project' });
   const evidenceTab = journey.getByRole('tab', { name: 'Evidence' });
   const technicalTab = journey.getByRole('tab', { name: 'Technical' });
   await expect(replayTab).toHaveAttribute('aria-selected', 'true');
+  await expect(projectTab).toHaveAttribute('aria-selected', 'false');
   await expect(evidenceTab).toHaveAttribute('aria-selected', 'false');
   await expect(technicalTab).toHaveAttribute('aria-selected', 'false');
   await expect(journey.getByText('Developer', { exact: true }).first()).toBeVisible();
@@ -265,6 +270,30 @@ test('replays qualification evidence through human-readable and technical views'
 
   await replayTab.focus();
   await replayTab.press('ArrowRight');
+  await expect(projectTab).toBeFocused();
+  await expect(projectTab).toHaveAttribute('aria-selected', 'true');
+  await expect(journey.getByRole('heading', { name: 'Starting project' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'Agent task' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'Verified result' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'Starting files' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'What changed' })).toBeVisible();
+  await expect(
+    journey.getByRole('heading', { name: 'Final workspace compared with fixture baseline' }),
+  ).toBeVisible();
+  await expect(journey.getByRole('link', { name: 'View complete project source' })).toHaveAttribute(
+    'href',
+    groundedAgentProfileCase.projectSourceUrl,
+  );
+  await expect(journey.getByRole('link', { name: 'View raw patch' })).toHaveAttribute(
+    'href',
+    /\.patch$/u,
+  );
+  await expect(journey.getByLabel('Final workspace patch')).toBeVisible();
+  await expect(journey.getByLabel('Final workspace patch').locator('code > span > *')).toHaveCount(
+    0,
+  );
+
+  await projectTab.press('ArrowRight');
   await expect(evidenceTab).toBeFocused();
   await expect(evidenceTab).toHaveAttribute('aria-selected', 'true');
   await expect(journey.getByRole('heading', { name: 'What had to happen' })).toBeVisible();
@@ -292,6 +321,56 @@ test('replays qualification evidence through human-readable and technical views'
       { exact: true },
     ),
   ).toBeVisible();
+
+  const unchangedCase = customProfile.currentLatest.cases.find(
+    ({ trials }) => trials.at(-1)?.workspaceAssertions.changedPaths.length === 0,
+  );
+  if (unchangedCase === undefined) {
+    throw new Error('The current Custom attempt has no unchanged project journey.');
+  }
+  const unchangedJourney = page
+    .locator('main details')
+    .filter({ has: page.getByRole('heading', { level: 3, name: unchangedCase.result.title }) })
+    .first();
+  await unchangedJourney.locator(':scope > summary').click();
+  await unchangedJourney.getByRole('tab', { name: 'Project' }).click();
+  await expect(
+    unchangedJourney.getByText('No project files changed', { exact: true }),
+  ).toBeVisible();
+});
+
+test('keeps the qualification project story readable without JavaScript', async ({ browser }) => {
+  const customProfile = getProfile('custom', 'custom');
+  const currentAttempt = customProfile.currentLatest;
+  const groundedAgentCase = currentAttempt?.cases.find(
+    ({ result }) => result.caseId === 'create-grounded-agent',
+  );
+  if (currentAttempt === null || groundedAgentCase === undefined) return;
+
+  const context = await browser.newContext({
+    javaScriptEnabled: false,
+    viewport: { height: 740, width: 320 },
+  });
+  const page = await context.newPage();
+  await page.goto(toPublicPath(currentAttempt.route));
+  const journey = page
+    .locator('main details')
+    .filter({ has: page.getByRole('heading', { level: 3, name: groundedAgentCase.result.title }) })
+    .first();
+  await journey.locator(':scope > summary').click();
+
+  await expect(journey.getByRole('heading', { name: 'Starting project' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'Agent task' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'Verified result' })).toBeVisible();
+  await expect(journey.getByRole('link', { name: 'View complete project source' })).toBeVisible();
+  await expect(journey.getByRole('link', { name: 'View raw patch' })).toBeVisible();
+  const widths = await page.evaluate(() => ({
+    client: document.documentElement.clientWidth,
+    scroll: document.documentElement.scrollWidth,
+  }));
+  expect(widths.scroll).toBeLessThanOrEqual(widths.client);
+
+  await context.close();
 });
 
 test('keeps qualification evidence accessible at 320px in both themes', async ({ browser }) => {
@@ -378,6 +457,13 @@ test(
   'renders recovered protocol 8 trial evidence',
   { tag: '@qualification-current-fixture' },
   async ({ browser }) => {
+    const recoveredProfile = getProfile('custom', 'custom');
+    const terminalPatchUrl =
+      recoveredProfile.currentLatest?.cases[0]?.trials.at(-1)?.workspacePatch.rawUrl;
+    if (terminalPatchUrl === undefined) {
+      throw new Error('The recovered fixture has no terminal workspace patch.');
+    }
+
     for (const colorScheme of ['light', 'dark'] as const) {
       const context = await browser.newContext({
         colorScheme,
@@ -410,6 +496,13 @@ test(
       );
       await expect(caseEvidence.getByText('Developer', { exact: true }).first()).toBeVisible();
       await expect(caseEvidence.getByText('Coding agent', { exact: true }).first()).toBeVisible();
+      await caseEvidence.getByRole('tab', { name: 'Project' }).click();
+      await expect(caseEvidence.getByRole('heading', { name: 'Starting project' })).toBeVisible();
+      await expect(caseEvidence.getByRole('heading', { name: 'Verified result' })).toBeVisible();
+      await expect(caseEvidence.getByRole('link', { name: 'View raw patch' })).toHaveAttribute(
+        'href',
+        terminalPatchUrl,
+      );
       await caseEvidence.getByRole('tab', { name: 'Evidence' }).click();
       await expect(caseEvidence.getByRole('heading', { name: 'Why it recovered' })).toBeVisible();
       await caseEvidence.getByRole('tab', { name: 'Technical' }).click();

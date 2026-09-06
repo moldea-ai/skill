@@ -482,6 +482,18 @@ const loadCurrentAttemptCase = (
         trial,
       });
     }
+    const workspacePatchArtifact = artifacts.find(({ path }) => path === trial.patchPath);
+    const workspacePatchSource = readArtifact(trial.patchPath);
+    if (workspacePatchArtifact === undefined || workspacePatchArtifact.sha256 === null) {
+      throw new Error(
+        `Qualification case ${result.caseId} trial ${trial.trialId} has no verified workspace patch artifact.`,
+      );
+    }
+    if (workspacePatchSource === undefined) {
+      throw new Error(
+        `Qualification case ${result.caseId} trial ${trial.trialId} has no workspace patch source.`,
+      );
+    }
     const trialEvidence = {
       actor: readAttemptArtifact(readArtifact, trial.actorOutputPath, ActorOutputSchema),
       actorCommandPolicy: actorEvidence.commandPolicy,
@@ -521,6 +533,11 @@ const loadCurrentAttemptCase = (
         trial.workspaceAssertionsPath,
         WorkspaceAssertionResultSchema,
       ),
+      workspacePatch: {
+        ...workspacePatchArtifact,
+        content: workspacePatchSource.toString('utf8'),
+        sha256: workspacePatchArtifact.sha256,
+      },
     };
     assertQualificationCaseEvidence({
       ...trialEvidence,

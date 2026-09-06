@@ -1,6 +1,11 @@
 import { posix } from 'node:path';
 
-import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
+import type {
+  IEvaluationReplayModel,
+  IEvaluationReplayPathTreeNode,
+  IEvaluationReplayWorkspaceChange,
+  IEvaluationReplayWorkspaceChangeStatus,
+} from '@moldea.ai/website-ui/evaluation-replay-model';
 import { z } from 'zod';
 
 const QUALIFICATION_PROTOCOL_VERSION = 2;
@@ -757,6 +762,25 @@ export interface IQualificationArtifactModel {
   sha256: string | null;
 }
 
+// one verified text artifact embedded in a public evidence view
+export interface IQualificationTextArtifactModel extends IQualificationArtifactModel {
+  content: string;
+  sha256: string;
+}
+
+// one exact workspace-change group derived from the validated before and after snapshots
+export interface IQualificationProjectChangeGroup {
+  changes: readonly IEvaluationReplayWorkspaceChange[];
+  status: IEvaluationReplayWorkspaceChangeStatus;
+  tree: readonly IEvaluationReplayPathTreeNode[];
+}
+
+// bounded project structure and changes shown to qualification visitors
+export interface IQualificationProjectEvidenceModel {
+  changeGroups: readonly IQualificationProjectChangeGroup[];
+  startingTree: readonly IEvaluationReplayPathTreeNode[];
+}
+
 // repository location from which one website attempt was resolved at build time
 export interface IQualificationEvidenceSourceModel {
   kind: 'current';
@@ -795,6 +819,7 @@ export interface IQualificationAttemptTrialModel {
     judge: IQualificationOperationalRetry[];
   };
   workspaceAssertions: IWorkspaceAssertionResult;
+  workspacePatch: IQualificationTextArtifactModel;
 }
 
 // complete evidence for one case in an immutable attempt

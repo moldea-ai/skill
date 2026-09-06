@@ -2,11 +2,11 @@
 
 ## Completed baseline
 
-Milestones 1 through 29 are complete, reviewed, and published at their recorded repository boundaries. They established the clean package majors, bounded repository/Core/CLI contracts, paired GitHub fixtures, PR Assurance kernel, repository-bound skill activation, public documentation, evidence-pin workflow, qualification ownership, resource calibration, compact status output, repository-local launcher resolution, passing 12-project Custom plus Anthropic and Claude Agent SDK evidence, the complete 74-case semantic contract with exact stage reuse and truthful 14-journey adapter presentation, and the bounded static qualification Project view.
+Milestones 1 through 30 are complete, reviewed, and published at their recorded repository boundaries. They established the clean package majors, bounded repository/Core/CLI contracts, paired GitHub fixtures, PR Assurance kernel, repository-bound skill activation, public documentation, evidence-pin workflow, qualification ownership, resource calibration, compact status output, repository-local launcher resolution, passing 12-project Custom plus Anthropic and Claude Agent SDK evidence, the complete 74-case semantic contract with exact stage reuse and truthful 14-journey adapter presentation, the bounded static qualification Project view, and the clean removal of the obsolete 18-case evidence generation.
 
 Milestone 27 published the Project view at signed commit `dc8441624ce42cde1160a3eb6cfb3535b54432a0`. Milestone 28 published the initialization evidence-sufficiency correction at signed commit `f8ae0388350f9fb1d074240b1b84e50e2a21ca90`. Milestone 29 published the generic-context activation correction at signed commit `f8ea83ce1428100719b0ef5ff81f63ab59f41781` and preserved failed attempt `20260906T182907324Z-semantic-731eef35`.
 
-The current official expanded attempt `20260906T190826171Z-semantic-42ac9646` passed 26 cases, recovered one, and failed `adopted-relevance-changed-behavior` because its fixture declared only project-level impact and did not expose the agent-owned instruction and mirrors through bounded scope. It remains immutable diagnostic evidence. The remaining sequence begins with a clean semantic-history cutover and fixture correction before any further paid evaluation.
+Milestone 30 published the clean semantic-history cutover and changed-behavior correction at signed commit `60c18002b0509dd41f1c564310297735d58d0c7d`. An accidental unrecorded full invocation after publication exposed a new fail-closed and output-bounding defect before any official current attempt began: missing `--record` still launched all 74 cases, retained no reusable evidence, and emitted 473,325 bytes of complete diagnostic JSON. The revised sequence corrects that defect before restarting paid evaluation.
 
 ## Milestone 30: Cut over semantic history and correct changed-behavior scope
 
@@ -47,7 +47,42 @@ Remove the obsolete 18-case evidence generation from active source and make the 
 
 Review deletion completeness, pointer reconstruction, current-generation immutability semantics, website and release behavior, fixture ownership, diagnostic evidence, exact retained-attempt hashes, and absence of compatibility code before signed publication.
 
-## Milestone 31: Record the expanded semantic evaluation
+## Milestone 31: Bound semantic invocation and diagnostic output
+
+### Objective
+
+Prevent accidental unrecorded full-suite spend and replace body-bearing diagnostic stdout with one useful bounded result.
+
+### Dependencies
+
+- Milestone 30 is reviewed and published at `60c18002b0509dd41f1c564310297735d58d0c7d`.
+- No semantic or adapter process is running, and the accidental unrecorded run created no checkpoint or attempt.
+
+### Scope and implementation
+
+- Make semantic argument parsing reject an invocation that selects neither `--record` nor `--case <id>` before host discovery or model execution.
+- Keep `--record` as the only full-suite model mode and `--case <id>` as the only non-recording model mode; preserve the existing preflight, verification, checkpoint-recording, and restart contracts.
+- Replace the standalone complete evidence object with a dedicated compact diagnostic JSON schema containing the selected case, verdict, complete observed and forbidden criterion identifiers, a UTF-8-safe rationale excerpt with `rationaleTruncated`, and aggregate command/resource evidence.
+- Enforce a 65,536-byte encoded stdout ceiling. Shorten only rationale text when necessary, record that loss explicitly, and never truncate or omit the case ID, verdict, or criterion identifiers. Exclude actor output, raw executions, repository controls, scenario bodies, workspace bodies, skill artifacts, prompts, and duplicated result structures.
+- Update `README.md`, `docs/semantic-evaluation.md`, and focused tests. Remove the remaining active predecessor-suite provenance statement.
+
+### Verification
+
+- Add unit tests for missing mode, explicit record mode, targeted mode, conflicting options, compact schema, excluded fields, UTF-8-safe rationale truncation, and exact byte enforcement.
+- Run the evaluator through a fake host and prove missing mode makes zero host calls, targeted mode emits one bounded result, and recording behavior remains checkpointed.
+- Run root tests, documentation, formatting, path, privacy/resource, semantic-attempt verification, release identity, website checks, and portable-skill validation.
+
+### Acceptance criteria
+
+- `npm run eval:semantic` without an explicit model mode fails before any paid call and creates no checkpoint or attempt.
+- A targeted diagnostic produces one useful schema-valid JSON result no larger than 65,536 UTF-8 bytes and no body-bearing evidence.
+- Full-suite execution remains available only through explicit `--record`, and active documentation contains no predecessor-retention claim.
+
+### Review checkpoint
+
+Review mode parsing order, zero-call evidence, output schema and encoded size, privacy exclusions, recording/checkpoint preservation, documentation consistency, and absence of a compatibility path before signed publication.
+
+## Milestone 32: Record the expanded semantic evaluation
 
 ### Objective
 
@@ -55,12 +90,12 @@ Record one complete passing 74-case semantic attempt from the clean current gene
 
 ### Dependencies
 
-- Milestone 30 is reviewed and published.
+- Milestone 31 is reviewed and published.
 - The corrected single-case diagnostic passes and semantic preflight reports no predecessor-suite reuse.
 
 ### Scope and implementation
 
-- Start a fresh official semantic attempt from the published Milestone 30 state.
+- Start a fresh official semantic attempt from the published Milestone 31 state.
 - Permit reuse only from a verified exact current 74-case source generated after the cutover; execute every other actor and judge stage normally.
 - Preserve all initial and confirmation trials, deterministic evidence, execution origins, source provenance, resource measurements, and interruption-safe checkpoints.
 - If a case exposes an in-scope fixture, evaluator, or skill defect, preserve the failed attempt, correct it through the authorized re-planning and review loop, and rerun only stages invalidated by exact identity.
@@ -81,7 +116,7 @@ Record one complete passing 74-case semantic attempt from the clean current gene
 
 Review every case verdict, reuse provenance, direct-stage spend, recovery history, resource evidence, immutable artifacts, public totals, and exact current identity before signed publication.
 
-## Milestone 32: Reconcile the Custom, Anthropic, and Claude prerequisites
+## Milestone 33: Reconcile the Custom, Anthropic, and Claude prerequisites
 
 ### Objective
 
@@ -89,7 +124,7 @@ Prove that the existing Custom, Anthropic, and Claude Agent SDK attempts remain 
 
 ### Dependencies
 
-- Milestone 31 is reviewed and published with exact-current passing semantic evidence.
+- Milestone 32 is reviewed and published with exact-current passing semantic evidence.
 
 ### Scope and implementation
 
@@ -112,7 +147,7 @@ Prove that the existing Custom, Anthropic, and Claude Agent SDK attempts remain 
 
 Review exact identity decisions, any rerun justification, baseline binding, public status, and historical-attempt preservation before signed publication when files change.
 
-## Milestone 33: Qualify Cloudflare AI Chat Agent
+## Milestone 34: Qualify Cloudflare AI Chat Agent
 
 ### Objective
 
@@ -120,7 +155,7 @@ Record passing evidence for `cloudflare-agents/typescript-ai-chat-agent-0-10-ai-
 
 ### Dependencies
 
-- Milestone 32 is complete and all shared prerequisites pass.
+- Milestone 33 is complete and all shared prerequisites pass.
 - The published failed attempt remains immutable; its stale interrupted checkpoint is not reused.
 
 ### Scope and implementation
@@ -140,7 +175,7 @@ Record passing evidence for `cloudflare-agents/typescript-ai-chat-agent-0-10-ai-
 
 Review prior-failure regressions, Cloudflare-specific behavior, provenance, budgets, canonical mutations, and public evidence before signed publication.
 
-## Milestone 34: Qualify Cloudflare Think
+## Milestone 35: Qualify Cloudflare Think
 
 ### Objective
 
@@ -148,7 +183,7 @@ Record passing evidence for `cloudflare-agents/typescript-think-0-16-ai-sdk-7`.
 
 ### Dependencies
 
-- Milestone 33 is reviewed and published.
+- Milestone 34 is reviewed and published.
 
 ### Scope and implementation
 
@@ -166,7 +201,7 @@ Record passing evidence for `cloudflare-agents/typescript-think-0-16-ai-sdk-7`.
 
 Review Cloudflare Think-specific behavior, provenance, budgets, and evidence before signed publication.
 
-## Milestone 35: Qualify Eve
+## Milestone 36: Qualify Eve
 
 ### Objective
 
@@ -174,7 +209,7 @@ Record passing evidence for `eve/typescript-filesystem-agent-0-39`.
 
 ### Dependencies
 
-- Milestone 34 is reviewed and published.
+- Milestone 35 is reviewed and published.
 
 ### Scope and implementation
 
@@ -192,7 +227,7 @@ Record passing evidence for `eve/typescript-filesystem-agent-0-39`.
 
 Review Eve-specific behavior, lower-bound compatibility, provenance, budgets, and evidence before signed publication.
 
-## Milestone 36: Qualify Google Gen AI
+## Milestone 37: Qualify Google Gen AI
 
 ### Objective
 
@@ -200,7 +235,7 @@ Record passing evidence for `google-genai/typescript-models-generate-content-2`.
 
 ### Dependencies
 
-- Milestone 35 is reviewed and published.
+- Milestone 36 is reviewed and published.
 
 ### Scope and implementation
 
@@ -218,7 +253,7 @@ Record passing evidence for `google-genai/typescript-models-generate-content-2`.
 
 Review Google Gen AI-specific behavior, provenance, budgets, and evidence before signed publication.
 
-## Milestone 37: Qualify LangChain
+## Milestone 38: Qualify LangChain
 
 ### Objective
 
@@ -226,7 +261,7 @@ Record passing evidence for `langchain/typescript-create-agent-1-5`.
 
 ### Dependencies
 
-- Milestone 36 is reviewed and published.
+- Milestone 37 is reviewed and published.
 
 ### Scope and implementation
 
@@ -244,7 +279,7 @@ Record passing evidence for `langchain/typescript-create-agent-1-5`.
 
 Review LangChain-specific behavior, provenance, budgets, and evidence before signed publication.
 
-## Milestone 38: Qualify LangGraph Functional API
+## Milestone 39: Qualify LangGraph Functional API
 
 ### Objective
 
@@ -252,7 +287,7 @@ Record passing evidence for `langgraph/typescript-functional-api-1-4`.
 
 ### Dependencies
 
-- Milestone 37 is reviewed and published.
+- Milestone 38 is reviewed and published.
 
 ### Scope and implementation
 
@@ -270,7 +305,7 @@ Record passing evidence for `langgraph/typescript-functional-api-1-4`.
 
 Review LangGraph Functional API-specific behavior, provenance, budgets, and evidence before signed publication.
 
-## Milestone 39: Qualify LangGraph StateGraph
+## Milestone 40: Qualify LangGraph StateGraph
 
 ### Objective
 
@@ -278,7 +313,7 @@ Record passing evidence for `langgraph/typescript-state-graph-1-4`.
 
 ### Dependencies
 
-- Milestone 38 is reviewed and published.
+- Milestone 39 is reviewed and published.
 
 ### Scope and implementation
 
@@ -296,7 +331,7 @@ Record passing evidence for `langgraph/typescript-state-graph-1-4`.
 
 Review LangGraph StateGraph-specific behavior, provenance, budgets, and evidence before signed publication.
 
-## Milestone 40: Qualify OpenAI Responses API
+## Milestone 41: Qualify OpenAI Responses API
 
 ### Objective
 
@@ -304,7 +339,7 @@ Record passing evidence for `openai/typescript-responses-api-7`.
 
 ### Dependencies
 
-- Milestone 39 is reviewed and published.
+- Milestone 40 is reviewed and published.
 
 ### Scope and implementation
 
@@ -322,7 +357,7 @@ Record passing evidence for `openai/typescript-responses-api-7`.
 
 Review OpenAI Responses API-specific behavior, provenance, budgets, and evidence before signed publication.
 
-## Milestone 41: Qualify OpenAI Agents SDK
+## Milestone 42: Qualify OpenAI Agents SDK
 
 ### Objective
 
@@ -330,7 +365,7 @@ Record passing evidence for `openai-agents-sdk/typescript-agent-handoffs-0-16`.
 
 ### Dependencies
 
-- Milestone 40 is reviewed and published.
+- Milestone 41 is reviewed and published.
 
 ### Scope and implementation
 
@@ -348,7 +383,7 @@ Record passing evidence for `openai-agents-sdk/typescript-agent-handoffs-0-16`.
 
 Review OpenAI Agents SDK-specific behavior, provenance, budgets, and evidence before signed publication.
 
-## Milestone 42: Qualify Vercel generate/stream text
+## Milestone 43: Qualify Vercel generate/stream text
 
 ### Objective
 
@@ -356,7 +391,7 @@ Record passing evidence for `vercel-ai-sdk/typescript-generate-stream-text-7`.
 
 ### Dependencies
 
-- Milestone 41 is reviewed and published.
+- Milestone 42 is reviewed and published.
 
 ### Scope and implementation
 
@@ -374,7 +409,7 @@ Record passing evidence for `vercel-ai-sdk/typescript-generate-stream-text-7`.
 
 Review Vercel generate/stream text-specific behavior, provenance, budgets, and evidence before signed publication.
 
-## Milestone 43: Qualify Vercel ToolLoopAgent
+## Milestone 44: Qualify Vercel ToolLoopAgent
 
 ### Objective
 
@@ -382,7 +417,7 @@ Record passing evidence for `vercel-ai-sdk/typescript-tool-loop-agent-7`.
 
 ### Dependencies
 
-- Milestone 42 is reviewed and published.
+- Milestone 43 is reviewed and published.
 
 ### Scope and implementation
 
@@ -401,7 +436,7 @@ Record passing evidence for `vercel-ai-sdk/typescript-tool-loop-agent-7`.
 
 Review Vercel ToolLoopAgent-specific behavior, provenance, budgets, evidence, and the complete target registry before signed publication.
 
-## Milestone 44: Record release evidence
+## Milestone 45: Record release evidence
 
 ### Objective
 
@@ -429,7 +464,7 @@ Create the compact fresh 5.0.0 release-evidence envelope from the exact passing 
 
 Review every selected digest/source, evidence mode, reused-stage provenance, package/version identity, adapter baseline binding, public disclosure, and release gate before signed publication.
 
-## Milestone 45: Publish the clean release and final audit
+## Milestone 46: Publish the clean release and final audit
 
 ### Objective
 
@@ -437,7 +472,7 @@ Integrate and publish skill 5.0.0, remove authorized obsolete 4.0.x release surf
 
 ### Dependencies
 
-- Milestone 44 is reviewed and published and all release checks pass.
+- Milestone 45 is reviewed and published and all release checks pass.
 - Required GitHub and registry credentials and repository controls remain available.
 
 ### Scope and implementation
@@ -466,4 +501,4 @@ Review target freshness, mergeability, signed history, workflow and registry out
 
 ## Execution scope
 
-Preserve completed and published Milestones 1 through 29 and the retained 74-case diagnostic attempts. Implement, review, and publish the active-generation semantic cleanup and `adopted-relevance-changed-behavior` fixture correction as Milestone 30 without running a paid evaluation. Then record one complete 74-case semantic attempt with no predecessor-suite reuse, retain exact-current Custom/Anthropic/Claude evidence when verification permits, resume from a fresh Cloudflare attempt, complete the remaining adapters, record fresh release evidence, publish clean skill 5.0.0, and finish the cross-repository audit plus authorized 4.0.x release-surface cleanup. No hidden milestone, predecessor evidence reader, full repository viewer, file-content dialog, semantic-project emulation, export-card generator, compatibility path, evaluator relaxation, stage-identity weakening, retained-attempt rewrite, protected-instruction edit, or unrelated concurrent work is included.
+Preserve completed and published Milestones 1 through 30 and the retained 74-case diagnostic attempts. Implement, review, and publish the semantic invocation and diagnostic-output correction as Milestone 31 without another paid evaluation. Then record one complete 74-case semantic attempt with no predecessor-suite reuse, retain exact-current Custom/Anthropic/Claude evidence when verification permits, resume from a fresh Cloudflare attempt, complete the remaining adapters, record fresh release evidence, publish clean skill 5.0.0, and finish the cross-repository audit plus authorized 4.0.x release-surface cleanup. No hidden milestone, predecessor evidence reader, unrecorded full-suite mode, body-bearing diagnostic output, full repository viewer, file-content dialog, semantic-project emulation, export-card generator, compatibility path, evaluator relaxation, stage-identity weakening, retained-attempt rewrite, protected-instruction edit, or unrelated concurrent work is included.

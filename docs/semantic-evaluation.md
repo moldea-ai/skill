@@ -89,7 +89,7 @@ Evidence applies only to exact behavior-bearing actor and judge stage identities
 
 Reused stages retain their original evaluation time and carry the source attempt, source commit, evidence digest, trial identity, stage identity, and explicit `reused` origin. The current runner rematerializes deterministic fixtures, reruns repository and read-only-mount controls, and verifies the committed source artifact before accepting reuse. It never labels reuse as a new model invocation.
 
-The public evidence site generates routes, search records, and visible history only for attempts matching the active evaluation contract. Predecessor-suite artifacts remain internal provenance only when an exact reused stage depends on them.
+The public evidence site generates routes, search records, and visible history only for attempts matching the active evaluation contract.
 
 This is the normal release path. A maintainer may explicitly pin a release to valid passing evidence from an earlier immutable release when the current change cannot affect evaluated behavior. A pin is presented as pinned evidence, never as a fresh run, and must pass the source integrity and resource checks described in [Release evidence](/docs/release-evidence/).
 
@@ -106,6 +106,16 @@ Preflight validates all case definitions, source evidence, portable skill struct
 It also prints the total initial stage count, exact reusable case and stage counts, remaining paid initial stage count, confirmation-inclusive paid stage limit, retry-inclusive invocation limit, and absolute token containment limit. These are deliberately named limits, not forecasts. The confirmation limit assumes that every newly evaluated case needs two confirmation trials after its initial trial, while the invocation limit additionally assumes that every paid actor and judge stage consumes its one bounded operational retry. Each completed tool-using Codex invocation may report at most 2,097,152 cumulative input-plus-output tokens. The aggregate containment limit assumes that every permitted invocation reaches that individual ceiling, so it must not be presented as expected consumption or spend. The per-invocation ceiling was selected above an observed 1,264,666-token qualification stage so normal tool-using work retains more than 25 percent headroom. Crossing it is an explicit failure, and cached input is reported separately without being added to input a second time.
 
 ## Record and verify
+
+Use one explicit case for a non-recording diagnostic:
+
+```bash
+npm run eval:semantic -- --case <case-id>
+```
+
+The diagnostic emits one content-free JSON result with the verdict, complete observed and forbidden criterion identifiers, a UTF-8-safe rationale excerpt with explicit truncation state, and aggregate command and token evidence. Output cannot exceed 65,536 UTF-8 bytes. Running `npm run eval:semantic` without `--case` or `--record` fails before host discovery and makes no model call.
+
+The complete paid suite requires explicit recording:
 
 ```bash
 npm run eval:semantic -- --record

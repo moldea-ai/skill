@@ -5,9 +5,11 @@ import {
   assessJudgeOutput,
   buildActorPrompt,
   buildJudgePrompt,
+  createSemanticDiagnosticOutput,
   createSemanticEvaluationCostEstimate,
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
+  SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT,
 } from './semantic-evaluation-runner.mjs';
 
 const CASE = {
@@ -19,7 +21,11 @@ const CASE = {
     repositoryEvidence: [
       {
         claim: 'The file exists.',
-        source: { kind: 'workspace-path', path: 'docs/example.md', expectedType: 'file' },
+        source: {
+          kind: 'workspace-path',
+          path: 'docs/example.md',
+          expectedType: 'file',
+        },
       },
     ],
   },
@@ -33,7 +39,27 @@ const CASE = {
   forbidden: [{ label: 'activate', criterion: 'The actor activates moldea.' }],
 };
 
-test('parses a diagnostic case selection without authorizing recording', () => {
+test('requires an explicit semantic model-execution mode', () => {
+  assert.throws(() => parseSemanticEvaluationArguments([]), /requires --record or --case <id>/u);
+  assert.deepEqual(parseSemanticEvaluationArguments(['--record']), {
+    isPreflightRequested: false,
+    isRecordCheckpointRequested: false,
+    isRecordRequested: true,
+    isRestartRequested: false,
+    isVerifyAttemptsRequested: false,
+    requestedCaseId: undefined,
+  });
+  assert.deepEqual(parseSemanticEvaluationArguments(['--record', '--restart']), {
+    isPreflightRequested: false,
+    isRecordCheckpointRequested: false,
+    isRecordRequested: true,
+    isRestartRequested: true,
+    isVerifyAttemptsRequested: false,
+    requestedCaseId: undefined,
+  });
+});
+
+test('parses one diagnostic case without authorizing recording', () => {
   assert.deepEqual(parseSemanticEvaluationArguments(['--case', 'unrelated-review']), {
     isPreflightRequested: false,
     isRecordCheckpointRequested: false,
@@ -43,6 +69,114 @@ test('parses a diagnostic case selection without authorizing recording', () => {
     requestedCaseId: 'unrelated-review',
   });
   assert.throws(() => parseSemanticEvaluationArguments(['--case', 'unrelated-review', '--record']));
+  assert.throws(() =>
+    parseSemanticEvaluationArguments(['--case', 'unrelated-review', '--case', 'other-case']),
+  );
+});
+
+test('creates one bounded content-free semantic diagnostic', () => {
+  const diagnostic = JSON.parse(
+    createSemanticDiagnosticOutput({
+      actorCommandPolicyEvidence: { completedCommandCount: 3 },
+      actorExecutionEvidence: [{ command: 'secret command' }],
+      actorResourceEvidence: {
+        commandCount: 1,
+        maximumInvocationByteCount: 128,
+        modelVisibleToolOutputByteCount: 128,
+        operations: ['validate'],
+        stdoutByteCount: 128,
+      },
+      actorResponse: 'private actor output',
+      actorUsage: {
+        cachedInputTokens: 5,
+        inputTokens: 13,
+        outputTokens: 8,
+        private: 'actor token body',
+      },
+      forbidden: ['forbidden-behavior'],
+      id: 'bounded-diagnostic',
+      judgeUsage: {
+        cachedInputTokens: 3,
+        inputTokens: 8,
+        outputTokens: 5,
+        private: 'judge token body',
+      },
+      observed: ['expected-behavior'],
+      passed: false,
+      rationale: 'The expected behavior was not demonstrated.',
+      repositoryControlEvidence: { private: 'repository body' },
+      scenarioEvidence: [{ private: 'scenario body' }],
+      workspaceChanges: { private: 'workspace body' },
+    }),
+  );
+
+  assert.deepEqual(diagnostic, {
+    schemaVersion: 1,
+    evaluationProtocolVersion: 23,
+    caseId: 'bounded-diagnostic',
+    verdict: 'failed',
+    criteria: {
+      observed: ['expected-behavior'],
+      forbidden: ['forbidden-behavior'],
+    },
+    rationale: 'The expected behavior was not demonstrated.',
+    rationaleTruncated: false,
+    resources: {
+      actorCommands: { completedCommandCount: 3 },
+      moldea: {
+        commandCount: 1,
+        maximumInvocationByteCount: 128,
+        modelVisibleToolOutputByteCount: 128,
+        operations: ['validate'],
+        stdoutByteCount: 128,
+      },
+      modelTokens: {
+        actor: { cachedInputTokens: 5, inputTokens: 13, outputTokens: 8 },
+        judge: { cachedInputTokens: 3, inputTokens: 8, outputTokens: 5 },
+      },
+    },
+  });
+  assert.doesNotMatch(
+    JSON.stringify(diagnostic),
+    /private actor output|secret command|repository body|scenario body|workspace body|token body/u,
+  );
+});
+
+test('truncates only semantic rationale on UTF-8 code-point boundaries', () => {
+  const observed = Array.from({ length: 64 }, (_, index) => `expected-${index}`);
+  const forbidden = Array.from({ length: 64 }, (_, index) => `forbidden-${index}`);
+  const output = createSemanticDiagnosticOutput({
+    actorCommandPolicyEvidence: { completedCommandCount: 64 },
+    actorResourceEvidence: {
+      commandCount: 1,
+      maximumInvocationByteCount: 65_536,
+      modelVisibleToolOutputByteCount: 65_536,
+      operations: ['validate'],
+      stdoutByteCount: 65_536,
+    },
+    actorUsage: {
+      cachedInputTokens: 512,
+      inputTokens: 1_024,
+      outputTokens: 256,
+    },
+    forbidden,
+    id: 'large-multibyte-rationale',
+    judgeUsage: { cachedInputTokens: 256, inputTokens: 512, outputTokens: 128 },
+    observed,
+    passed: true,
+    rationale: 'évidence-🙂-'.repeat(16_384),
+  });
+  const diagnostic = JSON.parse(output);
+  const outputByteCount = Buffer.byteLength(output, 'utf8');
+
+  assert.ok(outputByteCount <= SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT);
+  assert.ok(SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT - outputByteCount < 4);
+  assert.equal(diagnostic.rationaleTruncated, true);
+  assert.equal(diagnostic.verdict, 'passed');
+  assert.deepEqual(diagnostic.criteria.observed, observed);
+  assert.deepEqual(diagnostic.criteria.forbidden, forbidden);
+  assert.ok(diagnostic.rationale.length > 0);
+  assert.doesNotMatch(diagnostic.rationale, /\uFFFD/u);
 });
 
 test('keeps evaluator criteria out of the actor prompt', () => {

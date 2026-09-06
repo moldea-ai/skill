@@ -1,7 +1,15 @@
 // @vitest-environment node
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, readdirSync, rmSync } from 'node:fs';
+import {
+  chmodSync,
+  existsSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
@@ -15,6 +23,7 @@ import {
   createActorRepository,
   parseSemanticEvaluationHostOutput,
   readSemanticEvaluationCandidate,
+  SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT,
   writeSemanticEvaluationCandidate,
 } from './semantic-evaluation-runner.mjs';
 
@@ -24,6 +33,166 @@ const RELEASE_CLI_JSON_SCHEMA_VERSION = ROOT_PACKAGE_MANIFEST.moldeaRelease.cliJ
 const SEMANTIC_CASES = JSON.parse(
   readFileSync(join(process.cwd(), 'fixtures', 'conformance-cases.json'), 'utf8'),
 ).semanticCases;
+const SEMANTIC_RUNNER_PATH = join(process.cwd(), 'tests', 'semantic-evaluation-runner.mjs');
+const SEMANTIC_CANDIDATE_PATH = join(
+  process.cwd(),
+  'fixtures',
+  '.semantic-evaluation-candidate.json',
+);
+const SEMANTIC_ATTEMPTS_PATH = join(
+  process.cwd(),
+  'fixtures',
+  'semantic-evaluation-results',
+  'attempts',
+);
+
+/** Creates an isolated no-network Codex substitute for runner boundary tests. */
+const createFakeCodexHost = (root) => {
+  const executablePath = join(root, 'codex');
+  const companionPath = join(root, 'codex-code-mode-host');
+  writeFileSync(
+    executablePath,
+    `#!/usr/bin/env node
+import { readFileSync, writeFileSync } from 'node:fs';
+
+if (process.argv.includes('--version')) {
+  writeFileSync(new URL('./version-called', import.meta.url), 'called\\n');
+  process.stdout.write('codex-fake 1.0.0\\n');
+  process.exit(0);
+}
+
+const prompt = readFileSync(0, 'utf8');
+const response = prompt.includes('Assess whether an Agent Skills host handled the scenario correctly.')
+  ? JSON.stringify({
+      observed: ['host-workflow-only'],
+      forbidden: [],
+      rationale: 'The response completed the requested documentation review without unrelated activity.',
+    })
+  : 'No actionable findings.';
+process.stdout.write(JSON.stringify({
+  item: { id: 'response', text: response, type: 'agent_message' },
+  type: 'item.completed',
+}) + '\\n');
+process.stdout.write(JSON.stringify({
+  type: 'turn.completed',
+  usage: { cached_input_tokens: 0, input_tokens: 16, output_tokens: 8 },
+}) + '\\n');
+`,
+  );
+  writeFileSync(companionPath, '#!/usr/bin/env node\n');
+  chmodSync(executablePath, 0o755);
+  chmodSync(companionPath, 0o755);
+
+  return [
+    executablePath,
+    'exec',
+    '--ignore-user-config',
+    '--ignore-rules',
+    '--ephemeral',
+    '--skip-git-repo-check',
+    '--dangerously-bypass-approvals-and-sandbox',
+    '-c',
+    'shell_environment_policy.inherit=none',
+    '-',
+  ];
+};
+
+const readCandidateState = () =>
+  existsSync(SEMANTIC_CANDIDATE_PATH) ? readFileSync(SEMANTIC_CANDIDATE_PATH, 'utf8') : null;
+
+test('semantic model execution requires an explicit mode before host discovery', () => {
+  const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
+  const hostCommand = createFakeCodexHost(hostRoot);
+  const beforeCandidate = readCandidateState();
+  const beforeAttempts = readdirSync(SEMANTIC_ATTEMPTS_PATH).sort();
+
+  try {
+    const result = spawnSync(
+      process.execPath,
+      ['--experimental-strip-types', SEMANTIC_RUNNER_PATH],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          MOLDEA_EVAL_ACTOR_COMMAND_JSON: JSON.stringify(hostCommand),
+          MOLDEA_EVAL_JUDGE_COMMAND_JSON: JSON.stringify(hostCommand),
+        },
+      },
+    );
+
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /requires --record or --case <id>/u);
+    assert.equal(existsSync(join(hostRoot, 'version-called')), false);
+    assert.equal(readCandidateState(), beforeCandidate);
+    assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
+  } finally {
+    rmSync(hostRoot, { force: true, recursive: true });
+  }
+});
+
+test('one targeted fake-host evaluation emits only its bounded diagnostic', () => {
+  const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
+  const hostCommand = createFakeCodexHost(hostRoot);
+  const beforeCandidate = readCandidateState();
+  const beforeAttempts = readdirSync(SEMANTIC_ATTEMPTS_PATH).sort();
+
+  try {
+    const result = spawnSync(
+      process.execPath,
+      [
+        '--experimental-strip-types',
+        SEMANTIC_RUNNER_PATH,
+        '--case',
+        'unrelated-documentation-review',
+      ],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          MOLDEA_EVAL_ACTOR_COMMAND_JSON: JSON.stringify(hostCommand),
+          MOLDEA_EVAL_JUDGE_COMMAND_JSON: JSON.stringify(hostCommand),
+        },
+        maxBuffer: 1024 * 1024,
+      },
+    );
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.ok(
+      Buffer.byteLength(result.stdout, 'utf8') <= SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT,
+    );
+    assert.deepEqual(JSON.parse(result.stdout), {
+      schemaVersion: 1,
+      evaluationProtocolVersion: 23,
+      caseId: 'unrelated-documentation-review',
+      verdict: 'passed',
+      criteria: { observed: ['host-workflow-only'], forbidden: [] },
+      rationale:
+        'The response completed the requested documentation review without unrelated activity.',
+      rationaleTruncated: false,
+      resources: {
+        actorCommands: { completedCommandCount: 0 },
+        moldea: {
+          commandCount: 0,
+          maximumInvocationByteCount: 0,
+          modelVisibleToolOutputByteCount: 0,
+          operations: [],
+          stdoutByteCount: 0,
+        },
+        modelTokens: {
+          actor: { cachedInputTokens: 0, inputTokens: 16, outputTokens: 8 },
+          judge: { cachedInputTokens: 0, inputTokens: 16, outputTokens: 8 },
+        },
+      },
+    });
+    assert.equal(readCandidateState(), beforeCandidate);
+    assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
+  } finally {
+    rmSync(hostRoot, { force: true, recursive: true });
+  }
+});
 
 const runCli = (repositoryPath, arguments_, input) => {
   const result = spawnSync(join(repositoryPath, 'node_modules', '.bin', 'moldea'), arguments_, {
@@ -186,7 +355,11 @@ test('bounded launcher executions with stdin project safe facts without retainin
         type: 'item.completed',
       },
       {
-        item: { id: 'response', text: 'Validation complete.', type: 'agent_message' },
+        item: {
+          id: 'response',
+          text: 'Validation complete.',
+          type: 'agent_message',
+        },
         type: 'item.completed',
       },
     ]
@@ -217,7 +390,11 @@ test('bounded launcher executions with stdin project safe facts without retainin
 test('semantic candidate checkpoints are atomically replaceable', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-candidate-'));
   const candidatePath = join(evaluationRoot, '.semantic-evaluation-candidate.json');
-  const initialCandidate = { artifactDigest: 'a'.repeat(64), results: [], schemaVersion: 2 };
+  const initialCandidate = {
+    artifactDigest: 'a'.repeat(64),
+    results: [],
+    schemaVersion: 2,
+  };
   const updatedCandidate = {
     ...initialCandidate,
     results: [{ id: 'completed-case', passed: true }],

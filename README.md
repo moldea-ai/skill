@@ -186,7 +186,15 @@ Run semantic preflight without a model call:
 npm run eval:semantic:preflight
 ```
 
-Run the current semantic evaluation and verify its committed attempt:
+Run one non-recording diagnostic when a specific case needs investigation:
+
+```bash
+npm run eval:semantic -- --case <case-id>
+```
+
+The diagnostic prints one content-free result containing the verdict, criterion identifiers, a bounded rationale excerpt, and aggregate resource evidence. Its UTF-8 JSON output is limited to 65,536 bytes. Running `npm run eval:semantic` without `--case` or `--record` fails before host discovery, so it cannot accidentally start the complete paid suite.
+
+Run the current semantic evaluation and verify its committed attempt only with explicit recording:
 
 ```bash
 npm run eval:semantic -- --record

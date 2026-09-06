@@ -124,6 +124,8 @@ const getSemanticForbiddenLabels = (caseDefinition) => [
   INCORRECT_MOLDEA_PRODUCT_NAME_CASING_LABEL,
 ];
 const MAX_WORKSPACE_EVIDENCE_FILE_BYTES = 32_768;
+// maximum UTF-8 bytes emitted for one targeted diagnostic
+export const SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT = 65_536;
 const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 7;
 const SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1;
 const SEMANTIC_MODEL_CALLS_PER_TRIAL = 2;
@@ -225,6 +227,9 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
     if (argument === '--case') index += 1;
   }
 
+  if (arguments_.length === 0) {
+    throw new Error('Semantic model execution requires --record or --case <id>.');
+  }
   if (isPreflightRequested && arguments_.length !== 1) {
     throw new Error('--preflight must run without other options.');
   }
@@ -234,12 +239,18 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
   if (requestedCaseId && isRecordRequested) {
     throw new Error('--case is diagnostic-only and cannot be combined with --record.');
   }
+  if (caseArgumentIndex !== -1 && arguments_.length !== 2) {
+    throw new Error('--case accepts exactly one semantic case ID and no other options.');
+  }
   if (isRestartRequested && (!isRecordRequested || requestedCaseId)) {
     throw new Error('--restart requires a full semantic evaluation with --record.');
   }
   if ((isRecordCheckpointRequested || isVerifyAttemptsRequested) && arguments_.length !== 1) {
     const operation = isRecordCheckpointRequested ? '--record-checkpoint' : '--verify-attempts';
     throw new Error(`${operation} must run without other options.`);
+  }
+  if (isRecordRequested && arguments_.length !== (isRestartRequested ? 2 : 1)) {
+    throw new Error('--record accepts only the optional --restart flag.');
   }
 
   return {
@@ -250,6 +261,98 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
     isVerifyAttemptsRequested,
     requestedCaseId,
   };
+};
+
+/**
+ * Serializes one targeted semantic verdict without exposing body-bearing evidence.
+ * @param result The complete internally validated case result.
+ * @returns Bounded UTF-8 JSON containing verdict, criteria, rationale, and resource aggregates.
+ */
+export const createSemanticDiagnosticOutput = (result) => {
+  if (
+    !isPlainRecord(result) ||
+    typeof result.id !== 'string' ||
+    result.id.length === 0 ||
+    typeof result.passed !== 'boolean' ||
+    !Array.isArray(result.observed) ||
+    result.observed.some((criterionId) => typeof criterionId !== 'string') ||
+    !Array.isArray(result.forbidden) ||
+    result.forbidden.some((criterionId) => typeof criterionId !== 'string') ||
+    typeof result.rationale !== 'string' ||
+    !hasValidActorCommandPolicyEvidence(result.actorCommandPolicyEvidence) ||
+    !hasValidMoldeaResourceEvidence(result.actorResourceEvidence) ||
+    !hasValidSemanticModelUsage(result.actorUsage) ||
+    !hasValidSemanticModelUsage(result.judgeUsage)
+  ) {
+    throw new Error('Semantic diagnostic output requires one complete case verdict.');
+  }
+
+  const createRecord = (rationale, rationaleTruncated) => ({
+    schemaVersion: 1,
+    evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
+    caseId: result.id,
+    verdict: result.passed ? 'passed' : 'failed',
+    criteria: {
+      observed: [...result.observed],
+      forbidden: [...result.forbidden],
+    },
+    rationale,
+    rationaleTruncated,
+    resources: {
+      actorCommands: {
+        completedCommandCount: result.actorCommandPolicyEvidence.completedCommandCount,
+      },
+      moldea: {
+        commandCount: result.actorResourceEvidence.commandCount,
+        maximumInvocationByteCount: result.actorResourceEvidence.maximumInvocationByteCount,
+        modelVisibleToolOutputByteCount:
+          result.actorResourceEvidence.modelVisibleToolOutputByteCount,
+        operations: [...result.actorResourceEvidence.operations],
+        stdoutByteCount: result.actorResourceEvidence.stdoutByteCount,
+      },
+      modelTokens: {
+        actor: {
+          cachedInputTokens: result.actorUsage.cachedInputTokens,
+          inputTokens: result.actorUsage.inputTokens,
+          outputTokens: result.actorUsage.outputTokens,
+        },
+        judge: {
+          cachedInputTokens: result.judgeUsage.cachedInputTokens,
+          inputTokens: result.judgeUsage.inputTokens,
+          outputTokens: result.judgeUsage.outputTokens,
+        },
+      },
+    },
+  });
+  const serialize = (rationale, rationaleTruncated) =>
+    `${JSON.stringify(createRecord(rationale, rationaleTruncated), null, 2)}\n`;
+  if (
+    Buffer.byteLength(result.rationale, 'utf8') <= SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT
+  ) {
+    const completeOutput = serialize(result.rationale, false);
+    if (
+      Buffer.byteLength(completeOutput, 'utf8') <= SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT
+    ) {
+      return completeOutput;
+    }
+  }
+
+  const emptyOutput = serialize('', true);
+  const emptyOutputByteCount = Buffer.byteLength(emptyOutput, 'utf8');
+  if (emptyOutputByteCount > SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT) {
+    throw new Error('Semantic diagnostic verdict fields exceed the output byte limit.');
+  }
+
+  const rationaleCodePoints = [];
+  let availableByteCount = SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT - emptyOutputByteCount;
+  for (const codePoint of result.rationale) {
+    const encodedCodePointByteCount = Buffer.byteLength(JSON.stringify(codePoint), 'utf8') - 2;
+    if (encodedCodePointByteCount > availableByteCount) break;
+    rationaleCodePoints.push(codePoint);
+    availableByteCount -= encodedCodePointByteCount;
+  }
+
+  return serialize(rationaleCodePoints.join(''), true);
 };
 
 const isPlainRecord = (input) =>
@@ -1331,7 +1434,9 @@ const loadSemanticReuseSources = async () => {
   if (!verification.passed) {
     throw new Error('Semantic stage reuse requires valid immutable attempt history.');
   }
-  const entries = await readdir(ATTEMPT_DIRECTORIES_ROOT, { withFileTypes: true });
+  const entries = await readdir(ATTEMPT_DIRECTORIES_ROOT, {
+    withFileTypes: true,
+  });
   const sources = [];
   for (const entry of entries.sort((left, right) => right.name.localeCompare(left.name, 'en'))) {
     if (!entry.isDirectory() || entry.name.startsWith('.')) continue;
@@ -3953,9 +4058,6 @@ export const runSemanticCaseTrial = async ({
 
 /** Runs blind forward evaluation with artifact-bound checkpoint and promotion semantics. */
 const main = async () => {
-  const fixture = JSON.parse(await readFile(CASES_PATH, 'utf8'));
-  const caseDefinitions = fixture.semanticCases;
-  const coverage = JSON.parse(await readFile(COVERAGE_PATH, 'utf8'));
   const {
     isPreflightRequested,
     isRecordRequested,
@@ -3964,6 +4066,9 @@ const main = async () => {
     isVerifyAttemptsRequested,
     requestedCaseId,
   } = parseSemanticEvaluationArguments(process.argv.slice(2));
+  const fixture = JSON.parse(await readFile(CASES_PATH, 'utf8'));
+  const caseDefinitions = fixture.semanticCases;
+  const coverage = JSON.parse(await readFile(COVERAGE_PATH, 'utf8'));
   if (isVerifyAttemptsRequested) {
     const verification = await verifySemanticEvaluationAttempts(ATTEMPT_RESULTS_ROOT);
     process.stdout.write(`${JSON.stringify(verification, null, 2)}\n`);
@@ -4278,49 +4383,10 @@ const main = async () => {
       );
     }
   } else {
-    const evaluatedAt = new Date().toISOString();
-    const standaloneRecord = {
-      artifact: { sha256: artifactDigest },
-      artifactDigest,
-      artifactSha256: artifactDigest,
-      cases: results.map((result) => ({
-        actorHost: result.actorHost,
-        actorCommandPolicyEvidence: result.actorCommandPolicyEvidence,
-        actorResponse: result.actorResponse,
-        actorExecutionEvidence: result.actorExecutionEvidence,
-        actorResourceEvidence: result.actorResourceEvidence,
-        caseDefinitionDigest: result.caseDefinitionDigest,
-        evaluatedAt: result.evaluatedAt,
-        executionOrigin: result.executionOrigin,
-        expectedSatisfied: result.observed,
-        forbiddenTriggered: result.forbidden,
-        id: result.id,
-        judgeHost: result.judgeHost,
-        passed: result.passed,
-        rationale: result.rationale,
-        readOnlyMountControlEvidence: result.readOnlyMountControlEvidence,
-        repositoryControlEvidence: result.repositoryControlEvidence,
-        scenarioEvidence: result.scenarioEvidence,
-        skillArtifactEvidence: result.skillArtifactEvidence,
-        stageReuse: result.stageReuse,
-        workspaceChanges: result.workspaceChanges,
-      })),
-      caseSuiteDigest,
-      cli,
-      confirmationPolicy: {
-        requiredPassingConfirmations: 2,
-        version: 1,
-      },
-      coverageDigest,
-      evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
-      evaluatedAt,
-      generatedAt: evaluatedAt,
-      hostContract,
-      results,
-      schemaVersion: SEMANTIC_CHECKPOINT_SCHEMA_VERSION,
-      skillDigest: artifactDigest,
-    };
-    process.stdout.write(`${JSON.stringify(standaloneRecord, null, 2)}\n`);
+    if (results.length !== 1) {
+      throw new Error('Targeted semantic evaluation must produce exactly one case result.');
+    }
+    process.stdout.write(createSemanticDiagnosticOutput(results[0]));
   }
 
   if (

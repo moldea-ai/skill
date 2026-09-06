@@ -1,6 +1,7 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
+import { readSemanticAttemptIdentity } from '../../../../tooling/evidence-identity/index.mjs';
 import {
   createPortableSkillDigest,
   createSemanticCaseDefinitionDigest,
@@ -180,6 +181,10 @@ const createAttemptModel = (
   repositoryRoot: string,
 ): ISemanticAttemptModel => {
   const attemptPath = `${SEMANTIC_ATTEMPTS_PATH}/attempts/${attempt.attemptId}`;
+  const identity = readSemanticAttemptIdentity(repositoryRoot, attempt.attemptId);
+  if (existsSync(join(repositoryRoot, '.git')) && identity === null) {
+    throw new Error(`Semantic attempt ${attempt.attemptId} lacks source-bound identity.`);
+  }
   const rawReplayCandidate = readJson(join(repositoryRoot, attemptPath, 'evidence.json'));
   if (
     !hasValidSemanticReplayExecutionEvidence(rawReplayCandidate, {

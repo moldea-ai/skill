@@ -194,6 +194,17 @@ test('replays qualification evidence through human-readable and technical views'
     await expect(page.getByText(/No protocol 8 Sol attempt has been committed/u)).toBeVisible();
     return;
   }
+  const groundedAgentCase = customProfile.currentLatest.cases.find(
+    ({ result }) => result.caseId === 'create-grounded-agent',
+  );
+  const initialGroundedAgentTrial = groundedAgentCase?.trials.find(
+    ({ result }) => result.trialId === 'initial',
+  );
+  if (initialGroundedAgentTrial === undefined) {
+    throw new Error('The current Custom attempt has no initial grounded-agent trial.');
+  }
+  const initialRetryCount =
+    initialGroundedAgentTrial.retries.actor.length + initialGroundedAgentTrial.retries.judge.length;
   const attemptRoute = await page
     .getByRole('link', { name: /Inspect the .* attempt/u })
     .getAttribute('href');
@@ -249,7 +260,10 @@ test('replays qualification evidence through human-readable and technical views'
     initialTrial.getByText('Commands recorded / limit:', { exact: false }).first(),
   ).toBeVisible();
   await expect(
-    initialTrial.getByText(/Operational retries \(0\) and committed trial artifacts/u),
+    initialTrial.getByText(
+      `Operational retries (${initialRetryCount}) and committed trial artifacts`,
+      { exact: true },
+    ),
   ).toBeVisible();
 });
 
@@ -391,7 +405,7 @@ test(
       await expect(
         initialTrial.getByText('Largest command output / limit:', { exact: false }),
       ).toBeVisible();
-      await expect(initialTrial.getByText('0 / 65536 bytes', { exact: true })).toBeVisible();
+      await expect(initialTrial.getByText('0 / 131072 bytes', { exact: true })).toBeVisible();
       await expect(initialTrial.getByText('144 / 1250000', { exact: true })).toBeVisible();
       await expect(initialTrial.getByText('not-observed', { exact: true })).toHaveCount(3);
       await expect(initialTrial.getByText('Unexpected changed path unexpected.md.')).toHaveCount(2);

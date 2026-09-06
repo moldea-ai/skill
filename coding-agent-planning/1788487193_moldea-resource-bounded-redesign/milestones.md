@@ -2,7 +2,7 @@
 
 ## Completed milestones
 
-The following milestones are complete, reviewed, and published. Their final state remains part of the plan contract and must not be reopened unless new evidence exposes a concrete defect:
+Milestones 1 through 16 are complete, reviewed, signed, and published. Their final state remains part of the plan contract and is reopened only when new evidence proves a concrete defect:
 
 1. Clean public package generation.
 2. Paired public and private GitHub fixtures.
@@ -16,161 +16,261 @@ The following milestones are complete, reviewed, and published. Their final stat
 10. Explicit task-path relationship activation.
 11. Diagnosable and resource-bounded qualification execution.
 12. Semantic launcher accounting correction.
-13. Model-stage resource calibration and bounded ordinary output, published on `skill/new_skill` at signed commit `15db29d3c68a1c29b7d54c21411c04046ba5eafb`.
-14. Standalone cursor-continuation contract, published on `skill/new_skill` at signed commit `b70507e447f2b734081e3c3a119c82b1b1bda277`.
+13. Model-stage resource calibration and bounded ordinary output.
+14. Standalone cursor-continuation contract.
+15. Qualification cumulative-overage judge gate, published at signed commit `27fbdc70d0e744544686d566737d7c39c855640f`.
+16. Judged cumulative calibration and source-commit-bound historical validation, published at signed commit `294749347de8892dbf92a02c66fa400d99db2793`.
 
-The passing semantic attempts `20260905T205846870Z-semantic-34cce0aa` and `20260905T225150354Z-semantic-8e357622`, failed Custom attempts `20260905T205956422Z-custom-custom-62bd2013` and `20260905T225312033Z-custom-custom-681c7376`, and failed semantic attempt `20260905T221330286Z-semantic-629981ba` remain immutable evidence. None is rewritten or relabeled. The exact-current semantic attempt is `20260905T225150354Z-semantic-8e357622`.
+Fresh semantic attempt `20260906T020700885Z-semantic-f5e92d1f` passed all 18 cases and was published at signed commit `acfa7bc7f27c72f8e4b08d28b4845a870170eebe`. Failed Custom attempt `20260906T020821962Z-custom-custom-a87c791d` remains immutable diagnostic evidence and is the regression source for Milestone 17.
 
-## Milestone 15: Qualification cumulative-overage judge gate
-
-### Objective
-
-Remove the qualification calibration deadlock without weakening final resource acceptance or spending another model call on output-unsafe, policy-unsafe, or deterministically invalid work.
-
-### Dependencies
-
-- Milestone 14 complete, reviewed, and published.
-- Failed Custom attempt `20260905T225312033Z-custom-custom-681c7376` preserved unchanged as the regression source.
-
-### Scope and implementation
-
-1. In `qualification/src/execution/validations.ts`, represent actor operating-profile violations by stable resource dimension and preserve the existing human-readable failure contract from that typed result.
-2. In `qualification/src/execution/executor.ts`, allow judging only when the actor is inside absolute containment and its sole operating-profile violations are completed-host-command count, moldea-command count, or total model tokens. Preserve all current skip reasons for dry-run execution, deterministic/workspace/runner failures, observed prohibited command policy, missing judge requirements, maximum single-command output, aggregate model-visible output, and aggregate moldea output.
-3. Keep cumulative operating violations in the final trial failure set even when the judge passes. This milestone changes evidence collection eligibility, not resource acceptance.
-4. Add focused validation and executor tests proving that safe cumulative overages invoke the judge and remain failed, while output-volume, command-policy, deterministic, workspace, runner-owned, dry-run, and no-requirement failures skip it.
-5. Synchronize only directly affected qualification documentation and generated public contracts. Do not change active profile values, output limits, absolute containment, protocol 8, the portable skill, or exact-current semantic identity in this milestone.
-
-### Tests and verification
-
-- Focused qualification validation unit tests and executor integration tests for every judge-gate class.
-- Complete qualification unit, integration, type, lint, format, documentation, artifact-schema, and dry-run checks.
-- Root checks invalidated by qualification contract changes, website loader/rendering checks if public result wording or types change, and exact preservation verification for every immutable attempt.
-
-### Acceptance criteria
-
-- A deterministically correct, policy-safe, output-bounded actor with only a cumulative command/token overage receives a semantic verdict and still fails the active profile.
-- Any output-volume overage or existing safety/correctness blocker skips judging exactly as before.
-- Judge eligibility is derived from stable typed resource dimensions rather than matching human-readable messages.
-- No resource value, evidence protocol, skill digest, or immutable attempt changes.
-
-### Review checkpoint
-
-Inspect the pre-judge classification boundary, unchanged final failure semantics, absence of string-matched policy, paid-call containment, test coverage for every blocker, public-contract stability, and preserved evidence.
-
-## Milestone 16: Judged Custom calibration and profile publication
+## Milestone 17: Calibrate the single-command operating ceiling
 
 ### Objective
 
-Collect one semantically judged Custom observation through the corrected gate, calibrate only proven cumulative operating dimensions, and publish the resulting profile before asking Custom to pass under it.
+Replace the under-calibrated 65,536-byte completed-host-command hypothesis with a source-bound 131,072-byte operating ceiling that accepts legitimate ordinary work while continuing to reject large dumps.
 
 ### Dependencies
 
-- Milestone 15 complete, reviewed, and published.
-- Passing semantic attempt `20260905T225150354Z-semantic-8e357622` remains immutable evidence for Milestone 15, but the required portable-reference synchronization in this milestone will invalidate its exact-current identity.
-- Authenticated qualification actor and judge hosts.
+- Milestones 1 through 16 published.
+- Failed Custom attempt `20260906T020821962Z-custom-custom-a87c791d` preserved unchanged.
 
 ### Scope and implementation
 
-1. Run qualification preflight and Custom against the published Milestone 15 state. Reuse valid runner caches only when their complete identity matches; preserve every new attempt immutably.
-2. Accept a trial for calibration only when its judge, deterministic checks, workspace assertions, command-policy evidence, maximum command output, aggregate model-visible output, and aggregate moldea output all pass. The active cumulative overage remains a failed trial.
-3. Set each proven ordinary cumulative value to at least 25 percent above the largest accepted observation. Use 64 completed commands, 16 moldea calls, and 1,250,000 total tokens when the accepted maxima remain 47, 12, and 969,914; if a larger accepted observation appears, recompute only the affected value. Keep `largeTraversal` no lower for those dimensions without adding speculative headroom.
-4. Add a compact source-controlled model-stage observation artifact containing only attempt/case/trial identity, accepted deterministic/semantic status, aggregate resource counts, and token categories. Retain no commands, paths, prompts, output bodies, repository content, source, credentials, or hidden reasoning.
-5. Update resource-profile source, generated declarations/evidence, validation, qualification and website documentation/rendering, the numeric resource-profile statement in `moldea/references/local-tooling.md`, and focused tests that own the calibrated values and observation integrity. Revalidate immutable active attempts against resource and scenario contracts from their exact source commits, and preserve the pre-final-field attempt `20260905T205956422Z-custom-custom-62bd2013` byte-for-byte as inactive diagnostic evidence without a compatibility reader. Keep the 65,536-byte single-command peak, aggregate output limits, every absolute ceiling, protocol 8, and all portable-skill activation and execution behavior unchanged.
-6. Run deterministic verification, review the cohesive calibration change, and publish it before rerunning Custom for a passing release result.
+- Preserve the failed attempt and its `qualification/results/t5/latest.json` selection as historical diagnostic evidence.
+- Extend the compact model-stage calibration contract and `fixtures/model-stage-resource-calibration.json` with a privacy-safe command-output observation bound to the failed attempt's 76,312-byte confirmation evidence, deterministic result, and workspace assertions. Store no command, output body, prompt, repository content, source, credential, or hidden reasoning.
+- Set `maxCommandOutputBytes` to 131,072 in `tooling/resource-calibration/profiles.mjs`, its declaration/tests, and `fixtures/resource-calibration.json` for both `ordinary` and `largeTraversal`.
+- Update qualification validation/tests, result contract tests, website qualification types/rendering/E2E expectations, `qualification/README.md`, and `moldea/references/local-tooling.md`. Keep the 65,536-byte CLI page boundary, cumulative command/call/token values, aggregate output budgets, and absolute ceilings unchanged.
+- Add exact-boundary, one-byte-over, source identity, digest, privacy, historical-profile, accepted 76,312-byte observation, and rejected 449,948-byte dump coverage.
 
 ### Tests and verification
 
-- Observation-artifact schema, privacy, identity, determinism, tamper, and profile-headroom tests.
-- Exact-boundary and one-over tests for every changed cumulative value; unchanged boundary tests for single-command, aggregate-output, and absolute ceilings.
-- Complete qualification unit/integration/type/lint/format/docs/dry-run checks, affected root resource/release checks, website unit/artifact/E2E/build checks, portable-skill validation, recorded-contract regressions, and byte-exact immutable-attempt verification.
+- Focused resource-profile, model-stage calibration, qualification validation/result-reader, and website qualification tests.
+- Complete root unit/integration tests, resource/path/docs/release-identity checks, qualification unit/integration/type/lint/format/dry-run/verify checks, website check/E2E/build, and portable-skill validation.
+- Byte-exact verification of every retained immutable attempt.
 
 ### Acceptance criteria
 
-- The calibration source is a judged, semantically accepted, deterministic, policy-safe, output-bounded Custom trial.
-- Every changed cumulative value has at least 25 percent headroom above the largest accepted observation and remains below its absolute ceiling.
-- No rejected output dump, semantically failed trial, or unjudged trial influences the active profile.
-- The committed observation is sufficient to reproduce the selected values without exposing model-visible or repository content.
-- Every active numeric resource-profile reference agrees with the calibrated profile; the resulting portable-skill identity change is explicit and requires fresh semantic evidence in Milestone 17.
+- Both operating profiles accept exactly 131,072 bytes and reject 131,073 bytes for one completed host command.
+- The 76,312-byte observation is reproducibly source-bound and has more than 25 percent headroom; the 449,948-byte dump remains a failure under both profiles.
+- CLI pagination remains 65,536 bytes and all aggregate and absolute limits are unchanged.
+- No old field, compatibility reader, or retroactive evidence relabeling is introduced.
 
 ### Review checkpoint
 
-Inspect semantic eligibility, observation provenance and privacy, headroom arithmetic, ordinary/large ordering, unchanged output and absolute ceilings, public explanation, full regression evidence, and immutable attempt preservation.
+Inspect arithmetic, observation provenance/privacy, historical validation, distinction between host-command output and CLI pages, unchanged containment, documentation consistency, immutable evidence, and the complete regression result before signed publication.
 
-## Milestone 17: Fresh Custom, adapter, and release evidence
+## Milestone 18: Fresh semantic evidence for the corrected profile
 
 ### Objective
 
-Generate fresh exact-current semantic evidence, the complete exact-current protocol-8 qualification set, and deterministic fresh release evidence against the published calibrated profile and synchronized portable skill.
+Generate and publish one passing semantic attempt bound to the published Milestone 17 resource and portable-skill identities.
 
 ### Dependencies
 
-- Milestone 16 complete, reviewed, and published.
-- Authenticated qualification hosts for Custom and all thirteen official adapter targets.
+- Milestone 17 reviewed and published with a clean worktree.
+- Authenticated actor/judge host configuration and passing semantic preflight.
 
 ### Scope and implementation
 
-1. Run semantic preflight and one fresh semantic evaluation against the published calibrated profile and synchronized portable skill. Require all semantic cases to pass before qualification.
-2. Run qualification preflight and universal Custom once against the published calibrated profile. Require every universal case to pass within its declared profile before running an adapter target.
-3. Run each of the thirteen adapter-specific profiles once after Custom passes. Universal cases remain absent and the ownership matrix remains exact.
-4. Diagnose any failure from bounded evidence. Fix a product defect only through the authorized plan/challenge/breakdown loop, preserve failed attempts, and rerun only evidence invalidated by that correction. Do not widen budgets to hide oversized output or incorrect work.
-5. Verify all retained semantic and qualification attempts, exact-current source/package closure, protocol-8 schema, privacy-safe policy evidence, resource acceptance, website loading/rendering, and universal/adapter ownership.
-6. Record the deterministic fresh `fixtures/release-evidence.json` envelope only after exact-current semantic, Custom, and all adapter targets pass. Validate release identity without releasing or tagging 5.0.0 yet.
-7. Review and publish the fresh evidence state as one cohesive checkpoint before final branch integration and release cleanup.
+- Run one official semantic recording against the exact published Milestone 17 commit.
+- Preserve every initial and confirmation trial immutably and update only the established semantic result, attempt, evidence, identity, and latest-pointer artifacts.
+- Diagnose any failure from bounded evidence; correct a product defect only through the authorized revise-plan/challenge/breakdown loop.
 
 ### Tests and verification
 
-- Qualification preflight, Custom, thirteen adapter profiles, complete attempt verification, source/package identity, protocol-8 schema, resource profiles, command policy, and ownership coverage.
-- Semantic preflight, one fresh exact-current semantic run, and complete retained-attempt verification.
-- Release-evidence record/check, website unit/artifact/E2E/docs/type/lint/format/build, root release/resource/path/docs/test/type/lint/format checks, and portable-skill validation.
+- Semantic preflight, complete semantic attempt verification, source/profile/portable-skill identity, resource acceptance, privacy, and all 18 scenario outcomes.
+- Focused release-identity and website semantic-evidence loading checks invalidated by the new attempt.
 
 ### Acceptance criteria
 
-- Custom passes every universal case within the published calibrated profiles.
-- All thirteen adapters pass only their adapter-specific contracts.
-- Fresh semantic and qualification evidence is complete, immutable, exact-current, resource-valid, privacy-safe, and bound to committed skill inputs plus registry packages.
-- The fresh release envelope validates deterministically and no calibration-only paid call occurs.
+- All 18 semantic cases pass or recover under the confirmation protocol.
+- Evidence is exact-current, immutable, resource-valid, privacy-safe, and bound to the published Milestone 17 source.
+- No qualification profile runs while semantic evidence is dirty or failing.
 
 ### Review checkpoint
 
-Inspect paid-call count, clean/recovered outcomes, command/token headroom, maximum and aggregate output, policy reasons, universal/adapter ownership, exact identities, rerun necessity, immutable history, website provenance, and release-envelope correctness.
+Inspect scenario outcomes, recoveries, command/output/token headroom, exact identities, attempt immutability, and whether any failed trial reveals a product defect before signed publication.
 
-## Milestone 18: Clean skill release and final cross-repository audit
+## Milestone 19: Passing universal Custom qualification
 
 ### Objective
 
-Publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prove the clean-slate architecture and public state are coherent across every in-scope repository.
+Run and publish the universal Custom qualification against the corrected profile before spending calls on adapter-specific targets.
 
 ### Dependencies
 
-- Milestone 17 passing fresh evidence or an explicitly selected valid pin under the implemented release-evidence contract.
-- Authenticated skill main/release/site publication and hosted release-deletion capabilities where required.
+- Milestone 18 reviewed and published with a clean worktree.
+- The isolated packages repository remains clean at exact commit `67a063b90a4b9a8493956d1576e55f286925754c`.
 
 ### Scope and implementation
 
-1. Remove remaining active skill-4.0.x, protocol-7, carry-forward, schema-3, global-install, old fixture/loader/script/CI, and unsupported-version paths while keeping historical failed attempts inactive and immutable.
-2. Run release identity, evidence, website rendering, complete skill verification, and every package/platform/knowledge-base check invalidated by final evidence.
-3. Review and push final `new_skill`; refresh and review current `main`; integrate with signed metadata; push `main`; monitor release and site workflows; create and verify `v5.0.0`; and verify the installed skill/package closure.
-4. Record and delete exact local and remote `v4.0.0`, `v4.0.1`, and `v4.0.2` tags and matching hosted releases/assets where authenticated capability exists, without rewriting shared branches.
-5. Audit every active in-scope repository, website, knowledge-base article, specification, fixture contract, package/version declaration, and generated reference against all 41 observed problems and all plan acceptance criteria. Publish any cohesive correction through its owning review workflow before completion.
+- Run official target `t5` (`custom` / `custom`) once under the established confirmation policy.
+- Preserve every trial and update only `qualification/results/t5/**` through the qualification recorder.
+- Diagnose a failure from bounded evidence and re-plan only for a proven product defect. Do not widen a budget to hide a rejected dump or incorrect work.
 
 ### Tests and verification
 
-- Complete root, qualification, website, release, docs, path, resource, type, lint, format, build, semantic, and evidence checks.
-- Current-target `review main`, mergeability, branch-protection, signature, sign-off, explicit one-branch publication, registry, tag, release, site, and installed-artifact verification.
-- Cross-repository contradiction searches for obsolete versions, global installation, body-bearing inspection, eager completeness, hidden carry-forward behavior, unbounded traversal, wrapper-hidden pagination, and customer-availability overclaims.
+- Complete qualification verification, target/source/package/profile/protocol identity, universal ownership, deterministic/workspace checks, command policy, resource acceptance, and focused website result loading.
 
 ### Acceptance criteria
 
-- Skill 5.0.0 is the only active supported skill contract and uses the trusted published package closure.
-- Every active source, test, script, fixture, loader, specification, website, and knowledge-base surface agrees on repository-bound activation, bounded on-demand content, standalone pagination, protocol-8 evidence, scalable PR Assurance foundations, compatibility ranges, and actual feature availability.
-- Reviewed feature branches are integrated and published through their resolved destinations with signed, signed-off, verified history and successful required workflows.
-- Obsolete 4.0.x tags and hosted releases are absent wherever authenticated deletion is available; any external inability is reported precisely without false completion.
-- No unrelated concurrent work or protected coding-instruction file is modified or bundled.
+- Every universal Custom case passes or recovers within its declared operating profile.
+- No output, token, policy, deterministic, workspace, identity, or ownership failure remains.
+- The result is committed and published before any adapter-specific run.
 
 ### Review checkpoint
 
-Inspect the complete release diff and unpublished history, final evidence identities, signatures, registry and site propagation, exact active version surface, cross-repository contradictions, obsolete-release deletion evidence, concurrent-work isolation, and all 41 original regression causes.
+Inspect all universal cases, recovery count, the agent-creation command peak, aggregate output/tokens, policy reasons, immutable artifacts, and exact source/package closure before signed publication.
+
+## Adapter qualification milestone contract
+
+Milestones 20 through 32 each own one official adapter target. For every milestone, run only the named target against the clean published skill tip and the clean isolated packages commit, preserve every trial, update only that target's `qualification/results/<target>/**`, and run complete qualification verification plus focused result-loading checks. A passing or protocol-approved recovered adapter-specific result, exact source/package/profile identity, privacy-safe command policy, resource acceptance, and no universal-case duplication are required. A failure triggers bounded diagnosis and the authorized re-planning loop only when it proves a product defect. The review checkpoint for every target is its adapter-specific semantic contract, SDK/package reference version, setup and tool/message behavior, resource use, immutable evidence, and absence of unrelated changes. Each target is reviewed, signed, and published before the next starts because official source-state validation requires a clean qualification repository.
+
+## Milestone 20: Anthropic Messages API qualification
+
+- **Target:** `t1`, adapter `anthropic`, implementation `typescript-messages-api-0-117`.
+- **Dependency:** Milestone 19 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 21.
+
+## Milestone 21: Claude Agent SDK subagents qualification
+
+- **Target:** `t2`, adapter `claude-agent-sdk`, implementation `typescript-query-subagents-0-3`.
+- **Dependency:** Milestone 20 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 22.
+
+## Milestone 22: Cloudflare AI chat agent qualification
+
+- **Target:** `t3`, adapter `cloudflare-agents`, implementation `typescript-ai-chat-agent-0-10-ai-sdk-7`.
+- **Dependency:** Milestone 21 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 23.
+
+## Milestone 23: Cloudflare Think qualification
+
+- **Target:** `t4`, adapter `cloudflare-agents`, implementation `typescript-think-0-16-ai-sdk-7`.
+- **Dependency:** Milestone 22 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 24.
+
+## Milestone 24: eve filesystem-agent qualification
+
+- **Target:** `t6`, adapter `eve`, implementation `typescript-filesystem-agent-0-39`.
+- **Dependency:** Milestone 23 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 25.
+
+## Milestone 25: Google Gen AI generate-content qualification
+
+- **Target:** `t7`, adapter `google-genai`, implementation `typescript-models-generate-content-2`.
+- **Dependency:** Milestone 24 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 26.
+
+## Milestone 26: LangChain create-agent qualification
+
+- **Target:** `t8`, adapter `langchain`, implementation `typescript-create-agent-1-5`.
+- **Dependency:** Milestone 25 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 27.
+
+## Milestone 27: LangGraph functional API qualification
+
+- **Target:** `t9`, adapter `langgraph`, implementation `typescript-functional-api-1-4`.
+- **Dependency:** Milestone 26 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 28.
+
+## Milestone 28: LangGraph state graph qualification
+
+- **Target:** `t10`, adapter `langgraph`, implementation `typescript-state-graph-1-4`.
+- **Dependency:** Milestone 27 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 29.
+
+## Milestone 29: OpenAI Responses API qualification
+
+- **Target:** `t11`, adapter `openai`, implementation `typescript-responses-api-7`.
+- **Dependency:** Milestone 28 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 30.
+
+## Milestone 30: OpenAI Agents SDK handoffs qualification
+
+- **Target:** `t12`, adapter `openai-agents-sdk`, implementation `typescript-agent-handoffs-0-16`.
+- **Dependency:** Milestone 29 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 31.
+
+## Milestone 31: Vercel AI SDK generate/stream qualification
+
+- **Target:** `t13`, adapter `vercel-ai-sdk`, implementation `typescript-generate-stream-text-7`.
+- **Dependency:** Milestone 30 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 32.
+
+## Milestone 32: Vercel AI SDK tool-loop qualification
+
+- **Target:** `t14`, adapter `vercel-ai-sdk`, implementation `typescript-tool-loop-agent-7`.
+- **Dependency:** Milestone 31 published.
+- **Acceptance:** The target satisfies the adapter qualification milestone contract and is published before Milestone 33.
+
+## Milestone 33: Fresh release evidence
+
+### Objective
+
+Record and publish the deterministic fresh skill 5.0.0 evidence envelope only after semantic, Custom, and all thirteen adapter targets are exact-current and passing.
+
+### Dependencies
+
+- Milestones 18 through 32 reviewed and published.
+- Every recorded result verifies against the same final behavior-bearing source and trusted registry package closure.
+
+### Scope and implementation
+
+- Run complete semantic and qualification verification and the ownership matrix.
+- Run `release:evidence:record` to create the established fresh `fixtures/release-evidence.json` envelope; do not pin older evidence.
+- Validate release identity, website evidence rendering/provenance, and all root/qualification/website checks invalidated by the final evidence set.
+
+### Tests and verification
+
+- Root tests, docs, path, resource, type, lint, format, release identity/check, portable-skill validation, semantic verification, qualification verification, and candidate-package checks.
+- Website unit, artifact-integration, E2E, docs, type, lint, format, and production build.
+
+### Acceptance criteria
+
+- The fresh envelope names exact passing semantic, Custom, and adapter evidence with matching digests and no stale identity.
+- Public rendering describes fresh evidence accurately and contains no raw source, commands, prompts, credentials, or hidden reasoning.
+- Skill 5.0.0 is release-ready but is not tagged or published until Milestone 34.
+
+### Review checkpoint
+
+Inspect complete evidence coverage, exact identities/digests, fresh-mode selection, resource validity, public provenance, release readiness, and full verification before signed publication.
+
+## Milestone 34: Clean skill release and final cross-repository audit
+
+### Objective
+
+Integrate and publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prove that active source, packages, specifications, fixtures, websites, and knowledge-base content consistently implement the clean-slate bounded architecture.
+
+### Dependencies
+
+- Milestone 33 reviewed and published.
+- Authenticated branch, release, registry/site, and hosted-release deletion capabilities where required.
+
+### Scope and implementation
+
+- Remove any remaining active skill-4.0.x, protocol-7, carry-forward, schema-3, global-install, compatibility, obsolete fixture/loader/script/CI, or contradictory documentation paths. Keep immutable diagnostics outside active loaders.
+- Run final current-main reviews for every cumulative feature branch that still requires integration, merge through repository controls with signed metadata, push exact branches explicitly, and monitor required workflows.
+- Create and verify `v5.0.0`, registry/install/site propagation, and the published package closure.
+- Delete exact local/remote `v4.0.0`, `v4.0.1`, and `v4.0.2` tags and matching hosted releases/assets where authenticated capability exists, without rewriting shared branch history.
+- Audit all active in-scope repositories against all 44 observed problems and every plan acceptance criterion. Preserve unrelated concurrent work and protected instruction files.
+
+### Tests and verification
+
+- Complete root, qualification, website, release, docs, path, resource, semantic, type, lint, format, build, registry, installed-artifact, tag, hosted-release, and site checks.
+- Fresh `review main`, mergeability, branch-protection/status, signature/sign-off, exact-ref push, workflow, and cross-repository contradiction checks.
+
+### Acceptance criteria
+
+- Skill 5.0.0 is the only active supported skill contract and its public artifacts use the trusted package closure and fresh passing evidence.
+- Every active specification, package, fixture, source, test, script, loader, website, and knowledge-base surface agrees on bounded repository-local behavior and actual availability.
+- Obsolete 4.0.x release surfaces are absent wherever authenticated deletion is possible; any external inability is reported precisely.
+- No unrelated work, protected instruction file, legacy runtime, false completeness, or unpublished required correction remains.
+
+### Review checkpoint
+
+Inspect the cumulative release diff/history, exact evidence and package identities, signatures, main integration, workflows, registry/site propagation, active version surface, contradiction audit, obsolete-release deletion, and concurrent-work isolation before declaring completion.
 
 ## Execution scope
 
-Preserve completed Milestones 1 through 14 and every immutable evidence attempt. Implement, verify, review, sign, and publish the cumulative-overage judge gate without changing resource values or weakening final acceptance. Then use one semantically accepted, deterministic, policy-safe, output-bounded Custom observation to calibrate only completed-command, moldea-call, and token totals with at least 25 percent headroom; commit only privacy-safe aggregate observations; keep all output and absolute ceilings unchanged; and publish the profile. Run and verify one passing Custom profile and thirteen adapter-specific profiles, then record and publish fresh exact-current release evidence. Finally publish the clean skill 5.0.0 release, remove authorized obsolete 4.0.x release surfaces, and complete the cross-repository contradiction and deployment audit. Re-plan autonomously only when new evidence proves a material defect or invalidates the remaining sequence; never hide partial work, weaken completeness, absorb unrelated changes, or modify protected instructions.
+Preserve completed Milestones 1 through 16 and all immutable evidence. First publish the 131,072-byte single-command correction with source-bound privacy-safe calibration while keeping the 65,536-byte CLI page limit and all aggregate/absolute containment unchanged. Then publish fresh semantic evidence, a passing universal Custom qualification, and each of the thirteen adapter-specific qualifications as clean sequential checkpoints. Record and publish fresh release evidence only after all targets pass. Finally integrate and publish clean skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and complete the cross-repository audit against all 44 observed failures without modifying protected instructions or incorporating unrelated concurrent work.

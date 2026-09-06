@@ -186,8 +186,86 @@ const requireObservation = (input, index) => {
   return observation;
 };
 
+const requireCommandOutputObservation = (
+  input,
+  expectedDisposition,
+  qualificationAttemptId,
+  label,
+) => {
+  const observation = requireRecord(
+    input,
+    ['caseId', 'checks', 'disposition', 'evidence', 'resourceProfile', 'stage', 'trialId'],
+    label,
+  );
+  if (typeof observation.caseId !== 'string' || !STABLE_ID_PATTERN.test(observation.caseId)) {
+    throw new Error(`${label}.caseId must be a stable id.`);
+  }
+  if (!['ordinary', 'largeTraversal'].includes(observation.resourceProfile)) {
+    throw new Error(`${label}.resourceProfile is unsupported.`);
+  }
+  if (!['initial', 'confirmation-1', 'confirmation-2'].includes(observation.trialId)) {
+    throw new Error(`${label}.trialId is unsupported.`);
+  }
+  if (observation.disposition !== expectedDisposition) {
+    throw new Error(`${label}.disposition must be ${expectedDisposition}.`);
+  }
+
+  const checks = requireRecord(
+    observation.checks,
+    ['commandPolicy', 'deterministic', 'workspace'],
+    `${label}.checks`,
+  );
+  if (
+    checks.commandPolicy !== 'pass' ||
+    checks.deterministic !== 'pass' ||
+    checks.workspace !== 'pass'
+  ) {
+    throw new Error(`${label} is not eligible command-output calibration evidence.`);
+  }
+
+  const evidence = requireRecord(
+    observation.evidence,
+    ['deterministicSha256', 'trialResultSha256', 'workspaceAssertionsSha256'],
+    `${label}.evidence`,
+  );
+  for (const field of Object.keys(evidence)) {
+    requireSha256(evidence[field], `${label}.evidence.${field}`);
+  }
+
+  const stage = requireStageObservation(observation.stage, 'actor', `${label}.stage`);
+  if (stage.sourceAttemptId !== qualificationAttemptId) {
+    throw new Error(`${label}.stage is not bound to the declared qualification attempt.`);
+  }
+
+  const profile = MOLDEA_SKILL_RESOURCE_PROFILES[observation.resourceProfile];
+  const isWithinProfile =
+    stage.completedCommandCount <= profile.maxCompletedCommandCount &&
+    stage.maximumCommandOutputByteCount <= profile.maxCommandOutputBytes &&
+    stage.modelVisibleToolOutputByteCount <= profile.maxModelVisibleToolOutputBytes &&
+    stage.moldeaCommandCount <= profile.maxMoldeaCommandCount &&
+    stage.moldeaOutputByteCount <= profile.maxAggregateMoldeaOutputBytes &&
+    stage.totalTokenCount <= profile.maxHostTokenCount;
+  if (expectedDisposition === 'accepted' && !isWithinProfile) {
+    throw new Error(`${label} exceeds the calibrated operating profile.`);
+  }
+  if (
+    expectedDisposition === 'rejected' &&
+    stage.maximumCommandOutputByteCount <= profile.maxCommandOutputBytes
+  ) {
+    throw new Error(`${label} does not exceed the calibrated command-output ceiling.`);
+  }
+
+  return observation;
+};
+
 /** Creates the deterministic digest for the privacy-safe model-stage observation list. */
 export const calculateModelStageObservationsSha256 = (observations) =>
+  createHash('sha256')
+    .update(`${JSON.stringify(observations)}\n`)
+    .digest('hex');
+
+/** Creates the deterministic digest for privacy-safe command-output observations. */
+export const calculateCommandOutputObservationsSha256 = (observations) =>
   createHash('sha256')
     .update(`${JSON.stringify(observations)}\n`)
     .digest('hex');
@@ -219,6 +297,9 @@ export const validateModelStageCalibrationArtifact = (input) => {
   const artifact = requireRecord(
     input,
     [
+      'commandOutputObservations',
+      'commandOutputObservationsSha256',
+      'commandOutputQualificationAttempt',
       'minimumHeadroomPercent',
       'modelStageObservations',
       'modelStageObservationsSha256',
@@ -228,7 +309,7 @@ export const validateModelStageCalibrationArtifact = (input) => {
     'model-stage calibration artifact',
   );
   if (
-    artifact.schemaVersion !== 1 ||
+    artifact.schemaVersion !== 2 ||
     artifact.minimumHeadroomPercent !== CALIBRATION_MINIMUM_HEADROOM_PERCENT
   ) {
     throw new Error('The model-stage calibration contract version or headroom is unsupported.');
@@ -244,6 +325,28 @@ export const validateModelStageCalibrationArtifact = (input) => {
   requireSha256(
     artifact.modelStageObservationsSha256,
     'model-stage calibration modelStageObservationsSha256',
+  );
+  const commandOutputQualificationAttempt = requireRecord(
+    artifact.commandOutputQualificationAttempt,
+    ['id', 'sha256', 'targetKey'],
+    'model-stage calibration commandOutputQualificationAttempt',
+  );
+  requireAttemptId(
+    commandOutputQualificationAttempt.id,
+    'model-stage calibration commandOutputQualificationAttempt.id',
+  );
+  requireSha256(
+    commandOutputQualificationAttempt.sha256,
+    'model-stage calibration commandOutputQualificationAttempt.sha256',
+  );
+  if (!/^t[1-9][0-9]*$/u.test(commandOutputQualificationAttempt.targetKey)) {
+    throw new Error(
+      'model-stage calibration commandOutputQualificationAttempt.targetKey must be a qualification target key.',
+    );
+  }
+  requireSha256(
+    artifact.commandOutputObservationsSha256,
+    'model-stage calibration commandOutputObservationsSha256',
   );
   if (
     !Array.isArray(artifact.modelStageObservations) ||
@@ -265,6 +368,31 @@ export const validateModelStageCalibrationArtifact = (input) => {
   ) {
     throw new Error('The model-stage calibration observation digest does not match.');
   }
+  if (!Array.isArray(artifact.commandOutputObservations)) {
+    throw new Error('The model-stage calibration artifact requires command-output observations.');
+  }
+  const commandOutputObservations = ['accepted', 'rejected'].map((disposition) => {
+    const matchingObservations = artifact.commandOutputObservations.filter(
+      (observation) => observation?.disposition === disposition,
+    );
+    if (matchingObservations.length !== 1) {
+      throw new Error(
+        `The model-stage calibration artifact requires one ${disposition} command-output observation.`,
+      );
+    }
+    return requireCommandOutputObservation(
+      matchingObservations[0],
+      disposition,
+      commandOutputQualificationAttempt.id,
+      `commandOutputObservations.${disposition}`,
+    );
+  });
+  if (
+    artifact.commandOutputObservationsSha256 !==
+    calculateCommandOutputObservationsSha256(artifact.commandOutputObservations)
+  ) {
+    throw new Error('The command-output calibration observation digest does not match.');
+  }
 
   const minimumMultiplier = 1 + CALIBRATION_MINIMUM_HEADROOM_PERCENT / 100;
   const maxima = summarizeModelStageCalibrationMaxima(artifact.modelStageObservations);
@@ -282,11 +410,26 @@ export const validateModelStageCalibrationArtifact = (input) => {
     }
   }
 
+  const acceptedCommandOutputObservation = commandOutputObservations.find(
+    ({ disposition }) => disposition === 'accepted',
+  );
+  const acceptedCommandOutputProfile =
+    MOLDEA_SKILL_RESOURCE_PROFILES[acceptedCommandOutputObservation.resourceProfile];
+  if (
+    acceptedCommandOutputProfile.maxCommandOutputBytes <
+    Math.ceil(
+      acceptedCommandOutputObservation.stage.maximumCommandOutputByteCount * minimumMultiplier,
+    )
+  ) {
+    throw new Error('The command-output profile lacks required model-stage headroom.');
+  }
+
   const { absolute, largeTraversal, ordinary } = MOLDEA_SKILL_RESOURCE_PROFILES;
   if (
     largeTraversal.maxCompletedCommandCount < ordinary.maxCompletedCommandCount ||
     largeTraversal.maxMoldeaCommandCount < ordinary.maxMoldeaCommandCount ||
     largeTraversal.maxHostTokenCount < ordinary.maxHostTokenCount ||
+    largeTraversal.maxCommandOutputBytes < ordinary.maxCommandOutputBytes ||
     ordinary.maxCompletedCommandCount > absolute.maxCompletedCommandCount ||
     ordinary.maxMoldeaCommandCount > absolute.maxMoldeaCommandCount ||
     ordinary.maxHostTokenCount > absolute.maxHostTokenCount ||

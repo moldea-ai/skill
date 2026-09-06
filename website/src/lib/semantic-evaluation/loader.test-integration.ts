@@ -436,7 +436,7 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     ],
     [
       'an oversized unrecognized result',
-      () => ({ byteCount: 65_537, disposition: 'unrecognized', facts: [] }),
+      () => ({ byteCount: 131_073, disposition: 'unrecognized', facts: [] }),
     ],
   ] satisfies Array<
     [string, (cli: ReturnType<typeof createSemanticCliIdentity>) => Record<string, unknown>]

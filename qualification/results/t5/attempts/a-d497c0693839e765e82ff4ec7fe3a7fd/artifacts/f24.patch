@@ -1,0 +1,54 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index a5ba2f9..33f0848 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -4,3 +4,15 @@ context:
+   /moldea/project.md:
+     affectedBy:
+       - /src/**
++
++agents:
++  order-triage:
++    runtime:
++      id: custom
++      guidance: /moldea/runtimes/custom.md
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: createOrderTriageAgent
++    affectedBy:
++      - /src/order-triage-agent.ts
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..cad141b
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review and cannot approve refunds.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..ec06fde
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,7 @@
++# Order triage
++
++`order-triage` classifies orders for human review.
++
++Base each classification only on the supplied order information. Identify missing or ambiguous information for the human reviewer instead of guessing.
++
++Never approve a refund or represent a classification as refund approval. Leave refund decisions and financial actions to a human reviewer.
+
+diff --git a/moldea/runtimes/custom.md b/moldea/runtimes/custom.md
+new file mode 100644
+index 0000000..c9c8125
+--- /dev/null
++++ b/moldea/runtimes/custom.md
+@@ -0,0 +1,5 @@
++# Custom runtime
++
++The custom runtime constructs `order-triage` with `createOrderTriageAgent`. It supplies the canonical instruction loader, which the factory calls with `/moldea/agents/order-triage/instruction.md` and awaits before assigning the returned content to the agent's `instruction` field.
++
++The factory fixes `canApproveRefunds` to `false` and `action` to `classify-for-human-review`. No tools, provider capabilities, or additional decision authority are established by this integration.

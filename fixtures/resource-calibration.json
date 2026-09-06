@@ -9,7 +9,7 @@
   "profiles": {
     "ordinary": {
       "maxCompletedCommandCount": 64,
-      "maxCommandOutputBytes": 65536,
+      "maxCommandOutputBytes": 131072,
       "maxHostTokenCount": 1250000,
       "maxModelVisibleToolOutputBytes": 1048576,
       "maxAggregateMoldeaOutputBytes": 262144,
@@ -18,7 +18,7 @@
     },
     "largeTraversal": {
       "maxCompletedCommandCount": 64,
-      "maxCommandOutputBytes": 65536,
+      "maxCommandOutputBytes": 131072,
       "maxHostTokenCount": 1250000,
       "maxModelVisibleToolOutputBytes": 4194304,
       "maxAggregateMoldeaOutputBytes": 1048576,

@@ -12,6 +12,7 @@ const MAX_ACTOR_EXECUTION_EVIDENCE_ITEM_BYTES =
 const MAX_MOLDEA_OUTPUT_BYTES =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaInvocationOutputBytes;
 const MAX_OTHER_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes;
+const MAX_RECORDED_OUTPUT_BYTES = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostOutputBytes;
 const MAX_AGGREGATE_MOLDEA_OUTPUT_BYTES =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaOutputBytes;
 const MAX_MOLDEA_COMMAND_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaCommandCount;
@@ -165,7 +166,11 @@ const hasValidOutputEvidence = (evidence, commandKind, exitCode, options) => {
   }
   const maximumBytes = commandKind === 'moldea' ? MAX_MOLDEA_OUTPUT_BYTES : MAX_OTHER_OUTPUT_BYTES;
   if (evidence.disposition === 'too-large') {
-    return evidence.byteCount > maximumBytes && evidence.facts.length === 0;
+    return (
+      evidence.byteCount > (commandKind === 'moldea' ? maximumBytes : 0) &&
+      evidence.byteCount <= MAX_RECORDED_OUTPUT_BYTES &&
+      evidence.facts.length === 0
+    );
   }
   if (evidence.byteCount > maximumBytes) return false;
   if (evidence.disposition === 'empty') {

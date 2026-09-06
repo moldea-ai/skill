@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
+
 import {
   createMoldeaResourceEvidence,
   hasPassingMoldeaResourceBudget,
@@ -294,25 +296,52 @@ test('counts a valid launcher with malformed output as an unrecognized moldea op
 });
 
 test('bounds ordinary non-moldea command output at the operating peak', () => {
+  const maximumCommandOutputBytes = MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes;
   const exact = projectActorExecutionEvidenceEvent(
-    createEvent('git status --short', 'x'.repeat(65_536)),
+    createEvent('git status --short', 'x'.repeat(maximumCommandOutputBytes)),
     OPTIONS,
   );
   const excessive = projectActorExecutionEvidenceEvent(
-    createEvent('git status --short', 'x'.repeat(65_537)),
+    createEvent('git status --short', 'x'.repeat(maximumCommandOutputBytes + 1)),
     OPTIONS,
   );
 
   assert.deepEqual(exact.item.outputEvidence, {
-    byteCount: 65_536,
+    byteCount: maximumCommandOutputBytes,
     disposition: 'unrecognized',
     facts: [],
   });
   assert.deepEqual(excessive.item.outputEvidence, {
-    byteCount: 65_537,
+    byteCount: maximumCommandOutputBytes + 1,
     disposition: 'too-large',
     facts: [],
   });
+});
+
+test('preserves a source-recorded too-large classification after the operating peak changes', () => {
+  const recordedEvidence = {
+    eventType: 'item.completed',
+    item: {
+      commandKind: 'other',
+      exitCode: 0,
+      outputEvidence: {
+        byteCount: 65_537,
+        disposition: 'too-large',
+        facts: [],
+      },
+      status: 'completed',
+      type: 'command_execution',
+    },
+  };
+
+  assert.equal(hasValidActorExecutionEvidence([recordedEvidence], OPTIONS), true);
+  assert.equal(
+    projectActorExecutionEvidenceEvent(
+      createEvent('git status --short', 'x'.repeat(65_537)),
+      OPTIONS,
+    ).item.outputEvidence.disposition,
+    'unrecognized',
+  );
 });
 
 test('rejects obsolete and malformed launcher command forms', () => {

@@ -6,13 +6,13 @@ import {
   MOLDEA_SKILL_RESOURCE_PROFILES,
 } from './profiles.mjs';
 
-test('keeps ordinary, large, and absolute profiles ordered without raising page peaks', () => {
+test('keeps ordinary, large, and absolute profiles ordered without raising CLI page peaks', () => {
   const { absolute, largeTraversal, ordinary } = MOLDEA_SKILL_RESOURCE_PROFILES;
 
   assert.equal(CALIBRATION_MINIMUM_HEADROOM_PERCENT, 25);
   assert.deepEqual(ordinary, {
     maxCompletedCommandCount: 64,
-    maxCommandOutputBytes: 65_536,
+    maxCommandOutputBytes: 131_072,
     maxHostTokenCount: 1_250_000,
     maxModelVisibleToolOutputBytes: 1_048_576,
     maxAggregateMoldeaOutputBytes: 262_144,
@@ -21,7 +21,7 @@ test('keeps ordinary, large, and absolute profiles ordered without raising page 
   });
   assert.deepEqual(largeTraversal, {
     maxCompletedCommandCount: 64,
-    maxCommandOutputBytes: 65_536,
+    maxCommandOutputBytes: 131_072,
     maxHostTokenCount: 1_250_000,
     maxModelVisibleToolOutputBytes: 4_194_304,
     maxAggregateMoldeaOutputBytes: 1_048_576,
@@ -30,6 +30,8 @@ test('keeps ordinary, large, and absolute profiles ordered without raising page 
   });
   assert.equal(largeTraversal.maxOutputPageBytes, ordinary.maxOutputPageBytes);
   assert.equal(largeTraversal.maxCommandOutputBytes, ordinary.maxCommandOutputBytes);
+  assert.equal(ordinary.maxOutputPageBytes, 65_536);
+  assert.ok(ordinary.maxCommandOutputBytes > ordinary.maxOutputPageBytes);
   assert.ok(largeTraversal.maxCompletedCommandCount >= ordinary.maxCompletedCommandCount);
   assert.ok(largeTraversal.maxHostTokenCount >= ordinary.maxHostTokenCount);
   assert.ok(

@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { mkdir, mkdtemp, readdir, rm, stat, writeFile } from 'node:fs/promises';
@@ -19,6 +20,7 @@ const modelStageArtifactPath = path.join(
   'fixtures',
   'model-stage-resource-calibration.json',
 );
+const qualificationResultsPath = path.join(repositoryRoot, 'qualification', 'results');
 const cliPackagePath = path.join(repositoryRoot, 'node_modules', '@moldea.ai', 'cli');
 const cliManifestPath = path.join(cliPackagePath, 'package.json');
 const cliExecutablePath = path.join(cliPackagePath, 'dist', 'moldea.js');
@@ -83,6 +85,66 @@ const execute = (executable, arguments_, options = {}) => {
     );
   }
   return result.stdout;
+};
+
+const createSha256 = (content) => createHash('sha256').update(content).digest('hex');
+
+/** Verifies command-output observations against their exact immutable qualification artifacts. */
+const validateCommandOutputObservationSources = (artifact) => {
+  const source = artifact.commandOutputQualificationAttempt;
+  const attemptKey = `a-${createSha256(source.id).slice(0, 32)}`;
+  const attemptDirectory = path.join(
+    qualificationResultsPath,
+    source.targetKey,
+    'attempts',
+    attemptKey,
+  );
+  const attemptText = readFileSync(path.join(attemptDirectory, 'attempt.json'), 'utf8');
+  const attempt = JSON.parse(attemptText);
+  const storage = JSON.parse(readFileSync(path.join(attemptDirectory, 'storage.json'), 'utf8'));
+  if (
+    attempt.attemptId !== source.id ||
+    storage.attemptId !== source.id ||
+    storage.attemptKey !== attemptKey ||
+    storage.attemptDigest !== source.sha256 ||
+    createSha256(attemptText) !== source.sha256 ||
+    !Array.isArray(storage.artifacts)
+  ) {
+    throw new Error('Command-output calibration source attempt identity does not match.');
+  }
+
+  const artifactStorageByLogicalPath = new Map(
+    storage.artifacts.map((entry) => [entry.logicalPath, entry]),
+  );
+  const verifyArtifact = (logicalPath, expectedSha256) => {
+    const entry = artifactStorageByLogicalPath.get(logicalPath);
+    if (
+      !entry ||
+      entry.sha256 !== expectedSha256 ||
+      typeof entry.physicalPath !== 'string' ||
+      !/^artifacts\/f[1-9][0-9]*\.[a-z0-9]+$/u.test(entry.physicalPath)
+    ) {
+      throw new Error(`Command-output calibration source is missing ${logicalPath}.`);
+    }
+    const artifactSource = readFileSync(path.join(attemptDirectory, entry.physicalPath));
+    if (createSha256(artifactSource) !== expectedSha256) {
+      throw new Error(`Command-output calibration source digest does not match ${logicalPath}.`);
+    }
+  };
+
+  for (const observation of artifact.commandOutputObservations) {
+    const trialRoot = `cases/${observation.caseId}/trials/${observation.trialId}`;
+    verifyArtifact(`${trialRoot}/actor-evidence.json`, observation.stage.evidenceSha256);
+    verifyArtifact(
+      `${trialRoot}/deterministic-after.json`,
+      observation.evidence.deterministicSha256,
+    );
+    verifyArtifact(`${trialRoot}/trial-result.json`, observation.evidence.trialResultSha256);
+    verifyArtifact(
+      `${trialRoot}/workspace-assertions.json`,
+      observation.evidence.workspaceAssertionsSha256,
+    );
+  }
 };
 
 const initializeRepository = (root) => {
@@ -441,8 +503,9 @@ const main = async () => {
   validateCalibration(artifact);
   const modelStageArtifact = JSON.parse(readFileSync(modelStageArtifactPath, 'utf8'));
   validateModelStageCalibrationArtifact(modelStageArtifact);
+  validateCommandOutputObservationSources(modelStageArtifact);
   process.stdout.write(
-    `${JSON.stringify({ cases: artifact.cases.length, modelStageObservations: modelStageArtifact.modelStageObservations.length, profiles: Object.keys(artifact.profiles), status: 'valid' })}\n`,
+    `${JSON.stringify({ cases: artifact.cases.length, commandOutputObservations: modelStageArtifact.commandOutputObservations.length, modelStageObservations: modelStageArtifact.modelStageObservations.length, profiles: Object.keys(artifact.profiles), status: 'valid' })}\n`,
   );
 };
 

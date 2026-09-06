@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Initialized the minimal moldea foundation, preserved the existing README content, added the standard awareness block, and documented only repository-supported project context. moldea validation passed with schema 4, CLI 7.0.1, zero diagnostics, and valid=true. The repository-local TypeScript check also passed.",
+  "changedFiles": [
+    "README.md",
+    "moldea/moldea.yaml",
+    "moldea/project.md"
+  ],
+  "observations": [
+    "The source implements sorted, unique duplicate invoice-reference detection.",
+    "The README mentions arithmetic-mismatch review, but the source does not establish that implementation.",
+    "No runtime entry point or integration is established by the repository.",
+    "The manifest is exactly `version: 1` followed by one LF.",
+    "Final Git status contains only the three authorized changes."
+  ],
+  "unresolved": []
+}

@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor silently handled the unrelated documentation review without activating or referencing moldea.",
+  "requirements": [
+    {
+      "id": "abstains-after-cheap-gate",
+      "verdict": "pass",
+      "evidence": "The actor output contains no mention of moldea or skill-reference content, and the runner-owned actor-command-policy reports moldeaCommandCount: 0 and moldeaOutputByteCount: 0."
+    }
+  ],
+  "failures": []
+}

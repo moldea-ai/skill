@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The actor correctly identified /moldea/project.md as the sole declared owner of src/project-state.ts, and its reported comparison matches the current workspace. Runner evidence records three moldea CLI calls, within the required one-to-four bound, with no unrelated canonical content enumerated.",
+  "requirements": [
+    {
+      "id": "identifies-owning-context",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml declares only /moldea/project.md with affectedBy: /src/project-state.ts. The source exports projectState as 'operational', while /moldea/project.md declares the project state operational. The actor names only /moldea/project.md as canonical, and deterministic-after confirms valid inspection, successful typechecking, and an unchanged repository."
+    },
+    {
+      "id": "uses-bounded-moldea-evidence",
+      "verdict": "pass",
+      "evidence": "Runner-owned actor-command-policy reports moldeaCommandCount: 3, satisfying the minimum of one and maximum of four. The actor report references only the relevant canonical project declaration and does not enumerate unrelated canonical content."
+    }
+  ],
+  "failures": []
+}

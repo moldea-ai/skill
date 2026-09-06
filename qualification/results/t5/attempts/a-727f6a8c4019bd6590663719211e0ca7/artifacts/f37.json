@@ -1,0 +1,11 @@
+{
+  "outcome": "completed",
+  "summary": "`src/project-state.ts` agrees with the declared behavior: it exports `projectState` as the literal `operational`, matching the canonical declaration in `/moldea/project.md`.",
+  "changedFiles": [],
+  "observations": [
+    "moldea validation completed successfully with zero diagnostics.",
+    "The repository-local TypeScript compiler passed with `--noEmit`.",
+    "Final staged and unstaged diffs were empty, and the working tree was clean."
+  ],
+  "unresolved": []
+}

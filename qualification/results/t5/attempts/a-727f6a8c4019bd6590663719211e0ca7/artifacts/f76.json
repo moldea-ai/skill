@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The repository state, workspace patch assertions, and deterministic validation agree: the order-triage agent is grounded in the existing factory, correctly bound to the custom runtime, and documented without invented capabilities.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "`moldea/agents/order-triage/description.md` states that the agent classifies orders for human review and cannot approve refunds. Its canonical instruction requires classification for human review, prohibits refund approval and financial mutation claims, and preserves uncertainty. This matches `src/order-triage-agent.ts`, where `action` is `classify-for-human-review` and `canApproveRefunds` is `false`. Workspace-patch evidence identifies both canonical files as new changes."
+    },
+    {
+      "id": "binds-implementation",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` declares agent `order-triage` with runtime `custom`, binds `runtimeAgent.path` to `/src/order-triage-agent.ts` and `runtimeAgent.symbol` to `createOrderTriageAgent`, and lists `/src/order-triage-agent.ts` under `affectedBy`. The export exists at that path. Deterministic post-actor validation passed, including core, CLI composition, adapter inventory, validate, inspect, typecheck, and repository-unchanged checks."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "verdict": "pass",
+      "evidence": "The manifest references `/moldea/runtimes/custom.md`. Workspace assertions show this is the sole newly added runtime-guidance file. It explains that the runtime supplies the canonical `/moldea/agents/order-triage/instruction.md` content unchanged through the factory loader and explicitly states that the repository defines no provider, model invocation, tools, or executable schemas."
+    }
+  ],
+  "failures": []
+}

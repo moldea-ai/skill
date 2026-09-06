@@ -1,0 +1,66 @@
+{
+  "caseId": "initialize-grounded-project",
+  "title": "Initialize a grounded project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 172396,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 172396,
+      "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 219377,
+        "cachedInputTokens": 178560,
+        "outputTokens": 2807
+      },
+      "judgeUsage": {
+        "inputTokens": 234055,
+        "cachedInputTokens": 203136,
+        "outputTokens": 2173
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T10:14:22.511Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T10:15:37.296Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "grounds-project",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/project.md` states that the project reviews invoice lines, returns findings to a human finance operator, and never authorizes or sends payment. It accurately identifies the implemented sorted, unique duplicate-reference detection in `src/invoice-review.ts` and distinguishes the README-only arithmetic-mismatch claim from implemented behavior."
+        },
+        {
+          "id": "keeps-foundation-minimal",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Workspace patch evidence lists only `README.md`, `moldea/moldea.yaml`, and `moldea/project.md` as changed. The manifest is exactly 11 bytes (`version: 1` plus one LF), references no agents or runtimes, and the expected agent, decision, runtime, and requirement paths are absent. README contains exactly one standard ordered moldea marker pair while retaining its original project description. Deterministic validation reports schema 4, CLI 7.0.1, valid status, zero failures, passing typecheck, and an unchanged post-validation repository."
+        },
+        {
+          "id": "preserves-existing-work",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

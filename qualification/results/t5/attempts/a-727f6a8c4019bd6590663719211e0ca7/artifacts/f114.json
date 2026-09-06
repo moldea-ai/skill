@@ -1,0 +1,66 @@
+{
+  "caseId": "maintain-dirty-project",
+  "title": "Maintain a dirty project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 578160,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 578160,
+      "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 605142,
+        "cachedInputTokens": 544384,
+        "outputTokens": 7165
+      },
+      "judgeUsage": {
+        "inputTokens": 216447,
+        "cachedInputTokens": 193408,
+        "outputTokens": 2411
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T10:28:53.692Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T10:30:13.680Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "adds-context",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/context/billing.md` exists as canonical billing guidance. `moldea/moldea.yaml` globally registers `/moldea/context/billing.md`, assigns it to the `support` agent, and binds it explicitly to `/src/billing.ts`. The launcher-backed moldea validation returned schema 4, CLI 7.0.1, `status: valid`, `result.valid: true`, and zero diagnostics. Workspace assertions identify only the three intended changed paths and show unrelated files unchanged."
+        },
+        {
+          "id": "updates-instruction",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "`moldea/agents/support/instruction.md` retains its opening identity—`You are the support agent`—and now directs use of billing context for refund requests, invoice questions, and related billing disputes, including escalation when evidence is insufficient. Workspace patch assertions confirm this instruction file changed while the support description and unrelated project files remained unchanged."
+        },
+        {
+          "id": "preserves-dirty-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

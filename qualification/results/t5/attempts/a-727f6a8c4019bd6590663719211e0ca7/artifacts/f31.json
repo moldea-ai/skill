@@ -1,0 +1,44 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 138662,
+  "deterministicBeforePath": "cases/abstain-uninitialized-repository-work/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/abstain-uninitialized-repository-work/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/abstain-uninitialized-repository-work/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/abstain-uninitialized-repository-work/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/abstain-uninitialized-repository-work/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/abstain-uninitialized-repository-work/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 165773,
+    "cachedInputTokens": 146432,
+    "outputTokens": 2399
+  },
+  "judgeUsage": {
+    "inputTokens": 83236,
+    "cachedInputTokens": 51584,
+    "outputTokens": 2030
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T10:44:36.546Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T10:45:38.436Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "excludes-moldea",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor output contains only retry-policy findings and TypeScript/diff validation, with no skill reference content. Runner-owned actor-command-policy reports moldeaCommandCount: 0 and moldeaOutputByteCount: 0."
+    },
+    {
+      "id": "preserves-workspace",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": []
+}

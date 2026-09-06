@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Added durable billing-dispute context, bound it to `/src/billing.ts`, and connected it to the `support` agent. Updated the support instruction for refund and invoice questions while preserving its required opening identity and existing Custom runtime integration. moldea validation, TypeScript checking, and Git diff checks passed.",
+  "changedFiles": [
+    "moldea/agents/support/instruction.md",
+    "moldea/moldea.yaml",
+    "moldea/context/billing.md"
+  ],
+  "observations": [
+    "moldea CLI 7.0.1 validation completed with zero diagnostics.",
+    "`./node_modules/.bin/tsc --noEmit` completed successfully.",
+    "`git diff --check` completed successfully.",
+    "The complete tracked and untracked worktree diff was inspected. Pre-existing changes to `src/operator-notes.ts` and `notes/local-observation.md` were preserved unchanged.",
+    "No staged changes were present."
+  ],
+  "unresolved": []
+}

@@ -1,0 +1,18 @@
+{
+  "outcome": "completed",
+  "summary": "Retired the removed moldea support agent by deleting its canonical description, instruction, and custom runtime guidance, and removing its manifest declaration. The remaining project context was preserved. Validation passed with moldea CLI 7.0.1 (schema 4, zero diagnostics), TypeScript `--noEmit`, and `git diff --check`.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/support/description.md",
+    "moldea/agents/support/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The pre-existing worktree deletion of `src/support-agent.ts` established that the bound `supportAgent` runtime export no longer exists.",
+    "`moldea/moldea.yaml` still declared the `support` agent, bound it to the deleted source file, and referenced `/moldea/runtimes/custom.md`.",
+    "The deleted agent description and instruction exclusively described the removed support agent; the deleted runtime document exclusively described its removed `supportAgent` integration.",
+    "`moldea/project.md` already accurately records that the former email support agent was removed and remains unchanged.",
+    "The pre-existing deletion of `src/support-agent.ts` was preserved and is not included among this task's changed files."
+  ],
+  "unresolved": []
+}

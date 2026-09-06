@@ -55,6 +55,10 @@ describe('parseQualificationCommand', () => {
   test.each([
     [['list', '--json'], { kind: 'list', isJson: true }],
     [['status', '--all'], { kind: 'status', isAll: true, isJson: false }],
+    [
+      ['status', '--cursor', 'opaque-cursor', '--json'],
+      { kind: 'status', cursor: 'opaque-cursor', isAll: false, isJson: true },
+    ],
     [['verify'], { kind: 'verify', isJson: false }],
     [
       ['record', '--attempt', 'attempt-1'],
@@ -90,6 +94,7 @@ describe('parseQualificationCommand', () => {
     ],
     [['run', '--adapter', 'custom', '--adapter', 'custom'], 'Duplicate option: --adapter'],
     [['verify', '--dry-run'], 'Option --dry-run is not valid for this command'],
+    [['verify', '--cursor', 'opaque-cursor'], 'Option --cursor is not valid for this command'],
     [['list', '--unknown'], 'Unknown qualification option: --unknown'],
   ])('parseQualificationCommand(%o) rejects invalid input', (args, expectedMessage) => {
     expect(() => parseQualificationCommand(args)).toThrow(expectedMessage);

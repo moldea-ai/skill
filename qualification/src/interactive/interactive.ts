@@ -2,7 +2,7 @@ import { confirm, select } from '@inquirer/prompts';
 
 import { listQualificationImplementations } from '../compatibility/index.ts';
 import { QUALIFICATION_MODEL, QUALIFICATION_REASONING_EFFORT } from '../constants/index.ts';
-import { listLocalAttemptCheckpoints } from '../execution/index.ts';
+import { listLocalQualificationStatusAttempts } from '../status/index.ts';
 
 export type IInteractiveQualificationAction =
   | { kind: 'resume'; attemptId: string }
@@ -13,11 +13,11 @@ export type IInteractiveQualificationAction =
 /** Prompts for the next local workflow action while prioritizing resumable attempts. */
 export const promptQualificationAction = async (): Promise<IInteractiveQualificationAction> => {
   const [attempts, implementations] = await Promise.all([
-    listLocalAttemptCheckpoints(),
+    listLocalQualificationStatusAttempts(),
     listQualificationImplementations(),
   ]);
   const resumableAttempts = attempts.filter(
-    ({ recordedAt, status }) => status === 'incomplete' && recordedAt === null,
+    ({ isRecorded, status }) => status === 'incomplete' && !isRecorded,
   );
   const action = await select<string>({
     message: 'Select a qualification action',
@@ -25,7 +25,7 @@ export const promptQualificationAction = async (): Promise<IInteractiveQualifica
       ...resumableAttempts.map((attempt) => ({
         name: `Resume ${attempt.attemptId}`,
         value: `resume:${attempt.attemptId}`,
-        description: `${attempt.selection.adapterId}/${attempt.selection.implementationId}`,
+        description: `${attempt.adapterId}/${attempt.implementationId}`,
       })),
       {
         name: 'Run qualification',

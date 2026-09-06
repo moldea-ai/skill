@@ -1,0 +1,55 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": false,
+  "durationMs": 207633,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/initial/actor-output.json",
+  "judgeStatus": "skipped",
+  "judgeOutputPath": null,
+  "judgeSkippedPath": "cases/create-grounded-agent/trials/initial/judge-skipped.json",
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 1163371,
+    "cachedInputTokens": 1100544,
+    "outputTokens": 6814
+  },
+  "judgeUsage": null,
+  "actorEvidenceCreatedAt": "2026-09-06T04:09:51.210Z",
+  "judgeEvidenceCreatedAt": null,
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "binds-implementation",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Actor resource profile ordinary exceeded maximum-command-output-bytes: observed 1048606, limit 131072.",
+    "Actor resource profile ordinary exceeded model-visible-tool-output-bytes: observed 1143383, limit 1048576."
+  ]
+}

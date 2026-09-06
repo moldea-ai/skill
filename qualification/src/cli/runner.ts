@@ -3,7 +3,6 @@ import type { IQualificationCommand } from '../command-line/index.ts';
 import { listQualificationImplementations } from '../compatibility/index.ts';
 import {
   getLocalAttemptDirectory,
-  inspectLocalAttemptCheckpoints,
   type IQualificationPaidExecutionRequest,
   type IQualificationProgress,
   recordIncompleteAttempt,
@@ -21,7 +20,8 @@ import {
   formatVerificationResult,
   presentQualificationOutput,
 } from '../presentation/index.ts';
-import { listLatestQualificationResults, verifyQualificationResults } from '../result/index.ts';
+import { verifyQualificationResults } from '../result/index.ts';
+import { loadQualificationStatusPage } from '../status/index.ts';
 
 /** Builds the default-deny callback evaluated only at an uncached paid model boundary. */
 const createPaidExecutionApprovalRequester =
@@ -164,16 +164,10 @@ export const executeQualificationCommand = async (
       return 0;
     }
     case 'status': {
-      const [{ attempts: allAttempts, unavailableAttempts }, latestResults] = await Promise.all([
-        inspectLocalAttemptCheckpoints(),
-        listLatestQualificationResults(),
-      ]);
-      const attempts = command.isAll
-        ? allAttempts
-        : allAttempts.filter(
-            ({ recordedAt, status }) => status === 'incomplete' && recordedAt === null,
-          );
-      const status = { attempts, unavailableAttempts, latestResults };
+      const status = await loadQualificationStatusPage({
+        isAll: command.isAll,
+        ...(command.cursor === undefined ? {} : { cursor: command.cursor }),
+      });
       presentQualificationOutput(status, command.isJson, formatQualificationStatus(status));
       return 0;
     }

@@ -1,0 +1,3 @@
+{"eventType":"command.completed","exitCode":0,"moldeaCommandCount":0,"outputByteCount":14680,"status":"completed"}
+{"eventType":"command.completed","exitCode":2,"moldeaCommandCount":0,"outputByteCount":289,"status":"failed"}
+{"eventType":"command.completed","exitCode":0,"moldeaCommandCount":0,"outputByteCount":6340,"status":"completed"}

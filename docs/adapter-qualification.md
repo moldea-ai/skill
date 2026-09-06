@@ -105,6 +105,10 @@ npm run qualification:format:check
 
 Machine-readable run output is intentionally compact: it reports terminal case states, counts, and the checkpoint directory. Complete evidence stays in attempt storage and is loaded only when a human or tool explicitly inspects it.
 
+Machine-readable `status` output is a separate content-free contract. The default scope contains unrecorded incomplete attempts, unavailable checkpoint summaries, and committed latest pointers; `--all` selects complete local history. A page contains at most 64 records and 65,536 UTF-8 bytes. Its opaque continuation cursor is bound to the exact summary snapshot and must be restarted when that snapshot changes. Each checkpoint write maintains a separate 8,192-byte-bounded status sidecar. Status reads only that sidecar and checkpoint file metadata, so checkpoint bodies, candidates, manifests, stages, prompts, workspace paths, commands, model output, and repository content never enter status inspection or its output. Missing or invalid sidecars remain unavailable rather than activating a legacy checkpoint reader.
+
+The two universal abstention cases assess only `moldea` activation, resource use, reference leakage, actor completion, and repository preservation. Correctness opinions about the unrelated host-owned source or documentation review are deliberately outside adapter qualification, so disagreement on an ordinary task cannot create a false `moldea` failure.
+
 Run the Custom profile before adapters:
 
 ```bash

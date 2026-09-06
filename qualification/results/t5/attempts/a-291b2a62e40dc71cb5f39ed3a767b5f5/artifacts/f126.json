@@ -1,0 +1,56 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "passed": true,
+  "durationMs": 259306,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 422932,
+    "cachedInputTokens": 389248,
+    "outputTokens": 6037
+  },
+  "judgeUsage": {
+    "inputTokens": 221276,
+    "cachedInputTokens": 188928,
+    "outputTokens": 2611
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T04:43:59.296Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T04:45:26.936Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-binding",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent.path to /src/support-assistant.ts and symbol to supportAssistant; src/support-assistant.ts exports that symbol. The obsolete src/support-agent.ts is absent, no targeted canonical reference to it remains, and workspace assertions show only moldea/moldea.yaml changed. Deterministic validation passed."
+    },
+    {
+      "id": "records-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml contains agents.support.unresolved.dynamic-tool-registration with effect: warning, explains that dynamic assembly prevents static proof, provides a concrete integration-test resolution, and relates /src/dynamic-tools.ts. No tool binding was invented; workspace assertions show implementation files were unchanged. Deterministic validation and typechecking passed."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

@@ -1,490 +1,483 @@
 # Milestones: Scalable clean-slate moldea activation and PR Assurance foundation
 
-## Completed milestones
+## Completed baseline
 
-Milestones 1 through 17 are complete, reviewed, signed, and published. They established the clean package generation, paired GitHub fixtures, bounded repository readers, PR Assurance kernel and worker composition, repository-bound skill activation, public documentation, calibrated resource profiles, evidence-pin release path, launcher accounting, command-policy protection, bounded pagination, source-commit historical validation, and the 131,072-byte completed-host-command ceiling. Milestone 17 is published at `23ff5698eeee874b4107cd2320927e2bee148169`.
+Milestones 1 through 19 are complete, reviewed, signed, and published at their recorded repository boundaries. The latest published skill commit is `5fcadcc55b6fbad23d77b826539f208d7d94fceb`. It contains lowercase product-name enforcement and fresh semantic attempt `20260906T035559508Z-semantic-9f0bb977`, which passed all 18 cases on their initial trials. The remaining sequence preserves every prior result and begins with the qualification defects exposed after that commit.
 
-Semantic attempt `20260906T032216085Z-semantic-893656e7` passed the previous 18-case suite but is retained only as immutable diagnostic evidence because its public actor responses and judge rationales violate the lowercase `moldea` brand contract.
-
-## Milestone 18: Enforce lowercase product naming in fresh semantic evidence
+## Milestone 20: Correct qualification ownership and bounded status
 
 ### Objective
 
-Make it impossible for a newly recorded green semantic attempt to publish standalone `Moldea` in actor responses or judge rationales.
+Remove host-task opinion from negative moldea activation verdicts and replace body-bearing qualification status output with bounded metadata pages.
 
 ### Dependencies
 
-- Published Milestone 17 and the preserved diagnostic attempt.
+- Milestones 1 through 19 are published.
+- Failed Custom attempts `20260906T035957301Z-custom-custom-0755bb71` and `20260906T041722240Z-custom-custom-111a8e5f` remain byte-for-byte intact.
 
 ### Scope and implementation
 
-- Add explicit lowercase product-name guidance to `moldea/SKILL.md` and the independent judge prompt without exposing evaluator answer keys to the actor.
-- Add a focused semantic-evaluation text contract that detects standalone `Moldea` without rewriting model output, wire it into actor and judge result production, and keep historical attempt validation source-bound.
-- Add unit and integration regressions for actor responses, judge rationales, confirmations, immutable historical evidence, and fresh green-result derivation.
-- Update the current plan and breakdown while preserving the diagnostic attempt, current-result projection, and latest pointer until replacement evidence is recorded.
+- Preserve and publish both failed `t5` attempt directories plus the resulting latest pointer as immutable diagnostic evidence.
+- Remove `reviews-ordinary-source` from `qualification/profiles/t5/cases/c10/scenario.yaml` and `reviews-unrelated-document` from `qualification/profiles/t5/cases/c11/scenario.yaml`.
+- Retain completed actor outcome, zero moldea command/output behavior, no moldea mention or reference leakage, exact adoption state, and unchanged workspace as the complete negative-case contract.
+- Update the two case READMEs and qualification documentation to state that host-owned review correctness is outside moldea qualification.
+- Add a focused `qualification/src/status/` module that projects valid and unavailable local checkpoints into compact summaries, orders them deterministically, pages at most 64 records, binds an opaque cursor to the exact selected snapshot, and rejects malformed or stale cursors.
+- Preserve the default actionable status scope and make `--all` select full local history. Add `--cursor` only to status commands and remove the old complete-checkpoint JSON shape without an alias or compatibility reader.
+- Keep every status JSON page at or below 65,536 UTF-8 bytes and exclude complete checkpoints, candidates, package manifests, stages, prompts, workspace paths, commands, model output, and repository content.
+- Update command parsing/types, CLI orchestration, presentation, exports, focused tests, `qualification/README.md`, `docs/adapter-qualification.md`, and any generated website evidence contracts directly affected by the new status shape.
 
 ### Verification
 
-- Run focused semantic runner tests, root unit and integration suites, semantic preflight/verification, skill validation, format, and diff checks.
+- Run focused parser, status, presentation, profile-loader, coverage, and local-attempt integration tests, including exact 64-record, continuation, final-page, malformed-cursor, stale-snapshot, unavailable-attempt, actionable-scope, and 65,536-byte boundary cases.
+- Prove both abstention scenarios fail on moldea activation/preservation violations but cannot fail on unrelated review opinions.
+- Run `npm run qualification:dry-run`, `npm run qualification:verify`, `npm run qualification:test`, `npm run qualification:typecheck`, `npm run qualification:lint`, and `npm run qualification:format:check`.
+- Run root tests, semantic history verification, semantic input-identity comparison, resource/path checks, portable-skill validation, website checks, formatting, secret scanning, and diff checks.
 
 ### Acceptance criteria
 
-- Wrong casing deterministically prevents a fresh green result and is never silently normalized.
-- Actor and judge prompts use `moldea`; actor prompts still contain no hidden criteria.
-- Historical attempt bytes remain unchanged and verifiable.
+- Negative activation qualification owns only moldea behavior and repository preservation.
+- Status output is compact, content-free, deterministic, cursor-paged, stale-safe, and at most 65,536 bytes.
+- Both failed attempts remain immutable and verifiable.
+- The current passing semantic attempt remains exact because no semantic input or portable skill byte changes.
 
 ### Review checkpoint
 
-Inspect casing detection, prompt separation, historical evidence behavior, test adequacy, immutable artifacts, and the full regression result before signed publication.
+Review scenario ownership, cursor integrity, output sizing, default versus `--all` behavior, absence of sensitive/body fields, historical evidence immutability, semantic identity, documentation, and the exact candidate state before signed publication.
 
-## Milestone 19: Record fresh semantic evidence
+## Milestone 21: Record fresh Custom qualification
 
 ### Objective
 
-Generate one exact-current passing semantic attempt after Milestone 18.
+Generate one exact-current passing universal Custom qualification after Milestone 20.
 
 ### Dependencies
 
-- Milestone 18 reviewed and published with a clean worktree.
+- Milestone 20 is reviewed, signed, published, and the worktree is clean.
+- The isolated packages repository remains at commit `67a063b90a4b9a8493956d1576e55f286925754c`.
 
 ### Scope and implementation
 
-- Run one official 18-case semantic recording against the exact published commit.
-- Preserve every trial immutably, promote only a complete passing attempt, and retain prior attempts unchanged.
+- Run one official no-cache `custom/custom` qualification against the exact published skill and packages snapshot.
+- Preserve every trial and operational retry immutably; promote only a complete passing attempt.
+- Do not recalibrate from rejected output, weaken canonical validation, or alter negative-case ownership during the run.
 
 ### Verification
 
-- Run semantic attempt verification, privacy/credential scanning, resource checks, website evidence checks, and exact-state review.
+- Verify every universal case, confirmation, deterministic assertion, command-policy result, resource profile, package/source identity, artifact digest, latest pointer, privacy projection, and public rendering.
+- Run qualification verification, resource/path checks, root tests, website checks, formatting, secret scanning, and exact-state review.
 
 ### Acceptance criteria
 
-- All 18 cases pass or recover, every public actor response and judge rationale uses `moldea`, and evidence is exact-current, bounded, source-bound, and privacy-safe.
+- All universal cases pass or recover under the existing resource and policy limits.
+- The attempt is exact-current, source-bound, privacy-safe, and independently verifiable.
+- No adapter-specific profile runs before this result is published.
 
 ### Review checkpoint
 
-Inspect every case status, casing, resource profile, command-policy result, identity digest, latest pointer, and public rendering before signed publication.
+Inspect every trial, retry, failure/recovery, command and token aggregate, maximum output, moldea use, deterministic result, judge assessment, and stored artifact before signed publication.
 
-## Milestone 20: Qualify the universal Custom profile
+## Milestone 22: Qualify Anthropic Messages API
 
 ### Objective
 
-Establish one passing universal qualification before any adapter-specific run.
+Record passing evidence for `anthropic/typescript-messages-api-0-117`.
 
 ### Dependencies
 
-- Milestone 19 published; isolated packages commit `67a063b90a4b9a8493956d1576e55f286925754c` remains exact and clean.
+- Milestone 21 is published and Custom remains current.
 
 ### Scope and implementation
 
-- Run target `t5` (`custom` / `custom`) once, including only protocol-required confirmations.
-- Preserve all artifacts and update only `qualification/results/t5/**` selection state.
+- Run the official `t1` adapter-specific profile against the published packages snapshot.
+- Preserve all trials and publish only a complete passing attempt.
 
 ### Verification
 
-- Run qualification verification, resource and privacy checks, website replay, and exact-state review.
+- Verify adapter construction, instruction flow, tool registration/repair, static boundaries, package identity, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- Every universal case passes or recovers within the calibrated profile; deterministic, workspace, policy, and source identities all pass.
+- The complete `t1` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect universal behavior, trial variance, resource peaks, immutable storage, and absence of adapter-specific duplication before signed publication.
+Review Anthropic-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 21: Qualify Anthropic Messages
+## Milestone 23: Qualify Claude Agent SDK
 
 ### Objective
 
-Publish passing target `t1` evidence for `anthropic` / `typescript-messages-api-0-117`.
+Record passing evidence for `claude-agent-sdk/typescript-query-subagents-0-3`.
 
 ### Dependencies
 
-- Milestone 20 published; exact isolated packages source remains clean.
+- Milestone 22 is published.
 
 ### Scope and implementation
 
-- Run only `t1`, preserve its immutable artifacts, and update only `qualification/results/t1/**`.
+- Run and preserve the official `t2` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify query/subagent wiring, instruction provenance, boundaries, package identity, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t2` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect Anthropic composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review Claude Agent SDK-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 22: Qualify Claude Agent SDK
+## Milestone 24: Qualify Cloudflare AI Chat Agent
 
 ### Objective
 
-Publish passing target `t2` evidence for `claude-agent-sdk` / `typescript-query-subagents-0-3`.
+Record passing evidence for `cloudflare-agents/typescript-ai-chat-agent-0-10-ai-sdk-7`.
 
 ### Dependencies
 
-- Milestone 21 published; exact isolated packages source remains clean.
+- Milestone 23 is published.
 
 ### Scope and implementation
 
-- Run only `t2`, preserve its immutable artifacts, and update only `qualification/results/t2/**`.
+- Run and preserve the official `t3` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify AI Chat Agent wiring, bindings, migrations/deployment guidance, tool behavior, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t3` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect Claude subagent composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review Cloudflare AI Chat Agent-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 23: Qualify Cloudflare AI chat agent
+## Milestone 25: Qualify Cloudflare Think
 
 ### Objective
 
-Publish passing target `t3` evidence for `cloudflare-agents` / `typescript-ai-chat-agent-0-10-ai-sdk-7`.
+Record passing evidence for `cloudflare-agents/typescript-think-0-16-ai-sdk-7`.
 
 ### Dependencies
 
-- Milestone 22 published; exact isolated packages source remains clean.
+- Milestone 24 is published.
 
 ### Scope and implementation
 
-- Run only `t3`, preserve its immutable artifacts, and update only `qualification/results/t3/**`.
+- Run and preserve the official `t4` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify Think wiring, static boundaries, bindings, tool behavior, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t4` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect Cloudflare chat composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review Cloudflare Think-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 24: Qualify Cloudflare Think
+## Milestone 26: Qualify Eve
 
 ### Objective
 
-Publish passing target `t4` evidence for `cloudflare-agents` / `typescript-think-0-16-ai-sdk-7`.
+Record passing evidence for `eve/typescript-filesystem-agent-0-39`.
 
 ### Dependencies
 
-- Milestone 23 published; exact isolated packages source remains clean.
+- Milestone 25 is published.
 
 ### Scope and implementation
 
-- Run only `t4`, preserve its immutable artifacts, and update only `qualification/results/t4/**`.
+- Run and preserve the official `t6` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify filesystem-agent wiring, instruction and tool boundaries, package identity, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t6` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect Cloudflare Think composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review Eve-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 25: Qualify eve
+## Milestone 27: Qualify Google Gen AI
 
 ### Objective
 
-Publish passing target `t6` evidence for `eve` / `typescript-filesystem-agent-0-39`.
+Record passing evidence for `google-genai/typescript-models-generate-content-2`.
 
 ### Dependencies
 
-- Milestone 24 published; exact isolated packages source remains clean.
+- Milestone 26 is published.
 
 ### Scope and implementation
 
-- Run only `t6`, preserve its immutable artifacts, and update only `qualification/results/t6/**`.
+- Run and preserve the official `t7` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify model generation wiring, instruction/tool handling, package identity, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t7` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect eve filesystem composition, lower-bound reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review Google Gen AI-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 26: Qualify Google Gen AI
+## Milestone 28: Qualify LangChain
 
 ### Objective
 
-Publish passing target `t7` evidence for `google-genai` / `typescript-models-generate-content-2`.
+Record passing evidence for `langchain/typescript-create-agent-1-5`.
 
 ### Dependencies
 
-- Milestone 25 published; exact isolated packages source remains clean.
+- Milestone 27 is published.
 
 ### Scope and implementation
 
-- Run only `t7`, preserve its immutable artifacts, and update only `qualification/results/t7/**`.
+- Run and preserve the official `t8` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify create-agent wiring, tool registration/repair, static boundaries, package identity, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t8` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect Google model composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review LangChain-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 27: Qualify LangChain
+## Milestone 29: Qualify LangGraph Functional API
 
 ### Objective
 
-Publish passing target `t8` evidence for `langchain` / `typescript-create-agent-1-5`.
+Record passing evidence for `langgraph/typescript-functional-api-1-4`.
 
 ### Dependencies
 
-- Milestone 26 published; exact isolated packages source remains clean.
+- Milestone 28 is published.
 
 ### Scope and implementation
 
-- Run only `t8`, preserve its immutable artifacts, and update only `qualification/results/t8/**`.
+- Run and preserve the official `t9` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify Functional API wiring, routing/static boundaries, tool behavior, package identity, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t9` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect LangChain agent composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review LangGraph Functional API-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 28: Qualify LangGraph functional API
+## Milestone 30: Qualify LangGraph StateGraph
 
 ### Objective
 
-Publish passing target `t9` evidence for `langgraph` / `typescript-functional-api-1-4`.
+Record passing evidence for `langgraph/typescript-state-graph-1-4`.
 
 ### Dependencies
 
-- Milestone 27 published; exact isolated packages source remains clean.
+- Milestone 29 is published.
 
 ### Scope and implementation
 
-- Run only `t9`, preserve its immutable artifacts, and update only `qualification/results/t9/**`.
+- Run and preserve the official `t10` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify StateGraph wiring, state/routing boundaries, tools, package identity, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t10` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect functional-API composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review LangGraph StateGraph-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 29: Qualify LangGraph state graph
+## Milestone 31: Qualify OpenAI Responses API
 
 ### Objective
 
-Publish passing target `t10` evidence for `langgraph` / `typescript-state-graph-1-4`.
+Record passing evidence for `openai/typescript-responses-api-7`.
 
 ### Dependencies
 
-- Milestone 28 published; exact isolated packages source remains clean.
+- Milestone 30 is published.
 
 ### Scope and implementation
 
-- Run only `t10`, preserve its immutable artifacts, and update only `qualification/results/t10/**`.
+- Run and preserve the official `t11` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify Responses API wiring, instruction and tool contracts, package identity, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t11` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect state-graph composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review OpenAI Responses API-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 30: Qualify OpenAI Responses
+## Milestone 32: Qualify OpenAI Agents SDK
 
 ### Objective
 
-Publish passing target `t11` evidence for `openai` / `typescript-responses-api-7`.
+Record passing evidence for `openai-agents-sdk/typescript-agent-handoffs-0-16`.
 
 ### Dependencies
 
-- Milestone 29 published; exact isolated packages source remains clean.
+- Milestone 31 is published.
 
 ### Scope and implementation
 
-- Run only `t11`, preserve its immutable artifacts, and update only `qualification/results/t11/**`.
+- Run and preserve the official `t12` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify agent/handoff wiring, instruction provenance, tool registration/repair, boundaries, package identity, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t12` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect Responses API composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review OpenAI Agents SDK-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 31: Qualify OpenAI Agents SDK
+## Milestone 33: Qualify Vercel generate/stream text
 
 ### Objective
 
-Publish passing target `t12` evidence for `openai-agents-sdk` / `typescript-agent-handoffs-0-16`.
+Record passing evidence for `vercel-ai-sdk/typescript-generate-stream-text-7`.
 
 ### Dependencies
 
-- Milestone 30 published; exact isolated packages source remains clean.
+- Milestone 32 is published.
 
 ### Scope and implementation
 
-- Run only `t12`, preserve its immutable artifacts, and update only `qualification/results/t12/**`.
+- Run and preserve the official `t13` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify generation/streaming wiring, instruction and tool behavior, indirect/static boundaries, package identity, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t13` profile passes or recovers with exact-current evidence.
 
 ### Review checkpoint
 
-Inspect handoff composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review Vercel generate/stream text-specific behavior and evidence, then sign and publish the exact result.
 
-## Milestone 32: Qualify Vercel AI SDK generate/stream
+## Milestone 34: Qualify Vercel ToolLoopAgent
 
 ### Objective
 
-Publish passing target `t13` evidence for `vercel-ai-sdk` / `typescript-generate-stream-text-7`.
+Record passing evidence for `vercel-ai-sdk/typescript-tool-loop-agent-7`.
 
 ### Dependencies
 
-- Milestone 31 published; exact isolated packages source remains clean.
+- Milestone 33 is published.
 
 ### Scope and implementation
 
-- Run only `t13`, preserve its immutable artifacts, and update only `qualification/results/t13/**`.
+- Run and preserve the official `t14` adapter-specific qualification.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Verify ToolLoopAgent wiring, prepare-call/prepare-step boundaries, tool behavior, package identity, resources, privacy, artifacts, and website rendering.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- The complete `t14` profile passes or recovers with exact-current evidence.
+- All thirteen adapter targets and Custom have current passing results.
 
 ### Review checkpoint
 
-Inspect generate/stream composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review Vercel ToolLoopAgent-specific behavior plus the complete target registry, then sign and publish the exact result.
 
-## Milestone 33: Qualify Vercel AI SDK tool loop
+## Milestone 35: Record release evidence
 
 ### Objective
 
-Publish passing target `t14` evidence for `vercel-ai-sdk` / `typescript-tool-loop-agent-7`.
+Create the compact fresh 5.0.0 release-evidence envelope from the exact passing semantic and qualification set.
 
 ### Dependencies
 
-- Milestone 32 published; exact isolated packages source remains clean.
+- Milestones 21 through 34 are published and all current evidence verifies.
 
 ### Scope and implementation
 
-- Run only `t14`, preserve its immutable artifacts, and update only `qualification/results/t14/**`.
+- Run the fresh release-evidence recording command against exact current identities.
+- Verify semantic, Custom, every adapter, CLI closure, packages snapshot, portable skill, qualification source, artifact digests, resource states, and provenance.
+- Update only the release envelope and directly generated/public release evidence that the established workflow owns.
 
 ### Verification
 
-- Verify qualification integrity, adapter-specific deterministic assertions, resources, privacy, website replay, and exact state.
+- Run release identity/check workflows, semantic and qualification verification, root/website validation, privacy scanning, formatting, and exact-state review.
 
 ### Acceptance criteria
 
-- The adapter-specific cases pass or recover without repeating universal coverage or exceeding the declared profile.
+- One compact fresh envelope selects all passing exact-current evidence without a pin, compatibility reader, copied transcript, or stale identity.
 
 ### Review checkpoint
 
-Inspect tool-loop composition, tested-reference identity, failure mapping, resource evidence, and artifact provenance before signed publication.
+Review every selected digest and source, evidence mode, package/version identity, public disclosure, and release gate before signed publication.
 
-## Milestone 34: Record fresh release evidence
+## Milestone 36: Publish the clean release and final audit
 
 ### Objective
 
-Bind skill 5.0.0 to the complete exact-current passing semantic, Custom, and adapter evidence set.
+Integrate and publish the clean skill 5.0.0 release, remove authorized obsolete 4.0.x release surfaces, and prove cross-repository consistency.
 
 ### Dependencies
 
-- Milestones 19 through 33 published; every latest qualification target is passing and source-exact.
+- Milestone 35 is published and release checks pass.
+- Required GitHub and registry credentials and repository controls remain available.
 
 ### Scope and implementation
 
-- Record the fresh release evidence envelope through the supported local command.
-- Update release-facing website evidence and generated state only where the recorded envelope requires it.
+- Review the complete feature branch against the freshly resolved `main` target, resolve only in-scope conflicts, and merge through the authorized signed publication workflow.
+- Push exact `main`, monitor established CI/site/release workflows, and verify the published skill/package/site artifacts rather than inferring success from a push.
+- Delete authorized exact `v4.0.0`, `v4.0.1`, and `v4.0.2` local/remote tag and GitHub Release surfaces when authenticated hosting permits, without rewriting shared branch history.
+- Audit active source, specifications, documentation, websites, knowledge base, packages, platform, fixture manifests, release metadata, and registry state for old versions, global-install guidance, eager/body-bearing inspection, false completeness, stale ranges, and launch overclaims.
+- Preserve unrelated concurrent work and protected instruction files.
 
 ### Verification
 
-- Run release evidence, identity, semantic, qualification, website, privacy, digest, format, and full regression checks.
+- Run final repository-owned tests, typechecks, lint, formatting, builds, docs/site validation, semantic/qualification/release verification, package/version closure, tag/release checks, workflow checks, registry checks, and contradiction searches at each affected boundary.
 
 ### Acceptance criteria
 
-- The fresh envelope names exact passing evidence and matching digests, discloses fresh mode accurately, and makes skill 5.0.0 release-ready without publishing it yet.
+- Skill 5.0.0 is published from reviewed signed evidence and the public sites reflect it.
+- Active source and documentation expose only the clean current contracts.
+- Authorized obsolete release surfaces are absent or a precise external capability blocker is recorded.
+- Every affected repository is clean at the exact intended published tip, excluding explicitly preserved unrelated concurrent work.
 
 ### Review checkpoint
 
-Inspect complete target coverage, exact identities, public provenance, fresh-mode selection, and release readiness before signed publication.
-
-## Milestone 35: Publish the clean release and complete the cross-repository audit
-
-### Objective
-
-Integrate and publish skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and prove final cross-repository consistency.
-
-### Dependencies
-
-- Milestone 34 published; required registry packages and host credentials remain available.
-
-### Scope and implementation
-
-- Review `new_skill` against current `main`, integrate through repository controls, push exact reviewed state, and monitor release/site workflows.
-- Verify registry and public-site propagation, delete authorized 4.0.0, 4.0.1, and 4.0.2 tags/releases, and retain no active legacy path.
-- Audit active skill, packages, platform specifications/site, knowledge base, fixtures, and public/private provider state against all 45 recorded problems.
-- Preserve concurrent unrelated work, protected instructions, shared history, and immutable evidence.
-
-### Verification
-
-- Run final repository-owned tests, typechecks, lint, formatting, builds, release identity/evidence, semantic/qualification verification, contradiction searches, registry checks, host workflow checks, and exact branch/tag/release inspection.
-
-### Acceptance criteria
-
-- Skill 5.0.0 is published from the reviewed signed state; active sources and public documentation expose only the clean contracts; required sites and packages are live; obsolete release surfaces are absent; every recorded problem has permanent regression evidence or an explicitly proven external limitation.
-
-### Review checkpoint
-
-Inspect cumulative history, signatures, source/evidence/package identities, main integration, workflow results, registry/site propagation, obsolete-release deletion, contradiction audit, and concurrent-work isolation before declaring completion.
+Review target freshness, mergeability, signed history, workflow and registry outcomes, public rendering, obsolete release absence, cross-repository contradictions, protected instructions, and final completion evidence.
 
 ## Execution scope
 
-Preserve completed Milestones 1 through 17 and immutable diagnostic attempt `20260906T032216085Z-semantic-893656e7`. Implement and publish lowercase `moldea` enforcement before another paid run, record fresh semantic evidence, require a passing universal Custom qualification, then run and publish each of the thirteen adapter targets sequentially. Record fresh release evidence only after every target passes. Finally integrate and publish clean skill 5.0.0, remove authorized 4.0.x tag/release surfaces, and complete the cross-repository audit against all 45 observed problems without modifying protected instructions, rewriting evidence, or incorporating unrelated concurrent work.
+Preserve completed Milestones 1 through 19 and all immutable evidence. Correct negative qualification ownership and bounded status output in Milestone 20, obtain passing Custom evidence in Milestone 21, qualify each of the thirteen adapter targets independently in Milestones 22 through 34, record the fresh release envelope in Milestone 35, and complete clean 5.0.0 publication plus the cross-repository and 4.0.x release-surface audit in Milestone 36. Every milestone includes its required tests, documentation, review, signed commit, and explicit publication before the next milestone begins.

@@ -1,0 +1,55 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index a5ba2f9..0622598 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -4,3 +4,16 @@ context:
+   /moldea/project.md:
+     affectedBy:
+       - /src/**
++
++agents:
++  order-triage:
++    runtime:
++      id: custom
++      guidance:
++        - /moldea/agents/order-triage/runtime.md
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: createOrderTriageAgent
++    affectedBy:
++      - /src/order-triage-agent.ts
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..368b3c4
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review without approving refunds.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..98ea09b
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,7 @@
++# order-triage
++
++Classify orders for human review.
++
++Do not approve refunds or present a classification as refund approval. Refund decisions remain with a human reviewer.
++
++Use only the order information supplied at runtime. When information is missing or ambiguous, do not invent it; leave the uncertainty for human review.
+
+diff --git a/moldea/agents/order-triage/runtime.md b/moldea/agents/order-triage/runtime.md
+new file mode 100644
+index 0000000..2ceced1
+--- /dev/null
++++ b/moldea/agents/order-triage/runtime.md
+@@ -0,0 +1,5 @@
++# Custom runtime guidance
++
++`createOrderTriageAgent` is asynchronous and requires the runtime to supply `loadCanonicalInstruction`. The loader must resolve `/moldea/agents/order-triage/instruction.md`; its returned content becomes the agent's `instruction`.
++
++Treat `action: 'classify-for-human-review'` and `canApproveRefunds: false` as fixed integration behavior. The runtime must not expose refund-approval authority for this agent.

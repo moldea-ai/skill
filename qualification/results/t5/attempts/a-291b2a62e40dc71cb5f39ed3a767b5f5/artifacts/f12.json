@@ -1,0 +1,19 @@
+{
+  "verdict": "fail",
+  "summary": "The actor correctly abstained from adapter-specific behavior and made no changes, but reported an unsupported defect in the ordinary source review.",
+  "requirements": [
+    {
+      "id": "reviews-ordinary-source",
+      "verdict": "fail",
+      "evidence": "The workspace defines only `status === 429 || status >= 500` and provides no contract requiring validation of impossible/out-of-domain status values. The actor nevertheless labeled acceptance of 600 and Infinity a correctness issue, while acknowledging that broader retry semantics are unspecified. This is a false defect."
+    },
+    {
+      "id": "excludes-moldea",
+      "verdict": "pass",
+      "evidence": "The actor output contains no mention of moldea, and the runner-owned actor command policy records `moldeaCommandCount: 0` and `moldeaOutputByteCount: 0`."
+    }
+  ],
+  "failures": [
+    "The actor reported the unsupported 600/Infinity upper-bound concern as a correctness defect."
+  ]
+}

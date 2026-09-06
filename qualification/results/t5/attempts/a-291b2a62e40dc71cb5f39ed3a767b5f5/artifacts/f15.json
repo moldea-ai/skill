@@ -1,0 +1,53 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "passed": false,
+  "durationMs": 136309,
+  "deterministicBeforePath": "cases/abstain-uninitialized-repository-work/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/abstain-uninitialized-repository-work/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/abstain-uninitialized-repository-work/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/abstain-uninitialized-repository-work/trials/confirmation-1/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/abstain-uninitialized-repository-work/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/abstain-uninitialized-repository-work/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 114869,
+    "cachedInputTokens": 104832,
+    "outputTokens": 2625
+  },
+  "judgeUsage": {
+    "inputTokens": 79563,
+    "cachedInputTokens": 45440,
+    "outputTokens": 1543
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T05:03:12.555Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T05:04:04.814Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "reviews-ordinary-source",
+      "evaluator": "judge",
+      "verdict": "fail",
+      "evidence": "The workspace defines only `status === 429 || status >= 500` and provides no contract requiring validation of impossible/out-of-domain status values. The actor nevertheless labeled acceptance of 600 and Infinity a correctness issue, while acknowledging that broader retry semantics are unspecified. This is a false defect."
+    },
+    {
+      "id": "excludes-moldea",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor output contains no mention of moldea, and the runner-owned actor command policy records `moldeaCommandCount: 0` and `moldeaOutputByteCount: 0`."
+    },
+    {
+      "id": "preserves-workspace",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+    }
+  ],
+  "failures": [
+    "Requirement reviews-ordinary-source failed: The workspace defines only `status === 429 || status >= 500` and provides no contract requiring validation of impossible/out-of-domain status values. The actor nevertheless labeled acceptance of 600 and Infinity a correctness issue, while acknowledging that broader retry semantics are unspecified. This is a false defect.",
+    "The actor reported the unsupported 600/Infinity upper-bound concern as a correctness defect."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Added the order-triage moldea agent using the custom runtime, grounded in the existing factory’s human-review classification role and explicit inability to approve refunds. Registered the runtime-agent binding and affected source path, added focused runtime guidance, and validated the project.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The binding targets `createOrderTriageAgent` in `/src/order-triage-agent.ts`.",
+    "moldea validation passed with format version 1 and zero diagnostics.",
+    "TypeScript validation passed via the repository-local compiler.",
+    "The final Git diff and untracked files were reviewed."
+  ],
+  "unresolved": []
+}

@@ -4,6 +4,7 @@ const VALUE_OPTIONS = new Set([
   '--adapter',
   '--attempt',
   '--case',
+  '--cursor',
   '--implementation',
   '--packages-repository',
   '--skill-repository',
@@ -99,8 +100,13 @@ export const parseQualificationCommand = (args: readonly string[]): IQualificati
       rejectOptions(options, new Set(['--json']));
       return { kind: 'list', isJson };
     case 'status':
-      rejectOptions(options, new Set(['--all', '--json']));
-      return { kind: 'status', isAll: options.booleans.has('--all'), isJson };
+      rejectOptions(options, new Set(['--all', '--cursor', '--json']));
+      return {
+        kind: 'status',
+        ...(options.values.has('--cursor') ? { cursor: requireValue(options, '--cursor') } : {}),
+        isAll: options.booleans.has('--all'),
+        isJson,
+      };
     case 'verify':
       rejectOptions(options, new Set(['--json']));
       return { kind: 'verify', isJson };

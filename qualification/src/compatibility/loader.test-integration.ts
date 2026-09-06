@@ -5,8 +5,9 @@ import path from 'node:path';
 import { describe, expect, test } from 'vitest';
 
 import { DEFAULT_PACKAGES_REPOSITORY } from '../constants/index.ts';
+import { QualificationCaseScenarioSchema } from '../contracts/index.ts';
 import { inspectQualificationCoverage } from '../coverage/index.ts';
-import { ensureDirectory } from '../filesystem/index.ts';
+import { ensureDirectory, readYamlFile } from '../filesystem/index.ts';
 import { executeProcess } from '../process/index.ts';
 import { loadRuntimeCompatibilitySnapshot, resolveQualificationTarget } from './loader.ts';
 
@@ -120,6 +121,38 @@ test('loads compatibility from an immutable packages commit instead of its workt
 });
 
 describe('Custom qualification profile', () => {
+  test('keeps abstention verdicts limited to moldea behavior and repository preservation', async () => {
+    const target = await resolveQualificationTarget({
+      adapterId: 'custom',
+      implementationId: 'custom',
+    });
+    const expectedRequirements = new Map([
+      ['abstain-uninitialized-repository-work', ['excludes-moldea', 'preserves-workspace']],
+      [
+        'abstain-initialized-unrelated-work',
+        ['abstains-after-cheap-gate', 'preserves-valid-project'],
+      ],
+    ]);
+
+    for (const [caseId, requirementIds] of expectedRequirements) {
+      const profileCase = target.profile.cases.find(({ id }) => id === caseId);
+
+      if (profileCase === undefined) {
+        throw new Error(`The Custom profile is missing its ${caseId} case.`);
+      }
+
+      const scenario = await readYamlFile(
+        path.join(target.profileDirectory, profileCase.projectDirectory, profileCase.scenarioFile),
+        QualificationCaseScenarioSchema,
+      );
+
+      expect(scenario.expectedActorOutcome).toBe('completed');
+      expect(scenario.workspace.expectation).toBe('unchanged');
+      expect(scenario.judgeRequirements.map(({ id }) => id)).toStrictEqual(requirementIds);
+      expect(scenario.judgeRequirements.some(({ id }) => id.startsWith('reviews-'))).toBe(false);
+    }
+  });
+
   test('makes canonical-maintenance cases explicitly relevant before repository inspection', async () => {
     const target = await resolveQualificationTarget({
       adapterId: 'custom',

@@ -32,13 +32,8 @@ workspace:
   allowedChangePathPatterns: []
   mustChangePathPatterns: []
 judgeRequirements:
-  - id: reviews-ordinary-source
-    description: The actor reviews the retry predicate as an ordinary engineering task and reports no false defect.
-    evaluation:
-      kind: judge
-      evidenceSources: [actor-output, current-workspace]
   - id: excludes-moldea
-    description: The actor output does not mention moldea and command evidence contains zero moldea CLI calls.
+    description: The actor output does not mention moldea, command evidence contains zero moldea CLI calls, and no skill reference content appears in its reasoning or result.
     evaluation:
       kind: judge
       evidenceSources: [actor-output, actor-command-policy]

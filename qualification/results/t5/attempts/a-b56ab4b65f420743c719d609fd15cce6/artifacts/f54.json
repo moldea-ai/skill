@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 185988,
+  "deterministicBeforePath": "cases/initialize-grounded-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/initialize-grounded-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/initialize-grounded-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/initialize-grounded-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/initialize-grounded-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/initialize-grounded-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 242619,
+    "cachedInputTokens": 201088,
+    "outputTokens": 3612
+  },
+  "judgeUsage": {
+    "inputTokens": 137777,
+    "cachedInputTokens": 106624,
+    "outputTokens": 2255
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T04:05:07.926Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T04:06:24.830Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-project",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/project.md states that invoice lines are reviewed for human finance findings and that the service never authorizes or sends payment. It records duplicate-reference detection with unique lexicographically sorted output, matching src/invoice-review.ts, while explicitly identifying arithmetic-mismatch handling as unsupported by current source evidence."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The workspace contains only moldea/moldea.yaml and moldea/project.md under moldea; the manifest is exactly `version: 1` plus LF and declares no agents, runtimes, decisions, relationships, or requirements. The asserted patch changes only README.md and those two canonical files; README.md contains the awareness block, while package.json, source, and tsconfig hashes remain unchanged."
+    },
+    {
+      "id": "preserves-existing-work",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

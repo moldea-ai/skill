@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, deterministic validation, and patch-scope evidence agree: the runtime binding targets the existing supportAssistant export, the obsolete source remains absent, and dynamic tool registration is represented only as an unresolved warning.",
+  "requirements": [
+    {
+      "id": "repairs-binding",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts with symbol supportAssistant; src/support-assistant.ts exports supportAssistant; src/support-agent.ts is absent. Workspace assertions show only moldea/moldea.yaml changed, so no obsolete implementation was recreated. Deterministic validation and type checking passed."
+    },
+    {
+      "id": "records-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml records agent-level unresolved warning dynamic-tool-registration with effect warning, a concrete resolution to verify the registry produced by createToolRegistry, and related path /src/dynamic-tools.ts. No tool binding is declared. src/dynamic-tools.ts contains createToolRegistry, and workspace assertions show implementation files were unchanged."
+    }
+  ],
+  "failures": []
+}

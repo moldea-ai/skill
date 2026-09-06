@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s runtime binding with the existing `supportAssistant` export and recorded dynamic tool registration as an agent-level warning. Local moldea validation and TypeScript checking pass; the final diff contains only the intended manifest edit.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Binding now targets `/src/support-assistant.ts` and symbol `supportAssistant`.",
+    "Added warning `dynamic-tool-registration` with a concrete runtime verification resolution and related path `/src/dynamic-tools.ts`.",
+    "`moldea validate` returned schema version 4, status `valid`, and zero diagnostics.",
+    "`./node_modules/.bin/tsc --noEmit` exited successfully.",
+    "Preserved pre-existing deletion of `src/support-agent.ts` and untracked `src/dynamic-tools.ts` and `src/support-assistant.ts`."
+  ],
+  "unresolved": [
+    "Static inspection cannot prove the final tool relationship because registrations are assembled dynamically; verify the registry produced by `createToolRegistry` before declaring a tool binding."
+  ]
+}

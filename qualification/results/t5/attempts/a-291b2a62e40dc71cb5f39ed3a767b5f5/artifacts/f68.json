@@ -1,0 +1,15 @@
+{
+  "outcome": "completed",
+  "summary": "The moldea support-agent setup is valid and agrees with the source, so no files were edited. moldea validation passed with zero diagnostics, TypeScript compilation passed, and the final Git status/diff was empty.",
+  "changedFiles": [],
+  "observations": [
+    "/moldea/moldea.yaml declares the support agent with custom runtime guidance at /moldea/runtimes/custom.md and binds runtimeAgent to the supportAgent symbol in /src/support-agent.ts.",
+    "The description identifies an email customer-support agent; the instruction identifies it as support and requires evidence-based answers with escalation of uncertainty.",
+    "The custom runtime guidance says the exported supportAgent record owns the runtime definition and that its identifier and channel must be preserved.",
+    "src/support-agent.ts exports supportAgent with id 'support' and channel 'email', matching all canonical declarations.",
+    "Repository-local moldea CLI 7.0.1 returned schema version 4, valid status, and zero structural diagnostics. ./node_modules/.bin/tsc -p tsconfig.json exited successfully."
+  ],
+  "unresolved": [
+    "Static evidence confirms the declared wiring, but does not prove that an external custom runtime loads the guidance at execution time; invoking an agent or provider was prohibited. No contradictory runtime implementation was found in scope."
+  ]
+}

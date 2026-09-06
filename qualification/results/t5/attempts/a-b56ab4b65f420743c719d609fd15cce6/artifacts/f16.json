@@ -1,0 +1,17 @@
+{
+  "outcome": "completed",
+  "summary": "Created the order-triage moldea agent using the custom runtime. Its canonical description and instruction classify orders for human review and explicitly deny refund approval or financial mutation authority. Added the runtime-agent binding, exact affected source path, and focused runtime guidance. The moldea CLI validated repository format 1 with zero diagnostics, TypeScript compilation passed, and the final Git diff was reviewed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/order-triage.md"
+  ],
+  "observations": [
+    "The runtime binding targets `/src/order-triage-agent.ts` symbol `createOrderTriageAgent`.",
+    "The custom runtime guidance preserves canonical instruction loading, the `order-triage` identity, the `classify-for-human-review` action, and disabled refund approval.",
+    "No tools, provider capabilities, schemas, or additional decision authority were declared.",
+    "No provider or runtime agent was invoked; runtime behavior beyond the inspected factory contract remains unasserted."
+  ],
+  "unresolved": []
+}

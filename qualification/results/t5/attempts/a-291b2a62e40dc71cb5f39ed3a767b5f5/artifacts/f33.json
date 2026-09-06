@@ -1,0 +1,60 @@
+{
+  "caseId": "answer-information-before-adoption",
+  "title": "Answer information before adoption",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 69415,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 69415,
+      "deterministicBeforePath": "cases/answer-information-before-adoption/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/answer-information-before-adoption/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/answer-information-before-adoption/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/answer-information-before-adoption/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/answer-information-before-adoption/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/answer-information-before-adoption/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 26225,
+        "cachedInputTokens": 19712,
+        "outputTokens": 378
+      },
+      "judgeUsage": {
+        "inputTokens": 79708,
+        "cachedInputTokens": 61696,
+        "outputTokens": 1272
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T04:58:26.626Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T04:59:10.366Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "answers-concisely",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Actor output contains exactly two short sentences: it accurately describes moldea as maintaining Git-owned project context and agent systems, and identifies `/moldea/` as an adopted project's canonical state location. It makes no claim about this repository's adoption or state."
+        },
+        {
+          "id": "avoids-repository-activation",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Runner-owned command policy reports `moldeaCommandCount: 0`. Workspace assertions report `changedPaths: []` with identical before/after modes and SHA-256 hashes for every tracked project file, and the deterministic summary reports `repositoryUnchanged: true`."
+        },
+        {
+          "id": "preserves-uninitialized-state",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

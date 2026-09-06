@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 299805,
+  "deterministicBeforePath": "cases/maintain-dirty-project/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/maintain-dirty-project/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/maintain-dirty-project/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/maintain-dirty-project/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/maintain-dirty-project/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/maintain-dirty-project/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 601541,
+    "cachedInputTokens": 575360,
+    "outputTokens": 7898
+  },
+  "judgeUsage": {
+    "inputTokens": 147921,
+    "cachedInputTokens": 125696,
+    "outputTokens": 2447
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T04:37:15.911Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T04:38:31.345Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "adds-context",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current workspace: `moldea/context/billing.md` exists; `moldea/moldea.yaml` globally registers `/moldea/context/billing.md`, declares `affectedBy: /src/billing.ts`, and assigns it to `agents.support.context`. Deterministic validation passed with CLI 7.0.1/schema 4 and zero diagnostics. Workspace assertions show these intended files changed while runtime and unrelated dirty-worktree files remained unchanged."
+    },
+    {
+      "id": "updates-instruction",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "Current `moldea/agents/support/instruction.md` retains the opening `# Support agent` and `You are the support agent` identity, then explicitly directs use of billing context for refund and invoice questions and escalation when evidence is insufficient. Workspace assertions confirm this instruction was updated."
+    },
+    {
+      "id": "preserves-dirty-state",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

@@ -1,0 +1,12 @@
+{
+  "verdict": "pass",
+  "summary": "The actor’s alignment report agrees with the canonical files, implementation, deterministic validation, and unchanged-workspace evidence. The stated runtime-execution limitation is genuine but does not contradict the required repository-level alignment judgment.",
+  "requirements": [
+    {
+      "id": "explains-alignment",
+      "verdict": "pass",
+      "evidence": "Current workspace evidence shows moldea/moldea.yaml registers agent `support`, selects runtime `custom`, points guidance to `/moldea/runtimes/custom.md`, and binds `runtimeAgent` to symbol `supportAgent` at `/src/support-agent.ts`. The guidance identifies that exported record as the runtime-owned definition and requires preserving its identifier and channel. The source exports `supportAgent` with id `support` and channel `email`, consistent with the support description and instruction. A fresh repository-local moldea 7.0.1 validation returned schemaVersion 4, status `valid`, and zero diagnostics. Runner-owned evidence also reports successful typechecking, an empty final diff, `repositoryUnchanged: true`, and identical before/after hashes for all asserted files."
+    }
+  ],
+  "failures": []
+}

@@ -11,6 +11,7 @@ import {
   type IQualificationStageCheckpoint,
 } from '../contracts/index.ts';
 import { readJsonFile, writeJsonFileAtomically } from '../filesystem/index.ts';
+import { writeQualificationStatusAttempt } from '../status/attempt-summary.ts';
 
 /** Returns the canonical local checkpoint path for one attempt directory. */
 export const getCheckpointPath = (attemptDirectory: string): string =>
@@ -172,6 +173,7 @@ export const writeAttemptCheckpoint = async (
     updatedAt: new Date().toISOString(),
   });
   await writeJsonFileAtomically(getCheckpointPath(attemptDirectory), validatedCheckpoint);
+  await writeQualificationStatusAttempt(attemptDirectory, validatedCheckpoint);
 };
 
 /** Converts an interrupted running stage back to resumable pending state. */

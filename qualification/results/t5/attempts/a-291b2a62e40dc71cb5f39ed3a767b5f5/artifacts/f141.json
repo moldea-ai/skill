@@ -1,0 +1,56 @@
+{
+  "trialId": "confirmation-2",
+  "kind": "confirmation",
+  "confirmationIndex": 2,
+  "passed": true,
+  "durationMs": 264829,
+  "deterministicBeforePath": "cases/reconcile-drift-and-boundaries/trials/confirmation-2/deterministic-before.json",
+  "deterministicAfterPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-2/deterministic-after.json",
+  "actorOutputPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-2/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-2/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-2/workspace-assertions.json",
+  "patchPath": "cases/reconcile-drift-and-boundaries/trials/confirmation-2/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 577157,
+    "cachedInputTokens": 520320,
+    "outputTokens": 5914
+  },
+  "judgeUsage": {
+    "inputTokens": 289598,
+    "cachedInputTokens": 273536,
+    "outputTokens": 3079
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T04:48:10.265Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T04:49:51.766Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "repairs-binding",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml binds runtimeAgent to /src/support-assistant.ts with symbol supportAssistant; src/support-assistant.ts exports supportAssistant; src/support-agent.ts is absent. Workspace assertions show only moldea/moldea.yaml changed, so no obsolete implementation was recreated. Deterministic validation and type checking passed."
+    },
+    {
+      "id": "records-boundary",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml records agent-level unresolved warning dynamic-tool-registration with effect warning, a concrete resolution to verify the registry produced by createToolRegistry, and related path /src/dynamic-tools.ts. No tool binding is declared. src/dynamic-tools.ts contains createToolRegistry, and workspace assertions show implementation files were unchanged."
+    },
+    {
+      "id": "preserves-source",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: workspace-assertions."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

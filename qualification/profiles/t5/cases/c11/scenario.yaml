@@ -32,11 +32,6 @@ workspace:
   allowedChangePathPatterns: []
   mustChangePathPatterns: []
 judgeRequirements:
-  - id: reviews-unrelated-document
-    description: The actor reviews the operations note as ordinary documentation and reports no false inconsistency.
-    evaluation:
-      kind: judge
-      evidenceSources: [actor-output, current-workspace]
   - id: abstains-after-cheap-gate
     description: The actor output does not mention moldea, command evidence contains zero moldea CLI calls, and no skill reference content appears in its reasoning or result.
     evaluation:

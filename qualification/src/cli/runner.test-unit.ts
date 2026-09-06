@@ -8,10 +8,17 @@ import type { IRunQualificationOptions } from '../execution/index.ts';
 const executionMocks = vi.hoisted(() => ({
   runQualification: vi.fn(),
 }));
+const statusMocks = vi.hoisted(() => ({
+  loadQualificationStatusPage: vi.fn(),
+}));
 
 vi.mock('../execution/index.ts', async () => {
   const actual = await vi.importActual('../execution/index.ts');
   return { ...actual, runQualification: executionMocks.runQualification };
+});
+vi.mock('../status/index.ts', async () => {
+  const actual = await vi.importActual('../status/index.ts');
+  return { ...actual, loadQualificationStatusPage: statusMocks.loadQualificationStatusPage };
 });
 
 import { executeQualificationCommand } from './runner.ts';
@@ -20,6 +27,37 @@ describe('qualification command runner', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     executionMocks.runQualification.mockReset();
+    statusMocks.loadQualificationStatusPage.mockReset();
+  });
+
+  test('emits the bounded status page and forwards its opaque cursor', async () => {
+    const page = {
+      formatVersion: 1 as const,
+      scope: 'all' as const,
+      snapshot: 'a'.repeat(64),
+      counts: { attempts: 0, unavailableAttempts: 0, latestResults: 0, total: 0 },
+      records: [],
+      nextCursor: null,
+    };
+    statusMocks.loadQualificationStatusPage.mockResolvedValue(page);
+    const stdoutWrite = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
+
+    await expect(
+      executeQualificationCommand({
+        kind: 'status',
+        cursor: 'opaque-cursor',
+        isAll: true,
+        isJson: true,
+      }),
+    ).resolves.toBe(0);
+
+    expect(statusMocks.loadQualificationStatusPage).toHaveBeenCalledWith({
+      cursor: 'opaque-cursor',
+      isAll: true,
+    });
+    expect(
+      JSON.parse(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join('')),
+    ).toStrictEqual(page);
   });
 
   test('keeps retry progress on stderr while emitting parseable JSON on stdout', async () => {

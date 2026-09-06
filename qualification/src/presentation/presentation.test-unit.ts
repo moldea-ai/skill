@@ -6,35 +6,42 @@ import type { IQualificationAttemptResult } from '../contracts/index.ts';
 import { formatQualificationResult, formatQualificationStatus } from './presentation.ts';
 
 describe('qualification status presentation', () => {
-  test('reports preserved unavailable checkpoints separately from resumable attempts', () => {
+  test('reports one bounded page without checkpoint bodies', () => {
     expect(
       formatQualificationStatus({
-        attempts: [],
-        unavailableAttempts: [
+        formatVersion: 1,
+        scope: 'actionable',
+        snapshot: 'a'.repeat(64),
+        counts: { attempts: 0, unavailableAttempts: 2, latestResults: 0, total: 2 },
+        records: [
           {
+            kind: 'unavailable-attempt',
             attemptId: 'unsupported-attempt',
-            kind: 'unsupported-protocol',
-            message: 'Unsupported checkpoint.',
+            reason: 'invalid-status-summary',
             protocolVersion: 1,
           },
           {
+            kind: 'unavailable-attempt',
             attemptId: 'malformed-attempt',
-            kind: 'unreadable-checkpoint',
-            message: 'Preserved malformed checkpoint.',
+            reason: 'missing-status-summary',
             protocolVersion: null,
           },
         ],
-        latestResults: [],
+        nextCursor: 'next-page',
       }),
     ).toBe(
       [
+        'Status scope: actionable',
+        `Snapshot: ${'a'.repeat(64)}`,
+        'Page records: 2 of 2',
         'Local attempts:',
         '  none',
         'Unavailable local attempts:',
-        '  unsupported-attempt  protocol 1  unsupported-protocol',
-        '  malformed-attempt  protocol unknown  unreadable-checkpoint',
+        '  unsupported-attempt  protocol 1  invalid-status-summary',
+        '  malformed-attempt  protocol unknown  missing-status-summary',
         'Committed latest results:',
         '  none',
+        'Next cursor: next-page',
       ].join('\n'),
     );
   });

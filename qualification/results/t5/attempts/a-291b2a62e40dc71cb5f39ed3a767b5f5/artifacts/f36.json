@@ -1,0 +1,7 @@
+{
+  "outcome": "completed",
+  "summary": "moldea maintains Git-owned project context and agent systems without controlling unrelated engineering work. An adopted project keeps its canonical state in the Git-tracked `/moldea/` directory.",
+  "changedFiles": [],
+  "observations": [],
+  "unresolved": []
+}

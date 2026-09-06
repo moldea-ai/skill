@@ -1,0 +1,19 @@
+{
+  "verdict": "fail",
+  "summary": "The actor correctly avoided moldea-specific work, made no changes, and issued zero moldea CLI calls. However, its sole correctness finding is not established by the repository: `status` represents an HTTP status code, while 600 and Infinity are outside that semantic domain, and neither the source nor README requires validation of arbitrary numbers.",
+  "requirements": [
+    {
+      "id": "reviews-ordinary-source",
+      "verdict": "fail",
+      "evidence": "The actor reviewed `src/retry-policy.ts` as ordinary source, but reported a medium-severity defect based only on out-of-domain values such as 600 and Infinity. The workspace defines a retry-status predicate and contains no contract requiring arbitrary-number validation, so this is a false defect rather than a demonstrated correctness issue."
+    },
+    {
+      "id": "excludes-moldea",
+      "verdict": "pass",
+      "evidence": "The actor output does not mention moldea, and runner-owned command-policy evidence reports `moldeaCommandCount: 0` and `moldeaOutputByteCount: 0`."
+    }
+  ],
+  "failures": [
+    "Do not classify behavior for invalid, out-of-domain numeric values as a correctness defect without repository evidence that the predicate must validate arbitrary numbers; report no established findings or clearly label this as an unconfirmed robustness consideration."
+  ]
+}

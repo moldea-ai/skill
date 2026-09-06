@@ -41,6 +41,7 @@ export type IQualificationCommand =
     }
   | {
       kind: 'status';
+      cursor?: string;
       isAll: boolean;
       isJson: boolean;
     }

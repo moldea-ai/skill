@@ -1,0 +1,59 @@
+{
+  "trialId": "confirmation-1",
+  "kind": "confirmation",
+  "confirmationIndex": 1,
+  "passed": false,
+  "durationMs": 298852,
+  "deterministicBeforePath": "cases/create-grounded-agent/trials/confirmation-1/deterministic-before.json",
+  "deterministicAfterPath": "cases/create-grounded-agent/trials/confirmation-1/deterministic-after.json",
+  "actorOutputPath": "cases/create-grounded-agent/trials/confirmation-1/actor-output.json",
+  "judgeStatus": "skipped",
+  "judgeOutputPath": null,
+  "judgeSkippedPath": "cases/create-grounded-agent/trials/confirmation-1/judge-skipped.json",
+  "workspaceAssertionsPath": "cases/create-grounded-agent/trials/confirmation-1/workspace-assertions.json",
+  "patchPath": "cases/create-grounded-agent/trials/confirmation-1/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 619789,
+    "cachedInputTokens": 582656,
+    "outputTokens": 11879
+  },
+  "judgeUsage": null,
+  "actorEvidenceCreatedAt": "2026-09-06T04:14:50.084Z",
+  "judgeEvidenceCreatedAt": null,
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "grounds-behavior",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "binds-implementation",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "evaluator": "judge",
+      "verdict": "not-evaluated",
+      "evidence": "The skipped judge stage did not evaluate this semantic requirement."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "fail",
+      "evidence": "Runner checks failed: deterministic-after."
+    }
+  ],
+  "failures": [
+    "Repository FS inspection was invalid; expected valid.",
+    "Installed CLI validate reported invalid.",
+    "Installed CLI inspect reported invalid.",
+    "Changes escaped the declared allowlist: moldea/agents/order-triage/runtime.md.",
+    "Required mutation pattern was not observed: moldea/runtimes/**/*.md.",
+    "Requirement validates-project failed: Runner checks failed: deterministic-after."
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "caseId": "evaluate-aligned-project",
+  "title": "Evaluate an aligned project",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 207431,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 207431,
+      "deterministicBeforePath": "cases/evaluate-aligned-project/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/evaluate-aligned-project/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/evaluate-aligned-project/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/evaluate-aligned-project/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/evaluate-aligned-project/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/evaluate-aligned-project/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 411908,
+        "cachedInputTokens": 380800,
+        "outputTokens": 4333
+      },
+      "judgeUsage": {
+        "inputTokens": 155464,
+        "cachedInputTokens": 134784,
+        "outputTokens": 1813
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T04:19:53.641Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T04:21:02.866Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-alignment",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current workspace evidence shows moldea/moldea.yaml registers agent `support`, selects runtime `custom`, points guidance to `/moldea/runtimes/custom.md`, and binds `runtimeAgent` to symbol `supportAgent` at `/src/support-agent.ts`. The guidance identifies that exported record as the runtime-owned definition and requires preserving its identifier and channel. The source exports `supportAgent` with id `support` and channel `email`, consistent with the support description and instruction. A fresh repository-local moldea 7.0.1 validation returned schemaVersion 4, status `valid`, and zero diagnostics. Runner-owned evidence also reports successful typechecking, an empty final diff, `repositoryUnchanged: true`, and identical before/after hashes for all asserted files."
+        },
+        {
+          "id": "avoids-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: workspace-assertions."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

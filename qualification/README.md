@@ -109,6 +109,7 @@ Inspect targets and current state:
 npm run qualification -- list
 npm run qualification -- status
 npm run qualification -- status --all
+npm run qualification -- status --all --cursor <opaque-cursor>
 ```
 
 Run Custom first:
@@ -138,7 +139,9 @@ Verify committed evidence:
 npm run qualification -- verify
 ```
 
-Use `--json` for machine-readable output. Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in attempt storage for explicit inspection. Paid `run`, `diagnose`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first uncached model call. Cache hits and the model-free dry run require no paid confirmation.
+Use `--json` for machine-readable output. `status` returns only content-free attempt and latest-result metadata. Its default scope contains unrecorded incomplete attempts, unavailable checkpoint summaries, and committed latest pointers; `--all` selects complete local history. Each page contains at most 64 records and 65,536 UTF-8 bytes. Continue with the returned opaque cursor and the same scope options. A cursor is bound to the exact summary snapshot and is rejected after the selected status state changes. Complete checkpoints, candidates, package manifests, stages, prompts, workspace paths, commands, model output, and repository content are never included.
+
+Run-like commands return a compact summary with terminal case states, counts, and the checkpoint directory; complete provenance, trials, prompts, and artifacts remain in attempt storage for explicit inspection. Paid `run`, `diagnose`, `resume`, and `retry` operations require `--confirm-paid-execution` in non-interactive mode. The flag is checked immediately before the first uncached model call. Cache hits and the model-free dry run require no paid confirmation.
 
 Immediately before paid execution, the CLI reports planned stages, the maximum including one bounded operational retry per stage, the 2,097,152-token stage ceiling, and its aggregate maximum. The ceiling contains a complete tool-using Codex stage and is not a consumption target. It retains more than 25 percent headroom above the observed 1,264,666-token qualification stage that invalidated the earlier ceiling. Token totals count input plus output while reporting cached input separately without adding it twice.
 
@@ -153,6 +156,8 @@ The dry run constructs the exact candidate, prepares every Custom project, appli
 ## Checkpoints and cache integrity
 
 Every stage writes an atomic checkpoint. Resume continues the exact compatible stage. Retry creates a new linked attempt and never rewrites prior evidence.
+
+Every checkpoint write also replaces an 8,192-byte-bounded local status sidecar. Status and the guided resume menu read only these sidecars plus checkpoint file metadata, never checkpoint bodies. A missing, stale, malformed, unreadable, or oversized sidecar is reported as unavailable metadata and is not interpreted through a legacy checkpoint reader.
 
 Cache keys bind the role, protocol, environment, candidate, runner, skill, target, case, trial, project fingerprint, prompt, and output schema. Cached actor evidence includes its exact post-actor workspace. Confirmation trials never use cross-attempt cache entries.
 

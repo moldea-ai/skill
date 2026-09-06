@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Updated canonical state while preserving all source integrations and static boundaries. Added shared Cloudflare runtime guidance and recorded the runtime-spread support tool set as the sole unresolved static-inspection fact. Moldea validation, TypeScript typechecking, and diff checks passed.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/runtimes/cloudflare-agents.md"
+  ],
+  "observations": [
+    "Preserved support runtime-agent and instruction-loader bindings without registering tools from its open runtime-spread map.",
+    "Preserved only the step-support runtime-agent binding; no instruction loader was inferred through prepareStep.",
+    "Preserved all delegating-support bindings and ordinary function-tool relationships without adding handoff or routing metadata.",
+    "IndirectSupportAgent, UnsupportedOutputAgent, and RuntimeInitializedAgent remain unregistered.",
+    "The runtime guide assigns Cloudflare Durable Object bindings, SQLite migration, provider configuration, and Worker release duties to the deployment owner.",
+    "No source files were changed."
+  ],
+  "unresolved": [
+    "The complete SupportAgent request tool set remains unresolved until the runtime spread is replaced by a closed map or supported evidence establishes every registration."
+  ]
+}

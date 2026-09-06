@@ -1,0 +1,54 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index 651685f..6b4fd3f 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -3,6 +3,7 @@ agents:
+   support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/support-agent.ts
+@@ -10,11 +11,21 @@ agents:
+       instructionLoader:
+         path: /src/instructions.ts
+         symbol: loadSupportInstruction
++    unresolved:
++      request-tools:
++        category: static-inspection
++        effect: informational
++        description: Static inspection cannot prove the complete SupportAgent request tool set because its direct tools map includes a runtime-created spread.
++        resolution: Replace the runtime-created spread with a closed tools map, or provide supported evidence that establishes every request tool registration.
++        related:
++          - path: /src/support-agent.ts
++            symbol: SupportAgent
+     affectedBy:
+       - /src/**
+   step-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/step-support-agent.ts
+@@ -24,6 +35,7 @@ agents:
+   delegating-support:
+     runtime:
+       id: cloudflare-agents
++      guidance: /moldea/runtimes/cloudflare-agents.md
+     bindings:
+       runtimeAgent:
+         path: /src/delegating-agent.ts
+
+diff --git a/moldea/runtimes/cloudflare-agents.md b/moldea/runtimes/cloudflare-agents.md
+new file mode 100644
+index 0000000..b93ab0b
+--- /dev/null
++++ b/moldea/runtimes/cloudflare-agents.md
+@@ -0,0 +1,5 @@
++# Cloudflare Agents runtime
++
++Deployment configuration must bind each registered agent class (`SupportAgent`, `StepSupportAgent`, and `DelegatingSupportAgent`) to a Cloudflare Durable Object namespace and export those classes from the Worker entrypoint. Add each class to a SQLite Durable Object migration before routing traffic to it.
++
++The deployment owner must configure the provider binding or credentials required by the agents' model selection, deploy the Worker and its migration, and verify namespace bindings, secrets, routes, and rollback behavior. Binding names, migration tags, provider secret names, and release configuration remain deployment-owned because this repository does not establish them.

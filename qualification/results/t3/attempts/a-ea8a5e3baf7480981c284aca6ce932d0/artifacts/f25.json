@@ -1,0 +1,66 @@
+{
+  "caseId": "repair-cloudflare-ai-chat-output-schema",
+  "title": "Repair Cloudflare AIChatAgent output schema",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 213313,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 213313,
+      "deterministicBeforePath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-cloudflare-ai-chat-output-schema/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 253813,
+        "cachedInputTokens": 230656,
+        "outputTokens": 3042
+      },
+      "judgeUsage": {
+        "inputTokens": 207026,
+        "cachedInputTokens": 184192,
+        "outputTokens": 2909
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T13:24:02.606Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T13:25:41.610Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-output-schema-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Actor output identifies the pre-repair CLOUDFLARE_AGENTS_AGENT_OUTPUT_SCHEMA_NOT_WIRED diagnostic and explains that the canonical binding used LegacySupportOutputSchema while src/agent.ts directly passes SupportOutputSchema to Output.object. The current source confirms that direct request."
+        },
+        {
+          "id": "repairs-output-schema-binding",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml currently binds agents.support.bindings.outputSchema to /src/contracts.ts#SupportOutputSchema. Workspace assertions show moldea/moldea.yaml is the sole changed path, while every source-file hash is unchanged. Deterministic post-actor validation reports valid status, zero failures, and a passing typecheck."
+        },
+        {
+          "id": "preserves-binding-closure",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The current manifest retains runtime cloudflare-agents; runtimeAgent SupportAgent; instructionLoader loadSupportInstruction; agent outputSchema SupportOutputSchema; and lookup-order bindings lookupOrder, lookupOrderTool, LookupOrderInputSchema, and LookupOrderOutputSchema. The corresponding declarations and wiring exist in src/agent.ts, src/contracts.ts, src/implementations.ts, and src/tools.ts. No agent inputSchema binding was added, and workspace assertions confirm all these source files remained unchanged."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

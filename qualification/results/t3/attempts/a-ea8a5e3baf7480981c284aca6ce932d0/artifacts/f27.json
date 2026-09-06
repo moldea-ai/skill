@@ -1,0 +1,48 @@
+{
+  "role": "actor",
+  "trialId": "initial",
+  "createdAt": "2026-09-06T13:24:02.606Z",
+  "durationMs": 100922,
+  "usage": {
+    "inputTokens": 253813,
+    "cachedInputTokens": 230656,
+    "outputTokens": 3042
+  },
+  "cacheKey": "b150f90fa7096539d953a18ae46bb45bba8a1e5e57fd7dbfd84fe4a3e35a53c9",
+  "sourceAttemptId": "20260906T132149745Z-cloudflare-agents-typescript-ai-chat-agent-0-10-ai-sdk-7-a46b68ca",
+  "cacheSourceAttemptId": null,
+  "commandPolicy": {
+    "completedCommandCount": 27,
+    "credentialExposure": {
+      "status": "not-observed",
+      "observedCount": 0,
+      "reasons": []
+    },
+    "maximumCommandOutputByteCount": 15153,
+    "modelVisibleToolOutputByteCount": 26557,
+    "moldeaCommandCount": 2,
+    "moldeaOutputByteCount": 1097,
+    "networkAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3,
+      "reasons": [
+        {
+          "code": "unclassified-command",
+          "count": 3
+        }
+      ]
+    },
+    "sensitiveAccess": {
+      "status": "indeterminate",
+      "observedCount": 0,
+      "indeterminateCount": 3,
+      "reasons": [
+        {
+          "code": "unclassified-command",
+          "count": 3
+        }
+      ]
+    }
+  }
+}

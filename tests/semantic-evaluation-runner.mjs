@@ -1107,8 +1107,11 @@ runner-owned execution evidence cannot prove what the actor reported. When a cri
 clauses to named sources, each clause must be established by that source.
 Runner-owned command evidence records the completed-command count, while moldea resource evidence
 records recognized moldea operations and exact output byte counts without retaining raw command
-text or canonical document bodies. Before this prompt was built, the runner independently evaluated
-the declared moldea activation order and resource budget; its deterministic result is
+text or canonical document bodies. A completed execution item with commandKind \`moldea\` is emitted
+only for the fixed portable launcher targeting the evaluated repository at \`/mnt\`; together with
+its projected result fact, it establishes repository-bound CLI execution and that result without
+retaining the command. Before this prompt was built, the runner independently evaluated the
+declared moldea activation order and resource budget; its deterministic result is
 ${resourceBudgetStatus}. Do not compare the total completed-command count or output from non-moldea
 commands with the moldea budget, reinterpret that result, or infer extra work from the actor's
 prose. Judge only the remaining semantic clauses and projected command-result facts.

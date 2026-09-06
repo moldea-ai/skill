@@ -69,12 +69,16 @@ test('keeps runner-enforced moldea budgets outside semantic judgment', () => {
 
   assert.match(
     prompt,
-    /runner independently evaluated\s+the declared moldea activation order and resource budget/u,
+    /runner independently evaluated\s+the\s+declared moldea activation order and resource budget/u,
   );
   assert.match(prompt, /deterministic result is\s+passed/u);
   assert.match(prompt, /Do not compare the total\s+completed-command count/u);
   assert.match(prompt, /Judge only the remaining semantic\s+clauses/u);
   assert.match(prompt, /spell the human-facing product name as lowercase `moldea`/u);
+  assert.match(
+    prompt,
+    /commandKind `moldea`[\s\S]+fixed portable launcher[\s\S]+repository-bound CLI execution/u,
+  );
 });
 
 test('passes case-budget misses to semantic judgment as a deterministic failure', () => {

@@ -346,6 +346,11 @@ describe('portable skill contract', () => {
       /Before any dependency, canonical-state, or managed README write during initialization/u,
     );
     assert.match(skill, /Insufficient evidence and partial evidence.*pre-write stop conditions/u);
+    assert.match(
+      skill,
+      /not adopted by `moldea` because the complete adoption contract is absent/u,
+    );
+    assert.match(skill, /Do not substitute an indirect status such as paused or incomplete/u);
     assert.match(skill, /ask what the project does and who or what it serves/u);
     assert.match(skill, /Structural validation proves format, not the truth or sufficiency/u);
     assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
@@ -383,6 +388,11 @@ describe('portable skill contract', () => {
       /Insufficient and partial foundations stop before every dependency, `\/moldea\/\*\*`, and managed README write/u,
     );
     assert.match(maintenance, /what does the project do, and who or what does it serve\?/u);
+    assert.match(
+      maintenance,
+      /not adopted by `moldea` because the complete adoption contract is absent/u,
+    );
+    assert.match(maintenance, /paused or incomplete is not the adoption result/u);
     assert.match(maintenance, /Preserve every existing artifact/u);
     assert.match(maintenance, /Do not store developer-answerable ambiguity/u);
     assert.match(maintenance, /Validation proves that files satisfy the repository format/u);

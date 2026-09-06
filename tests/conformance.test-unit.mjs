@@ -360,7 +360,9 @@ describe('portable skill contract', () => {
     assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
     assert.match(skill, /run `validate` at most once more/u);
     assert.match(skill, /name the project-owned evidence that established the foundation/u);
-    assert.match(skill, /offer only directly useful next actions/u);
+    assert.match(skill, /Always end a successful initialization response/u);
+    assert.match(skill, /one short, evidence-supported `Next:` action; do not omit it/u);
+    assert.match(skill, /continue normal repository work/u);
     assert.match(
       skill,
       /Do not steer the developer toward agent creation without a separate goal/u,
@@ -411,8 +413,9 @@ describe('portable skill contract', () => {
     assert.match(maintenance, /Do not store developer-answerable ambiguity/u);
     assert.match(maintenance, /Validation proves that files satisfy the repository format/u);
     assert.match(maintenance, /map the project-owned evidence to the foundation it established/u);
-    assert.match(maintenance, /Offer only directly useful next actions/u);
-    assert.match(maintenance, /do not suggest agent creation without a separate goal/u);
+    assert.match(maintenance, /End with one short, evidence-supported `Next:` action/u);
+    assert.match(maintenance, /continue normal repository work/u);
+    assert.match(maintenance, /Do not suggest agent creation without a separate goal/u);
     assert.match(maintenance, /The file ends with one LF/u);
     assert.match(maintenance, /Do not add a project name, schema field, metadata/u);
     assert.match(maintenance, /stop without `inspect` or another moldea command/u);

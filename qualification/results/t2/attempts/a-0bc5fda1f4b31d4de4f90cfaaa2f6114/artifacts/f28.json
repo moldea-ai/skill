@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The manifest now declares the fully qualified query-mounted tool name, while runner-owned validation and typechecking pass. Workspace assertions show only moldea/moldea.yaml changed; all runtime and binding source files remained unchanged.",
+  "requirements": [
+    {
+      "id": "explains-name-mismatch",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the prior tool-name mismatch and explains that the declaration must match `mcp__support__lookup_order`. Repository source corroborates this: `src/agent.ts` mounts `supportServer` as `support`, while `src/tools.ts` registers `lookup_order`, yielding the qualified query tool name `mcp__support__lookup_order`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: mcp__support__lookup_order`. This exactly matches `tools: ['mcp__support__lookup_order']` in `src/agent.ts` and the `support` mount plus `lookup_order` SDK declaration. Workspace assertions show only `moldea/moldea.yaml` changed, and deterministic post-actor validation reports `valid`, zero failures, and successful typechecking."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "verdict": "pass",
+      "evidence": "The manifest still binds runtime agent `supportAgent` and instruction loader `loadSupportInstruction` in `src/agent.ts`, registration `lookupOrderTool` in `src/tools.ts`, implementation `lookupOrder` in `src/implementations.ts`, and input schema `LookupOrderInputSchema` in `src/contracts.ts`. Source confirms those imports and calls remain connected through the direct `query` wrapper and `supportServer` MCP mount. Before/after hashes show every relevant source and instruction file unchanged, while deterministic validation and typechecking passed."
+    }
+  ],
+  "failures": []
+}

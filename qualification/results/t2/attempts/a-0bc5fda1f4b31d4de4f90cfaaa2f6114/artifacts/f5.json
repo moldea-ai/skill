@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "No changes were needed. The existing `support` and `dynamic-support` records accurately preserve the Claude Agent SDK static-analysis boundary. Final Git status and diff were clean; TypeScript validation passed.",
+  "changedFiles": [],
+  "observations": [
+    "`supportAgent` is a directly exported `query(...)` wrapper with inline options, and its `systemPrompt` directly awaits the bound `loadSupportInstruction` loader.",
+    "The support MCP key `boundary/tools` requires runtime-name normalization and violates the adapter's supported `[A-Za-z0-9_-]+` key pattern. No unsupported tool or schema relationship is declared.",
+    "moldea validation completed with the expected sole diagnostic `CLAUDE_AGENT_SDK_MCP_SERVER_KEY_UNSUPPORTED` at `src/agents.ts:81`; consequently its structural result is `valid: false`.",
+    "`dynamicSupportAgent` passes factory-built options from `buildDynamicOptions()`. The manifest correctly records this as unresolved instead of inferring prompt, delegation, routing, or tool relationships.",
+    "Main-thread selection, the prompt array, aliases, preset tools, dynamic subagent construction and restrictions, observer fields, critical reminders, SDK MCP instructions, external MCP configuration, settings, skills, hooks, and the filesystem agent remain only source/configuration evidence or affected-by inputs.",
+    "The dynamic agent deliberately has no instruction-loader binding despite the loader's existence: factory-produced options and the prompt array prevent the adapter from proving that relationship.",
+    "Repository-local `./node_modules/.bin/tsc --noEmit` passed with exit code 0.",
+    "Final `/usr/bin/git -C <workspace> status --porcelain=v1 --untracked-files=all` and `/usr/bin/git -C <workspace> diff --no-ext-diff --` produced no output."
+  ],
+  "unresolved": [
+    "The adapter cannot derive a canonical MCP runtime-name segment from `boundary/tools`; related support tool and schema relationships remain intentionally unproven.",
+    "Factory-built dynamic options and runtime-managed SDK/filesystem features remain explicit evidence limitations rather than canonical relationships."
+  ]
+}

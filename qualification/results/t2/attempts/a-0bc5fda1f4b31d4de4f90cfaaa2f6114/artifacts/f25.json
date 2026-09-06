@@ -1,0 +1,451 @@
+{
+  "summary": {
+    "passed": true,
+    "inspectionStatus": "invalid",
+    "repositoryFilesystemValid": true,
+    "memoryRepositoryEquivalent": true,
+    "coreValid": true,
+    "cliCompositionValid": true,
+    "cliIdentityValid": true,
+    "cliPackageInventoryValid": true,
+    "cliAdapterInventoryValid": true,
+    "cliEnvelopeValid": true,
+    "cliValidateStatus": "invalid",
+    "cliInspectStatus": "invalid",
+    "typecheckPassed": true,
+    "repositoryUnchanged": true,
+    "failures": [],
+    "durationMs": 3879
+  },
+  "details": {
+    "direct": {
+      "equivalent": true,
+      "filesystem": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "CLAUDE_AGENT_SDK_TOOL_NAME_MISMATCH"
+        ],
+        "evidenceKinds": [
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-pattern",
+          "schema"
+        ],
+        "evidenceCount": 5,
+        "agentCount": 1
+      },
+      "memory": {
+        "valid": false,
+        "formatVersion": 1,
+        "diagnosticCodes": [
+          "CLAUDE_AGENT_SDK_TOOL_NAME_MISMATCH"
+        ],
+        "evidenceKinds": [
+          "instruction-loader",
+          "language",
+          "runtime-package",
+          "runtime-pattern",
+          "schema"
+        ],
+        "evidenceCount": 5,
+        "agentCount": 1
+      }
+    },
+    "cliComposition": {
+      "schemaVersion": 4,
+      "cliVersion": "7.0.1",
+      "command": "composition",
+      "status": "valid",
+      "result": {
+        "adapters": [
+          {
+            "id": "anthropic",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "claude-agent-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "cloudflare-agents",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "custom",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "eve",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "google-genai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langchain",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "langgraph",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "openai-agents-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          },
+          {
+            "id": "vercel-ai-sdk",
+            "repositoryFormatVersions": [
+              1
+            ]
+          }
+        ],
+        "minimumGitVersion": "2.30.0",
+        "packages": [
+          {
+            "name": "@moldea.ai/adapter-anthropic",
+            "version": "3.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-claude-agent-sdk",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-cloudflare-agents",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-eve",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-google-genai",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-langchain",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-langgraph",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai",
+            "version": "3.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-openai-agents-sdk",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/adapter-vercel-ai-sdk",
+            "version": "2.0.1"
+          },
+          {
+            "name": "@moldea.ai/core",
+            "version": "3.0.1"
+          },
+          {
+            "name": "@moldea.ai/repository",
+            "version": "2.0.0"
+          },
+          {
+            "name": "@moldea.ai/repository-fs",
+            "version": "2.0.1"
+          }
+        ],
+        "repositoryFormatVersions": [
+          1
+        ],
+        "supportedNodeRange": ">=22.11.0"
+      },
+      "error": null
+    },
+    "cliValidate": {
+      "schemaVersion": 4,
+      "cliVersion": "7.0.1",
+      "command": "validate",
+      "status": "invalid",
+      "result": {
+        "diagnosticCount": 1,
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "code": "CLAUDE_AGENT_SDK_TOOL_NAME_MISMATCH",
+              "entity": {
+                "adapterId": "claude-agent-sdk",
+                "agentId": "support",
+                "capabilityId": "lookup-order",
+                "capabilityKind": "tool"
+              },
+              "key": "[\"diagnostic\",\"claude-agent-sdk\",\"CLAUDE_AGENT_SDK_TOOL_NAME_MISMATCH\",\"/src/tools.ts\",null,0]",
+              "kind": "diagnostic",
+              "message": "The declared tool name does not match the detected Claude Agent SDK MCP tool name.",
+              "path": "/src/tools.ts",
+              "pointer": null,
+              "range": {
+                "end": {
+                  "column": 17,
+                  "line": 7,
+                  "offset": 239
+                },
+                "start": {
+                  "column": 3,
+                  "line": 7,
+                  "offset": 225
+                }
+              },
+              "source": "claude-agent-sdk"
+            }
+          ]
+        },
+        "snapshotDigest": "sha256:bc7ea01c582c6ee9b70ac8107cc2d42b9edd065a73621489e147a713727397ca",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false
+      },
+      "error": null
+    },
+    "cliInspect": {
+      "schemaVersion": 4,
+      "cliVersion": "7.0.1",
+      "command": "inspect",
+      "status": "invalid",
+      "result": {
+        "counts": {
+          "agents": 1,
+          "context": 0,
+          "decisions": 0,
+          "diagnostics": 1,
+          "evidence": 5,
+          "metadata": 4,
+          "mirrors": 0,
+          "runtimes": 0,
+          "unresolved": 0
+        },
+        "formatVersion": 1,
+        "page": {
+          "cursor": null,
+          "records": [
+            {
+              "agentId": "support",
+              "byteLength": 53,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:0ff1bd9b3fd7e7ba0fa6485233478324b236fb61abbe20a7df730bf189c72a73",
+              "key": "[\"000000\",\"metadata\",\"/moldea/agents/support/description.md\",\"agent-description\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-description",
+              "path": "/moldea/agents/support/description.md",
+              "scalarLength": 53
+            },
+            {
+              "agentId": "support",
+              "byteLength": 116,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:68bb48816e0a8353dc8ddd106f266f434db625e518dbbbf3ae67b447fafc1a5e",
+              "key": "[\"000001\",\"metadata\",\"/moldea/agents/support/instruction.md\",\"agent-instruction\",\"support\"]",
+              "kind": "metadata",
+              "metadataKind": "agent-instruction",
+              "path": "/moldea/agents/support/instruction.md",
+              "scalarLength": 116
+            },
+            {
+              "agentId": null,
+              "byteLength": 686,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:994ab8e8af05a386763cea3c849afb2cb0bd347acb60cceaaf16f068bd407c74",
+              "key": "[\"000002\",\"metadata\",\"/moldea/moldea.yaml\",\"manifest\",null]",
+              "kind": "metadata",
+              "metadataKind": "manifest",
+              "path": "/moldea/moldea.yaml",
+              "scalarLength": 686
+            },
+            {
+              "agentId": null,
+              "byteLength": 106,
+              "canonicalDigest": null,
+              "decisionId": null,
+              "digest": "sha256:176e77ee762345f7dddcf44b8b048ebdc270a421bbf5ce76c980500536ca390b",
+              "key": "[\"000003\",\"metadata\",\"/moldea/project.md\",\"project\",null]",
+              "kind": "metadata",
+              "metadataKind": "project",
+              "path": "/moldea/project.md",
+              "scalarLength": 106
+            },
+            {
+              "code": "CLAUDE_AGENT_SDK_TOOL_NAME_MISMATCH",
+              "entity": {
+                "adapterId": "claude-agent-sdk",
+                "agentId": "support",
+                "capabilityId": "lookup-order",
+                "capabilityKind": "tool"
+              },
+              "key": "[\"000004\",\"diagnostic\",\"claude-agent-sdk\",\"CLAUDE_AGENT_SDK_TOOL_NAME_MISMATCH\"]",
+              "kind": "diagnostic",
+              "message": "The declared tool name does not match the detected Claude Agent SDK MCP tool name.",
+              "path": "/src/tools.ts",
+              "pointer": null,
+              "range": {
+                "end": {
+                  "column": 17,
+                  "line": 7,
+                  "offset": 239
+                },
+                "start": {
+                  "column": 3,
+                  "line": 7,
+                  "offset": 225
+                }
+              },
+              "source": "claude-agent-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "instruction-loader",
+              "key": "[\"000005\",\"evidence\",\"claude-agent-sdk\",\"instruction-loader\",\"support\",null,null,\"loadSupportInstruction\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": null
+                },
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "loadSupportInstruction"
+                }
+              ],
+              "runtimeName": "loadSupportInstruction",
+              "source": "claude-agent-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "language",
+              "key": "[\"000006\",\"evidence\",\"claude-agent-sdk\",\"language\",\"support\",null,null,null]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": null,
+              "source": "claude-agent-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-package",
+              "key": "[\"000007\",\"evidence\",\"claude-agent-sdk\",\"runtime-package\",\"support\",null,null,\"@anthropic-ai/claude-agent-sdk\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/package.json",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "@anthropic-ai/claude-agent-sdk",
+              "source": "claude-agent-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": null,
+              "capabilityKind": null,
+              "evidenceKind": "runtime-pattern",
+              "key": "[\"000008\",\"evidence\",\"claude-agent-sdk\",\"runtime-pattern\",\"support\",null,null,\"supportAgent\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/agent.ts",
+                  "symbol": "supportAgent"
+                }
+              ],
+              "runtimeName": "supportAgent",
+              "source": "claude-agent-sdk"
+            },
+            {
+              "agentId": "support",
+              "capabilityId": "lookup-order",
+              "capabilityKind": "tool",
+              "evidenceKind": "schema",
+              "key": "[\"000009\",\"evidence\",\"claude-agent-sdk\",\"schema\",\"support\",\"tool\",\"lookup-order\",\"LookupOrderInputSchema\"]",
+              "kind": "evidence",
+              "references": [
+                {
+                  "path": "/src/contracts.ts",
+                  "symbol": "LookupOrderInputSchema"
+                },
+                {
+                  "path": "/src/tools.ts",
+                  "symbol": null
+                }
+              ],
+              "runtimeName": "LookupOrderInputSchema",
+              "source": "claude-agent-sdk"
+            }
+          ]
+        },
+        "project": {
+          "manifest": {
+            "digest": "sha256:994ab8e8af05a386763cea3c849afb2cb0bd347acb60cceaaf16f068bd407c74",
+            "path": "/moldea/moldea.yaml"
+          },
+          "project": {
+            "digest": "sha256:176e77ee762345f7dddcf44b8b048ebdc270a421bbf5ce76c980500536ca390b",
+            "path": "/moldea/project.md"
+          }
+        },
+        "snapshotDigest": "sha256:5a32e648177f9f11faefb1f5df5015388d76b77d945db82bbd5204e2ad8e59d3",
+        "source": {
+          "kind": "git-working-tree"
+        },
+        "valid": false,
+        "view": "all"
+      },
+      "error": null
+    },
+    "typecheck": {
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  }
+}

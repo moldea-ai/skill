@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "Repository state, actor report, deterministic post-actor results, workspace hashes, and clean Git status/diffs agree. The manifest records only statically provable support bindings and preserves dynamic/runtime-only SDK features as focused unresolved boundaries. TypeScript validation passes; the expected unsupported MCP-key condition explains the intentionally invalid moldea inspection status.",
+  "requirements": [
+    {
+      "id": "explains-direct-evidence",
+      "verdict": "pass",
+      "evidence": "src/agents.ts:76-85 directly exports supportAgent as a query(...) wrapper with inline options, and systemPrompt awaits loadSupportInstruction, whose loader reads the canonical support instruction at lines 13-14. moldea/moldea.yaml:3-14 binds exactly supportAgent and loadSupportInstruction. The key 'boundary/tools' at src/agents.ts:81 requires unsupported runtime-name normalization; no tool or schema relationship appears in the manifest. This agrees with the actor report and deterministic invalid inspection/validation status."
+    },
+    {
+      "id": "preserves-dynamic-query-boundary",
+      "verdict": "pass",
+      "evidence": "src/agents.ts:64-74 constructs options through buildDynamicOptions(), including main-thread agent selection, dynamic definitions, restrictions, a prompt array, aliases, and preset tools; dynamicSupportAgent consumes those factory-built options at lines 87-88. moldea/moldea.yaml:15-42 binds only dynamicSupportAgent and explicitly marks query configuration and routing/tools unresolved, declaring no instruction-loader, delegation, routing, prompt, or tool relationship."
+    },
+    {
+      "id": "preserves-sdk-feature-boundary",
+      "verdict": "pass",
+      "evidence": "moldea/moldea.yaml:43-51 explicitly keeps observer fields, critical reminders, server instructions, external MCP configuration, settings, skills, hooks, and filesystem agents outside canonical inference while retaining focused resolution guidance. The source/configuration evidence exists in src/agents.ts, .claude/settings.json, CLAUDE.md, and .claude/agents/filesystem-support.md, but no corresponding canonical relationships are declared. Workspace assertions show identical before/after hashes, Git status plus staged and unstaged diffs are empty, and tsc --noEmit exits 0."
+    }
+  ],
+  "failures": []
+}

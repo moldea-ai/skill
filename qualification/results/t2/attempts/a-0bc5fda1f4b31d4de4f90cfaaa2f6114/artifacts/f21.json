@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Repaired the support agent declaration to match the mounted Claude Agent SDK tool name `mcp__support__lookup_order`. Preserved the query wrapper, MCP mount, SDK declaration, implementation, and input schema. Validation passes with zero diagnostics, and TypeScript compilation succeeds.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Before the repair, validation emitted `CLAUDE_AGENT_SDK_TOOL_NAME_MISMATCH`.",
+    "After the repair, moldea validation reported `valid: true` and `diagnosticCount: 0`.",
+    "`./node_modules/.bin/tsc --noEmit` completed successfully.",
+    "Final Git status contains only the intended manifest modification."
+  ],
+  "unresolved": []
+}

@@ -1,0 +1,56 @@
+{
+  "trialId": "initial",
+  "kind": "initial",
+  "confirmationIndex": null,
+  "passed": true,
+  "durationMs": 196999,
+  "deterministicBeforePath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-before.json",
+  "deterministicAfterPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/deterministic-after.json",
+  "actorOutputPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/actor-output.json",
+  "judgeStatus": "completed",
+  "judgeOutputPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/judge-output.json",
+  "judgeSkippedPath": null,
+  "workspaceAssertionsPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace-assertions.json",
+  "patchPath": "cases/repair-claude-agent-sdk-tool-registration/trials/initial/workspace.patch",
+  "actorUsage": {
+    "inputTokens": 265226,
+    "cachedInputTokens": 225536,
+    "outputTokens": 3489
+  },
+  "judgeUsage": {
+    "inputTokens": 149554,
+    "cachedInputTokens": 127616,
+    "outputTokens": 2099
+  },
+  "actorEvidenceCreatedAt": "2026-09-06T08:46:12.100Z",
+  "judgeEvidenceCreatedAt": "2026-09-06T08:47:35.396Z",
+  "actorCacheSourceAttemptId": null,
+  "judgeCacheSourceAttemptId": null,
+  "requirementAssessments": [
+    {
+      "id": "explains-name-mismatch",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The actor report identifies the prior tool-name mismatch and explains that the declaration must match `mcp__support__lookup_order`. Repository source corroborates this: `src/agent.ts` mounts `supportServer` as `support`, while `src/tools.ts` registers `lookup_order`, yielding the qualified query tool name `mcp__support__lookup_order`."
+    },
+    {
+      "id": "repairs-canonical-name",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` now declares `name: mcp__support__lookup_order`. This exactly matches `tools: ['mcp__support__lookup_order']` in `src/agent.ts` and the `support` mount plus `lookup_order` SDK declaration. Workspace assertions show only `moldea/moldea.yaml` changed, and deterministic post-actor validation reports `valid`, zero failures, and successful typechecking."
+    },
+    {
+      "id": "preserves-binding-closure",
+      "evaluator": "judge",
+      "verdict": "pass",
+      "evidence": "The manifest still binds runtime agent `supportAgent` and instruction loader `loadSupportInstruction` in `src/agent.ts`, registration `lookupOrderTool` in `src/tools.ts`, implementation `lookupOrder` in `src/implementations.ts`, and input schema `LookupOrderInputSchema` in `src/contracts.ts`. Source confirms those imports and calls remain connected through the direct `query` wrapper and `supportServer` MCP mount. Before/after hashes show every relevant source and instruction file unchanged, while deterministic validation and typechecking passed."
+    },
+    {
+      "id": "validates-project",
+      "evaluator": "runner",
+      "verdict": "pass",
+      "evidence": "Runner checks passed: deterministic-after."
+    }
+  ],
+  "failures": []
+}

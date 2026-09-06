@@ -25,6 +25,13 @@ export {
 // coverage
 export { createSemanticCoverageDigest, validateSemanticCoverage } from './coverage.mjs';
 
+// public model prose
+export {
+  INCORRECT_MOLDEA_PRODUCT_NAME_CASING_LABEL,
+  enforceMoldeaProductNameCasing,
+  hasValidMoldeaProductNameCasing,
+} from './product-name.mjs';
+
 // scenario evidence
 export { collectScenarioEvidence, hasValidScenarioEvidence } from './scenario-evidence.mjs';
 

@@ -39,6 +39,7 @@ import {
 } from '../tooling/release-identity/index.mjs';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../tooling/resource-calibration/profiles.mjs';
 import {
+  INCORRECT_MOLDEA_PRODUCT_NAME_CASING_LABEL,
   captureRepositoryControlState,
   classifyActorCommandPolicyEvent,
   collectScenarioEvidence,
@@ -49,6 +50,7 @@ import {
   createSemanticCaseDefinitionDigest,
   createSemanticCaseSuiteDigest,
   createSemanticCoverageDigest,
+  enforceMoldeaProductNameCasing,
   getSemanticCriterionLabels,
   hasPassingMoldeaResourceBudget,
   hasValidActorCommandPolicyEvidence,
@@ -88,6 +90,11 @@ const PUBLISHED_CLI_MANIFEST = JSON.parse(
   readFileSync(join(PUBLISHED_CLI_ROOT, 'package.json'), 'utf8'),
 );
 const EXCLUDED_SNAPSHOT_NAMES = new Set(['.agents', '.git']);
+
+const getSemanticForbiddenLabels = (caseDefinition) => [
+  ...getSemanticCriterionLabels(caseDefinition.forbidden),
+  INCORRECT_MOLDEA_PRODUCT_NAME_CASING_LABEL,
+];
 const MAX_WORKSPACE_EVIDENCE_FILE_BYTES = 32_768;
 const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 7;
 const SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1;
@@ -585,9 +592,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
     const expectedLabels = caseDefinition
       ? getSemanticCriterionLabels(caseDefinition.expected)
       : [];
-    const forbiddenLabels = caseDefinition
-      ? getSemanticCriterionLabels(caseDefinition.forbidden)
-      : [];
+    const forbiddenLabels = caseDefinition ? getSemanticForbiddenLabels(caseDefinition) : [];
     const hasValidLabels =
       caseDefinition &&
       Array.isArray(result.observed) &&
@@ -641,9 +646,7 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
     const expectedLabels = caseDefinition
       ? getSemanticCriterionLabels(caseDefinition.expected)
       : [];
-    const forbiddenLabels = caseDefinition
-      ? getSemanticCriterionLabels(caseDefinition.forbidden)
-      : [];
+    const forbiddenLabels = caseDefinition ? getSemanticForbiddenLabels(caseDefinition) : [];
     const hasValidLabels =
       caseDefinition &&
       Array.isArray(confirmation.observed) &&
@@ -1089,6 +1092,9 @@ Assess whether an Agent Skills host handled the scenario correctly.
 Return one JSON object only with this exact shape:
 {"observed": ["expected-label"], "forbidden": ["forbidden-label"], "rationale": "brief evidence-based explanation"}
 
+Always spell the human-facing product name as lowercase \`moldea\`, including at the start of a
+sentence. Preserve different casing only inside an exact technical identifier.
+
 Include an expected label in observed only when the supplied response, runner-owned execution
 evidence, independent repository evidence, or filesystem changes demonstrate it. Include a forbidden
 label in forbidden only when the same supplied evidence demonstrates it. A criterion that requires
@@ -1166,8 +1172,11 @@ const parseJsonObject = (output) => {
 };
 
 /** Validates judge output and derives pass/fail independently. */
-export const assessJudgeOutput = (caseDefinition, output) => {
+export const assessJudgeOutput = (caseDefinition, output, actorResponse) => {
   validateSemanticCaseDefinition(caseDefinition);
+  if (typeof actorResponse !== 'string') {
+    throw new Error('The evaluation judge requires the exact actor response.');
+  }
   const assessment = parseJsonObject(output);
   if (
     !Array.isArray(assessment.observed) ||
@@ -1182,7 +1191,7 @@ export const assessJudgeOutput = (caseDefinition, output) => {
   const observed = [...new Set(assessment.observed)];
   const forbidden = [...new Set(assessment.forbidden)];
   const expectedLabels = getSemanticCriterionLabels(caseDefinition.expected);
-  const forbiddenLabels = getSemanticCriterionLabels(caseDefinition.forbidden);
+  const forbiddenLabels = getSemanticForbiddenLabels(caseDefinition);
   if (
     observed.some((label) => !expectedLabels.includes(label)) ||
     forbidden.some((label) => !forbiddenLabels.includes(label))
@@ -1192,7 +1201,10 @@ export const assessJudgeOutput = (caseDefinition, output) => {
   const isPassed =
     expectedLabels.every((label) => observed.includes(label)) && forbidden.length === 0;
 
-  return { forbidden, isPassed, observed, rationale: assessment.rationale };
+  return enforceMoldeaProductNameCasing(
+    { forbidden, isPassed, observed, rationale: assessment.rationale },
+    actorResponse,
+  );
 };
 
 /** Writes one scenario file and creates its parent directories. */
@@ -1960,7 +1972,11 @@ const evaluateJudgeStage = async (caseDefinition, actorEvidence, judgeCommand, c
       judgeHostOutput,
       actorExecutionEvidenceOptions,
     );
-    const assessment = assessJudgeOutput(caseDefinition, judgeResponse);
+    const assessment = assessJudgeOutput(
+      caseDefinition,
+      judgeResponse,
+      actorEvidence.actorResponse,
+    );
 
     return {
       ...actorEvidence,

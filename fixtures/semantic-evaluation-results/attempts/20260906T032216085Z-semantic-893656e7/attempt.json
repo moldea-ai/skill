@@ -1,0 +1,787 @@
+{
+  "artifactDigest": "87404d543436bc5c0b975ac691bec106c8f65e3f022b39f4ea048e081c0e8d83",
+  "attemptId": "20260906T032216085Z-semantic-893656e7",
+  "caseSuiteDigest": "ac28850634a9ca99e43a2c0a45f11c1bd560865a6f98a24ab7b891f66c5c14ae",
+  "cases": [
+    {
+      "confirmationStatus": "not-required",
+      "id": "affected-by-relevance",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 11
+          },
+          "actorResourceEvidence": {
+            "commandCount": 3,
+            "maximumInvocationByteCount": 1034,
+            "modelVisibleToolOutputByteCount": 1857,
+            "operations": [
+              "scope",
+              "validate",
+              "content"
+            ],
+            "stdoutByteCount": 1857
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:16:30.279Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "bounded-relationship-validation"
+          ],
+          "passed": true,
+          "rationale": "The completed Moldea scope command returned relevant=true for the explicitly named path, followed by canonical content retrieval; the response compared only project-state.js with its canonical owner project.md and retained the host review role. No inspect operation or repository/control changes are evidenced.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "direct-canonical-relevance",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 21
+          },
+          "actorResourceEvidence": {
+            "commandCount": 4,
+            "maximumInvocationByteCount": 1345,
+            "modelVisibleToolOutputByteCount": 2566,
+            "operations": [
+              "content",
+              "validate",
+              "inspect",
+              "content"
+            ],
+            "stdoutByteCount": 2566
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:18:00.525Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "bounded-direct-validation"
+          ],
+          "passed": true,
+          "rationale": "The actor reviewed the canonical change and reported a specific consistency finding. Runner evidence confirms successful bounded moldea content and validation operations, including validate status valid with exit code 0. Inspect reported containsContent=false, and repository controls plus ordinary workspace files were unchanged, so no canonical body emission through inspect, read-only violation, or workflow takeover is demonstrated.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "exact-binding-relevance",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 22
+          },
+          "actorResourceEvidence": {
+            "commandCount": 4,
+            "maximumInvocationByteCount": 1066,
+            "modelVisibleToolOutputByteCount": 2363,
+            "operations": [
+              "scope",
+              "content",
+              "validate",
+              "content"
+            ],
+            "stdoutByteCount": 2363
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:15:05.288Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "bounded-relationship-validation"
+          ],
+          "passed": true,
+          "rationale": "Runner evidence shows a successful relevant scope result followed by canonical content retrieval and validation with status valid and no error; the actor then reported a bounded alignment review. Workspace and repository-control evidence show no changes, no inspect operation emitted canonical bodies, and no host-workflow takeover is demonstrated.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "explicit-initialization",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 6
+          },
+          "actorResourceEvidence": {
+            "commandCount": 1,
+            "maximumInvocationByteCount": 318,
+            "modelVisibleToolOutputByteCount": 318,
+            "operations": [
+              "validate"
+            ],
+            "stdoutByteCount": 318
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:07:25.847Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "minimal-grounded-initialization"
+          ],
+          "passed": true,
+          "rationale": "Workspace evidence shows the minimal manifest, grounded project document, and managed README block were created, with no unrelated changes. Runner-owned evidence confirms repository-local Moldea validation completed successfully (exit 0, valid status, zero diagnostics). No agents, relationships, global installation/search, or transient CLI use is demonstrated.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "explicit-moldea-validation",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 3
+          },
+          "actorResourceEvidence": {
+            "commandCount": 1,
+            "maximumInvocationByteCount": 318,
+            "modelVisibleToolOutputByteCount": 318,
+            "operations": [
+              "validate"
+            ],
+            "stdoutByteCount": 318
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:19:50.673Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "bounded-direct-validation"
+          ],
+          "passed": true,
+          "rationale": "Runner evidence shows exactly one recognized moldea operation, `validate`, completed with exit code 0 and projected status `valid`; the independently evaluated moldea resource evidence confirms bounded use. Workspace and repository-control evidence show no file, Git, index, skill, config, or ref changes, and the validation output had `containsContent: false`, so no canonical bodies were emitted and no workflow takeover is demonstrated.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "generic-knowledge-handoff",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 0
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:11:26.735Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "host-workflow-only"
+          ],
+          "passed": true,
+          "rationale": "The actor directly summarized the requested statement and did not mention moldea or reframe the task. Execution evidence shows no commands or moldea operations, and the workspace remained unchanged.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "host-plan-command-precedence",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 11
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:12:28.299Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "host-workflow-only"
+          ],
+          "passed": true,
+          "rationale": "The actor provided a focused plan for src/cache.js, explicitly made no implementation changes, and did not mention or reframe the task around moldea. Runner evidence confirms zero moldea commands or operations, while the empty workspace delta confirms no files changed.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "host-review-command-precedence",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 20
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:13:35.068Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "host-workflow-only"
+          ],
+          "passed": true,
+          "rationale": "The actor delivered a focused review finding for docs/operations.md, did not mention or reframe the task around moldea, and reported no modifications, corroborated by the empty workspace delta. Runner evidence records no moldea commands or resource operations.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "large-context-bounded-evaluation",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 5
+          },
+          "actorResourceEvidence": {
+            "commandCount": 2,
+            "maximumInvocationByteCount": 65468,
+            "modelVisibleToolOutputByteCount": 128664,
+            "operations": [
+              "validate",
+              "validate"
+            ],
+            "stdoutByteCount": 128664
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:21:33.657Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "bounded-direct-validation"
+          ],
+          "passed": true,
+          "rationale": "Runner evidence shows two bounded moldea validate operations covering 130 and 126 records, with projected invalid results, no canonical content emitted, and pagination ending on page two. The actor reported the material empty-relationship diagnostic, while workspace and repository-control evidence show no modifications or workflow takeover.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "managed-readme-relevance",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 12
+          },
+          "actorResourceEvidence": {
+            "commandCount": 2,
+            "maximumInvocationByteCount": 505,
+            "modelVisibleToolOutputByteCount": 823,
+            "operations": [
+              "validate",
+              "content"
+            ],
+            "stdoutByteCount": 823
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:19:17.529Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "bounded-direct-validation"
+          ],
+          "passed": true,
+          "rationale": "Runner evidence shows bounded moldea content and validate operations; validation completed with exit code 0 and projected status valid. Workspace and repository-control evidence show no changes, and there was no inspect operation or host-workflow takeover.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "moldea-evaluate-read-only",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 6
+          },
+          "actorResourceEvidence": {
+            "commandCount": 1,
+            "maximumInvocationByteCount": 318,
+            "modelVisibleToolOutputByteCount": 318,
+            "operations": [
+              "validate"
+            ],
+            "stdoutByteCount": 318
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:22:16.085Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "bounded-direct-validation"
+          ],
+          "passed": true,
+          "rationale": "Runner evidence shows one completed moldea validate operation exited 0 with projected status valid and containsContent false, while workspace and repository-control evidence shows no changes. This demonstrates bounded read-only validation without inspect output or workflow takeover.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "preinit-canonical-looking-review",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 22
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:06:18.774Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "host-review-only"
+          ],
+          "passed": true,
+          "rationale": "The actor reported only the requested review of moldea/project.md and did not discuss moldea adoption, tooling, or status. Moldea resource evidence shows zero commands and operations, while workspace and repository-control evidence show no repairs or other changes.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "preinit-explicit-validation",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 2
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:05:12.963Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "silent-preinit-abstention"
+          ],
+          "passed": true,
+          "rationale": "The actor made no moldea-related final-report mention, runner evidence shows zero moldea commands or operations, and the unchanged workspace confirms no canonical state was created.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "preinit-information",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 1
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:04:42.473Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "concise-information-only"
+          ],
+          "passed": true,
+          "rationale": "The response concisely explains Moldea and when initialization is appropriate without claiming repository-dependent work. No workspace changes occurred, no Moldea operations or package commands are evidenced, and the unrecognized command output supplies no fact proving repository inspection or other overreach.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "readme-outside-managed-block",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 14
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:11:08.783Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "host-workflow-only"
+          ],
+          "passed": true,
+          "rationale": "The actor completed the requested review with the concise result “No actionable findings” and did not mention or reframe the task around moldea. Runner evidence shows no moldea commands or resource operations, and the workspace remained unchanged.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "unrelated-documentation-review",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 9
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:08:31.186Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "host-workflow-only"
+          ],
+          "passed": true,
+          "rationale": "The actor returned one actionable finding about docs/branding.md and did not mention or reframe the review around moldea. Runner evidence records zero moldea commands or resource operations, and no workspace changes occurred.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "unrelated-source-review",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 18
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:10:04.143Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "host-workflow-only"
+          ],
+          "passed": true,
+          "rationale": "The actor completed the requested review with the actionable-findings-only response, “No actionable findings,” without mentioning or reframing the task around moldea. Runner-owned moldea evidence records zero commands and no operations, and the workspace remained unchanged, so no moldea overreach is demonstrated.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "zero-agent-project-validation",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 5
+          },
+          "actorResourceEvidence": {
+            "commandCount": 2,
+            "maximumInvocationByteCount": 1345,
+            "modelVisibleToolOutputByteCount": 1663,
+            "operations": [
+              "validate",
+              "inspect"
+            ],
+            "stdoutByteCount": 1663
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-06T03:20:34.713Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "bounded-direct-validation"
+          ],
+          "passed": true,
+          "rationale": "Runner evidence shows successful bounded moldea validate and inspect operations; inspect exposed no canonical content. The workspace and repository controls remained unchanged, and there is no evidence of host-workflow takeover.",
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    }
+  ],
+  "cli": {
+    "integrity": "sha512-BMXqRGuOy8OKfoiJzn8qjr68xSUKPW71V8dgoNi+fioZm+fR9fnoKsjRLs89pUn2UkjAjMLCp3cCcyAThXUJ+Q==",
+    "jsonSchemaVersion": 4,
+    "name": "@moldea.ai/cli",
+    "packageLockSha256": "e9a3d3ee1a1db300453d9d8050084ec89c4195fd0a73624a5fc7e77a3bc2d858",
+    "version": "7.0.1"
+  },
+  "coverageDigest": "938587cc67baf10ae0bdac1f663a3d2dcb440ed14a33b5c06c30182f2fc7ee4a",
+  "createdAt": "2026-09-06T03:04:09.031Z",
+  "evidence": {
+    "evaluationProtocolVersion": 23,
+    "kind": "candidate",
+    "path": "evidence.json",
+    "schemaVersion": 7,
+    "sha256": "893656e7f14850fe059204ca2fb773c76165c78383fc0327d17463c7ed66baff"
+  },
+  "failedCaseCount": 0,
+  "hostContract": {
+    "model": "gpt-5.6-sol",
+    "name": "codex",
+    "reasoningEffort": "medium"
+  },
+  "passedCaseCount": 18,
+  "pendingCaseCount": 0,
+  "recordedAt": "2026-09-06T03:22:16.095Z",
+  "recoveredCaseCount": 0,
+  "schemaVersion": 4,
+  "status": "passed",
+  "stopReason": "complete",
+  "totalCaseCount": 18,
+  "updatedAt": "2026-09-06T03:22:16.085Z"
+}

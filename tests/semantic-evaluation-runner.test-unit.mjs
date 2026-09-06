@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 import {
+  assessJudgeOutput,
   buildActorPrompt,
   buildJudgePrompt,
   createSemanticEvaluationCostEstimate,
@@ -73,6 +74,7 @@ test('keeps runner-enforced moldea budgets outside semantic judgment', () => {
   assert.match(prompt, /deterministic result is\s+passed/u);
   assert.match(prompt, /Do not compare the total\s+completed-command count/u);
   assert.match(prompt, /Judge only the remaining semantic\s+clauses/u);
+  assert.match(prompt, /spell the human-facing product name as lowercase `moldea`/u);
 });
 
 test('passes case-budget misses to semantic judgment as a deterministic failure', () => {
@@ -94,6 +96,44 @@ test('passes case-budget misses to semantic judgment as a deterministic failure'
   );
 
   assert.match(prompt, /deterministic result is\s+did not pass/u);
+});
+
+test('prevents a green judge result from carrying incorrect product casing', () => {
+  const output = JSON.stringify({
+    observed: ['abstain'],
+    forbidden: [],
+    rationale: 'The actor kept moldea inactive.',
+  });
+
+  assert.deepEqual(assessJudgeOutput(CASE, output, 'Moldea remained inactive.'), {
+    forbidden: ['incorrect-moldea-product-name-casing'],
+    isPassed: false,
+    observed: ['abstain'],
+    rationale: 'The actor kept moldea inactive.',
+  });
+  assert.deepEqual(assessJudgeOutput(CASE, output, 'moldea remained inactive.'), {
+    forbidden: [],
+    isPassed: true,
+    observed: ['abstain'],
+    rationale: 'The actor kept moldea inactive.',
+  });
+  assert.deepEqual(
+    assessJudgeOutput(
+      CASE,
+      JSON.stringify({
+        observed: ['abstain'],
+        forbidden: [],
+        rationale: 'The actor kept Moldea inactive.',
+      }),
+      'moldea remained inactive.',
+    ),
+    {
+      forbidden: ['incorrect-moldea-product-name-casing'],
+      isPassed: false,
+      observed: ['abstain'],
+      rationale: 'The actor kept Moldea inactive.',
+    },
+  );
 });
 
 test('reports safe resource aggregates when malformed judge input is rejected', () => {

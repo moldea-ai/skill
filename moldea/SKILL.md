@@ -12,6 +12,8 @@ metadata:
 
 Maintain Git-owned project context and agent systems without taking control of unrelated engineering work.
 
+Always spell the human-facing product name `moldea`, including at the start of a sentence. Preserve different casing only inside an exact technical identifier.
+
 ## Establish the entry state first
 
 Classify the request before loading a reference or running the CLI:

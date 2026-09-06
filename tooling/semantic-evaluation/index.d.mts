@@ -3,6 +3,23 @@ export interface ISemanticCriterion {
   label: string;
 }
 
+// deterministic public model-prose contract
+export interface ISemanticProductNameAssessment {
+  forbidden: string[];
+  isPassed: boolean;
+  observed: string[];
+  rationale: string;
+}
+
+export const INCORRECT_MOLDEA_PRODUCT_NAME_CASING_LABEL: string;
+
+export const hasValidMoldeaProductNameCasing: (text: unknown) => boolean;
+
+export const enforceMoldeaProductNameCasing: (
+  assessment: ISemanticProductNameAssessment,
+  actorResponse: unknown,
+) => ISemanticProductNameAssessment;
+
 // release identity required to recognize safe moldea CLI envelopes
 export interface ISemanticActorExecutionEvidenceOptions {
   cliVersion: string;

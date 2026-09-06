@@ -201,6 +201,7 @@ describe('portable skill contract', () => {
     assert.match(frontmatter.description, /two-byte relevance gate/u);
     assert.match(frontmatter.description, /A gate miss abstains silently/u);
     assert.doesNotMatch(frontmatter.description, /potentially durable knowledge|Use first/iu);
+    assert.match(readSkill(), /Always spell the human-facing product name `moldea`/u);
   });
 
   test('keeps progressive disclosure bounded to one owning reference', () => {

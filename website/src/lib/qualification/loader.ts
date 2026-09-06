@@ -866,12 +866,16 @@ const loadProfile = (
   const model: IQualificationProfileModel = {
     adapterId: profile.adapterId,
     attempts: currentAttemptModels,
+    boundBaseline: null,
     cases,
+    currentAssurance: null,
     currentLastPassing:
       currentAttemptModels.filter(({ result }) => result.status === 'passed').at(-1) ?? null,
     currentLatest: currentAttemptModels.at(-1) ?? null,
+    currentStatus: currentAttemptModels.at(-1)?.result.status ?? 'not-recorded',
     description: profile.description,
     implementationId: profile.implementationId,
+    inheritedCases: [],
     latest,
     probes: probes.probes,
     probesSourceUrl: createSourceUrl(getRepositoryRelativePath(repositoryRoot, probesPath)),
@@ -882,6 +886,53 @@ const loadProfile = (
 
   return {
     model,
+  };
+};
+
+/** Composes current adapter evidence from its direct attempt and exact Custom prerequisite. */
+export const composeQualificationProfile = (
+  profile: IQualificationProfileModel,
+  customProfile: IQualificationProfileModel,
+): IQualificationProfileModel => {
+  const isCustomProfile = profile.adapterId === 'custom' && profile.implementationId === 'custom';
+  const directAttempt = profile.currentLatest;
+
+  if (isCustomProfile) {
+    return {
+      ...profile,
+      currentAssurance:
+        directAttempt?.result.status === 'passed' ? { baselineAttempt: null, directAttempt } : null,
+      currentStatus: directAttempt?.result.status ?? 'not-recorded',
+    };
+  }
+
+  const baselineAttemptId = directAttempt?.result.provenance.baselineAttemptId ?? null;
+  const boundBaseline =
+    baselineAttemptId === null
+      ? null
+      : (customProfile.attempts.find(({ result }) => result.attemptId === baselineAttemptId) ??
+        null);
+  const isCurrentPassingBaseline =
+    boundBaseline !== null &&
+    boundBaseline === customProfile.currentLatest &&
+    boundBaseline.result.status === 'passed';
+  const currentAssurance =
+    directAttempt?.result.status === 'passed' && isCurrentPassingBaseline
+      ? { baselineAttempt: boundBaseline, directAttempt }
+      : null;
+  const currentStatus =
+    directAttempt === null
+      ? 'not-recorded'
+      : directAttempt.result.status === 'passed' && !isCurrentPassingBaseline
+        ? 'incomplete'
+        : directAttempt.result.status;
+
+  return {
+    ...profile,
+    boundBaseline,
+    currentAssurance,
+    currentStatus,
+    inheritedCases: customProfile.cases,
   };
 };
 
@@ -943,9 +994,22 @@ export const loadQualificationWebsiteModel = (
 
   verifyResultTargetsHaveProfiles(resultsRoot, profileKeys);
 
-  const profiles = loadedProfiles.map(({ model }) => model);
+  const directProfiles = loadedProfiles.map(({ model }) => model);
+  const customProfiles = directProfiles.filter(
+    ({ adapterId, implementationId }) => adapterId === 'custom' && implementationId === 'custom',
+  );
+  const customProfile = customProfiles[0];
 
-  return { profiles, route: QUALIFICATION_ROUTE };
+  if (customProfiles.length !== 1 || customProfile === undefined) {
+    throw new Error('Qualification profiles require exactly one Custom universal baseline.');
+  }
+
+  const profiles = directProfiles.map((profile) =>
+    composeQualificationProfile(profile, customProfile),
+  );
+  const uniqueJourneyCount = profiles.reduce((total, profile) => total + profile.cases.length, 0);
+
+  return { profiles, route: QUALIFICATION_ROUTE, uniqueJourneyCount };
 };
 
 /** Requires every recorded profile history to point to its current validated terminal attempt. */
@@ -975,6 +1039,24 @@ export const assertPublishableQualificationEvidence = (
     ) {
       throw new Error(
         `Qualification profile ${profile.adapterId}/${profile.implementationId} has no current validated evidence.`,
+      );
+    }
+
+    if (profile.currentStatus === 'passed' && profile.currentAssurance === null) {
+      throw new Error(
+        `Qualification profile ${profile.adapterId}/${profile.implementationId} has no exact current assurance composition.`,
+      );
+    }
+
+    if (
+      profile.adapterId !== 'custom' &&
+      profile.currentAssurance !== null &&
+      (profile.currentAssurance.baselineAttempt !== profile.boundBaseline ||
+        profile.currentAssurance.directAttempt !== profile.currentLatest ||
+        profile.inheritedCases.length === 0)
+    ) {
+      throw new Error(
+        `Qualification profile ${profile.adapterId}/${profile.implementationId} has invalid inherited assurance evidence.`,
       );
     }
   }

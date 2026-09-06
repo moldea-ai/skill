@@ -146,6 +146,306 @@
         }
       ],
       "rationale": "Shared semantic work is not multiplied across adapter profiles, while each current runtime target retains dedicated compatibility evidence."
+    },
+    {
+      "id": "restored-activation-regressions",
+      "description": "Former implicit activation paths now prove silent abstention unless the current repository-bound gate has explicit or path-based authority.",
+      "sourcePaths": [
+        "moldea/SKILL.md#establish-the-entry-state-first",
+        "moldea/SKILL.md#choose-one-repository-gate"
+      ],
+      "rationale": "These cases preserve the behavioral failures that caused the redesign without restoring automatic durable-knowledge, project-evaluation, or planning activation.",
+      "evidence": [
+        {
+          "kind": "semantic-case",
+          "id": "unadopted-direct-context-handoff"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "unadopted-relevance-no-initialization"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "adopted-direct-context-handoff"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "adopted-explicit-context-correction"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "adopted-ambiguous-context-handoff"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "evaluate-brief-project-request"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "plan-uninitialized-zero-agent"
+        }
+      ]
+    },
+    {
+      "id": "initialization-and-tooling-safety",
+      "description": "Explicit initialization and local CLI establishment handle sparse evidence, partial adoption, safe package-manager boundaries, and nonstandard local layouts.",
+      "sourcePaths": [
+        "moldea/references/continuous-maintenance.md#adoption",
+        "moldea/references/local-tooling.md#supported-contract"
+      ],
+      "rationale": "The cases distinguish valid initialization, evidence blockers, exact local tooling, conflicting providers, and executable package-manager configuration.",
+      "evidence": [
+        {
+          "kind": "semantic-case",
+          "id": "initialize-insufficient-context"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "initialize-partial-context"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "initialize-sufficient-context"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "pnpm-pnp-local-cli-provider"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "yarn-conflicting-cli-provider"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "pnpm-hook-install-blocked"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "yarn-plugin-install-blocked"
+        }
+      ]
+    },
+    {
+      "id": "context-maintenance-and-compression",
+      "description": "Relevant context changes update one canonical owner, preserve unique meaning, resolve duplication, and stop on consequential conflict.",
+      "sourcePaths": [
+        "moldea/references/continuous-maintenance.md#maintain-owned-truth",
+        "moldea/references/context-compression.md"
+      ],
+      "rationale": "Relationship reconsideration, direct maintenance, compression, unresolved requirements, and mirror synchronization remain independently exercised.",
+      "evidence": [
+        {
+          "kind": "semantic-case",
+          "id": "adopted-relevance-no-change"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "adopted-relevance-changed-behavior"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "maintain-context-without-duplication"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "compress-project-context"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "compress-conflicting-project-context"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "unresolved-related-file-changed"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "canonical-instruction-changed"
+        }
+      ]
+    },
+    {
+      "id": "agent-and-skill-design",
+      "description": "Agent and Agent Skill changes preserve runtime provenance, capability boundaries, progressive disclosure, host policy, and distribution ownership.",
+      "sourcePaths": ["moldea/references/agent-design.md", "moldea/references/skill-design.md"],
+      "rationale": "These cases protect the model-facing and portable-skill design capabilities that remain current under explicit activation.",
+      "evidence": [
+        {
+          "kind": "semantic-case",
+          "id": "agent-adoption-inline-runtime-instruction"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "provider-hosted-capability"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "skill-boundary-surface-selection"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "skill-create-progressive-disclosure"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "skill-maintain-linked-resources"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "skill-reuse-existing-cohesive"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "skill-maintain-host-invocation-policy"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "skill-reconcile-distributed-copy"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "skill-evaluate-read-only"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "skill-evaluate-script-authority"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "skill-provider-registration-boundary"
+        }
+      ]
+    },
+    {
+      "id": "project-evaluation-and-reconciliation",
+      "description": "Explicit project evaluation and reconciliation handle dirty, clean, unborn, ambiguous, and dedicated-repository states without losing boundaries.",
+      "sourcePaths": ["moldea/references/evaluate-and-reconcile.md"],
+      "rationale": "The cases retain state-sensitive evaluation, clarification, one-sided writes, and read-only related-repository controls.",
+      "evidence": [
+        {
+          "kind": "semantic-case",
+          "id": "evaluate-dirty-working-tree"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "evaluate-clean-working-tree"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "evaluate-unborn-repository"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "reconcile-material-ambiguity"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "dedicated-repository-single-side-change"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "read-only-git-helper-suppression"
+        }
+      ]
+    },
+    {
+      "id": "agent-system-planning",
+      "description": "Explicit agent-system planning selects deterministic software, one agent, multiple agents, clarification, or unresolved runtime evidence according to repository facts.",
+      "sourcePaths": ["moldea/references/agent-system-planning.md"],
+      "rationale": "Planning remains evidence-driven and does not turn every problem into an agent or infer a runtime from inventory alone.",
+      "evidence": [
+        {
+          "kind": "semantic-case",
+          "id": "plan-existing-project-one-agent"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "plan-justified-multi-agent"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "plan-material-ambiguity"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "plan-runtime-inventory-insufficient-evidence"
+        }
+      ]
+    },
+    {
+      "id": "runtime-compatibility-and-selection",
+      "description": "Runtime selection separates local availability, repository evidence, published target compatibility, maturity, and production readiness.",
+      "sourcePaths": [
+        "moldea/references/agent-design.md#select-the-runtime-honestly",
+        "moldea/references/runtime-compatibility.md"
+      ],
+      "rationale": "Unavailable, malformed, experimental, unwired, external, and insufficient-evidence states cannot be promoted to supported runtime claims.",
+      "evidence": [
+        {
+          "kind": "semantic-case",
+          "id": "available-runtime-insufficient-behavioral-evidence"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "runtime-publication-unavailable"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "runtime-publication-malformed"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "installed-adapter-without-published-target"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "published-supported-target-not-installed"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "experimental-target-not-production-ready"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "dedicated-repository-runtime-selection"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "unavailable-runtime-selection"
+        }
+      ]
+    },
+    {
+      "id": "routing-description-ownership",
+      "description": "Routing-facing metadata selects handoff or agent descriptions from proven consumer semantics rather than property names or unsupported inference.",
+      "sourcePaths": ["moldea/references/agent-design.md#keep-model-facing-assets-distinct"],
+      "rationale": "Dynamic, fallback, separate, shared, and stale mappings retain focused semantic coverage.",
+      "evidence": [
+        {
+          "kind": "semantic-case",
+          "id": "routing-description-dynamic-wiring"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "routing-description-fallback"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "routing-description-property-name"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "routing-description-reconciliation"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "routing-description-separate-properties"
+        },
+        {
+          "kind": "semantic-case",
+          "id": "routing-description-shared-property"
+        }
+      ]
     }
   ]
 }

@@ -39,12 +39,49 @@ export interface ISemanticAttemptTrialModel {
   actorHost: ISemanticEvaluationHostModel;
   confirmationIndex: 1 | 2 | null;
   evaluatedAt: string;
+  executionOrigin: 'executed' | 'reused';
   forbidden: string[];
   judgeHost: ISemanticEvaluationHostModel;
   kind: 'confirmation' | 'initial';
   observed: string[];
   passed: boolean;
   rationale: string;
+  stageReuse: {
+    actor: {
+      identitySha256: string;
+      origin: 'reused';
+      schemaVersion: 1;
+      source: {
+        attemptId: string;
+        commit: string;
+        evidencePath: string;
+        evidenceSha256: string;
+        trial: {
+          caseId: string;
+          confirmationIndex: 1 | 2 | null;
+          kind: 'confirmation' | 'initial';
+        };
+      };
+      stage: 'actor';
+    };
+    judge: {
+      identitySha256: string;
+      origin: 'reused';
+      schemaVersion: 1;
+      source: {
+        attemptId: string;
+        commit: string;
+        evidencePath: string;
+        evidenceSha256: string;
+        trial: {
+          caseId: string;
+          confirmationIndex: 1 | 2 | null;
+          kind: 'confirmation' | 'initial';
+        };
+      };
+      stage: 'judge';
+    };
+  } | null;
 }
 
 // semantic contracts consumed directly from the repository-owned evaluator

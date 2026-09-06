@@ -208,6 +208,19 @@ afterEach(() => {
 });
 
 describe('loadSemanticEvaluationWebsiteModel', () => {
+  test('does not publish the predecessor 18-case suite as current evidence or history', () => {
+    const model = loadSemanticEvaluationWebsiteModel(REPOSITORY_ROOT);
+
+    expect(model.caseCount).toBe(74);
+    expect(model.attempts).toStrictEqual([]);
+    expect(model.hasAttempt).toBe(false);
+    expect(model.latest).toBeNull();
+    expect(model.latestPointer).toBeNull();
+    expect(model.currentAssurance).toBeNull();
+    expect(model.status).toBe('not-recorded');
+    expect(model.pendingCaseCount).toBe(74);
+  });
+
   test('publishes the complete current passing attempt', async () => {
     const root = createTemporaryRoot();
     const { cases, coverage } = loadInputs(root);
@@ -241,7 +254,11 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(model.caseCount).toBe(cases.length);
     expect(model.passedCaseCount).toBe(cases.length);
     expect(model.groups.flatMap(({ cases: groupCases }) => groupCases)).toHaveLength(cases.length);
-    expect(model.groups[0]?.cases[0]?.replay?.trials[0]?.steps).toContainEqual({
+    expect(
+      model.groups
+        .flatMap(({ cases: groupCases }) => groupCases)
+        .find(({ id }) => id === cases[0]?.id)?.replay?.trials[0]?.steps,
+    ).toContainEqual({
       content: `Recorded actor replay for ${cases[0]?.id}.`,
       kind: 'message',
       role: 'coding-agent',
@@ -482,12 +499,11 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     expect(loadSemanticEvaluationWebsiteModel(root).latest?.cases[0]?.replay).not.toBeNull();
   });
 
-  test('keeps recorded replay bound to its recorded case definition', async () => {
+  test('excludes recorded replay after its case definition leaves the current suite', async () => {
     const root = createTemporaryRoot();
     const { cases, coverage } = loadInputs(root);
     const originalCaseDefinition = cases[0];
     if (originalCaseDefinition === undefined) throw new Error('Expected one semantic case.');
-    const originalDeveloperDirection = originalCaseDefinition.input.developerDirection;
     await recordCandidate(
       root,
       createCandidate(
@@ -516,25 +532,14 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
     writeFileSync(fixturePath, `${JSON.stringify(fixture, null, 2)}\n`, 'utf8');
 
     const model = loadSemanticEvaluationWebsiteModel(root);
-    const recordedCase = model.attempts[0]?.cases.find(
-      ({ id }) => id === originalCaseDefinition.id,
-    );
     const currentCase = model.groups
       .flatMap(({ cases: groupCases }) => groupCases)
       .find(({ id }) => id === originalCaseDefinition.id);
 
-    expect(recordedCase).toMatchObject({
-      developerDirection: originalDeveloperDirection,
-      expectedCriteria: [],
-      forbiddenCriteria: [],
-      hasCurrentCaseDefinition: false,
-      status: 'failed',
-      title: originalCaseDefinition.id,
-    });
-    expect(recordedCase?.replay?.trials[0]?.steps[0]).toMatchObject({
-      content: originalDeveloperDirection,
-      role: 'developer',
-    });
+    expect(model.attempts).toStrictEqual([]);
+    expect(model.hasAttempt).toBe(false);
+    expect(model.latest).toBeNull();
+    expect(model.latestPointer).toBeNull();
     expect(currentCase).toMatchObject({
       developerDirection: changedCaseDefinition.input.developerDirection,
       hasCurrentCaseDefinition: true,

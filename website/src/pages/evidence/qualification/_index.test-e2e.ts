@@ -2,6 +2,8 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { DEFAULT_BASE_PATH, withBase } from '@moldea.ai/website-ui/site';
 
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../../tooling/resource-calibration/profiles.mjs';
+
 import { loadWebsiteModel } from '../../../lib/generation/generation.ts';
 
 const basePath = process.env['BASE_PATH'] ?? DEFAULT_BASE_PATH;
@@ -25,14 +27,20 @@ test('represents the current qualification evidence state', async ({ page }) => 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Adapter qualification evidence' }),
   ).toBeVisible();
+  await expect(
+    page.getByText(`${qualificationModel.uniqueJourneyCount} unique projects`, { exact: false }),
+  ).toBeVisible();
   for (const profile of qualificationModel.profiles) {
     const profileLink = page.getByRole('link', { name: profile.title });
     await expect(profileLink.locator('[data-evidence-status]')).toHaveAttribute(
       'data-evidence-status',
-      profile.currentLatest?.result.status ?? 'not-recorded',
+      profile.currentStatus,
     );
     await expect(profileLink.getByText('Attempts', { exact: true }).locator('..')).toContainText(
       String(profile.attempts.length),
+    );
+    await expect(profileLink.getByText('Journeys', { exact: true }).locator('..')).toContainText(
+      String(profile.inheritedCases.length + profile.cases.length),
     );
   }
 
@@ -166,21 +174,38 @@ test('presents profile definitions and the exact current evidence state', async 
     await expect(page.getByRole('heading', { level: 1, name: profile.title })).toBeVisible();
     await expect(
       page.getByRole('heading', {
-        name: `${profile.cases.length} realistic journey${profile.cases.length === 1 ? '' : 's'}`,
+        name: `${profile.inheritedCases.length + profile.cases.length} realistic journey${profile.inheritedCases.length + profile.cases.length === 1 ? '' : 's'}`,
       }),
     ).toBeVisible();
     await expect(page.locator('[data-evidence-status]').first()).toHaveAttribute(
       'data-evidence-status',
-      profile.currentLatest?.result.status ?? 'not-recorded',
+      profile.currentStatus,
     );
+    if (profile.adapterId === 'custom') {
+      await expect(page.getByText('Universal Custom baseline', { exact: true })).toHaveCount(
+        profile.cases.length,
+      );
+    } else {
+      await expect(page.getByText('Inherited Custom baseline', { exact: true })).toHaveCount(
+        profile.inheritedCases.length,
+      );
+      await expect(page.getByText('Direct adapter project', { exact: true })).toHaveCount(
+        profile.cases.length,
+      );
+    }
     if (profile.currentLatest === null) {
       await expect(page.getByText(/No protocol 8 Sol attempt has been committed/u)).toBeVisible();
-      await expect(page.getByRole('link', { name: /Inspect the .* attempt/u })).toHaveCount(0);
+      await expect(
+        page.getByRole('link', {
+          name: /Inspect the (?:execution-error|failed|passing) attempt/u,
+        }),
+      ).toHaveCount(0);
     } else {
-      await expect(page.getByRole('link', { name: /Inspect the .* attempt/u })).toHaveAttribute(
-        'href',
-        new RegExp(`${profile.route}attempts/`, 'u'),
-      );
+      await expect(
+        page.getByRole('link', {
+          name: /Inspect the (?:execution-error|failed|passing) attempt/u,
+        }),
+      ).toHaveAttribute('href', new RegExp(`${profile.route}attempts/`, 'u'));
     }
   }
 });
@@ -206,7 +231,7 @@ test('replays qualification evidence through human-readable and technical views'
   const initialRetryCount =
     initialGroundedAgentTrial.retries.actor.length + initialGroundedAgentTrial.retries.judge.length;
   const attemptRoute = await page
-    .getByRole('link', { name: /Inspect the .* attempt/u })
+    .getByRole('link', { name: /Inspect the (?:execution-error|failed|passing) attempt/u })
     .getAttribute('href');
   if (attemptRoute === null) throw new Error('The Custom profile has no passing attempt route.');
   await page.goto(attemptRoute);
@@ -244,7 +269,9 @@ test('replays qualification evidence through human-readable and technical views'
   await expect(evidenceTab).toHaveAttribute('aria-selected', 'true');
   await expect(journey.getByRole('heading', { name: 'What had to happen' })).toBeVisible();
   await expect(journey.getByRole('heading', { name: 'What must not happen' })).toBeVisible();
-  await expect(journey.getByRole('heading', { name: /Why it (?:passed|failed)/u })).toBeVisible();
+  await expect(
+    journey.getByRole('heading', { name: /Why it (?:failed|passed|recovered)/u }),
+  ).toBeVisible();
   await expect(journey.getByRole('heading', { name: 'Requirement results' })).toBeVisible();
 
   await evidenceTab.press('End');
@@ -406,7 +433,12 @@ test(
         initialTrial.getByText('Largest command output / limit:', { exact: false }),
       ).toBeVisible();
       await expect(initialTrial.getByText('0 / 131072 bytes', { exact: true })).toBeVisible();
-      await expect(initialTrial.getByText('144 / 1250000', { exact: true })).toBeVisible();
+      await expect(
+        initialTrial.getByText(
+          `144 / ${MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxHostTokenCount}`,
+          { exact: true },
+        ),
+      ).toBeVisible();
       await expect(initialTrial.getByText('not-observed', { exact: true })).toHaveCount(3);
       await expect(initialTrial.getByText('Unexpected changed path unexpected.md.')).toHaveCount(2);
       await expect(

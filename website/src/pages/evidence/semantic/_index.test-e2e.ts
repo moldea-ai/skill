@@ -19,9 +19,12 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
 
   await expect(page.getByRole('heading', { level: 1, name: 'Semantic evaluation' })).toBeVisible();
   await expect(
-    page.getByText(`${successfulCaseCount}/${semanticEvaluation.caseCount} scenarios`, {
-      exact: true,
-    }),
+    page.getByText(
+      `Current suite: ${successfulCaseCount}/${semanticEvaluation.caseCount} scenarios`,
+      {
+        exact: true,
+      },
+    ),
   ).toBeVisible();
   const technicalProvenance = page.locator('details').filter({ hasText: 'Technical provenance' });
   await technicalProvenance.locator('summary').click();
@@ -32,10 +35,18 @@ test('replays current semantic evidence through keyboard-accessible tabs', async
     ),
   ).toBeVisible();
   await expect(
-    page.getByRole('heading', { level: 2, name: 'Every recorded outcome remains available.' }),
+    page.getByRole('heading', {
+      level: 2,
+      name: 'Every current-contract outcome remains available.',
+    }),
   ).toBeVisible();
   const attemptLinks = page.getByRole('link', { name: /Inspect attempt/u });
   await expect(attemptLinks).toHaveCount(semanticEvaluation.attempts.length);
+  await expect(page.getByText('Earlier current-contract attempt', { exact: true })).toHaveCount(
+    semanticEvaluation.attempts.filter(
+      ({ result }) => result.attemptId !== semanticEvaluation.currentAssurance?.result.attemptId,
+    ).length,
+  );
   await expect(page.getByRole('link', { name: 'Read the methodology' })).toHaveAttribute(
     'href',
     toPublicPath('/docs/semantic-evaluation/'),

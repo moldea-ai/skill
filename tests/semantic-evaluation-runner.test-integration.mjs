@@ -52,14 +52,18 @@ const runLauncher = (repositoryPath, arguments_, input) => {
 };
 
 test('all clean-slate semantic cases materialize their declared repository evidence', async () => {
-  assert.equal(SEMANTIC_CASES.length, 18);
+  assert.equal(SEMANTIC_CASES.length, 74);
 
   for (const caseDefinition of SEMANTIC_CASES) {
     const evaluationRoot = mkdtempSync(join(tmpdir(), `moldea-${caseDefinition.id}-`));
     try {
-      const { repositoryPath } = await createActorRepository(evaluationRoot, caseDefinition);
+      const { readOnlyMounts, repositoryPath } = await createActorRepository(
+        evaluationRoot,
+        caseDefinition,
+      );
       const evidence = await collectScenarioEvidence({
         caseDefinition,
+        readOnlyMounts,
         repositoryPath,
       });
       assert.equal(hasValidScenarioEvidence(evidence, caseDefinition), true, caseDefinition.id);

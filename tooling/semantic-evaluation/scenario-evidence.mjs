@@ -200,7 +200,11 @@ const collectGitFacts = (repositoryPath) => {
 };
 
 /** Collects evaluator-owned scenario evidence before actor execution. */
-export const collectScenarioEvidence = async ({ caseDefinition, repositoryPath }) => {
+export const collectScenarioEvidence = async ({
+  caseDefinition,
+  readOnlyMounts = [],
+  repositoryPath,
+}) => {
   const gitFacts = caseDefinition.input.repositoryEvidence.some(
     ({ source }) => source.kind === 'git-state',
   )
@@ -225,6 +229,18 @@ export const collectScenarioEvidence = async ({ caseDefinition, repositoryPath }
       if (!observation.observed) {
         throw new Error(`Scenario Git fact ${source.fact} is not present.`);
       }
+    } else if (source.kind === 'host-instructions') {
+      observation = {
+        content: caseDefinition.hostInstructions,
+        type: 'host-instructions',
+      };
+    } else if (source.kind === 'related-path') {
+      const mount = readOnlyMounts.find(({ target }) => target === source.mount);
+      if (!mount) throw new Error(`Scenario evidence mount ${source.mount} is unavailable.`);
+      observation = {
+        ...(await inspectEvidencePath(mount.source, source.path, source.expectedType)),
+        mount: source.mount,
+      };
     } else {
       observation = await inspectEvidencePath(repositoryPath, source.path, source.expectedType);
     }
@@ -232,6 +248,44 @@ export const collectScenarioEvidence = async ({ caseDefinition, repositoryPath }
   }
 
   return evidence;
+};
+
+/** Validates one persisted workspace or read-only-mount path observation. */
+const hasValidPathObservation = (observation, source) => {
+  if (observation.type !== source.expectedType || observation.path !== source.path) {
+    return false;
+  }
+  if (observation.type === 'missing') {
+    return hasExactKeys(observation, ['path', 'type']) && typeof observation.path === 'string';
+  }
+  if (observation.type === 'directory') {
+    return (
+      hasExactKeys(observation, ['mode', 'path', 'type']) &&
+      typeof observation.path === 'string' &&
+      Number.isSafeInteger(observation.mode)
+    );
+  }
+  if (observation.type === 'symlink') {
+    return (
+      hasExactKeys(observation, ['mode', 'path', 'sha256', 'target', 'type']) &&
+      typeof observation.path === 'string' &&
+      Number.isSafeInteger(observation.mode) &&
+      typeof observation.target === 'string' &&
+      SHA256_PATTERN.test(observation.sha256)
+    );
+  }
+  if (observation.type === 'file') {
+    return (
+      hasExactKeys(observation, ['content', 'mode', 'omission', 'path', 'sha256', 'type']) &&
+      typeof observation.path === 'string' &&
+      Number.isSafeInteger(observation.mode) &&
+      SHA256_PATTERN.test(observation.sha256) &&
+      (typeof observation.content === 'string' || observation.content === null) &&
+      [null, 'file-too-large', 'non-utf8'].includes(observation.omission) &&
+      (observation.content === null) !== (observation.omission === null)
+    );
+  }
+  return false;
 };
 
 /** Validates persisted scenario evidence against its exact case declarations. */
@@ -272,42 +326,25 @@ export const hasValidScenarioEvidence = (evidence, caseDefinition) => {
         observation.observed === true
       );
     }
-    if (
-      observation.type !== declaration.source.expectedType ||
-      observation.path !== declaration.source.path
-    ) {
-      return false;
-    }
-    if (observation.type === 'missing') {
-      return hasExactKeys(observation, ['path', 'type']) && typeof observation.path === 'string';
-    }
-    if (observation.type === 'directory') {
+    if (declaration.source.kind === 'host-instructions') {
       return (
-        hasExactKeys(observation, ['mode', 'path', 'type']) &&
-        typeof observation.path === 'string' &&
-        Number.isSafeInteger(observation.mode)
+        hasExactKeys(observation, ['content', 'type']) &&
+        observation.type === 'host-instructions' &&
+        observation.content === caseDefinition.hostInstructions
       );
     }
-    if (observation.type === 'symlink') {
-      return (
-        hasExactKeys(observation, ['mode', 'path', 'sha256', 'target', 'type']) &&
-        typeof observation.path === 'string' &&
-        Number.isSafeInteger(observation.mode) &&
-        typeof observation.target === 'string' &&
-        SHA256_PATTERN.test(observation.sha256)
-      );
+    if (declaration.source.kind === 'related-path') {
+      if (
+        observation.mount !== declaration.source.mount ||
+        observation.type !== declaration.source.expectedType ||
+        observation.path !== declaration.source.path
+      ) {
+        return false;
+      }
+      const localObservation = { ...observation };
+      delete localObservation.mount;
+      return hasValidPathObservation(localObservation, declaration.source);
     }
-    if (observation.type === 'file') {
-      return (
-        hasExactKeys(observation, ['content', 'mode', 'omission', 'path', 'sha256', 'type']) &&
-        typeof observation.path === 'string' &&
-        Number.isSafeInteger(observation.mode) &&
-        SHA256_PATTERN.test(observation.sha256) &&
-        (typeof observation.content === 'string' || observation.content === null) &&
-        [null, 'file-too-large', 'non-utf8'].includes(observation.omission) &&
-        (observation.content === null) !== (observation.omission === null)
-      );
-    }
-    return false;
+    return hasValidPathObservation(observation, declaration.source);
   });
 };

@@ -8,7 +8,10 @@ import {
   type IEvaluationReplayWorkspaceStep,
 } from '@moldea.ai/website-ui/evaluation-replay-model';
 
-import { createSemanticCaseDefinitionDigest } from '../../../../tooling/semantic-evaluation/index.mjs';
+import {
+  createSemanticCaseDefinitionDigest,
+  createSemanticStageValueDigest,
+} from '../../../../tooling/semantic-evaluation/index.mjs';
 
 import type { ISemanticCaseDefinition } from './types.ts';
 import type {
@@ -158,12 +161,14 @@ const createTrialSummary = (
   actorHost: trial.actorHost,
   confirmationIndex,
   evaluatedAt: trial.evaluatedAt,
+  executionOrigin: trial.executionOrigin,
   forbidden: trial.forbidden,
   judgeHost: trial.judgeHost,
   kind,
   observed: trial.observed,
   passed: trial.passed,
   rationale: trial.rationale,
+  stageReuse: trial.stageReuse,
 });
 
 /** Returns raw initial and confirmation evidence in immutable trial order. */
@@ -251,7 +256,10 @@ export const createSemanticEvaluationReplay = (
 
   const trials = sourceTrials.map(({ confirmationIndex, kind, source }, index) => {
     const sourceSummary = createTrialSummary(source, kind, confirmationIndex);
-    if (JSON.stringify(sourceSummary) !== JSON.stringify(attemptCase.trials[index])) {
+    if (
+      createSemanticStageValueDigest(sourceSummary) !==
+      createSemanticStageValueDigest(attemptCase.trials[index])
+    ) {
       throw new Error(`Semantic replay case ${attemptCase.id} contradicts trial ${index + 1}.`);
     }
     if (

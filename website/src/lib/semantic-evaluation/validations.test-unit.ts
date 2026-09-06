@@ -102,4 +102,56 @@ describe('SemanticAttemptRecordSchema', () => {
       ).toBe(expectedValidity);
     },
   );
+
+  test('validates explicit executed and reused stage-count arithmetic', () => {
+    const record = createAttemptRecord(7, 23);
+    const attemptCase = (record['cases'] as Array<Record<string, unknown>>)[0];
+    const trial = (attemptCase?.['trials'] as Array<Record<string, unknown>>)[0];
+    if (trial === undefined) throw new Error('Expected one semantic trial.');
+    trial['executionOrigin'] = 'executed';
+    trial['stageReuse'] = null;
+    record['executedStageCount'] = 2;
+    record['executedTrialCount'] = 1;
+    record['reusedStageCount'] = 0;
+    record['reusedTrialCount'] = 0;
+
+    expect(SemanticAttemptRecordSchema.safeParse(record).success).toBe(true);
+    record['executedStageCount'] = 1;
+    expect(SemanticAttemptRecordSchema.safeParse(record).success).toBe(false);
+    delete record['executedStageCount'];
+    expect(SemanticAttemptRecordSchema.safeParse(record).success).toBe(false);
+  });
+
+  test('rejects reused provenance that names another case', () => {
+    const record = createAttemptRecord(7, 23);
+    const attemptCase = (record['cases'] as Array<Record<string, unknown>>)[0];
+    const trial = (attemptCase?.['trials'] as Array<Record<string, unknown>>)[0];
+    if (trial === undefined) throw new Error('Expected one semantic trial.');
+    const source = {
+      attemptId: 'source-attempt',
+      commit: 'f'.repeat(40),
+      evidencePath: 'fixtures/semantic-evaluation-results/attempts/source-attempt/evidence.json',
+      evidenceSha256: 'f'.repeat(64),
+      trial: { caseId: 'another-case', confirmationIndex: null, kind: 'initial' },
+    };
+    trial['executionOrigin'] = 'reused';
+    trial['stageReuse'] = {
+      actor: {
+        identitySha256: 'f'.repeat(64),
+        origin: 'reused',
+        schemaVersion: 1,
+        source,
+        stage: 'actor',
+      },
+      judge: {
+        identitySha256: 'e'.repeat(64),
+        origin: 'reused',
+        schemaVersion: 1,
+        source,
+        stage: 'judge',
+      },
+    };
+
+    expect(SemanticAttemptRecordSchema.safeParse(record).success).toBe(false);
+  });
 });

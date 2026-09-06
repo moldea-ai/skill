@@ -45,6 +45,25 @@ export interface ISemanticAttemptEvidenceReference {
   sha256: string;
 }
 
+// exact immutable source identity retained when a model stage is reused
+interface ISemanticAttemptStageReuseRecord<TStage extends 'actor' | 'judge'> {
+  identitySha256: string;
+  origin: 'reused';
+  schemaVersion: 1;
+  source: {
+    attemptId: string;
+    commit: string;
+    evidencePath: string;
+    evidenceSha256: string;
+    trial: {
+      caseId: string;
+      confirmationIndex: 1 | 2 | null;
+      kind: 'confirmation' | 'initial';
+    };
+  };
+  stage: TStage;
+}
+
 // one initial or confirmation evaluation for a semantic case
 export interface ISemanticAttemptTrial {
   actorCommandPolicyEvidence: ISemanticAttemptCommandPolicyEvidence;
@@ -52,12 +71,18 @@ export interface ISemanticAttemptTrial {
   actorHost: ISemanticEvaluationHostIdentity;
   confirmationIndex: 1 | 2 | null;
   evaluatedAt: string;
+  // omitted only by retained predecessor evidence used as an exact reuse source
+  executionOrigin?: 'executed' | 'reused';
   forbidden: string[];
   judgeHost: ISemanticEvaluationHostIdentity;
   kind: 'confirmation' | 'initial';
   observed: string[];
   passed: boolean;
   rationale: string;
+  stageReuse?: {
+    actor: ISemanticAttemptStageReuseRecord<'actor'>;
+    judge: ISemanticAttemptStageReuseRecord<'judge'>;
+  } | null;
 }
 
 // derived case status and its complete ordered trial history
@@ -78,12 +103,17 @@ export interface ISemanticAttemptRecord {
   coverageDigest: string;
   createdAt: string;
   evidence: ISemanticAttemptEvidenceReference;
+  // omitted only by retained predecessor evidence used as an exact reuse source
+  executedStageCount?: number;
+  executedTrialCount?: number;
   failedCaseCount: number;
   hostContract: ISemanticEvaluationHostContract;
   passedCaseCount: number;
   pendingCaseCount: number;
   recordedAt: string;
   recoveredCaseCount: number;
+  reusedStageCount?: number;
+  reusedTrialCount?: number;
   schemaVersion: 4;
   status: ISemanticAttemptStatus;
   stopReason:

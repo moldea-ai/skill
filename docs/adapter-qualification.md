@@ -18,6 +18,8 @@ Each published adapter profile owns only its adapter-specific probes and repair 
 
 The profile index contains 14 current targets: Custom plus 13 published adapter implementations.
 
+The suite therefore executes 38 unique projects: 12 universal Custom projects plus 2 direct projects for each adapter. Public evidence composes the exact current passing Custom attempt bound by an adapter attempt with that adapter's 2 direct projects. An adapter page reports 14 effective journeys, split into 12 inherited and 2 direct, only while both attempts are current and passing. A missing, stale, failed, or mismatched baseline leaves the effective result incomplete or failed instead of presenting a false pass.
+
 ## What one case exercises
 
 Each case combines:

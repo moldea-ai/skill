@@ -9,11 +9,15 @@ vi.mock('../qualification/index.ts', () => {
         {
           adapterId: 'custom',
           attempts: [],
+          boundBaseline: null,
           cases: [],
+          currentAssurance: null,
           currentLastPassing: null,
           currentLatest: null,
+          currentStatus: 'not-recorded',
           description: 'Exercises universal behavior.',
           implementationId: 'custom',
+          inheritedCases: [],
           latest: {
             adapterId: 'custom',
             implementationId: 'custom',
@@ -31,6 +35,7 @@ vi.mock('../qualification/index.ts', () => {
         },
       ],
       route: '/evidence/qualification/',
+      uniqueJourneyCount: 0,
     })),
   };
 });

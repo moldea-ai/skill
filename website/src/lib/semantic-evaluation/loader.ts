@@ -80,11 +80,11 @@ const loadCaseDefinitions = (repositoryRoot: string): ISemanticCaseDefinition[] 
   );
 };
 
-const hasCurrentAttemptIdentity = (
+/** Checks whether an attempt belongs to the complete active semantic contract. */
+const hasCurrentAttemptContract = (
   attempt: ISemanticAttemptRecord,
   caseDefinitions: ISemanticCaseDefinition[],
   coverage: unknown,
-  repositoryRoot: string,
 ): boolean => {
   const caseIds = caseDefinitions.map(({ id }) => id);
   const presentationIds = Object.keys(SEMANTIC_CASE_PRESENTATION);
@@ -96,15 +96,26 @@ const hasCurrentAttemptIdentity = (
   }
 
   const attemptCaseIds = attempt.cases.map(({ id }) => id);
+  return (
+    attempt.caseSuiteDigest === createSemanticCaseSuiteDigest(caseDefinitions) &&
+    attempt.coverageDigest === createSemanticCoverageDigest(coverage, caseDefinitions) &&
+    attempt.evidence.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION &&
+    attempt.totalCaseCount === caseDefinitions.length &&
+    new Set(attemptCaseIds).size === attemptCaseIds.length &&
+    attemptCaseIds.every((id) => caseIds.includes(id))
+  );
+};
+
+const hasCurrentAttemptIdentity = (
+  attempt: ISemanticAttemptRecord,
+  caseDefinitions: ISemanticCaseDefinition[],
+  coverage: unknown,
+  repositoryRoot: string,
+): boolean => {
   const hasInputMismatch =
+    !hasCurrentAttemptContract(attempt, caseDefinitions, coverage) ||
     attempt.artifactDigest !== createPortableSkillDigest(repositoryRoot) ||
-    attempt.caseSuiteDigest !== createSemanticCaseSuiteDigest(caseDefinitions) ||
-    attempt.coverageDigest !== createSemanticCoverageDigest(coverage, caseDefinitions) ||
-    attempt.evidence.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
-    JSON.stringify(attempt.cli) !== JSON.stringify(createSemanticCliIdentity(repositoryRoot)) ||
-    attempt.totalCaseCount !== caseDefinitions.length ||
-    new Set(attemptCaseIds).size !== attemptCaseIds.length ||
-    attemptCaseIds.some((id) => !caseIds.includes(id));
+    JSON.stringify(attempt.cli) !== JSON.stringify(createSemanticCliIdentity(repositoryRoot));
   const hasOfficialHosts =
     isOfficialSemanticHost(attempt.hostContract) &&
     attempt.cases.every(({ trials }) =>
@@ -229,19 +240,29 @@ export const loadSemanticEvaluationWebsiteModel = (
   const attempts = loadedHistory.attempts.map((attempt) =>
     SemanticAttemptRecordSchema.parse(attempt),
   );
-  const latestPointer =
+  const recordedLatestPointer =
     loadedHistory.latest === null ? null : SemanticLatestResultSchema.parse(loadedHistory.latest);
-  const attemptModels = attempts.map((attempt) =>
+  const recordedLatest =
+    recordedLatestPointer === null
+      ? null
+      : (attempts.find(({ attemptId }) => attemptId === recordedLatestPointer.latestAttemptId) ??
+        null);
+  if (recordedLatestPointer !== null && recordedLatest === null) {
+    throw new Error('Semantic latest pointer does not resolve to an immutable attempt.');
+  }
+
+  const currentContractAttempts = attempts.filter((attempt) =>
+    hasCurrentAttemptContract(attempt, caseDefinitions, coverage),
+  );
+  const attemptModels = currentContractAttempts.map((attempt) =>
     createAttemptModel(attempt, caseDefinitions, repositoryRoot),
   );
   const latest =
-    latestPointer === null
+    recordedLatestPointer === null
       ? null
-      : (attemptModels.find(({ result }) => result.attemptId === latestPointer.latestAttemptId) ??
-        null);
-  if (latestPointer !== null && latest === null) {
-    throw new Error('Semantic latest pointer does not resolve to an immutable attempt.');
-  }
+      : (attemptModels.find(
+          ({ result }) => result.attemptId === recordedLatestPointer.latestAttemptId,
+        ) ?? null);
   const hasExactCurrentEvaluation =
     latest !== null &&
     hasCurrentAttemptIdentity(latest.result, caseDefinitions, coverage, repositoryRoot);
@@ -249,14 +270,18 @@ export const loadSemanticEvaluationWebsiteModel = (
   const evidenceMatch = hasExactCurrentEvaluation ? 'exact' : null;
 
   const lastPassing =
-    latestPointer?.lastPassingAttemptId == null
+    recordedLatestPointer?.lastPassingAttemptId == null
       ? null
       : (attemptModels.find(
-          ({ result }) => result.attemptId === latestPointer.lastPassingAttemptId,
+          ({ result }) => result.attemptId === recordedLatestPointer.lastPassingAttemptId,
         ) ?? null);
-  if (latestPointer?.lastPassingAttemptId != null && lastPassing === null) {
-    throw new Error('Semantic last-passing pointer does not resolve to an immutable attempt.');
-  }
+  const latestPointer =
+    latest === null || recordedLatestPointer === null
+      ? null
+      : {
+          ...recordedLatestPointer,
+          lastPassingAttemptId: lastPassing?.result.attemptId ?? null,
+        };
 
   const cases = caseDefinitions.map((caseDefinition) => {
     if (currentAssurance === null) return createCaseModel(caseDefinition, null, null);

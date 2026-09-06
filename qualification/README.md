@@ -23,6 +23,8 @@ Every non-Custom profile owns only adapter-specific probes and cases. The profil
 
 The index at `profiles/index.yaml` declares 14 current targets: Custom and 13 published adapter implementations.
 
+This produces 38 unique executions: 12 universal Custom projects and 26 direct adapter projects. Public evidence for an adapter composes its exact bound Custom attempt with its 2 direct projects, showing 12 inherited plus 2 direct journeys without claiming that the universal projects ran again. The effective adapter status passes only when the direct attempt and its bound Custom attempt are both current and passing.
+
 ## Deterministic boundary
 
 Deterministic verification runs before and after the actor. It verifies:

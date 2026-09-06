@@ -19,7 +19,11 @@ import {
 } from '../../../../qualification/src/storage/index.ts';
 import { seedPassingQualificationEvidenceFixture } from '../../../../qualification/vitest/evidence-fixture.ts';
 
-import { assertPublishableQualificationEvidence, loadQualificationWebsiteModel } from './loader.ts';
+import {
+  assertPublishableQualificationEvidence,
+  composeQualificationProfile,
+  loadQualificationWebsiteModel,
+} from './loader.ts';
 
 const SHA_A = 'a'.repeat(64);
 const TARGET_KEY = 't1';
@@ -560,6 +564,7 @@ describe('loadQualificationWebsiteModel', () => {
     );
 
     expect(model.profiles).toHaveLength(14);
+    expect(model.uniqueJourneyCount).toBe(38);
     expect(attempts.every(({ result }) => result.protocolVersion === 8)).toBe(true);
     expect(customProfile?.cases.map(({ id }) => id)).toStrictEqual([...universalCaseIds]);
     expect(
@@ -567,10 +572,57 @@ describe('loadQualificationWebsiteModel', () => {
         .filter(({ adapterId }) => adapterId !== 'custom')
         .every(({ cases }) => cases.every(({ id }) => !universalCaseIds.has(id))),
     ).toBe(true);
+    expect(
+      model.profiles
+        .filter(({ adapterId }) => adapterId !== 'custom')
+        .every(({ cases, inheritedCases }) => inheritedCases.length === 12 && cases.length === 2),
+    ).toBe(true);
+
+    const anthropicProfile = model.profiles.find(({ adapterId }) => adapterId === 'anthropic');
+    expect(anthropicProfile?.currentStatus).toBe('passed');
+    expect(anthropicProfile?.currentAssurance?.baselineAttempt?.result.attemptId).toBe(
+      anthropicProfile?.currentLatest?.result.provenance.baselineAttemptId,
+    );
+    expect(anthropicProfile?.currentAssurance?.baselineAttempt).toBe(customProfile?.currentLatest);
+
+    const failedCloudflareProfile = model.profiles.find(
+      ({ adapterId, implementationId }) =>
+        adapterId === 'cloudflare-agents' &&
+        implementationId === 'typescript-ai-chat-agent-0-10-ai-sdk-7',
+    );
+    expect(failedCloudflareProfile?.currentStatus).toBe('failed');
+    expect(failedCloudflareProfile?.currentAssurance).toBeNull();
 
     const serializedModel = JSON.stringify(model);
     expect(serializedModel).not.toContain(canonicalRepositoryRoot);
     expect(serializedModel).not.toContain('file://');
+  });
+
+  test('does not present a passing adapter attempt with a stale Custom baseline as current', () => {
+    const model = loadQualificationWebsiteModel(canonicalRepositoryRoot);
+    const customProfile = model.profiles.find(({ adapterId }) => adapterId === 'custom');
+    const anthropicProfile = model.profiles.find(({ adapterId }) => adapterId === 'anthropic');
+    const staleDirectAttempt = anthropicProfile?.attempts[0];
+
+    if (
+      customProfile === undefined ||
+      anthropicProfile === undefined ||
+      staleDirectAttempt === undefined
+    ) {
+      throw new Error('Canonical qualification evidence is incomplete.');
+    }
+
+    const staleProfile = composeQualificationProfile(
+      { ...anthropicProfile, currentLatest: staleDirectAttempt },
+      customProfile,
+    );
+
+    expect(staleProfile.boundBaseline?.result.attemptId).toBe(
+      staleDirectAttempt.result.provenance.baselineAttemptId,
+    );
+    expect(staleProfile.boundBaseline).not.toBe(customProfile.currentLatest);
+    expect(staleProfile.currentAssurance).toBeNull();
+    expect(staleProfile.currentStatus).toBe('incomplete');
   });
 
   test('loads a profile without unrelated adapter-specific catalog cases', () => {
@@ -580,6 +632,7 @@ describe('loadQualificationWebsiteModel', () => {
     const model = loadQualificationWebsiteModel(root);
 
     expect(model.route).toBe('/evidence/qualification/');
+    expect(model.uniqueJourneyCount).toBe(1);
     expect(model.profiles).toHaveLength(1);
     expect(model.profiles[0]).toMatchObject({
       adapterId: 'custom',

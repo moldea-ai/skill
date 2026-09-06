@@ -30,6 +30,8 @@ const { profile } = Astro.props;
 const { releaseEvidence } = loadWebsiteModel();
 const basePath = import.meta.env.BASE_URL;
 const latestAttempt = profile.currentLatest;
+const isCustomProfile = profile.adapterId === 'custom' && profile.implementationId === 'custom';
+const journeyCount = profile.inheritedCases.length + profile.cases.length;
 const latestAttemptLinkLabel =
   latestAttempt === null
     ? null
@@ -39,8 +41,18 @@ const latestAttemptLinkLabel =
         ? 'Inspect the failed attempt'
         : 'Inspect the execution-error attempt';
 const renderedCases = await Promise.all(
-  profile.cases.map(async (profileCase) => ({
+  [
+    ...profile.inheritedCases.map((profileCase) => ({
+      ownership: 'Inherited Custom baseline',
+      profileCase,
+    })),
+    ...profile.cases.map((profileCase) => ({
+      ownership: isCustomProfile ? 'Universal Custom baseline' : 'Direct adapter project',
+      profileCase,
+    })),
+  ].map(async ({ ownership, profileCase }) => ({
     ...profileCase,
+    ownership,
     renderedExplanation: await renderMarkdownDocument(profileCase.projectExplanation, {
       basePath,
       productNameTreatment: 'code',
@@ -74,7 +86,7 @@ const breadcrumbs = [
 
     <header class="mt-7 border-b border-border pb-10">
       <div class="flex flex-wrap items-center gap-3">
-        <EvidenceStatus status={profile.currentLatest?.result.status ?? 'not-recorded'} />
+        <EvidenceStatus status={profile.currentStatus} />
         <code class="text-sm text-muted-foreground">
           {profile.adapterId}/{profile.implementationId}
         </code>
@@ -147,7 +159,7 @@ const breadcrumbs = [
         {
           latestAttempt === null ? (
             <article>
-              <p class="eyebrow">Current result</p>
+              <p class="eyebrow">Current effective result</p>
               <div class="mt-4">
                 <EvidenceStatus status="not-recorded" />
               </div>
@@ -159,9 +171,9 @@ const breadcrumbs = [
           ) : (
             <>
               <article>
-                <p class="eyebrow">Current result</p>
+                <p class="eyebrow">Current effective result</p>
                 <div class="mt-4 flex flex-wrap items-center gap-3">
-                  <EvidenceStatus status={latestAttempt.result.status} />
+                  <EvidenceStatus status={profile.currentStatus} />
                   <time
                     class="text-sm text-muted-foreground"
                     datetime={latestAttempt.result.createdAt}
@@ -169,23 +181,56 @@ const breadcrumbs = [
                     {latestAttempt.result.createdAt}
                   </time>
                 </div>
-                <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
-                  <InlineBrandText
-                    text={latestAttempt.result.summary}
-                    variant="compact"
-                  />
-                </p>
+                {profile.currentAssurance === null ? (
+                  <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
+                    <InlineBrandText
+                      text={
+                        latestAttempt.result.status === 'passed'
+                          ? 'The direct attempt passed, but its exact Custom prerequisite is missing, stale, or not passing. This profile is not currently qualified.'
+                          : latestAttempt.result.summary
+                      }
+                      variant="compact"
+                    />
+                  </p>
+                ) : isCustomProfile ? (
+                  <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
+                    The current passing attempt executes all {profile.cases.length} universal
+                    Custom-baseline journeys once for reuse by exactly bound adapter attempts.
+                  </p>
+                ) : (
+                  <p class="mt-4 max-w-3xl leading-7 text-muted-foreground">
+                    The current result combines {profile.inheritedCases.length} inherited journeys
+                    from Custom attempt{' '}
+                    <code>{profile.currentAssurance.baselineAttempt?.result.attemptId}</code> with{' '}
+                    {profile.cases.length} journeys executed directly by this adapter attempt.
+                  </p>
+                )}
               </article>
-              <a
-                class="inline-flex items-center gap-2 font-semibold text-link hover:underline"
-                href={withBase(latestAttempt.route, basePath)}
-              >
-                {latestAttemptLinkLabel}
-                <ArrowRight
-                  class="size-4"
-                  aria-hidden="true"
-                />
-              </a>
+              <div class="grid justify-items-start gap-3 lg:justify-items-end">
+                <a
+                  class="inline-flex items-center gap-2 font-semibold text-link hover:underline"
+                  href={withBase(latestAttempt.route, basePath)}
+                >
+                  {latestAttemptLinkLabel}
+                  <ArrowRight
+                    class="size-4"
+                    aria-hidden="true"
+                  />
+                </a>
+                {profile.currentAssurance?.baselineAttempt !== null &&
+                  profile.currentAssurance?.baselineAttempt !== undefined && (
+                    <a
+                      class="inline-flex items-center gap-2 font-semibold text-link hover:underline"
+                      href={withBase(profile.currentAssurance.baselineAttempt.route, basePath)}
+                    >
+                      Inspect the inherited Custom attempt
+                      <ArrowRight
+                        class="size-4"
+                        aria-hidden="true"
+                      />
+                    </a>
+                  )}
+              </div>
             </>
           )
         }
@@ -202,11 +247,16 @@ const breadcrumbs = [
           id="qualification-projects-title"
           class="text-3xl font-semibold tracking-tight"
         >
-          {profile.cases.length} realistic journey{profile.cases.length === 1 ? '' : 's'}
+          {journeyCount} realistic journey{journeyCount === 1 ? '' : 's'}
         </h2>
         <p class="mt-4 leading-7 text-muted-foreground">
-          Each project publishes its purpose, adversarial challenge, natural task, expected state,
-          and judge requirements before any attempt runs.
+          {
+            isCustomProfile
+              ? `These ${journeyCount} universal projects execute once as the Custom baseline.`
+              : `${profile.inheritedCases.length} projects come from the exact Custom prerequisite and ${profile.cases.length} execute directly for this adapter.`
+          }{' '}
+          Each project publishes its purpose, adversarial challenge, natural task, expected state, and
+          judge requirements before any attempt runs.
         </p>
       </div>
 
@@ -219,6 +269,9 @@ const breadcrumbs = [
                   {String(index + 1).padStart(2, '0')}
                 </span>
                 <code class="text-xs text-muted-foreground">{profileCase.id}</code>
+                <span class="rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                  {profileCase.ownership}
+                </span>
               </div>
               <h3 class="mt-4 text-2xl font-semibold tracking-tight">{profileCase.title}</h3>
               <p class="mt-3 max-w-4xl leading-7 text-muted-foreground">

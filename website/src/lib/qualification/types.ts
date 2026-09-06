@@ -819,15 +819,25 @@ export interface IQualificationAttemptModel {
   sourceState: IQualificationSourceStateResult | null;
 }
 
+// exact current evidence required to present one profile as effectively qualified
+export interface IQualificationProfileAssuranceModel {
+  baselineAttempt: IQualificationAttemptModel | null;
+  directAttempt: IQualificationAttemptModel;
+}
+
 // one committed adapter implementation profile and its complete result history
 export interface IQualificationProfileModel {
   adapterId: string;
   attempts: IQualificationAttemptModel[];
+  boundBaseline: IQualificationAttemptModel | null;
   cases: IQualificationProfileCaseModel[];
+  currentAssurance: IQualificationProfileAssuranceModel | null;
   currentLastPassing: IQualificationAttemptModel | null;
   currentLatest: IQualificationAttemptModel | null;
+  currentStatus: IQualificationStatus | 'not-recorded';
   description: string;
   implementationId: string;
+  inheritedCases: IQualificationProfileCaseModel[];
   latest: IQualificationLatestResult | null;
   probes: z.infer<typeof QualificationProbesSchema>['probes'];
   probesSourceUrl: string;
@@ -840,4 +850,5 @@ export interface IQualificationProfileModel {
 export interface IQualificationWebsiteModel {
   profiles: IQualificationProfileModel[];
   route: string;
+  uniqueJourneyCount: number;
 }

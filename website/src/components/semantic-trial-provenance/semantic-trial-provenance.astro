@@ -50,6 +50,26 @@ const { scenarioId, trials } = Astro.props;
               <dd class="mt-1 font-mono text-xs break-all">{trial.judgeHost.version}</dd>
             </div>
             <div>
+              <dt class="text-muted-foreground">Execution origin</dt>
+              <dd class="mt-1 font-mono text-xs break-all">
+                {trial.executionOrigin === 'reused'
+                  ? 'Exact stage reuse'
+                  : 'Executed in this attempt'}
+              </dd>
+            </div>
+            {trial.stageReuse !== null && (
+              <div class="sm:col-span-2">
+                <dt class="text-muted-foreground">Reuse source</dt>
+                <dd class="mt-1 grid gap-1 font-mono text-xs break-all">
+                  <span>Attempt: {trial.stageReuse.actor.source.attemptId}</span>
+                  <span>Commit: {trial.stageReuse.actor.source.commit}</span>
+                  <span>Evidence: {trial.stageReuse.actor.source.evidenceSha256}</span>
+                  <span>Actor identity: {trial.stageReuse.actor.identitySha256}</span>
+                  <span>Judge identity: {trial.stageReuse.judge.identitySha256}</span>
+                </dd>
+              </div>
+            )}
+            <div>
               <dt class="text-muted-foreground">Completed commands</dt>
               <dd class="mt-1 font-mono text-xs break-all">
                 {trial.actorCommandPolicyEvidence.completedCommandCount}

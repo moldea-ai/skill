@@ -79,7 +79,7 @@ export interface IMoldeaResourceEvidence {
 }
 
 export interface IMoldeaResourceBudget {
-  activation: 'abstain' | 'direct' | 'informational' | 'relationship';
+  activation: 'abstain' | 'blocked' | 'direct' | 'informational' | 'relationship';
   maximumMoldeaCommands: number;
   maximumMoldeaOutputBytes: number;
   minimumMoldeaCommands: number;
@@ -135,6 +135,13 @@ export type ISemanticRepositoryEvidenceSource =
       expectedType: 'directory' | 'file' | 'missing' | 'symlink';
       kind: 'workspace-path';
       path: string;
+    }
+  | { kind: 'host-instructions' }
+  | {
+      expectedType: 'directory' | 'file' | 'missing' | 'symlink';
+      kind: 'related-path';
+      mount: string;
+      path: string;
     };
 
 export interface ISemanticRepositoryEvidenceDeclaration {
@@ -145,6 +152,7 @@ export interface ISemanticRepositoryEvidenceDeclaration {
 export interface ISemanticCaseDefinition {
   expected: ISemanticCriterion[];
   forbidden: ISemanticCriterion[];
+  hostInstructions?: string;
   id: string;
   input: {
     developerDirection: string;
@@ -153,6 +161,16 @@ export interface ISemanticCaseDefinition {
   operation: string;
   resourceBudget: IMoldeaResourceBudget;
   scenario: string;
+  skillEvidence?: {
+    activationScenarios: Array<{
+      request: string;
+      shouldActivate: boolean;
+    }>;
+    artifacts: Array<{
+      role: 'authoritative-source' | 'distributed-copy' | 'installed-copy';
+      root: string;
+    }>;
+  };
 }
 
 export interface ISemanticCoverage {
@@ -169,8 +187,31 @@ export interface ISemanticCoverage {
   schemaVersion: 1;
 }
 
+export type ISemanticDispositionValue =
+  | 'restored-bounded-blocker'
+  | 'restored-explicit'
+  | 'restored-relationship'
+  | 'retained-current'
+  | 'rewritten-abstention';
+
+export interface ISemanticDispositions {
+  activeSemanticCaseCount: 74;
+  cases: Array<{
+    activeId: string;
+    disposition: ISemanticDispositionValue;
+    formerId: string;
+    rationale: string;
+  }>;
+  schemaVersion: 1;
+  source: {
+    ref: 'v4.0.2';
+    semanticCaseCount: 57;
+  };
+}
+
 export type ISemanticScenarioObservation =
   | { content: string; type: 'developer-direction' }
+  | { content: string; type: 'host-instructions' }
   | { fact: ISemanticGitStateFact; observed: true; type: 'git-state' }
   | { path: string; type: 'missing' }
   | { mode: number; path: string; type: 'directory' }
@@ -184,6 +225,15 @@ export type ISemanticScenarioObservation =
   | {
       content: string | null;
       mode: number;
+      omission: 'file-too-large' | 'non-utf8' | null;
+      path: string;
+      sha256: string;
+      type: 'file';
+    }
+  | {
+      content: string | null;
+      mode: number;
+      mount: string;
       omission: 'file-too-large' | 'non-utf8' | null;
       path: string;
       sha256: string;
@@ -225,6 +275,17 @@ export interface ISemanticRepositoryControlEvidence {
   violations: ISemanticRepositoryControlViolation[];
 }
 
+export interface ISemanticReadOnlyMountControlState {
+  mount: string;
+  treeDigest: string;
+}
+
+export interface ISemanticReadOnlyMountControlEvidence {
+  after: ISemanticReadOnlyMountControlState;
+  before: ISemanticReadOnlyMountControlState;
+  violations: Array<'mount-changed' | 'tree-changed'>;
+}
+
 export const getSemanticCriterionLabels: (criteria: ISemanticCriterion[]) => string[];
 export const validateSemanticCaseDefinition: <T extends ISemanticCaseDefinition>(
   caseDefinition: T,
@@ -241,15 +302,150 @@ export const createSemanticCoverageDigest: (
   coverage: unknown,
   caseDefinitions: ISemanticCaseDefinition[],
 ) => string;
+export const validateSemanticDispositions: <T extends ISemanticDispositions>(
+  dispositions: T,
+  activeCaseDefinitions: ISemanticCaseDefinition[],
+) => T;
 export const collectScenarioEvidence: (options: {
   caseDefinition: ISemanticCaseDefinition;
+  readOnlyMounts?: Array<{ source: string; target: string }>;
   repositoryPath: string;
 }) => Promise<ISemanticScenarioEvidence[]>;
 export const hasValidScenarioEvidence: (
   evidence: unknown,
   caseDefinition: ISemanticCaseDefinition,
 ) => boolean;
+export interface ISemanticSkillArtifactEvidence {
+  directories: string[];
+  excludedDirectoryCount: number;
+  files: Array<{
+    content: string | null;
+    mode: number;
+    omission: 'file-too-large' | 'non-utf8' | 'symlink' | null;
+    path: string;
+    sha256: string | null;
+  }>;
+  isTraversalTruncated: boolean;
+  resourceReferences: Array<{
+    isSafe: boolean;
+    reference: string;
+    resolvedPath: string;
+    type: 'directory' | 'file' | 'missing' | 'symlink' | 'unsafe';
+  }>;
+  role: 'authoritative-source' | 'distributed-copy' | 'installed-copy';
+  root: string;
+  rootType: 'directory' | 'file' | 'missing' | 'symlink';
+  truncatedDirectoryCount: number;
+  truncatedFileCount: number;
+  truncatedResourceReferenceCount: number;
+  validation: {
+    description: string | null;
+    errors: string[];
+    name: string | null;
+    valid: boolean;
+  };
+}
+export const validateSkillEvidenceConfiguration: (
+  caseDefinition: ISemanticCaseDefinition,
+) => NonNullable<ISemanticCaseDefinition['skillEvidence']>;
+export const validateSkillDocument: (
+  content: string,
+  directoryName: string,
+) => ISemanticSkillArtifactEvidence['validation'];
+export const collectSkillArtifactEvidence: (
+  repositoryPath: string,
+  caseDefinition: ISemanticCaseDefinition,
+) => Promise<ISemanticSkillArtifactEvidence[]>;
+export const hasValidSkillArtifactEvidence: (
+  evidence: unknown,
+  caseDefinition: ISemanticCaseDefinition,
+) => boolean;
+export interface ISemanticStageIdentity {
+  contract: Record<string, unknown>;
+  sha256: string;
+}
+export interface ISemanticStageTrialIdentity {
+  caseId: string;
+  confirmationIndex: 1 | 2 | null;
+  kind: 'confirmation' | 'initial';
+}
+export interface ISemanticStageReuseRecord {
+  identitySha256: string;
+  origin: 'reused';
+  schemaVersion: 1;
+  source: {
+    attemptId: string;
+    commit: string;
+    evidencePath: string;
+    evidenceSha256: string;
+    trial: ISemanticStageTrialIdentity;
+  };
+  stage: 'actor' | 'judge';
+}
+export const createSemanticStageValueDigest: (value: unknown) => string;
+export const createSemanticActorStageIdentity: (options: {
+  actorHost: Record<string, unknown>;
+  actorPrompt: string;
+  artifactDigest: string;
+  caseDefinitionDigest: string;
+  cli: Record<string, unknown>;
+  evaluationProtocolVersion: number;
+  readOnlyMountControlEvidence: ISemanticReadOnlyMountControlEvidence[];
+  repositoryControlBefore: Record<string, unknown>;
+  resourceProfileDigest: string;
+  scenarioEvidence: unknown[];
+}) => ISemanticStageIdentity;
+export const createSemanticJudgeStageIdentity: (options: {
+  actorEvidence: Record<string, unknown>;
+  actorIdentitySha256: string;
+  caseDefinitionDigest: string;
+  evaluationProtocolVersion: number;
+  judgeHost: Record<string, unknown>;
+  judgePrompt: string;
+}) => ISemanticStageIdentity;
+export const createSemanticStageReuseRecord: (options: {
+  identitySha256: string;
+  sourceAttemptId: string;
+  sourceCommit: string;
+  sourceEvidencePath: string;
+  sourceEvidenceSha256: string;
+  stage: 'actor' | 'judge';
+  trial: ISemanticStageTrialIdentity;
+}) => ISemanticStageReuseRecord;
+export const hasValidSemanticStageReuseRecord: (
+  record: unknown,
+  expected: {
+    identitySha256: string;
+    sourceAttemptId?: string;
+    sourceCommit?: string;
+    sourceEvidencePath?: string;
+    sourceEvidenceSha256?: string;
+    stage: 'actor' | 'judge';
+    trial: ISemanticStageTrialIdentity;
+  },
+) => boolean;
+export const selectSemanticStageReuse: (
+  candidates: ISemanticStageReuseRecord[],
+  expected: {
+    identitySha256: string;
+    sourceAttemptId?: string;
+    sourceCommit?: string;
+    sourceEvidencePath?: string;
+    sourceEvidenceSha256?: string;
+    stage: 'actor' | 'judge';
+    trial: ISemanticStageTrialIdentity;
+  },
+) => ISemanticStageReuseRecord | null;
 export const createEvaluationTreeDigest: (root: string) => Promise<string>;
+export const captureReadOnlyMountControlState: (mount: {
+  source: string;
+  target: string;
+}) => Promise<ISemanticReadOnlyMountControlState>;
+export const createReadOnlyMountControlEvidence: (
+  before: ISemanticReadOnlyMountControlState,
+  after: ISemanticReadOnlyMountControlState,
+) => ISemanticReadOnlyMountControlEvidence;
+export const hasValidReadOnlyMountControlEvidence: (evidence: unknown) => boolean;
 export const captureRepositoryControlState: (
   repositoryPath: string,
 ) => Promise<ISemanticRepositoryControlState>;

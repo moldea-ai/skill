@@ -273,7 +273,7 @@ export const createSemanticEvaluationSearchRecords = (
 ): ISearchRecord[] => {
   const landingRecord: ISearchRecord = {
     description: semanticEvaluation.hasAttempt
-      ? `Review the latest semantic attempt, immutable history, and ${semanticEvaluation.caseCount} behavioral scenarios.`
+      ? `Review the latest semantic attempt, current-contract history, and ${semanticEvaluation.caseCount} behavioral scenarios.`
       : `Review ${semanticEvaluation.caseCount} behavioral scenarios and the semantic evaluation methodology before the first attempt is recorded.`,
     route: semanticEvaluation.route,
     searchText: normalizeSearchText(
@@ -365,7 +365,7 @@ export const createLlmsText = (
     '',
     `- [Evidence overview](${EVIDENCE_ROUTE}): Choose behavioral semantic evaluation or real-project adapter qualification evidence.`,
     semanticEvaluation.hasAttempt
-      ? `- [Semantic evaluation](${semanticEvaluation.route}): Review the latest attempt, ${semanticEvaluation.caseCount} scenarios, and immutable history.`
+      ? `- [Semantic evaluation](${semanticEvaluation.route}): Review the latest attempt, ${semanticEvaluation.caseCount} scenarios, and current-contract history.`
       : `- [Semantic evaluation](${semanticEvaluation.route}): Review ${semanticEvaluation.caseCount} behavioral scenarios and the methodology before the first attempt is recorded.`,
     `- [Adapter qualification](${qualification.route}): Inspect the support gate, transparent profiles, passing outcomes, and immutable attempt history.`,
   );

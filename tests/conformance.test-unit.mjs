@@ -434,8 +434,8 @@ describe('activation and semantic protection', () => {
     assert.equal(outcomes.filter((value) => value === 'abstain').length, 8);
   });
 
-  test('validates the complete 18-case resource-bounded semantic suite', () => {
-    assert.equal(FIXTURE.semanticCases.length, 18);
+  test('validates the complete 74-case resource-bounded semantic suite', () => {
+    assert.equal(FIXTURE.semanticCases.length, 74);
     for (const caseDefinition of FIXTURE.semanticCases) {
       assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
     }
@@ -474,7 +474,7 @@ describe('activation and semantic protection', () => {
     const abstentions = FIXTURE.semanticCases.filter(
       ({ resourceBudget }) => resourceBudget.activation === 'abstain',
     );
-    assert.equal(abstentions.length, 8);
+    assert.equal(abstentions.length, 15);
     for (const { resourceBudget } of abstentions) {
       assert.deepEqual(resourceBudget, {
         activation: 'abstain',

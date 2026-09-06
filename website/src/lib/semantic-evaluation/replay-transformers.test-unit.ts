@@ -138,12 +138,14 @@ const createTrialSummary = (
   actorHost: trial.actorHost,
   confirmationIndex,
   evaluatedAt: trial.evaluatedAt,
+  executionOrigin: trial.executionOrigin,
   forbidden: trial.forbidden,
   judgeHost: trial.judgeHost,
   kind,
   observed: trial.observed,
   passed: trial.passed,
   rationale: trial.rationale,
+  stageReuse: trial.stageReuse,
 });
 
 const createAttemptCase = (

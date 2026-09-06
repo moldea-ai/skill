@@ -106,6 +106,22 @@ describe('semantic evaluation evidence', () => {
         }),
       /structured scenario/,
     );
+    assert.throws(
+      () =>
+        validateSemanticCaseDefinition({
+          ...caseDefinition,
+          input: {
+            ...caseDefinition.input,
+            repositoryEvidence: [
+              {
+                claim: 'Host instructions own repository-wide constraints.',
+                source: { kind: 'host-instructions' },
+              },
+            ],
+          },
+        }),
+      /structured scenario/,
+    );
   });
 
   test('hashes every distributed skill byte', () => {

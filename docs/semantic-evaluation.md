@@ -10,7 +10,7 @@ order: 172
 
 Deterministic tests can prove schemas, files, commands, and byte limits. Semantic evaluation tests whether a coding agent applies those contracts correctly inside realistic repository tasks.
 
-The current suite contains 18 cases. It is intentionally small enough to audit and broad enough to protect the behavior that caused the clean-slate redesign.
+The active suite contains 74 cases. It restores all 57 scenarios from the former suite, retains 17 scenarios added by the resource-bounded redesign, and counts the one shared scenario only once. `fixtures/semantic-evaluation-dispositions.json` records the clean-slate disposition of every former identifier so a reduced suite cannot silently replace established coverage again.
 
 ## What the suite proves
 
@@ -26,6 +26,12 @@ The cases cover:
 - valid zero-agent projects
 - large canonical inventories without full-content inspection
 - read-only evaluation across repository and Git control state
+- initialization from insufficient, partial, and sufficient evidence
+- canonical maintenance, reconciliation, compression, and exact relationship behavior
+- Agent Skill creation, maintenance, distribution, and script-authority boundaries
+- grounded agent-system planning and runtime selection
+- provider capability and routing-description ownership
+- package-manager, Git-helper, host-command, and related-repository safety
 
 Each case defines a natural developer request, sourced repository facts, expected behavior, prohibited behavior, and a resource budget. The actor receives the request and the portable skill. It does not receive the answer criteria.
 
@@ -77,9 +83,13 @@ The read-only case fails if evaluation changes any protected or ordinary reposit
 
 ## Fresh evidence by default
 
-Semantic protocol 23 accepts only evidence produced by the current suite, current portable bytes, current CLI closure, current runner, current coverage map, and current host contract.
+Semantic protocol 23 accepts only evidence produced by the current suite, current portable bytes, current CLI closure, current runner, current coverage map, current resource profiles, and current host contract.
 
-Evidence applies only to the exact current behavior-bearing inputs. Any change to those inputs requires a fresh run.
+Evidence applies only to exact behavior-bearing actor and judge stage identities. Actor identity binds the portable skill bytes, case definition, natural prompt, deterministic fixture, scenario evidence, complete related-repository mount state, resource-profile file, CLI closure, protocol, and exact host. The source resource profile is read from the immutable commit that contains the reused evidence rather than inferred from the current checkout. Judge identity additionally binds its exact prompt and the complete projected actor evidence it assessed. A verified immutable stage may be reused only when all of those inputs match byte-for-byte. Every mismatch is a cache miss.
+
+Reused stages retain their original evaluation time and carry the source attempt, source commit, evidence digest, trial identity, stage identity, and explicit `reused` origin. The current runner rematerializes deterministic fixtures, reruns repository and read-only-mount controls, and verifies the committed source artifact before accepting reuse. It never labels reuse as a new model invocation.
+
+The public evidence site generates routes, search records, and visible history only for attempts matching the active evaluation contract. Predecessor-suite artifacts remain internal provenance only when an exact reused stage depends on them.
 
 This is the normal release path. A maintainer may explicitly pin a release to valid passing evidence from an earlier immutable release when the current change cannot affect evaluated behavior. A pin is presented as pinned evidence, never as a fresh run, and must pass the source integrity and resource checks described in [Release evidence](/docs/release-evidence/).
 
@@ -93,7 +103,7 @@ npm run eval:semantic:preflight
 
 Preflight validates all case definitions, source evidence, portable skill structure, CLI identity, resource budgets, and repository setup without making a model call.
 
-It also prints the initial, planned, and maximum paid-stage counts plus the maximum token count. The maximum includes two confirmation trials after an initial failure and one bounded operational retry per actor or judge stage. Each completed tool-using Codex stage may report at most 2,097,152 cumulative input-plus-output tokens. This is a containment ceiling rather than a consumption target. It was selected above an observed 1,264,666-token qualification stage so normal tool-using work retains more than 25 percent headroom. Crossing it is an explicit failure, and cached input is reported separately without being added to input a second time.
+It also prints the total initial stage count, exact reusable case and stage counts, remaining paid initial stage count, confirmation-inclusive paid stage limit, retry-inclusive invocation limit, and absolute token containment limit. These are deliberately named limits, not forecasts. The confirmation limit assumes that every newly evaluated case needs two confirmation trials after its initial trial, while the invocation limit additionally assumes that every paid actor and judge stage consumes its one bounded operational retry. Each completed tool-using Codex invocation may report at most 2,097,152 cumulative input-plus-output tokens. The aggregate containment limit assumes that every permitted invocation reaches that individual ceiling, so it must not be presented as expected consumption or spend. The per-invocation ceiling was selected above an observed 1,264,666-token qualification stage so normal tool-using work retains more than 25 percent headroom. Crossing it is an explicit failure, and cached input is reported separately without being added to input a second time.
 
 ## Record and verify
 

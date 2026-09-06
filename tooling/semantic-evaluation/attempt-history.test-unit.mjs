@@ -1,10 +1,10 @@
-// @vitest-environment node
 import assert from 'node:assert/strict';
 import test from 'node:test';
 
 import { SEMANTIC_EVALUATION_PROTOCOL_VERSION } from '../release-identity/constants.mjs';
 
 import { createSemanticAttemptRecord } from './attempt-history.mjs';
+import { createSemanticStageReuseRecord } from './stage-reuse.mjs';
 
 const SHA256 = 'a'.repeat(64);
 const HOST = {
@@ -43,6 +43,24 @@ const createTrial = (id, passed, evaluatedAt) => ({
   passed,
   rationale: passed ? 'The required behavior was observed.' : 'The required behavior was missing.',
 });
+
+const createStageReuse = (id) => {
+  const trial = { caseId: id, confirmationIndex: null, kind: 'initial' };
+  const source = {
+    identitySha256: 'd'.repeat(64),
+    sourceAttemptId: 'source-attempt',
+    sourceCommit: 'e'.repeat(40),
+    sourceEvidencePath:
+      'fixtures/semantic-evaluation-results/attempts/source-attempt/evidence.json',
+    sourceEvidenceSha256: 'f'.repeat(64),
+    trial,
+  };
+
+  return {
+    actor: createSemanticStageReuseRecord({ ...source, stage: 'actor' }),
+    judge: createSemanticStageReuseRecord({ ...source, stage: 'judge' }),
+  };
+};
 
 const createEvidence = (results, confirmations = []) => ({
   activeTrial: null,
@@ -215,6 +233,76 @@ test('semantic attempt summaries record Sol provenance and command policy', () =
   assert.deepEqual(attempt.hostContract, HOST_CONTRACT);
   assert.equal(attempt.cases[0].trials[0].actorHost.model, HOST.model);
   assert.deepEqual(attempt.cases[0].trials[0].actorCommandPolicyEvidence, COMMAND_POLICY_EVIDENCE);
+});
+
+test('semantic attempt summaries distinguish executed and exact reused stages', () => {
+  const executedTrial = {
+    ...createTrial('executed-case', true, '2026-08-25T00:30:00.000Z'),
+    executionOrigin: 'executed',
+    stageReuse: null,
+  };
+  const reusedTrial = {
+    ...createTrial('reused-case', true, '2026-08-25T01:00:00.000Z'),
+    executionOrigin: 'reused',
+    stageReuse: createStageReuse('reused-case'),
+  };
+  const attempt = createSemanticAttemptRecord({
+    evidence: createEvidence([executedTrial, reusedTrial]),
+    evidenceKind: 'candidate',
+    evidenceSha256: 'd'.repeat(64),
+    recordedAt: '2026-08-25T01:00:01.000Z',
+    stopReason: 'complete',
+    totalCaseCount: 2,
+  });
+
+  assert.equal(attempt.executedTrialCount, 1);
+  assert.equal(attempt.executedStageCount, 2);
+  assert.equal(attempt.reusedTrialCount, 1);
+  assert.equal(attempt.reusedStageCount, 2);
+  assert.equal(attempt.cases[1].trials[0].executionOrigin, 'reused');
+  assert.equal(attempt.cases[1].trials[0].stageReuse.actor.source.attemptId, 'source-attempt');
+});
+
+test('semantic attempt summaries reject incomplete reuse provenance', () => {
+  const reusedTrial = {
+    ...createTrial('reused-case', true, '2026-08-25T01:00:00.000Z'),
+    executionOrigin: 'reused',
+    stageReuse: createStageReuse('reused-case'),
+  };
+  reusedTrial.stageReuse.judge.source.evidenceSha256 = '0'.repeat(64);
+
+  assert.throws(
+    () =>
+      createSemanticAttemptRecord({
+        evidence: createEvidence([reusedTrial]),
+        evidenceKind: 'candidate',
+        evidenceSha256: 'd'.repeat(64),
+        recordedAt: '2026-08-25T01:00:01.000Z',
+        stopReason: 'complete',
+        totalCaseCount: 1,
+      }),
+    /invalid execution provenance/u,
+  );
+
+  assert.throws(
+    () =>
+      createSemanticAttemptRecord({
+        evidence: createEvidence([
+          {
+            ...createTrial('executed-case', true, '2026-08-25T00:30:00.000Z'),
+            executionOrigin: 'executed',
+            stageReuse: null,
+          },
+          createTrial('predecessor-case', true, '2026-08-25T01:00:00.000Z'),
+        ]),
+        evidenceKind: 'candidate',
+        evidenceSha256: 'd'.repeat(64),
+        recordedAt: '2026-08-25T01:00:01.000Z',
+        stopReason: 'complete',
+        totalCaseCount: 2,
+      }),
+    /mixes predecessor and current execution provenance/u,
+  );
 });
 
 test('semantic attempt summaries reject missing or incompatible trial evidence', () => {

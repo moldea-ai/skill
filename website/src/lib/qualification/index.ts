@@ -18,6 +18,7 @@ export type {
   IQualificationJudgeSkipped,
   IQualificationOperationalRetry,
   IQualificationProfileCaseModel,
+  IQualificationProfileAssuranceModel,
   IQualificationProfileModel,
   IQualificationProjectedExecutionEvent,
   IQualificationSourceStateResult,

@@ -12,6 +12,7 @@ import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles
 
 import { hasValidActorCommandPolicyEvidence } from './actor-command-policy-evidence.mjs';
 import { hasValidMoldeaResourceEvidence } from './actor-execution-evidence.mjs';
+import { hasValidSemanticStageReuseRecord } from './stage-reuse.mjs';
 
 const ATTEMPT_EVIDENCE_FILENAME = 'evidence.json';
 const ATTEMPT_RECORD_FILENAME = 'attempt.json';
@@ -96,6 +97,16 @@ const hasValidModelUsage = (usage) =>
   usage.inputTokens + usage.outputTokens <=
     MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
 
+/** Compares actor and judge provenance for one shared source trial. */
+const hasMatchingStageReuseSource = (actorSource, judgeSource) =>
+  actorSource.attemptId === judgeSource.attemptId &&
+  actorSource.commit === judgeSource.commit &&
+  actorSource.evidencePath === judgeSource.evidencePath &&
+  actorSource.evidenceSha256 === judgeSource.evidenceSha256 &&
+  actorSource.trial.caseId === judgeSource.trial.caseId &&
+  actorSource.trial.confirmationIndex === judgeSource.trial.confirmationIndex &&
+  actorSource.trial.kind === judgeSource.trial.kind;
+
 const createTrialSummary = (result, kind, confirmationIndex, hostContract) => {
   if (
     !isPlainRecord(result) ||
@@ -130,6 +141,34 @@ const createTrialSummary = (result, kind, confirmationIndex, hostContract) => {
   }
   if (!hasValidMoldeaResourceEvidence(result.actorResourceEvidence)) {
     throw new Error('Semantic attempt evidence contains invalid moldea resource evidence.');
+  }
+
+  if ('executionOrigin' in result || 'stageReuse' in result) {
+    const trial = { caseId: result.id, confirmationIndex, kind };
+    if (
+      !['executed', 'reused'].includes(result.executionOrigin) ||
+      (result.executionOrigin === 'executed' && result.stageReuse !== null) ||
+      (result.executionOrigin === 'reused' &&
+        (!isPlainRecord(result.stageReuse) ||
+          !hasValidSemanticStageReuseRecord(result.stageReuse.actor, {
+            identitySha256: result.stageReuse.actor?.identitySha256,
+            stage: 'actor',
+            trial,
+          }) ||
+          !hasValidSemanticStageReuseRecord(result.stageReuse.judge, {
+            identitySha256: result.stageReuse.judge?.identitySha256,
+            stage: 'judge',
+            trial,
+          }) ||
+          !hasMatchingStageReuseSource(
+            result.stageReuse.actor.source,
+            result.stageReuse.judge.source,
+          )))
+    ) {
+      throw new Error('Semantic attempt evidence contains invalid execution provenance.');
+    }
+    summary.executionOrigin = result.executionOrigin;
+    summary.stageReuse = result.stageReuse;
   }
 
   return {
@@ -282,6 +321,24 @@ export const createSemanticAttemptRecord = ({
   const failedCaseCount = cases.filter(({ status }) => status === 'failed').length;
   const pendingCaseCount = totalCaseCount - cases.length;
   const status = failedCaseCount > 0 ? 'failed' : pendingCaseCount > 0 ? 'incomplete' : 'passed';
+  const trials = cases.flatMap(({ trials: caseTrials }) => caseTrials);
+  const trialsWithExecutionProvenance = trials.filter(
+    ({ executionOrigin }) => executionOrigin !== undefined,
+  ).length;
+  if (trialsWithExecutionProvenance !== 0 && trialsWithExecutionProvenance !== trials.length) {
+    throw new Error(
+      'Semantic attempt evidence mixes predecessor and current execution provenance.',
+    );
+  }
+  const hasExecutionProvenance = trials.every(
+    ({ executionOrigin }) => executionOrigin !== undefined,
+  );
+  const executedTrialCount = trials.filter(
+    ({ executionOrigin }) => executionOrigin === 'executed',
+  ).length;
+  const reusedTrialCount = trials.filter(
+    ({ executionOrigin }) => executionOrigin === 'reused',
+  ).length;
   const hasRejectedConfirmation = cases.some(
     ({ confirmationStatus }) => confirmationStatus === 'rejected',
   );
@@ -316,11 +373,23 @@ export const createSemanticAttemptRecord = ({
       sha256: digest,
     },
     failedCaseCount,
+    ...(hasExecutionProvenance
+      ? {
+          executedStageCount: executedTrialCount * 2,
+          executedTrialCount,
+        }
+      : {}),
     hostContract: evidence.hostContract,
     passedCaseCount,
     pendingCaseCount,
     recordedAt: requireIsoDate(recordedAt, 'Semantic attempt recording date'),
     recoveredCaseCount,
+    ...(hasExecutionProvenance
+      ? {
+          reusedStageCount: reusedTrialCount * 2,
+          reusedTrialCount,
+        }
+      : {}),
     schemaVersion: ATTEMPT_SCHEMA_VERSION,
     status,
     stopReason,

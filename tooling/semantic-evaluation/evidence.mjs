@@ -21,11 +21,18 @@ const SEMANTIC_CRITERION_KEYS = new Set(['criterion', 'label']);
 const SEMANTIC_CASE_KEYS = new Set([
   'expected',
   'forbidden',
+  'hostInstructions',
   'id',
   'input',
   'operation',
   'resourceBudget',
   'scenario',
+  'skillEvidence',
+]);
+const SKILL_ARTIFACT_ROLES = new Set([
+  'authoritative-source',
+  'distributed-copy',
+  'installed-copy',
 ]);
 
 const isPlainRecord = (input) =>
@@ -79,7 +86,58 @@ const isValidRepositoryEvidence = (entry) => {
       ['directory', 'file', 'missing', 'symlink'].includes(entry.source.expectedType)
     );
   }
+  if (entry.source.kind === 'host-instructions') {
+    return Object.keys(entry.source).length === 1;
+  }
+  if (entry.source.kind === 'related-path') {
+    return (
+      Object.keys(entry.source).length === 4 &&
+      typeof entry.source.mount === 'string' &&
+      /^\/[a-z0-9]+(?:[a-z0-9-]*[a-z0-9])?$/u.test(entry.source.mount) &&
+      isSafeEvidencePath(entry.source.path) &&
+      ['directory', 'file', 'missing', 'symlink'].includes(entry.source.expectedType)
+    );
+  }
   return false;
+};
+
+/** Returns whether evaluator-only Agent Skill evidence has a bounded safe shape. */
+const isValidSkillEvidence = (skillEvidence) => {
+  if (!isPlainRecord(skillEvidence) || Object.keys(skillEvidence).length !== 2) return false;
+  const { activationScenarios, artifacts } = skillEvidence;
+  if (
+    !Array.isArray(activationScenarios) ||
+    activationScenarios.length > 8 ||
+    !activationScenarios.every(
+      (scenario) =>
+        isPlainRecord(scenario) &&
+        Object.keys(scenario).length === 2 &&
+        typeof scenario.request === 'string' &&
+        scenario.request.trim().length > 0 &&
+        Buffer.byteLength(scenario.request, 'utf8') <= 1_024 &&
+        typeof scenario.shouldActivate === 'boolean',
+    ) ||
+    !Array.isArray(artifacts) ||
+    artifacts.length === 0 ||
+    artifacts.length > 8
+  ) {
+    return false;
+  }
+
+  const roots = new Set();
+  return artifacts.every((artifact) => {
+    if (
+      !isPlainRecord(artifact) ||
+      Object.keys(artifact).length !== 2 ||
+      !SKILL_ARTIFACT_ROLES.has(artifact.role) ||
+      !isSafeEvidencePath(artifact.root) ||
+      roots.has(artifact.root)
+    ) {
+      return false;
+    }
+    roots.add(artifact.root);
+    return true;
+  });
 };
 
 /** Hashes one JSON-compatible semantic-evaluation contract exactly. */
@@ -119,7 +177,9 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
   const hasValidResourceBudget =
     isPlainRecord(resourceBudget) &&
     Object.keys(resourceBudget).length === 4 &&
-    ['abstain', 'direct', 'informational', 'relationship'].includes(resourceBudget.activation) &&
+    ['abstain', 'blocked', 'direct', 'informational', 'relationship'].includes(
+      resourceBudget.activation,
+    ) &&
     Number.isSafeInteger(resourceBudget.minimumMoldeaCommands) &&
     resourceBudget.minimumMoldeaCommands >= 0 &&
     Number.isSafeInteger(resourceBudget.maximumMoldeaCommands) &&
@@ -132,8 +192,28 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
       (resourceBudget.minimumMoldeaCommands === 0 &&
         resourceBudget.maximumMoldeaCommands === 0 &&
         resourceBudget.maximumMoldeaOutputBytes === 0)) &&
-    (['abstain', 'informational'].includes(resourceBudget.activation) ||
-      resourceBudget.minimumMoldeaCommands > 0);
+    (['abstain', 'blocked', 'informational'].includes(resourceBudget.activation) ||
+      resourceBudget.minimumMoldeaCommands > 0) &&
+    (resourceBudget.activation !== 'blocked' || resourceBudget.maximumMoldeaCommands <= 1);
+  const hostInstructionEvidenceCount =
+    isPlainRecord(caseDefinition?.input) && Array.isArray(caseDefinition.input.repositoryEvidence)
+      ? caseDefinition.input.repositoryEvidence.filter(
+          (entry) =>
+            isPlainRecord(entry) &&
+            isPlainRecord(entry.source) &&
+            entry.source.kind === 'host-instructions',
+        ).length
+      : 0;
+  const hasHostInstructions = isPlainRecord(caseDefinition) && 'hostInstructions' in caseDefinition;
+  const hasValidHostInstructions = hasHostInstructions
+    ? typeof caseDefinition.hostInstructions === 'string' &&
+      caseDefinition.hostInstructions.trim().length > 0 &&
+      Buffer.byteLength(caseDefinition.hostInstructions, 'utf8') <= 16_384 &&
+      hostInstructionEvidenceCount === 1
+    : hostInstructionEvidenceCount === 0;
+  const hasValidConfiguredSkillEvidence =
+    isPlainRecord(caseDefinition) &&
+    (!('skillEvidence' in caseDefinition) || isValidSkillEvidence(caseDefinition.skillEvidence));
   if (
     !isPlainRecord(caseDefinition) ||
     'prompt' in caseDefinition ||
@@ -141,6 +221,8 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
     !STABLE_ID_PATTERN.test(caseDefinition.id) ||
     !hasStructuredScenario ||
     !hasValidResourceBudget ||
+    !hasValidHostInstructions ||
+    !hasValidConfiguredSkillEvidence ||
     !Array.isArray(caseDefinition.expected) ||
     caseDefinition.expected.length === 0 ||
     !Array.isArray(caseDefinition.forbidden) ||

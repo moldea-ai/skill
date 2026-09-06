@@ -10,7 +10,7 @@
     "ordinary": {
       "maxCompletedCommandCount": 64,
       "maxCommandOutputBytes": 131072,
-      "maxHostTokenCount": 1250000,
+      "maxHostTokenCount": 1625000,
       "maxModelVisibleToolOutputBytes": 1048576,
       "maxAggregateMoldeaOutputBytes": 262144,
       "maxMoldeaCommandCount": 16,
@@ -19,7 +19,7 @@
     "largeTraversal": {
       "maxCompletedCommandCount": 64,
       "maxCommandOutputBytes": 131072,
-      "maxHostTokenCount": 1250000,
+      "maxHostTokenCount": 1625000,
       "maxModelVisibleToolOutputBytes": 4194304,
       "maxAggregateMoldeaOutputBytes": 1048576,
       "maxMoldeaCommandCount": 16,

@@ -13,7 +13,7 @@ test('keeps ordinary, large, and absolute profiles ordered without raising CLI p
   assert.deepEqual(ordinary, {
     maxCompletedCommandCount: 64,
     maxCommandOutputBytes: 131_072,
-    maxHostTokenCount: 1_250_000,
+    maxHostTokenCount: 1_625_000,
     maxModelVisibleToolOutputBytes: 1_048_576,
     maxAggregateMoldeaOutputBytes: 262_144,
     maxMoldeaCommandCount: 16,
@@ -22,7 +22,7 @@ test('keeps ordinary, large, and absolute profiles ordered without raising CLI p
   assert.deepEqual(largeTraversal, {
     maxCompletedCommandCount: 64,
     maxCommandOutputBytes: 131_072,
-    maxHostTokenCount: 1_250_000,
+    maxHostTokenCount: 1_625_000,
     maxModelVisibleToolOutputBytes: 4_194_304,
     maxAggregateMoldeaOutputBytes: 1_048_576,
     maxMoldeaCommandCount: 16,

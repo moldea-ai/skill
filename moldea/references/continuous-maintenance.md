@@ -10,6 +10,18 @@ Do not recommend initialization during unrelated work. Do not treat generic know
 
 Create the smallest foundation that accurately represents established current truth. Zero agents, relationships, runtimes, and requirements are valid. Never create placeholder agents or speculative bindings to make a project appear complete.
 
+## Decide whether foundation evidence is sufficient
+
+Before installing or changing a dependency, creating canonical state, or adding the managed README block, inspect the smallest high-information project-owned sources and classify the foundation:
+
+- **Insufficient:** reliable evidence does not establish what the project does and who or what it serves. Report that the complete adoption contract is absent, identify the exact evidence inspected, and explain that `moldea` keeps durable repository context so coding agents can understand the project consistently over time. State that the inspected sources do not establish what the project is for, then ask one focused question: what does the project do, and who or what does it serve?
+- **Partial:** evidence supports some useful foundation but leaves one material purpose, user, goal, authority, safety, value-bearing, or operating boundary unresolved, or supports consequential conflicting interpretations. Preserve every existing artifact, summarize the supported truth separately from the highest-value unresolved boundary, and ask one focused clarification that distinguishes the material alternatives.
+- **Sufficient:** evidence establishes a useful project purpose and served people or systems, and no unresolved material boundary would make the persisted foundation misleading. Proceed without a ceremonial question.
+
+Insufficient and partial foundations stop before every dependency, `/moldea/**`, and managed README write. Do not store developer-answerable ambiguity as an unresolved requirement. A repository name, generic label, brief package metadata, placeholder source, or empty export does not establish a foundation by itself. A concise authoritative source can be sufficient when it establishes the necessary truth. Developer-provided context in the initialization request may contribute when its intended authority is clear.
+
+Do not use successful structural validation to justify placeholder truth. Validation proves that files satisfy the repository format; it does not prove that their claims are meaningful or evidence-backed.
+
 When repository evidence establishes no manifest relationship, the complete manifest is exactly:
 
 ```yaml

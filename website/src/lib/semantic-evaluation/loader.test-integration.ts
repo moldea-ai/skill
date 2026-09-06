@@ -208,14 +208,16 @@ afterEach(() => {
 });
 
 describe('loadSemanticEvaluationWebsiteModel', () => {
-  test('does not publish the predecessor 18-case suite as current evidence or history', () => {
+  test('excludes the predecessor 18-case suite while retaining expanded diagnostic history', () => {
     const model = loadSemanticEvaluationWebsiteModel(REPOSITORY_ROOT);
 
     expect(model.caseCount).toBe(74);
-    expect(model.attempts).toStrictEqual([]);
-    expect(model.hasAttempt).toBe(false);
-    expect(model.latest).toBeNull();
-    expect(model.latestPointer).toBeNull();
+    expect(model.attempts.map(({ result }) => result.attemptId)).toStrictEqual([
+      '20260906T163658775Z-semantic-7d2857cc',
+    ]);
+    expect(model.hasAttempt).toBe(true);
+    expect(model.latest?.result.status).toBe('failed');
+    expect(model.latestPointer?.lastPassingAttemptId).toBeNull();
     expect(model.currentAssurance).toBeNull();
     expect(model.status).toBe('not-recorded');
     expect(model.pendingCaseCount).toBe(74);

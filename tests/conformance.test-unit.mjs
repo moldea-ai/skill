@@ -341,6 +341,13 @@ describe('portable skill contract', () => {
       /Load `references\/local-tooling\.md` only when the launcher reports that repository tooling is unavailable or invalid/u,
     );
     assert.match(skill, /Write the complete three-file foundation before the first CLI call/u);
+    assert.match(
+      skill,
+      /Before any dependency, canonical-state, or managed README write during initialization/u,
+    );
+    assert.match(skill, /Insufficient evidence and partial evidence.*pre-write stop conditions/u);
+    assert.match(skill, /ask what the project does and who or what it serves/u);
+    assert.match(skill, /Structural validation proves format, not the truth or sufficiency/u);
     assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
     assert.match(skill, /run `validate` at most once more/u);
     assert.match(skill, /Read exact task-owned files first/u);
@@ -370,6 +377,15 @@ describe('portable skill contract', () => {
       'utf8',
     );
     assert.match(maintenance, /Do not validate a partial foundation/u);
+    assert.match(maintenance, /## Decide whether foundation evidence is sufficient/u);
+    assert.match(
+      maintenance,
+      /Insufficient and partial foundations stop before every dependency, `\/moldea\/\*\*`, and managed README write/u,
+    );
+    assert.match(maintenance, /what does the project do, and who or what does it serve\?/u);
+    assert.match(maintenance, /Preserve every existing artifact/u);
+    assert.match(maintenance, /Do not store developer-answerable ambiguity/u);
+    assert.match(maintenance, /Validation proves that files satisfy the repository format/u);
     assert.match(maintenance, /The file ends with one LF/u);
     assert.match(maintenance, /Do not add a project name, schema field, metadata/u);
     assert.match(maintenance, /stop without `inspect` or another moldea command/u);

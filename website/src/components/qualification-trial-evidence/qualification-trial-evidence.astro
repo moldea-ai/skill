@@ -307,7 +307,7 @@ const getArtifactLabel = (artifactPath: string): string =>
                 </span>
               </dd>
               <dd class="mt-1 text-xs text-muted-foreground">
-                moldea calls / limit:{' '}
+                <code class="font-mono text-foreground">moldea</code> calls / limit:{' '}
                 <span class="font-mono text-foreground">
                   {evidence.actorCommandPolicy.moldeaCommandCount} / {
                     resourceProfile.maxMoldeaCommandCount
@@ -331,7 +331,7 @@ const getArtifactLabel = (artifactPath: string): string =>
                 </span>
               </dd>
               <dd class="mt-1 text-xs text-muted-foreground">
-                moldea output / limit:{' '}
+                <code class="font-mono text-foreground">moldea</code> output / limit:{' '}
                 <span class="font-mono text-foreground">
                   {evidence.actorCommandPolicy.moldeaOutputByteCount} / {
                     resourceProfile.maxAggregateMoldeaOutputBytes
@@ -425,7 +425,7 @@ const getArtifactLabel = (artifactPath: string): string =>
                       </span>
                     </dd>
                     <dd class="mt-1 text-xs text-muted-foreground">
-                      moldea calls / limit:{' '}
+                      <code class="font-mono text-foreground">moldea</code> calls / limit:{' '}
                       <span class="font-mono text-foreground">
                         {evidence.judgeCommandPolicy.moldeaCommandCount} /{' '}
                         {resourceProfile.maxMoldeaCommandCount}
@@ -446,7 +446,7 @@ const getArtifactLabel = (artifactPath: string): string =>
                       </span>
                     </dd>
                     <dd class="mt-1 text-xs text-muted-foreground">
-                      moldea output / limit:{' '}
+                      <code class="font-mono text-foreground">moldea</code> output / limit:{' '}
                       <span class="font-mono text-foreground">
                         {evidence.judgeCommandPolicy.moldeaOutputByteCount} /{' '}
                         {resourceProfile.maxAggregateMoldeaOutputBytes} bytes

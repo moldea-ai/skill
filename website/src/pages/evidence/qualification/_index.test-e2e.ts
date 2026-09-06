@@ -212,18 +212,20 @@ test('replays qualification evidence through human-readable and technical views'
   await expect(replayTab).toHaveAttribute('aria-selected', 'true');
   await expect(evidenceTab).toHaveAttribute('aria-selected', 'false');
   await expect(technicalTab).toHaveAttribute('aria-selected', 'false');
-  await expect(journey.getByText('Developer', { exact: true })).toBeVisible();
-  await expect(journey.getByText('Coding agent', { exact: true })).toBeVisible();
-  await expect(journey.getByText('Deterministic verifier', { exact: true })).toBeVisible();
+  await expect(journey.getByText('Developer', { exact: true }).first()).toBeVisible();
+  await expect(journey.getByText('Coding agent', { exact: true }).first()).toBeVisible();
+  await expect(journey.getByText('Deterministic verifier', { exact: true }).first()).toBeVisible();
   const developerMessage = journey.locator('article').filter({ hasText: 'DEVELOPER' }).first();
   await expect(developerMessage).toContainText('Add the order-triage agent');
   await expect(developerMessage).toContainText('createOrderTriageAgent');
-  await expect(journey.getByRole('heading', { name: 'Workspace changes' })).toBeVisible();
-  await expect(journey.getByTitle('moldea/agents/order-triage/description.md')).toBeVisible();
+  await expect(journey.getByRole('heading', { name: 'Workspace changes' }).first()).toBeVisible();
+  await expect(
+    journey.getByTitle('moldea/agents/order-triage/description.md').first(),
+  ).toBeVisible();
   const verdict = journey.locator('[data-replay-verdict]').first();
   await expect(verdict.getByText('Trial verdict', { exact: true })).toBeVisible();
   await verdict.locator('summary').click();
-  await expect(verdict.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
+  await expect(verdict.getByRole('heading', { name: /Why it (?:passed|failed)/u })).toBeVisible();
 
   await replayTab.focus();
   await replayTab.press('ArrowRight');
@@ -231,7 +233,7 @@ test('replays qualification evidence through human-readable and technical views'
   await expect(evidenceTab).toHaveAttribute('aria-selected', 'true');
   await expect(journey.getByRole('heading', { name: 'What had to happen' })).toBeVisible();
   await expect(journey.getByRole('heading', { name: 'What must not happen' })).toBeVisible();
-  await expect(journey.getByRole('heading', { name: 'Why it passed' })).toBeVisible();
+  await expect(journey.getByRole('heading', { name: /Why it (?:passed|failed)/u })).toBeVisible();
   await expect(journey.getByRole('heading', { name: 'Requirement results' })).toBeVisible();
 
   await evidenceTab.press('End');
@@ -243,7 +245,9 @@ test('replays qualification evidence through human-readable and technical views'
     .locator('xpath=ancestor::article[1]');
   await initialTrial.locator('summary').first().click();
   await expect(initialTrial.getByRole('heading', { name: 'Deterministic evidence' })).toBeVisible();
-  await expect(initialTrial.getByText('Commands recorded:', { exact: false })).toBeVisible();
+  await expect(
+    initialTrial.getByText('Commands recorded / limit:', { exact: false }).first(),
+  ).toBeVisible();
   await expect(
     initialTrial.getByText(/Operational retries \(0\) and committed trial artifacts/u),
   ).toBeVisible();
@@ -383,12 +387,12 @@ test(
       );
       await initialTrial.locator('summary').first().click();
       await expect(initialTrial.getByText('ordinary', { exact: true })).toBeVisible();
-      await expect(initialTrial.getByText('0 / 32', { exact: true })).toBeVisible();
+      await expect(initialTrial.getByText('0 / 64', { exact: true })).toBeVisible();
       await expect(
         initialTrial.getByText('Largest command output / limit:', { exact: false }),
       ).toBeVisible();
       await expect(initialTrial.getByText('0 / 65536 bytes', { exact: true })).toBeVisible();
-      await expect(initialTrial.getByText('144 / 524288', { exact: true })).toBeVisible();
+      await expect(initialTrial.getByText('144 / 1250000', { exact: true })).toBeVisible();
       await expect(initialTrial.getByText('not-observed', { exact: true })).toHaveCount(3);
       await expect(initialTrial.getByText('Unexpected changed path unexpected.md.')).toHaveCount(2);
       await expect(

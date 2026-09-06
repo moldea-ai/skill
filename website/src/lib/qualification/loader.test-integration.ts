@@ -1,6 +1,7 @@
 // @vitest-environment node
 // exercises the public loader against complete repository-shaped filesystem fixtures
 import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
@@ -45,6 +46,23 @@ const writeText = (root: string, relativePath: string, content: string): void =>
 
 const writeJson = (root: string, relativePath: string, value: unknown): void => {
   writeText(root, relativePath, `${JSON.stringify(value, null, 2)}\n`);
+};
+
+/** Executes one deterministic local Git fixture operation. */
+const executeGit = (root: string, args: string[]): string => {
+  const result = spawnSync('git', args, {
+    cwd: root,
+    encoding: 'utf8',
+    shell: false,
+  });
+
+  if (result.error !== undefined || result.status !== 0) {
+    throw new Error(`Git fixture operation failed: ${args.join(' ')}`, {
+      cause: result.error ?? new Error(result.stderr),
+    });
+  }
+
+  return result.stdout.trim();
 };
 
 const seedProfile = (root: string): void => {
@@ -542,7 +560,7 @@ describe('loadQualificationWebsiteModel', () => {
     );
 
     expect(model.profiles).toHaveLength(14);
-    expect(attempts).toHaveLength(0);
+    expect(attempts.every(({ result }) => result.protocolVersion === 8)).toBe(true);
     expect(customProfile?.cases.map(({ id }) => id)).toStrictEqual([...universalCaseIds]);
     expect(
       model.profiles
@@ -696,6 +714,46 @@ cases:
     expect(() => loadQualificationWebsiteModel(root)).toThrow(
       'Qualification case has contradictory post-actor deterministic evidence.',
     );
+  });
+
+  test('revalidates an immutable attempt with its recorded resource profile', async () => {
+    const root = createTemporaryRoot();
+    await seedCurrentQualificationAttempt(root, 'attempt-contract-seed');
+    executeGit(root, ['init', '--initial-branch=main']);
+    executeGit(root, [
+      '-c',
+      'user.name=moldea qualification',
+      '-c',
+      'user.email=qualification@moldea.local',
+      'add',
+      'fixtures/resource-calibration.json',
+      'qualification/cases',
+      'qualification/profiles',
+    ]);
+    executeGit(root, [
+      '-c',
+      'commit.gpgsign=false',
+      '-c',
+      'user.name=moldea qualification',
+      '-c',
+      'user.email=qualification@moldea.local',
+      'commit',
+      '-m',
+      'test: record qualification contracts',
+    ]);
+    const recordedCommit = executeGit(root, ['rev-parse', 'HEAD']);
+    const attempt = readAttemptFixture(root, 'attempt-contract-seed');
+    const provenance = attempt['provenance'] as Record<string, unknown>;
+    provenance['qualificationRepositoryCommit'] = recordedCommit;
+    writeAttemptFixture(root, 'attempt-contract-seed', attempt);
+    const calibrationPath = join(root, 'fixtures/resource-calibration.json');
+    const currentCalibration = JSON.parse(readFileSync(calibrationPath, 'utf8')) as {
+      profiles: Record<string, { maxHostTokenCount: number }>;
+    };
+    currentCalibration.profiles['ordinary']!.maxHostTokenCount = 1;
+    writeJson(root, 'fixtures/resource-calibration.json', currentCalibration);
+
+    expect(() => loadQualificationWebsiteModel(root)).not.toThrow();
   });
 
   test('replays the immutable developer task retained in the actor prompt', async () => {

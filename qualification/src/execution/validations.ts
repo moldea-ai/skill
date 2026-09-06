@@ -12,6 +12,7 @@ import type {
   IQualificationExecutionEnvironment,
   IQualificationModelStageEvidence,
   IQualificationRequirementAssessment,
+  IQualificationResourceProfile,
   IQualificationSourceStateResult,
   IWorkspaceAssertionResult,
 } from '../contracts/index.ts';
@@ -208,10 +209,12 @@ export const deriveQualificationCommandPolicyFailures = (options: {
 export const inspectQualificationResourceUsage = (options: {
   allowMissingUsage: boolean;
   evidence: Pick<IQualificationModelStageEvidence, 'commandPolicy' | 'usage'>;
+  profile?: IQualificationResourceProfile;
   role: 'Actor' | 'Judge';
   scenario: IQualificationCaseScenario;
 }): IQualificationResourceAssessment => {
-  const profile = MOLDEA_SKILL_RESOURCE_PROFILES[options.scenario.resourceProfile];
+  const profile =
+    options.profile ?? MOLDEA_SKILL_RESOURCE_PROFILES[options.scenario.resourceProfile];
   const observations: Array<{
     dimension: IQualificationResourceDimension;
     limit: number;

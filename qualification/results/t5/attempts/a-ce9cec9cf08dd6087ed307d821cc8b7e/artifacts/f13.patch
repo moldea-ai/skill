@@ -1,0 +1,56 @@
+diff --git a/moldea/moldea.yaml b/moldea/moldea.yaml
+index a5ba2f9..f3dc97d 100644
+--- a/moldea/moldea.yaml
++++ b/moldea/moldea.yaml
+@@ -1,5 +1,17 @@
+ version: 1
+ 
++agents:
++  order-triage:
++    runtime:
++      id: custom
++      guidance: /moldea/runtimes/custom.md
++    bindings:
++      runtimeAgent:
++        path: /src/order-triage-agent.ts
++        symbol: createOrderTriageAgent
++    affectedBy:
++      - /src/order-triage-agent.ts
++
+ context:
+   /moldea/project.md:
+     affectedBy:
+
+diff --git a/moldea/agents/order-triage/description.md b/moldea/agents/order-triage/description.md
+new file mode 100644
+index 0000000..62855c3
+--- /dev/null
++++ b/moldea/agents/order-triage/description.md
+@@ -0,0 +1 @@
++Classifies orders for human review without authority to approve refunds.
+
+diff --git a/moldea/agents/order-triage/instruction.md b/moldea/agents/order-triage/instruction.md
+new file mode 100644
+index 0000000..df08aed
+--- /dev/null
++++ b/moldea/agents/order-triage/instruction.md
+@@ -0,0 +1,7 @@
++# order-triage
++
++You are the `order-triage` agent.
++
++Classify orders for human review. Provide a clear classification for the reviewing human, grounded in the supplied order information.
++
++Do not approve refunds or claim refund decision authority. Leave refund approval to human review.
+
+diff --git a/moldea/runtimes/custom.md b/moldea/runtimes/custom.md
+new file mode 100644
+index 0000000..a554adf
+--- /dev/null
++++ b/moldea/runtimes/custom.md
+@@ -0,0 +1,5 @@
++# Custom runtime
++
++The runtime creates this agent through `createOrderTriageAgent` in `/src/order-triage-agent.ts`. It must provide the factory with an asynchronous loader that resolves the requested repository-absolute canonical instruction path. The factory awaits that loader and exposes its returned text as the agent instruction.
++
++The created agent identifies itself as `order-triage`, reports the action `classify-for-human-review`, and exposes `canApproveRefunds` as `false`.

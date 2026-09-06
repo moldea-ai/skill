@@ -58,11 +58,13 @@ Every scenario declares `ordinary` or `largeTraversal`. Every actor and judge st
 - `modelVisibleToolOutputByteCount`
 - cumulative input-plus-output model tokens
 
-Both profiles permit at most 64 KiB from one completed command. The `ordinary` profile also permits 32 completed commands, 8 moldea calls, 256 KiB of moldea output, 1 MiB of aggregate model-visible tool output, and 524,288 model tokens. `largeTraversal` also permits 64 commands, 16 moldea calls, 1 MiB of moldea output, 4 MiB of aggregate model-visible tool output, and 1,048,576 model tokens. Every dimension remains an independent final failure. An actor that exceeds only completed-command, moldea-call, or total-token limits may reach the judge while inside absolute containment so a semantic verdict can establish calibration eligibility. The trial still fails the active profile. Missing token usage and maximum-command, aggregate model-visible, or aggregate moldea output overages skip judging, as do deterministic, workspace, runner-owned, and observed command-policy failures. Higher absolute host ceilings remain failure containment, not recommended operating volumes.
+Both profiles permit at most 64 KiB from one completed command, 64 completed commands, 16 moldea calls, and 1,250,000 model tokens. The `ordinary` profile also permits 256 KiB of moldea output and 1 MiB of aggregate model-visible tool output. `largeTraversal` also permits 1 MiB of moldea output and 4 MiB of aggregate model-visible tool output. Every dimension remains an independent final failure. An actor that exceeds only completed-command, moldea-call, or total-token limits may reach the judge while inside absolute containment so a semantic verdict can establish calibration eligibility. The trial still fails the active profile. Missing token usage and maximum-command, aggregate model-visible, or aggregate moldea output overages skip judging, as do deterministic, workspace, runner-owned, and observed command-policy failures. Higher absolute host ceilings remain failure containment, not recommended operating volumes.
 
 Protocol 8 classifies actual operations instead of matching security vocabulary in repository searches. Evidence retains only bounded sorted reason codes and counts for network, sensitive, credential, or indeterminate operations. It never retains raw commands, paths, patterns, outputs, or credentials. Indeterminate evidence is not a safety attestation; official runs accept it only alongside independently established read-only filesystem and restricted-egress sandbox boundaries.
 
 The portable skill still directs ordinary work to 65,536-byte CLI pages and 262,144 bytes of aggregate `moldea` output. It also requires exact or bounded host discovery that excludes dependency, VCS, generated, cache, and package-store trees. Large repositories remain supported through paginated metadata and explicit content chunks. A budget failure states which observed value exceeded which limit; it never silently truncates evidence into an apparently valid result.
+
+`fixtures/model-stage-resource-calibration.json` preserves the accepted calibration inputs without transcripts. Its strict source-controlled shape contains trial and evidence identity, pass states, aggregate counts, and input, cached-input, output, and total token categories. `npm run resource:check` verifies its digest, internal arithmetic, output safety, containment, and minimum profile headroom.
 
 ## Current-only evidence
 
@@ -161,6 +163,8 @@ The packages repository contributes only the immutable `HEAD:compatibility/runti
 ## Current result storage
 
 `results/<target-key>/attempts/a-<digest>/` contains the current attempt and numbered artifacts. `storage.json` binds logical artifact paths to physical files and verifies every SHA-256 digest. `latest.json` points to the latest attempt and current passing attempt when one exists.
+
+Current protocol-8 attempts are revalidated against the profile, probes, scenarios, and resource calibration stored at their recorded qualification source commit. Inactive diagnostic attempts that predate the final protocol-8 field set are retained unchanged under `diagnostics/`; they are not current evidence and no compatibility reader interprets them.
 
 Fresh release verification reads only this current storage. Every indexed target must have one compatible passing attempt. An explicit release evidence pin instead validates the original immutable source tag and its compact artifact manifests without copying source attempts into the new release.
 

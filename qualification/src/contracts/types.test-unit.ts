@@ -57,7 +57,7 @@ const createScenario = (pathPattern: string) => ({
   ],
 });
 
-test('accepts bounded model usage and rejects invalid cached or total token counts', () => {
+test('validates model usage structure independently from source-committed resource profiles', () => {
   expect(
     ModelUsageSchema.safeParse({
       cachedInputTokens: 524_288,
@@ -78,7 +78,7 @@ test('accepts bounded model usage and rejects invalid cached or total token coun
       inputTokens: 2_097_152,
       outputTokens: 1,
     }).success,
-  ).toBe(false);
+  ).toBe(true);
 });
 
 test('requires privacy-safe command-policy reasons to be counted, unique, and sorted', () => {

@@ -1,6 +1,8 @@
 import path from 'node:path';
 import { z } from 'zod';
 
+import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../tooling/resource-calibration/profiles.mjs';
+
 import {
   QUALIFICATION_CONFIRMATION_POLICY,
   QUALIFICATION_EVIDENCE_PROTOCOL_VERSION,
@@ -135,10 +137,15 @@ export const seedPassingQualificationEvidenceFixture = async (options: {
 }): Promise<IQualificationAttemptResult> => {
   const profilesRoot = path.join(options.resultsRoot, '..', 'profiles');
   const casesRoot = path.join(options.resultsRoot, '..', 'cases');
+  const fixturesRoot = path.join(options.resultsRoot, '..', '..', 'fixtures');
   const profileDirectory = path.join(profilesRoot, 't1');
   const projectDirectory = path.join(profileDirectory, 'cases', 'c1');
-  await ensureDirectory(projectDirectory);
+  await Promise.all([ensureDirectory(projectDirectory), ensureDirectory(fixturesRoot)]);
   await Promise.all([
+    writeJsonFileAtomically(path.join(fixturesRoot, 'resource-calibration.json'), {
+      schemaVersion: 1,
+      profiles: MOLDEA_SKILL_RESOURCE_PROFILES,
+    }),
     writeTextFileAtomically(
       path.join(casesRoot, 'cases.yaml'),
       [

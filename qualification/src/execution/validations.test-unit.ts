@@ -286,6 +286,40 @@ describe('scenario resource profiles', () => {
     ).toStrictEqual({ failures: [], hasJudgeBlocker: false, violations: [] });
   });
 
+  test('uses an explicitly supplied historical profile instead of the active profile', () => {
+    const historicalProfile = { ...ordinaryProfile, maxCompletedCommandCount: 32 };
+    const observed = historicalProfile.maxCompletedCommandCount + 1;
+
+    expect(
+      inspectQualificationResourceUsage({
+        allowMissingUsage: false,
+        evidence: {
+          ...exactBoundaryEvidence,
+          commandPolicy: {
+            ...exactBoundaryEvidence.commandPolicy,
+            completedCommandCount: observed,
+          },
+        },
+        profile: historicalProfile,
+        role: 'Actor',
+        scenario,
+      }),
+    ).toStrictEqual({
+      failures: [
+        `Actor resource profile ordinary exceeded completed-host-commands: observed ${observed}, limit ${historicalProfile.maxCompletedCommandCount}.`,
+      ],
+      hasJudgeBlocker: false,
+      violations: [
+        {
+          dimension: 'completed-host-commands',
+          kind: 'exceeded',
+          limit: historicalProfile.maxCompletedCommandCount,
+          observed,
+        },
+      ],
+    });
+  });
+
   test.each([
     [
       'completedCommandCount',

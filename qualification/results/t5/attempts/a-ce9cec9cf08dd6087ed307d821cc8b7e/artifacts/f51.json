@@ -1,0 +1,17 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, patch, and runner-owned validation agree: moldea was initialized with only the minimal foundation, and the project context accurately reflects the repository-supported invoice-review purpose and non-authorizing findings workflow.",
+  "requirements": [
+    {
+      "id": "grounds-project",
+      "verdict": "pass",
+      "evidence": "README.md states that the service reviews invoice line items for duplicate references and arithmetic mismatches, returns findings to a human finance operator, and never authorizes or sends payment. src/invoice-review.ts implements deterministic duplicate-reference findings by deduplicating and sorting results. moldea/project.md preserves these facts and explicitly notes that arithmetic-mismatch handling and a runtime entry point are not established by source evidence."
+    },
+    {
+      "id": "keeps-foundation-minimal",
+      "verdict": "pass",
+      "evidence": "Git status and diffs show exactly three changed paths: README.md, moldea/moldea.yaml, and moldea/project.md. The manifest contains only `version: 1`; the project context adds no agent, runtime, decision, relationship, or unresolved requirement; and the README diff only appends the standard awareness block while preserving all prior content. Repository-local moldea CLI 7.0.1 validation returned schema version 4, status valid, valid true, and zero diagnostics."
+    }
+  ],
+  "failures": []
+}

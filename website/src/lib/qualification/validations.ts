@@ -1,7 +1,6 @@
 import path from 'node:path';
 
 import { hasPassingCodexEvaluationCommandPolicy } from '../../../../tooling/codex-evaluation-host/index.mjs';
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../tooling/resource-calibration/profiles.mjs';
 
 import type {
   IActorOutput,
@@ -15,6 +14,7 @@ import type {
   IQualificationJudgeSkipped,
   IQualificationModelStageEvidence,
   IQualificationProfileCaseModel,
+  IQualificationResourceProfile,
   IQualificationSourceStateResult,
   IWorkspaceAssertionResult,
 } from './types.ts';
@@ -44,11 +44,11 @@ const JUDGE_BLOCKING_RESOURCE_DIMENSIONS = new Set<IQualificationResourceDimensi
 
 const inspectResourceUsage = (options: {
   commandPolicy: IQualificationModelStageEvidence['commandPolicy'];
+  profile: IQualificationResourceProfile;
   role: 'Actor' | 'Judge';
   scenario: IQualificationRecordedCaseContract['scenario'];
   usage: IQualificationModelStageEvidence['usage'];
 }): { failures: string[]; hasJudgeBlocker: boolean } => {
-  const profile = MOLDEA_SKILL_RESOURCE_PROFILES[options.scenario.resourceProfile];
   const observations: Array<{
     dimension: IQualificationResourceDimension;
     limit: number;
@@ -57,27 +57,27 @@ const inspectResourceUsage = (options: {
     {
       dimension: 'completed-host-commands',
       observed: options.commandPolicy.completedCommandCount,
-      limit: profile.maxCompletedCommandCount,
+      limit: options.profile.maxCompletedCommandCount,
     },
     {
       dimension: 'moldea-commands',
       observed: options.commandPolicy.moldeaCommandCount,
-      limit: profile.maxMoldeaCommandCount,
+      limit: options.profile.maxMoldeaCommandCount,
     },
     {
       dimension: 'moldea-output-bytes',
       observed: options.commandPolicy.moldeaOutputByteCount,
-      limit: profile.maxAggregateMoldeaOutputBytes,
+      limit: options.profile.maxAggregateMoldeaOutputBytes,
     },
     {
       dimension: 'maximum-command-output-bytes',
       observed: options.commandPolicy.maximumCommandOutputByteCount,
-      limit: profile.maxCommandOutputBytes,
+      limit: options.profile.maxCommandOutputBytes,
     },
     {
       dimension: 'model-visible-tool-output-bytes',
       observed: options.commandPolicy.modelVisibleToolOutputByteCount,
-      limit: profile.maxModelVisibleToolOutputBytes,
+      limit: options.profile.maxModelVisibleToolOutputBytes,
     },
   ];
   const violations: IQualificationResourceViolation[] = observations.flatMap(
@@ -89,16 +89,16 @@ const inspectResourceUsage = (options: {
     violations.push({
       dimension: 'total-model-tokens',
       kind: 'unavailable',
-      limit: profile.maxHostTokenCount,
+      limit: options.profile.maxHostTokenCount,
       observed: null,
     });
   } else {
     const totalModelTokens = options.usage.inputTokens + options.usage.outputTokens;
-    if (totalModelTokens > profile.maxHostTokenCount) {
+    if (totalModelTokens > options.profile.maxHostTokenCount) {
       violations.push({
         dimension: 'total-model-tokens',
         kind: 'exceeded',
-        limit: profile.maxHostTokenCount,
+        limit: options.profile.maxHostTokenCount,
         observed: totalModelTokens,
       });
     }
@@ -298,6 +298,7 @@ const deriveCurrentTrialFailures = (options: {
   judgeCommandPolicy: IQualificationModelStageEvidence['commandPolicy'] | null;
   judgeUsage: IQualificationModelStageEvidence['usage'];
   profileCase: IQualificationRecordedCaseContract;
+  resourceProfile: IQualificationResourceProfile;
   requirementAssessments: Extract<
     IQualificationAttemptResult,
     { protocolVersion: 8 }
@@ -326,6 +327,7 @@ const deriveCurrentTrialFailures = (options: {
     ? []
     : inspectResourceUsage({
         commandPolicy: options.actorCommandPolicy,
+        profile: options.resourceProfile,
         role: 'Actor',
         scenario: options.profileCase.scenario,
         usage: options.actorUsage,
@@ -334,6 +336,7 @@ const deriveCurrentTrialFailures = (options: {
     ? []
     : inspectResourceUsage({
         commandPolicy: options.judgeCommandPolicy,
+        profile: options.resourceProfile,
         role: 'Judge',
         scenario: options.profileCase.scenario,
         usage: options.judgeUsage,
@@ -356,6 +359,7 @@ export const assertQualificationCaseEvidence = (options: {
   judgeCommandPolicy: IQualificationModelStageEvidence['commandPolicy'] | null;
   judgeSkipped: IQualificationJudgeSkipped | null;
   profileCase: IQualificationRecordedCaseContract;
+  resourceProfile: IQualificationResourceProfile;
   result: IQualificationAttemptTrialModel['result'];
   workspaceAssertions: IWorkspaceAssertionResult;
 }): void => {
@@ -421,6 +425,7 @@ export const assertQualificationCaseEvidence = (options: {
       ? null
       : inspectResourceUsage({
           commandPolicy: options.actorCommandPolicy,
+          profile: options.resourceProfile,
           role: 'Actor',
           scenario: profileCase.scenario,
           usage: result.actorUsage,
@@ -506,6 +511,7 @@ export const assertQualificationCaseEvidence = (options: {
     judgeCommandPolicy: options.judgeCommandPolicy,
     judgeUsage: result.judgeUsage,
     profileCase,
+    resourceProfile: options.resourceProfile,
     requirementAssessments: derivedAssessments,
     workspaceAssertions: options.workspaceAssertions,
   });

@@ -45,7 +45,7 @@ import {
   type IQualificationProfileModel,
   type IQualificationWebsiteModel,
 } from './types.ts';
-import { readCurrentQualificationContract } from './contract-reader.ts';
+import { readRecordedQualificationContract } from './contract-reader.ts';
 import { createQualificationReplay } from './replay-transformers.ts';
 import {
   calculateFileSha256,
@@ -372,6 +372,7 @@ const loadCurrentAttemptCase = (
   result: IQualificationCurrentCaseResult,
   artifacts: IQualificationArtifactModel[],
   profileCase: Pick<IQualificationProfileCaseModel, 'id' | 'scenario'>,
+  resourceProfile: Parameters<typeof assertQualificationCaseEvidence>[0]['resourceProfile'],
 ): IQualificationAttemptCaseModel => {
   const casePrefix = `cases/${result.caseId}/`;
   const recordedCaseResult = readAttemptArtifact(
@@ -525,6 +526,7 @@ const loadCurrentAttemptCase = (
       ...trialEvidence,
       judgeCommandPolicy: judgeEvidence?.commandPolicy ?? null,
       profileCase,
+      resourceProfile,
     });
     return trialEvidence;
   });
@@ -599,10 +601,11 @@ const loadAttempt = (
     `Qualification attempt ${result.attemptId} case ids`,
   );
 
-  const recordedContract = readCurrentQualificationContract({
+  const recordedContract = readRecordedQualificationContract({
     adapterId,
     implementationId,
     profileKey: targetKey,
+    qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
     qualificationRoot,
   });
 
@@ -669,7 +672,14 @@ const loadAttempt = (
 
     const profileCase = { id: caseResult.caseId, scenario: recordedScenario };
 
-    return loadCurrentAttemptCase(readArtifact, result, caseResult, artifacts, profileCase);
+    return loadCurrentAttemptCase(
+      readArtifact,
+      result,
+      caseResult,
+      artifacts,
+      profileCase,
+      recordedContract.resourceProfiles[recordedScenario.resourceProfile],
+    );
   });
 
   assertUnique(

@@ -1,22 +1,28 @@
-import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join, relative, sep } from 'node:path';
 
 import type { z } from 'zod';
+import { parse as parseYaml } from 'yaml';
 
 import {
   QualificationCaseCatalogSchema,
   QualificationProbesSchema,
   QualificationProfileSchema,
+  QualificationResourceCalibrationSchema,
   QualificationScenarioSchema,
 } from './types.ts';
-import { readYamlFile, resolveContainedPath } from './utilities.ts';
+import { resolveContainedPath } from './utilities.ts';
 
 const EXCLUDED_DIRECTORY_NAMES = new Set(['_archive', '_archives', '_backup', '_backups']);
+const GIT_COMMIT_PATTERN = /^[a-f0-9]{40}$/u;
 
-// exact current profile contract used to validate one attempt
-export interface ICurrentQualificationContract {
+// exact recorded contracts used to validate one immutable attempt
+export interface IRecordedQualificationContract {
   caseScenarios: ReadonlyMap<string, ReturnType<typeof QualificationScenarioSchema.parse>>;
   probeMatrixPaths: string[];
   profileCaseIds: string[];
+  resourceProfiles: ReturnType<typeof QualificationResourceCalibrationSchema.parse>['profiles'];
 }
 
 const assertAllowedContractPath = (relativePath: string): void => {
@@ -30,19 +36,79 @@ const assertAllowedContractPath = (relativePath: string): void => {
 };
 
 /**
- * Reads one qualification contract from the current release tree.
- * @param options The qualification root, contract path, and schema.
- * @returns The validated qualification contract.
- * @throws If the current contract path is unsafe or cannot be read.
+ * Reads one contract source from the exact qualification commit retained by an attempt.
+ * Synthetic repository fixtures without Git continue to use their adjacent source files.
+ * @param options The recorded commit, contract root, qualification root, and relative path.
+ * @returns The recorded or synthetic contract source.
+ * @throws If the contract path is unsafe or the recorded source cannot be read.
  */
-const readCurrentQualificationYaml = <TResult>(options: {
+const readRecordedQualificationSource = (options: {
+  contractRoot?: 'qualification' | 'repository';
+  qualificationRepositoryCommit: string;
+  qualificationRoot: string;
+  relativePath: string;
+}): string => {
+  assertAllowedContractPath(options.relativePath);
+  const repositoryRoot = dirname(options.qualificationRoot);
+  const contractPath = resolveContainedPath(
+    options.contractRoot === 'repository' ? repositoryRoot : options.qualificationRoot,
+    options.relativePath,
+  );
+
+  if (
+    !GIT_COMMIT_PATTERN.test(options.qualificationRepositoryCommit) ||
+    !existsSync(join(repositoryRoot, '.git'))
+  ) {
+    return readFileSync(contractPath, 'utf8');
+  }
+
+  const repositoryRelativePath = relative(repositoryRoot, contractPath).split(sep).join('/');
+  const result = spawnSync(
+    'git',
+    ['cat-file', 'blob', `${options.qualificationRepositoryCommit}:${repositoryRelativePath}`],
+    {
+      cwd: repositoryRoot,
+      encoding: 'utf8',
+      maxBuffer: 1_048_576,
+      shell: false,
+    },
+  );
+
+  if (result.error !== undefined || result.status !== 0) {
+    throw new Error(
+      `Unable to read recorded qualification contract ${options.relativePath} from commit ${options.qualificationRepositoryCommit}.`,
+      { cause: result.error ?? new Error(result.stderr) },
+    );
+  }
+
+  return result.stdout;
+};
+
+/** Reads and validates one recorded YAML qualification contract. */
+const readRecordedQualificationYaml = <TResult>(options: {
+  qualificationRepositoryCommit: string;
+  qualificationRoot: string;
+  relativePath: string;
+  schema: z.ZodType<TResult>;
+}): TResult => options.schema.parse(parseYaml(readRecordedQualificationSource(options)) as unknown);
+
+/** Reads and validates one recorded JSON qualification contract. */
+const readRecordedQualificationJson = <TResult>(options: {
+  contractRoot?: 'qualification' | 'repository';
+  qualificationRepositoryCommit: string;
   qualificationRoot: string;
   relativePath: string;
   schema: z.ZodType<TResult>;
 }): TResult => {
-  assertAllowedContractPath(options.relativePath);
-  const contractPath = resolveContainedPath(options.qualificationRoot, options.relativePath);
-  return readYamlFile(contractPath, options.schema);
+  const source = readRecordedQualificationSource(options);
+
+  try {
+    return options.schema.parse(JSON.parse(source) as unknown);
+  } catch (error) {
+    throw new Error(`Invalid qualification JSON contract ${options.relativePath}.`, {
+      cause: error,
+    });
+  }
 };
 
 const assertUnique = (identities: string[], label: string): void => {
@@ -52,31 +118,30 @@ const assertUnique = (identities: string[], label: string): void => {
 };
 
 /**
- * Loads the complete current profile, probe, and scenario contract for one attempt.
- * @param options The selected target and qualification root.
+ * Loads the complete recorded profile, probe, scenario, and resource contract for one attempt.
+ * @param options The recorded commit, selected target, and qualification root.
  * @returns The case sequence, probe claims, and scenarios used by the attempt.
- * @throws If the current contracts are unavailable, invalid, or internally inconsistent.
+ * @throws If the recorded contracts are unavailable, invalid, or internally inconsistent.
  */
-export const readCurrentQualificationContract = (options: {
+export const readRecordedQualificationContract = (options: {
   adapterId: string;
   implementationId: string;
-  profileKey?: string;
+  profileKey: string;
+  qualificationRepositoryCommit: string;
   qualificationRoot: string;
-}): ICurrentQualificationContract => {
-  const profileRelativeDirectory = join(
-    'profiles',
-    options.profileKey ?? join(options.adapterId, options.implementationId),
-  );
-  const readCurrentYaml = <TResult>(
+}): IRecordedQualificationContract => {
+  const profileRelativeDirectory = join('profiles', options.profileKey);
+  const readRecordedYaml = <TResult>(
     relativePath: string,
-    schema: Parameters<typeof readCurrentQualificationYaml<TResult>>[0]['schema'],
+    schema: Parameters<typeof readRecordedQualificationYaml<TResult>>[0]['schema'],
   ): TResult =>
-    readCurrentQualificationYaml({
+    readRecordedQualificationYaml({
+      qualificationRepositoryCommit: options.qualificationRepositoryCommit,
       qualificationRoot: options.qualificationRoot,
       relativePath,
       schema,
     });
-  const profile = readCurrentYaml(
+  const profile = readRecordedYaml(
     join(profileRelativeDirectory, 'profile.yaml'),
     QualificationProfileSchema,
   );
@@ -90,11 +155,11 @@ export const readCurrentQualificationContract = (options: {
 
   assertUnique(
     profile.cases.map(({ id }) => id),
-    `Current qualification profile ${options.adapterId}/${options.implementationId} case ids`,
+    `Recorded qualification profile ${options.adapterId}/${options.implementationId} case ids`,
   );
   const profileCaseIds = profile.cases.map(({ id }) => id);
   const profileCaseIdSet = new Set(profileCaseIds);
-  const caseCatalog = readCurrentYaml('cases/cases.yaml', QualificationCaseCatalogSchema);
+  const caseCatalog = readRecordedYaml('cases/cases.yaml', QualificationCaseCatalogSchema);
   const universalCaseIds = caseCatalog.cases
     .filter(({ layer }) => layer === 'universal-baseline')
     .map(({ id }) => id);
@@ -111,7 +176,7 @@ export const readCurrentQualificationContract = (options: {
         : `Adapter qualification duplicates universal cases: ${invalidUniversalCaseIds.join(', ')}.`,
     );
   }
-  const probes = readCurrentYaml(
+  const probes = readRecordedYaml(
     join(profileRelativeDirectory, profile.probesFile),
     QualificationProbesSchema,
   );
@@ -125,33 +190,41 @@ export const readCurrentQualificationContract = (options: {
 
   assertUnique(
     probes.probes.map(({ id }) => id),
-    `Current qualification profile ${options.adapterId}/${options.implementationId} probe ids`,
+    `Recorded qualification profile ${options.adapterId}/${options.implementationId} probe ids`,
   );
 
   for (const probe of probes.probes) {
     if (probe.coveredBy.some((caseId) => !knownCaseIds.has(caseId))) {
-      throw new Error(`Current qualification probe ${probe.id} references an unknown case.`);
+      throw new Error(`Recorded qualification probe ${probe.id} references an unknown case.`);
     }
   }
 
   const caseScenarios = new Map(
     profile.cases.map((profileCase) => {
-      const scenario = readCurrentYaml(
+      const scenario = readRecordedYaml(
         join(profileRelativeDirectory, profileCase.projectDirectory, profileCase.scenarioFile),
         QualificationScenarioSchema,
       );
 
       if (scenario.id !== profileCase.id) {
-        throw new Error(`Qualification case ${profileCase.id} contradicts its current profile.`);
+        throw new Error(`Qualification case ${profileCase.id} contradicts its recorded profile.`);
       }
 
       return [profileCase.id, scenario] as const;
     }),
   );
+  const resourceCalibration = readRecordedQualificationJson({
+    contractRoot: 'repository',
+    qualificationRepositoryCommit: options.qualificationRepositoryCommit,
+    qualificationRoot: options.qualificationRoot,
+    relativePath: join('fixtures', 'resource-calibration.json'),
+    schema: QualificationResourceCalibrationSchema,
+  });
 
   return {
     caseScenarios,
     probeMatrixPaths: probes.probes.map(({ matrixPath }) => matrixPath),
     profileCaseIds,
+    resourceProfiles: resourceCalibration.profiles,
   };
 };

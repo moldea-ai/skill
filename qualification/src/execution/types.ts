@@ -4,6 +4,7 @@ import type {
   IQualificationCaseResult,
   IQualificationExecutionEnvironment,
   IQualificationProvenance,
+  IQualificationResourceProfile,
   IQualificationSelection,
   IQualificationTrialResult,
 } from '../contracts/index.ts';
@@ -128,3 +129,9 @@ export type IQualificationResourceAssessment = {
   hasJudgeBlocker: boolean;
   violations: IQualificationResourceViolation[];
 };
+
+// resource profiles keyed by the scenario contract value
+export type IQualificationResourceProfiles = Record<
+  'largeTraversal' | 'ordinary',
+  IQualificationResourceProfile
+>;

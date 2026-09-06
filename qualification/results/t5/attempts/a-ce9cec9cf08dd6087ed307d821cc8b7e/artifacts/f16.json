@@ -1,0 +1,19 @@
+{
+  "outcome": "completed",
+  "summary": "Created and registered the order-triage moldea agent using the custom runtime. Moldea validation passes with zero diagnostics, and TypeScript compilation passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml",
+    "moldea/agents/order-triage/description.md",
+    "moldea/agents/order-triage/instruction.md",
+    "moldea/runtimes/custom.md"
+  ],
+  "observations": [
+    "The agent binds to createOrderTriageAgent in /src/order-triage-agent.ts and declares that exact source as affected.",
+    "Instructions classify supplied orders for human review, prohibit refund approval, and conservatively surface missing or ambiguous information.",
+    "Runtime guidance documents only the implemented canonical instruction loader and returned runtime fields; no tools, schemas, provider capabilities, or additional authority were declared.",
+    "Validation succeeded using the repository-local moldea CLI 7.0.1 and TypeScript 6.0.3 binaries."
+  ],
+  "unresolved": [
+    "The runner's Git wrapper rejected read-only git diff/status commands as not evaluator-approved; final changed-file contents were inspected directly instead."
+  ]
+}

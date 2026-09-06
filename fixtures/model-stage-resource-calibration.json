@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "qualificationAttempt": {
+    "id": "20260906T001339470Z-custom-custom-a5849f5a",
+    "sha256": "b140be764f6c12c6ca897ae56936676507f2110d6b1a3fdbd72b1c90764089a6"
+  },
+  "minimumHeadroomPercent": 25,
+  "modelStageObservations": [
+    {
+      "caseId": "create-grounded-agent",
+      "trialId": "initial",
+      "resourceProfile": "ordinary",
+      "checks": {
+        "calibrationEligible": true,
+        "commandPolicy": "pass",
+        "deterministic": "pass",
+        "outputBounds": "pass",
+        "profile": "fail",
+        "semantic": "pass",
+        "workspace": "pass"
+      },
+      "evidence": {
+        "deterministicSha256": "12bd165fec2d46b69c9488b3a3f49f1f803e2a5d74ef09d2546c99055af89921",
+        "judgeOutputSha256": "b28a8f22e667abfc6281c45c605e9278c514a2b1e547f6e4f5c6641e7013930a",
+        "trialResultSha256": "9e1a3de1747626013935e6c8f41fd9d7c170b2d6902abd68114659a15e9a155d",
+        "workspaceAssertionsSha256": "7912a24728f9f84cf4297661f26033003ea1645973c4ce71d8e4a461088bb3d3"
+      },
+      "stages": [
+        {
+          "role": "actor",
+          "sourceAttemptId": "20260905T225312033Z-custom-custom-681c7376",
+          "evidenceSha256": "4c645fc7b71eccfeb21e15b522637d04ec17f0eef7340f06aa4bf19f5ab715bc",
+          "durationMs": 256363,
+          "completedCommandCount": 47,
+          "maximumCommandOutputByteCount": 21828,
+          "modelVisibleToolOutputByteCount": 121329,
+          "moldeaCommandCount": 3,
+          "moldeaOutputByteCount": 1698,
+          "inputTokenCount": 961814,
+          "cachedInputTokenCount": 918016,
+          "outputTokenCount": 8100,
+          "totalTokenCount": 969914
+        },
+        {
+          "role": "judge",
+          "sourceAttemptId": "20260906T001339470Z-custom-custom-a5849f5a",
+          "evidenceSha256": "cc4e36835ed1ebee9b2fbf2556ef2c958c9275fd939b51181c5fee0ed8ff8f47",
+          "durationMs": 53640,
+          "completedCommandCount": 12,
+          "maximumCommandOutputByteCount": 14473,
+          "modelVisibleToolOutputByteCount": 25307,
+          "moldeaCommandCount": 1,
+          "moldeaOutputByteCount": 318,
+          "inputTokenCount": 140860,
+          "cachedInputTokenCount": 119296,
+          "outputTokenCount": 1876,
+          "totalTokenCount": 142736
+        }
+      ]
+    },
+    {
+      "caseId": "create-grounded-agent",
+      "trialId": "confirmation-1",
+      "resourceProfile": "ordinary",
+      "checks": {
+        "calibrationEligible": true,
+        "commandPolicy": "pass",
+        "deterministic": "pass",
+        "outputBounds": "pass",
+        "profile": "fail",
+        "semantic": "pass",
+        "workspace": "pass"
+      },
+      "evidence": {
+        "deterministicSha256": "b7e6ee6cd26ccd5ad2bfc476a137bea4293621a0ab83b035adf182a21f379ae7",
+        "judgeOutputSha256": "cefad249036d9128c6fa5d884a3528acb776adf8166b90aba58e7d49683f37f3",
+        "trialResultSha256": "8a1728311631607eedea41c7292d5796078ac6185d1beb3f4be58313552bc652",
+        "workspaceAssertionsSha256": "5ae1c6856e5aa9e2f8c65f8897d9535fa945d6bb0910db8db81bcda3302e2a27"
+      },
+      "stages": [
+        {
+          "role": "actor",
+          "sourceAttemptId": "20260906T001339470Z-custom-custom-a5849f5a",
+          "evidenceSha256": "7ce4ba29bc314f50308f8cca3d874a30cb7b0df5e190a88a59c6e10130aae18f",
+          "durationMs": 277166,
+          "completedCommandCount": 37,
+          "maximumCommandOutputByteCount": 14473,
+          "modelVisibleToolOutputByteCount": 44609,
+          "moldeaCommandCount": 8,
+          "moldeaOutputByteCount": 6662,
+          "inputTokenCount": 610697,
+          "cachedInputTokenCount": 546560,
+          "outputTokenCount": 9425,
+          "totalTokenCount": 620122
+        },
+        {
+          "role": "judge",
+          "sourceAttemptId": "20260906T001339470Z-custom-custom-a5849f5a",
+          "evidenceSha256": "15be7113cd4459e6be627ea589eff3ee2ed62c2109e9330ed5235af155e69dfb",
+          "durationMs": 75471,
+          "completedCommandCount": 17,
+          "maximumCommandOutputByteCount": 14478,
+          "modelVisibleToolOutputByteCount": 23983,
+          "moldeaCommandCount": 1,
+          "moldeaOutputByteCount": 318,
+          "inputTokenCount": 165055,
+          "cachedInputTokenCount": 123008,
+          "outputTokenCount": 3032,
+          "totalTokenCount": 168087
+        }
+      ]
+    }
+  ],
+  "modelStageObservationsSha256": "295530609d06c6150dd463cd350405bf8a3d830a62b83d9183da46329381a3da"
+}

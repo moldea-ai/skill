@@ -19,6 +19,7 @@ import {
   QualificationRequirementAssessmentSchema,
   QualificationProbesSchema,
   QualificationProfileSchema,
+  QualificationResourceCalibrationSchema,
   QualificationSourceStateResultSchema,
   QualificationTrialResultSchema,
   WorkspaceAssertionResultSchema,
@@ -29,6 +30,7 @@ import {
   type IQualificationCaseResult,
   type IQualificationCaseScenario,
   type IQualificationModelStageEvidence,
+  type IQualificationResourceProfile,
   type IQualificationStageCheckpoint,
   type IQualificationTrialResult,
   type IWorkspaceAssertionResult,
@@ -40,6 +42,7 @@ import {
   createQualificationStageIds,
   createQualificationTrialStageIds,
 } from '../execution/stages.ts';
+import type { IQualificationResourceProfiles } from '../execution/types.ts';
 import { inspectQualificationResourceUsage } from '../execution/validations.ts';
 import {
   readQualificationAttemptStorage,
@@ -48,7 +51,7 @@ import {
   resolveQualificationTargetKey,
   verifyQualificationAttemptStorage,
 } from '../storage/index.ts';
-import { readQualificationContractYaml } from './contract-reader.ts';
+import { readQualificationContractJson, readQualificationContractYaml } from './contract-reader.ts';
 
 const JsonObjectSchema = z.record(z.string(), z.unknown());
 
@@ -502,6 +505,7 @@ const deriveTrialFailures = (options: {
   isDryRun: boolean;
   judge: IJudgeOutput | null;
   judgeEvidence: IQualificationModelStageEvidence | null;
+  resourceProfile: IQualificationResourceProfile;
   scenario: IQualificationCaseScenario;
   requirementAssessments: IQualificationTrialResult['requirementAssessments'];
   workspaceAssertions: IWorkspaceAssertionResult;
@@ -525,6 +529,7 @@ const deriveTrialFailures = (options: {
   ...inspectQualificationResourceUsage({
     allowMissingUsage: options.isDryRun,
     evidence: options.actorEvidence,
+    profile: options.resourceProfile,
     role: 'Actor',
     scenario: options.scenario,
   }).failures,
@@ -533,6 +538,7 @@ const deriveTrialFailures = (options: {
     : inspectQualificationResourceUsage({
         allowMissingUsage: options.isDryRun,
         evidence: options.judgeEvidence,
+        profile: options.resourceProfile,
         role: 'Judge',
         scenario: options.scenario,
       }).failures),
@@ -606,6 +612,7 @@ const assertCurrentTrialEvidence = async (options: {
   attemptDirectory: string;
   caseId: string;
   result: IQualificationAttemptResult;
+  resourceProfile: IQualificationResourceProfile;
   scenario: IQualificationCaseScenario;
   stages: ReadonlyMap<string, IQualificationStageCheckpoint>;
   trial: IQualificationTrialResult;
@@ -715,6 +722,7 @@ const assertCurrentTrialEvidence = async (options: {
   const actorResourceAssessment = inspectQualificationResourceUsage({
     allowMissingUsage: options.result.mode === 'dry-run',
     evidence: actorEvidence,
+    profile: options.resourceProfile,
     role: 'Actor',
     scenario: options.scenario,
   });
@@ -799,6 +807,7 @@ const assertCurrentTrialEvidence = async (options: {
     isDryRun: options.result.mode === 'dry-run',
     judge,
     judgeEvidence,
+    resourceProfile: options.resourceProfile,
     requirementAssessments: derivedRequirementAssessments,
     scenario: options.scenario,
     workspaceAssertions: assertions,
@@ -918,6 +927,7 @@ const assertCurrentCaseEvidence = async (options: {
   attemptDirectory: string;
   caseResult: IQualificationCaseResult;
   result: IQualificationAttemptResult;
+  resourceProfile: IQualificationResourceProfile;
   scenario: IQualificationCaseScenario;
   stages: ReadonlyMap<string, IQualificationStageCheckpoint>;
 }): Promise<void> => {
@@ -941,6 +951,7 @@ const assertCurrentCaseEvidence = async (options: {
       attemptDirectory: options.attemptDirectory,
       caseId: options.caseResult.caseId,
       result: options.result,
+      resourceProfile: options.resourceProfile,
       scenario: options.scenario,
       stages: options.stages,
       trial,
@@ -983,23 +994,26 @@ const validateCurrentTerminalAttempt = async (
   attemptDirectory: string,
   result: IQualificationAttemptResult,
   resultsRoot: string,
-  contractSource: 'current' | 'recorded',
 ): Promise<void> => {
   const profilesRoot = await resolveQualificationProfilesRootForResults(resultsRoot);
   const currentTargetKey = await resolveQualificationTargetKey(result.selection, profilesRoot);
-  const profileRelativeDirectory = path.join(
-    'profiles',
-    contractSource === 'current'
-      ? currentTargetKey
-      : path.join(result.selection.adapterId, result.selection.implementationId),
-  );
-  const profile = await readQualificationContractYaml({
-    contractSource,
-    qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
-    relativePath: path.join(profileRelativeDirectory, 'profile.yaml'),
-    resultsRoot,
-    schema: QualificationProfileSchema,
-  });
+  const profileRelativeDirectory = path.join('profiles', currentTargetKey);
+  const [profile, resourceCalibration] = await Promise.all([
+    readQualificationContractYaml({
+      qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
+      relativePath: path.join(profileRelativeDirectory, 'profile.yaml'),
+      resultsRoot,
+      schema: QualificationProfileSchema,
+    }),
+    readQualificationContractJson({
+      contractRoot: 'repository',
+      qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
+      relativePath: path.join('fixtures', 'resource-calibration.json'),
+      resultsRoot,
+      schema: QualificationResourceCalibrationSchema,
+    }),
+  ]);
+  const resourceProfiles: IQualificationResourceProfiles = resourceCalibration.profiles;
 
   if (
     profile.adapterId !== result.selection.adapterId ||
@@ -1042,7 +1056,6 @@ const validateCurrentTerminalAttempt = async (
     requireArtifact(attemptDirectory, result, 'baseline.json', QualificationBaselineCheckSchema),
     requireArtifact(attemptDirectory, result, 'coverage.json', QualificationCoverageResultSchema),
     readQualificationContractYaml({
-      contractSource,
       qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
       relativePath: path.join(profileRelativeDirectory, profile.probesFile),
       resultsRoot,
@@ -1133,7 +1146,6 @@ const validateCurrentTerminalAttempt = async (
     }
 
     const scenario = await readQualificationContractYaml({
-      contractSource,
       qualificationRepositoryCommit: result.provenance.qualificationRepositoryCommit,
       relativePath: path.join(
         profileRelativeDirectory,
@@ -1152,6 +1164,7 @@ const validateCurrentTerminalAttempt = async (
       attemptDirectory,
       caseResult,
       result,
+      resourceProfile: resourceProfiles[scenario.resourceProfile],
       scenario,
       stages,
     });
@@ -1175,7 +1188,6 @@ const validateCurrentTerminalAttempt = async (
 /** Validates the public artifacts and status contract for one committed attempt. */
 export const validateQualificationAttemptEvidence = async (options: {
   attemptDirectory: string;
-  contractSource?: 'current' | 'recorded';
   result: IQualificationAttemptResult;
   resultsRoot: string;
 }): Promise<void> => {
@@ -1214,7 +1226,6 @@ export const validateQualificationAttemptEvidence = async (options: {
       options.attemptDirectory,
       options.result,
       options.resultsRoot,
-      options.contractSource ?? 'recorded',
     );
   }
 };

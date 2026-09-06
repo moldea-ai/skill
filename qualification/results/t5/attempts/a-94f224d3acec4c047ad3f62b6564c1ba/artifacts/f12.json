@@ -1,0 +1,22 @@
+{
+  "verdict": "pass",
+  "summary": "The working tree, workspace patch evidence, and deterministic post-actor checks agree: the order-triage agent is grounded in the existing implementation, correctly bound to the custom runtime, and supported by one focused runtime-guidance file. Moldea validation also reports zero diagnostics.",
+  "requirements": [
+    {
+      "id": "grounds-behavior",
+      "verdict": "pass",
+      "evidence": "The changed canonical files `moldea/agents/order-triage/description.md` and `instruction.md` state that the agent classifies orders for human review and cannot approve refunds or perform financial mutations. This matches `src/order-triage-agent.ts`, which sets `action: 'classify-for-human-review'` and `canApproveRefunds: false`."
+    },
+    {
+      "id": "binds-implementation",
+      "verdict": "pass",
+      "evidence": "`moldea/moldea.yaml` binds runtime agent path `/src/order-triage-agent.ts` and symbol `createOrderTriageAgent`, and declares the same source under `affectedBy`. The source exports that exact factory. The deterministic post-actor result confirms valid inspection, adapter inventory, typechecking, and an unchanged repository during validation."
+    },
+    {
+      "id": "defines-runtime-guidance",
+      "verdict": "pass",
+      "evidence": "The manifest selects runtime `custom` and references `/moldea/runtimes/custom.md`. That sole Markdown file under `moldea/runtimes` directs the runtime to call `createOrderTriageAgent` with an asynchronous loader resolving the canonical instruction requested by the factory; the source defines this runtime-owned loader as returning instruction content for `/moldea/agents/order-triage/instruction.md`. No provider behavior is invented. Workspace patch evidence lists this as the only new runtime-guidance file."
+    }
+  ],
+  "failures": []
+}

@@ -8,6 +8,8 @@ export type {
   IQualificationProfileCase,
   IQualificationSelection,
   IQualificationRequirementAssessment,
+  IQualificationResourceCalibration,
+  IQualificationResourceProfile,
 } from './types.ts';
 export {
   QualificationCaseCatalogSchema,
@@ -19,6 +21,8 @@ export {
   QualificationProfileSchema,
   QualificationSelectionSchema,
   QualificationRunnerCheckSchema,
+  QualificationResourceCalibrationSchema,
+  QualificationResourceProfileSchema,
 } from './types.ts';
 
 // candidate and execution contracts

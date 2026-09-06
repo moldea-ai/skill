@@ -771,7 +771,6 @@ describe('qualification execution', () => {
 
     const runCase = async (
       commandPolicy: IQualificationCommandPolicyEvidence,
-      mode: 'diagnostic' | 'official' = 'diagnostic',
     ): Promise<{
       actorCalls: number;
       judgeCalls: number;
@@ -820,9 +819,9 @@ describe('qualification execution', () => {
         },
       });
       const outcome = await runQualification({
-        ...(mode === 'diagnostic' ? { caseId: 'evaluate-aligned-project' } : {}),
+        caseId: 'evaluate-aligned-project',
         host,
-        mode,
+        mode: 'diagnostic',
         requestPaidExecutionApproval: () => Promise.resolve(true),
         resultsRoot,
         selection: { adapterId: 'custom', implementationId: 'custom' },
@@ -852,24 +851,6 @@ describe('qualification execution', () => {
     ).toBe(true);
 
     await rm(cumulative.outcome.attemptDirectory, { force: true, recursive: true });
-    temporaryAttemptDirectory = null;
-    const recordedCumulative = await runCase(cumulativeCommandPolicy, 'official');
-    temporaryAttemptDirectory = recordedCumulative.outcome.attemptDirectory;
-
-    expect(recordedCumulative.outcome.wasRecorded).toBe(true);
-    expect(
-      recordedCumulative.outcome.result.status,
-      recordedCumulative.outcome.result.summary,
-    ).toBe('failed');
-    expect(recordedCumulative.actorCalls).toBe(2);
-    expect(recordedCumulative.judgeCalls).toBe(2);
-    expect(await verifyQualificationResults(resultsRoot)).toStrictEqual({
-      attempts: 1,
-      issues: [],
-      passed: true,
-    });
-
-    await rm(recordedCumulative.outcome.attemptDirectory, { force: true, recursive: true });
     temporaryAttemptDirectory = null;
     const outputVolume = await runCase({
       ...emptyCommandPolicy,

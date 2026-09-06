@@ -304,7 +304,6 @@ export const recordQualificationResult = async (
     });
     await validateQualificationAttemptEvidence({
       attemptDirectory: stagingDirectory,
-      contractSource: 'current',
       result,
       resultsRoot,
     });
@@ -402,7 +401,6 @@ const verifyQualificationTarget = async (options: {
       try {
         await validateQualificationAttemptEvidence({
           attemptDirectory,
-          contractSource: 'current',
           result,
           resultsRoot: options.resultsRoot,
         });

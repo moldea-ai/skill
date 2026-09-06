@@ -3,8 +3,6 @@ import semver from 'semver';
 import { z } from 'zod';
 
 import { calculateCodexEvaluationOperationalRetryDelay } from '../../../tooling/codex-evaluation-host/index.mjs';
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../tooling/resource-calibration/profiles.mjs';
-
 import {
   DEFAULT_PACKAGES_REPOSITORY,
   QUALIFICATION_ALLOWED_EGRESS_HOSTS,
@@ -274,6 +272,31 @@ export const QualificationCaseScenarioSchema = z
 
 export type IQualificationCaseScenario = z.infer<typeof QualificationCaseScenarioSchema>;
 
+// operating profile persisted by the deterministic resource-calibration artifact
+export const QualificationResourceProfileSchema = z.strictObject({
+  maxCompletedCommandCount: z.number().int().positive(),
+  maxCommandOutputBytes: z.number().int().positive(),
+  maxHostTokenCount: z.number().int().positive(),
+  maxModelVisibleToolOutputBytes: z.number().int().positive(),
+  maxAggregateMoldeaOutputBytes: z.number().int().positive(),
+  maxMoldeaCommandCount: z.number().int().positive(),
+  maxOutputPageBytes: z.number().int().positive(),
+});
+
+// minimum historical calibration contract needed to revalidate immutable evidence
+export const QualificationResourceCalibrationSchema = z.object({
+  schemaVersion: z.literal(1),
+  profiles: z.object({
+    ordinary: QualificationResourceProfileSchema,
+    largeTraversal: QualificationResourceProfileSchema,
+  }),
+});
+
+export type IQualificationResourceProfile = z.infer<typeof QualificationResourceProfileSchema>;
+export type IQualificationResourceCalibration = z.infer<
+  typeof QualificationResourceCalibrationSchema
+>;
+
 // transparent catalog rendered in documentation and checked against every profile
 export const QualificationCaseCatalogSchema = z.strictObject({
   version: z.literal(QUALIFICATION_PROTOCOL_VERSION),
@@ -356,14 +379,10 @@ export const ModelUsageSchema = z
     outputTokens: z.number().int().nonnegative(),
   })
   .superRefine((usage, context) => {
-    if (
-      usage.cachedInputTokens > usage.inputTokens ||
-      usage.inputTokens + usage.outputTokens >
-        MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount
-    ) {
+    if (usage.cachedInputTokens > usage.inputTokens) {
       context.addIssue({
         code: 'custom',
-        message: 'Model usage exceeds the qualification token boundary.',
+        message: 'Cached model input tokens exceed total model input tokens.',
       });
     }
   });

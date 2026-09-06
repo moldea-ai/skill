@@ -3,8 +3,6 @@ import { posix } from 'node:path';
 import type { IEvaluationReplayModel } from '@moldea.ai/website-ui/evaluation-replay-model';
 import { z } from 'zod';
 
-import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../../../../tooling/resource-calibration/profiles.mjs';
-
 const QUALIFICATION_PROTOCOL_VERSION = 2;
 const QUALIFICATION_EVIDENCE_PROTOCOL_VERSION = 8;
 const INITIAL_OPERATIONAL_RETRY_DELAY_MS = 5_000;
@@ -179,6 +177,28 @@ export const QualificationScenarioSchema = z.object({
     .min(1),
 });
 
+// operating profile persisted by the qualification source commit
+export const QualificationResourceProfileSchema = z.strictObject({
+  maxCompletedCommandCount: z.number().int().positive(),
+  maxCommandOutputBytes: z.number().int().positive(),
+  maxHostTokenCount: z.number().int().positive(),
+  maxModelVisibleToolOutputBytes: z.number().int().positive(),
+  maxAggregateMoldeaOutputBytes: z.number().int().positive(),
+  maxMoldeaCommandCount: z.number().int().positive(),
+  maxOutputPageBytes: z.number().int().positive(),
+});
+
+// minimum historical calibration contract independently consumed by the website
+export const QualificationResourceCalibrationSchema = z.object({
+  schemaVersion: z.literal(1),
+  profiles: z.object({
+    ordinary: QualificationResourceProfileSchema,
+    largeTraversal: QualificationResourceProfileSchema,
+  }),
+});
+
+export type IQualificationResourceProfile = z.infer<typeof QualificationResourceProfileSchema>;
+
 // website read models select the current evidence fields rendered by public pages
 const QualificationLatestResultShape = {
   adapterId: StableIdSchema,
@@ -199,11 +219,8 @@ const ModelUsageSchema = z
     outputTokens: z.number().int().nonnegative(),
   })
   .refine(
-    (usage) =>
-      usage.cachedInputTokens <= usage.inputTokens &&
-      usage.inputTokens + usage.outputTokens <=
-        MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
-    'Model usage exceeds the qualification token boundary.',
+    (usage) => usage.cachedInputTokens <= usage.inputTokens,
+    'Cached model input tokens exceed total model input tokens.',
   );
 const CandidatePackageSchema = z.object({
   name: z.string().trim().min(1),

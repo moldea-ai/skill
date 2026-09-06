@@ -66,7 +66,7 @@ Collect one semantically judged Custom observation through the corrected gate, c
 ### Dependencies
 
 - Milestone 15 complete, reviewed, and published.
-- Exact-current passing semantic attempt `20260905T225150354Z-semantic-8e357622` remains valid because Milestone 15 changes qualification evaluation only.
+- Passing semantic attempt `20260905T225150354Z-semantic-8e357622` remains immutable evidence for Milestone 15, but the required portable-reference synchronization in this milestone will invalidate its exact-current identity.
 - Authenticated qualification actor and judge hosts.
 
 ### Scope and implementation
@@ -75,14 +75,14 @@ Collect one semantically judged Custom observation through the corrected gate, c
 2. Accept a trial for calibration only when its judge, deterministic checks, workspace assertions, command-policy evidence, maximum command output, aggregate model-visible output, and aggregate moldea output all pass. The active cumulative overage remains a failed trial.
 3. Set each proven ordinary cumulative value to at least 25 percent above the largest accepted observation. Use 64 completed commands, 16 moldea calls, and 1,250,000 total tokens when the accepted maxima remain 47, 12, and 969,914; if a larger accepted observation appears, recompute only the affected value. Keep `largeTraversal` no lower for those dimensions without adding speculative headroom.
 4. Add a compact source-controlled model-stage observation artifact containing only attempt/case/trial identity, accepted deterministic/semantic status, aggregate resource counts, and token categories. Retain no commands, paths, prompts, output bodies, repository content, source, credentials, or hidden reasoning.
-5. Update resource-profile source, generated declarations/evidence, validation, qualification and website documentation/rendering, and focused tests that own the calibrated values and observation integrity. Keep the 65,536-byte single-command peak, aggregate output limits, every absolute ceiling, protocol 8, and the portable skill unchanged.
+5. Update resource-profile source, generated declarations/evidence, validation, qualification and website documentation/rendering, the numeric resource-profile statement in `moldea/references/local-tooling.md`, and focused tests that own the calibrated values and observation integrity. Revalidate immutable active attempts against resource and scenario contracts from their exact source commits, and preserve the pre-final-field attempt `20260905T205956422Z-custom-custom-62bd2013` byte-for-byte as inactive diagnostic evidence without a compatibility reader. Keep the 65,536-byte single-command peak, aggregate output limits, every absolute ceiling, protocol 8, and all portable-skill activation and execution behavior unchanged.
 6. Run deterministic verification, review the cohesive calibration change, and publish it before rerunning Custom for a passing release result.
 
 ### Tests and verification
 
 - Observation-artifact schema, privacy, identity, determinism, tamper, and profile-headroom tests.
 - Exact-boundary and one-over tests for every changed cumulative value; unchanged boundary tests for single-command, aggregate-output, and absolute ceilings.
-- Complete qualification unit/integration/type/lint/format/docs/dry-run checks, affected root resource/release checks, website unit/artifact/E2E/build checks, portable-skill validation, and immutable-attempt verification.
+- Complete qualification unit/integration/type/lint/format/docs/dry-run checks, affected root resource/release checks, website unit/artifact/E2E/build checks, portable-skill validation, recorded-contract regressions, and byte-exact immutable-attempt verification.
 
 ### Acceptance criteria
 
@@ -90,6 +90,7 @@ Collect one semantically judged Custom observation through the corrected gate, c
 - Every changed cumulative value has at least 25 percent headroom above the largest accepted observation and remains below its absolute ceiling.
 - No rejected output dump, semantically failed trial, or unjudged trial influences the active profile.
 - The committed observation is sufficient to reproduce the selected values without exposing model-visible or repository content.
+- Every active numeric resource-profile reference agrees with the calibrated profile; the resulting portable-skill identity change is explicit and requires fresh semantic evidence in Milestone 17.
 
 ### Review checkpoint
 
@@ -99,7 +100,7 @@ Inspect semantic eligibility, observation provenance and privacy, headroom arith
 
 ### Objective
 
-Generate the complete exact-current protocol-8 qualification set and deterministic fresh release evidence against the published calibrated profile.
+Generate fresh exact-current semantic evidence, the complete exact-current protocol-8 qualification set, and deterministic fresh release evidence against the published calibrated profile and synchronized portable skill.
 
 ### Dependencies
 
@@ -108,17 +109,18 @@ Generate the complete exact-current protocol-8 qualification set and determinist
 
 ### Scope and implementation
 
-1. Run preflight and universal Custom once against the published calibrated profile. Require every universal case to pass within its declared profile before running an adapter target.
-2. Run each of the thirteen adapter-specific profiles once after Custom passes. Universal cases remain absent and the ownership matrix remains exact.
-3. Diagnose any failure from bounded evidence. Fix a product defect only through the authorized plan/challenge/breakdown loop, preserve failed attempts, and rerun only evidence invalidated by that correction. Do not widen budgets to hide oversized output or incorrect work.
-4. Verify all retained semantic and qualification attempts, exact-current source/package closure, protocol-8 schema, privacy-safe policy evidence, resource acceptance, website loading/rendering, and universal/adapter ownership.
-5. Record the deterministic fresh `fixtures/release-evidence.json` envelope only after exact-current semantic, Custom, and all adapter targets pass. Validate release identity without releasing or tagging 5.0.0 yet.
-6. Review and publish the fresh evidence state as one cohesive checkpoint before final branch integration and release cleanup.
+1. Run semantic preflight and one fresh semantic evaluation against the published calibrated profile and synchronized portable skill. Require all semantic cases to pass before qualification.
+2. Run qualification preflight and universal Custom once against the published calibrated profile. Require every universal case to pass within its declared profile before running an adapter target.
+3. Run each of the thirteen adapter-specific profiles once after Custom passes. Universal cases remain absent and the ownership matrix remains exact.
+4. Diagnose any failure from bounded evidence. Fix a product defect only through the authorized plan/challenge/breakdown loop, preserve failed attempts, and rerun only evidence invalidated by that correction. Do not widen budgets to hide oversized output or incorrect work.
+5. Verify all retained semantic and qualification attempts, exact-current source/package closure, protocol-8 schema, privacy-safe policy evidence, resource acceptance, website loading/rendering, and universal/adapter ownership.
+6. Record the deterministic fresh `fixtures/release-evidence.json` envelope only after exact-current semantic, Custom, and all adapter targets pass. Validate release identity without releasing or tagging 5.0.0 yet.
+7. Review and publish the fresh evidence state as one cohesive checkpoint before final branch integration and release cleanup.
 
 ### Tests and verification
 
 - Qualification preflight, Custom, thirteen adapter profiles, complete attempt verification, source/package identity, protocol-8 schema, resource profiles, command policy, and ownership coverage.
-- Exact-current semantic verification without a redundant semantic rerun unless a behavior-bearing input changes.
+- Semantic preflight, one fresh exact-current semantic run, and complete retained-attempt verification.
 - Release-evidence record/check, website unit/artifact/E2E/docs/type/lint/format/build, root release/resource/path/docs/test/type/lint/format checks, and portable-skill validation.
 
 ### Acceptance criteria

@@ -10,9 +10,15 @@ import {
   CALIBRATION_MINIMUM_HEADROOM_PERCENT,
   MOLDEA_SKILL_RESOURCE_PROFILES,
 } from './profiles.mjs';
+import { validateModelStageCalibrationArtifact } from './model-stage-observations.mjs';
 
 const repositoryRoot = path.resolve(fileURLToPath(new URL('../../', import.meta.url)));
 const artifactPath = path.join(repositoryRoot, 'fixtures', 'resource-calibration.json');
+const modelStageArtifactPath = path.join(
+  repositoryRoot,
+  'fixtures',
+  'model-stage-resource-calibration.json',
+);
 const cliPackagePath = path.join(repositoryRoot, 'node_modules', '@moldea.ai', 'cli');
 const cliManifestPath = path.join(cliPackagePath, 'package.json');
 const cliExecutablePath = path.join(cliPackagePath, 'dist', 'moldea.js');
@@ -433,8 +439,10 @@ const main = async () => {
   }
   const artifact = JSON.parse(readFileSync(artifactPath, 'utf8'));
   validateCalibration(artifact);
+  const modelStageArtifact = JSON.parse(readFileSync(modelStageArtifactPath, 'utf8'));
+  validateModelStageCalibrationArtifact(modelStageArtifact);
   process.stdout.write(
-    `${JSON.stringify({ cases: artifact.cases.length, profiles: Object.keys(artifact.profiles), status: 'valid' })}\n`,
+    `${JSON.stringify({ cases: artifact.cases.length, modelStageObservations: modelStageArtifact.modelStageObservations.length, profiles: Object.keys(artifact.profiles), status: 'valid' })}\n`,
   );
 };
 

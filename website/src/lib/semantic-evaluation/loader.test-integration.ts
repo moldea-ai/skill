@@ -1,5 +1,13 @@
 // @vitest-environment node
-import { cpSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -153,6 +161,7 @@ const createCandidate = (
       caseDefinitionDigest: createSemanticCaseDefinitionDigest(caseDefinition),
       caseId: id,
       evaluatedAt: updatedAt,
+      executionOrigin: 'executed',
       forbidden: [],
       id,
       judgeHost: index === 0 ? HOST : UPDATED_HOST,
@@ -162,6 +171,7 @@ const createCandidate = (
       rationale: passed
         ? 'The recorded response satisfies every declared criterion.'
         : 'The recorded response misses one declared criterion.',
+      stageReuse: null,
       scenarioEvidence: [
         {
           observation: {
@@ -208,15 +218,29 @@ afterEach(() => {
 });
 
 describe('loadSemanticEvaluationWebsiteModel', () => {
-  test('excludes the predecessor 18-case suite while retaining expanded diagnostic history', () => {
+  test('loads every active attempt from the sole 74-case evidence generation', () => {
     const model = loadSemanticEvaluationWebsiteModel(REPOSITORY_ROOT);
 
     expect(model.caseCount).toBe(74);
     expect(model.attempts.length).toBeGreaterThan(0);
     expect(model.attempts.every(({ result }) => result.totalCaseCount === 74)).toBe(true);
+    expect(
+      model.attempts.every(({ result }) =>
+        result.cases.every(({ trials }) =>
+          trials.every(
+            ({ executionOrigin, stageReuse }) =>
+              (executionOrigin === 'executed' && stageReuse === null) ||
+              (executionOrigin === 'reused' && stageReuse !== null),
+          ),
+        ),
+      ),
+    ).toBe(true);
     expect(model.hasAttempt).toBe(true);
     expect(model.latest).not.toBeNull();
-    expect(model.latestPointer).not.toBeNull();
+    expect(model.latestPointer?.lastPassingAttemptId).toBeNull();
+    expect(existsSync(join(REPOSITORY_ROOT, 'fixtures/semantic-evaluation-result.json'))).toBe(
+      false,
+    );
   });
 
   test('publishes the complete current passing attempt', async () => {

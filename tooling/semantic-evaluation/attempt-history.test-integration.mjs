@@ -50,6 +50,7 @@ const createEvidence = (id, passed, updatedAt) => ({
         outputTokens: 1_000,
       },
       evaluatedAt: updatedAt,
+      executionOrigin: 'executed',
       forbidden: [],
       id,
       judgeHost: {
@@ -68,6 +69,7 @@ const createEvidence = (id, passed, updatedAt) => ({
       rationale: passed
         ? 'The required behavior was observed.'
         : 'The required behavior was missing.',
+      stageReuse: null,
     },
   ],
   schemaVersion: 7,

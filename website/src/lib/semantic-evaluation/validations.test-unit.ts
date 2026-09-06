@@ -38,6 +38,7 @@ const createAttemptRecord = (
           },
           confirmationIndex: null,
           evaluatedAt: TIMESTAMP,
+          executionOrigin: 'executed',
           forbidden: [],
           judgeHost: {
             model: 'gpt-5.6-sol',
@@ -49,6 +50,7 @@ const createAttemptRecord = (
           observed: ['expected-behavior'],
           passed: true,
           rationale: 'The expected behavior was observed.',
+          stageReuse: null,
         },
       ],
     },
@@ -70,6 +72,8 @@ const createAttemptRecord = (
     sha256: 'e'.repeat(64),
   },
   failedCaseCount: 0,
+  executedStageCount: 2,
+  executedTrialCount: 1,
   hostContract: {
     model: 'gpt-5.6-sol',
     name: 'codex',
@@ -79,6 +83,8 @@ const createAttemptRecord = (
   pendingCaseCount: 0,
   recordedAt: TIMESTAMP,
   recoveredCaseCount: 0,
+  reusedStageCount: 0,
+  reusedTrialCount: 0,
   schemaVersion: 4,
   status: 'passed',
   stopReason: 'complete',
@@ -108,17 +114,21 @@ describe('SemanticAttemptRecordSchema', () => {
     const attemptCase = (record['cases'] as Array<Record<string, unknown>>)[0];
     const trial = (attemptCase?.['trials'] as Array<Record<string, unknown>>)[0];
     if (trial === undefined) throw new Error('Expected one semantic trial.');
-    trial['executionOrigin'] = 'executed';
-    trial['stageReuse'] = null;
-    record['executedStageCount'] = 2;
-    record['executedTrialCount'] = 1;
-    record['reusedStageCount'] = 0;
-    record['reusedTrialCount'] = 0;
-
     expect(SemanticAttemptRecordSchema.safeParse(record).success).toBe(true);
     record['executedStageCount'] = 1;
     expect(SemanticAttemptRecordSchema.safeParse(record).success).toBe(false);
     delete record['executedStageCount'];
+    expect(SemanticAttemptRecordSchema.safeParse(record).success).toBe(false);
+  });
+
+  test('rejects attempts without explicit execution provenance', () => {
+    const record = createAttemptRecord(7, 23);
+    const attemptCase = (record['cases'] as Array<Record<string, unknown>>)[0];
+    const trial = (attemptCase?.['trials'] as Array<Record<string, unknown>>)[0];
+    if (trial === undefined) throw new Error('Expected one semantic trial.');
+    delete trial['executionOrigin'];
+    delete trial['stageReuse'];
+
     expect(SemanticAttemptRecordSchema.safeParse(record).success).toBe(false);
   });
 

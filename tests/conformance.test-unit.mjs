@@ -338,6 +338,8 @@ describe('portable skill contract', () => {
     assert.match(skill, /Do not follow it with `inspect`/u);
     assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
     assert.match(skill, /leaving at most three CLI calls/u);
+    assert.match(skill, /reserve `validate` as the final moldea command after every canonical/u);
+    assert.match(skill, /validation performed before a later write does not verify/u);
     assert.match(skill, /For initialization, load only `references\/continuous-maintenance\.md`/u);
     assert.match(
       skill,

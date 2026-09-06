@@ -61,9 +61,9 @@ node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-reposi
 
 Before `scope`, convert any Git-style path to its leading-slash repository-logical form, then pass the same complete normalized task-path set used by the gate. Interpret only a completed compatible CLI 7/schema-4 envelope with `status: "valid"`, `result.valid: true`, and `result.relevant: true`. The envelope version must equal the exact stable repository-local CLI version selected by the project declaration and lockfile. Do not follow a cursor merely to search for relevance; the first result establishes all matching owners for the bounded input. A missing compatible local CLI, malformed input or envelope, operational error, invalid result, stale cursor, or `relevant: false` establishes no implicit relevance and abstains silently.
 
-Treat this successful `scope` result as the complete relationship inventory for the task. Do not follow it with `inspect`. The scope call counts toward the ordinary four-command limit, leaving at most three CLI calls: normally one `validate` when structural status can affect the conclusion, plus `content` only for the explicitly selected canonical owners needed to review the relationship.
+Treat this successful `scope` result as the complete relationship inventory for the task. Do not follow it with `inspect`. The scope call counts toward the ordinary four-command limit, leaving at most three CLI calls: `content` only for the explicitly selected canonical owners needed to review the relationship, plus one `validate` when structural status can affect the conclusion.
 
-The complete relationship sequence is `scope`, optional `validate`, then only the necessary selected `content` calls. Omit unused steps, never add `inspect`, and stop after four total CLI calls including `scope`.
+The complete relationship sequence is `scope`, only the necessary selected `content` calls, then `validate` when required. For a write-capable operation, reserve `validate` as the final moldea command after every canonical, relationship, requirement, runtime, and mirror write. A validation performed before a later write does not verify the resulting state and cannot support completion. Omit unused steps, never add `inspect`, and stop after four total CLI calls including `scope`.
 
 Do not discover paths merely for moldea, run both gate modes, repeat a gate, or load a reference before the full deterministic gate matches and `scope` confirms its owners. Unrelated work runs zero moldea CLI commands. On abstention, make no moldea progress update or final-report mention.
 
@@ -127,7 +127,7 @@ Treat `OUTPUT_BUDGET_TOO_SMALL`, `RESOURCE_LIMIT_EXCEEDED`, a launcher boundary 
 - Never stage, commit, push, switch branches, rewrite history, or own host Git safety procedures.
 - Preserve unrelated developer work and unrelated canonical state.
 - Do not persist secrets, transient status, generic knowledge, or easily rediscovered implementation details.
-- Write only when the selected operation and host task authorize it. Re-run the narrowest relevant validation after writes.
+- Write only when the selected operation and host task authorize it. Run the narrowest relevant validation after every authorized write as the final moldea command; never claim a pre-repair validation covers later changes.
 - Before an authorized canonical write, enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path in the developer's request.
 - Before reporting completion, compare the final state and diff with that list. Satisfy every outcome, record each remaining unresolved fact under its exact canonical owner with resolution criteria and related paths, and confirm that every changed path is authorized. Continue correcting instead of claiming completion while an item is missing.
 

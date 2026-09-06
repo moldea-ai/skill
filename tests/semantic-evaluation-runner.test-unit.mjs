@@ -163,19 +163,19 @@ test('reports safe resource aggregates when malformed judge input is rejected', 
   );
 });
 
-test('reports exact reusable and paid semantic execution boundaries', () => {
-  assert.deepEqual(createSemanticEvaluationCostEstimate(74, 18, 2), {
-    absoluteTokenContainmentLimit: 1_409_286_144,
+test('reports the clean 74-case paid execution boundary without reusable predecessors', () => {
+  assert.deepEqual(createSemanticEvaluationCostEstimate(74), {
+    absoluteTokenContainmentLimit: 1_862_270_976,
     absoluteTokensPerInvocation: 2_097_152,
     caseCount: 74,
-    confirmationInclusivePaidStageLimit: 336,
+    confirmationInclusivePaidStageLimit: 444,
     initialStageCount: 148,
     model: 'gpt-5.6-sol',
-    operationalRetryInclusiveInvocationLimit: 672,
-    paidInitialStageCount: 112,
+    operationalRetryInclusiveInvocationLimit: 888,
+    paidInitialStageCount: 148,
     reasoningEffort: 'medium',
-    reusedCaseCount: 18,
-    reusedStageCount: 40,
+    reusedCaseCount: 0,
+    reusedStageCount: 0,
   });
 });
 

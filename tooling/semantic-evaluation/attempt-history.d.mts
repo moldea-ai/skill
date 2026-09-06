@@ -71,15 +71,14 @@ export interface ISemanticAttemptTrial {
   actorHost: ISemanticEvaluationHostIdentity;
   confirmationIndex: 1 | 2 | null;
   evaluatedAt: string;
-  // omitted only by retained predecessor evidence used as an exact reuse source
-  executionOrigin?: 'executed' | 'reused';
+  executionOrigin: 'executed' | 'reused';
   forbidden: string[];
   judgeHost: ISemanticEvaluationHostIdentity;
   kind: 'confirmation' | 'initial';
   observed: string[];
   passed: boolean;
   rationale: string;
-  stageReuse?: {
+  stageReuse: {
     actor: ISemanticAttemptStageReuseRecord<'actor'>;
     judge: ISemanticAttemptStageReuseRecord<'judge'>;
   } | null;
@@ -103,17 +102,16 @@ export interface ISemanticAttemptRecord {
   coverageDigest: string;
   createdAt: string;
   evidence: ISemanticAttemptEvidenceReference;
-  // omitted only by retained predecessor evidence used as an exact reuse source
-  executedStageCount?: number;
-  executedTrialCount?: number;
+  executedStageCount: number;
+  executedTrialCount: number;
   failedCaseCount: number;
   hostContract: ISemanticEvaluationHostContract;
   passedCaseCount: number;
   pendingCaseCount: number;
   recordedAt: string;
   recoveredCaseCount: number;
-  reusedStageCount?: number;
-  reusedTrialCount?: number;
+  reusedStageCount: number;
+  reusedTrialCount: number;
   schemaVersion: 4;
   status: ISemanticAttemptStatus;
   stopReason:

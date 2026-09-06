@@ -2242,15 +2242,19 @@ const seedAdoptedProject = async (repositoryPath, caseDefinition) => {
 const seedRefundAgent = async (
   repositoryPath,
   behavior,
-  { runtimeId = 'custom', withMirrors = true } = {},
+  { affectedBy = [], runtimeId = 'custom', withMirrors = true } = {},
 ) => {
+  const affectedByRelationship =
+    affectedBy.length === 0
+      ? ''
+      : `    affectedBy:\n${affectedBy.map((path) => `      - ${path}\n`).join('')}`;
   const mirrors = withMirrors
     ? '    mirrors:\n      - /docs/refund-agent.md\n      - /runtime/refund-agent.md\n'
     : '';
   await writeScenarioFile(
     repositoryPath,
     'moldea/moldea.yaml',
-    `version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n\nagents:\n  refund-agent:\n    runtime:\n      id: ${runtimeId}\n${mirrors}`,
+    `version: 1\n\ncontext:\n  /moldea/project.md:\n    affectedBy:\n      - /src/**\n\nagents:\n  refund-agent:\n${affectedByRelationship}    runtime:\n      id: ${runtimeId}\n${mirrors}`,
   );
   await writeScenarioFile(
     repositoryPath,
@@ -2842,6 +2846,7 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
       await seedRefundAgent(
         repositoryPath,
         'Refunds above 1000 units are processed automatically.',
+        { affectedBy: ['/src/refund-policy.js'] },
       );
       await writeScenarioFile(
         repositoryPath,

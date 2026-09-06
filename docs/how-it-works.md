@@ -64,4 +64,4 @@ Write-capable operations update the smallest authorized set of affected represen
 
 This context compression applies only to Git-owned project state. It does not manage a coding host's context window, conversation compaction, prompt cache, token budget, or internal model behavior, and it does not claim token savings.
 
-After writes, it reruns deterministic inspection and the relevant project-native checks, then reports the selected operation, scope, files, tooling, evidence, decisions, limitations, and verification.
+After every canonical and mirror write is complete, it runs one final deterministic validation and the relevant project-native checks. A validation that precedes a later repair does not verify the resulting state. The coding agent then reports the selected operation, scope, files, tooling, evidence, decisions, limitations, and verification.

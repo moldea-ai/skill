@@ -111,37 +111,34 @@ const SemanticAttemptTrialSchema = z
     actorHost: SemanticHostSchema,
     confirmationIndex: z.union([z.literal(1), z.literal(2)]).nullable(),
     evaluatedAt: z.iso.datetime(),
-    executionOrigin: z.enum(['executed', 'reused']).optional(),
+    executionOrigin: z.enum(['executed', 'reused']),
     forbidden: z.array(StableIdSchema),
     judgeHost: SemanticHostSchema,
     kind: z.enum(['confirmation', 'initial']),
     observed: z.array(StableIdSchema),
     passed: z.boolean(),
     rationale: z.string().trim().min(1),
-    stageReuse: SemanticStageReuseSchema.nullable().optional(),
+    stageReuse: SemanticStageReuseSchema.nullable(),
   })
   .superRefine((trial, context) => {
-    const executionOrigin = trial.executionOrigin ?? 'executed';
-    const stageReuse = trial.stageReuse ?? null;
     if (
-      (executionOrigin === 'executed' && stageReuse !== null) ||
-      (executionOrigin === 'reused' &&
-        (stageReuse === null ||
-          stageReuse.actor.stage !== 'actor' ||
-          stageReuse.judge.stage !== 'judge' ||
-          !hasMatchingStageReuseSource(stageReuse.actor.source, stageReuse.judge.source) ||
-          stageReuse.actor.source.trial.caseId !== stageReuse.judge.source.trial.caseId ||
-          stageReuse.actor.source.trial.confirmationIndex !== trial.confirmationIndex ||
-          stageReuse.actor.source.trial.kind !== trial.kind))
+      (trial.executionOrigin === 'executed' && trial.stageReuse !== null) ||
+      (trial.executionOrigin === 'reused' &&
+        (trial.stageReuse === null ||
+          trial.stageReuse.actor.stage !== 'actor' ||
+          trial.stageReuse.judge.stage !== 'judge' ||
+          !hasMatchingStageReuseSource(
+            trial.stageReuse.actor.source,
+            trial.stageReuse.judge.source,
+          ) ||
+          trial.stageReuse.actor.source.trial.caseId !==
+            trial.stageReuse.judge.source.trial.caseId ||
+          trial.stageReuse.actor.source.trial.confirmationIndex !== trial.confirmationIndex ||
+          trial.stageReuse.actor.source.trial.kind !== trial.kind))
     ) {
       context.addIssue({ code: 'custom', message: 'Invalid semantic execution provenance.' });
     }
-  })
-  .transform((trial) => ({
-    ...trial,
-    executionOrigin: trial.executionOrigin ?? 'executed',
-    stageReuse: trial.stageReuse ?? null,
-  }));
+  });
 
 const SemanticAttemptEvidenceReferenceBaseSchema = z.object({
   kind: z.literal('candidate'),
@@ -257,7 +254,7 @@ const SemanticReplayTrialShape = {
   caseDefinitionDigest: Sha256Schema,
   caseId: StableIdSchema,
   evaluatedAt: z.iso.datetime(),
-  executionOrigin: z.enum(['executed', 'reused']).default('executed'),
+  executionOrigin: z.enum(['executed', 'reused']),
   forbidden: z.array(StableIdSchema),
   id: StableIdSchema,
   judgeHost: SemanticHostSchema,
@@ -265,7 +262,7 @@ const SemanticReplayTrialShape = {
   observed: z.array(StableIdSchema),
   passed: z.boolean(),
   rationale: z.string().trim().min(1),
-  stageReuse: SemanticStageReuseSchema.nullable().default(null),
+  stageReuse: SemanticStageReuseSchema.nullable(),
   workspaceChanges: SemanticReplayWorkspaceChangesSchema,
 };
 const SemanticReplayInitialTrialSchema = z
@@ -332,15 +329,15 @@ export const SemanticAttemptRecordSchema = z
     createdAt: z.iso.datetime(),
     evidence: SemanticAttemptEvidenceReferenceSchema,
     failedCaseCount: z.number().int().nonnegative(),
-    executedStageCount: z.number().int().nonnegative().optional(),
-    executedTrialCount: z.number().int().nonnegative().optional(),
+    executedStageCount: z.number().int().nonnegative(),
+    executedTrialCount: z.number().int().nonnegative(),
     hostContract: SemanticHostContractSchema,
     passedCaseCount: z.number().int().nonnegative(),
     pendingCaseCount: z.number().int().nonnegative(),
     recordedAt: z.iso.datetime(),
     recoveredCaseCount: z.number().int().nonnegative(),
-    reusedStageCount: z.number().int().nonnegative().optional(),
-    reusedTrialCount: z.number().int().nonnegative().optional(),
+    reusedStageCount: z.number().int().nonnegative(),
+    reusedTrialCount: z.number().int().nonnegative(),
     schemaVersion: z.literal(4),
     status: AttemptStatusSchema,
     stopReason: z.enum([
@@ -354,34 +351,21 @@ export const SemanticAttemptRecordSchema = z
     updatedAt: z.iso.datetime(),
   })
   .superRefine((attempt, context) => {
-    const provenanceCounts = [
-      attempt.executedStageCount,
-      attempt.executedTrialCount,
-      attempt.reusedStageCount,
-      attempt.reusedTrialCount,
-    ];
-    const hasAnyProvenanceCount = provenanceCounts.some((count) => count !== undefined);
-    const hasEveryProvenanceCount = provenanceCounts.every((count) => count !== undefined);
     const trials = attempt.cases.flatMap(({ trials: caseTrials }) => caseTrials);
-
-    if (hasAnyProvenanceCount && !hasEveryProvenanceCount) {
-      context.addIssue({ code: 'custom', message: 'Semantic execution counts are incomplete.' });
-    } else if (hasEveryProvenanceCount) {
-      const executedTrialCount = trials.filter(
-        ({ executionOrigin }) => executionOrigin === 'executed',
-      ).length;
-      const reusedTrialCount = trials.length - executedTrialCount;
-      if (
-        attempt.executedTrialCount !== executedTrialCount ||
-        attempt.reusedTrialCount !== reusedTrialCount ||
-        attempt.executedStageCount !== executedTrialCount * 2 ||
-        attempt.reusedStageCount !== reusedTrialCount * 2
-      ) {
-        context.addIssue({
-          code: 'custom',
-          message: 'Semantic execution counts are contradictory.',
-        });
-      }
+    const executedTrialCount = trials.filter(
+      ({ executionOrigin }) => executionOrigin === 'executed',
+    ).length;
+    const reusedTrialCount = trials.length - executedTrialCount;
+    if (
+      attempt.executedTrialCount !== executedTrialCount ||
+      attempt.reusedTrialCount !== reusedTrialCount ||
+      attempt.executedStageCount !== executedTrialCount * 2 ||
+      attempt.reusedStageCount !== reusedTrialCount * 2
+    ) {
+      context.addIssue({
+        code: 'custom',
+        message: 'Semantic execution counts are contradictory.',
+      });
     }
 
     for (const [caseIndex, attemptCase] of attempt.cases.entries()) {

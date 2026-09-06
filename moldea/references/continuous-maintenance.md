@@ -43,7 +43,7 @@ For an authorized relevant change:
 3. Read only the owner and the relevant implementation or consumer.
 4. Update the smallest coherent set of canonical declarations, mirrors, requirements, and documentation.
 5. Preserve unrelated canonical content and developer work.
-6. Run the narrowest structural validation and project-native checks required by the changed behavior.
+6. After every canonical and mirror write is complete, run the narrowest structural validation as the final moldea command, then run any required project-native checks.
 
 A relationship requires reconsideration, not an automatic edit. If implementation remains aligned, leave canonical state byte-identical and report no more than one line.
 
@@ -78,4 +78,4 @@ Never rewrite README outside the markers as part of moldea maintenance. If the b
 
 Classify an affected requirement criterion as satisfied, outstanding, or evidence-blocked. Remove it only when every criterion is established and the current operation authorizes the removal. Remove superseded declarations and stale relationships made unnecessary by the change; do not retain compatibility paths without an established supported consumer.
 
-After writes, validate schema-4 metadata and inspect only the changed canonical owners. Do not run full-project content inspection.
+After every canonical and mirror write is complete, validate schema-4 metadata as the final moldea command. A validation performed before a later repair does not verify the resulting state and cannot support completion. Inspect only the changed canonical owners, and do not run full-project content inspection.

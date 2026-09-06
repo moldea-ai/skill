@@ -15,7 +15,7 @@ const trial = {
 };
 const expected = {
   identitySha256,
-  sourceAttemptId: '20260906T121210498Z-semantic-04a6cea4',
+  sourceAttemptId: 'source-attempt',
   sourceCommit: 'b'.repeat(40),
   sourceEvidencePath: 'fixtures/semantic-evaluation-results/attempts/example/evidence.json',
   sourceEvidenceSha256: 'c'.repeat(64),
@@ -26,7 +26,7 @@ const expected = {
 const createRecord = (overrides = {}) =>
   createSemanticStageReuseRecord({
     identitySha256,
-    sourceAttemptId: '20260906T121210498Z-semantic-04a6cea4',
+    sourceAttemptId: 'source-attempt',
     sourceCommit: 'b'.repeat(40),
     sourceEvidencePath: 'fixtures/semantic-evaluation-results/attempts/example/evidence.json',
     sourceEvidenceSha256: 'c'.repeat(64),

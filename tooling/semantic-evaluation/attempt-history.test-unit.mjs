@@ -37,11 +37,13 @@ const MODEL_USAGE = {
 
 const createTrial = (id, passed, evaluatedAt) => ({
   evaluatedAt,
+  executionOrigin: 'executed',
   forbidden: [],
   id,
   observed: passed ? ['required-behavior'] : [],
   passed,
   rationale: passed ? 'The required behavior was observed.' : 'The required behavior was missing.',
+  stageReuse: null,
 });
 
 const createStageReuse = (id) => {
@@ -263,7 +265,7 @@ test('semantic attempt summaries distinguish executed and exact reused stages', 
   assert.equal(attempt.cases[1].trials[0].stageReuse.actor.source.attemptId, 'source-attempt');
 });
 
-test('semantic attempt summaries reject incomplete reuse provenance', () => {
+test('semantic attempt summaries reject incomplete or missing execution provenance', () => {
   const reusedTrial = {
     ...createTrial('reused-case', true, '2026-08-25T01:00:00.000Z'),
     executionOrigin: 'reused',
@@ -284,24 +286,24 @@ test('semantic attempt summaries reject incomplete reuse provenance', () => {
     /invalid execution provenance/u,
   );
 
+  const missingProvenance = createTrial(
+    'missing-provenance-case',
+    true,
+    '2026-08-25T01:00:00.000Z',
+  );
+  delete missingProvenance.executionOrigin;
+  delete missingProvenance.stageReuse;
   assert.throws(
     () =>
       createSemanticAttemptRecord({
-        evidence: createEvidence([
-          {
-            ...createTrial('executed-case', true, '2026-08-25T00:30:00.000Z'),
-            executionOrigin: 'executed',
-            stageReuse: null,
-          },
-          createTrial('predecessor-case', true, '2026-08-25T01:00:00.000Z'),
-        ]),
+        evidence: createEvidence([missingProvenance]),
         evidenceKind: 'candidate',
         evidenceSha256: 'd'.repeat(64),
         recordedAt: '2026-08-25T01:00:01.000Z',
         stopReason: 'complete',
-        totalCaseCount: 2,
+        totalCaseCount: 1,
       }),
-    /mixes predecessor and current execution provenance/u,
+    /invalid execution provenance/u,
   );
 });
 

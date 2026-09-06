@@ -1,0 +1,66 @@
+{
+  "caseId": "preserve-anthropic-static-boundary",
+  "title": "Preserve the Anthropic static boundary",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 229642,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 229642,
+      "deterministicBeforePath": "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/preserve-anthropic-static-boundary/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/preserve-anthropic-static-boundary/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/preserve-anthropic-static-boundary/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/preserve-anthropic-static-boundary/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/preserve-anthropic-static-boundary/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 303779,
+        "cachedInputTokens": 274560,
+        "outputTokens": 4337
+      },
+      "judgeUsage": {
+        "inputTokens": 224356,
+        "cachedInputTokens": 200576,
+        "outputTokens": 2617
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T08:38:49.691Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T08:40:21.348Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-direct-evidence",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "In src/agents.ts, supportAgent directly calls client.messages.create({...}); loadSupportInstruction reads moldea/agents/support/instruction.md, and its awaited result supplies the request's system field. moldea/moldea.yaml binds both supportAgent and loadSupportInstruction to the support agent. The actor explicitly reported these facts, and deterministic-after reports valid inspection, validation, and typechecking."
+        },
+        {
+          "id": "preserves-provider-tool-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "src/agents.ts passes providerWebSearchTool, identified by type web_search_20250305, inside the Anthropic request. The canonical manifest records no client-tool registration, tool schema, routing, or handoff relationship; the bounded moldea tree contains only the two agents and project/manifest files. The actor reported this conservative treatment, while deterministic-after confirms the canonical state is valid and unchanged."
+        },
+        {
+          "id": "preserves-indirect-request-boundary",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "dynamicSupportAgent constructs an intermediate request object and passes it to client.messages.create(request), rather than using the direct supported request pattern. moldea/moldea.yaml retains the indirect-request-construction warning stating that runtime relationships cannot be proven and gives a concrete resolution: pass a closed request object directly to messages.create or document the relationship through a supported adapter pattern. The actor reported the same unresolved boundary, and deterministic-after confirms validation passed without repository changes."
+        },
+        {
+          "id": "validates-without-churn",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after, workspace-assertions."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

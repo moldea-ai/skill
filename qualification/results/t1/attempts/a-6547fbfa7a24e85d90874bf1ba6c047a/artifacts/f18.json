@@ -1,0 +1,66 @@
+{
+  "caseId": "repair-anthropic-tool-registration",
+  "title": "Repair Anthropic tool registration",
+  "status": "passed",
+  "confirmationStatus": "not-required",
+  "durationMs": 217633,
+  "trials": [
+    {
+      "trialId": "initial",
+      "kind": "initial",
+      "confirmationIndex": null,
+      "passed": true,
+      "durationMs": 217633,
+      "deterministicBeforePath": "cases/repair-anthropic-tool-registration/trials/initial/deterministic-before.json",
+      "deterministicAfterPath": "cases/repair-anthropic-tool-registration/trials/initial/deterministic-after.json",
+      "actorOutputPath": "cases/repair-anthropic-tool-registration/trials/initial/actor-output.json",
+      "judgeStatus": "completed",
+      "judgeOutputPath": "cases/repair-anthropic-tool-registration/trials/initial/judge-output.json",
+      "judgeSkippedPath": null,
+      "workspaceAssertionsPath": "cases/repair-anthropic-tool-registration/trials/initial/workspace-assertions.json",
+      "patchPath": "cases/repair-anthropic-tool-registration/trials/initial/workspace.patch",
+      "actorUsage": {
+        "inputTokens": 345549,
+        "cachedInputTokens": 303872,
+        "outputTokens": 3843
+      },
+      "judgeUsage": {
+        "inputTokens": 250118,
+        "cachedInputTokens": 234880,
+        "outputTokens": 2673
+      },
+      "actorEvidenceCreatedAt": "2026-09-06T08:35:01.780Z",
+      "judgeEvidenceCreatedAt": "2026-09-06T08:36:31.702Z",
+      "actorCacheSourceAttemptId": null,
+      "judgeCacheSourceAttemptId": null,
+      "requirementAssessments": [
+        {
+          "id": "explains-name-mismatch",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "The actor report identifies the stale manifest name find_order and the source-defined name lookup_order. Current src/tools.ts declares lookupOrderTool.name as lookup_order, and src/agent.ts registers that declaration in the closed tools: [lookupOrderTool] array, corroborating the reported mismatch and resolution."
+        },
+        {
+          "id": "repairs-canonical-name",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "Current moldea/moldea.yaml declares tools.lookup-order.name: lookup_order, exactly matching lookupOrderTool.name in src/tools.ts. Workspace assertions show moldea/moldea.yaml as the sole changed path while every runtime source file retained its before/after hash; deterministic post-actor validation passed."
+        },
+        {
+          "id": "preserves-binding-closure",
+          "evaluator": "judge",
+          "verdict": "pass",
+          "evidence": "moldea/moldea.yaml retains exact bindings to /src/agent.ts#supportAgent, /src/agent.ts#loadSupportInstruction, /src/tools.ts#lookupOrderTool, /src/implementations.ts#lookupOrder, and /src/contracts.ts#LookupOrderInputSchema. Current source confirms the instruction loader, direct client.messages.create wrapper, closed tools array, tool declaration, schema reference, and implementation. Their before/after hashes are unchanged, and deterministic validation and type checking passed."
+        },
+        {
+          "id": "validates-project",
+          "evaluator": "runner",
+          "verdict": "pass",
+          "evidence": "Runner checks passed: deterministic-after."
+        }
+      ],
+      "failures": []
+    }
+  ],
+  "failures": []
+}

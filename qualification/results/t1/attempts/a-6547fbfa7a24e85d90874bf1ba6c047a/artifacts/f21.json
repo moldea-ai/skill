@@ -1,0 +1,14 @@
+{
+  "outcome": "completed",
+  "summary": "Reconciled the support agent’s canonical Anthropic tool name from `find_order` to the source-defined `lookup_order`. Local moldea validation now reports valid with zero diagnostics, TypeScript compilation passes, and `git diff --check` passes.",
+  "changedFiles": [
+    "moldea/moldea.yaml"
+  ],
+  "observations": [
+    "Preserved the direct Anthropic Messages API wrapper and its closed `tools: [lookupOrderTool]` array.",
+    "Preserved the `lookupOrderTool` declaration, `lookupOrder` implementation, and `LookupOrderInputSchema`.",
+    "Final Git diff contains only the one tool-name metadata correction.",
+    "Post-repair validation emitted `diagnosticCount: 0` and no wiring diagnostic."
+  ],
+  "unresolved": []
+}

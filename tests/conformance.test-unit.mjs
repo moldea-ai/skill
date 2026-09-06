@@ -351,6 +351,10 @@ describe('portable skill contract', () => {
       /not adopted by `moldea` because the complete adoption contract is absent/u,
     );
     assert.match(skill, /Do not substitute an indirect status such as paused or incomplete/u);
+    assert.match(
+      skill,
+      /name the present and missing elements among `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the owned README awareness block/u,
+    );
     assert.match(skill, /ask what the project does and who or what it serves/u);
     assert.match(skill, /Structural validation proves format, not the truth or sufficiency/u);
     assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
@@ -394,6 +398,10 @@ describe('portable skill contract', () => {
     );
     assert.match(maintenance, /paused or incomplete is not the adoption result/u);
     assert.match(maintenance, /Preserve every existing artifact/u);
+    assert.match(
+      maintenance,
+      /Name the present and missing adoption elements among `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the owned README awareness block/u,
+    );
     assert.match(maintenance, /Do not store developer-answerable ambiguity/u);
     assert.match(maintenance, /Validation proves that files satisfy the repository format/u);
     assert.match(maintenance, /The file ends with one LF/u);

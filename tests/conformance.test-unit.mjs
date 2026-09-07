@@ -397,6 +397,8 @@ describe('portable skill contract', () => {
     );
     assert.match(skill, /compare the final state and diff with that list/u);
     assert.match(skill, /record each remaining unresolved fact under its exact canonical owner/u);
+    assert.match(skill, /Do not choose code, canonical prose, tests, or the newest asset/u);
+    assert.match(skill, /Ask one focused question that resolves the authority/u);
     assert.match(
       skill,
       /Continue correcting instead of claiming completion while an item is missing/u,
@@ -431,6 +433,10 @@ describe('portable skill contract', () => {
       /Name the present and missing adoption elements among `\/moldea\/moldea\.yaml`, `\/moldea\/project\.md`, and the owned README awareness block/u,
     );
     assert.match(maintenance, /Do not store developer-answerable ambiguity/u);
+    assert.match(
+      maintenance,
+      /identifying the canonical owner reconsidered, stating that behavior or contracts remain unchanged/u,
+    );
     assert.match(maintenance, /Validation proves that files satisfy the repository format/u);
     assert.match(maintenance, /map the project-owned evidence to the foundation it established/u);
     assert.match(maintenance, /End with one short, evidence-supported `Next:` action/u);
@@ -458,6 +464,34 @@ describe('portable skill contract', () => {
     const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');
     assert.match(localTooling, /append `--cursor "<opaque-cursor>"`/u);
     assert.match(localTooling, /never claim completeness before the final raw envelope/u);
+    assert.match(localTooling, /Plug'n'Play-only layout without that closure is unavailable/u);
+    assert.match(localTooling, /Name the configuration and executable mechanism/u);
+    assert.match(localTooling, /\.pnpmfile\.cjs/u);
+    assert.match(localTooling, /plugin declared by `\.yarnrc\.yml`/u);
+    const compression = readFileSync(
+      join(SKILL_ROOT, 'references', 'context-compression.md'),
+      'utf8',
+    );
+    assert.match(compression, /compression is blocked pending the answer/u);
+    const evaluation = readFileSync(
+      join(SKILL_ROOT, 'references', 'evaluate-and-reconcile.md'),
+      'utf8',
+    );
+    assert.match(evaluation, /stop before worktree-aware Git can execute it/u);
+    assert.match(evaluation, /executable Git filter, text conversion, external diff, fsmonitor/u);
+    assert.match(evaluation, /canonical owner or declared relationship actually assessed/u);
+    const runtime = readFileSync(
+      join(SKILL_ROOT, 'references', 'runtime-compatibility.md'),
+      'utf8',
+    );
+    assert.match(runtime, /Canonical moldea declarations establish/u);
+    assert.match(runtime, /Repository source, configuration, closed wiring/u);
+    assert.match(runtime, /Root-local `composition/u);
+    assert.match(runtime, /current published technical targets/u);
+    assert.match(runtime, /It does not erase a canonical runtime declaration/u);
+    const skillDesign = readFileSync(join(SKILL_ROOT, 'references', 'skill-design.md'), 'utf8');
+    assert.match(skillDesign, /make the skill structurally invalid/u);
+    assert.match(skillDesign, /Never use a successful unrelated validator/u);
   });
 
   test('defines silent abstention, host ownership, and bounded schema-4 evidence', () => {
@@ -476,6 +510,26 @@ describe('portable skill contract', () => {
     assert.match(distributedText, /content-free/u);
     assert.doesNotMatch(distributedText, /Moldea/u);
     assert.doesNotMatch(distributedText, /4\.0\.[0-2]|CLI JSON schema (?:1|2|3)\b|schema-3\b/u);
+  });
+
+  test('documents content-free repository test-result projection', () => {
+    const readme = readFileSync(join(REPOSITORY_ROOT, 'README.md'), 'utf8');
+    const semanticEvaluation = readFileSync(
+      join(REPOSITORY_ROOT, 'docs', 'semantic-evaluation.md'),
+      'utf8',
+    );
+
+    assert.match(readme, /fixed repository-root Node or npm correctness-test invocation/u);
+    assert.match(
+      readme,
+      /never retains test names, assertions, paths, durations, or output bodies/u,
+    );
+    assert.match(semanticEvaluation, /one `node-test-summary` fact/u);
+    assert.match(semanticEvaluation, /every discovered test passing/u);
+    assert.match(
+      semanticEvaluation,
+      /Unrecognized, incomplete, contradictory, failed, or oversized output supplies no result fact/u,
+    );
   });
 
   test('exposes concise lowercase host metadata', () => {

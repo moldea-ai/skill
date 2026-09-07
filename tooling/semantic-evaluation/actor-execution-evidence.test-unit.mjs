@@ -56,6 +56,26 @@ const createEvent = (command, output, { exitCode = 0, status = 'completed' } = {
   },
 });
 
+const createNodeTestOutput = ({
+  cancelled = 0,
+  failed = 0,
+  passed = 1,
+  skipped = 0,
+  tests = 1,
+  todo = 0,
+} = {}) =>
+  [
+    '✔ focused behavior (4.2ms)',
+    `ℹ tests ${tests}`,
+    'ℹ suites 0',
+    `ℹ pass ${passed}`,
+    `ℹ fail ${failed}`,
+    `ℹ cancelled ${cancelled}`,
+    `ℹ skipped ${skipped}`,
+    `ℹ todo ${todo}`,
+    'ℹ duration_ms 12.5',
+  ].join('\n');
+
 test('projects launcher-backed content-free inspect metadata and exact output bytes', () => {
   const output = createEnvelope('inspect', {
     page: { cursor: null, records: [{ kind: 'context', asset: { path: '/moldea/project.md' } }] },
@@ -293,6 +313,111 @@ test('counts a valid launcher with malformed output as an unrecognized moldea op
     operations: ['unrecognized'],
     stdoutByteCount: 10,
   });
+});
+
+test('projects only the passing totals from a recognized repository test', () => {
+  const output = createNodeTestOutput({ passed: 4, tests: 4 });
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent('node --test src/support-agent.test-integration.js', output),
+    OPTIONS,
+  );
+
+  assert.equal(hasValidActorExecutionEvidence([evidence], OPTIONS), true);
+  assert.deepEqual(evidence, {
+    eventType: 'item.completed',
+    item: {
+      commandKind: 'other',
+      exitCode: 0,
+      outputEvidence: {
+        byteCount: Buffer.byteLength(output),
+        disposition: 'projected',
+        facts: [
+          {
+            cancelledCount: 0,
+            failedCount: 0,
+            kind: 'node-test-summary',
+            passedCount: 4,
+            skippedCount: 0,
+            status: 'passed',
+            testCount: 4,
+            testKind: 'integration',
+            todoCount: 0,
+          },
+        ],
+      },
+      status: 'completed',
+      type: 'command_execution',
+    },
+  });
+  assert.equal(JSON.stringify(evidence).includes('focused behavior'), false);
+  assert.deepEqual(createMoldeaResourceEvidence([evidence], OPTIONS), {
+    commandCount: 0,
+    maximumInvocationByteCount: 0,
+    modelVisibleToolOutputByteCount: 0,
+    operations: [],
+    stdoutByteCount: 0,
+  });
+});
+
+test('recognizes a passing npm correctness-test summary without retaining its preamble', () => {
+  const output = `\n> fixture@1.0.0 test:integration\n> node --test src/support-agent.test-integration.js\n\n${createNodeTestOutput()}`;
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent('/home/evaluator/bin/npm run test:integration', output),
+    OPTIONS,
+  );
+
+  assert.equal(evidence.item.outputEvidence.disposition, 'projected');
+  assert.equal(evidence.item.outputEvidence.facts[0].kind, 'node-test-summary');
+  assert.equal(JSON.stringify(evidence).includes('fixture@1.0.0'), false);
+});
+
+test('withholds a test-result fact unless the command and complete passing summary agree', () => {
+  const passingOutput = createNodeTestOutput();
+  const rejected = [
+    createEvent('git status --short', passingOutput),
+    createEvent(
+      'node --test src/support-agent.test-integration.js',
+      createNodeTestOutput({ failed: 1, passed: 0 }),
+      { exitCode: 1, status: 'failed' },
+    ),
+    createEvent(
+      'node --test src/support-agent.test-integration.js',
+      createNodeTestOutput({ skipped: 1 }),
+    ),
+    createEvent(
+      'node --test src/support-agent.test-integration.js',
+      passingOutput.replace('ℹ duration_ms 12.5', ''),
+    ),
+    createEvent('node --test src/support-agent.test-integration.js', `${passingOutput}\nℹ tests 1`),
+  ];
+
+  for (const event of rejected) {
+    const evidence = projectActorExecutionEvidenceEvent(event, OPTIONS);
+    assert.equal(evidence.item.outputEvidence.disposition, 'unrecognized');
+    assert.deepEqual(evidence.item.outputEvidence.facts, []);
+  }
+});
+
+test('accepts the native TAP summary form and bounds recognized test output', () => {
+  const tapOutput = createNodeTestOutput()
+    .split('\n')
+    .map((line) => line.replace(/^ℹ /u, '# '))
+    .join('\n');
+  const evidence = projectActorExecutionEvidenceEvent(
+    createEvent('node --test src/support-agent.test-integration.js', tapOutput),
+    OPTIONS,
+  );
+  const excessive = projectActorExecutionEvidenceEvent(
+    createEvent(
+      'node --test src/support-agent.test-integration.js',
+      'x'.repeat(MOLDEA_SKILL_RESOURCE_PROFILES.ordinary.maxCommandOutputBytes + 1),
+    ),
+    OPTIONS,
+  );
+
+  assert.equal(evidence.item.outputEvidence.disposition, 'projected');
+  assert.equal(excessive.item.outputEvidence.disposition, 'too-large');
+  assert.deepEqual(excessive.item.outputEvidence.facts, []);
 });
 
 test('bounds ordinary non-moldea command output at the operating peak', () => {

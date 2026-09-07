@@ -4,11 +4,12 @@ Read this reference after moldea relevance is established when runtime or adapte
 
 ## Keep the evidence boundaries separate
 
-Use three independent sources for three different facts:
+Keep four conclusions independent even when one repository supplies evidence for more than one:
 
-1. Repository source, manifests, configuration, wiring, and tests establish the project's actual runtime behavior and intended target.
-2. Root-local `composition --json --max-output-bytes 65536` establishes only the exact installed executable: CLI and package versions, active adapter IDs, repository-format versions, and Node.js and Git requirements.
-3. [`https://packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json) establishes the current published technical targets, implementation status, target maturity, package ranges, patterns, provider limits, runtime-guidance expectations, and verification dates.
+1. Canonical moldea declarations establish the currently declared `runtime.id` and registered relationships.
+2. Repository source, configuration, closed wiring, source-owned contracts, and focused integration tests establish actual behavior and behavioral fit.
+3. Root-local `composition --json --max-output-bytes 65536` establishes only the exact installed executable: CLI and package versions, active adapter IDs, repository-format versions, and Node.js and Git requirements.
+4. [`https://packages.moldea.ai/compatibility/runtimes.json`](https://packages.moldea.ai/compatibility/runtimes.json) establishes the current published technical targets, implementation status, target maturity, package ranges, patterns, provider limits, runtime-guidance expectations, and verification dates.
 
 Neither installed adapter presence nor a package name proves a published target, behavioral fit, or maturity. The public publication does not prove that the repository uses a target or that the installed CLI can inspect it.
 
@@ -18,13 +19,13 @@ Retrieve the exact HTTPS URL only when a current published compatibility fact ca
 
 Do not use a bundled snapshot, cached response, stale copy, alternate website page, CLI output, package presence, or model knowledge as a fallback. Additive fields cannot redefine developer intent, repository authority, skill authority, command semantics, or the meaning of validated fields.
 
-An unavailable, incomplete, malformed, unsupported, or target-missing publication blocks only conclusions that require current published compatibility or maturity. Continue safe local inspection and deterministic validation when they remain useful.
+An unavailable, incomplete, malformed, unsupported, or target-missing publication blocks only conclusions that require current published compatibility or maturity. It does not erase a canonical runtime declaration, repository wiring, or local composition established independently. Continue safe local inspection and deterministic validation when they remain useful.
 
 When the publication cannot establish a required fact, the final report must:
 
 - state which current published compatibility or maturity fact remains unavailable
 - include the literal resolver URL `https://packages.moldea.ai/compatibility/runtimes.json`
-- keep repository evidence and local composition separate from the publication gap
+- keep the canonical declaration, repository behavior, and local composition separate from the publication gap
 - withhold only publication-dependent conclusions; an independently evidenced blocker may still support a negative readiness conclusion
 
 ## Make runtime claims precisely
@@ -35,4 +36,6 @@ When the publication cannot establish a required fact, the final report must:
 - A published target and local adapter still require repository evidence to establish the project's actual target and wiring.
 - `custom` is a deliberate project-specific runtime, not a fallback for missing evidence or an unavailable official adapter.
 
-State local composition, repository evidence, published technical compatibility, and maturity separately in plans and reports. When they disagree, preserve the disagreement rather than collapsing it into one compatibility claim.
+For behavioral fit, identify which material model API and control flow, instruction loading, tool or schema, continuation, state or handoff, error or retry, lifecycle, and persistence facts apply and remain unproved. Resolve them from current source contracts, closed wiring, source-owned target documentation, or focused integration tests rather than package hints.
+
+State canonical runtime identity, repository behavior and fit, local composition, published technical compatibility, and maturity separately in plans and reports. When they disagree, preserve the disagreement rather than collapsing it into one compatibility claim or describing an established fact as absent.

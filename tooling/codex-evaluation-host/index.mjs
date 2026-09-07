@@ -36,6 +36,8 @@ export {
 export {
   hasPassingCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
+  identifyRepositoryTestCommandKind,
+  isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
 } from './execution-evidence.mjs';
 

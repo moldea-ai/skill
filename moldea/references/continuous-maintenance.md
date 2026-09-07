@@ -45,7 +45,7 @@ For an authorized relevant change:
 5. Preserve unrelated canonical content and developer work.
 6. After every canonical and mirror write is complete, run the narrowest structural validation as the final moldea command, then run any required project-native checks.
 
-A relationship requires reconsideration, not an automatic edit. If implementation remains aligned, leave canonical state byte-identical and report no more than one line.
+A relationship requires reconsideration, not an automatic edit. If implementation remains aligned, leave canonical state byte-identical and report no more than one line identifying the canonical owner reconsidered, stating that behavior or contracts remain unchanged, and concluding that the owner remains accurate without an edit.
 
 Keep one owner for each fact. Link an existing authority instead of copying its policy into another canonical asset. Synchronize a declared mirror from its source; do not create undeclared distributed copies or cross-repository paths.
 

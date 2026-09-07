@@ -27,19 +27,31 @@ export interface ISemanticActorExecutionEvidenceOptions {
 }
 
 // evaluator-owned facts that may be derived from complete recognized command output
-export type ISemanticActorExecutionOutputFact = {
-  kind: 'moldea-cli-envelope';
-  cliVersion: string;
-  command: 'composition' | 'content' | 'inspect' | 'scope' | 'validate';
-  containsContent: boolean;
-  errorPresent: boolean;
-  hasNextPage: boolean;
-  pageRecordCount: number;
-  relevant: boolean | null;
-  resultPresent: boolean;
-  schemaVersion: number;
-  status: 'error' | 'invalid' | 'valid';
-};
+export type ISemanticActorExecutionOutputFact =
+  | {
+      kind: 'moldea-cli-envelope';
+      cliVersion: string;
+      command: 'composition' | 'content' | 'inspect' | 'scope' | 'validate';
+      containsContent: boolean;
+      errorPresent: boolean;
+      hasNextPage: boolean;
+      pageRecordCount: number;
+      relevant: boolean | null;
+      resultPresent: boolean;
+      schemaVersion: number;
+      status: 'error' | 'invalid' | 'valid';
+    }
+  | {
+      cancelledCount: 0;
+      failedCount: 0;
+      kind: 'node-test-summary';
+      passedCount: number;
+      skippedCount: 0;
+      status: 'passed';
+      testCount: number;
+      testKind: 'correctness' | 'e2e' | 'integration' | 'unit';
+      todoCount: 0;
+    };
 
 // safe command-output metadata persisted without raw command output
 export interface ISemanticActorExecutionOutputEvidence {

@@ -5,6 +5,8 @@ import test from 'node:test';
 import {
   hasPassingCodexEvaluationCommandPolicy,
   identifyMoldeaCliLauncherOperation,
+  identifyRepositoryTestCommandKind,
+  isRepositoryTestCommand,
   projectCodexEvaluationExecutionEvidence,
 } from './execution-evidence.mjs';
 
@@ -521,6 +523,46 @@ test('launcher identification counts one opaque-cursor continuation even when wr
     identifyMoldeaCliLauncherOperation(`${continuation} | node -e "process.stdin.resume()"`),
     'validate',
   );
+});
+
+test('repository test identification accepts only static bounded correctness commands', () => {
+  for (const command of [
+    'node --test src/support-agent.test-integration.js',
+    'node --test ./src/a.test-unit.mjs src/b.test-e2e.cjs',
+    'npm test',
+    '/home/evaluator/bin/npm run test:integration',
+    "/bin/bash -lc 'node --test src/support-agent.test-integration.js'",
+  ]) {
+    assert.equal(isRepositoryTestCommand(command), true, command);
+  }
+
+  assert.equal(
+    identifyRepositoryTestCommandKind('node --test src/support-agent.test-integration.js'),
+    'integration',
+  );
+  assert.equal(identifyRepositoryTestCommandKind('node --test src/example.test-unit.mjs'), 'unit');
+  assert.equal(
+    identifyRepositoryTestCommandKind('node --test src/example.test-unit.mjs src/ui.test-e2e.js'),
+    'correctness',
+  );
+  assert.equal(identifyRepositoryTestCommandKind('npm test'), 'correctness');
+  assert.equal(identifyRepositoryTestCommandKind('npm run test:integration'), 'integration');
+
+  for (const command of [
+    'node --test',
+    'node --test src/support-agent.js',
+    'node --test ../outside.test-integration.js',
+    'node --test /mnt/src/support-agent.test-integration.js',
+    'node --test src/support-agent.test-integration.ts',
+    'npm run test:unit',
+    'npm test -- --watch',
+    'pnpm test',
+    'node --test src/a.test-unit.js && node --test src/b.test-unit.js',
+    'node --test src/a.test-unit.js > result.txt',
+  ]) {
+    assert.equal(isRepositoryTestCommand(command), false, command);
+    assert.equal(identifyRepositoryTestCommandKind(command), null, command);
+  }
 });
 
 test('execution evidence rejects more than 32 moldea commands with actionable counts', () => {

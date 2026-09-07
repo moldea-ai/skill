@@ -130,6 +130,7 @@ Treat `OUTPUT_BUDGET_TOO_SMALL`, `RESOURCE_LIMIT_EXCEEDED`, a launcher boundary 
 - Preserve unrelated developer work and unrelated canonical state.
 - Do not persist secrets, transient status, generic knowledge, or easily rediscovered implementation details.
 - Write only when the selected operation and host task authorize it. Run the narrowest relevant validation after every authorized write as the final moldea command; never claim a pre-repair validation covers later changes.
+- A consequential conflict between current authorities stops every semantic write. Do not choose code, canonical prose, tests, or the newest asset merely because of its type or recency. Ask one focused question that resolves the authority; do not create an unresolved requirement merely to avoid a developer-answerable decision.
 - Before an authorized canonical write, enumerate every explicit outcome, negative constraint, distinct unresolved fact, and permitted write path in the developer's request.
 - Before reporting completion, compare the final state and diff with that list. Satisfy every outcome, record each remaining unresolved fact under its exact canonical owner with resolution criteria and related paths, and confirm that every changed path is authorized. Continue correcting instead of claiming completion while an item is missing.
 
@@ -137,6 +138,6 @@ Treat `OUTPUT_BUDGET_TOO_SMALL`, `RESOURCE_LIMIT_EXCEEDED`, a launcher boundary 
 
 - Information requests receive a concise answer.
 - Abstention is completely silent.
-- Relevant no-change work gets at most one moldea line unless detail was requested.
+- Relevant no-change work gets at most one moldea line unless detail was requested. That line identifies the canonical state reconsidered, states that behavior or contracts remain unchanged, and concludes that the canonical owner remains accurate without an edit.
 - Material canonical work reports the activation path, owner, changes, diagnostics, limits, unresolved facts, and checks.
 - Never use moldea-derived commit wording or status reporting for unrelated work.

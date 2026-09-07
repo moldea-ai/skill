@@ -213,6 +213,10 @@ test('keeps runner-enforced moldea budgets outside semantic judgment', () => {
     prompt,
     /commandKind `moldea`[\s\S]+fixed portable launcher[\s\S]+repository-bound CLI execution/u,
   );
+  assert.match(
+    prompt,
+    /projected `node-test-summary` fact[\s\S]+every discovered test passed[\s\S]+`testKind` establishes the recognized test level/u,
+  );
 });
 
 test('passes case-budget misses to semantic judgment as a deterministic failure', () => {

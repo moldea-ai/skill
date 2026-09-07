@@ -47,6 +47,8 @@ Negative cases must assert zero reference loads, zero moldea CLI calls and bytes
 
 Run structural validation, deterministic tests, and independent forward tests. Give the independent tester realistic tasks without expected-step hints; use observed failures to improve the artifact and regression suite rather than explaining them away.
 
+Treat the Agent Skill artifact and its linked resources as their own structural boundary. Missing linked resources, invalid frontmatter, broken paths, or an incomplete required file make the skill structurally invalid even when the surrounding moldea repository or manifest validates. Report activation wording and other behavioral defects separately as semantic findings. Never use a successful unrelated validator to claim overall structural validity while an independently established skill-artifact defect remains.
+
 ## Review the complete artifact
 
 Review identity, description, activation precision, operation routing, resource economy, scripts, dependencies, host metadata, copies, distribution, consumers, runtime registration, documentation, and representative behavior. A structural validator cannot establish semantic usefulness.

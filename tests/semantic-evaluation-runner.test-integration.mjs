@@ -387,6 +387,67 @@ test('bounded launcher executions with stdin project safe facts without retainin
   }
 });
 
+test('repository integration-test output becomes one content-free passing summary', () => {
+  const command = 'node --test src/support-agent.test-integration.js';
+  const output = [
+    '✔ canonical instruction reaches both model calls (7.1ms)',
+    'ℹ tests 1',
+    'ℹ suites 0',
+    'ℹ pass 1',
+    'ℹ fail 0',
+    'ℹ cancelled 0',
+    'ℹ skipped 0',
+    'ℹ todo 0',
+    'ℹ duration_ms 16.4',
+  ].join('\n');
+  const hostOutput = [
+    {
+      item: {
+        aggregated_output: output,
+        command,
+        exit_code: 0,
+        id: 'focused-test',
+        status: 'completed',
+        type: 'command_execution',
+      },
+      type: 'item.completed',
+    },
+    {
+      item: {
+        id: 'response',
+        text: 'The integration test passed.',
+        type: 'agent_message',
+      },
+      type: 'item.completed',
+    },
+  ]
+    .map((event) => JSON.stringify(event))
+    .join('\n');
+
+  const parsed = parseSemanticEvaluationHostOutput(hostOutput, {
+    cliVersion: RELEASE_CLI_VERSION,
+    jsonSchemaVersion: RELEASE_CLI_JSON_SCHEMA_VERSION,
+  });
+
+  assert.deepEqual(parsed.actorExecutionEvidence[0].item.outputEvidence.facts, [
+    {
+      cancelledCount: 0,
+      failedCount: 0,
+      kind: 'node-test-summary',
+      passedCount: 1,
+      skippedCount: 0,
+      status: 'passed',
+      testCount: 1,
+      testKind: 'integration',
+      todoCount: 0,
+    },
+  ]);
+  assert.doesNotMatch(
+    JSON.stringify(parsed.actorExecutionEvidence),
+    /canonical instruction|support-agent|duration_ms|node --test/u,
+  );
+});
+
 test('semantic candidate checkpoints are atomically replaceable', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-candidate-'));
   const candidatePath = join(evaluationRoot, '.semantic-evaluation-candidate.json');

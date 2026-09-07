@@ -27,7 +27,7 @@ Do not use arbitrary file-count, word-count, character-count, age, or size thres
 
 ## Stop on consequential conflict
 
-When two in-scope sources make consequential same-scope claims that cannot both be current, do not choose one, merge them into ambiguous wording, or write a compromise. Identify the exact conflicting claims and their evidence roles, then ask one focused question that distinguishes the current replacement from proposed or future state. Make no semantic write before the answer.
+When two in-scope sources make consequential same-scope claims that cannot both be current, do not choose one, merge them into ambiguous wording, or write a compromise. Identify the exact conflicting claims and their evidence roles, state explicitly that compression is blocked pending the answer, then ask one focused question that distinguishes the current replacement from proposed or future state. Make no semantic write before the answer and confirm that no repository files changed.
 
 ## Verify the compressed result
 
@@ -39,4 +39,4 @@ After authorized writes:
 4. Run relevant project-native checks and the narrowest repository-local schema-4 metadata command as separate completed processes.
 5. Review only the diagnostics, mirrors, requirements, and semantic readiness relevant to the changed owners without claiming whole-project validity from a narrower result.
 
-Report the requested scope, authoritative owners selected, content consolidated or retained, unique truth and unresolved state preserved, relationships and consumers updated, intentionally unchanged surfaces, deterministic status, checks, and limitations. If conflict blocked compression, report the binary adoption state, exact conflict, focused question, and that no repository files changed.
+Report the requested scope, authoritative owners selected, content consolidated or retained, unique truth and unresolved state preserved, relationships and consumers updated, intentionally unchanged surfaces, deterministic status, checks, and limitations. If conflict blocked compression, report the binary adoption state, exact conflict, that compression is blocked pending the focused answer, the question, and that no repository files changed.

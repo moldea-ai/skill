@@ -52,7 +52,9 @@ Describe the principal inputs, outputs, events, service and tool contracts, and 
 
 ## Treat runtime compatibility honestly
 
-Runtime selection is optional unless requested or material. CLI composition establishes adapter availability, while the validated packages website publication establishes current technical targets and maturity. Neither establishes repository use or behavioral fit. Without sufficient repository evidence, state runtime requirements or considerations and leave the final `runtime.id` for later design and implementation.
+Runtime selection is optional unless requested or material. Keep four conclusions separate: the canonical declared runtime identity; the repository's actual wiring and behavioral fit; launcher-verified local adapter composition; and the validated packages website publication's current target support and maturity. Missing evidence in one layer withholds only that layer's conclusion and never erases a fact established by another.
+
+Composition establishes availability only. Publication establishes current technical support and maturity only. Neither establishes repository use or behavioral fit. When fit is incomplete, name the material facts still required for the repository, such as model API and control flow, instruction loading, tools and schemas, continuation, state or handoffs, error and retry semantics, lifecycle, and persistence. Name reliable resolvers such as current source contracts, closed runtime wiring, source-owned target documentation, and focused integration tests. Preserve an existing `runtime.id`; for a new plan, leave it undecided until the required evidence exists rather than defaulting to `custom` or inferring from a package name.
 
 ## Produce one actionable recommendation
 

@@ -136,6 +136,8 @@ const SAFE_MOLDEA_CLI_LAUNCHER_PATHS = new Set([
 const MOLDEA_CLI_OPERATIONS = new Set(['composition', 'content', 'inspect', 'scope', 'validate']);
 const MOLDEA_CLI_VALUE_OPTIONS = new Set(['--cursor', '--max-output-bytes', '--path']);
 const MOLDEA_CLI_PAGE_OUTPUT_BYTES = '65536';
+const REPOSITORY_TEST_PATH_PATTERN =
+  /(?:^|\/)[a-z0-9][a-z0-9._-]*\.test-(?:e2e|integration|unit)\.(?:c|m)?js$/u;
 const SAFE_SED_PRINT_SCRIPT_PATTERN = /^\d+(?:,\d+)?p$/u;
 const EVALUATOR_HOME_PATH = '/home/evaluator';
 const SAFE_EVALUATOR_EXECUTABLE_PATHS = new Set([
@@ -663,6 +665,69 @@ export const identifyMoldeaCliLauncherOperation = (command) => {
     .filter((operation) => operation !== null);
   return operations.length === 1 ? operations[0] : null;
 };
+
+/** Checks one portable repository-relative Node test path. */
+const isRepositoryTestPath = (candidate) => {
+  if (
+    candidate === '' ||
+    candidate.startsWith('/') ||
+    candidate.includes('\\') ||
+    candidate.includes('\0')
+  ) {
+    return false;
+  }
+  const normalized = candidate.startsWith('./') ? candidate.slice(2) : candidate;
+  return (
+    normalized !== '' &&
+    posix.normalize(normalized) === normalized &&
+    !normalized.split('/').includes('..') &&
+    REPOSITORY_TEST_PATH_PATTERN.test(normalized)
+  );
+};
+
+/** Identifies one exact repository-root correctness-test command word sequence. */
+const identifyRepositoryTestCommandKindFromWords = (words) => {
+  if (
+    ['npm', `${EVALUATOR_HOME_PATH}/bin/npm`].includes(words[0]) &&
+    (words.length === 2 || words.length === 3)
+  ) {
+    if (words.length === 2 && words[1] === 'test') return 'correctness';
+    if (words.length === 3 && words[1] === 'run' && words[2] === 'test:integration') {
+      return 'integration';
+    }
+    return null;
+  }
+  if (
+    !isTrustedLocalExecutable(words[0], 'node') ||
+    words[1] !== '--test' ||
+    words.length < 3 ||
+    !words.slice(2).every(isRepositoryTestPath)
+  ) {
+    return null;
+  }
+  const testKinds = new Set(
+    words.slice(2).map((path) => /\.test-(e2e|integration|unit)\./u.exec(path)?.[1]),
+  );
+  return testKinds.size === 1 ? [...testKinds][0] : 'correctness';
+};
+
+/**
+ * Identifies one static repository-root correctness-test command's level.
+ * @param command The completed Codex command text.
+ * @returns The test level, or `null` when the command is not an allowed invocation.
+ */
+export const identifyRepositoryTestCommandKind = (command) => {
+  if (typeof command !== 'string' || Buffer.byteLength(command, 'utf8') > MAX_COMMAND_BYTES) {
+    return null;
+  }
+  const directCommand = unwrapCodexShellCommand(command);
+  const commands = directCommand === null ? null : tokenizeStaticShellList(directCommand);
+  return commands?.length === 1 ? identifyRepositoryTestCommandKindFromWords(commands[0]) : null;
+};
+
+/** Checks whether one command is an allowed repository correctness-test invocation. */
+export const isRepositoryTestCommand = (command) =>
+  identifyRepositoryTestCommandKind(command) !== null;
 
 /** Checks the fixed Node invocation for the bundled repository-local CLI launcher. */
 const isSafeMoldeaCliLauncherCommand = (words) =>

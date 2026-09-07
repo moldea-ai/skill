@@ -1,4 +1,7 @@
-import { identifyMoldeaCliLauncherOperation } from '../codex-evaluation-host/index.mjs';
+import {
+  identifyMoldeaCliLauncherOperation,
+  identifyRepositoryTestCommandKind,
+} from '../codex-evaluation-host/index.mjs';
 import { MOLDEA_SKILL_RESOURCE_PROFILES } from '../resource-calibration/profiles.mjs';
 
 const COMMAND_COMPLETED_STATUSES = new Set(['completed', 'failed']);
@@ -17,6 +20,18 @@ const MAX_AGGREGATE_MOLDEA_OUTPUT_BYTES =
   MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaOutputBytes;
 const MAX_MOLDEA_COMMAND_COUNT = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxMoldeaCommandCount;
 const MOLDEA_RESOURCE_OPERATIONS = new Set([...MOLDEA_COMMANDS, 'unrecognized']);
+const NODE_TEST_SUMMARY_FIELDS = [
+  'cancelled',
+  'fail',
+  'pass',
+  'skipped',
+  'suites',
+  'tests',
+  'todo',
+];
+const NODE_TEST_SUMMARY_LINE_PATTERN =
+  /^(?:#|ℹ) (cancelled|fail|pass|skipped|suites|tests|todo) (\d+)$/u;
+const NODE_TEST_DURATION_LINE_PATTERN = /^(?:#|ℹ) duration_ms \d+(?:\.\d+)?$/u;
 
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
@@ -140,14 +155,82 @@ const hasValidMoldeaFact = (fact, exitCode, options) =>
       !fact.resultPresent &&
       fact.errorPresent));
 
-const createOutputEvidence = (source, operation, exitCode, options) => {
+/** Projects a successful native Node test summary without retaining test output. */
+const projectNodeTestSummary = (source, exitCode, testKind) => {
+  if (exitCode !== 0) return null;
+  const summary = new Map();
+  let durationCount = 0;
+  for (const line of source.replaceAll('\r\n', '\n').split('\n')) {
+    const match = NODE_TEST_SUMMARY_LINE_PATTERN.exec(line);
+    if (match !== null) {
+      const [, field, rawCount] = match;
+      if (summary.has(field)) return null;
+      const count = Number(rawCount);
+      if (!Number.isSafeInteger(count)) return null;
+      summary.set(field, count);
+      continue;
+    }
+    if (NODE_TEST_DURATION_LINE_PATTERN.test(line)) durationCount += 1;
+  }
+  if (
+    durationCount !== 1 ||
+    NODE_TEST_SUMMARY_FIELDS.some((field) => !summary.has(field)) ||
+    summary.get('tests') === 0 ||
+    summary.get('pass') !== summary.get('tests') ||
+    ['cancelled', 'fail', 'skipped', 'todo'].some((field) => summary.get(field) !== 0)
+  ) {
+    return null;
+  }
+  return {
+    cancelledCount: summary.get('cancelled'),
+    failedCount: summary.get('fail'),
+    kind: 'node-test-summary',
+    passedCount: summary.get('pass'),
+    skippedCount: summary.get('skipped'),
+    status: 'passed',
+    testCount: summary.get('tests'),
+    testKind,
+    todoCount: summary.get('todo'),
+  };
+};
+
+const hasValidNodeTestFact = (fact, exitCode) =>
+  isPlainRecord(fact) &&
+  hasExactKeys(fact, [
+    'cancelledCount',
+    'failedCount',
+    'kind',
+    'passedCount',
+    'skippedCount',
+    'status',
+    'testCount',
+    'testKind',
+    'todoCount',
+  ]) &&
+  fact.kind === 'node-test-summary' &&
+  fact.status === 'passed' &&
+  exitCode === 0 &&
+  Number.isSafeInteger(fact.testCount) &&
+  fact.testCount > 0 &&
+  ['correctness', 'e2e', 'integration', 'unit'].includes(fact.testKind) &&
+  Number.isSafeInteger(fact.passedCount) &&
+  fact.passedCount === fact.testCount &&
+  ['cancelledCount', 'failedCount', 'skippedCount', 'todoCount'].every(
+    (field) => Number.isSafeInteger(fact[field]) && fact[field] === 0,
+  );
+
+const createOutputEvidence = (source, operation, exitCode, options, testKind) => {
   const byteCount = Buffer.byteLength(source, 'utf8');
   const maximumBytes = operation === null ? MAX_OTHER_OUTPUT_BYTES : MAX_MOLDEA_OUTPUT_BYTES;
   if (byteCount > maximumBytes) return { byteCount, disposition: 'too-large', facts: [] };
   if (source.trim() === '') return { byteCount, disposition: 'empty', facts: [] };
   if (source.includes('\0')) return { byteCount, disposition: 'unrecognized', facts: [] };
   const fact =
-    operation === null ? null : projectMoldeaEnvelope(source, operation, exitCode, options);
+    operation === null
+      ? testKind !== null
+        ? projectNodeTestSummary(source, exitCode, testKind)
+        : null
+      : projectMoldeaEnvelope(source, operation, exitCode, options);
   return fact === null
     ? { byteCount, disposition: 'unrecognized', facts: [] }
     : { byteCount, disposition: 'projected', facts: [fact] };
@@ -180,10 +263,11 @@ const hasValidOutputEvidence = (evidence, commandKind, exitCode, options) => {
     return evidence.byteCount > 0 && evidence.facts.length === 0;
   }
   return (
-    commandKind === 'moldea' &&
     evidence.byteCount > 0 &&
     evidence.facts.length === 1 &&
-    hasValidMoldeaFact(evidence.facts[0], exitCode, options)
+    (commandKind === 'moldea'
+      ? hasValidMoldeaFact(evidence.facts[0], exitCode, options)
+      : hasValidNodeTestFact(evidence.facts[0], exitCode))
   );
 };
 
@@ -229,6 +313,7 @@ export const projectActorExecutionEvidenceEvent = (event, options) => {
     throw new Error('A completed Codex command event did not include its result evidence.');
   }
   const operation = identifyMoldeaCliLauncherOperation(item.command);
+  const testKind = operation === null ? identifyRepositoryTestCommandKind(item.command) : null;
   const entry = {
     eventType: event.type,
     item: {
@@ -239,6 +324,7 @@ export const projectActorExecutionEvidenceEvent = (event, options) => {
         operation,
         item.exit_code,
         options,
+        testKind,
       ),
       status: item.status,
       type: item.type,

@@ -1733,7 +1733,13 @@ retaining the command. Before this prompt was built, the runner independently ev
 declared moldea activation order and resource budget; its deterministic result is
 ${resourceBudgetStatus}. Do not compare the total completed-command count or output from non-moldea
 commands with the moldea budget, reinterpret that result, or infer extra work from the actor's
-prose. Judge only the remaining semantic clauses and projected command-result facts.
+prose. A projected \`node-test-summary\` fact is emitted only when one recognized repository-root
+Node or npm correctness-test command exits successfully with a complete native summary in which
+every discovered test passed and none failed, was cancelled, skipped, or marked todo. Its
+\`testKind\` establishes the recognized test level. The fact proves only those bounded totals and
+the completed test level; it does not expose or prove individual test names, assertions, paths,
+durations, command text, or raw output. Judge only the remaining semantic clauses and projected
+command-result facts.
 Workspace changes are the complete after-minus-before delta for ordinary repository paths. When
 pre-actor scenario evidence establishes that a path was missing, its absence from the created-path
 delta establishes that it remained missing after actor execution. Empty created, modified, and

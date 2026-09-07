@@ -8,6 +8,8 @@ Evaluation is read-only. Reuse the host review or task workflow's root, HEAD, ex
 
 For a relationship-triggered operation, use the one completed `scope` result as the canonical expansion boundary. For direct canonical work, start at the named owner without running `scope`. Do not turn a clean or unscoped host review into a whole-project moldea audit.
 
+If already supplied repository evidence identifies an executable Git filter, text conversion, external diff, fsmonitor, or other repository-controlled helper, stop before worktree-aware Git can execute it. Name the exact mechanism, state which Git evidence remains unavailable, and give the smallest safe prerequisite, such as removing or disabling that mechanism or supplying independently collected inert evidence. Do not execute, rewrite, or disable repository configuration during evaluation.
+
 ## Evaluate progressively
 
 1. Run `validate` when structural validity is material.
@@ -15,6 +17,8 @@ For a relationship-triggered operation, use the one completed `scope` result as 
 3. Read one canonical owner with `content` when semantic comparison requires its body.
 4. Compare it with only the relevant implementation, consumer, test, or public contract.
 5. Stop when more evidence cannot change a material finding.
+
+The conclusion must name the canonical owner or declared relationship actually assessed. Accounting for host paths without reporting the related canonical assessment is incomplete.
 
 Assess separately:
 
@@ -28,7 +32,7 @@ A valid manifest does not prove semantic alignment. A declaration does not prove
 
 ## Reconcile
 
-Reconciliation requires write authority from the host task. Establish the intended truth from developer intent, current behavior, authoritative documentation, and tests. If those sources materially conflict and the task contract does not resolve them, stop with one focused question.
+Reconciliation requires write authority from the host task. Establish the intended truth from developer intent, current behavior, authoritative documentation, and tests. If those sources materially conflict and the task contract does not resolve them, stop before every semantic write and ask one focused question that establishes which authority is current. Code, canonical prose, tests, and recency are evidence rather than automatic precedence. Do not persist a new unresolved requirement instead of asking a developer-answerable authority question.
 
 Apply the smallest coherent repair across directly affected canonical owners, declarations, relationships, mirrors, consumers, and tests. Remove superseded parallel paths made unnecessary by the repair. Preserve unrelated state and rerun only the checks affected by the changed contract.
 
@@ -38,4 +42,4 @@ When evaluation evidence must prove non-mutation, compare the host-provided befo
 
 ## Reporting
 
-For no-change relevant evaluation, report at most one moldea line unless detail was requested. For a material finding or reconciliation, report the exact activation path, canonical owner, bounded commands and byte counts when measured, semantic conclusion, changes, unresolved limits, and checks. Never append moldea status to an unrelated host review.
+For no-change relevant evaluation, report at most one moldea line unless detail was requested. Identify the assessed canonical owner, state that behavior or contracts remain unchanged, and conclude that no canonical edit was required. For a material finding or reconciliation, report the exact activation path, canonical owner, bounded commands and byte counts when measured, semantic conclusion, changes, unresolved limits, and checks. Never append moldea status to an unrelated host review.

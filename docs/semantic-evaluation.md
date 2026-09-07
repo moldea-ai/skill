@@ -70,6 +70,8 @@ Relationship cases begin from ordinary Git-style task paths. They cover both a h
 
 The runner validates each declared resource dimension and activation order before it invokes the semantic judge. A budget or activation miss makes the case fail but remains valid bounded evidence, so the attempt and any required confirmation trials are preserved instead of being treated as evaluator corruption. The judge evaluates only the remaining behavioral clauses and projected command-result facts. It must not reinterpret the total host command count or output from non-`moldea` commands as `moldea` resource consumption.
 
+When a criterion requires a repository correctness test, the runner recognizes only one static repository-root Node test invocation over portable colocated test paths, `npm test`, or `npm run test:integration`. A successful command contributes one `node-test-summary` fact containing the recognized test level and native aggregate counts. Projection requires a zero exit code, a complete native summary, at least one test, every discovered test passing, and zero failures, cancellations, skips, or todo results. Raw command text, test names, assertions, paths, durations, npm preambles, and output bodies are discarded. Unrecognized, incomplete, contradictory, failed, or oversized output supplies no result fact.
+
 ## Repository controls
 
 The actor works in an isolated writable repository. The installed skill, Git control state, and evaluator-owned boundaries are read-only. The runner captures pre- and post-execution evidence for:

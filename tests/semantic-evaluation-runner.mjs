@@ -138,6 +138,10 @@ export const SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT = 1_048_576;
 export const SEMANTIC_DIAGNOSTIC_SUMMARY_MAXIMUM_BYTE_COUNT = 16_384;
 // direct model work permitted for one resumable official or diagnostic candidate
 export const SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT = 32_000_000;
+const SEMANTIC_MAXIMUM_CHARGED_OPERATIONAL_FAILURE_COUNT = Math.floor(
+  SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT /
+    MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
+);
 const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 7;
 const SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION = 1;
 const SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1;
@@ -221,6 +225,7 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
   const isRecordCheckpointRequested = arguments_.includes('--record-checkpoint');
   const isDiagnoseBatchRequested = arguments_.includes('--diagnose-batch');
   const isRestartRequested = arguments_.includes('--restart');
+  const isResumeStoppedStageRequested = arguments_.includes('--resume-stopped-stage');
   const isVerifyAttemptsRequested = arguments_.includes('--verify-attempts');
   const caseArgumentIndex = arguments_.indexOf('--case');
   const requestedCaseId = caseArgumentIndex === -1 ? undefined : arguments_[caseArgumentIndex + 1];
@@ -244,6 +249,7 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
     '--record',
     '--record-checkpoint',
     '--restart',
+    '--resume-stopped-stage',
     '--unresolved-from',
     '--verify-attempts',
   ]);
@@ -285,25 +291,37 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
     const operation = isRecordCheckpointRequested ? '--record-checkpoint' : '--verify-attempts';
     throw new Error(`${operation} must run without other options.`);
   }
-  if (isRecordRequested && arguments_.length !== (isRestartRequested ? 2 : 1)) {
-    throw new Error('--record accepts only the optional --restart flag.');
+  if (isRestartRequested && isResumeStoppedStageRequested) {
+    throw new Error('--restart and --resume-stopped-stage cannot be combined.');
+  }
+  if (
+    isRecordRequested &&
+    arguments_.length !== (isRestartRequested || isResumeStoppedStageRequested ? 2 : 1)
+  ) {
+    throw new Error('--record accepts one optional restart or stopped-stage resume flag.');
   }
   if (isDiagnoseBatchRequested) {
     if (selectedDiagnosticOptions.length !== 1) {
       throw new Error('--diagnose-batch requires exactly one diagnostic selector.');
     }
-    const allowedArgumentCount = isRestartRequested ? 4 : 3;
+    const hasExecutionModifier = isRestartRequested || isResumeStoppedStageRequested;
+    const allowedArgumentCount = hasExecutionModifier ? 4 : 3;
     const selectedOption = selectedDiagnosticOptions[0][0];
     const expectedArgumentCount =
       selectedOption === '--all' ? allowedArgumentCount - 1 : allowedArgumentCount;
     if (arguments_.length !== expectedArgumentCount) {
-      throw new Error('--diagnose-batch accepts one selector and the optional --restart flag.');
+      throw new Error(
+        '--diagnose-batch accepts one selector and one optional restart or stopped-stage resume flag.',
+      );
     }
   } else if (selectedDiagnosticOptions.length > 0) {
     throw new Error('Semantic diagnostic selectors require --diagnose-batch.');
   }
   if (isRestartRequested && !isRecordRequested && !isDiagnoseBatchRequested) {
     throw new Error('--restart requires --record or --diagnose-batch.');
+  }
+  if (isResumeStoppedStageRequested && !isRecordRequested && !isDiagnoseBatchRequested) {
+    throw new Error('--resume-stopped-stage requires --record or --diagnose-batch.');
   }
 
   const diagnosticBatchSelector = isDiagnoseBatchRequested
@@ -329,6 +347,7 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
     isRecordRequested,
     isRecordCheckpointRequested,
     isRestartRequested,
+    isResumeStoppedStageRequested,
     isVerifyAttemptsRequested,
     requestedCaseId,
   };
@@ -765,10 +784,10 @@ const hasValidSemanticOperationalRetries = (operationalRetries) => {
     Object.keys(operationalRetries).some((key) => !operationalRetryKeys.has(key)) ||
     !Number.isSafeInteger(operationalRetries.actorFailureCount) ||
     operationalRetries.actorFailureCount < 0 ||
-    operationalRetries.actorFailureCount > SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT ||
+    operationalRetries.actorFailureCount > SEMANTIC_MAXIMUM_CHARGED_OPERATIONAL_FAILURE_COUNT ||
     !Number.isSafeInteger(operationalRetries.judgeFailureCount) ||
     operationalRetries.judgeFailureCount < 0 ||
-    operationalRetries.judgeFailureCount > SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT
+    operationalRetries.judgeFailureCount > SEMANTIC_MAXIMUM_CHARGED_OPERATIONAL_FAILURE_COUNT
   ) {
     return false;
   }
@@ -788,7 +807,10 @@ const hasValidSemanticOperationalRetries = (operationalRetries) => {
     RETRYABLE_HOST_FAILURE_KINDS.has(lastFailure.category) &&
     hasValidIsoDate(lastFailure.failedAt) &&
     Number.isSafeInteger(lastFailure.retryDelayMs) &&
-    lastFailure.retryDelayMs > 0
+    lastFailure.retryDelayMs >= 0 &&
+    (lastFailure.retryDelayMs > 0 ||
+      operationalRetries[`${lastFailure.stage}FailureCount`] >
+        SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT)
   );
 };
 
@@ -949,6 +971,46 @@ export const appendSemanticActiveTrialRetry = (activeTrial, stage, retry) => {
     updatedAt: retry.failedAt,
   };
 };
+
+/** Persists one retryable terminal failure so an ordinary resume cannot repeat it. */
+export const appendSemanticActiveTrialOperationalStop = (activeTrial, stage, exhaustion) => {
+  const failureCountKey = `${stage}FailureCount`;
+  if (
+    !['actor', 'judge'].includes(stage) ||
+    activeTrial.phase !== `${stage}-pending` ||
+    !RETRYABLE_HOST_FAILURE_KINDS.has(exhaustion.category) ||
+    !hasValidIsoDate(exhaustion.failedAt) ||
+    !Number.isSafeInteger(exhaustion.failureCount) ||
+    exhaustion.failureCount !== SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT + 1 ||
+    exhaustion.maximumRetryCount !== SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT ||
+    activeTrial.operationalRetries[failureCountKey] >=
+      SEMANTIC_MAXIMUM_CHARGED_OPERATIONAL_FAILURE_COUNT
+  ) {
+    throw new Error(`Semantic ${stage} exhaustion does not match the active trial phase.`);
+  }
+
+  return {
+    ...activeTrial,
+    operationalRetries: {
+      ...activeTrial.operationalRetries,
+      [failureCountKey]: activeTrial.operationalRetries[failureCountKey] + 1,
+      lastFailure: {
+        category: exhaustion.category,
+        failedAt: exhaustion.failedAt,
+        retryDelayMs: 0,
+        stage,
+      },
+    },
+    updatedAt: exhaustion.failedAt,
+  };
+};
+
+/** Returns whether the current pending stage has durably exhausted automatic retry. */
+export const isSemanticActiveTrialOperationallyStopped = (activeTrial) =>
+  activeTrial !== null &&
+  ['actor-pending', 'judge-pending'].includes(activeTrial.phase) &&
+  activeTrial.operationalRetries.lastFailure?.stage === activeTrial.phase.replace('-pending', '') &&
+  activeTrial.operationalRetries.lastFailure.retryDelayMs === 0;
 
 /** Persists completed actor evidence before any judge request begins. */
 export const attachSemanticActiveTrialActorEvidence = (activeTrial, actorEvidence, updatedAt) => {
@@ -1238,6 +1300,9 @@ const validateSemanticCandidateEvidence = (candidate, caseDefinitions) => {
   }
 
   validateSemanticActiveTrial(candidate, caseDefinitions);
+  if (getSemanticCandidatePaidTokenCount(candidate) > SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT) {
+    throw new Error('The semantic evaluation candidate exceeds its paid-token ceiling.');
+  }
 };
 
 /** Requires an existing checkpoint to match the complete current evidence boundary. */
@@ -2022,8 +2087,12 @@ const resolveSemanticAttemptSourceCommit = (evidencePath, expectedSha256) => {
   });
   if (logResult.error) throw logResult.error;
   const sourceCommit = logResult.stdout.trim();
-  if (logResult.status !== 0 || !/^[a-f0-9]{40,64}$/u.test(sourceCommit)) {
-    throw new Error(`Semantic reuse source ${evidencePath} has no immutable Git commit.`);
+  if (logResult.status !== 0) {
+    throw new Error(`Semantic reuse source ${evidencePath} Git history could not be resolved.`);
+  }
+  if (sourceCommit.length === 0) return null;
+  if (!/^[a-f0-9]{40,64}$/u.test(sourceCommit)) {
+    throw new Error(`Semantic reuse source ${evidencePath} has an invalid Git commit.`);
   }
   const showResult = spawnSync('git', ['show', `${sourceCommit}:${evidencePath}`], {
     cwd: REPOSITORY_ROOT,
@@ -2074,6 +2143,7 @@ const loadSemanticReuseSources = async () => {
     }
     const evidence = JSON.parse(evidenceBytes.toString('utf8'));
     const sourceCommit = resolveSemanticAttemptSourceCommit(evidencePath, evidenceSha256);
+    if (sourceCommit === null) continue;
     sources.push({
       attempt,
       evidence,
@@ -4655,6 +4725,7 @@ export const runSemanticCaseTrial = async ({
   confirmationIndex = null,
   evaluateActor = evaluateActorStage,
   evaluateJudge = evaluateJudgeStage,
+  isOperationalResumeRequested = false,
   judgeCommand,
   now = () => new Date().toISOString(),
   persistActiveTrial = async () => {},
@@ -4662,6 +4733,17 @@ export const runSemanticCaseTrial = async ({
   writeStatus = (message) => process.stderr.write(message),
 }) => {
   let currentTrial = activeTrial;
+  const isOperationallyStopped = isSemanticActiveTrialOperationallyStopped(currentTrial);
+  if (isOperationallyStopped !== isOperationalResumeRequested) {
+    throw new Error(
+      isOperationallyStopped
+        ? 'The semantic stage exhausted its retry; use --resume-stopped-stage for one additional attempt.'
+        : '--resume-stopped-stage requires one terminally stopped semantic stage.',
+    );
+  }
+  const stoppedStage = isOperationallyStopped
+    ? currentTrial.operationalRetries.lastFailure.stage
+    : null;
   if (currentTrial === null) {
     currentTrial = createSemanticActiveTrial(caseDefinition, confirmationIndex, now());
     await persistActiveTrial(currentTrial);
@@ -4669,8 +4751,15 @@ export const runSemanticCaseTrial = async ({
 
   if (currentTrial.phase === 'actor-pending') {
     const actorEvidence = await runOperationalStage({
-      initialFailureCount: currentTrial.operationalRetries.actorFailureCount,
+      initialFailureCount:
+        stoppedStage === 'actor'
+          ? SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT
+          : currentTrial.operationalRetries.actorFailureCount,
       maximumRetryCount: SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT,
+      onExhausted: async (exhaustion) => {
+        currentTrial = appendSemanticActiveTrialOperationalStop(currentTrial, 'actor', exhaustion);
+        await persistActiveTrial(currentTrial);
+      },
       onRetry: async (retry) => {
         currentTrial = appendSemanticActiveTrialRetry(currentTrial, 'actor', retry);
         await persistActiveTrial(currentTrial);
@@ -4689,8 +4778,15 @@ export const runSemanticCaseTrial = async ({
 
   if (currentTrial.phase === 'judge-pending') {
     const result = await runOperationalStage({
-      initialFailureCount: currentTrial.operationalRetries.judgeFailureCount,
+      initialFailureCount:
+        stoppedStage === 'judge'
+          ? SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT
+          : currentTrial.operationalRetries.judgeFailureCount,
       maximumRetryCount: SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT,
+      onExhausted: async (exhaustion) => {
+        currentTrial = appendSemanticActiveTrialOperationalStop(currentTrial, 'judge', exhaustion);
+        await persistActiveTrial(currentTrial);
+      },
       onRetry: async (retry) => {
         currentTrial = appendSemanticActiveTrialRetry(currentTrial, 'judge', retry);
         await persistActiveTrial(currentTrial);
@@ -4736,10 +4832,13 @@ const loadSemanticDiagnosticAttemptEvidence = async (attemptId, evidenceBoundary
   }
   const evidence = JSON.parse(evidenceBytes.toString('utf8'));
   validateSemanticCandidateCompatibility(evidence, evidenceBoundary);
-  resolveSemanticAttemptSourceCommit(
+  const sourceCommit = resolveSemanticAttemptSourceCommit(
     `fixtures/semantic-evaluation-results/attempts/${attemptId}/evidence.json`,
     attempt.evidence.sha256,
   );
+  if (sourceCommit === null) {
+    throw new Error(`Semantic diagnostic attempt ${attemptId} has no immutable Git commit.`);
+  }
   return evidence;
 };
 
@@ -4772,6 +4871,7 @@ const runSemanticDiagnosticBatch = async ({
   cli,
   evidenceBoundary,
   isRestartRequested,
+  isResumeStoppedStageRequested,
   judgeCommand,
   selection,
 }) => {
@@ -4815,6 +4915,9 @@ const runSemanticDiagnosticBatch = async ({
     ledger,
   });
   if (checkpoint === null) {
+    if (isResumeStoppedStageRequested) {
+      throw new Error('--resume-stopped-stage requires one terminally stopped diagnostic stage.');
+    }
     process.stdout.write(createSemanticDiagnosticBatchOutput(ledger));
     if (ledger.results.some(({ verdict }) => verdict === 'failed')) process.exitCode = 1;
     return;
@@ -4824,6 +4927,17 @@ const runSemanticDiagnosticBatch = async ({
       `Semantic diagnostic batch is stopped at ${checkpoint.stop.caseId}; use --restart after resolving ${checkpoint.stop.kind}.`,
     );
   }
+  const hasStoppedStage = isSemanticActiveTrialOperationallyStopped(
+    checkpoint.candidate.activeTrial,
+  );
+  if (hasStoppedStage !== isResumeStoppedStageRequested) {
+    throw new Error(
+      hasStoppedStage
+        ? 'The semantic diagnostic stage exhausted its retry; use --resume-stopped-stage for one additional attempt.'
+        : '--resume-stopped-stage requires one terminally stopped semantic diagnostic stage.',
+    );
+  }
+  let canResumeStoppedStage = isResumeStoppedStageRequested;
 
   while (checkpoint.nextCaseIndex < selection.caseIds.length) {
     const caseId = selection.caseIds[checkpoint.nextCaseIndex];
@@ -4872,6 +4986,7 @@ const runSemanticDiagnosticBatch = async ({
         ),
       caseDefinition,
       cli,
+      isOperationalResumeRequested: canResumeStoppedStage,
       evaluateActor: async (...parameters) => {
         await assertSemanticEvaluationInputsUnchanged({
           artifactDigest: evidenceBoundary.artifactDigest,
@@ -4893,6 +5008,7 @@ const runSemanticDiagnosticBatch = async ({
       judgeCommand,
       persistActiveTrial,
     });
+    canResumeStoppedStage = false;
     const diagnosticRecord = createSemanticDiagnosticBatchRecord(result);
     const updatedAt = new Date().toISOString();
     const nextLedger = {
@@ -4949,6 +5065,7 @@ const main = async () => {
     isRecordRequested,
     isRecordCheckpointRequested,
     isRestartRequested,
+    isResumeStoppedStageRequested,
     isVerifyAttemptsRequested,
     requestedCaseId,
   } = parseSemanticEvaluationArguments(process.argv.slice(2));
@@ -5075,6 +5192,7 @@ const main = async () => {
       cli,
       evidenceBoundary,
       isRestartRequested,
+      isResumeStoppedStageRequested,
       judgeCommand,
       selection,
     });
@@ -5085,12 +5203,23 @@ const main = async () => {
     candidate = isRestartRequested ? null : await readSemanticEvaluationCandidate();
     if (candidate) {
       validateSemanticCandidateCompatibility(candidate, evidenceBoundary);
+      const hasStoppedStage = isSemanticActiveTrialOperationallyStopped(candidate.activeTrial);
+      if (hasStoppedStage !== isResumeStoppedStageRequested) {
+        throw new Error(
+          hasStoppedStage
+            ? 'The semantic stage exhausted its retry; use --record --resume-stopped-stage for one additional attempt.'
+            : '--resume-stopped-stage requires one terminally stopped semantic stage.',
+        );
+      }
       if (candidate.results.some(({ executionOrigin }) => executionOrigin === 'reused')) {
         const caseContexts = await runSemanticEvaluationPreflight(caseDefinitions, coverage);
         validateSemanticCandidateReuseContexts(candidate, caseDefinitions, caseContexts);
         await validateSemanticCandidateReuseSources(candidate);
       }
     } else {
+      if (isResumeStoppedStageRequested) {
+        throw new Error('--resume-stopped-stage requires an existing semantic checkpoint.');
+      }
       if (requestedCaseId) {
         throw new Error(
           'A targeted recording requires an existing compatible semantic evaluation candidate.',
@@ -5125,6 +5254,7 @@ const main = async () => {
   }
 
   const results = [];
+  let canResumeStoppedStage = isResumeStoppedStageRequested;
   if (isRecordRequested) {
     const completedInitialCount =
       caseDefinitions.length - getPendingSemanticCaseDefinitions(candidate, caseDefinitions).length;
@@ -5194,8 +5324,10 @@ const main = async () => {
         return evaluateJudgeStage(...parameters);
       },
       judgeCommand,
+      isOperationalResumeRequested: canResumeStoppedStage,
       persistActiveTrial,
     });
+    canResumeStoppedStage = false;
     await assertSemanticEvaluationInputsUnchanged({
       artifactDigest,
       caseSuiteDigest,

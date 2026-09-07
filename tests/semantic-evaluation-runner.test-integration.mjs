@@ -346,7 +346,7 @@ test('one complete fake-host batch collects all 74 semantic failures before retu
   }
 });
 
-test('preflight reuses only passing groups from the committed failed attempt', () => {
+test('preflight reuses only passing groups from every committed failed attempt', () => {
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
   const hostCommand = createFakeCodexHost(hostRoot, true, 'codex-cli 0.153.4');
   const beforeCandidate = readCandidateState();
@@ -372,10 +372,22 @@ test('preflight reuses only passing groups from the committed failed attempt', (
     const estimate = JSON.parse(
       result.stderr.slice(result.stderr.indexOf('{'), result.stderr.lastIndexOf('}') + 1),
     );
+    const checkpointSourceCommit = spawnSync(
+      'git',
+      [
+        'log',
+        '-1',
+        '--format=%H',
+        '--',
+        'fixtures/semantic-evaluation-results/attempts/20260907T141616761Z-semantic-3072e27f/evidence.json',
+      ],
+      { cwd: process.cwd(), encoding: 'utf8' },
+    ).stdout.trim();
+    const minimumReusedCaseCount = checkpointSourceCommit.length === 0 ? 11 : 33;
     assert.equal(estimate.caseCount, 74);
-    assert.equal(estimate.reusedCaseCount, 11);
-    assert.equal(estimate.reusedStageCount, 22);
-    assert.equal(estimate.paidInitialStageCount, 126);
+    assert.ok(estimate.reusedCaseCount >= minimumReusedCaseCount);
+    assert.ok(estimate.reusedStageCount >= estimate.reusedCaseCount * 2);
+    assert.equal(estimate.paidInitialStageCount, (74 - estimate.reusedCaseCount) * 2);
     assert.equal(readCandidateState(), beforeCandidate);
     assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
   } finally {

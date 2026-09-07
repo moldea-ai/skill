@@ -19,6 +19,10 @@ Publish the revised convergence contract and failed attempt `20260907T102624629Z
 
 ## Milestone 51: Make semantic evaluation converge by construction
 
+### Status
+
+Published at signed commit `70e8523cf6f14459cdf762c174baeaaeccac6008`. Its first official run preserved 33 passed and four failed completed initials before exposing the terminal-exhaustion accounting defect now owned by Milestone 52.
+
 ### Objective
 
 Replace fail-fast semantic orchestration with bounded collect-first execution, exact case-level reuse from valid committed failed attempts, a resumable two-artifact diagnostic batch, and a non-overshooting candidate token stop without changing portable-skill behavior.
@@ -71,6 +75,10 @@ Use the published convergence runner to obtain and publish one complete 74-case 
 
 ### Scope and implementation
 
+- Preserve the 37 completed results from the stopped run as immutable failed checkpoint attempt `20260907T141616761Z-semantic-3072e27f`; discard only its incomplete active case, and publish the attempt before relying on its 33 independently passed groups for exact reuse.
+- Correct shared operational retry handling and semantic orchestration so the terminal failed invocation is persisted before exhaustion escapes, every failed invocation receives the conservative full token charge, and an ordinary rerun launches no model for a stopped stage.
+- Add `--resume-stopped-stage` to official and diagnostic commands as a mutually exclusive alternative to `--restart`. It authorizes exactly one additional attempt without clearing accumulated charges; another failure persists and stops again.
+- Synchronize the website replay validator and presentation with the evaluator's existing content-free `node-test-summary` fact so the checkpoint remains renderable without exposing raw commands or output.
 - Start one collect-first official recording using every eligible exact committed source and execute only paid misses, one model-bearing process at a time.
 - Resume the exact candidate after operational interruption and stop at the candidate token boundary without silently expanding it.
 - Record one complete attempt without editing the skill, cases, fixtures, criteria, prompts, evaluator projection, CLI closure, host contract, or resource profile during collection.
@@ -78,6 +86,8 @@ Use the published convergence runner to obtain and publish one complete 74-case 
 
 ### Verification and acceptance criteria
 
+- Unit-test persistence before the terminal exception, exact failure charging, refusal of ordinary resume, one-attempt explicit resume, repeated-stop behavior, parser exclusivity, and safe website presentation of repository test summaries. Keep qualification callers compatible with the shared optional exhaustion callback.
+- Review and publish the correction plus checkpoint attempt before restarting paid execution. Preflight must then reuse all 33 passing groups from the checkpoint and reject its four failed and 37 pending groups.
 - Verify exact source provenance, direct/reused counts, all 74 resolutions, resource evidence, repository controls, lowercase naming, and passing-only promotion.
 - No case remains pending, no model process remains, and the portable-skill digest remains unchanged; otherwise a genuine operational/token stop retains an exact resumable checkpoint.
 - Every failure is classified before any behavior edit. Review is ready and the attempt is pushed before Milestone 53.

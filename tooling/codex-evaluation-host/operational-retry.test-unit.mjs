@@ -53,12 +53,15 @@ test('operational stage rejects invalid persisted retry accounting', async () =>
 });
 
 test('operational stage enforces a caller-owned retry limit without changing the default', async () => {
+  const exhaustions = [];
   let operationCount = 0;
   let retryCount = 0;
 
   await assert.rejects(
     runCodexEvaluationOperationalStage({
       maximumRetryCount: 1,
+      now: () => '2026-08-27T16:00:00.000Z',
+      onExhausted: async (exhaustion) => exhaustions.push(exhaustion),
       onRetry: async () => {
         retryCount += 1;
       },
@@ -82,6 +85,14 @@ test('operational stage enforces a caller-owned retry limit without changing the
 
   assert.equal(operationCount, 2);
   assert.equal(retryCount, 1);
+  assert.deepEqual(exhaustions, [
+    {
+      category: CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
+      failedAt: '2026-08-27T16:00:00.000Z',
+      failureCount: 2,
+      maximumRetryCount: 1,
+    },
+  ]);
 });
 
 test('operational stage persists every retry before waiting and returns success', async () => {

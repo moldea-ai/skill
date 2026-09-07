@@ -5,6 +5,12 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 
 import {
+  CODEX_EVALUATION_HOST_FAILURE_KINDS,
+  CodexEvaluationHostError,
+  runCodexEvaluationOperationalStage,
+} from '../tooling/codex-evaluation-host/index.mjs';
+
+import {
   assessJudgeOutput,
   assertSemanticCandidatePaidStageCapacity,
   buildActorPrompt,
@@ -15,6 +21,7 @@ import {
   createSemanticEvaluationCostEstimate,
   getNextSemanticTrial,
   getSemanticCandidatePaidTokenCount,
+  isSemanticActiveTrialOperationallyStopped,
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
   readSemanticDiagnosticState,
@@ -68,6 +75,7 @@ test('requires an explicit semantic model-execution mode', () => {
     isRecordCheckpointRequested: false,
     isRecordRequested: true,
     isRestartRequested: false,
+    isResumeStoppedStageRequested: false,
     isVerifyAttemptsRequested: false,
     requestedCaseId: undefined,
   });
@@ -78,9 +86,18 @@ test('requires an explicit semantic model-execution mode', () => {
     isRecordCheckpointRequested: false,
     isRecordRequested: true,
     isRestartRequested: true,
+    isResumeStoppedStageRequested: false,
     isVerifyAttemptsRequested: false,
     requestedCaseId: undefined,
   });
+  assert.equal(
+    parseSemanticEvaluationArguments(['--record', '--resume-stopped-stage'])
+      .isResumeStoppedStageRequested,
+    true,
+  );
+  assert.throws(() =>
+    parseSemanticEvaluationArguments(['--record', '--restart', '--resume-stopped-stage']),
+  );
 });
 
 test('parses one diagnostic case without authorizing recording', () => {
@@ -91,6 +108,7 @@ test('parses one diagnostic case without authorizing recording', () => {
     isRecordCheckpointRequested: false,
     isRecordRequested: false,
     isRestartRequested: false,
+    isResumeStoppedStageRequested: false,
     isVerifyAttemptsRequested: false,
     requestedCaseId: 'unrelated-review',
   });
@@ -108,6 +126,7 @@ test('parses one exact diagnostic batch selector', () => {
     isRecordCheckpointRequested: false,
     isRecordRequested: false,
     isRestartRequested: false,
+    isResumeStoppedStageRequested: false,
     isVerifyAttemptsRequested: false,
     requestedCaseId: undefined,
   });
@@ -119,6 +138,11 @@ test('parses one exact diagnostic batch selector', () => {
       '--restart',
     ]).diagnosticBatchSelector,
     { kind: 'claims', value: 'activation-abstention,bounded-relevance' },
+  );
+  assert.equal(
+    parseSemanticEvaluationArguments(['--diagnose-batch', '--all', '--resume-stopped-stage'])
+      .isResumeStoppedStageRequested,
+    true,
   );
   assert.throws(
     () => parseSemanticEvaluationArguments(['--diagnose-batch']),
@@ -526,6 +550,81 @@ test('resumes exact actor and judge boundaries without repeating completed model
   assert.equal(resumed.result.passed, true);
   assert.equal(actorCallCount, 1);
   assert.equal(judgeCallCount, 1);
+});
+
+test('persists retry exhaustion and permits only explicit one-attempt resumes', async () => {
+  let actorCallCount = 0;
+  let durableTrial = null;
+  let shouldActorFail = true;
+  const parameters = {
+    activeTrial: null,
+    actorCommand: ['codex'],
+    caseDefinition: CASE,
+    cli: { jsonSchemaVersion: 4, version: '7.0.0' },
+    evaluateActor: async () => {
+      actorCallCount += 1;
+      if (shouldActorFail) {
+        throw new CodexEvaluationHostError(
+          CODEX_EVALUATION_HOST_FAILURE_KINDS.TimedOut,
+          'Provider request timed out.',
+        );
+      }
+      return { response: 'actor evidence' };
+    },
+    evaluateJudge: async () => ({ id: CASE.id, passed: true }),
+    judgeCommand: ['codex'],
+    persistActiveTrial: async (activeTrial) => {
+      durableTrial = structuredClone(activeTrial);
+    },
+    runOperationalStage: (options) =>
+      runCodexEvaluationOperationalStage({
+        ...options,
+        random: () => 0,
+        wait: async () => {},
+      }),
+    writeStatus: () => {},
+  };
+
+  await assert.rejects(runSemanticCaseTrial(parameters), /exhausted 1 operational retry/u);
+  assert.equal(actorCallCount, 2);
+  assert.equal(durableTrial.operationalRetries.actorFailureCount, 2);
+  assert.equal(durableTrial.operationalRetries.lastFailure.retryDelayMs, 0);
+  assert.equal(isSemanticActiveTrialOperationallyStopped(durableTrial), true);
+  assert.equal(
+    getSemanticCandidatePaidTokenCount({
+      activeTrial: durableTrial,
+      confirmations: [],
+      results: [],
+    }),
+    2 * 2_097_152,
+  );
+
+  await assert.rejects(
+    runSemanticCaseTrial({ ...parameters, activeTrial: durableTrial }),
+    /use --resume-stopped-stage/u,
+  );
+  assert.equal(actorCallCount, 2);
+
+  await assert.rejects(
+    runSemanticCaseTrial({
+      ...parameters,
+      activeTrial: durableTrial,
+      isOperationalResumeRequested: true,
+    }),
+    /exhausted 1 operational retry/u,
+  );
+  assert.equal(actorCallCount, 3);
+  assert.equal(durableTrial.operationalRetries.actorFailureCount, 3);
+
+  shouldActorFail = false;
+  const resumed = await runSemanticCaseTrial({
+    ...parameters,
+    activeTrial: durableTrial,
+    isOperationalResumeRequested: true,
+  });
+  assert.equal(actorCallCount, 4);
+  assert.equal(resumed.result.operationalRetries.actorFailureCount, 3);
+  assert.equal(resumed.result.passed, true);
 });
 
 test('reserves the absolute next-stage maximum without double-counting cached input', () => {

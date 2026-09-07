@@ -46,6 +46,12 @@ const createCommandPresentation = (
 ): ICommandPresentation | null => {
   const fact = command.item.outputEvidence.facts[0];
   if (fact === undefined) return null;
+  if (fact.kind === 'node-test-summary') {
+    return {
+      operation: `Repository ${fact.testKind} tests`,
+      results: [`${fact.passedCount} of ${fact.testCount} tests passed.`],
+    };
+  }
 
   return {
     operation: `moldea ${fact.command}`,

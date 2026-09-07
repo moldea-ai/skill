@@ -150,7 +150,7 @@ const SemanticAttemptEvidenceReferenceSchema = SemanticAttemptEvidenceReferenceB
   schemaVersion: z.literal(7),
 });
 
-const SemanticReplayOutputFactSchema = z.object({
+const SemanticReplayMoldeaOutputFactSchema = z.object({
   cliVersion: z.string().regex(/^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/u),
   command: z.enum(['composition', 'content', 'inspect', 'scope', 'validate']),
   containsContent: z.boolean(),
@@ -163,6 +163,25 @@ const SemanticReplayOutputFactSchema = z.object({
   schemaVersion: z.number().int().positive(),
   status: z.enum(['error', 'invalid', 'valid']),
 });
+const SemanticReplayNodeTestSummaryFactSchema = z
+  .object({
+    cancelledCount: z.literal(0),
+    failedCount: z.literal(0),
+    kind: z.literal('node-test-summary'),
+    passedCount: z.number().int().positive(),
+    skippedCount: z.literal(0),
+    status: z.literal('passed'),
+    testCount: z.number().int().positive(),
+    testKind: z.enum(['correctness', 'e2e', 'integration', 'unit']),
+    todoCount: z.literal(0),
+  })
+  .refine(({ passedCount, testCount }) => passedCount === testCount, {
+    message: 'Projected repository test totals must describe a complete passing run.',
+  });
+const SemanticReplayOutputFactSchema = z.discriminatedUnion('kind', [
+  SemanticReplayMoldeaOutputFactSchema,
+  SemanticReplayNodeTestSummaryFactSchema,
+]);
 const SemanticReplayCommandSchema = z.object({
   eventType: z.literal('item.completed'),
   item: z.object({

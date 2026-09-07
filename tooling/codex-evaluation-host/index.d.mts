@@ -24,6 +24,13 @@ export type ICodexEvaluationOperationalRetry = {
   retryDelayMs: number;
 };
 
+export type ICodexEvaluationOperationalExhaustion = {
+  category: 'execution-failed' | 'proxy-unavailable' | 'timed-out';
+  failedAt: string;
+  failureCount: number;
+  maximumRetryCount: number;
+};
+
 export type ICodexEvaluationCommandPolicyStatus = 'indeterminate' | 'not-observed' | 'observed';
 
 export type ICodexEvaluationCommandPolicyReasonCode =
@@ -207,6 +214,7 @@ export const runCodexEvaluationOperationalStage: <T>(options: {
   initialFailureCount?: number;
   maximumRetryCount?: number;
   now?: () => string;
+  onExhausted?: (exhaustion: ICodexEvaluationOperationalExhaustion) => Promise<void>;
   onRetry: (retry: ICodexEvaluationOperationalRetry) => Promise<void>;
   operation: () => Promise<T>;
   random?: () => number;

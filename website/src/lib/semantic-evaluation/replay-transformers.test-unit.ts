@@ -57,7 +57,7 @@ const createCommand = (
 ): Record<string, unknown> => ({
   eventType: 'item.completed',
   item: {
-    commandKind: fact === null ? 'other' : 'moldea',
+    commandKind: fact?.kind === 'moldea-cli-envelope' ? 'moldea' : 'other',
     exitCode,
     outputEvidence: {
       byteCount: fact === null ? (exitCode === 0 ? 12 : 24) : 24,
@@ -200,6 +200,17 @@ describe('createSemanticEvaluationReplay', () => {
             schemaVersion: 3,
             status: 'valid',
           }),
+          createCommand(0, {
+            cancelledCount: 0,
+            failedCount: 0,
+            kind: 'node-test-summary',
+            passedCount: 4,
+            skippedCount: 0,
+            status: 'passed',
+            testCount: 4,
+            testKind: 'integration',
+            todoCount: 0,
+          }),
           createCommand(7, null),
           createCommand(0, null),
         ],
@@ -255,6 +266,12 @@ describe('createSemanticEvaluationReplay', () => {
     expect(commandSteps).toMatchObject([
       { commandCount: 2, isAggregate: true, status: 'passed' },
       { commandCount: 1, operation: 'moldea validate', status: 'passed' },
+      {
+        commandCount: 1,
+        operation: 'Repository integration tests',
+        results: ['4 of 4 tests passed.'],
+        status: 'passed',
+      },
       { commandCount: 1, exitCode: 7, operation: 'Recorded command', status: 'failed' },
       { commandCount: 1, isAggregate: true, status: 'passed' },
     ]);

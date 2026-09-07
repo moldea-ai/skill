@@ -350,12 +350,19 @@ describe('portable skill contract', () => {
     assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
     assert.match(skill, /leaving at most three CLI calls/u);
     assert.match(skill, /direct request supplies moldea intent, not a canonical owner/u);
-    assert.match(skill, /direct evaluation of “the current changes” has one mandatory route/u);
-    assert.match(skill, /Do not stop after inventorying paths/u);
+    assert.match(skill, /direct evaluation of “the current changes”.*has one mandatory route/u);
+    assert.match(skill, /establish and retain every staged, unstaged, untracked/u);
+    assert.match(skill, /leading-slash repository-logical form/u);
+    assert.match(skill, /complete normalized set to the full relationship gate/u);
+    assert.match(skill, /one `scope` with that exact same normalized set/u);
+    assert.match(skill, /report the complete path scope, canonical assessment/u);
+    assert.match(
+      skill,
+      /Do not stop after inventorying paths or conclude from the host review alone/u,
+    );
     assert.match(skill, /does not reactivate moldea after an implicit unrelated-task gate miss/u);
     assert.match(skill, /use the full relationship gate below instead of the adoption-only gate/u);
     assert.match(skill, /existing independent inline instruction is then a migration input/u);
-    assert.match(skill, /run the full relationship gate, run one `scope`/u);
     assert.match(skill, /every direct request to prove or safely invoke/u);
     assert.match(skill, /before inspecting providers or reaching a conclusion/u);
     assert.match(skill, /reserve `validate` as the final moldea command after every canonical/u);
@@ -589,7 +596,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /preempts foundation analysis/u);
     assert.match(skill, /attempt the closed launcher's content-free `composition` operation/u);
     assert.match(skill, /The evaluation is incomplete until all four steps finish/u);
-    assert.match(skill, /Never conclude from the host review alone/u);
+    assert.match(skill, /conclude from the host review alone/u);
     assert.match(skill, /an independently verified installed exact local CLI is unavailable/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
 

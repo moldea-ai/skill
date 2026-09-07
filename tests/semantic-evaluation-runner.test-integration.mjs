@@ -282,7 +282,7 @@ test('claimed-adopted custom CLI scenarios pass the inert adoption gate', async 
   }
 });
 
-test('dirty-tree scenario passes its complete changed-path set to the full gate', async () => {
+test('dirty-tree scenario passes one complete normalized path set to the gate and scope', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-dirty-tree-gate-'));
   const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'evaluate-dirty-working-tree');
   assert.ok(caseDefinition);
@@ -314,6 +314,8 @@ test('dirty-tree scenario passes its complete changed-path set to the full gate'
       'src/renamed-after.js',
       'src/deleted.js',
     ];
+    const normalizedPaths = changedPaths.map((path) => `/${path}`);
+    const normalizedPathInput = `${normalizedPaths.join('\0')}\0`;
     const gate = spawnSync(
       process.execPath,
       [
@@ -324,12 +326,46 @@ test('dirty-tree scenario passes its complete changed-path set to the full gate'
       {
         cwd: repositoryPath,
         encoding: 'utf8',
-        input: `${changedPaths.join('\0')}\0`,
+        input: normalizedPathInput,
       },
     );
     assert.equal(gate.status, 0, gate.stderr);
     assert.equal(gate.stderr, '');
     assert.equal(gate.stdout, '1\n');
+
+    const scope = JSON.parse(
+      runLauncher(
+        repositoryPath,
+        ['scope', '--paths-stdin', '--json', '--max-output-bytes', '65536'],
+        normalizedPathInput,
+      ),
+    );
+    assert.equal(scope.schemaVersion, 4);
+    assert.equal(scope.status, 'valid');
+    assert.equal(scope.result.valid, true);
+    assert.equal(scope.result.relevant, true);
+    assert.deepEqual(scope.result.counts, {
+      declarations: 1,
+      diagnostics: 0,
+      inputPaths: 6,
+      matchedOwners: 1,
+      matchedPaths: 6,
+      matches: 6,
+    });
+    assert.deepEqual(
+      scope.result.page.records.map(({ match }) => match.inputPath).sort(),
+      [...normalizedPaths].sort(),
+    );
+    assert.deepEqual(
+      [...new Set(scope.result.page.records.map(({ match }) => JSON.stringify(match.owner)))],
+      [
+        JSON.stringify({
+          agentId: null,
+          id: '/moldea/project.md',
+          kind: 'context',
+        }),
+      ],
+    );
 
     const afterStatus = readStatus();
     assert.equal(afterStatus.status, 0, afterStatus.stderr.toString('utf8'));

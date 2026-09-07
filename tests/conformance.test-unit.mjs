@@ -350,15 +350,17 @@ describe('portable skill contract', () => {
     assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
     assert.match(skill, /leaving at most three CLI calls/u);
     assert.match(skill, /direct request supplies moldea intent, not a canonical owner/u);
-    assert.match(skill, /host may establish it through the explicitly requested safe review/u);
-    assert.match(skill, /does not apply after an implicit unrelated-task gate miss/u);
+    assert.match(skill, /direct evaluation of “the current changes” has one mandatory route/u);
+    assert.match(skill, /Do not stop after inventorying paths/u);
+    assert.match(skill, /does not reactivate moldea after an implicit unrelated-task gate miss/u);
     assert.match(skill, /use the full relationship gate below instead of the adoption-only gate/u);
     assert.match(skill, /existing independent inline instruction is then a migration input/u);
-    assert.match(skill, /complete host path set and its full relationship gate/u);
-    assert.match(skill, /Every direct request to prove or safely invoke the local moldea CLI/u);
+    assert.match(skill, /run the full relationship gate, run one `scope`/u);
+    assert.match(skill, /every direct request to prove or safely invoke/u);
+    assert.match(skill, /before inspecting providers or reaching a conclusion/u);
     assert.match(skill, /reserve `validate` as the final moldea command after every canonical/u);
     assert.match(skill, /validation performed before a later write does not verify/u);
-    assert.match(skill, /For initialization, load only `references\/continuous-maintenance\.md`/u);
+    assert.match(skill, /load only `references\/continuous-maintenance\.md`/u);
     assert.match(
       skill,
       /do not inspect dependency trees, CLI package internals, executable links/u,
@@ -370,7 +372,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /Write the complete three-file foundation before the first CLI call/u);
     assert.match(
       skill,
-      /before any dependency, canonical-state, or managed README write during initialization/u,
+      /foundation-evidence decision before any dependency, canonical-state, or managed README write/u,
     );
     assert.match(skill, /Insufficient evidence and partial evidence.*pre-write stop conditions/u);
     assert.match(
@@ -387,7 +389,10 @@ describe('portable skill contract', () => {
     assert.match(skill, /invoke exactly one launcher-backed `validate`/u);
     assert.match(skill, /run `validate` at most once more/u);
     assert.match(skill, /inspect the exact supplied package-manager configuration/u);
-    assert.match(skill, /stop before package-manager execution, foundation questioning/u);
+    assert.match(
+      skill,
+      /before foundation classification, package-manager execution, questioning/u,
+    );
     assert.match(skill, /name the project-owned evidence that established the foundation/u);
     assert.match(skill, /Always end a successful initialization response/u);
     assert.match(skill, /one short, evidence-supported `Next:` action; do not omit it/u);
@@ -398,6 +403,8 @@ describe('portable skill contract', () => {
     );
     assert.match(skill, /Read exact task-owned files first/u);
     assert.match(skill, /request that owner's `content` directly/u);
+    assert.match(skill, /use at most one canonical `content` call total/u);
+    assert.match(skill, /do not read project context or a second canonical body/u);
     assert.match(skill, /establish `composition` once before publication evidence/u);
     assert.match(skill, /Every recursive search or listing must exclude VCS internals/u);
     assert.match(skill, /Never dump a complete lockfile, dependency inventory, generated tree/u);
@@ -489,12 +496,15 @@ describe('portable skill contract', () => {
       /invoke the installed skill launcher once with `composition --json`/u,
     );
     assert.match(localTooling, /attempted launcher proof is required/u);
+    assert.match(localTooling, /before reaching any conclusion/u);
+    assert.match(localTooling, /required first proof attempt/u);
     assert.match(localTooling, /one inert exact-path symlink-target read/u);
     assert.match(localTooling, /declared compatible dependency exists/u);
     assert.match(localTooling, /conflicting symlink is not authority/u);
     assert.match(localTooling, /name the configuration and executable mechanism/u);
     assert.match(localTooling, /\.pnpmfile\.cjs/u);
-    assert.match(localTooling, /plugin path declared by `\.yarnrc\.yml`/u);
+    assert.match(localTooling, /inspect `\.yarnrc\.yml` and the exact repository plugin path/u);
+    assert.match(localTooling, /name both paths in the result/u);
     assert.match(localTooling, /stopped before invoking the package manager/u);
     assert.match(localTooling, /precedes foundation-sufficiency inspection and questioning/u);
     assert.match(localTooling, /Do not ask a project-purpose question/u);
@@ -511,10 +521,16 @@ describe('portable skill contract', () => {
     assert.match(evaluation, /executable Git filter, text conversion, external diff, fsmonitor/u);
     assert.match(evaluation, /canonical owner or declared relationship actually assessed/u);
     assert.match(evaluation, /direct evaluation of current uncommitted changes/u);
-    assert.match(evaluation, /host may obtain it through the safe Git inspection/u);
+    assert.match(evaluation, /must complete this sequence/u);
+    assert.match(evaluation, /A path inventory alone is not a moldea evaluation/u);
+    assert.match(
+      evaluation,
+      /report explicitly that evaluation is read-only and changed no files/u,
+    );
     assert.match(evaluation, /without running `scope` or `inspect`/u);
     assert.match(evaluation, /name the supplied `.gitattributes` declaration/u);
-    assert.match(evaluation, /use at most one `content` call/u);
+    assert.match(evaluation, /at most one canonical `content` call total/u);
+    assert.match(evaluation, /Do not read project context, a second canonical owner/u);
     assert.match(evaluation, /state that reconciliation is blocked pending the answer/u);
     const agentDesign = readFileSync(join(SKILL_ROOT, 'references', 'agent-design.md'), 'utf8');
     assert.match(agentDesign, /complete the coherent implementation/u);

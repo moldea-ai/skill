@@ -588,6 +588,9 @@ describe('portable skill contract', () => {
     assert.match(skill, /inspect bounded inert project metadata/u);
     assert.match(skill, /preempts foundation analysis/u);
     assert.match(skill, /attempt the closed launcher's content-free `composition` operation/u);
+    assert.match(skill, /The evaluation is incomplete until all four steps finish/u);
+    assert.match(skill, /Never conclude from the host review alone/u);
+    assert.match(skill, /an independently verified installed exact local CLI is unavailable/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
 
     const localTooling = readFileSync(join(SKILL_ROOT, 'references', 'local-tooling.md'), 'utf8');

@@ -2325,9 +2325,8 @@ export const seedSemanticTooling = async (repositoryPath, caseDefinition) => {
   await seedPublishedCli(repositoryPath);
 };
 
-/** Seeds the minimum adopted project state used by semantic cases. */
-const seedAdoptedProject = async (repositoryPath, caseDefinition) => {
-  await seedSemanticTooling(repositoryPath, caseDefinition);
+/** Seeds the minimum adopted project state independently from its tooling layout. */
+const seedAdoptedProjectState = async (repositoryPath) => {
   await writeScenarioFile(
     repositoryPath,
     'README.md',
@@ -2348,6 +2347,12 @@ const seedAdoptedProject = async (repositoryPath, caseDefinition) => {
     'src/project-state.js',
     'export const projectState = "active";\n',
   );
+};
+
+/** Seeds the default published tooling and adopted project state used by semantic cases. */
+const seedAdoptedProject = async (repositoryPath, caseDefinition) => {
+  await seedSemanticTooling(repositoryPath, caseDefinition);
+  await seedAdoptedProjectState(repositoryPath);
 };
 
 const seedRefundAgent = async (
@@ -2865,11 +2870,13 @@ const seedScenarioRepository = async (repositoryPath, caseDefinition) => {
 
   if (caseDefinition.id === 'yarn-conflicting-cli-provider') {
     await seedYarnConflictingCliProvider(repositoryPath);
+    await seedAdoptedProjectState(repositoryPath);
     return;
   }
 
   if (caseDefinition.id === 'pnpm-pnp-local-cli-provider') {
     await seedPnpmPnpCliProvider(repositoryPath);
+    await seedAdoptedProjectState(repositoryPath);
     await writeScenarioFile(
       repositoryPath,
       'src/http-client.js',

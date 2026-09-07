@@ -242,6 +242,46 @@ test('all clean-slate semantic cases materialize their declared repository evide
   }
 });
 
+test('claimed-adopted custom CLI scenarios pass the inert adoption gate', async () => {
+  for (const caseId of ['pnpm-pnp-local-cli-provider', 'yarn-conflicting-cli-provider']) {
+    const evaluationRoot = mkdtempSync(join(tmpdir(), `moldea-adopted-${caseId}-`));
+    const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === caseId);
+    assert.ok(caseDefinition);
+
+    try {
+      const { repositoryPath } = await createActorRepository(evaluationRoot, caseDefinition);
+      const readStatus = () =>
+        spawnSync('git', ['status', '--porcelain=v1'], {
+          cwd: repositoryPath,
+          encoding: 'utf8',
+        });
+      const beforeStatus = readStatus();
+      assert.equal(beforeStatus.status, 0, beforeStatus.stderr);
+      assert.equal(beforeStatus.stdout, '');
+
+      const gate = spawnSync(
+        process.execPath,
+        [
+          join(repositoryPath, '.agents', 'skills', 'moldea', 'scripts', 'relevance-gate.mjs'),
+          '--repository',
+          repositoryPath,
+          '--adoption-only',
+        ],
+        { cwd: repositoryPath, encoding: 'utf8' },
+      );
+      assert.equal(gate.status, 0, gate.stderr);
+      assert.equal(gate.stdout, '1\n');
+      assert.equal(existsSync(join(repositoryPath, 'unexpected-yarn-cli-invocation.txt')), false);
+
+      const afterStatus = readStatus();
+      assert.equal(afterStatus.status, 0, afterStatus.stderr);
+      assert.equal(afterStatus.stdout, '');
+    } finally {
+      rmSync(evaluationRoot, { force: true, recursive: true });
+    }
+  }
+});
+
 test('the exact-binding semantic baseline is structurally valid before review', async () => {
   const evaluationRoot = mkdtempSync(join(tmpdir(), 'moldea-exact-binding-'));
   const caseDefinition = SEMANTIC_CASES.find(({ id }) => id === 'exact-binding-relevance');

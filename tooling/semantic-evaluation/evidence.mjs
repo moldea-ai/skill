@@ -193,7 +193,12 @@ export const validateSemanticCaseDefinition = (caseDefinition) => {
         resourceBudget.maximumMoldeaCommands === 0 &&
         resourceBudget.maximumMoldeaOutputBytes === 0)) &&
     (['abstain', 'blocked', 'informational'].includes(resourceBudget.activation) ||
-      resourceBudget.minimumMoldeaCommands > 0) &&
+      resourceBudget.minimumMoldeaCommands > 0 ||
+      (resourceBudget.activation === 'direct' &&
+        resourceBudget.minimumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaCommands === 0 &&
+        resourceBudget.maximumMoldeaOutputBytes === 0 &&
+        isValidSkillEvidence(caseDefinition?.skillEvidence))) &&
     (resourceBudget.activation !== 'blocked' || resourceBudget.maximumMoldeaCommands <= 1);
   const hostInstructionEvidenceCount =
     isPlainRecord(caseDefinition?.input) && Array.isArray(caseDefinition.input.repositoryEvidence)

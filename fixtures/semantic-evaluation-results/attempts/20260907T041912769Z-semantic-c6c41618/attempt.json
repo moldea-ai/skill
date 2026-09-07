@@ -1,0 +1,199 @@
+{
+  "artifactDigest": "e4f00488e704318e8aabf784996e96b86e75ff9d8d6cf0a1a15239fa07547d35",
+  "attemptId": "20260907T041912769Z-semantic-c6c41618",
+  "caseSuiteDigest": "30a51aeefa2c459a2c0ad4bc4d27f84cd5dcdddcda1dec42d1ff856d1618f677",
+  "cases": [
+    {
+      "confirmationStatus": "rejected",
+      "id": "preinit-canonical-looking-review",
+      "status": "failed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 17
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-07T04:18:00.925Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [],
+          "passed": false,
+          "rationale": "The response only states that no files changed and does not provide the requested host-review findings. Evidence shows no moldea command or workspace modification, and the response does not discuss adoption, tooling, or status.",
+          "executionOrigin": "executed",
+          "stageReuse": null,
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        },
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 12
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": 1,
+          "evaluatedAt": "2026-09-07T04:19:12.769Z",
+          "forbidden": [],
+          "kind": "confirmation",
+          "observed": [],
+          "passed": false,
+          "rationale": "The response only states that no files changed; it does not complete or report the requested host review. Evidence shows no moldea command and no workspace changes, and it does not demonstrate any forbidden adoption, repair, tooling, or status discussion.",
+          "executionOrigin": "executed",
+          "stageReuse": null,
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "preinit-explicit-validation",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 2
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-07T04:16:51.689Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "silent-preinit-abstention"
+          ],
+          "passed": true,
+          "rationale": "The actor made no moldea mention, and the evidence shows zero moldea operations, no canonical state creation, no package installation evidence, and no workspace changes.",
+          "executionOrigin": "executed",
+          "stageReuse": null,
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    },
+    {
+      "confirmationStatus": "not-required",
+      "id": "preinit-information",
+      "status": "passed",
+      "trials": [
+        {
+          "actorHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          },
+          "actorCommandPolicyEvidence": {
+            "completedCommandCount": 1
+          },
+          "actorResourceEvidence": {
+            "commandCount": 0,
+            "maximumInvocationByteCount": 0,
+            "modelVisibleToolOutputByteCount": 0,
+            "operations": [],
+            "stdoutByteCount": 0
+          },
+          "confirmationIndex": null,
+          "evaluatedAt": "2026-09-07T04:16:11.892Z",
+          "forbidden": [],
+          "kind": "initial",
+          "observed": [
+            "concise-information-only"
+          ],
+          "passed": true,
+          "rationale": "The actor concisely explains moldea and appropriate initialization timing without claiming repository-dependent work or existing initialization. No workspace changes or moldea operations occurred, and the unrecognized command evidence does not demonstrate repository inspection, reference loading, or package execution.",
+          "executionOrigin": "executed",
+          "stageReuse": null,
+          "judgeHost": {
+            "model": "gpt-5.6-sol",
+            "name": "codex",
+            "reasoningEffort": "medium",
+            "version": "codex-cli 0.153.4"
+          }
+        }
+      ]
+    }
+  ],
+  "cli": {
+    "integrity": "sha512-BMXqRGuOy8OKfoiJzn8qjr68xSUKPW71V8dgoNi+fioZm+fR9fnoKsjRLs89pUn2UkjAjMLCp3cCcyAThXUJ+Q==",
+    "jsonSchemaVersion": 4,
+    "name": "@moldea.ai/cli",
+    "packageLockSha256": "e9a3d3ee1a1db300453d9d8050084ec89c4195fd0a73624a5fc7e77a3bc2d858",
+    "version": "7.0.1"
+  },
+  "coverageDigest": "ae5cdec8eafccebf1de8488028050130ed0d4d2f768bfd0f6700dd0c7a370e4b",
+  "createdAt": "2026-09-07T04:15:09.049Z",
+  "evidence": {
+    "evaluationProtocolVersion": 23,
+    "kind": "candidate",
+    "path": "evidence.json",
+    "schemaVersion": 7,
+    "sha256": "c6c4161802bc99f310dedc54f3e9ff3c45357d5b90c2f60e1858cdedf6e243d4"
+  },
+  "failedCaseCount": 1,
+  "executedStageCount": 8,
+  "executedTrialCount": 4,
+  "hostContract": {
+    "model": "gpt-5.6-sol",
+    "name": "codex",
+    "reasoningEffort": "medium"
+  },
+  "passedCaseCount": 2,
+  "pendingCaseCount": 71,
+  "recordedAt": "2026-09-07T04:19:12.780Z",
+  "recoveredCaseCount": 0,
+  "reusedStageCount": 0,
+  "reusedTrialCount": 0,
+  "schemaVersion": 4,
+  "status": "failed",
+  "stopReason": "confirmation-failure",
+  "totalCaseCount": 74,
+  "updatedAt": "2026-09-07T04:19:12.769Z"
+}

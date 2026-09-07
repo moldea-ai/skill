@@ -33,13 +33,13 @@ When the publication cannot establish a required fact, the final report must:
 ## Make runtime claims precisely
 
 - An installed adapter without a matching published target is executable availability, not published behavioral support.
-- A published `supported` target whose adapter is absent from local composition is not executable through that local CLI.
-- A published `experimental` target may inform explicit experimentation, but it does not support a production-readiness claim.
+- A published `supported` target whose adapter is absent from local composition is not executable through that local CLI. State that migration remains blocked until an official skill release selects an exact CLI closure containing that adapter.
+- A published `experimental` target may inform explicit experimentation, but it does not support a production-readiness claim. Name the grounded runtime target and its published `experimental` maturity as the reason readiness is withheld.
 - A published target and local adapter still require repository evidence to establish the project's actual target and wiring.
 - `custom` is a deliberate project-specific runtime, not a fallback for missing evidence or an unavailable official adapter.
 
 For behavioral fit, identify which material model API and control flow, instruction loading, tool or schema, continuation, state or handoff, error or retry, lifecycle, and persistence facts apply and remain unproved. Resolve them from current source contracts, closed wiring, source-owned target documentation, or focused integration tests rather than package hints.
 
-State canonical runtime identity, repository behavior and fit, local composition, published technical compatibility, and maturity separately in plans and reports. When they disagree, preserve the disagreement rather than collapsing it into one compatibility claim or describing an established fact as absent.
+State canonical runtime identity, repository behavior and fit, local composition, published technical compatibility, and maturity separately in plans and reports. When they disagree, preserve the disagreement rather than collapsing it into one compatibility claim or describing an established fact as absent. When changing `runtime.id`, retain every independently evidenced model-visible capability in canonical guidance; a runtime identity correction does not authorize dropping supported behavior.
 
 Plan the minimum evidence operations before invoking the CLI. For one already identified agent and target, invoke composition first and retain its conclusion, then use only the canonical content needed for that agent and current publication when required. Do not add `inspect` after the owner is known or run `validate` when structural status cannot change the runtime conclusion. A publication result cannot retroactively replace or erase the completed composition result. Direct relevant work remains inside the ordinary four-command moldea limit.

@@ -124,6 +124,28 @@ describe('semantic evaluation evidence', () => {
     );
   });
 
+  test('accepts a direct zero-CLI budget only with independent skill-artifact evidence', () => {
+    const caseDefinition = {
+      ...createCaseDefinition('skill-artifact-case'),
+      resourceBudget: {
+        activation: 'direct',
+        minimumMoldeaCommands: 0,
+        maximumMoldeaCommands: 0,
+        maximumMoldeaOutputBytes: 0,
+      },
+      skillEvidence: {
+        activationScenarios: [],
+        artifacts: [{ role: 'authoritative-source', root: 'skills/release-review' }],
+      },
+    };
+
+    assert.equal(validateSemanticCaseDefinition(caseDefinition), caseDefinition);
+    assert.throws(
+      () => validateSemanticCaseDefinition({ ...caseDefinition, skillEvidence: undefined }),
+      /structured scenario/,
+    );
+  });
+
   test('hashes every distributed skill byte', () => {
     assert.match(createPortableSkillDigest(), /^[a-f0-9]{64}$/);
   });

@@ -299,7 +299,9 @@ describe('portable skill contract', () => {
     assert.match(frontmatter.description, /A gate miss abstains silently/u);
     assert.doesNotMatch(frontmatter.description, /potentially durable knowledge|Use first/iu);
     const skill = readSkill();
-    assert.match(skill, /Always spell the human-facing product name `moldea`/u);
+    assert.match(skill, /Before responding, scan for violations/u);
+    assert.match(skill, /including normal actionable host reviews/u);
+    assert.match(skill, /never substitute a neutral no-change response/u);
     assert.match(
       skill,
       /When that abstention consumes the complete request and no independent host-owned work remains/u,
@@ -350,6 +352,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /scope call counts toward the ordinary four-command limit/u);
     assert.match(skill, /leaving at most three CLI calls/u);
     assert.match(skill, /direct request supplies moldea intent, not a canonical owner/u);
+    assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
     assert.match(skill, /direct evaluation of “the current changes”.*has one mandatory route/u);
     assert.match(skill, /establish and retain every staged, unstaged, untracked/u);
     assert.match(skill, /leading-slash repository-logical form/u);
@@ -470,6 +473,11 @@ describe('portable skill contract', () => {
     assert.match(maintenance, /Do not store developer-answerable ambiguity/u);
     assert.match(
       maintenance,
+      /retain one complete change set containing the authorized implementation paths/u,
+    );
+    assert.match(maintenance, /update the existing requirement to remove only that condition/u);
+    assert.match(
+      maintenance,
       /identifying the canonical owner reconsidered, stating that behavior or contracts remain unchanged/u,
     );
     assert.match(maintenance, /Validation proves that files satisfy the repository format/u);
@@ -510,11 +518,11 @@ describe('portable skill contract', () => {
     assert.match(localTooling, /one inert exact-path symlink-target read/u);
     assert.match(localTooling, /declared compatible dependency exists/u);
     assert.match(localTooling, /conflicting symlink is not authority/u);
-    assert.match(localTooling, /name the configuration and executable mechanism/u);
+    assert.match(localTooling, /the exact configuration and executable mechanism/u);
     assert.match(localTooling, /\.pnpmfile\.cjs/u);
     assert.match(localTooling, /inspect `\.yarnrc\.yml` and the exact repository plugin path/u);
     assert.match(localTooling, /name both paths in the result/u);
-    assert.match(localTooling, /stopped before invoking the package manager/u);
+    assert.match(localTooling, /execution stopped before the package manager/u);
     assert.match(localTooling, /precedes foundation-sufficiency inspection and questioning/u);
     assert.match(localTooling, /Do not ask a project-purpose question/u);
     const compression = readFileSync(
@@ -538,6 +546,11 @@ describe('portable skill contract', () => {
     );
     assert.match(evaluation, /without running `scope` or `inspect`/u);
     assert.match(evaluation, /name the supplied `.gitattributes` declaration/u);
+    assert.match(
+      evaluation,
+      /Observed implementation state is not automatically durable canonical truth/u,
+    );
+    assert.match(evaluation, /Every read-only evaluation report explicitly states/u);
     assert.match(evaluation, /at most one canonical `content` call total/u);
     assert.match(evaluation, /Do not read project context, a second canonical owner/u);
     assert.match(evaluation, /state that reconciliation is blocked pending the answer/u);
@@ -568,10 +581,16 @@ describe('portable skill contract', () => {
     assert.match(runtime, /ordinary four-command moldea limit/u);
     assert.match(runtime, /invoke composition first and retain its conclusion/u);
     assert.match(runtime, /cannot retroactively replace or erase/u);
+    assert.match(runtime, /official skill release selects an exact CLI closure/u);
+    assert.match(runtime, /published `experimental` maturity as the reason readiness is withheld/u);
+    assert.match(runtime, /retain every independently evidenced model-visible capability/u);
     assert.doesNotMatch(runtime, /composition --json --max-output-bytes/u);
     const skillDesign = readFileSync(join(SKILL_ROOT, 'references', 'skill-design.md'), 'utf8');
     assert.match(skillDesign, /make the skill structurally invalid/u);
     assert.match(skillDesign, /Never use a successful unrelated validator/u);
+    assert.match(skillDesign, /do not invoke the moldea CLI merely to demonstrate/u);
+    assert.match(agentDesign, /property name alone supplies no classification evidence/u);
+    assert.match(localTooling, /A blocked result is incomplete unless it reports all four facts/u);
   });
 
   test('uses one compact precedence-ordered direct-operation router', () => {
@@ -730,6 +749,28 @@ describe('activation and semantic protection', () => {
       maximumMoldeaCommands: 0,
       maximumMoldeaOutputBytes: 0,
     });
+  });
+
+  test('gives independently validated Agent Skill cases exact zero CLI budgets', () => {
+    const expectedCaseIds = [
+      'skill-create-progressive-disclosure',
+      'skill-evaluate-read-only',
+      'skill-evaluate-script-authority',
+      'skill-maintain-linked-resources',
+      'skill-reuse-existing-cohesive',
+    ];
+    const zeroBudgetDirectCases = FIXTURE.semanticCases
+      .filter(
+        ({ resourceBudget }) =>
+          resourceBudget.activation === 'direct' &&
+          resourceBudget.minimumMoldeaCommands === 0 &&
+          resourceBudget.maximumMoldeaCommands === 0 &&
+          resourceBudget.maximumMoldeaOutputBytes === 0,
+      )
+      .map(({ id }) => id)
+      .sort();
+
+    assert.deepEqual(zeroBudgetDirectCases, expectedCaseIds);
   });
 
   test('keeps the deterministic adoption gate fail-closed and two bytes', () => {

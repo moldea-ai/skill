@@ -8,6 +8,8 @@ An Agent Skill is a portable, reusable behavior contract. Before editing it, est
 
 Keep skill-owned activation and workflow in the skill. Keep repository policy, product truth, build commands, and host command contracts in their established owners, then route to them without copying. Do not claim installation, discovery, or runtime consumption merely because source files exist.
 
+When independent skill-artifact evidence fully establishes structure and behavior and the operation does not change `/moldea/**`, do not invoke the moldea CLI merely to demonstrate that this skill was selected. Use the independent validator and focused behavioral evidence; a repository manifest check adds no relevant fact.
+
 ## Design the entrypoint
 
 Use valid YAML frontmatter with a stable lowercase name and a short description that states both capability and precise activation conditions. The description is the primary implicit-activation contract; remove broad catchalls and adjacent tasks the skill must ignore.

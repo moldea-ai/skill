@@ -2809,9 +2809,9 @@
       ],
       "resourceBudget": {
         "activation": "direct",
-        "minimumMoldeaCommands": 1,
-        "maximumMoldeaCommands": 4,
-        "maximumMoldeaOutputBytes": 262144
+        "minimumMoldeaCommands": 0,
+        "maximumMoldeaCommands": 0,
+        "maximumMoldeaOutputBytes": 0
       }
     },
     {
@@ -2919,9 +2919,9 @@
       ],
       "resourceBudget": {
         "activation": "direct",
-        "minimumMoldeaCommands": 1,
-        "maximumMoldeaCommands": 4,
-        "maximumMoldeaOutputBytes": 262144
+        "minimumMoldeaCommands": 0,
+        "maximumMoldeaCommands": 0,
+        "maximumMoldeaOutputBytes": 0
       }
     },
     {
@@ -3013,9 +3013,9 @@
       ],
       "resourceBudget": {
         "activation": "direct",
-        "minimumMoldeaCommands": 1,
-        "maximumMoldeaCommands": 4,
-        "maximumMoldeaOutputBytes": 262144
+        "minimumMoldeaCommands": 0,
+        "maximumMoldeaCommands": 0,
+        "maximumMoldeaOutputBytes": 0
       }
     },
     {
@@ -3265,9 +3265,9 @@
       ],
       "resourceBudget": {
         "activation": "direct",
-        "minimumMoldeaCommands": 1,
-        "maximumMoldeaCommands": 4,
-        "maximumMoldeaOutputBytes": 262144
+        "minimumMoldeaCommands": 0,
+        "maximumMoldeaCommands": 0,
+        "maximumMoldeaOutputBytes": 0
       }
     },
     {
@@ -3356,9 +3356,9 @@
       ],
       "resourceBudget": {
         "activation": "direct",
-        "minimumMoldeaCommands": 1,
-        "maximumMoldeaCommands": 4,
-        "maximumMoldeaOutputBytes": 262144
+        "minimumMoldeaCommands": 0,
+        "maximumMoldeaCommands": 0,
+        "maximumMoldeaOutputBytes": 0
       }
     },
     {

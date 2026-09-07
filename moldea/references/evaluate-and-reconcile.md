@@ -34,6 +34,8 @@ Assess separately:
 
 A valid manifest does not prove semantic alignment. A declaration does not prove runtime consumption. A passing test does not prove an instruction activates correctly. State the missing evidence rather than broadening the audit without cause.
 
+Observed implementation state is not automatically durable canonical truth. When canonical state does not establish whether an observed value or behavior is intended to persist, report that precise ambiguity or evidence limitation and do not declare complete semantic alignment.
+
 ## Reconcile
 
 Reconciliation requires write authority from the host task. Establish the intended truth from developer intent, current behavior, authoritative documentation, and tests. For a direct named agent, inspect only exact implementation evidence named by the task or a bounded host search keyed to that agent or domain, then use at most one canonical `content` call total for the agent instruction. Do not read project context, a second canonical owner, inventory, or structural status before asking the authority question; none can resolve an established conflict. If supplied or inspected evidence already shows materially conflicting policies and the task contract does not resolve them, do not validate or repair one as preferred. Stop before every semantic write, name both claims, state that reconciliation is blocked pending the answer, and ask one focused question that establishes which authority is current. Code, canonical prose, tests, and recency are evidence rather than automatic precedence. Do not persist a new unresolved requirement instead of asking a developer-answerable authority question.
@@ -46,4 +48,4 @@ When evaluation evidence must prove non-mutation, compare the host-provided befo
 
 ## Reporting
 
-For no-change relevant evaluation, report at most one moldea line unless detail was requested. Identify the assessed canonical owner, state that behavior or contracts remain unchanged, and conclude that no canonical edit was required. For a material finding or reconciliation, report the exact activation path, canonical owner, bounded commands and byte counts when measured, semantic conclusion, changes, unresolved limits, and checks. Never append moldea status to an unrelated host review.
+Every read-only evaluation report explicitly states that no repository files changed, including an aligned routing fallback or a safety stop. For no-change relevant evaluation, report at most one moldea line unless detail was requested. Identify the assessed canonical owner, state that behavior or contracts remain unchanged, and conclude that no canonical edit was required. For a material finding or reconciliation, report the exact activation path, canonical owner, bounded commands and byte counts when measured, semantic conclusion, changes, unresolved limits, and checks. Never append moldea status to an unrelated host review.

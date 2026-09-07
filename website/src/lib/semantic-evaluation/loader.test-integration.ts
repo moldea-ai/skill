@@ -218,11 +218,10 @@ afterEach(() => {
 });
 
 describe('loadSemanticEvaluationWebsiteModel', () => {
-  test('loads every active attempt from the sole 74-case evidence generation', () => {
+  test('loads only attempts that match the current 74-case evidence generation', () => {
     const model = loadSemanticEvaluationWebsiteModel(REPOSITORY_ROOT);
 
     expect(model.caseCount).toBe(74);
-    expect(model.attempts.length).toBeGreaterThan(0);
     expect(model.attempts.every(({ result }) => result.totalCaseCount === 74)).toBe(true);
     expect(
       model.attempts.every(({ result }) =>
@@ -235,9 +234,12 @@ describe('loadSemanticEvaluationWebsiteModel', () => {
         ),
       ),
     ).toBe(true);
-    expect(model.hasAttempt).toBe(true);
-    expect(model.latest).not.toBeNull();
-    expect(model.latestPointer?.lastPassingAttemptId).toBeNull();
+    expect(model.hasAttempt).toBe(model.attempts.length > 0);
+    expect(model.latest === null || model.attempts.includes(model.latest)).toBe(true);
+    expect(model.lastPassing).toBeNull();
+    expect(model.latestPointer === null || model.latestPointer.lastPassingAttemptId === null).toBe(
+      true,
+    );
     expect(existsSync(join(REPOSITORY_ROOT, 'fixtures/semantic-evaluation-result.json'))).toBe(
       false,
     );

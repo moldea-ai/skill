@@ -12,7 +12,7 @@ metadata:
 
 Maintain Git-owned project context and agent systems without taking control of unrelated engineering work.
 
-Always spell the human-facing product name `moldea`, including at the start of a sentence. Preserve different casing only inside an exact technical identifier.
+Always spell the human-facing product name `moldea`, including sentence starts. Before responding, scan for violations. Preserve casing only in exact technical identifiers.
 
 ## Establish the entry state first
 
@@ -25,7 +25,7 @@ Classify the request in this order and use the first matching route. Do not comb
 5. **Repository-independent information:** When the developer asks what moldea is or how it works without asking about the current repository, answer concisely from this entrypoint and stop. Do not inspect the repository, load a reference, or run a moldea command.
 6. **Every other repository task:** Use the activation rules and full relationship gate below. Generic knowledge, ordinary host commands, and ordinary repository work never activate moldea by wording alone.
 
-Every use of “abstain” below applies only to moldea work. Continue any independent host-owned request normally. Before adoption, every repository-dependent request other than explicit initialization abstains silently, including explicit validation, canonical-looking paths, host commands, and repositories whose names or partial files resemble moldea. Do not load a reference, run a moldea or package command, recommend initialization, change files, or mention moldea in progress or final reporting.
+“Abstain” applies only to moldea. Continue independent host work, including normal actionable host reviews; never substitute a neutral no-change response. Before adoption, every repository-dependent request except explicit initialization abstains silently, including validation, canonical-looking paths, host commands, and repositories that merely resemble moldea. Do not load references, run moldea or package commands, recommend initialization, change files, or mention moldea in progress or final reporting.
 
 When that abstention consumes the complete request and no independent host-owned work remains, reply only with a neutral repository outcome such as `No files were changed.` Do not name moldea, describe the unavailable operation or result, or recommend initialization.
 
@@ -34,7 +34,7 @@ When that abstention consumes the complete request and no independent host-owned
 Use only these activation classes:
 
 - **Direct:** the developer explicitly names `moldea` and requests a repository-dependent operation. Generic phrases such as project context, outdated context, durable knowledge, canonical alignment, documentation, or maintenance do not name `moldea` and never create a direct request.
-- **Canonical:** an already known task path is under `/moldea/**`.
+- **Canonical:** a normalized task path matches root-relative `moldea/**` or repository-logical `/moldea/**`.
 - **Managed README:** an already known changed hunk intersects content strictly between the exact moldea markers. A README path or outside hunk is not relevant.
 - **Relationship:** another already known task path matches an exact binding or `affectedBy` declaration.
 
@@ -96,7 +96,7 @@ When the executable-configuration preflight does not stop initialization, load o
 
 Insufficient evidence and partial evidence with a material unresolved boundary are pre-write stop conditions. Preserve existing files; say the project is not adopted by `moldea` because the complete adoption contract is absent; identify the exact evidence inspected and the highest-value missing fact; and ask one focused question. Do not substitute an indirect status such as paused or incomplete. For partial adoption, name the present and missing elements among `/moldea/moldea.yaml`, `/moldea/project.md`, and the owned README awareness block. When no meaningful foundation exists, explain that moldea keeps durable repository context so coding agents understand the project consistently, then ask what the project does and who or what it serves. Structural validation proves format, not the truth or sufficiency of the foundation.
 
-When evidence is sufficient and no relationship is established, the complete manifest is `version: 1` followed by one LF. Write the complete three-file foundation before the first CLI call, then invoke exactly one launcher-backed `validate`. On success, stop without `inspect`; name the project-owned evidence that established the foundation, changed files, validation result, and material diagnostics. Always end a successful initialization response with one short, evidence-supported `Next:` action; do not omit it. When no project-specific gap remains, tell the developer to continue normal repository work and add durable context only when a new project fact or agent design needs an owner. Do not steer the developer toward agent creation without a separate goal. On structural failure, repair from bounded diagnostics and run `validate` at most once more.
+When sufficient evidence establishes no relationship, the complete manifest is `version: 1` plus one LF. Write the complete three-file foundation before the first CLI call, then invoke exactly one launcher-backed `validate`. On success, stop without `inspect`; explicitly report adoption, name the project-owned evidence that established the foundation, changed files, validation result, and material diagnostics. Always end a successful initialization response with one short, evidence-supported `Next:` action; do not omit it. With no project-specific gap, tell the developer to continue normal repository work and add durable context only for a new project fact or agent design. Do not steer the developer toward agent creation without a separate goal. On structural failure, repair from bounded diagnostics and run `validate` at most once more.
 
 When the launcher succeeds, do not inspect dependency trees, CLI package internals, executable links, global installations, transient tools, or package-manager configuration. Load `references/local-tooling.md` only when the launcher reports that repository tooling is unavailable or invalid and the authorized operation can establish it. Before any package-manager invocation, inspect the exact package-manager configuration and apply its pre-execution stop contract.
 

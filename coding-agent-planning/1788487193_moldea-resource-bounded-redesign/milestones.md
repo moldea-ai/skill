@@ -64,6 +64,10 @@ Inspect provenance, source eligibility, collection order, interruption safety, t
 
 ## Milestone 52: Produce the complete frozen-artifact semantic ledger
 
+### Status
+
+Implementation and evaluation are complete; review and publication of attempt `20260907T175451820Z-semantic-c0c16e40` and its problem-84 classification remain.
+
 ### Objective
 
 Use the published convergence runner to obtain and publish one complete 74-case official ledger for the unchanged Milestone 49 portable skill, then classify every failure before any behavior edit.
@@ -92,6 +96,7 @@ Use the published convergence runner to obtain and publish one complete 74-case 
 - Verify exact source provenance, direct/reused counts, all 74 resolutions, resource evidence, repository controls, lowercase naming, and passing-only promotion.
 - No case remains pending, no model process remains, and the portable-skill digest remains unchanged; otherwise a genuine operational/token stop retains an exact resumable checkpoint.
 - Every failure is classified before any behavior edit. Review is ready and the attempt is pushed before Milestone 53.
+- The complete ledger resolves all 74 cases as 61 direct passes, five recoveries, and eight confirmed failures after 21 confirmation trials and 23,634,239 accounted direct tokens. Two failures are stale zero-call resource budgets, six are skill or evidence-boundary defects, and the five recovered cases require no correction.
 
 ### Review checkpoint
 
@@ -109,17 +114,20 @@ Reach complete current 74-case semantic evidence without returning to open-ended
 
 ### Scope and implementation
 
-- If the ledger passes all 74 cases, make no skill correction.
-- Otherwise make at most one coherent simplification generation for proven systemic defects in `moldea/SKILL.md`, only its owning references, focused conformance tests, and directly affected documentation.
-- Reduce overlapping routing and brittle phrase locks instead of appending case-specific exceptions. Preserve every case, criterion, safety boundary, resource budget, canonical ownership rule, and evaluator identity.
-- Use `fixtures/semantic-evaluation-coverage.json` to select one canary per affected claim plus historically unstable cases, then run the complete impacted set. Start one final official attempt only after the targeted gate passes.
+- Change the shared semantic and qualification Codex-host reasoning contract from `medium` to `high`, including exact command construction, provenance, identity, typings, focused tests, and current execution documentation. Do not create a runtime override or mixed-effort reuse path.
+- Change only the stale `skill-boundary-surface-selection` and `skill-maintain-host-invocation-policy` resource budgets to require zero moldea calls, preserving their semantic criteria and every absolute ceiling.
+- Make one coherent simplification generation for the six confirmed skill defects in `moldea/SKILL.md` and only their owning references, focused conformance tests, and directly affected documentation: relevant no-change reporting, independent Agent Skill evaluation abstention, evidence-bounded runtime planning, preservation of established local runtime identity when publication is unavailable, consumer-semantic description classification, and exact local-CLI proof before blocked Yarn installation reporting.
+- Reduce overlapping routing and brittle phrase locks instead of appending case-specific exceptions. Preserve every other case, criterion, safety boundary, resource budget, canonical ownership rule, and evaluator contract.
+- Run one bounded diagnostic batch containing exactly the eight confirmed cases at `high`. Inspect its per-stage token distribution and confirm that the existing per-invocation and candidate ceilings retain realistic headroom before starting one final official attempt.
+- Start one final official 74-case `high` attempt only after all eight cases pass. If it passes, atomically replace the active semantic evidence store, validators, and public presentation with the `high` attempt and remove every obsolete `medium` attempt from active source. Git history is the audit trail; do not retain a dual-effort compatibility reader or public page.
 - If that final frozen attempt repeats a confirmed systemic defect, stop paid execution and re-plan from the complete evidence instead of beginning another correction generation.
 
 ### Verification and acceptance criteria
 
 - Run skill validation, complete conformance, root unit/integration, docs, path, resource, attempt, preflight, type/lint/format, candidate-package, and website checks.
-- No criterion, fixture, budget, privacy boundary, repository control, or resource ceiling is weakened.
-- Current evidence reports `74/74` only from one verified complete attempt and distinguishes direct, recovered, and reused work truthfully.
+- No semantic criterion, privacy boundary, repository control, or absolute resource ceiling is weakened; only the two proven stale minimum-call fixture budgets change.
+- Current evidence reports `74/74` only from one verified complete `high` attempt and distinguishes direct, recovered, and reused work truthfully.
+- Active semantic schemas, evidence, and public pages accept only the `high` release contract after replacement; no obsolete `medium` attempt remains in active source.
 - Review is ready and every required semantic code/evidence commit is signed, signed off, and pushed.
 
 ### Review checkpoint
@@ -140,6 +148,7 @@ Audit and extend qualification so Custom and adapter profiles receive the same c
 
 - Audit `qualification/src/execution/**`, `qualification/src/checkpoint/**`, `qualification/src/cache/**`, `qualification/src/candidate-closure/**`, `qualification/src/command-line/**`, result verification, current attempts, and profile ownership before editing.
 - Reuse existing checkpoint, cache, fingerprint, and provenance contracts. Add only missing continuation across semantic failures, valid committed failed-attempt passing-case reuse, bounded diagnostic selection, compact progress, and candidate resource-stop behavior.
+- Carry the shared `high` reasoning contract through qualification command construction, exact cache and evidence identity, schemas, tests, and documentation. Reject `medium` evidence as a current reuse or release source.
 - Derive a qualification-specific per-profile paid-token ceiling from accepted qualification evidence and each profile's case count with documented headroom. Do not copy the semantic ceiling or calibrate from rejected stages.
 - Preserve Custom's 12 universal journeys, each adapter's 2 direct journeys, baseline composition, one model-bearing process at a time, passing-only promotion, and exact provenance.
 - Synchronize `docs/adapter-qualification.md`, scripts, website loaders, and tests only where the audited contract changes.
@@ -166,7 +175,7 @@ Run Custom and all adapter profiles sequentially, preserve every attempt, and ob
 
 ### Scope and implementation
 
-- Run Custom first, then every declared adapter profile one process at a time, reusing only exact current evidence and continuing across semantic failures while operationally safe.
+- Run Custom first, then every declared adapter profile at `high`, one process at a time, reusing only exact current `high` evidence and continuing across semantic failures while operationally safe.
 - Resume Cloudflare only from a fresh exact-compatible checkpoint and preserve every official attempt.
 - Collect and classify every failed case/profile across skill behavior, adapter contract, evaluator/rubric, fixture/probe, cache identity, resource accounting, infrastructure, and model variance before a shared correction.
 
@@ -195,12 +204,13 @@ Produce complete current Custom and adapter evidence without repeated shared edi
 - If every required profile passes, make no behavior correction. Otherwise make one coherent shared correction generation for proven shared defects and isolate adapter-specific fixes to their owners.
 - Run targeted canaries, then only failed or exact-identity-invalidated cases/profiles through the published runner.
 - Preserve every criterion, safety control, resource contract, Custom ownership boundary, adapter-specific boundary, and clean-slate major contract.
+- When all required `high` profiles pass, atomically replace the active qualification evidence and public validation with those attempts and remove obsolete `medium` results from active source without a compatibility reader.
 - Stop paid execution and re-plan from the ledger if a repeated confirmed systemic defect remains after the final frozen run.
 
 ### Verification and acceptance criteria
 
 - Run all affected qualification and root deterministic suites before paid work.
-- Verify Custom's 12 journeys and every adapter's 2 direct journeys, exact baseline composition, target identity, resources, evidence integrity, and public presentation.
+- Verify Custom's 12 journeys and every adapter's 2 direct journeys at `high`, exact baseline composition, target identity, resources, evidence integrity, and public presentation.
 - No more than one shared correction generation occurs, only failed or invalidated work reruns, and release targets have complete passing current or explicitly pinned evidence.
 - Review is ready and correction/evidence commits are signed, signed off, and pushed.
 
@@ -260,4 +270,4 @@ Confirm the launched surface is internally consistent, resource-bounded, product
 
 ## Execution scope
 
-Milestone 50 is complete. Implement and publish Milestones 51 through 58 sequentially: first make semantic evaluation converge without changing portable behavior; then produce and classify one complete frozen semantic ledger and allow at most one evidence-driven correction generation; apply the same audited architecture to Custom and adapters; produce complete qualification evidence with the same stop-loss; publish clean skill 5.0.0 and remove obsolete 4.0.x release surfaces; and finish a cross-repository contradiction audit. Preserve all safety, privacy, provenance, resource, signing, review, branch, and clean-slate constraints from the challenged plan.
+Milestones 50 and 51 are complete. Finish review and publication of Milestone 52's complete `medium` failure ledger, then implement and publish Milestones 53 through 58 sequentially: make one consolidated eight-cause skill/evaluator correction, establish `high` as the only current release-evidence reasoning contract, pass the bounded eight-case gate, and replace active semantic evidence with one complete `high` attempt; apply the same audited convergence architecture and `high` identity to Custom and adapters; replace active qualification evidence without a mixed-effort compatibility path; publish clean skill 5.0.0 and remove obsolete 4.0.x release surfaces; and finish a cross-repository contradiction audit. Preserve all safety, privacy, provenance, resource, signing, review, branch, and clean-slate constraints from the challenged plan.

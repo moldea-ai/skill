@@ -8,7 +8,9 @@ Evaluation is read-only. Reuse the host review or task workflow's root, HEAD, ex
 
 For a relationship-triggered operation, use the one completed `scope` result as the canonical expansion boundary. For direct canonical work, start at the named owner without running `scope`. Do not turn a clean or unscoped host review into a whole-project moldea audit.
 
-If already supplied repository evidence identifies an executable Git filter, text conversion, external diff, fsmonitor, or other repository-controlled helper, stop before worktree-aware Git can execute it. Name the exact mechanism, state which Git evidence remains unavailable, and give the smallest safe prerequisite, such as removing or disabling that mechanism or supplying independently collected inert evidence. Do not execute, rewrite, or disable repository configuration during evaluation.
+A direct evaluation of current uncommitted changes is scoped by the complete changed-path set already supplied by the host. It uses the full relationship gate and one `scope` result because direct intent does not identify the canonical owners of ordinary paths. Account for staged, unstaged, untracked, renamed-source and destination, and deleted paths in that host set, then follow only matched relationships. Never run Git to recreate or expand the supplied scope.
+
+If already supplied repository evidence identifies an executable Git filter, text conversion, external diff, fsmonitor, or other repository-controlled helper, stop before worktree-aware Git can execute it. The response must say explicitly that evaluation stopped before worktree-aware Git because the named mechanism could execute, state which Git evidence remains unavailable, and give the smallest safe prerequisite, such as removing or disabling that mechanism or supplying independently collected inert evidence. Do not execute, rewrite, or disable repository configuration during evaluation.
 
 ## Evaluate progressively
 
@@ -32,7 +34,7 @@ A valid manifest does not prove semantic alignment. A declaration does not prove
 
 ## Reconcile
 
-Reconciliation requires write authority from the host task. Establish the intended truth from developer intent, current behavior, authoritative documentation, and tests. If those sources materially conflict and the task contract does not resolve them, stop before every semantic write and ask one focused question that establishes which authority is current. Code, canonical prose, tests, and recency are evidence rather than automatic precedence. Do not persist a new unresolved requirement instead of asking a developer-answerable authority question.
+Reconciliation requires write authority from the host task. Establish the intended truth from developer intent, current behavior, authoritative documentation, and tests. If supplied or inspected evidence already shows materially conflicting policies and the task contract does not resolve them, do not validate or repair one as preferred. Stop before every semantic write, name both claims, state that reconciliation is blocked pending the answer, and ask one focused question that establishes which authority is current. Code, canonical prose, tests, and recency are evidence rather than automatic precedence. Do not persist a new unresolved requirement instead of asking a developer-answerable authority question.
 
 Apply the smallest coherent repair across directly affected canonical owners, declarations, relationships, mirrors, consumers, and tests. Remove superseded parallel paths made unnecessary by the repair. Preserve unrelated state and rerun only the checks affected by the changed contract.
 

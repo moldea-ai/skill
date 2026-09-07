@@ -56,6 +56,8 @@ Runtime selection is optional unless requested or material. Keep four conclusion
 
 Composition establishes availability only. Publication establishes current technical support and maturity only. Neither establishes repository use or behavioral fit. When fit is incomplete, name the material facts still required for the repository, such as model API and control flow, instruction loading, tools and schemas, continuation, state or handoffs, error and retry semantics, lifecycle, and persistence. Name reliable resolvers such as current source contracts, closed runtime wiring, source-owned target documentation, and focused integration tests. Preserve an existing `runtime.id`; for a new plan, leave it undecided until the required evidence exists rather than defaulting to `custom` or inferring from a package name.
 
+State only repository facts supported by the bounded source or projected evidence actually inspected. Do not turn an opaque client or missing proof into claims that tools, schemas, state, persistence, retries, or other behaviors are absent. Express those dimensions as evidence prerequisites and specify what a reliable source or focused integration test must prove.
+
 ## Produce one actionable recommendation
 
 Give one preferred architecture when evidence supports it; present alternatives only when their tradeoff could change the decision.

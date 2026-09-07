@@ -111,6 +111,14 @@ Machine-readable `status` output is a separate content-free contract. The defaul
 
 The two universal abstention cases assess only `moldea` activation, resource use, reference leakage, actor completion, and repository preservation. Correctness opinions about the unrelated host-owned source or documentation review are deliberately outside adapter qualification, so disagreement on an ordinary task cannot create a false `moldea` failure.
 
+## Correct profiles efficiently
+
+Run the free deterministic checks before paid work and establish the current Custom baseline once. Then execute every adapter profile sequentially, continuing after a failed profile when the host remains operationally safe. Failed official attempts remain immutable evidence. Collect the complete adapter, profile, and case failure ledger before changing shared skill or qualification behavior so one correction can address every affected target.
+
+Use `diagnose --adapter <adapter> --implementation <implementation> --case <case-id>` to test each residual case without replacing its failed official attempt. After the consolidated correction passes targeted diagnosis, rerun only failed profiles and profiles whose exact behavior-bearing identity changed. Do not repeat an exact-current passing profile solely because another adapter failed.
+
+Keep one model-bearing qualification process active at a time. Parallel profile execution can multiply package workspaces, memory, temporary disk, provider quota, and token peaks. A future concurrency increase requires measured aggregate capacity and source-controlled resource limits; elapsed-time pressure by itself is not evidence that parallel execution is safe.
+
 Run the Custom profile before adapters:
 
 ```bash

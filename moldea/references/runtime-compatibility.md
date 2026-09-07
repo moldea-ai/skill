@@ -21,6 +21,8 @@ Do not use a bundled snapshot, cached response, stale copy, alternate website pa
 
 An unavailable, incomplete, malformed, unsupported, or target-missing publication blocks only conclusions that require current published compatibility or maturity. It does not erase a canonical runtime declaration, repository wiring, or local composition established independently. Continue safe local inspection and deterministic validation when they remain useful.
 
+When local availability and current publication both matter, establish local composition once before interpreting the publication and retain that conclusion independently. A malformed publication does not justify saying composition could not be established when a completed compatible `composition` envelope already established it.
+
 When the publication cannot establish a required fact, the final report must:
 
 - state which current published compatibility or maturity fact remains unavailable
@@ -39,3 +41,5 @@ When the publication cannot establish a required fact, the final report must:
 For behavioral fit, identify which material model API and control flow, instruction loading, tool or schema, continuation, state or handoff, error or retry, lifecycle, and persistence facts apply and remain unproved. Resolve them from current source contracts, closed wiring, source-owned target documentation, or focused integration tests rather than package hints.
 
 State canonical runtime identity, repository behavior and fit, local composition, published technical compatibility, and maturity separately in plans and reports. When they disagree, preserve the disagreement rather than collapsing it into one compatibility claim or describing an established fact as absent.
+
+Plan the minimum evidence operations before invoking the CLI. For one already identified agent and target, use at most one composition call, only the canonical content needed for that agent, and existing content-free metadata already available. Do not add `inspect` after the owner is known or run `validate` when structural status cannot change the runtime conclusion. Direct relevant work remains inside the ordinary four-command moldea limit.

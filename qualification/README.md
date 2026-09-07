@@ -127,6 +127,8 @@ npm run qualification -- run --adapter anthropic --implementation typescript-mes
 npm run qualification -- diagnose --adapter anthropic --implementation typescript-messages-api-0-117 --case repair-anthropic-tool-registration
 ```
 
+For a correction sweep, run free deterministic checks and Custom first, then run every adapter profile sequentially even when an earlier profile fails, provided the host remains operationally safe. Preserve every failed attempt and collect the complete cross-profile failure ledger before editing shared behavior. Use `diagnose --case` for the residual cases, publish one consolidated correction, and rerun only failed or exact-identity-invalidated profiles. Keep one model-bearing process active at a time unless measured host, provider, memory, disk, quota, and token capacity supports a source-controlled concurrency limit.
+
 Resume or retry:
 
 ```bash

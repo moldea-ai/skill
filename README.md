@@ -196,6 +196,8 @@ npm run eval:semantic -- --case <case-id>
 
 The diagnostic prints one content-free result containing the verdict, criterion identifiers, a bounded rationale excerpt, and aggregate resource evidence. Its UTF-8 JSON output is limited to 65,536 bytes. Running `npm run eval:semantic` without `--case` or `--record` fails before host discovery, so it cannot accidentally start the complete paid suite.
 
+When a semantic correction may affect several cases, run every suspected case once in non-recording mode, sequentially, and collect the complete compact failure set before editing. Correct shared causes together, rerun only the failures, then make one official recording after the targeted gate passes. The official run re-exercises all 74 cases against the final skill bytes.
+
 Run the current semantic evaluation and verify its committed attempt only with explicit recording:
 
 ```bash
@@ -203,7 +205,7 @@ npm run eval:semantic -- --record
 npm run eval:semantic:verify
 ```
 
-Run Custom qualification first, then each published adapter profile. Every official run records fresh evidence for the current protocol, exact skill bytes, CLI closure, evaluator, target, and environment.
+Run free qualification preflight and Custom first, then execute each published adapter profile sequentially. Continue across failed profiles when the host remains operationally safe, preserve their attempts, and collect the complete profile failure ledger before changing shared behavior. Use targeted `diagnose --case` runs to prove the consolidated correction, then rerun only failed or exact-identity-invalidated profiles. Every official run records evidence for the current protocol, exact skill bytes, CLI closure, evaluator, target, and environment. Keep one model-bearing process active at a time unless measured capacity supports a stricter source-controlled concurrency contract.
 
 After current semantic and qualification evidence passes, record the compact fresh release envelope:
 

@@ -4,6 +4,8 @@ Read this reference after moldea relevance is established for creating or materi
 
 Agent-system planning decides whether an agent should exist and proposes its responsibility. Agent design begins after a direct request or accepted candidate. Revalidate repository evidence rather than copying a recommendation into canonical state or model-facing instructions.
 
+When a direct request says to create, register, and make an existing runtime agent ready, and bounded repository source plus focused tests establish its current behavior, complete the coherent implementation rather than stopping because the current instruction is inline. Create the canonical agent assets, derive every material invocation from canonical instruction through a real loader or necessary exact mirror, remove the independently maintained inline policy, register the evidenced runtime, loader, mirror, and impact relationships, preserve or strengthen focused coverage, run that coverage, and perform final launcher-backed validation. If any required behavior or runtime path is not evidenced, report that exact limitation instead of inventing it.
+
 ## Establish behavior before prose
 
 Establish the supported behavioral contract before drafting or broadly rewriting model-facing text. Include only material identity, purpose, responsibility, project context, inputs, outputs, rules, scope, exclusions, capabilities, variables, ambiguity, failure, escalation, routing, and quality expectations.
@@ -113,6 +115,6 @@ Requirements are not a roadmap. Do not create one to avoid an answerable questio
 
 ## Verify agent readiness
 
-After writes, run relevant project checks and the narrowest schema-4 metadata command that covers the changed owners. Review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state without loading unrelated canonical bodies.
+After all canonical, runtime, and relationship writes, run final launcher-backed `validate`, report its status and material diagnostics, then run the focused project-native tests that exercise every changed material invocation and canonical-loading path. A passing generic check or actor report is not a substitute for runner-owned focused test evidence. Review purpose, completeness, scope, contracts, instruction provenance, capabilities, routing, ambiguity, failures, consistency, economy, mirrors, and unresolved state without loading unrelated canonical bodies.
 
 Do not claim production readiness when behavior lacks support, a material contract is hidden or contradictory, affected validation fails, or a blocking requirement remains.

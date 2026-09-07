@@ -119,6 +119,14 @@ npm run eval:semantic -- --case <case-id>
 
 The diagnostic emits one content-free JSON result with the verdict, complete observed and forbidden criterion identifiers, a UTF-8-safe rationale excerpt with explicit truncation state, and aggregate command and token evidence. Output cannot exceed 65,536 UTF-8 bytes. Running `npm run eval:semantic` without `--case` or `--record` fails before host discovery and makes no model call.
 
+## Correct failures efficiently
+
+Do not restart the complete paid suite after each correction. Build the suspected case set from the stopped official attempt and current suite order, then run each case once through `--case`, sequentially. Retain only the compact case ID, verdict, criteria, rationale excerpt, and aggregate resources. Collect every failure before editing so one correction can address shared causes.
+
+After the batch correction passes deterministic checks and is published, rerun only the residual failed case IDs. If another residual remains, collect the complete residual set before the next edit. Start one official recording only after the targeted gate is green. The official recording remains the release evidence and re-exercises all 74 cases against the final skill bytes; diagnostic passes are not promoted or reused as evidence.
+
+One model-bearing process at a time is the default. Running cases concurrently can multiply memory, temporary disk, provider quota, and token peaks. Concurrency should increase only after measured aggregate capacity is encoded in source-controlled resource limits.
+
 The complete paid suite requires explicit recording:
 
 ```bash

@@ -196,7 +196,18 @@ npm run eval:semantic -- --case <case-id>
 
 The diagnostic prints one content-free result containing the verdict, criterion identifiers, a bounded rationale excerpt, and aggregate resource evidence. Its UTF-8 JSON output is limited to 65,536 bytes. Running `npm run eval:semantic` without `--case` or `--record` fails before host discovery, so it cannot accidentally start the complete paid suite.
 
-When a semantic correction may affect several cases, run every suspected case once in non-recording mode, sequentially, and collect the complete compact failure set before editing. Correct shared causes together, rerun only the failures, then make one official recording after the targeted gate passes. The official run re-exercises all 74 cases against the final skill bytes.
+When a semantic correction may affect several cases, run every suspected case once in non-recording mode, sequentially, and collect the complete compact failure set before editing. Correct shared causes together, rerun only the failures, then make one official recording after the targeted gate passes. The official run covers all 74 current cases through newly executed stages or exact identity-bound reuse from committed evidence.
+
+Use the resumable batch runner instead of starting separate commands for each case:
+
+```bash
+npm run eval:semantic:diagnose -- --all
+npm run eval:semantic:diagnose -- --cases <comma-separated-case-ids>
+npm run eval:semantic:diagnose -- --claims <comma-separated-claim-ids>
+npm run eval:semantic:diagnose -- --unresolved-from <attempt-id>
+```
+
+The batch completes one initial trial for every selected case, continues across semantic failures, and emits a compact final ledger. It checkpoints at actor and judge boundaries so the exact command resumes after interruption. `--restart` explicitly discards the current diagnostic batch. The private in-flight checkpoint and content-free completed ledger are ignored and independently limited to 1 MiB; successful completion deletes the private checkpoint. The ledger retains criterion IDs, a deterministic content-free explanation, and aggregate resources, never the model-authored rationale. Final stdout is limited to 16 KiB.
 
 Run the current semantic evaluation and verify its committed attempt only with explicit recording:
 
@@ -204,6 +215,8 @@ Run the current semantic evaluation and verify its committed attempt only with e
 npm run eval:semantic -- --record
 npm run eval:semantic:verify
 ```
+
+Official recording also completes all missing initial cases before confirmations and records one complete attempt even when semantic failures remain. Independently passing or recovered case groups from a valid committed failed attempt may be reused only when their complete actor and judge stage identities still match. Reused stages retain their original provenance and do not count as new model work. Before every paid stage, the runner reserves the 2,097,152-token per-invocation maximum and refuses to exceed the 32,000,000-token direct-work ceiling for one candidate.
 
 Run free qualification preflight and Custom first, then execute each published adapter profile sequentially. Continue across failed profiles when the host remains operationally safe, preserve their attempts, and collect the complete profile failure ledger before changing shared behavior. Use targeted `diagnose --case` runs to prove the consolidated correction, then rerun only failed or exact-identity-invalidated profiles. Every official run records evidence for the current protocol, exact skill bytes, CLI closure, evaluator, target, and environment. Keep one model-bearing process active at a time unless measured capacity supports a stricter source-controlled concurrency contract.
 

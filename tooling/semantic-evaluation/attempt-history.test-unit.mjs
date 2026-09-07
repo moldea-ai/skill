@@ -120,6 +120,31 @@ test('semantic attempt summaries expose failures and pending cases', () => {
   );
 });
 
+test('semantic attempt summaries accept one complete ledger with confirmed failures', () => {
+  const initialFailure = createTrial('failing-case', false, '2026-08-25T00:30:00.000Z');
+  const rejectedConfirmation = {
+    ...createTrial('failing-case', false, '2026-08-25T00:40:00.000Z'),
+    confirmationIndex: 1,
+  };
+  const attempt = createSemanticAttemptRecord({
+    evidence: createEvidence(
+      [createTrial('passing-case', true, '2026-08-25T00:20:00.000Z'), initialFailure],
+      [rejectedConfirmation],
+    ),
+    evidenceKind: 'candidate',
+    evidenceSha256: 'c'.repeat(64),
+    recordedAt: '2026-08-25T01:00:01.000Z',
+    stopReason: 'complete-with-failures',
+    totalCaseCount: 2,
+  });
+
+  assert.equal(attempt.status, 'failed');
+  assert.equal(attempt.failedCaseCount, 1);
+  assert.equal(attempt.passedCaseCount, 1);
+  assert.equal(attempt.pendingCaseCount, 0);
+  assert.equal(attempt.stopReason, 'complete-with-failures');
+});
+
 test('semantic attempt summaries recover only after two passing confirmations', () => {
   const initialFailure = createTrial('variable-case', false, '2026-08-25T00:30:00.000Z');
   const firstConfirmation = {

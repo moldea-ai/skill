@@ -192,7 +192,7 @@ const recordCandidate = async (
   root: string,
   candidate: Record<string, unknown>,
   totalCaseCount: number,
-  stopReason: 'case-failure' | 'complete' | 'confirmations-passed',
+  stopReason: 'case-failure' | 'complete' | 'complete-with-failures' | 'confirmations-passed',
 ): Promise<void> => {
   await recordSemanticEvaluationAttempt({
     evidenceKind: 'candidate',

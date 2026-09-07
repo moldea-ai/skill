@@ -24,6 +24,7 @@ const STATUS_VALUES = new Set(['failed', 'incomplete', 'passed']);
 const STOP_REASON_VALUES = new Set([
   'case-failure',
   'complete',
+  'complete-with-failures',
   'confirmation-failure',
   'confirmations-passed',
   'operator-recorded',
@@ -335,6 +336,10 @@ export const createSemanticAttemptRecord = ({
   const hasValidStopReason =
     stopReason === 'operator-recorded' ||
     (stopReason === 'complete' && status === 'passed') ||
+    (stopReason === 'complete-with-failures' &&
+      status === 'failed' &&
+      pendingCaseCount === 0 &&
+      !hasUnconfirmedInitialFailure) ||
     (stopReason === 'case-failure' && hasUnconfirmedInitialFailure) ||
     (stopReason === 'confirmation-failure' && hasRejectedConfirmation) ||
     (stopReason === 'confirmations-passed' && failedCaseCount === 0 && recoveredCaseCount > 0);

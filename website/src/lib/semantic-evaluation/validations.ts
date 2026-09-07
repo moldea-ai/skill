@@ -343,6 +343,7 @@ export const SemanticAttemptRecordSchema = z
     stopReason: z.enum([
       'case-failure',
       'complete',
+      'complete-with-failures',
       'confirmation-failure',
       'confirmations-passed',
       'operator-recorded',

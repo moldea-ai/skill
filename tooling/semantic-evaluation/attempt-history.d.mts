@@ -117,6 +117,7 @@ export interface ISemanticAttemptRecord {
   stopReason:
     | 'case-failure'
     | 'complete'
+    | 'complete-with-failures'
     | 'confirmation-failure'
     | 'confirmations-passed'
     | 'operator-recorded';

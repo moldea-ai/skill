@@ -91,7 +91,7 @@ Semantic protocol 23 accepts only evidence produced by the current suite, curren
 
 Evidence applies only to exact behavior-bearing actor and judge stage identities. Actor identity binds the portable skill bytes, case definition, natural prompt, deterministic fixture, scenario evidence, complete related-repository mount state, resource-profile file, CLI closure, protocol, and exact host. The source resource profile is read from the immutable commit that contains the reused evidence rather than inferred from the current checkout. Judge identity additionally binds its exact prompt and the complete projected actor evidence it assessed. A verified immutable stage may be reused only when all of those inputs match byte-for-byte. Every mismatch is a cache miss.
 
-Reused stages retain their original evaluation time and carry the source attempt, source commit, evidence digest, trial identity, stage identity, and explicit `reused` origin. The current runner rematerializes deterministic fixtures, reruns repository and read-only-mount controls, and verifies the committed source artifact before accepting reuse. It never labels reuse as a new model invocation.
+Reused stages retain their original evaluation time and carry the source attempt, source commit, evidence digest, trial identity, stage identity, and explicit `reused` origin. The current runner rematerializes deterministic fixtures, reruns repository and read-only-mount controls, and verifies the committed source artifact before accepting reuse. An independently passing or recovered case group may come from a valid committed failed attempt; failed, incomplete, tampered, or uncommitted case groups remain ineligible. The runner never labels reuse as a new model invocation.
 
 The public evidence site generates routes, search records, and visible history only for attempts matching the active evaluation contract.
 
@@ -107,7 +107,7 @@ npm run eval:semantic:preflight
 
 Preflight validates all case definitions, source evidence, portable skill structure, CLI identity, resource budgets, and repository setup without making a model call.
 
-It also prints the total initial stage count, exact reusable case and stage counts, remaining paid initial stage count, confirmation-inclusive paid stage limit, retry-inclusive invocation limit, and absolute token containment limit. These are deliberately named limits, not forecasts. The confirmation limit assumes that every newly evaluated case needs two confirmation trials after its initial trial, while the invocation limit additionally assumes that every paid actor and judge stage consumes its one bounded operational retry. Each completed tool-using Codex invocation may report at most 2,097,152 cumulative input-plus-output tokens. The aggregate containment limit assumes that every permitted invocation reaches that individual ceiling, so it must not be presented as expected consumption or spend. The per-invocation ceiling was selected above an observed 1,264,666-token qualification stage so normal tool-using work retains more than 25 percent headroom. Crossing it is an explicit failure, and cached input is reported separately without being added to input a second time.
+It also prints the total initial stage count, exact reusable case and stage counts, remaining paid initial stage count, confirmation-inclusive paid stage limit, retry-inclusive invocation limit, candidate paid-token maximum, next-stage reservation, and absolute token containment limit. These are deliberately named limits, not forecasts. The confirmation limit assumes that every newly evaluated case needs two confirmation trials after its initial trial, while the invocation limit additionally assumes that every paid actor and judge stage consumes its one bounded operational retry. Each completed tool-using Codex invocation may report at most 2,097,152 cumulative input-plus-output tokens. Before every paid stage, the runner reserves that complete per-invocation maximum and launches only when recorded direct consumption plus the reservation is at or below the 32,000,000-token candidate ceiling. Equality is accepted; one token beyond it stops before launch and preserves the resumable candidate. Reused stages do not count as new work. The larger aggregate containment limit describes the theoretical protocol envelope if every permitted invocation reached its individual ceiling, so it must not be presented as expected consumption or spend. The per-invocation ceiling was selected above an observed 1,264,666-token qualification stage so normal tool-using work retains more than 25 percent headroom. Cached input is reported separately without being added to input a second time.
 
 ## Record and verify
 
@@ -121,9 +121,20 @@ The diagnostic emits one content-free JSON result with the verdict, complete obs
 
 ## Correct failures efficiently
 
-Do not restart the complete paid suite after each correction. Build the suspected case set from the stopped official attempt and current suite order, then run each case once through `--case`, sequentially. Retain only the compact case ID, verdict, criteria, rationale excerpt, and aggregate resources. Collect every failure before editing so one correction can address shared causes.
+Do not restart the complete paid suite after each correction. Run one sequential diagnostic batch and collect every failure before editing so one correction can address shared causes:
 
-After the batch correction passes deterministic checks and is published, rerun only the residual failed case IDs. If another residual remains, collect the complete residual set before the next edit. Start one official recording only after the targeted gate is green. The official recording remains the release evidence and re-exercises all 74 cases against the final skill bytes; diagnostic passes are not promoted or reused as evidence.
+```bash
+npm run eval:semantic:diagnose -- --all
+npm run eval:semantic:diagnose -- --cases <comma-separated-case-ids>
+npm run eval:semantic:diagnose -- --claims <comma-separated-claim-ids>
+npm run eval:semantic:diagnose -- --unresolved-from <attempt-id>
+```
+
+Exactly one selector is required. The batch performs one initial actor and judge trial per selected case, without confirmations, evidence reuse, or official evidence writes. It checkpoints after actor and judge boundaries, resumes only when the complete identity and selection match, continues across semantic failures, and stops when an operational failure exhausts its bounded retry. Use `--restart` only to discard the current diagnostic batch intentionally.
+
+The ignored diagnostic state has two independently bounded artifacts. A private in-flight checkpoint retains exact identity, selection, progress, and at most one active full trial under a 1,048,576-byte limit. A separate completed ledger retains only case IDs, verdicts, criteria identifiers, deterministic content-free explanations, aggregate resource counts, and operational-failure counts under its own 1,048,576-byte limit. The model-authored rationale is never copied into the completed ledger. Each content-free explanation is limited to 4,096 UTF-8 bytes. Successful completion deletes the private checkpoint and prints at most 16,384 UTF-8 bytes. These state and transport limits do not cap repository size or cumulative paged analysis.
+
+After the batch correction passes deterministic checks and is published, rerun only the residual failed case IDs. If another residual remains, collect the complete residual set before the next edit. Start one official recording only after the targeted gate is green. Diagnostic passes are never promoted or reused as evidence. Official recording may reuse independently passing or recovered groups from committed attempts only when every behavior-bearing stage identity still matches the final inputs; otherwise it executes them again.
 
 One model-bearing process at a time is the default. Running cases concurrently can multiply memory, temporary disk, provider quota, and token peaks. Concurrency should increase only after measured aggregate capacity is encoded in source-controlled resource limits.
 
@@ -134,7 +145,7 @@ npm run eval:semantic -- --record
 npm run eval:semantic:verify
 ```
 
-Recording writes the current result and its attempt artifacts. Verification recalculates every digest and rejects missing, stale, incomplete, over-budget, or mutated evidence.
+Recording completes every missing initial case in fixture order before running confirmations, then records one immutable complete attempt whether it passes or fails. It continues across semantic failures; exhausted operational retries and pre-launch resource stops preserve exact resumable state instead of inventing results. Only a complete passing candidate is promoted as current release evidence. Verification recalculates every digest and rejects missing, stale, incomplete, over-budget, or mutated evidence.
 
 ## Relationship to adapter qualification
 

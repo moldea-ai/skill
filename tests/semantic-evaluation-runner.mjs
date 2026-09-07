@@ -103,6 +103,13 @@ const CANDIDATE_RESULT_PATH = join(
   'fixtures',
   '.semantic-evaluation-candidate.json',
 );
+const DIAGNOSTIC_RESULTS_ROOT = join(
+  REPOSITORY_ROOT,
+  'fixtures',
+  'semantic-evaluation-diagnostics',
+);
+const DIAGNOSTIC_CHECKPOINT_PATH = join(DIAGNOSTIC_RESULTS_ROOT, 'checkpoint.json');
+const DIAGNOSTIC_LEDGER_PATH = join(DIAGNOSTIC_RESULTS_ROOT, 'ledger.json');
 const ROOT_NODE_MODULES = realpathSync(join(REPOSITORY_ROOT, 'node_modules'));
 const PUBLISHED_CLI_ROOT = join(ROOT_NODE_MODULES, '@moldea.ai', 'cli');
 const PUBLISHED_CLI_MANIFEST = JSON.parse(
@@ -124,9 +131,15 @@ const getSemanticForbiddenLabels = (caseDefinition) => [
   INCORRECT_MOLDEA_PRODUCT_NAME_CASING_LABEL,
 ];
 const MAX_WORKSPACE_EVIDENCE_FILE_BYTES = 32_768;
-// maximum UTF-8 bytes emitted for one targeted diagnostic
+// UTF-8 ceilings for targeted output, batch rationale, state, and summary artifacts
 export const SEMANTIC_DIAGNOSTIC_OUTPUT_MAXIMUM_BYTE_COUNT = 65_536;
+export const SEMANTIC_DIAGNOSTIC_RATIONALE_MAXIMUM_BYTE_COUNT = 4_096;
+export const SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT = 1_048_576;
+export const SEMANTIC_DIAGNOSTIC_SUMMARY_MAXIMUM_BYTE_COUNT = 16_384;
+// direct model work permitted for one resumable official or diagnostic candidate
+export const SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT = 32_000_000;
 const SEMANTIC_CHECKPOINT_SCHEMA_VERSION = 7;
+const SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION = 1;
 const SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT = 1;
 const SEMANTIC_MODEL_CALLS_PER_TRIAL = 2;
 const SEMANTIC_MAXIMUM_TRIALS_PER_CASE = 3;
@@ -206,44 +219,67 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
   const isPreflightRequested = arguments_.includes('--preflight');
   const isRecordRequested = arguments_.includes('--record');
   const isRecordCheckpointRequested = arguments_.includes('--record-checkpoint');
+  const isDiagnoseBatchRequested = arguments_.includes('--diagnose-batch');
   const isRestartRequested = arguments_.includes('--restart');
   const isVerifyAttemptsRequested = arguments_.includes('--verify-attempts');
   const caseArgumentIndex = arguments_.indexOf('--case');
   const requestedCaseId = caseArgumentIndex === -1 ? undefined : arguments_[caseArgumentIndex + 1];
+  const diagnosticSelectorOptions = [
+    ['--all', 'all'],
+    ['--cases', 'cases'],
+    ['--claims', 'claims'],
+    ['--unresolved-from', 'unresolved-from'],
+  ];
+  const selectedDiagnosticOptions = diagnosticSelectorOptions.filter(([option]) =>
+    arguments_.includes(option),
+  );
+  const valueOptions = new Set(['--case', '--cases', '--claims', '--unresolved-from']);
   const supportedOptions = new Set([
+    '--all',
     '--case',
+    '--cases',
+    '--claims',
+    '--diagnose-batch',
     '--preflight',
     '--record',
     '--record-checkpoint',
     '--restart',
+    '--unresolved-from',
     '--verify-attempts',
   ]);
+  const seenOptions = new Set();
 
   for (let index = 0; index < arguments_.length; index += 1) {
     const argument = arguments_[index];
     if (!supportedOptions.has(argument)) {
       throw new Error(`Unsupported semantic evaluation option: ${argument}`);
     }
-    if (argument === '--case') index += 1;
+    if (seenOptions.has(argument)) {
+      throw new Error(`Semantic evaluation option may be supplied only once: ${argument}`);
+    }
+    seenOptions.add(argument);
+    if (valueOptions.has(argument)) {
+      const optionValue = arguments_[index + 1];
+      if (!optionValue || optionValue.startsWith('--')) {
+        throw new Error(`${argument} requires one value.`);
+      }
+      index += 1;
+    }
   }
 
   if (arguments_.length === 0) {
-    throw new Error('Semantic model execution requires --record or --case <id>.');
+    throw new Error(
+      'Semantic model execution requires --record, --case <id>, or --diagnose-batch.',
+    );
   }
   if (isPreflightRequested && arguments_.length !== 1) {
     throw new Error('--preflight must run without other options.');
-  }
-  if (caseArgumentIndex !== -1 && (!requestedCaseId || requestedCaseId.startsWith('--'))) {
-    throw new Error('--case requires one semantic case ID.');
   }
   if (requestedCaseId && isRecordRequested) {
     throw new Error('--case is diagnostic-only and cannot be combined with --record.');
   }
   if (caseArgumentIndex !== -1 && arguments_.length !== 2) {
     throw new Error('--case accepts exactly one semantic case ID and no other options.');
-  }
-  if (isRestartRequested && (!isRecordRequested || requestedCaseId)) {
-    throw new Error('--restart requires a full semantic evaluation with --record.');
   }
   if ((isRecordCheckpointRequested || isVerifyAttemptsRequested) && arguments_.length !== 1) {
     const operation = isRecordCheckpointRequested ? '--record-checkpoint' : '--verify-attempts';
@@ -252,8 +288,43 @@ export const parseSemanticEvaluationArguments = (arguments_) => {
   if (isRecordRequested && arguments_.length !== (isRestartRequested ? 2 : 1)) {
     throw new Error('--record accepts only the optional --restart flag.');
   }
+  if (isDiagnoseBatchRequested) {
+    if (selectedDiagnosticOptions.length !== 1) {
+      throw new Error('--diagnose-batch requires exactly one diagnostic selector.');
+    }
+    const allowedArgumentCount = isRestartRequested ? 4 : 3;
+    const selectedOption = selectedDiagnosticOptions[0][0];
+    const expectedArgumentCount =
+      selectedOption === '--all' ? allowedArgumentCount - 1 : allowedArgumentCount;
+    if (arguments_.length !== expectedArgumentCount) {
+      throw new Error('--diagnose-batch accepts one selector and the optional --restart flag.');
+    }
+  } else if (selectedDiagnosticOptions.length > 0) {
+    throw new Error('Semantic diagnostic selectors require --diagnose-batch.');
+  }
+  if (isRestartRequested && !isRecordRequested && !isDiagnoseBatchRequested) {
+    throw new Error('--restart requires --record or --diagnose-batch.');
+  }
+
+  const diagnosticBatchSelector = isDiagnoseBatchRequested
+    ? {
+        kind: selectedDiagnosticOptions[0][1],
+        value:
+          selectedDiagnosticOptions[0][0] === '--all'
+            ? null
+            : arguments_[arguments_.indexOf(selectedDiagnosticOptions[0][0]) + 1],
+      }
+    : null;
+  if (['cases', 'claims'].includes(diagnosticBatchSelector?.kind)) {
+    parseSemanticDiagnosticSelectorValues(
+      diagnosticBatchSelector.value,
+      diagnosticBatchSelector.kind === 'cases' ? '--cases' : '--claims',
+    );
+  }
 
   return {
+    diagnosticBatchSelector,
+    isDiagnoseBatchRequested,
     isPreflightRequested,
     isRecordRequested,
     isRecordCheckpointRequested,
@@ -358,7 +429,161 @@ export const createSemanticDiagnosticOutput = (result) => {
 const isPlainRecord = (input) =>
   input !== null && typeof input === 'object' && !Array.isArray(input);
 
+const hasExactObjectKeys = (input, expectedKeys) =>
+  isPlainRecord(input) &&
+  Object.keys(input).length === expectedKeys.length &&
+  Object.keys(input).every((key) => expectedKeys.includes(key));
+
 const createSha256 = (content) => createHash('sha256').update(content).digest('hex');
+
+/** Parses one comma-separated diagnostic selector without accepting ambiguity. */
+const parseSemanticDiagnosticSelectorValues = (value, label) => {
+  const values = value.split(',').map((entry) => entry.trim());
+  if (values.length === 0 || values.some((entry) => entry.length === 0)) {
+    throw new Error(`${label} requires non-empty comma-separated identifiers.`);
+  }
+  if (new Set(values).size !== values.length) {
+    throw new Error(`${label} cannot contain duplicate identifiers.`);
+  }
+  return values;
+};
+
+/** Resolves one exact ordered diagnostic selection from cases, claims, or prior evidence. */
+export const resolveSemanticDiagnosticCaseDefinitions = ({
+  caseDefinitions,
+  coverage,
+  selector,
+  unresolvedEvidence = null,
+}) => {
+  if (!isPlainRecord(selector) || typeof selector.kind !== 'string') {
+    throw new Error('Semantic diagnostic batch requires one valid selector.');
+  }
+  const caseDefinitionsById = new Map(
+    caseDefinitions.map((caseDefinition) => [caseDefinition.id, caseDefinition]),
+  );
+  let selectedCaseIds;
+
+  if (selector.kind === 'all') {
+    if (selector.value !== null) throw new Error('--all does not accept a selector value.');
+    selectedCaseIds = caseDefinitions.map(({ id }) => id);
+  } else if (selector.kind === 'cases') {
+    selectedCaseIds = parseSemanticDiagnosticSelectorValues(selector.value, '--cases');
+  } else if (selector.kind === 'claims') {
+    const claimIds = parseSemanticDiagnosticSelectorValues(selector.value, '--claims');
+    const claimsById = new Map(coverage.claims.map((claim) => [claim.id, claim]));
+    const selectedCaseIdSet = new Set();
+    for (const claimId of claimIds) {
+      const claim = claimsById.get(claimId);
+      if (!claim) throw new Error(`Unknown semantic coverage claim: ${claimId}`);
+      for (const evidence of claim.evidence) {
+        if (evidence.kind === 'semantic-case') selectedCaseIdSet.add(evidence.id);
+      }
+    }
+    selectedCaseIds = caseDefinitions
+      .map(({ id }) => id)
+      .filter((caseId) => selectedCaseIdSet.has(caseId));
+    if (selectedCaseIds.length === 0) {
+      throw new Error('The selected semantic coverage claims contain no semantic cases.');
+    }
+  } else if (selector.kind === 'unresolved-from') {
+    if (!isPlainRecord(unresolvedEvidence)) {
+      throw new Error('--unresolved-from requires compatible semantic attempt evidence.');
+    }
+    selectedCaseIds = caseDefinitions
+      .map(({ id }) => id)
+      .filter(
+        (caseId) =>
+          !['passed', 'recovered'].includes(getSemanticCaseResolution(unresolvedEvidence, caseId)),
+      );
+  } else {
+    throw new Error(`Unsupported semantic diagnostic selector: ${selector.kind}`);
+  }
+
+  const selectedCaseDefinitions = selectedCaseIds.map((caseId) => {
+    const caseDefinition = caseDefinitionsById.get(caseId);
+    if (!caseDefinition) throw new Error(`Unknown semantic evaluation case: ${caseId}`);
+    return caseDefinition;
+  });
+  if (selectedCaseDefinitions.length === 0) {
+    throw new Error('Semantic diagnostic selection resolved to zero cases.');
+  }
+  return selectedCaseDefinitions;
+};
+
+/** Truncates text on Unicode code-point boundaries under one UTF-8 byte ceiling. */
+const truncateSemanticDiagnosticText = (source, maximumByteCount) => {
+  if (Buffer.byteLength(source, 'utf8') <= maximumByteCount) {
+    return { text: source, truncated: false };
+  }
+  const codePoints = [];
+  let byteCount = 0;
+  for (const codePoint of source) {
+    const codePointByteCount = Buffer.byteLength(codePoint, 'utf8');
+    if (byteCount + codePointByteCount > maximumByteCount) break;
+    codePoints.push(codePoint);
+    byteCount += codePointByteCount;
+  }
+  return { text: codePoints.join(''), truncated: true };
+};
+
+/** Creates a useful batch explanation without retaining model-authored content. */
+const createContentFreeSemanticDiagnosticRationale = (diagnostic) => {
+  if (diagnostic.verdict === 'passed') return 'All required criteria passed.';
+  if (diagnostic.criteria.forbidden.length > 0) {
+    return 'The case failed because at least one forbidden criterion was triggered.';
+  }
+  return 'The case failed because an expected criterion or deterministic boundary did not pass.';
+};
+
+/** Projects one complete case result into the content-free diagnostic ledger contract. */
+export const createSemanticDiagnosticBatchRecord = (result) => {
+  const diagnostic = JSON.parse(createSemanticDiagnosticOutput(result));
+  if (!hasValidSemanticOperationalRetries(result.operationalRetries)) {
+    throw new Error('Semantic diagnostic batch requires complete operational retry evidence.');
+  }
+  const rationale = truncateSemanticDiagnosticText(
+    createContentFreeSemanticDiagnosticRationale(diagnostic),
+    SEMANTIC_DIAGNOSTIC_RATIONALE_MAXIMUM_BYTE_COUNT,
+  );
+  return {
+    ...diagnostic,
+    rationale: rationale.text,
+    rationaleRedacted: true,
+    rationaleTruncated: rationale.truncated,
+    resources: {
+      ...diagnostic.resources,
+      operationalFailures: {
+        actor: result.operationalRetries.actorFailureCount,
+        judge: result.operationalRetries.judgeFailureCount,
+      },
+    },
+  };
+};
+
+/** Creates the bounded final batch summary without repeating rationale or resource records. */
+export const createSemanticDiagnosticBatchOutput = (ledger) => {
+  const passedCount = ledger.results.filter(({ verdict }) => verdict === 'passed').length;
+  const output = `${JSON.stringify(
+    {
+      schemaVersion: SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION,
+      status: 'complete',
+      selectedCount: ledger.selection.caseIds.length,
+      passedCount,
+      failedCount: ledger.results.length - passedCount,
+      ledgerSha256: createSha256(`${JSON.stringify(ledger, null, 2)}\n`),
+      results: ledger.results.map(({ caseId, verdict }) => ({
+        caseId,
+        verdict,
+      })),
+    },
+    null,
+    2,
+  )}\n`;
+  if (Buffer.byteLength(output, 'utf8') > SEMANTIC_DIAGNOSTIC_SUMMARY_MAXIMUM_BYTE_COUNT) {
+    throw new Error('Semantic diagnostic batch summary exceeds its output byte limit.');
+  }
+  return output;
+};
 
 /** Returns the behavior-bearing portion of one Codex evaluation host identity. */
 export const createSemanticEvaluationHostContract = (host) => ({
@@ -540,8 +765,10 @@ const hasValidSemanticOperationalRetries = (operationalRetries) => {
     Object.keys(operationalRetries).some((key) => !operationalRetryKeys.has(key)) ||
     !Number.isSafeInteger(operationalRetries.actorFailureCount) ||
     operationalRetries.actorFailureCount < 0 ||
+    operationalRetries.actorFailureCount > SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT ||
     !Number.isSafeInteger(operationalRetries.judgeFailureCount) ||
-    operationalRetries.judgeFailureCount < 0
+    operationalRetries.judgeFailureCount < 0 ||
+    operationalRetries.judgeFailureCount > SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT
   ) {
     return false;
   }
@@ -1207,6 +1434,94 @@ export const getPendingSemanticCaseDefinitions = (candidate, caseDefinitions) =>
   return caseDefinitions.filter(({ id }) => !resultIds.has(id));
 };
 
+/** Selects the next collect-first trial while preserving an active resumable stage. */
+export const getNextSemanticTrial = (candidate, caseDefinitions) => {
+  if (candidate.activeTrial !== null) {
+    const caseDefinition = caseDefinitions.find(({ id }) => id === candidate.activeTrial.caseId);
+    if (!caseDefinition) throw new Error('The active semantic trial references an unknown case.');
+    return {
+      caseDefinition,
+      confirmationIndex: candidate.activeTrial.confirmationIndex,
+    };
+  }
+
+  const pendingCaseDefinition = getPendingSemanticCaseDefinitions(candidate, caseDefinitions)[0];
+  if (pendingCaseDefinition) {
+    return { caseDefinition: pendingCaseDefinition, confirmationIndex: null };
+  }
+
+  const confirmationCaseDefinition = caseDefinitions.find(
+    ({ id }) => getSemanticCaseResolution(candidate, id) === 'awaiting-confirmation',
+  );
+  if (!confirmationCaseDefinition) return null;
+  return {
+    caseDefinition: confirmationCaseDefinition,
+    confirmationIndex:
+      candidate.confirmations.filter(({ id }) => id === confirmationCaseDefinition.id).length + 1,
+  };
+};
+
+const getSemanticModelUsageTokenCount = (usage) => usage.inputTokens + usage.outputTokens;
+
+const getSemanticTrialPaidTokenCount = (trial) => {
+  if (trial.executionOrigin === 'reused') return 0;
+  return (
+    getSemanticModelUsageTokenCount(trial.actorUsage) +
+    getSemanticModelUsageTokenCount(trial.judgeUsage) +
+    (trial.operationalRetries.actorFailureCount + trial.operationalRetries.judgeFailureCount) *
+      MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount
+  );
+};
+
+/** Returns direct token consumption, including conservative charges for failed invocations. */
+export const getSemanticCandidatePaidTokenCount = (candidate) => {
+  let paidTokenCount = [...candidate.results, ...candidate.confirmations].reduce(
+    (total, trial) => total + getSemanticTrialPaidTokenCount(trial),
+    0,
+  );
+  const activeTrial = candidate.activeTrial;
+  if (activeTrial === null) return paidTokenCount;
+
+  paidTokenCount +=
+    (activeTrial.operationalRetries.actorFailureCount +
+      activeTrial.operationalRetries.judgeFailureCount) *
+    MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
+  if (activeTrial.phase === 'judge-pending') {
+    paidTokenCount += getSemanticModelUsageTokenCount(activeTrial.actorEvidence.actorUsage);
+  } else if (activeTrial.phase === 'trial-complete') {
+    paidTokenCount +=
+      getSemanticModelUsageTokenCount(activeTrial.result.actorUsage) +
+      getSemanticModelUsageTokenCount(activeTrial.result.judgeUsage);
+  }
+  return paidTokenCount;
+};
+
+/** Fails before one model invocation could exceed the semantic candidate ceiling. */
+export const assertSemanticCandidatePaidStageCapacity = (
+  candidate,
+  additionalPaidTokenCount = 0,
+) => {
+  if (!Number.isSafeInteger(additionalPaidTokenCount) || additionalPaidTokenCount < 0) {
+    throw new Error('Semantic additional paid-token consumption must be a non-negative integer.');
+  }
+  const consumedTokenCount =
+    additionalPaidTokenCount + getSemanticCandidatePaidTokenCount(candidate);
+  const reservedTokenCount = MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount;
+  if (consumedTokenCount + reservedTokenCount > SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT) {
+    const error = new Error(
+      `Semantic evaluation stopped before a paid stage: ${consumedTokenCount} tokens consumed, ` +
+        `${reservedTokenCount} tokens reserved, ${SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT} maximum.`,
+    );
+    error.name = 'SemanticEvaluationResourceStopError';
+    throw error;
+  }
+  return {
+    consumedTokenCount,
+    maximumTokenCount: SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT,
+    reservedTokenCount,
+  };
+};
+
 /** Rejects incomplete or failing checkpoint evidence before canonical promotion. */
 export const validateSemanticResultRecording = ({ candidate, caseDefinitions }) => {
   validateSemanticCandidateEvidence(candidate, caseDefinitions);
@@ -1233,6 +1548,312 @@ const writeJsonAtomically = async (path, value) => {
     await rm(temporaryPath, { force: true });
   }
 };
+
+/** Writes one JSON document atomically only when its complete bytes fit the declared ceiling. */
+const writeBoundedJsonAtomically = async (path, value, maximumByteCount) => {
+  const content = `${JSON.stringify(value, null, 2)}\n`;
+  const byteCount = Buffer.byteLength(content, 'utf8');
+  if (byteCount > maximumByteCount) {
+    const error = new Error(
+      `Semantic diagnostic state requires ${byteCount} bytes; the limit is ${maximumByteCount} bytes.`,
+    );
+    error.name = 'SemanticDiagnosticStateLimitError';
+    throw error;
+  }
+  const temporaryPath = `${path}.${process.pid}.tmp`;
+  try {
+    await mkdir(dirname(path), { recursive: true });
+    await writeFile(temporaryPath, content, 'utf8');
+    await rename(temporaryPath, path);
+  } finally {
+    await rm(temporaryPath, { force: true });
+  }
+};
+
+/** Creates the exact behavior and selection identity for one diagnostic batch. */
+export const createSemanticDiagnosticBatchIdentity = ({
+  artifactDigest,
+  caseDefinitions,
+  cli,
+  coverageDigest,
+  hostContract,
+  selection,
+}) =>
+  createSha256(
+    JSON.stringify({
+      artifactDigest,
+      caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
+      cli,
+      coverageDigest,
+      evaluationProtocolVersion: SEMANTIC_EVALUATION_PROTOCOL_VERSION,
+      hostContract,
+      selection,
+    }),
+  );
+
+/** Creates empty private and content-free state for one exact diagnostic selection. */
+export const createSemanticDiagnosticBatchState = ({
+  evidenceBoundary,
+  generatedAt,
+  selection,
+}) => {
+  const hostContract = createCompatibleSemanticEvaluationHostContract(
+    evidenceBoundary.actorHost,
+    evidenceBoundary.judgeHost,
+  );
+  const identitySha256 = createSemanticDiagnosticBatchIdentity({
+    ...evidenceBoundary,
+    hostContract,
+    selection,
+  });
+  return {
+    checkpoint: {
+      candidate: createSemanticEvaluationCandidate({
+        ...evidenceBoundary,
+        generatedAt,
+      }),
+      generatedAt,
+      identitySha256,
+      nextCaseIndex: 0,
+      schemaVersion: SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION,
+      selection,
+      stop: null,
+      updatedAt: generatedAt,
+    },
+    ledger: {
+      generatedAt,
+      identitySha256,
+      results: [],
+      schemaVersion: SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION,
+      selection,
+      updatedAt: generatedAt,
+    },
+  };
+};
+
+const hasValidSemanticDiagnosticSelection = (selection) =>
+  hasExactObjectKeys(selection, ['caseIds', 'kind', 'value']) &&
+  ['all', 'cases', 'claims', 'unresolved-from'].includes(selection.kind) &&
+  (selection.kind === 'all'
+    ? selection.value === null
+    : typeof selection.value === 'string' && selection.value.length > 0) &&
+  Array.isArray(selection.caseIds) &&
+  selection.caseIds.length > 0 &&
+  selection.caseIds.every((caseId) => typeof caseId === 'string' && caseId.length > 0) &&
+  new Set(selection.caseIds).size === selection.caseIds.length;
+
+const hasValidSemanticDiagnosticRecord = (record, expectedCaseId) =>
+  hasExactObjectKeys(record, [
+    'caseId',
+    'criteria',
+    'evaluationProtocolVersion',
+    'rationale',
+    'rationaleRedacted',
+    'rationaleTruncated',
+    'resources',
+    'schemaVersion',
+    'verdict',
+  ]) &&
+  record.schemaVersion === SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION &&
+  record.evaluationProtocolVersion === SEMANTIC_EVALUATION_PROTOCOL_VERSION &&
+  record.caseId === expectedCaseId &&
+  ['passed', 'failed'].includes(record.verdict) &&
+  hasExactObjectKeys(record.criteria, ['forbidden', 'observed']) &&
+  Array.isArray(record.criteria.observed) &&
+  record.criteria.observed.every((criterionId) => typeof criterionId === 'string') &&
+  Array.isArray(record.criteria.forbidden) &&
+  record.criteria.forbidden.every((criterionId) => typeof criterionId === 'string') &&
+  typeof record.rationale === 'string' &&
+  Buffer.byteLength(record.rationale, 'utf8') <= SEMANTIC_DIAGNOSTIC_RATIONALE_MAXIMUM_BYTE_COUNT &&
+  record.rationaleRedacted === true &&
+  typeof record.rationaleTruncated === 'boolean' &&
+  hasExactObjectKeys(record.resources, [
+    'actorCommands',
+    'modelTokens',
+    'moldea',
+    'operationalFailures',
+  ]) &&
+  hasValidActorCommandPolicyEvidence(record.resources.actorCommands) &&
+  hasValidMoldeaResourceEvidence(record.resources.moldea) &&
+  hasExactObjectKeys(record.resources.modelTokens, ['actor', 'judge']) &&
+  hasExactObjectKeys(record.resources.modelTokens.actor, [
+    'cachedInputTokens',
+    'inputTokens',
+    'outputTokens',
+  ]) &&
+  hasExactObjectKeys(record.resources.modelTokens.judge, [
+    'cachedInputTokens',
+    'inputTokens',
+    'outputTokens',
+  ]) &&
+  hasValidSemanticModelUsage(record.resources.modelTokens.actor) &&
+  hasValidSemanticModelUsage(record.resources.modelTokens.judge) &&
+  hasExactObjectKeys(record.resources.operationalFailures, ['actor', 'judge']) &&
+  Number.isSafeInteger(record.resources.operationalFailures.actor) &&
+  record.resources.operationalFailures.actor >= 0 &&
+  record.resources.operationalFailures.actor <= SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT &&
+  Number.isSafeInteger(record.resources.operationalFailures.judge) &&
+  record.resources.operationalFailures.judge >= 0 &&
+  record.resources.operationalFailures.judge <= SEMANTIC_MAXIMUM_OPERATIONAL_RETRY_COUNT;
+
+const hasValidSemanticDiagnosticStop = (stop, expectedCaseId) => {
+  if (stop === null) return true;
+  return (
+    hasExactObjectKeys(stop, ['caseId', 'kind', 'stoppedAt']) &&
+    stop.caseId === expectedCaseId &&
+    ['completed-ledger-byte-limit', 'private-checkpoint-byte-limit'].includes(stop.kind) &&
+    hasValidIsoDate(stop.stoppedAt)
+  );
+};
+
+const getSemanticDiagnosticLedgerPaidTokenCount = (ledger) =>
+  ledger.results.reduce(
+    (total, record) =>
+      total +
+      getSemanticModelUsageTokenCount(record.resources.modelTokens.actor) +
+      getSemanticModelUsageTokenCount(record.resources.modelTokens.judge) +
+      (record.resources.operationalFailures.actor + record.resources.operationalFailures.judge) *
+        MOLDEA_SKILL_RESOURCE_PROFILES.absolute.maxHostTokenCount,
+    0,
+  );
+
+/** Validates matching private and content-free diagnostic state against current inputs. */
+export const validateSemanticDiagnosticBatchState = ({
+  checkpoint,
+  evidenceBoundary,
+  ledger,
+  selection,
+}) => {
+  if (!hasValidSemanticDiagnosticSelection(selection)) {
+    throw new Error('Semantic diagnostic selection has an unsupported shape.');
+  }
+  const hostContract = createCompatibleSemanticEvaluationHostContract(
+    evidenceBoundary.actorHost,
+    evidenceBoundary.judgeHost,
+  );
+  const identitySha256 = createSemanticDiagnosticBatchIdentity({
+    ...evidenceBoundary,
+    hostContract,
+    selection,
+  });
+  if (
+    !hasExactObjectKeys(ledger, [
+      'generatedAt',
+      'identitySha256',
+      'results',
+      'schemaVersion',
+      'selection',
+      'updatedAt',
+    ]) ||
+    ledger.schemaVersion !== SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION ||
+    ledger.identitySha256 !== identitySha256 ||
+    JSON.stringify(ledger.selection) !== JSON.stringify(selection) ||
+    !hasValidIsoDate(ledger.generatedAt) ||
+    !hasValidIsoDate(ledger.updatedAt) ||
+    !Array.isArray(ledger.results) ||
+    ledger.results.length > selection.caseIds.length ||
+    ledger.results.some(
+      (record, index) => !hasValidSemanticDiagnosticRecord(record, selection.caseIds[index]),
+    )
+  ) {
+    throw new Error('Semantic diagnostic ledger does not match the current batch identity.');
+  }
+  const ledgerByteCount = Buffer.byteLength(`${JSON.stringify(ledger, null, 2)}\n`, 'utf8');
+  if (ledgerByteCount > SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT) {
+    throw new Error('Semantic diagnostic ledger exceeds its byte limit.');
+  }
+  if (checkpoint === null) {
+    if (ledger.results.length !== selection.caseIds.length) {
+      throw new Error('Incomplete semantic diagnostic ledger has no private checkpoint.');
+    }
+    return;
+  }
+  const hasCommittedResultOverlap =
+    isPlainRecord(checkpoint) &&
+    isPlainRecord(checkpoint.candidate) &&
+    checkpoint.candidate.activeTrial?.phase === 'trial-complete' &&
+    checkpoint.nextCaseIndex + 1 === ledger.results.length &&
+    checkpoint.candidate.activeTrial.caseId === selection.caseIds[checkpoint.nextCaseIndex] &&
+    ledger.results.at(-1)?.caseId === selection.caseIds[checkpoint.nextCaseIndex];
+  if (
+    !hasExactObjectKeys(checkpoint, [
+      'candidate',
+      'generatedAt',
+      'identitySha256',
+      'nextCaseIndex',
+      'schemaVersion',
+      'selection',
+      'stop',
+      'updatedAt',
+    ]) ||
+    checkpoint.schemaVersion !== SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION ||
+    checkpoint.identitySha256 !== identitySha256 ||
+    JSON.stringify(checkpoint.selection) !== JSON.stringify(selection) ||
+    !hasValidIsoDate(checkpoint.generatedAt) ||
+    !hasValidIsoDate(checkpoint.updatedAt) ||
+    (checkpoint.nextCaseIndex !== ledger.results.length && !hasCommittedResultOverlap) ||
+    !Number.isSafeInteger(checkpoint.nextCaseIndex) ||
+    checkpoint.nextCaseIndex < 0 ||
+    checkpoint.nextCaseIndex >= selection.caseIds.length ||
+    !hasValidSemanticDiagnosticStop(checkpoint.stop, selection.caseIds[checkpoint.nextCaseIndex])
+  ) {
+    throw new Error('Semantic diagnostic checkpoint does not match the current batch identity.');
+  }
+  validateSemanticCandidateCompatibility(checkpoint.candidate, evidenceBoundary);
+  if (
+    checkpoint.candidate.results.length !== 0 ||
+    checkpoint.candidate.confirmations.length !== 0 ||
+    (checkpoint.stop !== null && checkpoint.candidate.activeTrial !== null) ||
+    (checkpoint.candidate.activeTrial !== null &&
+      (checkpoint.candidate.activeTrial.caseId !== selection.caseIds[checkpoint.nextCaseIndex] ||
+        checkpoint.candidate.activeTrial.confirmationIndex !== null))
+  ) {
+    throw new Error('Semantic diagnostic checkpoint contains out-of-scope trial evidence.');
+  }
+  const checkpointByteCount = Buffer.byteLength(`${JSON.stringify(checkpoint, null, 2)}\n`, 'utf8');
+  if (checkpointByteCount > SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT) {
+    throw new Error('Semantic diagnostic checkpoint exceeds its byte limit.');
+  }
+};
+
+/**
+ * Reads one evaluator-owned state file only after enforcing its type and byte ceiling.
+ * @returns A promise resolving to parsed state or `null` when the path is absent.
+ * @throws
+ * - If the path is not one bounded regular JSON file
+ */
+export const readSemanticDiagnosticState = async (path) => {
+  if (!existsSync(path)) return null;
+  const pathStats = await lstat(path);
+  if (!pathStats.isFile() || pathStats.size > SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT) {
+    throw new Error('Semantic diagnostic state is not one bounded regular file.');
+  }
+  const content = await readFile(path);
+  if (content.byteLength > SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT) {
+    throw new Error('Semantic diagnostic state exceeds its byte limit.');
+  }
+  return JSON.parse(content.toString('utf8'));
+};
+
+/**
+ * Writes one private diagnostic checkpoint within the fixed state ceiling.
+ * @returns A promise that resolves after the atomic replacement completes.
+ * @throws
+ * - If the serialized checkpoint exceeds its byte ceiling
+ */
+export const writeSemanticDiagnosticCheckpoint = async (
+  checkpoint,
+  path = DIAGNOSTIC_CHECKPOINT_PATH,
+) => writeBoundedJsonAtomically(path, checkpoint, SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT);
+
+/**
+ * Writes one content-free diagnostic ledger within the fixed state ceiling.
+ * @returns A promise that resolves after the atomic replacement completes.
+ * @throws
+ * - If the serialized ledger exceeds its byte ceiling
+ */
+export const writeSemanticDiagnosticLedger = async (ledger, path = DIAGNOSTIC_LEDGER_PATH) =>
+  writeBoundedJsonAtomically(path, ledger, SEMANTIC_DIAGNOSTIC_STATE_MAXIMUM_BYTE_COUNT);
 
 /** Reads the ignored semantic candidate when one exists. */
 export const readSemanticEvaluationCandidate = async (path = CANDIDATE_RESULT_PATH) => {
@@ -1379,6 +2000,7 @@ export const createSemanticEvaluationCostEstimate = (
     absoluteTokenContainmentLimit:
       operationalRetryInclusiveInvocationLimit * absoluteTokensPerInvocation,
     absoluteTokensPerInvocation,
+    candidatePaidTokenMaximum: SEMANTIC_CANDIDATE_MAXIMUM_PAID_TOKEN_COUNT,
     caseCount,
     confirmationInclusivePaidStageLimit,
     initialStageCount,
@@ -1388,6 +2010,7 @@ export const createSemanticEvaluationCostEstimate = (
     reasoningEffort: CODEX_EVALUATION_REASONING_EFFORT,
     reusedCaseCount,
     reusedStageCount,
+    stageReservationTokenCount: absoluteTokensPerInvocation,
   };
 };
 
@@ -1428,7 +2051,7 @@ const resolveSemanticSourceFileDigest = (sourceCommit, path) => {
   return createSha256(result.stdout);
 };
 
-/** Loads complete passing attempt evidence in deterministic newest-first order. */
+/** Loads valid committed attempt evidence in deterministic newest-first order. */
 const loadSemanticReuseSources = async () => {
   const verification = await verifySemanticEvaluationAttempts(ATTEMPT_RESULTS_ROOT);
   if (!verification.passed) {
@@ -1444,7 +2067,6 @@ const loadSemanticReuseSources = async () => {
     const attemptPath = join(ATTEMPT_DIRECTORIES_ROOT, entry.name, 'attempt.json');
     const absoluteEvidencePath = join(ATTEMPT_DIRECTORIES_ROOT, entry.name, 'evidence.json');
     const attempt = JSON.parse(await readFile(attemptPath, 'utf8'));
-    if (attempt.status !== 'passed') continue;
     const evidenceBytes = await readFile(absoluteEvidencePath);
     const evidenceSha256 = createSha256(evidenceBytes);
     if (evidenceSha256 !== attempt.evidence.sha256) {
@@ -1492,7 +2114,10 @@ const createSemanticReusePlan = async ({
       if (
         source.evidence.artifactDigest !== artifactDigest ||
         JSON.stringify(source.evidence.cli) !== JSON.stringify(cli) ||
-        source.evidence.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION
+        source.evidence.evaluationProtocolVersion !== SEMANTIC_EVALUATION_PROTOCOL_VERSION ||
+        !['passed', 'recovered'].includes(
+          getSemanticCaseResolution(source.evidence, caseDefinition.id),
+        )
       ) {
         continue;
       }
@@ -1659,6 +2284,9 @@ const validateSemanticCandidateReuseSources = async (candidate) => {
         candidateSource.sourceCommit === sourceIdentity.commit,
     );
     if (!source) throw new Error(`Semantic reuse source is unavailable for ${trial.id}.`);
+    if (!['passed', 'recovered'].includes(getSemanticCaseResolution(source.evidence, trial.id))) {
+      throw new Error(`Semantic reuse source case is not passing for ${trial.id}.`);
+    }
     const sourceTrial =
       sourceIdentity.trial.kind === 'initial'
         ? source.evidence.results.find(({ id }) => id === trial.id)
@@ -3758,8 +4386,8 @@ const assertSemanticEvaluationInputsUnchanged = async ({
 };
 
 /** Materializes and validates every evaluator-owned scenario without starting a model host. */
-const runSemanticEvaluationPreflight = async (caseDefinitions, coverage) => {
-  validateSemanticCoverage(coverage, caseDefinitions);
+const runSemanticEvaluationPreflight = async (caseDefinitions, coverage = null) => {
+  if (coverage !== null) validateSemanticCoverage(coverage, caseDefinitions);
   const caseContexts = new Map();
 
   for (const caseDefinition of caseDefinitions) {
@@ -4021,6 +4649,7 @@ const evaluateJudgeStage = async (caseDefinition, actorEvidence, judgeCommand, c
 export const runSemanticCaseTrial = async ({
   activeTrial,
   actorCommand,
+  assertCanStartStage = async () => {},
   caseDefinition,
   cli,
   confirmationIndex = null,
@@ -4049,7 +4678,10 @@ export const runSemanticCaseTrial = async ({
           `[semantic-evaluation] actor operational failure ${retry.category}; retry ${retry.failureCount} in ${retry.retryDelayMs}ms\n`,
         );
       },
-      operation: () => evaluateActor(caseDefinition, actorCommand, cli),
+      operation: async () => {
+        await assertCanStartStage(currentTrial, 'actor');
+        return evaluateActor(caseDefinition, actorCommand, cli);
+      },
     });
     currentTrial = attachSemanticActiveTrialActorEvidence(currentTrial, actorEvidence, now());
     await persistActiveTrial(currentTrial);
@@ -4066,7 +4698,10 @@ export const runSemanticCaseTrial = async ({
           `[semantic-evaluation] judge operational failure ${retry.category}; retry ${retry.failureCount} in ${retry.retryDelayMs}ms\n`,
         );
       },
-      operation: () => evaluateJudge(caseDefinition, currentTrial.actorEvidence, judgeCommand, cli),
+      operation: async () => {
+        await assertCanStartStage(currentTrial, 'judge');
+        return evaluateJudge(caseDefinition, currentTrial.actorEvidence, judgeCommand, cli);
+      },
     });
     currentTrial = completeSemanticActiveTrial(currentTrial, result, now());
     await persistActiveTrial(currentTrial);
@@ -4079,9 +4714,237 @@ export const runSemanticCaseTrial = async ({
   return { activeTrial: currentTrial, result: currentTrial.result };
 };
 
+/** Loads one exact current-contract attempt for unresolved-case diagnostic selection. */
+const loadSemanticDiagnosticAttemptEvidence = async (attemptId, evidenceBoundary) => {
+  if (typeof attemptId !== 'string' || !/^[a-zA-Z0-9-]+$/u.test(attemptId)) {
+    throw new Error('--unresolved-from requires one portable semantic attempt ID.');
+  }
+  const verification = await verifySemanticEvaluationAttempts(ATTEMPT_RESULTS_ROOT);
+  if (!verification.passed) {
+    throw new Error('Semantic diagnostic selection requires valid immutable attempt history.');
+  }
+  const attemptRoot = join(ATTEMPT_DIRECTORIES_ROOT, attemptId);
+  const attemptPath = join(attemptRoot, 'attempt.json');
+  const evidencePath = join(attemptRoot, 'evidence.json');
+  if (!existsSync(attemptPath) || !existsSync(evidencePath)) {
+    throw new Error(`Unknown semantic evaluation attempt: ${attemptId}`);
+  }
+  const attempt = JSON.parse(await readFile(attemptPath, 'utf8'));
+  const evidenceBytes = await readFile(evidencePath);
+  if (attempt.attemptId !== attemptId || createSha256(evidenceBytes) !== attempt.evidence?.sha256) {
+    throw new Error(`Semantic diagnostic attempt ${attemptId} failed integrity validation.`);
+  }
+  const evidence = JSON.parse(evidenceBytes.toString('utf8'));
+  validateSemanticCandidateCompatibility(evidence, evidenceBoundary);
+  resolveSemanticAttemptSourceCommit(
+    `fixtures/semantic-evaluation-results/attempts/${attemptId}/evidence.json`,
+    attempt.evidence.sha256,
+  );
+  return evidence;
+};
+
+/** Reconciles a crash after ledger persistence but before private-checkpoint advancement. */
+const reconcileSemanticDiagnosticBatchState = async ({ checkpoint, ledger }) => {
+  if (
+    checkpoint?.candidate?.activeTrial?.phase !== 'trial-complete' ||
+    checkpoint.nextCaseIndex + 1 !== ledger.results.length
+  ) {
+    return checkpoint;
+  }
+  const reconciledCheckpoint = {
+    ...checkpoint,
+    candidate: { ...checkpoint.candidate, activeTrial: null },
+    nextCaseIndex: ledger.results.length,
+    updatedAt: ledger.updatedAt,
+  };
+  if (reconciledCheckpoint.nextCaseIndex === ledger.selection.caseIds.length) {
+    await rm(DIAGNOSTIC_CHECKPOINT_PATH, { force: true });
+    return null;
+  }
+  await writeSemanticDiagnosticCheckpoint(reconciledCheckpoint);
+  return reconciledCheckpoint;
+};
+
+/** Runs one resumable sequential diagnostic batch without touching official evidence. */
+const runSemanticDiagnosticBatch = async ({
+  actorCommand,
+  caseDefinitions,
+  cli,
+  evidenceBoundary,
+  isRestartRequested,
+  judgeCommand,
+  selection,
+}) => {
+  if (isRestartRequested) {
+    await rm(DIAGNOSTIC_CHECKPOINT_PATH, { force: true });
+    await rm(DIAGNOSTIC_LEDGER_PATH, { force: true });
+  }
+
+  let checkpoint = await readSemanticDiagnosticState(DIAGNOSTIC_CHECKPOINT_PATH);
+  let ledger = await readSemanticDiagnosticState(DIAGNOSTIC_LEDGER_PATH);
+  if (checkpoint === null && ledger === null) {
+    const initialState = createSemanticDiagnosticBatchState({
+      evidenceBoundary,
+      generatedAt: new Date().toISOString(),
+      selection,
+    });
+    checkpoint = initialState.checkpoint;
+    ledger = initialState.ledger;
+    await writeSemanticDiagnosticCheckpoint(checkpoint);
+    await writeSemanticDiagnosticLedger(ledger);
+  } else if (checkpoint !== null && ledger === null && checkpoint.nextCaseIndex === 0) {
+    ledger = {
+      generatedAt: checkpoint.generatedAt,
+      identitySha256: checkpoint.identitySha256,
+      results: [],
+      schemaVersion: SEMANTIC_DIAGNOSTIC_SCHEMA_VERSION,
+      selection: checkpoint.selection,
+      updatedAt: checkpoint.generatedAt,
+    };
+    await writeSemanticDiagnosticLedger(ledger);
+  }
+
+  validateSemanticDiagnosticBatchState({
+    checkpoint,
+    evidenceBoundary,
+    ledger,
+    selection,
+  });
+  checkpoint = await reconcileSemanticDiagnosticBatchState({
+    checkpoint,
+    ledger,
+  });
+  if (checkpoint === null) {
+    process.stdout.write(createSemanticDiagnosticBatchOutput(ledger));
+    if (ledger.results.some(({ verdict }) => verdict === 'failed')) process.exitCode = 1;
+    return;
+  }
+  if (checkpoint.stop !== null) {
+    throw new Error(
+      `Semantic diagnostic batch is stopped at ${checkpoint.stop.caseId}; use --restart after resolving ${checkpoint.stop.kind}.`,
+    );
+  }
+
+  while (checkpoint.nextCaseIndex < selection.caseIds.length) {
+    const caseId = selection.caseIds[checkpoint.nextCaseIndex];
+    const caseDefinition = caseDefinitions.find(({ id }) => id === caseId);
+    if (!caseDefinition) throw new Error(`Unknown semantic evaluation case: ${caseId}`);
+    const persistActiveTrial = async (activeTrial) => {
+      const candidate = {
+        ...checkpoint.candidate,
+        activeTrial,
+        updatedAt: activeTrial.updatedAt,
+      };
+      validateSemanticCandidateCompatibility(candidate, evidenceBoundary);
+      const nextCheckpoint = {
+        ...checkpoint,
+        candidate,
+        updatedAt: activeTrial.updatedAt,
+      };
+      try {
+        await writeSemanticDiagnosticCheckpoint(nextCheckpoint);
+        checkpoint = nextCheckpoint;
+      } catch (error) {
+        if (error?.name !== 'SemanticDiagnosticStateLimitError') throw error;
+        const stoppedAt = new Date().toISOString();
+        checkpoint = {
+          ...checkpoint,
+          candidate: {
+            ...checkpoint.candidate,
+            activeTrial: null,
+            updatedAt: stoppedAt,
+          },
+          stop: { caseId, kind: 'private-checkpoint-byte-limit', stoppedAt },
+          updatedAt: stoppedAt,
+        };
+        await writeSemanticDiagnosticCheckpoint(checkpoint);
+        throw error;
+      }
+    };
+    process.stderr.write(`[semantic-evaluation] diagnostic start ${caseId}\n`);
+    const { result } = await runSemanticCaseTrial({
+      activeTrial: checkpoint.candidate.activeTrial,
+      actorCommand,
+      assertCanStartStage: async (activeTrial) =>
+        assertSemanticCandidatePaidStageCapacity(
+          { ...checkpoint.candidate, activeTrial },
+          getSemanticDiagnosticLedgerPaidTokenCount(ledger),
+        ),
+      caseDefinition,
+      cli,
+      evaluateActor: async (...parameters) => {
+        await assertSemanticEvaluationInputsUnchanged({
+          artifactDigest: evidenceBoundary.artifactDigest,
+          caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
+          cli,
+          coverageDigest: evidenceBoundary.coverageDigest,
+        });
+        return evaluateActorStage(...parameters);
+      },
+      evaluateJudge: async (...parameters) => {
+        await assertSemanticEvaluationInputsUnchanged({
+          artifactDigest: evidenceBoundary.artifactDigest,
+          caseSuiteDigest: createSemanticCaseSuiteDigest(caseDefinitions),
+          cli,
+          coverageDigest: evidenceBoundary.coverageDigest,
+        });
+        return evaluateJudgeStage(...parameters);
+      },
+      judgeCommand,
+      persistActiveTrial,
+    });
+    const diagnosticRecord = createSemanticDiagnosticBatchRecord(result);
+    const updatedAt = new Date().toISOString();
+    const nextLedger = {
+      ...ledger,
+      results: [...ledger.results, diagnosticRecord],
+      updatedAt,
+    };
+    try {
+      await writeSemanticDiagnosticLedger(nextLedger);
+    } catch (error) {
+      if (error?.name !== 'SemanticDiagnosticStateLimitError') throw error;
+      checkpoint = {
+        ...checkpoint,
+        candidate: { ...checkpoint.candidate, activeTrial: null, updatedAt },
+        stop: {
+          caseId,
+          kind: 'completed-ledger-byte-limit',
+          stoppedAt: updatedAt,
+        },
+        updatedAt,
+      };
+      await writeSemanticDiagnosticCheckpoint(checkpoint);
+      throw error;
+    }
+    ledger = nextLedger;
+    checkpoint = {
+      ...checkpoint,
+      candidate: { ...checkpoint.candidate, activeTrial: null, updatedAt },
+      nextCaseIndex: checkpoint.nextCaseIndex + 1,
+      updatedAt,
+    };
+    process.stderr.write(
+      `[semantic-evaluation] diagnostic ${diagnosticRecord.verdict} ${caseId}\n`,
+    );
+    if (checkpoint.nextCaseIndex === selection.caseIds.length) {
+      await rm(DIAGNOSTIC_CHECKPOINT_PATH, { force: true });
+      checkpoint = null;
+      break;
+    } else {
+      await writeSemanticDiagnosticCheckpoint(checkpoint);
+    }
+  }
+
+  process.stdout.write(createSemanticDiagnosticBatchOutput(ledger));
+  if (ledger.results.some(({ verdict }) => verdict === 'failed')) process.exitCode = 1;
+};
+
 /** Runs blind forward evaluation with artifact-bound checkpoint and promotion semantics. */
 const main = async () => {
   const {
+    diagnosticBatchSelector,
+    isDiagnoseBatchRequested,
     isPreflightRequested,
     isRecordRequested,
     isRecordCheckpointRequested,
@@ -4144,7 +5007,14 @@ const main = async () => {
   }
   const actorHost = identifyCodexEvaluationHost(actorCommand);
   const judgeHost = identifyCodexEvaluationHost(judgeCommand);
-  const hostContract = createCompatibleSemanticEvaluationHostContract(actorHost, judgeHost);
+  const evidenceBoundary = {
+    actorHost,
+    artifactDigest,
+    caseDefinitions,
+    cli,
+    coverageDigest,
+    judgeHost,
+  };
   if (isPreflightRequested) {
     const caseContexts = await runSemanticEvaluationPreflight(caseDefinitions, coverage);
     const reusePlan = await createSemanticReusePlan({
@@ -4178,14 +5048,38 @@ const main = async () => {
     );
     return;
   }
-  const evidenceBoundary = {
-    actorHost,
-    artifactDigest,
-    caseDefinitions,
-    cli,
-    coverageDigest,
-    judgeHost,
-  };
+  if (isDiagnoseBatchRequested) {
+    validateSemanticCoverage(coverage, caseDefinitions);
+    const unresolvedEvidence =
+      diagnosticBatchSelector.kind === 'unresolved-from'
+        ? await loadSemanticDiagnosticAttemptEvidence(
+            diagnosticBatchSelector.value,
+            evidenceBoundary,
+          )
+        : null;
+    const selectedCaseDefinitions = resolveSemanticDiagnosticCaseDefinitions({
+      caseDefinitions,
+      coverage,
+      selector: diagnosticBatchSelector,
+      unresolvedEvidence,
+    });
+    await runSemanticEvaluationPreflight(selectedCaseDefinitions);
+    const selection = {
+      caseIds: selectedCaseDefinitions.map(({ id }) => id),
+      kind: diagnosticBatchSelector.kind,
+      value: diagnosticBatchSelector.value,
+    };
+    await runSemanticDiagnosticBatch({
+      actorCommand,
+      caseDefinitions,
+      cli,
+      evidenceBoundary,
+      isRestartRequested,
+      judgeCommand,
+      selection,
+    });
+    return;
+  }
   let candidate = null;
   if (isRecordRequested) {
     candidate = isRestartRequested ? null : await readSemanticEvaluationCandidate();
@@ -4230,137 +5124,115 @@ const main = async () => {
     }
   }
 
-  const blockingCase = isRecordRequested
-    ? getBlockingSemanticCase(candidate, caseDefinitions)
-    : undefined;
-  if (
-    blockingCase !== undefined &&
-    getSemanticCaseResolution(candidate, blockingCase.id) === 'confirmed-failure'
-  ) {
-    throw new Error(
-      `Semantic case ${blockingCase.id} has a confirmed failure; start a fresh full candidate with --record --restart after correcting its root cause.`,
-    );
-  }
-
-  const pendingCaseDefinitions = isRecordRequested
-    ? getPendingSemanticCaseDefinitions(candidate, caseDefinitions)
-    : [];
-  const selectedCaseDefinitions = requestedCaseDefinition
-    ? [requestedCaseDefinition]
-    : isRecordRequested
-      ? [
-          ...(blockingCase === undefined ? [] : [blockingCase]),
-          ...pendingCaseDefinitions.filter(({ id }) => id !== blockingCase?.id),
-        ]
-      : caseDefinitions;
   const results = [];
-  if (isRecordRequested && !requestedCaseId) {
-    const completedCount = caseDefinitions.length - selectedCaseDefinitions.length;
+  if (isRecordRequested) {
+    const completedInitialCount =
+      caseDefinitions.length - getPendingSemanticCaseDefinitions(candidate, caseDefinitions).length;
     process.stderr.write(
-      `[semantic-evaluation] resume ${completedCount} completed, ${selectedCaseDefinitions.length} pending\n`,
+      `[semantic-evaluation] resume ${completedInitialCount} initial case(s) completed, ` +
+        `${caseDefinitions.length - completedInitialCount} pending\n`,
     );
   }
 
-  for (const caseDefinition of selectedCaseDefinitions) {
-    while (true) {
-      const resolution = candidate
-        ? getSemanticCaseResolution(candidate, caseDefinition.id)
-        : 'pending';
-      if (['passed', 'recovered', 'confirmed-failure'].includes(resolution)) break;
-      const confirmationIndex =
-        resolution === 'awaiting-confirmation'
-          ? candidate.confirmations.filter(({ id }) => id === caseDefinition.id).length + 1
-          : null;
-      if (
-        candidate?.activeTrial !== null &&
-        candidate?.activeTrial !== undefined &&
-        (candidate.activeTrial.caseId !== caseDefinition.id ||
-          candidate.activeTrial.confirmationIndex !== confirmationIndex)
-      ) {
-        throw new Error('The active semantic trial does not match the next selected trial.');
-      }
-      await assertSemanticEvaluationInputsUnchanged({
-        artifactDigest,
-        caseSuiteDigest,
-        cli,
-        coverageDigest,
-      });
-      const trialLabel =
-        confirmationIndex === null ? 'initial' : `confirmation ${confirmationIndex}`;
-      process.stderr.write(`[semantic-evaluation] start ${caseDefinition.id} (${trialLabel})\n`);
-      const persistActiveTrial = candidate
-        ? async (activeTrial) => {
-            candidate = {
-              ...candidate,
-              activeTrial,
-              updatedAt: activeTrial.updatedAt,
-            };
-            validateSemanticCandidateCompatibility(candidate, evidenceBoundary);
-            await writeSemanticEvaluationCandidate(candidate);
-          }
-        : async () => {};
-      const { activeTrial, result } = await runSemanticCaseTrial({
-        activeTrial: candidate?.activeTrial ?? null,
-        actorCommand,
-        caseDefinition,
-        cli,
-        confirmationIndex,
-        evaluateActor: async (...parameters) => {
-          await assertSemanticEvaluationInputsUnchanged({
-            artifactDigest,
-            caseSuiteDigest,
-            cli,
-            coverageDigest,
-          });
-          return evaluateActorStage(...parameters);
-        },
-        evaluateJudge: async (...parameters) => {
-          await assertSemanticEvaluationInputsUnchanged({
-            artifactDigest,
-            caseSuiteDigest,
-            cli,
-            coverageDigest,
-          });
-          return evaluateJudgeStage(...parameters);
-        },
-        judgeCommand,
-        persistActiveTrial,
-      });
-      await assertSemanticEvaluationInputsUnchanged({
-        artifactDigest,
-        caseSuiteDigest,
-        cli,
-        coverageDigest,
-      });
-      results.push(result);
-      if (candidate) {
-        const candidateWithoutActiveTrial = { ...candidate, activeTrial: null };
-        candidate =
-          activeTrial.trialKind === 'confirmation'
-            ? appendSemanticCandidateConfirmation(
-                candidateWithoutActiveTrial,
-                caseDefinition,
-                result,
-                result.evaluatedAt,
-              )
-            : appendSemanticCandidateInitialResult(
-                candidateWithoutActiveTrial,
-                caseDefinition,
-                result,
-                result.evaluatedAt,
-              );
-        await writeSemanticEvaluationCandidate(candidate);
-      }
-      process.stderr.write(
-        `[semantic-evaluation] ${result.passed ? 'pass' : 'fail'} ${caseDefinition.id} (${trialLabel})\n`,
-      );
-      if (!isRecordRequested) break;
-    }
+  const executeTrial = async (caseDefinition, confirmationIndex) => {
     if (
-      isRecordRequested &&
-      getSemanticCaseResolution(candidate, caseDefinition.id) === 'confirmed-failure'
+      candidate?.activeTrial !== null &&
+      candidate?.activeTrial !== undefined &&
+      (candidate.activeTrial.caseId !== caseDefinition.id ||
+        candidate.activeTrial.confirmationIndex !== confirmationIndex)
     ) {
-      break;
+      throw new Error('The active semantic trial does not match the next selected trial.');
+    }
+    await assertSemanticEvaluationInputsUnchanged({
+      artifactDigest,
+      caseSuiteDigest,
+      cli,
+      coverageDigest,
+    });
+    const trialLabel = confirmationIndex === null ? 'initial' : `confirmation ${confirmationIndex}`;
+    process.stderr.write(`[semantic-evaluation] start ${caseDefinition.id} (${trialLabel})\n`);
+    const persistActiveTrial = candidate
+      ? async (activeTrial) => {
+          candidate = {
+            ...candidate,
+            activeTrial,
+            updatedAt: activeTrial.updatedAt,
+          };
+          validateSemanticCandidateCompatibility(candidate, evidenceBoundary);
+          await writeSemanticEvaluationCandidate(candidate);
+        }
+      : async () => {};
+    const { activeTrial, result } = await runSemanticCaseTrial({
+      activeTrial: candidate?.activeTrial ?? null,
+      actorCommand,
+      assertCanStartStage: candidate
+        ? async (currentActiveTrial) =>
+            assertSemanticCandidatePaidStageCapacity({
+              ...candidate,
+              activeTrial: currentActiveTrial,
+            })
+        : async () => {},
+      caseDefinition,
+      cli,
+      confirmationIndex,
+      evaluateActor: async (...parameters) => {
+        await assertSemanticEvaluationInputsUnchanged({
+          artifactDigest,
+          caseSuiteDigest,
+          cli,
+          coverageDigest,
+        });
+        return evaluateActorStage(...parameters);
+      },
+      evaluateJudge: async (...parameters) => {
+        await assertSemanticEvaluationInputsUnchanged({
+          artifactDigest,
+          caseSuiteDigest,
+          cli,
+          coverageDigest,
+        });
+        return evaluateJudgeStage(...parameters);
+      },
+      judgeCommand,
+      persistActiveTrial,
+    });
+    await assertSemanticEvaluationInputsUnchanged({
+      artifactDigest,
+      caseSuiteDigest,
+      cli,
+      coverageDigest,
+    });
+    results.push(result);
+    if (candidate) {
+      const candidateWithoutActiveTrial = { ...candidate, activeTrial: null };
+      candidate =
+        activeTrial.trialKind === 'confirmation'
+          ? appendSemanticCandidateConfirmation(
+              candidateWithoutActiveTrial,
+              caseDefinition,
+              result,
+              result.evaluatedAt,
+            )
+          : appendSemanticCandidateInitialResult(
+              candidateWithoutActiveTrial,
+              caseDefinition,
+              result,
+              result.evaluatedAt,
+            );
+      await writeSemanticEvaluationCandidate(candidate);
+    }
+    process.stderr.write(
+      `[semantic-evaluation] ${result.passed ? 'pass' : 'fail'} ${caseDefinition.id} (${trialLabel})\n`,
+    );
+  };
+
+  if (requestedCaseDefinition) {
+    await executeTrial(requestedCaseDefinition, null);
+  } else if (isRecordRequested) {
+    let nextTrial = getNextSemanticTrial(candidate, caseDefinitions);
+    while (nextTrial !== null) {
+      await executeTrial(nextTrial.caseDefinition, nextTrial.confirmationIndex);
+      nextTrial = getNextSemanticTrial(candidate, caseDefinitions);
     }
   }
 
@@ -4377,12 +5249,7 @@ const main = async () => {
     const blockingCase = getBlockingSemanticCase(candidate, caseDefinitions);
     const hasCompletePassingCandidate =
       pendingCaseDefinitions.length === 0 && blockingCase === undefined;
-    const stopReason = hasCompletePassingCandidate
-      ? 'complete'
-      : blockingCase !== undefined &&
-          getSemanticCaseResolution(candidate, blockingCase.id) === 'confirmed-failure'
-        ? 'confirmation-failure'
-        : 'case-failure';
+    const stopReason = hasCompletePassingCandidate ? 'complete' : 'complete-with-failures';
     const candidateEvidenceText = `${JSON.stringify(candidate, null, 2)}\n`;
     const attempt = await recordSemanticCandidateAttempt(
       candidateEvidenceText,
@@ -4401,8 +5268,11 @@ const main = async () => {
       await rm(CANDIDATE_RESULT_PATH, { force: true });
       process.stderr.write('[semantic-evaluation] promoted complete passing evidence\n');
     } else {
+      const unresolvedCaseCount = caseDefinitions.filter(
+        ({ id }) => !['passed', 'recovered'].includes(getSemanticCaseResolution(candidate, id)),
+      ).length;
       process.stderr.write(
-        `[semantic-evaluation] checkpoint preserved with ${pendingCaseDefinitions.length} pending or failing case(s)\n`,
+        `[semantic-evaluation] checkpoint preserved with ${unresolvedCaseCount} failing case(s)\n`,
       );
     }
   } else {

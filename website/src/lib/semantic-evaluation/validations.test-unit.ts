@@ -93,6 +93,14 @@ const createAttemptRecord = (
 });
 
 describe('SemanticAttemptRecordSchema', () => {
+  test('accepts the complete failed-attempt stop reason', () => {
+    const attempt = createAttemptRecord(7, 23);
+    attempt['status'] = 'failed';
+    attempt['stopReason'] = 'complete-with-failures';
+
+    expect(SemanticAttemptRecordSchema.safeParse(attempt).success).toBe(true);
+  });
+
   test.each([
     [6, 23, false],
     [7, 22, false],

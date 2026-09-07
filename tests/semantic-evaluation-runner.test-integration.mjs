@@ -45,11 +45,27 @@ const SEMANTIC_ATTEMPTS_PATH = join(
   'semantic-evaluation-results',
   'attempts',
 );
+const SEMANTIC_DIAGNOSTIC_ROOT = join(process.cwd(), 'fixtures', 'semantic-evaluation-diagnostics');
+const SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH = join(SEMANTIC_DIAGNOSTIC_ROOT, 'checkpoint.json');
+const SEMANTIC_DIAGNOSTIC_LEDGER_PATH = join(SEMANTIC_DIAGNOSTIC_ROOT, 'ledger.json');
+const SEMANTIC_RESULT_PATH = join(process.cwd(), 'fixtures', 'semantic-evaluation-result.json');
 
 /** Creates an isolated no-network Codex substitute for runner boundary tests. */
-const createFakeCodexHost = (root) => {
+const createFakeCodexHost = (root, isJudgePassing = true, hostVersion = 'codex-fake 1.0.0') => {
   const executablePath = join(root, 'codex');
   const companionPath = join(root, 'codex-code-mode-host');
+  const judgeAssessment = isJudgePassing
+    ? {
+        observed: ['host-workflow-only'],
+        forbidden: [],
+        rationale:
+          'The response completed the requested documentation review without unrelated activity.',
+      }
+    : {
+        observed: [],
+        forbidden: [],
+        rationale: 'The response did not demonstrate the required behavior.',
+      };
   writeFileSync(
     executablePath,
     `#!/usr/bin/env node
@@ -57,17 +73,13 @@ import { readFileSync, writeFileSync } from 'node:fs';
 
 if (process.argv.includes('--version')) {
   writeFileSync(new URL('./version-called', import.meta.url), 'called\\n');
-  process.stdout.write('codex-fake 1.0.0\\n');
+  process.stdout.write(${JSON.stringify(`${hostVersion}\n`)});
   process.exit(0);
 }
 
 const prompt = readFileSync(0, 'utf8');
 const response = prompt.includes('Assess whether an Agent Skills host handled the scenario correctly.')
-  ? JSON.stringify({
-      observed: ['host-workflow-only'],
-      forbidden: [],
-      rationale: 'The response completed the requested documentation review without unrelated activity.',
-    })
+  ? JSON.stringify(${JSON.stringify(judgeAssessment)})
   : 'No actionable findings.';
 process.stdout.write(JSON.stringify({
   item: { id: 'response', text: response, type: 'agent_message' },
@@ -100,6 +112,9 @@ process.stdout.write(JSON.stringify({
 const readCandidateState = () =>
   existsSync(SEMANTIC_CANDIDATE_PATH) ? readFileSync(SEMANTIC_CANDIDATE_PATH, 'utf8') : null;
 
+const readOfficialResult = () =>
+  existsSync(SEMANTIC_RESULT_PATH) ? readFileSync(SEMANTIC_RESULT_PATH, 'utf8') : null;
+
 test('semantic model execution requires an explicit mode before host discovery', () => {
   const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
   const hostCommand = createFakeCodexHost(hostRoot);
@@ -123,7 +138,7 @@ test('semantic model execution requires an explicit mode before host discovery',
 
     assert.equal(result.status, 1);
     assert.equal(result.stdout, '');
-    assert.match(result.stderr, /requires --record or --case <id>/u);
+    assert.match(result.stderr, /requires --record, --case <id>, or --diagnose-batch/u);
     assert.equal(existsSync(join(hostRoot, 'version-called')), false);
     assert.equal(readCandidateState(), beforeCandidate);
     assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
@@ -187,6 +202,180 @@ test('one targeted fake-host evaluation emits only its bounded diagnostic', () =
         },
       },
     });
+    assert.equal(readCandidateState(), beforeCandidate);
+    assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
+  } finally {
+    rmSync(hostRoot, { force: true, recursive: true });
+  }
+});
+
+test('one fake-host batch completes every selected case without changing official evidence', () => {
+  assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH), false);
+  assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), false);
+  const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
+  const hostCommand = createFakeCodexHost(hostRoot);
+  const beforeCandidate = readCandidateState();
+  const beforeAttempts = readdirSync(SEMANTIC_ATTEMPTS_PATH).sort();
+  const beforeOfficialResult = readOfficialResult();
+
+  try {
+    const result = spawnSync(
+      process.execPath,
+      [
+        '--experimental-strip-types',
+        SEMANTIC_RUNNER_PATH,
+        '--diagnose-batch',
+        '--cases',
+        'unrelated-documentation-review,unrelated-source-review',
+        '--restart',
+      ],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          MOLDEA_EVAL_ACTOR_COMMAND_JSON: JSON.stringify(hostCommand),
+          MOLDEA_EVAL_JUDGE_COMMAND_JSON: JSON.stringify(hostCommand),
+        },
+        maxBuffer: 1024 * 1024,
+      },
+    );
+
+    assert.equal(result.status, 0, result.stderr);
+    const summary = JSON.parse(result.stdout);
+    assert.deepEqual(summary.results, [
+      { caseId: 'unrelated-documentation-review', verdict: 'passed' },
+      { caseId: 'unrelated-source-review', verdict: 'passed' },
+    ]);
+    assert.equal(summary.selectedCount, 2);
+    assert.equal(summary.passedCount, 2);
+    assert.equal(summary.failedCount, 0);
+    assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH), false);
+    assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), true);
+    const ledgerBytes = readFileSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH);
+    assert.ok(ledgerBytes.byteLength <= 1024 * 1024);
+    const ledger = JSON.parse(ledgerBytes.toString('utf8'));
+    assert.equal(ledger.results[0].rationale, 'All required criteria passed.');
+    assert.equal(ledger.results[0].rationaleRedacted, true);
+    assert.doesNotMatch(
+      ledgerBytes.toString('utf8'),
+      /The response completed the requested documentation review/u,
+    );
+    const mismatchedResume = spawnSync(
+      process.execPath,
+      [
+        '--experimental-strip-types',
+        SEMANTIC_RUNNER_PATH,
+        '--diagnose-batch',
+        '--cases',
+        'unrelated-documentation-review',
+      ],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          MOLDEA_EVAL_ACTOR_COMMAND_JSON: JSON.stringify(hostCommand),
+          MOLDEA_EVAL_JUDGE_COMMAND_JSON: JSON.stringify(hostCommand),
+        },
+        maxBuffer: 1024 * 1024,
+      },
+    );
+    assert.equal(mismatchedResume.status, 1);
+    assert.match(mismatchedResume.stderr, /does not match the current batch identity/u);
+    assert.deepEqual(readFileSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), ledgerBytes);
+    assert.equal(readCandidateState(), beforeCandidate);
+    assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
+    assert.equal(readOfficialResult(), beforeOfficialResult);
+  } finally {
+    rmSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH, { force: true });
+    rmSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH, { force: true });
+    rmSync(hostRoot, { force: true, recursive: true });
+  }
+});
+
+test('one complete fake-host batch collects all 74 semantic failures before returning', () => {
+  assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH), false);
+  assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), false);
+  const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
+  const hostCommand = createFakeCodexHost(hostRoot, false);
+  const beforeCandidate = readCandidateState();
+  const beforeAttempts = readdirSync(SEMANTIC_ATTEMPTS_PATH).sort();
+  const beforeOfficialResult = readOfficialResult();
+
+  try {
+    const result = spawnSync(
+      process.execPath,
+      [
+        '--experimental-strip-types',
+        SEMANTIC_RUNNER_PATH,
+        '--diagnose-batch',
+        '--all',
+        '--restart',
+      ],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          MOLDEA_EVAL_ACTOR_COMMAND_JSON: JSON.stringify(hostCommand),
+          MOLDEA_EVAL_JUDGE_COMMAND_JSON: JSON.stringify(hostCommand),
+        },
+        maxBuffer: 1024 * 1024,
+      },
+    );
+
+    assert.equal(result.status, 1, result.stderr);
+    const summary = JSON.parse(result.stdout);
+    assert.equal(summary.selectedCount, 74);
+    assert.equal(summary.passedCount, 0);
+    assert.equal(summary.failedCount, 74);
+    assert.deepEqual(
+      summary.results.map(({ caseId }) => caseId),
+      SEMANTIC_CASES.map(({ id }) => id),
+    );
+    assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH), false);
+    assert.equal(existsSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH), true);
+    assert.equal(readCandidateState(), beforeCandidate);
+    assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
+    assert.equal(readOfficialResult(), beforeOfficialResult);
+  } finally {
+    rmSync(SEMANTIC_DIAGNOSTIC_CHECKPOINT_PATH, { force: true });
+    rmSync(SEMANTIC_DIAGNOSTIC_LEDGER_PATH, { force: true });
+    rmSync(hostRoot, { force: true, recursive: true });
+  }
+});
+
+test('preflight reuses only passing groups from the committed failed attempt', () => {
+  const hostRoot = mkdtempSync(join(tmpdir(), 'moldea-fake-host-'));
+  const hostCommand = createFakeCodexHost(hostRoot, true, 'codex-cli 0.153.4');
+  const beforeCandidate = readCandidateState();
+  const beforeAttempts = readdirSync(SEMANTIC_ATTEMPTS_PATH).sort();
+
+  try {
+    const result = spawnSync(
+      process.execPath,
+      ['--experimental-strip-types', SEMANTIC_RUNNER_PATH, '--preflight'],
+      {
+        cwd: process.cwd(),
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          MOLDEA_EVAL_ACTOR_COMMAND_JSON: JSON.stringify(hostCommand),
+          MOLDEA_EVAL_JUDGE_COMMAND_JSON: JSON.stringify(hostCommand),
+        },
+        maxBuffer: 1024 * 1024,
+      },
+    );
+
+    assert.equal(result.status, 0, result.stderr);
+    const estimate = JSON.parse(
+      result.stderr.slice(result.stderr.indexOf('{'), result.stderr.lastIndexOf('}') + 1),
+    );
+    assert.equal(estimate.caseCount, 74);
+    assert.equal(estimate.reusedCaseCount, 11);
+    assert.equal(estimate.reusedStageCount, 22);
+    assert.equal(estimate.paidInitialStageCount, 126);
     assert.equal(readCandidateState(), beforeCandidate);
     assert.deepEqual(readdirSync(SEMANTIC_ATTEMPTS_PATH).sort(), beforeAttempts);
   } finally {

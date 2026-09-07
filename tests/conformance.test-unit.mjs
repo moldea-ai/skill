@@ -324,10 +324,10 @@ describe('portable skill contract', () => {
     }
     assert.match(skill, /Never read every reference by default/u);
     assert.match(skill, /read only what the selected operation needs/u);
-    assert.match(skill, /full deterministic gate is the mandatory first moldea action/u);
-    assert.match(skill, /exact repository paths explicitly named or targeted/u);
-    assert.match(skill, /whether changed or unchanged/u);
-    assert.match(skill, /complete changed-path set already established by the host/u);
+    assert.match(skill, /Before the first moldea action for ordinary host work/u);
+    assert.match(skill, /deduplicated union of developer-named/u);
+    assert.match(skill, /named paths may be changed or unchanged/u);
+    assert.match(skill, /host-established changed paths/u);
     assert.match(
       skill,
       /never run Git or broaden repository inspection solely to discover gate paths/u,
@@ -353,6 +353,8 @@ describe('portable skill contract', () => {
     assert.match(skill, /leaving at most three CLI calls/u);
     assert.match(skill, /direct request supplies moldea intent, not a canonical owner/u);
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
+    assert.match(skill, /Before the first moldea action for ordinary host work, normalize/u);
+    assert.match(skill, /Retain that exact set for the full gate and `scope`/u);
     assert.match(
       skill,
       /review or evaluation of “the current change,” “the current changes,”.*is incomplete/iu,
@@ -371,6 +373,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /bind the coherent change set before writing/u);
     assert.match(skill, /complete independent host work as if the skill were absent/u);
     assert.match(skill, /use the full relationship gate below instead of the adoption-only gate/u);
+    assert.match(skill, /After `1`, pass the exact same set/u);
     assert.match(skill, /existing independent inline instruction is then a migration input/u);
     assert.match(skill, /every direct request to prove or safely invoke/u);
     assert.match(skill, /before inspecting providers or reaching a conclusion/u);

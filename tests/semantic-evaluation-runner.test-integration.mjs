@@ -472,7 +472,6 @@ test('an unchanged explicitly named affectedBy path resolves only its bounded ow
     assert.equal(beforeStatus.status, 0, beforeStatus.stderr);
     assert.equal(beforeStatus.stdout, '');
 
-    const taskPathInput = 'src/project-state.js\0';
     const normalizedTaskPathInput = '/src/project-state.js\0';
     const gate = spawnSync(
       process.execPath,
@@ -484,7 +483,7 @@ test('an unchanged explicitly named affectedBy path resolves only its bounded ow
       {
         cwd: repositoryPath,
         encoding: 'utf8',
-        input: taskPathInput,
+        input: normalizedTaskPathInput,
       },
     );
     assert.equal(gate.status, 0, gate.stderr);

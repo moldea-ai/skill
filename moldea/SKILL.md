@@ -48,17 +48,17 @@ Continue only when complete stdout is exactly `1`; otherwise abstain silently.
 
 A direct request supplies moldea intent, not a canonical owner. When it names or targets ordinary repository paths, use the full relationship gate below instead of the adoption-only gate, then run `scope`.
 
-For ordinary host work, the full deterministic gate is the mandatory first moldea action. Its input is the deduplicated union of exact repository paths explicitly named or targeted by the developer, whether changed or unchanged, and the complete changed-path set already established by the host when applicable. For moldea, never run Git or broaden repository inspection solely to discover gate paths. Never replace the gate by inspecting canonical state directly. When no such path exists, abstain silently even if the developer supplies durable facts or calls existing project context outdated; do not search for a canonical destination. For this route, abstention is final for the current request: paths discovered later by the host cannot reactivate `moldea`, and the host must not open, read, search for, or edit `/moldea/**` as an invented destination. When a generic fact handoff is the complete request, acknowledge it without inventing persistence.
+Before the first moldea action for ordinary host work, normalize the deduplicated union of developer-named and host-established changed paths to leading-slash repository-logical form. Retain that exact set for the full gate and `scope`; named paths may be changed or unchanged. For moldea, never run Git or broaden repository inspection solely to discover gate paths. Never replace the gate by inspecting canonical state directly. When no such path exists, abstain silently even if the developer supplies durable facts or calls existing project context outdated; do not search for a canonical destination. For this route, abstention is final for the current request: paths discovered later by the host cannot reactivate `moldea`, and the host must not open, read, search for, or edit `/moldea/**` as an invented destination. When a generic fact handoff is the complete request, acknowledge it without inventing persistence.
 
-Pass the complete path set once as NUL-delimited UTF-8 input:
+Pass that normalized set once as NUL-delimited UTF-8 input:
 
 ```text
 node <installed-skill-root>/scripts/relevance-gate.mjs --repository <absolute-repository-root>
 ```
 
-The gate normalizes repository-relative and leading-slash repository-logical paths and rejects drive-relative paths, UNC paths, traversal, malformed input, and paths outside the repository. Continue only when complete stdout is exactly `1`; `0`, other output, or failure means silent abstention. The gate proves adoption and relevance through repository-local metadata and Core without invoking the CLI.
+The gate rejects drive-relative paths, UNC paths, traversal, malformed input, and paths outside the repository. Continue only when complete stdout is exactly `1`; `0`, other output, or failure means silent abstention. The gate proves adoption and relevance through repository-local metadata and Core without invoking the CLI.
 
-After `1`, pass the same normalized set to one bounded relationship query:
+After `1`, pass the exact same set to one bounded relationship query:
 
 ```text
 node <installed-skill-root>/scripts/moldea-cli.mjs --repository <absolute-repository-root> -- scope --paths-stdin --json --max-output-bytes 65536

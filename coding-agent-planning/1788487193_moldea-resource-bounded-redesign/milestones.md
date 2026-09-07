@@ -102,38 +102,47 @@ Use the published convergence runner to obtain and publish one complete 74-case 
 
 Decide from the complete ledger whether a systemic skill defect exists. Alternating verdicts or isolated phrasing differences are not sufficient by themselves.
 
-## Milestone 53: Close semantic release evidence with one correction generation
+## Milestone 53: Close semantic release evidence after the high gate
+
+### Status
+
+The first high-reasoning correction is complete and published at signed commit `72c1c9a57e2dc1cee521aac2da7776294ab9ac0d`. Its complete eight-case diagnostic passed six cases and confirmed two residual defects; exact high confirmations reproduced both failures without operational failure.
 
 ### Objective
 
-Reach complete current 74-case semantic evidence without returning to open-ended phrase patching.
+Close the two proven reference-ownership and result-shape defects, pass their exact high-reasoning gate, and produce one complete current 74-case semantic release attempt without returning to open-ended phrase patching.
 
 ### Dependencies
 
-- Milestone 52 produced and published a complete classified ledger.
+- Milestone 52 is complete and published.
+- The first Milestone 53 correction, deterministic verification, complete eight-case high diagnostic, and exact two-case confirmations are complete.
+- Problem 85 in the revised challenged plan establishes the final correction boundary.
 
 ### Scope and implementation
 
-- Change the shared semantic and qualification Codex-host reasoning contract from `medium` to `high`, including exact command construction, provenance, identity, typings, focused tests, and current execution documentation. Raise the shared finite default model-stage timeout from 300,000 to 600,000 milliseconds so ordinary `high` responses have ten minutes to complete, while preserving cancellation, one bounded operational retry, terminal-stop accounting, output bounds, and token ceilings. Do not create a reasoning override or mixed-effort reuse path.
-- Change only the stale `skill-boundary-surface-selection` and `skill-maintain-host-invocation-policy` resource budgets to require zero moldea calls, preserving their semantic criteria and every absolute ceiling.
-- Make one coherent simplification generation for the six confirmed skill defects in `moldea/SKILL.md` and only their owning references, focused conformance tests, and directly affected documentation: relevant no-change reporting, independent Agent Skill evaluation abstention, evidence-bounded runtime planning, preservation of established local runtime identity when publication is unavailable, consumer-semantic description classification, and exact local-CLI proof before blocked Yarn installation reporting.
-- Reduce overlapping routing and brittle phrase locks instead of appending case-specific exceptions. Preserve every other case, criterion, safety boundary, resource budget, canonical ownership rule, and evaluator contract.
-- Run one bounded diagnostic batch containing exactly the eight confirmed cases at `high`. Inspect its per-stage token distribution and confirm that the existing per-invocation and candidate ceilings retain realistic headroom before starting one final official attempt.
-- Start one final official 74-case `high` attempt only after all eight cases pass. If it passes, atomically replace the active semantic evidence store, validators, and public presentation with the `high` attempt and remove every obsolete `medium` attempt from active source. Git history is the audit trail; do not retain a dual-effort compatibility reader or public page.
-- If that final frozen attempt repeats a confirmed systemic defect, stop paid execution and re-plan from the complete evidence instead of beginning another correction generation.
+- Preserve the published shared `high` reasoning contract, 600,000-millisecond finite stage timeout, one bounded operational retry, terminal-stop accounting, output bounds, token ceilings, two corrected zero-call budgets, and all six already-corrected behaviors.
+- In `moldea/references/evaluate-and-reconcile.md`, make read-only conclusions about agent or runtime description consumers reach the owning consumer-semantic contract in `moldea/references/agent-design.md` before classifying or reporting a mapping. Keep the second-reference load conditional on that exact boundary and retain evaluation's read-only and bounded-evidence contract.
+- In `moldea/references/local-tooling.md`, replace prose-form unsafe package-manager reporting with one numbered four-field result contract: independently verified exact local CLI availability, exact executable configuration and mechanism that blocks local CLI installation, the pre-package-manager stop, and the exact removal-or-disable prerequisite. Make the initialization route delegate to that contract instead of maintaining a partial duplicate.
+- Remove or compress superseded duplicate wording so `moldea/SKILL.md` remains at or below 2,560 words. Do not add case IDs, judge phrases, evaluator-specific language, or a parallel route.
+- Extend focused conformance assertions for the reference handoff and the four-field blocked-result contract without changing semantic cases, criteria, fixtures, budgets, prompts, evaluator behavior, evidence schemas, repository controls, privacy boundaries, or resource ceilings.
+- Run the complete deterministic verification boundary, review the exact state, and publish the two-cause correction as a signed and signed-off commit.
+- Run exactly `routing-description-property-name` and `yarn-plugin-install-blocked` as non-recording high-reasoning diagnostics. If either remains failed, stop model-backed execution and return to evidence-led planning without another behavior patch.
+- If both pass, run one collect-first official 74-case high attempt. Preserve and resume its exact checkpoint across operational or token stops. Do not edit behavior-bearing inputs while it runs.
+- When the official attempt passes, atomically replace the active semantic evidence store, validators, and public presentation with that high attempt and remove every obsolete medium attempt and temporary medium reader from active source. Git history remains the audit trail.
 
 ### Verification and acceptance criteria
 
-- Run skill validation, complete conformance, root unit/integration, docs, path, resource, attempt, preflight, type/lint/format, candidate-package, and website checks.
-- No semantic criterion, privacy boundary, repository control, or absolute resource ceiling is weakened; only the two proven stale minimum-call fixture budgets change.
-- Semantic and qualification host configuration, provenance, tests, and documentation agree on the finite 600,000-millisecond default stage timeout.
-- Current evidence reports `74/74` only from one verified complete `high` attempt and distinguishes direct, recovered, and reused work truthfully.
-- Active semantic schemas, evidence, and public pages accept only the `high` release contract after replacement; no obsolete `medium` attempt remains in active source.
-- Review is ready and every required semantic code/evidence commit is signed, signed off, and pushed.
+- Run skill validation, complete conformance, root unit/integration, docs, path, resource, attempt, preflight, type/lint/format, candidate-package, qualification regression, and website checks affected by the correction.
+- `moldea/SKILL.md` remains within its exact word budget and every independent Agent Skill route, no-change report, runtime evidence boundary, and unrelated semantic behavior remains deterministic.
+- The two targeted high diagnostics pass with no forbidden criteria, repository writes, operational failures, or changed resource contract.
+- The measured eight-case batch and confirmations remain well below the unchanged 2,097,152-token per-stage reservation and 32,000,000-token candidate ceiling; the 600,000-millisecond timeout remains finite and produced no false timeout.
+- Current evidence reports `74/74` only from one verified complete high attempt and distinguishes direct, recovered, and reused work truthfully.
+- Active semantic schemas, evidence, and public pages accept only the high release contract after replacement; no obsolete medium attempt or temporary compatibility reader remains in active source.
+- Review is ready and every correction/evidence commit is signed, signed off, and pushed.
 
 ### Review checkpoint
 
-Confirm any correction is one architecture-level simplification driven by classified causes and enforce the stop-loss before another paid run.
+Confirm the correction centralizes ownership rather than duplicating rules, all two-case criteria pass unchanged, the official attempt is complete and immutable, and the final source contains no medium-evidence compatibility path.
 
 ## Milestone 54: Make qualification converge without duplicating its architecture
 
@@ -271,4 +280,4 @@ Confirm the launched surface is internally consistent, resource-bounded, product
 
 ## Execution scope
 
-Milestones 50 and 51 are complete. Finish review and publication of Milestone 52's complete `medium` failure ledger, then implement and publish Milestones 53 through 58 sequentially: make one consolidated eight-cause skill/evaluator correction, establish `high` as the only current release-evidence reasoning contract, pass the bounded eight-case gate, and replace active semantic evidence with one complete `high` attempt; apply the same audited convergence architecture and `high` identity to Custom and adapters; replace active qualification evidence without a mixed-effort compatibility path; publish clean skill 5.0.0 and remove obsolete 4.0.x release surfaces; and finish a cross-repository contradiction audit. Preserve all safety, privacy, provenance, resource, signing, review, branch, and clean-slate constraints from the challenged plan.
+Milestones 50 through 52 are complete and published. Milestone 53's first correction is published; complete its final two-cause correction, exact high-reasoning gate, one official 74-case high attempt, and atomic removal of medium evidence and temporary readers. Then implement and publish Milestones 54 through 58 sequentially: apply the audited collect-first and finite stop-loss architecture to Custom and adapters; replace active qualification evidence without mixed-effort compatibility; finish paired public/private GitHub fixtures and production-scale repository/PR Assurance validation; publish clean skill 5.0.0 and remove obsolete 4.0.x release surfaces; and complete the cross-repository contradiction audit. Preserve every safety, privacy, provenance, resource, signing, review, branch, clean-slate, protected-instruction, and unrelated-concurrent-work constraint from the challenged plan.

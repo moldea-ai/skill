@@ -313,7 +313,7 @@ describe('portable skill contract', () => {
     );
   });
 
-  test('keeps progressive disclosure bounded to one owning reference', () => {
+  test('keeps progressive disclosure bounded to owning references', () => {
     const skill = readSkill();
     for (const referenceName of REFERENCE_NAMES) {
       assert.match(skill, new RegExp(`references/${referenceName.replace('.', '\\.')}`, 'u'));
@@ -410,6 +410,8 @@ describe('portable skill contract', () => {
     assert.match(skill, /run `validate` at most once more/u);
     assert.match(skill, /Before foundation analysis, inspect `package\.json`/u);
     assert.match(skill, /Executable install configuration preempts foundation analysis/u);
+    assert.match(skill, /return its complete four-field blocked-install result/u);
+    assert.match(skill, /Never substitute a partial summary/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);
     assert.match(skill, /before foundation classification, package-manager execution, questions/u);
     assert.match(skill, /name the project-owned evidence that established the foundation/u);
@@ -535,11 +537,14 @@ describe('portable skill contract', () => {
     assert.match(localTooling, /one inert exact-path symlink-target read/u);
     assert.match(localTooling, /declared compatible dependency exists/u);
     assert.match(localTooling, /conflicting symlink is not authority/u);
-    assert.match(localTooling, /the exact configuration and executable mechanism/u);
+    assert.match(localTooling, /Name the exact configuration and executable hook or plugin/u);
     assert.match(localTooling, /\.pnpmfile\.cjs/u);
     assert.match(localTooling, /inspect `\.yarnrc\.yml` and the exact repository plugin path/u);
-    assert.match(localTooling, /name both paths in the result/u);
-    assert.match(localTooling, /execution stopped before the package manager/u);
+    assert.match(localTooling, /exact repository plugin path it declares/u);
+    assert.match(localTooling, /execution stopped before invoking the package manager/u);
+    assert.match(localTooling, /Return one blocked-install result containing all four fields/u);
+    assert.match(localTooling, /blocks the named package manager's local CLI installation/u);
+    assert.match(localTooling, /Omitting or merging a field into a partial summary is incomplete/u);
     assert.match(localTooling, /precedes foundation-sufficiency inspection and questioning/u);
     assert.match(localTooling, /Do not ask a project-purpose question/u);
     const compression = readFileSync(
@@ -569,6 +574,9 @@ describe('portable skill contract', () => {
       /Observed implementation state is not automatically durable canonical truth/u,
     );
     assert.match(evaluation, /Every read-only evaluation report explicitly states/u);
+    assert.match(evaluation, /load `agent-design\.md` as the second and owning reference/u);
+    assert.match(evaluation, /a property name is not classification evidence/u);
+    assert.match(evaluation, /Do not report an established aligned mapping as defective/u);
     assert.match(evaluation, /at most one canonical `content` call total/u);
     assert.match(evaluation, /Do not read project context, a second canonical owner/u);
     assert.match(evaluation, /state that reconciliation is blocked pending the answer/u);
@@ -615,7 +623,7 @@ describe('portable skill contract', () => {
     assert.match(agentDesign, /its name supplies no classification evidence/u);
     assert.match(agentDesign, /Always state the consumer-purpose classification/u);
     assert.match(agentDesign, /checklist of every externally evidenced model-visible capability/u);
-    assert.match(localTooling, /a blocked result is incomplete unless it reports all four facts/iu);
+    assert.match(localTooling, /Return one blocked-install result containing all four fields/u);
   });
 
   test('uses one compact precedence-ordered direct-operation router', () => {
@@ -643,7 +651,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /With ordinary paths only, run the full relationship gate/u);
     assert.match(skill, /route-owned normalized set/u);
     assert.match(skill, /conclude from the host review alone/u);
-    assert.match(skill, /no compatible exact local CLI was independently verified as installed/u);
+    assert.match(skill, /complete four-field blocked-install result/u);
     assert.match(skill, /Do not run a moldea gate or CLI command/u);
     assert.match(skill, /owner was reconsidered and remains accurate without an edit/u);
     assert.match(skill, /never erases an established canonical runtime ID/u);

@@ -417,5 +417,6 @@ export const hasPassingMoldeaResourceBudget = (evidence, budget) => {
   if (budget.activation === 'relationship') {
     return evidence.operations[0] === 'scope' && !evidence.operations.includes('inspect');
   }
+  if (budget.activation === 'direct') return true;
   return evidence.operations[0] !== 'scope';
 };

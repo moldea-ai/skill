@@ -2,56 +2,55 @@
 
 ## Completed foundation
 
-Milestones 1 through 39 are complete and published. They established the clean Repository 2, repository-fs 2, Core 3, CLI 7/schema 4, adapter major generation, bounded GitHub fixtures and PR Assurance contracts, repository-bound skill activation, content-free CLI operations, exact semantic-stage reuse, clean 74-case coverage, understandable evidence pages, calibrated resource controls, the evidence-pin release path, and permanent diagnose-first semantic and adapter workflows. Milestone 39 is published at signed commit `140964f620374725e29d4d9cab22318cf68e64f8`; its 201 unit tests, 65 integration tests, documentation, path, resource, release-identity, immutable-attempt, formatting, and skill checks passed. The subsequent dirty-tree diagnostic isolated one remaining path-representation defect without changing official evidence.
+Milestones 1 through 40 are complete and published. They established the clean Repository 2, repository-fs 2, Core 3, CLI 7/schema 4, adapter major generation, bounded GitHub fixtures and PR Assurance contracts, repository-bound skill activation, content-free CLI operations, exact semantic-stage reuse, clean 74-case coverage, understandable evidence pages, calibrated resource controls, the evidence-pin release path, and permanent diagnose-first semantic and adapter workflows. Milestone 40 is published at signed commit `1f3460c45d56129e638e4ba63d89c4e5aa55a4cc`; its 201 unit tests, 65 integration tests, documentation, path, resource, release-identity, immutable-attempt, formatting, skill, and 73-page website checks passed. The subsequent dirty-tree diagnostic satisfied every behavior criterion and repository control but exposed one deterministic direct-scope resource-checker contradiction.
 
-## Milestone 40: Normalize and retain dirty-tree scope
+## Milestone 41: Correct direct-scope resource validation
 
 ### Objective
 
-Publish one deterministic correction that converts the complete host Git path inventory to moldea repository-logical paths and reuses that exact set through gate, scope, and final reporting.
+Publish one deterministic verifier correction so a bounded direct case may use `scope` when the supported operation route targets ordinary repository paths, without weakening stricter activation classes.
 
 ### Dependencies
 
-- Published Milestone 39.
-- The raw-versus-normalized launcher reproduction recorded in `plan.md` problem 70.
-- The three passing post-Milestone-38 diagnostics, which must not be repeated.
+- Published Milestone 40.
+- The positive dirty-tree actor/judge result and model-free predicate reproduction recorded in `plan.md` problem 71.
+- Unchanged official semantic attempts, latest pointer, and ignored candidate.
 
 ### Scope
 
-- `moldea/SKILL.md`
-- `tests/conformance.test-unit.mjs`
-- `tests/semantic-evaluation-runner.test-integration.mjs`
+- `tooling/semantic-evaluation/actor-execution-evidence.mjs`
+- `tooling/semantic-evaluation/actor-execution-evidence.test-unit.mjs`
+- `docs/semantic-evaluation.md`
 - Current `plan.md` and this breakdown
 
 ### Implementation work
 
-1. Rewrite only the compact direct current-change route so it retains every staged, unstaged, untracked, rename-source, rename-destination, and deleted HEAD-relative path through the final report.
-2. Require conversion of each host path to leading-slash repository-logical form before the full relationship gate and require one `scope` call to receive the same complete normalized set.
-3. Keep the route mutually exclusive, keep its ordinary four-command limit, and leave the CLI, semantic case, prompt, criteria, budgets, command projection, evaluator, and evidence schema unchanged.
-4. Update static conformance assertions around path retention and normalization without depending on the superseded sentence structure.
-5. Extend the existing dirty-tree integration through the real installed launcher and assert six inputs, six matches, one owner, and only `/moldea/project.md`, while preserving the dirty status byte for byte.
+1. Treat `direct` as an activation classification instead of an implicit no-scope operation rule after numeric resource validation succeeds.
+2. Preserve relationship first-scope/no-inspect enforcement, abstention and informational zero-call enforcement, and blocked-route no-scope enforcement exactly.
+3. Add focused unit cases proving direct scope acceptance and every retained stricter boundary, including a direct non-scope control.
+4. Update the owning semantic documentation to distinguish activation from operation routing and explain when a direct case legitimately starts with scope.
+5. Do not change the portable skill, CLI, semantic case, prompt, criteria, activation label, numeric budget, command projection, judge, or evidence schema.
 
 ### Verification
 
-- Run the focused conformance and dirty-tree integration tests first.
-- Run `npm test`, `npm run docs:check`, `npm run path:check`, `npm run resource:check`, `npm run release:identity:check`, `npm run eval:semantic:verify`, and the relevant formatting check.
-- Validate the portable skill with the installed skill validator and run `npm run website:check` because released skill text is rendered publicly.
-- Verify the seven official attempts, latest pointer, and ignored candidate remain byte-identical.
+- Run the focused resource-budget unit tests first.
+- Run `npm test`, `npm run docs:check`, `npm run path:check`, `npm run resource:check`, `npm run release:identity:check`, `npm run eval:semantic:verify`, the relevant formatting check, and `npm run website:check`.
+- Verify all seven official attempts, the latest pointer, and the ignored candidate remain unchanged.
 - Perform read-only `review`, correct only in-scope findings, repeat until ready, then create one signed and signed-off commit and push explicitly to `origin/new_skill`.
 
 ### Acceptance criteria
 
-- No raw HEAD-relative path reaches the canonical CLI boundary.
-- The gate and scope receive one identical complete normalized set.
-- The real schema-4 scope result reports six input paths, six matched paths, one matched owner, and only `/moldea/project.md`.
-- No discovered path disappears from final reporting, and the intentionally dirty worktree remains unchanged.
+- The exact two-call `scope` plus `content` evidence passes under the unchanged direct budget.
+- Relationship evidence still requires `scope` first and rejects `inspect`.
+- Abstention and informational evidence still require zero calls, and blocked evidence still rejects `scope`.
+- No case, skill, protocol, evidence, or public runtime contract changes.
 - No model-bearing evaluation runs in this milestone.
 
 ### Review checkpoint
 
-Inspect the root route for new overlap or verbosity, verify every dirty-tree path role survives normalization, require the real launcher result rather than a mocked envelope, and confirm official evidence is unchanged before publication.
+Inspect every activation branch in the predicate, require adversarial unit coverage for retained safeguards, and confirm the documentation does not imply that direct intent bypasses relationship resolution.
 
-## Milestone 41: Prove the final residual and record all 74 scenarios
+## Milestone 42: Prove the final residual and record all 74 scenarios
 
 ### Objective
 
@@ -59,8 +58,8 @@ Require the dirty-tree diagnostic to pass, then create one complete official cur
 
 ### Dependencies
 
-- Published Milestone 40.
-- The three preserved passing diagnostics and the exact final dirty-tree correction.
+- Published Milestone 41.
+- The three preserved passing diagnostics and every published dirty-tree correction.
 
 ### Scope
 
@@ -94,7 +93,7 @@ Require the dirty-tree diagnostic to pass, then create one complete official cur
 
 Verify the diagnostic was not promoted, no partial attempt appears passing, predecessor evidence did not return, and every public count and provenance field resolves to the immutable current attempt.
 
-## Milestone 42: Re-establish the Custom qualification baseline
+## Milestone 43: Re-establish the Custom qualification baseline
 
 ### Objective
 
@@ -102,7 +101,7 @@ Create one exact-current Custom qualification baseline before spending on adapte
 
 ### Dependencies
 
-- Published passing semantic evidence from Milestone 41.
+- Published passing semantic evidence from Milestone 42.
 - Final portable skill, CLI closure, qualification protocol, and resource profiles.
 
 ### Scope
@@ -135,7 +134,7 @@ Create one exact-current Custom qualification baseline before spending on adapte
 
 Inspect identity reuse, failed-attempt preservation, command/output peaks, and the absence of duplicate universal behavior in adapter-specific profiles.
 
-## Milestone 43: Qualify every adapter with one collect-first sweep
+## Milestone 44: Qualify every adapter with one collect-first sweep
 
 ### Objective
 
@@ -143,7 +142,7 @@ Produce exact-current passing evidence for every adapter profile without repeate
 
 ### Dependencies
 
-- Published Custom baseline from Milestone 42.
+- Published Custom baseline from Milestone 43.
 - Final registry-published adapter/package generations and profile index.
 
 ### Scope
@@ -180,7 +179,7 @@ Produce exact-current passing evidence for every adapter profile without repeate
 
 Inspect the complete failure ledger, targeted rerun selection, exact identity decisions, resource peaks, inherited/direct ownership, and public evidence clarity before release selection.
 
-## Milestone 44: Release the clean skill and complete the cross-repository audit
+## Milestone 45: Release the clean skill and complete the cross-repository audit
 
 ### Objective
 
@@ -226,4 +225,4 @@ Perform the final cross-repository contradiction, secret, signature, branch, reg
 
 ## Execution scope
 
-Complete Milestones 40 through 44 sequentially. First publish the dirty-tree path-normalization and complete-report correction, then rerun only that residual before one official 74-case recording. Re-establish Custom, qualify every adapter through the documented sequential collect-first funnel, complete the full profile ledger before shared fixes, and rerun only failed or exact-identity-invalidated work. Select fresh release evidence, publish clean skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and finish the active cross-repository audit. Preserve failed evidence, unrelated concurrent work, protected coding instructions, resource ceilings, privacy boundaries, exact identity, and one-model-process execution throughout.
+Complete Milestones 41 through 45 sequentially. First publish the direct-scope resource-checker correction, then rerun only the dirty-tree residual before one official 74-case recording. Re-establish Custom, qualify every adapter through the documented sequential collect-first funnel, complete the full profile ledger before shared fixes, and rerun only failed or exact-identity-invalidated work. Select fresh release evidence, publish clean skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and finish the active cross-repository audit. Preserve failed evidence, unrelated concurrent work, protected coding instructions, resource ceilings, privacy boundaries, exact identity, and one-model-process execution throughout.

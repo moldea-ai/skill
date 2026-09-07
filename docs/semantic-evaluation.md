@@ -50,7 +50,7 @@ The committed result records:
 - completed host-command count and total input-plus-output model tokens
 - whether a non-content command attempted to return canonical content
 
-Abstention cases require zero recognized `moldea` commands and zero `moldea` bytes. Each semantic case owns its exact activation and `moldea` budget. Ordinary direct and relationship cases permit at most four `moldea` calls and 262,144 `moldea`-output bytes. The dedicated large-context case permits at most 16 calls and 1,048,576 output bytes while still requiring paginated, purpose-bounded traversal. The evaluation host separately enforces its absolute command, output, and token containment ceilings.
+Abstention cases require zero recognized `moldea` commands and zero `moldea` bytes. Each semantic case owns its exact activation and `moldea` budget. The activation label records how the case became eligible; operation routing still follows the portable skill. A direct case may begin with `scope` when explicit `moldea` intent targets ordinary repository paths, while a relationship case always begins with `scope` and never uses `inspect`. Ordinary direct and relationship cases permit at most four `moldea` calls and 262,144 `moldea`-output bytes. The dedicated large-context case permits at most 16 calls and 1,048,576 output bytes while still requiring paginated, purpose-bounded traversal. The evaluation host separately enforces its absolute command, output, and token containment ceilings.
 
 When pre-adoption abstention consumes the complete request, the actor reports only a neutral repository outcome such as `No files were changed.` It does not name `moldea`, describe an unavailable operation or result, or recommend initialization.
 

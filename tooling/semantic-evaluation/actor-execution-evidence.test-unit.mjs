@@ -511,7 +511,7 @@ test('rejects obsolete and malformed launcher command forms', () => {
   }
 });
 
-test('enforces abstention and relationship ordering', () => {
+test('enforces activation-specific moldea operation ordering', () => {
   const empty = createMoldeaResourceEvidence([], OPTIONS);
   assert.equal(
     hasPassingMoldeaResourceBudget(empty, {
@@ -541,6 +541,48 @@ test('enforces abstention and relationship ordering', () => {
         activation: 'relationship',
         minimumMoldeaCommands: 1,
         maximumMoldeaCommands: 4,
+        maximumMoldeaOutputBytes: 262_144,
+      },
+    ),
+    false,
+  );
+  assert.equal(
+    hasPassingMoldeaResourceBudget(
+      {
+        commandCount: 2,
+        maximumInvocationByteCount: 3_037,
+        modelVisibleToolOutputByteCount: 3_513,
+        operations: ['scope', 'content'],
+        stdoutByteCount: 3_513,
+      },
+      {
+        activation: 'direct',
+        minimumMoldeaCommands: 1,
+        maximumMoldeaCommands: 4,
+        maximumMoldeaOutputBytes: 262_144,
+      },
+    ),
+    true,
+  );
+  assert.equal(
+    hasPassingMoldeaResourceBudget(
+      { ...empty, commandCount: 1, operations: ['validate'] },
+      {
+        activation: 'direct',
+        minimumMoldeaCommands: 1,
+        maximumMoldeaCommands: 4,
+        maximumMoldeaOutputBytes: 262_144,
+      },
+    ),
+    true,
+  );
+  assert.equal(
+    hasPassingMoldeaResourceBudget(
+      { ...empty, commandCount: 1, operations: ['scope'] },
+      {
+        activation: 'blocked',
+        minimumMoldeaCommands: 0,
+        maximumMoldeaCommands: 1,
         maximumMoldeaOutputBytes: 262_144,
       },
     ),

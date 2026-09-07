@@ -353,7 +353,10 @@ describe('portable skill contract', () => {
     assert.match(skill, /leaving at most three CLI calls/u);
     assert.match(skill, /direct request supplies moldea intent, not a canonical owner/u);
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
-    assert.match(skill, /“the current change,” “the current changes,”.*has one mandatory route/u);
+    assert.match(
+      skill,
+      /direct review or evaluation of “the current change,” “the current changes,”.*has one mandatory route/u,
+    );
     assert.match(skill, /retain every staged, unstaged, untracked/u);
     assert.match(skill, /leading-slash repository-logical form/u);
     assert.match(skill, /complete normalized set to the full relationship gate/u);
@@ -364,7 +367,7 @@ describe('portable skill contract', () => {
       /Do not stop after inventorying paths or conclude from the host review alone/u,
     );
     assert.match(skill, /does not reactivate moldea after an implicit unrelated-task gate miss/u);
-    assert.match(skill, /Before any ordinary-path write, run the full relationship gate/u);
+    assert.match(skill, /Gate every developer-named path before the host reads, edits, tests/u);
     assert.match(skill, /bind the coherent change set before writing/u);
     assert.match(skill, /complete independent host work as if the skill were absent/u);
     assert.match(skill, /use the full relationship gate below instead of the adoption-only gate/u);

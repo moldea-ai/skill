@@ -2340,6 +2340,20 @@ const validateSemanticCandidateReuseContexts = (candidate, caseDefinitions, case
   }
 };
 
+/** Compares source content while allowing candidate-local provenance rebinding. */
+export const hasMatchingSemanticReusedSourceTrial = (sourceTrial, reusedTrial) => {
+  if (!sourceTrial) return false;
+  const sourceContent = Object.fromEntries(
+    Object.keys(sourceTrial)
+      .filter((key) => !['executionOrigin', 'stageReuse'].includes(key))
+      .map((key) => [key, sourceTrial[key]]),
+  );
+  const reusedContent = Object.fromEntries(
+    Object.keys(sourceContent).map((key) => [key, reusedTrial[key]]),
+  );
+  return JSON.stringify(sourceContent) === JSON.stringify(reusedContent);
+};
+
 /** Revalidates every reused trial against its exact passing committed source evidence. */
 const validateSemanticCandidateReuseSources = async (candidate) => {
   const sources = await loadSemanticReuseSources();
@@ -2364,11 +2378,7 @@ const validateSemanticCandidateReuseSources = async (candidate) => {
             ({ confirmationIndex, id }) =>
               id === trial.id && confirmationIndex === sourceIdentity.trial.confirmationIndex,
           );
-    if (
-      !sourceTrial ||
-      JSON.stringify(sourceTrial) !==
-        JSON.stringify(Object.fromEntries(Object.keys(sourceTrial).map((key) => [key, trial[key]])))
-    ) {
+    if (!hasMatchingSemanticReusedSourceTrial(sourceTrial, trial)) {
       throw new Error(`Semantic reused trial no longer matches its source for ${trial.id}.`);
     }
   }

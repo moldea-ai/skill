@@ -21,6 +21,7 @@ import {
   createSemanticEvaluationCostEstimate,
   getNextSemanticTrial,
   getSemanticCandidatePaidTokenCount,
+  hasMatchingSemanticReusedSourceTrial,
   isSemanticActiveTrialOperationallyStopped,
   parseSemanticEvaluationArguments,
   parseSemanticEvaluationHostOutput,
@@ -687,6 +688,40 @@ test('reserves the absolute next-stage maximum without double-counting cached in
       ],
     }),
     165 + absoluteStageMaximum,
+  );
+});
+
+test('rebinds reuse provenance without accepting changed source content', () => {
+  const sourceTrial = {
+    actorResponse: 'Use the canonical project context.',
+    executionOrigin: 'executed',
+    passed: true,
+    stageReuse: null,
+  };
+  const reusedTrial = {
+    ...sourceTrial,
+    executionOrigin: 'reused',
+    stageReuse: { actor: { source: 'immediate-attempt' } },
+  };
+
+  assert.equal(hasMatchingSemanticReusedSourceTrial(sourceTrial, reusedTrial), true);
+  assert.equal(
+    hasMatchingSemanticReusedSourceTrial(
+      {
+        ...sourceTrial,
+        executionOrigin: 'reused',
+        stageReuse: { actor: { source: 'original-attempt' } },
+      },
+      reusedTrial,
+    ),
+    true,
+  );
+  assert.equal(
+    hasMatchingSemanticReusedSourceTrial(sourceTrial, {
+      ...reusedTrial,
+      actorResponse: 'Changed behavior.',
+    }),
+    false,
   );
 });
 

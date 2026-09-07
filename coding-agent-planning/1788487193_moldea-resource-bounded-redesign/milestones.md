@@ -81,12 +81,13 @@ Use the published convergence runner to obtain and publish one complete 74-case 
 - Synchronize the website replay validator and presentation with the evaluator's existing content-free `node-test-summary` fact so the checkpoint remains renderable without exposing raw commands or output.
 - Start one collect-first official recording using every eligible exact committed source and execute only paid misses, one model-bearing process at a time.
 - Resume the exact candidate after operational interruption and stop at the candidate token boundary without silently expanding it.
+- Permit a reused trial to become an exact source for later reuse by rebinding only `executionOrigin` and `stageReuse` to its immediate committed source, comparing every substantive field exactly, and validating each provenance hop independently.
 - Record one complete attempt without editing the skill, cases, fixtures, criteria, prompts, evaluator projection, CLI closure, host contract, or resource profile during collection.
 - Classify every failure as a product/skill defect, evaluator or rubric defect, fixture contradiction, resource-accounting defect, operational failure, or model variance.
 
 ### Verification and acceptance criteria
 
-- Unit-test persistence before the terminal exception, exact failure charging, refusal of ordinary resume, one-attempt explicit resume, repeated-stop behavior, parser exclusivity, and safe website presentation of repository test summaries. Keep qualification callers compatible with the shared optional exhaustion callback.
+- Unit-test persistence before the terminal exception, exact failure charging, refusal of ordinary resume, one-attempt explicit resume, repeated-stop behavior, parser exclusivity, first- and second-generation provenance rebinding, substantive-content mismatch rejection, and safe website presentation of repository test summaries. Keep qualification callers compatible with the shared optional exhaustion callback.
 - Review and publish the correction plus checkpoint attempt before restarting paid execution. Preflight must then reuse all 33 passing groups from the checkpoint and reject its four failed and 37 pending groups.
 - Verify exact source provenance, direct/reused counts, all 74 resolutions, resource evidence, repository controls, lowercase naming, and passing-only promotion.
 - No case remains pending, no model process remains, and the portable-skill digest remains unchanged; otherwise a genuine operational/token stop retains an exact resumable checkpoint.

@@ -324,13 +324,16 @@ describe('portable skill contract', () => {
     }
     assert.match(skill, /Never read every reference by default/u);
     assert.match(skill, /read only what the selected operation needs/u);
-    assert.match(skill, /Before the first moldea action for ordinary host work/u);
-    assert.match(skill, /deduplicated union of developer-named/u);
+    assert.match(
+      skill,
+      /Before the host reads, edits, tests, or completes a developer-named path/u,
+    );
+    assert.match(skill, /complete deduplicated leading-slash repository-logical set/u);
     assert.match(skill, /named paths may be changed or unchanged/u);
     assert.match(skill, /host-established changed paths/u);
     assert.match(
       skill,
-      /never run Git or broaden repository inspection solely to discover gate paths/u,
+      /Never run Git or broaden repository inspection solely to discover gate paths/u,
     );
     assert.doesNotMatch(
       skill,
@@ -353,8 +356,8 @@ describe('portable skill contract', () => {
     assert.match(skill, /leaving at most three CLI calls/u);
     assert.match(skill, /direct request supplies moldea intent, not a canonical owner/u);
     assert.match(skill, /root-relative `moldea\/\*\*` or repository-logical/u);
-    assert.match(skill, /Before the first moldea action for ordinary host work, normalize/u);
-    assert.match(skill, /Retain that exact set for the full gate and `scope`/u);
+    assert.match(skill, /form and retain the complete deduplicated/u);
+    assert.match(skill, /pass that same set to one `scope`/u);
     assert.match(
       skill,
       /review or evaluation of “the current change,” “the current changes,”.*is incomplete/iu,
@@ -369,8 +372,9 @@ describe('portable skill contract', () => {
     assert.match(skill, /report the complete path scope, canonical assessment/iu);
     assert.match(skill, /Never conclude from the host review alone/u);
     assert.match(skill, /reactivate moldea after a prior unrelated-task gate miss/u);
-    assert.match(skill, /Gate every developer-named path before the host reads, edits, tests/u);
-    assert.match(skill, /bind the coherent change set before writing/u);
+    assert.match(skill, /Run the full gate once\. On exact `1`/u);
+    assert.match(skill, /load every matched owner, and bind the coherent change before writing/u);
+    assert.match(skill, /On `0` or failure, continue the host task without moldea/u);
     assert.match(skill, /complete independent host work as if the skill were absent/u);
     assert.match(skill, /use the full relationship gate below instead of the adoption-only gate/u);
     assert.match(skill, /After `1`, pass the exact same set/u);
@@ -634,6 +638,7 @@ describe('portable skill contract', () => {
     assert.match(skill, /preempts foundation analysis/u);
     assert.match(skill, /attempt the closed launcher's content-free `composition` operation/u);
     assert.match(skill, /With ordinary paths only, run the full relationship gate/u);
+    assert.match(skill, /route-owned normalized set/u);
     assert.match(skill, /conclude from the host review alone/u);
     assert.match(skill, /an independently verified installed exact local CLI is unavailable/u);
     assert.doesNotMatch(skill, /supplied evidence already establishes/u);

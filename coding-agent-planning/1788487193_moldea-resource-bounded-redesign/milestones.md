@@ -2,102 +2,102 @@
 
 ## Completed foundation
 
-Milestones 1 through 45 are complete and published. They established the clean Repository 2, repository-fs 2, Core 3, CLI 7/schema 4, adapter major generation, bounded GitHub fixtures and PR Assurance contracts, repository-bound skill activation, content-free CLI operations, exact semantic-stage reuse, clean 74-case coverage, understandable evidence pages, calibrated resource controls, the evidence-pin release path, permanent collect-first semantic and adapter workflows, and the corrections through the post-Milestone-44 residual. Milestone 45 is published at signed commit `e2884cf09e07857c96c3abfd3e6c1c692ce9191c`. Its complete deterministic verification passed, and the exact two-case sequential diagnostic sweep established a one-pass/one-failure residual ledger without retry or evidence write.
+Milestones 1 through 46 are complete and published. They established the clean Repository 2, repository-fs 2, Core 3, CLI 7/schema 4, adapter major generation, bounded GitHub fixtures and PR Assurance contracts, repository-bound skill activation, content-free CLI operations, exact semantic-stage reuse, clean 74-case coverage, understandable evidence pages, calibrated resource controls, the evidence-pin release path, permanent collect-first semantic and adapter workflows, and every correction through the ordinary-path normalization handoff. Milestone 46 is published at signed commit `e3bad8c61a9570ccbf2f4087a8c9f3aa88c2a0bc`. Its complete deterministic verification passed, and the exact residual diagnostic established the route-completion defect in `plan.md` problem 77 without retry or evidence write.
 
-## Milestone 46: Normalize ordinary paths before gate and scope
+## Milestone 47: Make the generic relationship route self-contained
 
 ### Objective
 
-Publish one compact correction for the remaining ordinary-path normalization defect established by `unresolved-related-file-changed`.
+Publish one compact correction that makes owner binding an unavoidable pre-write completion condition for generic ordinary-path work.
 
 ### Dependencies
 
-- Published Milestone 45.
-- The exact one-pass/one-failure diagnostic ledger in `plan.md` problem 76.
-- The model-free proof that the gate accepts a HEAD-relative path, relative `scope` fails, and leading-slash `scope` resolves both owners.
+- Published Milestone 46.
+- The exact residual diagnostic and model-free boundary proof in `plan.md` problem 77.
 - Immutable evidence-store hash `a30d5775a55347b0186d6964f03fa2b69456fe375569a48be8a84c42bf63cd71`.
 
 ### Scope
 
 - `moldea/SKILL.md`
-- `docs/coding-agent-compatibility.md`
-- Focused portable-skill and relationship-fixture integration assertions
+- `docs/coding-agent-compatibility.md` only where the route-order contract is directly described
+- Focused portable-skill conformance assertions
 - Current `plan.md` and this breakdown
+- The existing relationship-fixture integration as a read-only executable contract
 - Semantic cases, prompts, fixtures, criteria, budgets, evaluator, evidence, repository controls, privacy boundaries, and resource ceilings as read-only verification inputs
 
 ### Implementation work
 
-1. Preserve `direct-canonical-relevance`, every earlier passing diagnostic, all official attempts, and the latest pointer exactly.
-2. Replace the existing ordinary-path input sentence so the actor constructs one deduplicated leading-slash repository-logical set before the full gate and retains that exact set for both the gate and `scope`.
-3. Keep the gate content-free and two bytes; do not make it return normalized paths or change the CLI's repository-logical input contract.
-4. Synchronize the public coding-agent compatibility documentation with the same path handoff.
-5. Update focused conformance assertions and the existing relationship-fixture integration so both operations consume the exact normalized set.
-6. Keep `moldea/SKILL.md` at or below 2,560 words without adding another route or changing any semantic behavior input.
+1. Preserve every earlier passing diagnostic, all official attempts, and the latest pointer exactly.
+2. Replace the generic every-other-task route with one self-contained sequence that normalizes the complete known path set, runs the full gate, passes the same set to one `scope`, loads every matched owner, and binds the coherent change before any host write.
+3. Keep exact `0`, malformed output, or failure as immediate silent return to host-only work; do not turn the gate into a path transformer or content reader.
+4. Rewrite the later ordinary-path paragraph as syntax, validation, and fail-closed semantics for the route-owned normalized set rather than a second ordering narrative.
+5. Synchronize only directly affected public compatibility wording and static conformance assertions.
+6. Keep `moldea/SKILL.md` at or below 2,560 words without adding a parallel route or changing any semantic input.
 
 ### Verification
 
-- Run focused portable-skill unit tests and the relationship fixture integration test first.
+- Run focused portable-skill unit tests and the existing relationship-fixture integration first.
 - Run the complete root unit and integration suites, documentation, path, resource, release-identity, semantic-attempt integrity, formatting, and installed-skill validation checks.
 - Run the complete website unit, type, lint, format, build, and artifact-integration boundary because public skill behavior changes.
-- Verify all 26 semantic evidence-store files retain the exact pre-milestone aggregate hash.
+- Verify all semantic evidence-store files retain the exact pre-milestone aggregate hash.
 - Perform read-only `review`, correct only in-scope findings, repeat until ready, then create one signed and signed-off commit and push explicitly to `origin/new_skill`.
 
 ### Acceptance criteria
 
-- Generic ordinary-path work constructs one normalized set before activation and sends the same bytes to the full gate and `scope`.
-- The two-byte gate and CLI contracts remain unchanged.
-- The root skill remains at or below 2,560 words and gains no parallel route.
-- Semantic cases, prompts, fixtures, criteria, activation labels, budgets, evaluator behavior, evidence schemas, repository controls, privacy boundaries, and resource ceilings remain unchanged.
+- The precedence route itself contains the full normalize, gate, same-set scope, owner-load, and bind-before-write sequence.
+- The later gate section cannot be read as an alternate ordering path.
+- The two-byte gate, CLI path contract, root word ceiling, and semantic contracts remain unchanged.
+- No official attempt, diagnostic result, repository control, or evidence pointer changes.
 
 ### Review checkpoint
 
-Inspect the exact normalized input handoff, confirm no duplicate route or transformation channel exists, and prove official evidence plus the passing diagnostic remained untouched.
+Inspect the route as a standalone execution contract, confirm no duplicate route or transformation channel exists, and prove the published evidence state stayed byte-identical.
 
-## Milestone 47: Prove the final correction and record all 74 scenarios
+## Milestone 48: Prove the final correction and record all 74 scenarios
 
 ### Objective
 
-Pass the one remaining residual case while preserving the earlier targeted pass, then create one complete official current 74-case semantic attempt.
+Pass the one remaining residual case, then create one complete official current 74-case semantic attempt.
 
 ### Dependencies
 
-- Published Milestone 46.
-- The exact failed-case list in `plan.md` problem 76.
+- Published Milestone 47.
+- The exact failed-case record in `plan.md` problem 77.
 - Unchanged semantic protocol, evaluator, repository controls, privacy rules, and absolute resource ceilings.
 
 ### Scope
 
-- One non-recording diagnostic run for the exact remaining residual case ID
-- Residual plan and correction only if the complete targeted sweep exposes another material defect
+- One non-recording diagnostic run for `unresolved-related-file-changed`
+- Residual plan and correction only if that complete targeted result exposes another material defect
 - One final `npm run eval:semantic -- --record --restart` execution after the targeted gate is green
 - Its immutable attempt, latest pointer, ignored checkpoint lifecycle, and directly derived website/release state
 
 ### Implementation work
 
-1. Run only `unresolved-related-file-changed` with compact diagnostic output and one model-bearing process at a time. Preserve the earlier passing `direct-canonical-relevance` result as diagnostic history.
-2. If the case fails, revise and challenge the current plan from the complete residual evidence, regenerate this breakdown, correct the established cause, and rerun only failed or identity-invalidated cases.
+1. Run only `unresolved-related-file-changed` with compact diagnostic output and one model-bearing process at a time.
+2. If it fails, preserve the result, revise and challenge the current plan from its complete evidence, regenerate this breakdown, and rerun only failed or identity-invalidated work after the correction is published.
 3. Once it passes, run semantic preflight and confirm the exact 74-case paid-stage, resource-profile, privacy, repository-control, and zero predecessor-suite-reuse boundary.
 4. Start one official recording with `--record --restart`, preserve stage checkpoints safely, and record an official attempt only after a valid terminal state.
 5. Update only current active result state. Never restore an 18-case artifact, compatibility route, diagnostic-as-evidence path, or false passing pointer.
 
 ### Verification
 
-- Confirm targeted diagnostics create no attempt, pointer, result, or checkpoint changes.
+- Confirm the targeted diagnostic creates no attempt, pointer, result, or checkpoint change.
 - Verify the official attempt, 74/74 current coverage, lowercase output, command policy, privacy, resources, provenance, interruption recovery, and immutable hashes.
 - Run affected root and website correctness tests, typechecking, linting, formatting, builds, and release-identity checks.
 - Review and publish the exact evidence state through a signed and signed-off commit.
 
 ### Acceptance criteria
 
-- Both targeted cases pass before official recording starts.
+- The targeted case removes only the satisfied provider-support condition and retains the unresolved integration-coverage condition.
 - One complete current attempt passes all 74 scenarios and every deterministic, semantic, privacy, resource, and repository-control contract.
 - Public loading exposes only truthful current-generation assurance and immutable historical attempts.
 
 ### Review checkpoint
 
-Verify the diagnostic ledger has no omitted, duplicated, or prematurely retried case; no diagnostic was promoted; no partial attempt appears passing; and every public count and provenance field resolves to the immutable current attempt.
+Verify no diagnostic was promoted, no partial attempt appears passing, and every public count and provenance field resolves to the immutable current attempt.
 
-## Milestone 48: Re-establish the Custom qualification baseline
+## Milestone 49: Re-establish the Custom qualification baseline
 
 ### Objective
 
@@ -105,7 +105,7 @@ Create one exact-current Custom qualification baseline before spending on adapte
 
 ### Dependencies
 
-- Published passing semantic evidence from Milestone 47.
+- Published passing semantic evidence from Milestone 48.
 - Final portable skill, CLI closure, qualification protocol, and resource profiles.
 
 ### Scope
@@ -138,7 +138,7 @@ Create one exact-current Custom qualification baseline before spending on adapte
 
 Inspect identity reuse, failed-attempt preservation, command/output peaks, and the absence of duplicate universal behavior in adapter-specific profiles.
 
-## Milestone 49: Qualify every adapter with one collect-first sweep
+## Milestone 50: Qualify every adapter with one collect-first sweep
 
 ### Objective
 
@@ -146,7 +146,7 @@ Produce exact-current passing evidence for every adapter profile without repeate
 
 ### Dependencies
 
-- Published Custom baseline from Milestone 48.
+- Published Custom baseline from Milestone 49.
 - Final registry-published adapter/package generations and profile index.
 
 ### Scope
@@ -183,7 +183,7 @@ Produce exact-current passing evidence for every adapter profile without repeate
 
 Inspect the complete failure ledger, targeted rerun selection, exact identity decisions, resource peaks, inherited/direct ownership, and public evidence clarity before release selection.
 
-## Milestone 50: Release the clean skill and complete the cross-repository audit
+## Milestone 51: Release the clean skill and complete the cross-repository audit
 
 ### Objective
 
@@ -229,4 +229,4 @@ Perform the final cross-repository contradiction, secret, signature, branch, reg
 
 ## Execution scope
 
-Complete Milestones 46 through 50 sequentially. First publish one compact correction for the generic ordinary-path normalization handoff without changing semantic cases, prompts, criteria, activation labels, budgets, fixtures, evaluators, evidence schemas, repository controls, privacy boundaries, resource ceilings, or the already passing diagnostic. Rerun only the one residual case, collect any later residual before another edit, and create one official 74-case recording only after the targeted gate passes. Re-establish Custom, qualify every adapter through the documented sequential collect-first funnel, finish the complete cross-profile failure ledger before shared fixes, and rerun only failed or exact-identity-invalidated work. Select fresh release evidence, publish clean skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and finish the active cross-repository audit. Preserve failed evidence, unrelated concurrent work, protected coding instructions, exact identity, and one-model-process execution throughout.
+Complete Milestones 47 through 51 sequentially. First publish one compact correction that makes the generic relationship route's normalize, gate, scope, owner-load, and bind-before-write sequence self-contained without changing semantic cases, prompts, criteria, activation labels, budgets, fixtures, evaluators, evidence schemas, repository controls, privacy boundaries, resource ceilings, or earlier passing diagnostics. Rerun only the one residual case, collect any later residual before another edit, and create one official 74-case recording only after the targeted gate passes. Re-establish Custom, qualify every adapter through the documented sequential collect-first funnel, finish the complete cross-profile failure ledger before shared fixes, and rerun only failed or exact-identity-invalidated work. Select fresh release evidence, publish clean skill 5.0.0, remove authorized obsolete 4.0.x release surfaces, and finish the active cross-repository audit. Preserve failed evidence, unrelated concurrent work, protected coding instructions, exact identity, and one-model-process execution throughout.
